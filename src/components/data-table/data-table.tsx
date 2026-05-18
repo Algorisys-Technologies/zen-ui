@@ -356,6 +356,20 @@ export interface DataTableProps<TData, TValue = unknown> {
   initialColumnPinning?: ColumnPinningState;
   onColumnPinningChange?: (state: ColumnPinningState) => void;
 
+  /**
+   * Brand intensity of the column-header row.
+   *
+   *   - "plain"     (default) — neutral grey chrome, brand color shows up
+   *                  only on selected rows / filter chips / focus rings.
+   *                  Best when the table coexists with other UI on a page.
+   *   - "underline" — adds a 2-px primary underline under the header row.
+   *                   Light touch; still reads as a data table, not a hero.
+   *   - "branded"   — header band filled with primary-soft + dark-primary
+   *                   label text. For tables that are the focal point of a
+   *                   page (dashboards, single-resource lists).
+   */
+  headerVariant?: "plain" | "underline" | "branded";
+
   /* layout / messages */
   pageSize?: number;
   pageSizeOptions?: number[];
@@ -434,6 +448,7 @@ export function DataTable<TData, TValue = unknown>({
   initialColumnPinning,
   onColumnPinningChange,
   onCellEdit,
+  headerVariant = "plain",
 
   pageSize = 10,
   pageSizeOptions = [10, 20, 50, 100],
@@ -942,26 +957,68 @@ export function DataTable<TData, TValue = unknown>({
     onColumnOrderChange?.(next);
   };
 
+  /* headerVariant — brand intensity of the column-header row. Composed
+   * with `stickyRowClass` below so the variant survives pinning.
+   *   plain     → just the default muted-fg header text (no extras)
+   *   underline → 2-px primary underline beneath the row group
+   *   branded   → primary-soft fill + primary-soft-fg label text */
+  const headerVariantRowClass =
+    headerVariant === "branded"
+      ? "bg-zen-primary-soft [&>th]:text-zen-primary-soft-fg [&>th]:font-semibold"
+      : "";
+  /* underline is applied to the <thead> wrapper so it sits below *all*
+   * header rows (main row + filter row) as one band edge. */
+  const headerVariantThClass =
+    headerVariant === "underline"
+      ? "[&_tr:last-child]:border-b-2 [&_tr:last-child]:border-zen-primary"
+      : "";
+  /* CSS var that pinned/sticky header cells read for their background
+   * (see HeaderCell + filter-row inline style). Falls back to the page
+   * background for plain/underline, switches to primary-soft for branded
+   * so the band stays consistent when the header is sticky. */
+  const headerStickyBg =
+    headerVariant === "branded"
+      ? "var(--zen-color-primary-soft)"
+      : "var(--zen-color-background)";
+
   /* Per-row className used by every TableRow in TableHeader. When the
    * header is pinned to the top of the scroll viewport we lift it via
-   * `sticky top-0 z-10`; a background is set on the row + cells so body
-   * content doesn't bleed through. */
+   * `sticky top-0 z-10`. The branded variant carries its own background;
+   * otherwise we paint with bg-zen-background so body content doesn't
+   * bleed through. */
   const stickyRowClass = stickyHeaderActive
-    ? "sticky top-0 z-10 bg-zen-background"
+    ? headerVariant === "branded"
+      ? "sticky top-0 z-10"
+      : "sticky top-0 z-10 bg-zen-background"
     : "";
 
+  /* Header-only pin style — same offsets as the body pinStyle but with
+   * the variant-aware background, so pinned header cells don't paint
+   * white squares over the branded band. */
+  const headerPinStyle = (
+    column: Column<TData, unknown>,
+  ): React.CSSProperties | undefined => {
+    const ps = pinStyle(column);
+    if (!ps) return undefined;
+    return { ...ps, background: headerStickyBg };
+  };
+
   const headerRows = (
-    <TableHeader>
+    <TableHeader className={headerVariantThClass}>
       {table.getHeaderGroups().map((hg) => (
-        <TableRow key={hg.id} className={cn(sepHeadClass, stickyRowClass)}>
+        <TableRow
+          key={hg.id}
+          className={cn(sepHeadClass, stickyRowClass, headerVariantRowClass)}
+        >
           {hg.headers.map((header) => (
             <HeaderCell
               key={header.id}
               header={header}
               enableColumnResizing={enableColumnResizing}
               enableColumnOrdering={enableColumnOrdering}
-              pinStyle={pinStyle(header.column)}
+              pinStyle={headerPinStyle(header.column)}
               stickyHeader={stickyHeaderActive}
+              stickyBg={headerStickyBg}
             />
           ))}
         </TableRow>
@@ -970,11 +1027,11 @@ export function DataTable<TData, TValue = unknown>({
         table.getHeaderGroups().map((hg) => (
           <TableRow
             key={`${hg.id}-filter`}
-            className={cn(sepHeadClass, stickyRowClass)}
+            className={cn(sepHeadClass, stickyRowClass, headerVariantRowClass)}
             style={stickyHeaderActive ? { top: "var(--zen-dt-header-h, 40px)" } : undefined}
           >
             {hg.headers.map((header) => {
-              const pin = pinStyle(header.column);
+              const pin = headerPinStyle(header.column);
               return (
                 <TableHead
                   key={`${header.id}-filter`}
@@ -983,7 +1040,7 @@ export function DataTable<TData, TValue = unknown>({
                     pin
                       ? { ...pin, zIndex: stickyHeaderActive ? 11 : 1 }
                       : stickyHeaderActive
-                      ? { background: "var(--zen-color-background)" }
+                      ? { background: headerStickyBg }
                       : undefined
                   }
                 >
@@ -1190,6 +1247,7 @@ export function DataTable<TData, TValue = unknown>({
             onCommitEdit={commitEdit}
             onCancelEdit={cancelEdit}
             rowClassName={rowClassName}
+            headerVariant={headerVariant}
           />
         ) : rowOrderingActive ? (
           <DndContext
@@ -1919,12 +1977,15 @@ function HeaderCell<TData, TValue>({
   enableColumnOrdering,
   pinStyle,
   stickyHeader,
+  stickyBg,
 }: {
   header: import("@tanstack/react-table").Header<TData, TValue>;
   enableColumnResizing?: boolean;
   enableColumnOrdering?: boolean;
   pinStyle?: React.CSSProperties;
   stickyHeader?: boolean;
+  /** Variant-aware bg for sticky header cells (page bg or primary-soft). */
+  stickyBg?: string;
 }) {
   if (header.isPlaceholder) return <TableHead />;
   const canSort = header.column.getCanSort();
@@ -1999,7 +2060,7 @@ function HeaderCell<TData, TValue>({
     ...(pinStyle ?? {}),
     ...(pinStyle ? { zIndex: stickyHeader ? 11 : 1 } : {}),
     ...(stickyHeader && !pinStyle
-      ? { background: "var(--zen-color-background)" }
+      ? { background: stickyBg ?? "var(--zen-color-background)" }
       : {}),
   };
 
@@ -2125,6 +2186,7 @@ function VirtualizedBody<TData>({
   onCommitEdit,
   onCancelEdit,
   rowClassName,
+  headerVariant,
 }: {
   table: TanStackTable<TData>;
   maxHeight: number;
@@ -2143,7 +2205,16 @@ function VirtualizedBody<TData>({
   onCommitEdit: (rowId: string, columnId: string, value: unknown) => void;
   onCancelEdit: () => void;
   rowClassName?: (row: Row<TData>) => string | undefined;
+  headerVariant: "plain" | "underline" | "branded";
 }) {
+  /* Same brand-intensity machinery as the HTML-table path. The wrapper
+   * <div> below paints headerStickyBg as a band; pinned + filter cells
+   * inherit it via headerPinStyle so they don't repaint white over
+   * the band when the variant is "branded". */
+  const headerStickyBg =
+    headerVariant === "branded"
+      ? "var(--zen-color-primary-soft)"
+      : "var(--zen-color-background)";
   /* Same pin-style algorithm as the HTML-table path. Sticky offsets read
    * from TanStack's column.getStart('left') / getAfter('right'). In
    * virtualized mode the absolute-positioned row is also the sticky
@@ -2171,6 +2242,19 @@ function VirtualizedBody<TData>({
     },
     [enableColumnPinning],
   );
+
+  /* Header-only pin style — overrides the body pinStyle's white bg with
+   * the variant-aware band color so pinned header cells don't appear as
+   * white squares over the "branded" primary-soft strip. */
+  const headerPinStyle = React.useCallback(
+    (column: Column<TData, unknown>): React.CSSProperties | undefined => {
+      const ps = pinStyle(column);
+      if (!ps) return undefined;
+      return { ...ps, background: headerStickyBg };
+    },
+    [pinStyle, headerStickyBg],
+  );
+
   const parentRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;
   const virtualizer = useVirtualizer({
@@ -2223,8 +2307,11 @@ function VirtualizedBody<TData>({
           position: "sticky",
           top: 0,
           zIndex: 1,
-          background: "var(--zen-color-background)",
-          borderBottom: "1px solid var(--zen-color-border)",
+          background: headerStickyBg,
+          borderBottom:
+            headerVariant === "underline"
+              ? "2px solid var(--zen-color-primary)"
+              : "1px solid var(--zen-color-border)",
         }}
       >
         {(enableColumnOrdering ? (
@@ -2247,8 +2334,9 @@ function VirtualizedBody<TData>({
                     <VirtSortableHeaderCell
                       key={header.id}
                       header={header}
-                      pinStyle={pinStyle(header.column)}
+                      pinStyle={headerPinStyle(header.column)}
                       enableColumnResizing={enableColumnResizing}
+                      branded={headerVariant === "branded"}
                     />
                   ))}
                 </div>
@@ -2266,8 +2354,9 @@ function VirtualizedBody<TData>({
                 <VirtHeaderCell
                   key={header.id}
                   header={header}
-                  pinStyle={pinStyle(header.column)}
+                  pinStyle={headerPinStyle(header.column)}
                   enableColumnResizing={enableColumnResizing}
+                  branded={headerVariant === "branded"}
                 />
               ))}
             </div>
@@ -2290,14 +2379,14 @@ function VirtualizedBody<TData>({
               }}
             >
               {hg.headers.map((header) => {
-                const pin = pinStyle(header.column);
+                const pin = headerPinStyle(header.column);
                 return (
                   <div
                     key={`${header.id}-filter`}
                     style={{
                       padding: "0.4rem 0.5rem",
                       minWidth: 0,
-                      background: "var(--zen-color-background)",
+                      background: headerStickyBg,
                       ...(pin ?? {}),
                       ...(pin ? { zIndex: 2 } : {}),
                     }}
@@ -2472,10 +2561,12 @@ function VirtHeaderCell<TData, TValue>({
   header,
   pinStyle,
   enableColumnResizing,
+  branded,
 }: {
   header: import("@tanstack/react-table").Header<TData, TValue>;
   pinStyle?: React.CSSProperties;
   enableColumnResizing?: boolean;
+  branded?: boolean;
 }) {
   const canSort = header.column.getCanSort();
   const sorted = header.column.getIsSorted();
@@ -2491,7 +2582,10 @@ function VirtHeaderCell<TData, TValue>({
           : undefined
       }
       className={cn(
-        "text-sm font-medium text-zen-muted-fg flex items-center transition-colors relative",
+        "text-sm flex items-center transition-colors relative",
+        branded
+          ? "font-semibold text-zen-primary-soft-fg"
+          : "font-medium text-zen-muted-fg",
         canSort && "hover:bg-zen-muted",
         "data-[active=true]:bg-zen-primary-soft data-[active=true]:text-zen-primary-soft-fg",
       )}
@@ -2516,10 +2610,12 @@ function VirtSortableHeaderCell<TData, TValue>({
   header,
   pinStyle,
   enableColumnResizing,
+  branded,
 }: {
   header: import("@tanstack/react-table").Header<TData, TValue>;
   pinStyle?: React.CSSProperties;
   enableColumnResizing?: boolean;
+  branded?: boolean;
 }) {
   const {
     setNodeRef,
@@ -2548,7 +2644,10 @@ function VirtSortableHeaderCell<TData, TValue>({
           : undefined
       }
       className={cn(
-        "text-sm font-medium text-zen-muted-fg flex items-center transition-colors relative",
+        "text-sm flex items-center transition-colors relative",
+        branded
+          ? "font-semibold text-zen-primary-soft-fg"
+          : "font-medium text-zen-muted-fg",
         canSort && "hover:bg-zen-muted",
         "data-[active=true]:bg-zen-primary-soft data-[active=true]:text-zen-primary-soft-fg",
       )}

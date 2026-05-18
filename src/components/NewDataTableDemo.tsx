@@ -224,6 +224,38 @@ const NewDataTableDemo: React.FC = () => {
       </p>
 
       <section className="demo-section">
+        <h2>0. headerVariant — brand intensity of the column header</h2>
+        <CodeExample
+          title='headerVariant: "plain" (default) | "underline" | "branded"'
+          description="Pick how much brand color shows up in the header. Plain keeps neutral chrome (recommended for tables that share the screen with other content). Underline adds a 2-px primary rule under the header row. Branded fills the band with primary-soft + dark-primary label text — best for tables that anchor a page."
+          code={`<DataTable data={people} columns={columns} />                              // plain
+<DataTable data={people} columns={columns} headerVariant="underline" />
+<DataTable data={people} columns={columns} headerVariant="branded" />`}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <div>
+              <h4 style={{ margin: "0 0 0.4rem 0", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+                plain (default)
+              </h4>
+              <DataTable data={SMALL} columns={columns} />
+            </div>
+            <div>
+              <h4 style={{ margin: "0 0 0.4rem 0", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+                underline
+              </h4>
+              <DataTable data={SMALL} columns={columns} headerVariant="underline" />
+            </div>
+            <div>
+              <h4 style={{ margin: "0 0 0.4rem 0", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+                branded
+              </h4>
+              <DataTable data={SMALL} columns={columns} headerVariant="branded" />
+            </div>
+          </div>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
         <h2>1. Minimal — no toggles</h2>
         <CodeExample
           title="Just data + columns"
