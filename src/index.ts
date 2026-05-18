@@ -56,6 +56,10 @@ export type {
 export { TimePicker } from "./components/form/time-picker/time-picker";
 export type { TimePickerProps } from "./components/form/time-picker/time-picker";
 
+// Form Components - DateTimePicker (Calendar + TimePicker in one Popover)
+export { DateTimePicker } from "./components/form/date-picker/date-time-picker";
+export type { DateTimePickerProps } from "./components/form/date-picker/date-time-picker";
+
 // UI Components - Popover (Radix-backed; standalone primitive)
 export {
   Popover,

@@ -395,8 +395,10 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
 
 - [ ] **Currency input** — NumberField + locale-aware formatting +
       symbol prefix + thousand separators (₹1,00,000 vs $100,000).
-- [ ] **Time picker** + **DateTime picker** — scheduling /
-      appointments.
+- [x] **Time picker** + **DateTime picker** — scheduling /
+      appointments. _Shipped: segmented HH:MM(:SS) input, 12h / 24h,
+      AM/PM, auto-advance + arrow stepping; DateTimePicker composes
+      Calendar + TimePicker in one Popover._
 - [ ] **Country picker** — specialized Combobox with flag + ISO + dial
       code. Often paired with PhoneInput.
 - [ ] **QR scanner** — `getUserMedia` + jsQR. Payments, doc handoff,

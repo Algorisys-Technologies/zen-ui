@@ -42,6 +42,7 @@ const COMPONENTS = [
   { to: "/nps", name: "NPS", description: "Net Promoter Score 0-10 strip with detractor / passive / promoter color buckets" },
   { to: "/likert", name: "Likert", description: "n-point attitudinal scale; segmented + stacked layouts, custom option sets" },
   { to: "/time-picker", name: "TimePicker", description: "Segmented HH:MM(:SS) input, 12h / 24h, AM/PM, auto-advance + arrow stepping" },
+  { to: "/date-time-picker", name: "DateTimePicker", description: "Calendar + TimePicker in one Popover; preserves time-of-day on day changes" },
 ];
 
 const Welcome = () => {
