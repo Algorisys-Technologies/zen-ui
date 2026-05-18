@@ -394,7 +394,59 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section className="demo-section">
-        <h2>15. Everything together</h2>
+        <h2>15. Sticky header</h2>
+        <CodeExample
+          title="stickyHeader pins the <thead> while the body scrolls"
+          description="Body is constrained to maxBodyHeight (default 480 px) so the sticky header has a real scroll context. In virtualized mode the header is already sticky and the prop is a no-op."
+          code={`<DataTable
+  data={medium}
+  columns={columns}
+  enableSorting
+  stickyHeader
+  maxBodyHeight={280}
+/>`}
+        >
+          <DataTable
+            data={MEDIUM}
+            columns={columns}
+            enableSorting
+            stickyHeader
+            maxBodyHeight={280}
+          />
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>16. Column pinning</h2>
+        <CodeExample
+          title="Freeze columns to the left or right edge"
+          description={`enableColumnPinning + initialColumnPinning={{ left, right }}. Pinned cells get a 1-px divider + soft shadow on their inner edge. Combine freely with stickyHeader so the corner cells stay locked in both directions.`}
+          code={`<DataTable
+  data={medium}
+  columns={columns}
+  enableColumnPinning
+  initialColumnPinning={{ left: ["name"], right: ["lastSeen"] }}
+  enableSorting
+  enableColumnResizing
+  stickyHeader
+  maxBodyHeight={280}
+/>`}
+        >
+          <DataTable
+            data={MEDIUM}
+            columns={columns}
+            enableColumnPinning
+            initialColumnPinning={{ left: ["name"], right: ["lastSeen"] }}
+            enableSorting
+            enableColumnResizing
+            stickyHeader
+            maxBodyHeight={280}
+          />
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>17. Everything together</h2>
         <CodeExample
           title="All toggles on, virtualization off (uses pagination instead)"
           code={`<DataTable

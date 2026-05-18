@@ -69,7 +69,14 @@ a global concern.
          callback lets the caller persist the order (e.g. localStorage).
    - [x] `enableColumnResizing` — drag the right edge of any header.
          `columnResizeMode: "onChange"` so the body updates live.
-   - [ ] `enableColumnPinning` — pin a column to the left/right edge.
+   - [x] `enableColumnPinning` — pin columns to the left/right edge.
+         `initialColumnPinning={{ left, right }}` for the common static case;
+         `columnPinning` + `onColumnPinningChange` for controlled. Pinned cells
+         get sticky offsets + a soft inner-edge shadow. Combines with
+         `stickyHeader` for a 2-D freeze. Not wired into virtualized mode.
+   - [x] `stickyHeader` — pin the `<thead>` to the top of the scroll viewport
+         in non-virtualized mode. Body wraps in a `maxBodyHeight` container so
+         sticky has a real scroll context. Virtualized mode already does this.
    - [ ] `enableRowGrouping` / expandable rows.
    - [x] **Per-column filters** — `enablePerColumnFilters` renders an
          Input row under each filterable header; composes with the

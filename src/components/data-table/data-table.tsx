@@ -6,9 +6,11 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  type Column,
   type ColumnDef,
   type ColumnFiltersState,
   type ColumnOrderState,
+  type ColumnPinningState,
   type ColumnSizingState,
   type PaginationState,
   type RowSelectionState,
@@ -157,6 +159,30 @@ export interface DataTableProps<TData, TValue = unknown> {
    */
   enableRowOrdering?: boolean;
   onRowOrderChange?: (orderedIds: string[]) => void;
+  /**
+   * Pin the header row to the top of a scroll viewport. In virtualized mode
+   * the header is already sticky and this prop is ignored. In non-virtualized
+   * mode the body is wrapped in a `maxBodyHeight` scroll container so the
+   * header has something to stick against.
+   */
+  stickyHeader?: boolean;
+  /**
+   * Freeze columns to the left or right edge while the body scrolls
+   * horizontally. Pinned cells get a 1-px divider and a soft shadow on
+   * their inner edge so they read as floating.
+   *
+   *   <DataTable
+   *     enableColumnPinning
+   *     initialColumnPinning={{ left: ["name"], right: ["actions"] }}
+   *   />
+   *
+   * Pass `columnPinning` + `onColumnPinningChange` for controlled mode.
+   * Not supported alongside `enableVirtualization` in this release.
+   */
+  enableColumnPinning?: boolean;
+  columnPinning?: ColumnPinningState;
+  initialColumnPinning?: ColumnPinningState;
+  onColumnPinningChange?: (state: ColumnPinningState) => void;
 
   /* layout / messages */
   pageSize?: number;
@@ -205,6 +231,11 @@ export function DataTable<TData, TValue = unknown>({
   enableExport = false,
   exportFilename = "data-table",
   exportOnlySelected = false,
+  stickyHeader = false,
+  enableColumnPinning = false,
+  columnPinning: columnPinningProp,
+  initialColumnPinning,
+  onColumnPinningChange,
 
   pageSize = 10,
   pageSizeOptions = [10, 20, 50, 100],
@@ -240,6 +271,11 @@ export function DataTable<TData, TValue = unknown>({
   });
   const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([]);
   const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({});
+  const [columnPinningInner, setColumnPinningInner] =
+    React.useState<ColumnPinningState>(
+      initialColumnPinning ?? { left: [], right: [] },
+    );
+  const columnPinning = columnPinningProp ?? columnPinningInner;
 
   const sorting = sortingProp ?? sortingInner;
   const filters = columnFiltersProp ?? filtersInner;
@@ -311,6 +347,7 @@ export function DataTable<TData, TValue = unknown>({
       globalFilter,
       columnOrder,
       columnSizing,
+      columnPinning,
       ...(manualPagination
         ? {
             pagination: {
@@ -328,6 +365,7 @@ export function DataTable<TData, TValue = unknown>({
     enableColumnFilters: enableColumnFilters || enablePerColumnFilters,
     enableColumnResizing,
     columnResizeMode: "onChange",
+    enableColumnPinning,
     manualPagination: !!manualPagination,
     pageCount: manualPagination?.pageCount,
     onColumnOrderChange: (updater) => {
@@ -337,6 +375,12 @@ export function DataTable<TData, TValue = unknown>({
       onColumnOrderChange?.(next);
     },
     onColumnSizingChange: setColumnSizing,
+    onColumnPinningChange: (updater) => {
+      const next =
+        typeof updater === "function" ? updater(columnPinning) : updater;
+      if (columnPinningProp === undefined) setColumnPinningInner(next);
+      onColumnPinningChange?.(next);
+    },
     onSortingChange: (updater) => {
       const next = typeof updater === "function" ? updater(sorting) : updater;
       if (sortingProp === undefined) setSortingInner(next);
@@ -413,6 +457,38 @@ export function DataTable<TData, TValue = unknown>({
     ? "[&>th]:border-r [&>th]:border-zen-border [&>th:last-child]:border-r-0"
     : "";
 
+  /* Pin styling: sticky offsets + soft shadow on the inner edge of the
+   * last/first pinned column so the freeze reads as a floating panel.
+   * Returns `undefined` when pinning isn't on for this column. */
+  const pinStyle = React.useCallback(
+    (column: Column<TData, unknown>): React.CSSProperties | undefined => {
+      if (!enableColumnPinning) return undefined;
+      const pin = column.getIsPinned();
+      if (!pin) return undefined;
+      const isLastLeft = pin === "left" && column.getIsLastColumn("left");
+      const isFirstRight = pin === "right" && column.getIsFirstColumn("right");
+      return {
+        position: "sticky",
+        left: pin === "left" ? `${column.getStart("left")}px` : undefined,
+        right: pin === "right" ? `${column.getAfter("right")}px` : undefined,
+        background: "var(--zen-color-background)",
+        // Body cells: z=1 so they sit above non-pinned cells while scrolling.
+        // Sticky-header cells override to z=11 below.
+        zIndex: 1,
+        boxShadow: isLastLeft
+          ? "inset -1px 0 0 var(--zen-color-border), 4px 0 6px -4px rgba(0,0,0,0.12)"
+          : isFirstRight
+          ? "inset 1px 0 0 var(--zen-color-border), -4px 0 6px -4px rgba(0,0,0,0.12)"
+          : undefined,
+      };
+    },
+    [enableColumnPinning],
+  );
+
+  /* Sticky header is meaningful only outside virtualized mode (the
+   * virtualized body already pins its header). */
+  const stickyHeaderActive = stickyHeader && !enableVirtualization;
+
   /* Effective column IDs in display order, for the horizontal SortableContext */
   const visibleColumnIds = React.useMemo(
     () => table.getVisibleLeafColumns().map((c) => c.id),
@@ -432,46 +508,81 @@ export function DataTable<TData, TValue = unknown>({
     onColumnOrderChange?.(next);
   };
 
+  /* Per-row className used by every TableRow in TableHeader. When the
+   * header is pinned to the top of the scroll viewport we lift it via
+   * `sticky top-0 z-10`; a background is set on the row + cells so body
+   * content doesn't bleed through. */
+  const stickyRowClass = stickyHeaderActive
+    ? "sticky top-0 z-10 bg-zen-background"
+    : "";
+
   const headerRows = (
     <TableHeader>
       {table.getHeaderGroups().map((hg) => (
-        <TableRow key={hg.id} className={sepHeadClass}>
+        <TableRow key={hg.id} className={cn(sepHeadClass, stickyRowClass)}>
           {hg.headers.map((header) => (
             <HeaderCell
               key={header.id}
               header={header}
               enableColumnResizing={enableColumnResizing}
               enableColumnOrdering={enableColumnOrdering}
+              pinStyle={pinStyle(header.column)}
+              stickyHeader={stickyHeaderActive}
             />
           ))}
         </TableRow>
       ))}
       {enablePerColumnFilters &&
         table.getHeaderGroups().map((hg) => (
-          <TableRow key={`${hg.id}-filter`} className={sepHeadClass}>
-            {hg.headers.map((header) => (
-              <TableHead key={`${header.id}-filter`} className="px-2 py-1">
-                {header.column.getCanFilter() &&
-                !header.id.startsWith("__") ? (
-                  <Input
-                    value={(header.column.getFilterValue() as string) ?? ""}
-                    onChange={(e) =>
-                      header.column.setFilterValue(e.target.value)
-                    }
-                    placeholder="Filter…"
-                    aria-label={`Filter ${header.column.id}`}
-                    className="h-7 text-xs"
-                  />
-                ) : null}
-              </TableHead>
-            ))}
+          <TableRow
+            key={`${hg.id}-filter`}
+            className={cn(sepHeadClass, stickyRowClass)}
+            style={stickyHeaderActive ? { top: "var(--zen-dt-header-h, 40px)" } : undefined}
+          >
+            {hg.headers.map((header) => {
+              const pin = pinStyle(header.column);
+              return (
+                <TableHead
+                  key={`${header.id}-filter`}
+                  className="px-2 py-1"
+                  style={
+                    pin
+                      ? { ...pin, zIndex: stickyHeaderActive ? 11 : 1 }
+                      : stickyHeaderActive
+                      ? { background: "var(--zen-color-background)" }
+                      : undefined
+                  }
+                >
+                  {header.column.getCanFilter() &&
+                  !header.id.startsWith("__") ? (
+                    <Input
+                      value={(header.column.getFilterValue() as string) ?? ""}
+                      onChange={(e) =>
+                        header.column.setFilterValue(e.target.value)
+                      }
+                      placeholder="Filter…"
+                      aria-label={`Filter ${header.column.id}`}
+                      className="h-7 text-xs"
+                    />
+                  ) : null}
+                </TableHead>
+              );
+            })}
           </TableRow>
         ))}
     </TableHeader>
   );
 
+  /* When sticky-header is active we shrink the Table's scroll wrapper to
+   * `maxBodyHeight` so the <thead>'s `position: sticky; top: 0` has a
+   * non-trivial scroll context to pin against. Without max-height the
+   * wrapper would grow to fit and sticky would be a no-op. */
+  const tableContainerStyle = stickyHeaderActive
+    ? { maxHeight: maxBodyHeight }
+    : undefined;
+
   const tableBody = (
-    <Table>
+    <Table containerStyle={tableContainerStyle}>
       {enableColumnOrdering ? (
         <DndContext
           sensors={sensors}
@@ -516,22 +627,36 @@ export function DataTable<TData, TValue = unknown>({
                 selected={row.getIsSelected()}
                 cellClassName={sepCellClass}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={sepCellClass}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  const pin = pinStyle(cell.column);
+                  return (
+                    <TableCell
+                      key={cell.id}
+                      className={sepCellClass}
+                      style={pin}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  );
+                })}
               </SortableRow>
             ) : (
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() ? "selected" : undefined}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={sepCellClass}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  const pin = pinStyle(cell.column);
+                  return (
+                    <TableCell
+                      key={cell.id}
+                      className={sepCellClass}
+                      style={pin}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ),
           )
@@ -857,10 +982,14 @@ function HeaderCell<TData, TValue>({
   header,
   enableColumnResizing,
   enableColumnOrdering,
+  pinStyle,
+  stickyHeader,
 }: {
   header: import("@tanstack/react-table").Header<TData, TValue>;
   enableColumnResizing?: boolean;
   enableColumnOrdering?: boolean;
+  pinStyle?: React.CSSProperties;
+  stickyHeader?: boolean;
 }) {
   if (header.isPlaceholder) return <TableHead />;
   const canSort = header.column.getCanSort();
@@ -926,6 +1055,19 @@ function HeaderCell<TData, TValue>({
     </>
   );
 
+  /* Pinned headers need a higher z-index than pinned body cells (1) and
+   * sticky non-pinned header cells (10) so the corner cell — pinned AND
+   * sticky-to-top — sits on top of both. Background is required so
+   * scrolled body content doesn't bleed through. */
+  const headStyle: React.CSSProperties = {
+    width: header.column.getSize(),
+    ...(pinStyle ?? {}),
+    ...(pinStyle ? { zIndex: stickyHeader ? 11 : 1 } : {}),
+    ...(stickyHeader && !pinStyle
+      ? { background: "var(--zen-color-background)" }
+      : {}),
+  };
+
   const head = (
     <TableHead
       data-active={sorted ? "true" : undefined}
@@ -941,7 +1083,7 @@ function HeaderCell<TData, TValue>({
         canSort && "hover:bg-zen-muted",
         "data-[active=true]:bg-zen-primary-soft data-[active=true]:text-zen-primary-soft-fg",
       )}
-      style={{ width: header.column.getSize() }}
+      style={headStyle}
     >
       {innerContent}
     </TableHead>

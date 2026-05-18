@@ -14,18 +14,31 @@ import { cn } from "../../lib/cn";
  *   - Row selected: soft primary background + sm shadow
  */
 
-const Table = React.forwardRef<
-  HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm border-collapse", className)}
-      {...props}
-    />
-  </div>
-));
+/**
+ * `containerClassName` / `containerStyle` let the caller control the scroll
+ * wrapper (e.g. setting `maxHeight` so sticky table headers have something to
+ * stick against). When unset the wrapper still applies `overflow-auto` so
+ * wide tables get a horizontal scrollbar.
+ */
+export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  containerClassName?: string;
+  containerStyle?: React.CSSProperties;
+}
+
+const Table = React.forwardRef<HTMLTableElement, TableProps>(
+  ({ className, containerClassName, containerStyle, ...props }, ref) => (
+    <div
+      className={cn("relative w-full overflow-auto", containerClassName)}
+      style={containerStyle}
+    >
+      <table
+        ref={ref}
+        className={cn("w-full caption-bottom text-sm border-collapse", className)}
+        {...props}
+      />
+    </div>
+  ),
+);
 Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<
