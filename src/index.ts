@@ -261,6 +261,19 @@ export type {
   ToastInput,
 } from "./components/toast/use-toast";
 
+// UI Components - Banner (page-top persistent callout; compound API)
+export {
+  Banner,
+  BannerIcon,
+  BannerContent,
+  BannerTitle,
+  BannerDescription,
+  BannerActions,
+  BannerClose,
+  bannerVariants,
+} from "./components/banner/banner";
+export type { BannerProps, BannerCloseProps } from "./components/banner/banner";
+
 // UI Components - Stepper / Wizard (compound API for multi-step flows)
 export {
   Stepper,

@@ -302,9 +302,9 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
       dim the journey context).
 - [ ] **Empty State** — onboarding shows tons of these ("Add your first
       business"). Compound primitive: icon / title / body / action.
-- [ ] **Banner** — persistent page-top callout ("Verify your email
-      before continuing"). Different from Toast (transient) and Alert
-      (inline).
+- [x] **Banner** — compound API mirroring Alert (Icon / Content / Title
+      / Description / Actions / Close); spans container width, optional
+      `sticky` pin to viewport top. 6 color tokens. Demo at `/banner`.
 - [ ] **Stepper-progress visualization** — numbered-dot horizontal bar
       separate from the wizard itself + "Step 2 of 5" label. Distinct
       from `<Progress>` which is a `<progress>`-style bar.

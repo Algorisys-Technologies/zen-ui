@@ -36,6 +36,7 @@ import NewToastDemo from "./components/NewToastDemo";
 import NewFileUploadDemo from "./components/NewFileUploadDemo";
 import NewBoundFieldsDemo from "./components/NewBoundFieldsDemo";
 import NewStepperDemo from "./components/NewStepperDemo";
+import NewBannerDemo from "./components/NewBannerDemo";
 import { Toaster } from "./components/toast/toaster";
 
 /**
@@ -84,6 +85,7 @@ const NAV: NavGroup[] = [
       { to: "/file-upload", label: "FileUpload" },
       { to: "/form-bound", label: "Bound* fields" },
       { to: "/stepper", label: "Stepper" },
+      { to: "/banner", label: "Banner" },
     ],
   },
 ];
@@ -220,6 +222,7 @@ const App: React.FC = () => {
             <Route path="/file-upload" element={<NewFileUploadDemo />} />
             <Route path="/form-bound" element={<NewBoundFieldsDemo />} />
             <Route path="/stepper" element={<NewStepperDemo />} />
+            <Route path="/banner" element={<NewBannerDemo />} />
           </Routes>
         </main>
       </div>
