@@ -282,6 +282,153 @@ See the demo app `/builder/` for live examples.
 
 ---
 
+## Distribution — sharing this library with other projects
+
+Pick the channel that matches the stage of adoption:
+
+| You want to…                                  | Use                                |
+| --------------------------------------------- | ---------------------------------- |
+| Hand a tarball to one team for a quick spike  | [`npm pack`](#1-tarball)           |
+| Internal distribution across Algorisys teams  | [GitHub Packages](#2-github-packages) (already configured) |
+| Public, world-readable installs               | [Public npm](#3-public-npm)        |
+| Two repos open side-by-side, live reload      | [`npm link`](#4-local-dev-cross-project) |
+
+The package is already configured to publish to the GitHub Packages
+registry under the `@algorisys` scope (`package.json` →
+`publishConfig`). `"files": ["dist"]` means the published tarball
+contains only the built output, not source.
+
+### 1. Tarball
+
+Fastest way to share with one team without registry plumbing.
+
+```bash
+npm run build:lib
+npm pack
+# → algorisys-zen-ui-2.1.1.tgz in the repo root
+```
+
+Share the `.tgz` (Slack, internal artifact store, a GitHub release
+attachment). Consumers install it directly:
+
+```bash
+npm install /absolute/path/to/algorisys-zen-ui-2.1.1.tgz
+# or from a URL:
+npm install https://github.com/Algorisys-Technologies/zen-ui/releases/download/v2.1.1/algorisys-zen-ui-2.1.1.tgz
+```
+
+Then in their app:
+
+```tsx
+import { Button, DataTable, Form } from "@algorisys/zen-ui";
+import "@algorisys/zen-ui/styles";
+```
+
+Trade-off: no auto-updates — every new version is a fresh tarball.
+Best for short-lived spikes; move to GitHub Packages once a team
+commits to the library.
+
+### 2. GitHub Packages
+
+The default channel for this library, suited to internal use across
+Algorisys teams and partners with GitHub access.
+
+**Publishing (maintainer side):**
+
+```bash
+# One-time: log into the GitHub Packages registry under the @algorisys scope.
+# Use a GitHub Personal Access Token with `write:packages` + `read:packages`.
+npm login --scope=@algorisys --auth-type=legacy --registry=https://npm.pkg.github.com
+
+# Each release:
+npm version patch         # bumps version + creates a git tag (2.1.1 → 2.1.2)
+npm run publish:lib       # builds the library and publishes
+git push --follow-tags
+```
+
+**Consuming (each downstream project, one-time setup):**
+
+Add an `.npmrc` to the consuming project (or to `~/.npmrc` for
+user-wide):
+
+```ini
+@algorisys:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+`GITHUB_PACKAGES_TOKEN` is a GitHub PAT with `read:packages`. In CI,
+inject it as a secret. Then:
+
+```bash
+npm install @algorisys/zen-ui
+```
+
+Pin a version in `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@algorisys/zen-ui": "^2.1.1"
+  }
+}
+```
+
+### 3. Public npm
+
+Reach: anyone with `npm install`. Caveat: once a version is published
+to public npm it's there forever (you can `unpublish` within 72 h,
+but treat it as permanent).
+
+```bash
+# package.json: remove or override `publishConfig` so it doesn't
+# point at npm.pkg.github.com.
+npm login                       # against npmjs.org
+npm publish --access public
+```
+
+Consumers then `npm install @algorisys/zen-ui` with no auth.
+
+### 4. Local dev — cross-project
+
+When you're iterating on both zen-ui and a consuming app at the same
+time, skip the publish loop entirely:
+
+```bash
+# In the zen-ui clone:
+npm run build:lib
+npm link
+
+# In the consuming app:
+npm link @algorisys/zen-ui
+```
+
+`node_modules/@algorisys/zen-ui` in the consuming app becomes a
+symlink to your local zen-ui working copy. Re-run `npm run build:lib`
+in zen-ui whenever you change a component; the consuming app picks up
+the new build on its next dev-server refresh.
+
+To detach:
+
+```bash
+# In the consuming app:
+npm unlink @algorisys/zen-ui
+npm install                 # restores the published version
+```
+
+### Versioning conventions
+
+- Patch (`2.1.x`) — bug fixes, internal refactors, demo-only changes
+  that don't affect the published surface.
+- Minor (`2.x.0`) — new components, new exports, new props with
+  default values that preserve existing behaviour.
+- Major (`x.0.0`) — removed exports, renamed props, breaking changes
+  to a component's default rendering or behaviour.
+
+Consuming teams pinning with `^2.1.0` will pick up everything up to
+the next major safely.
+
+---
+
 ## Architecture references
 
 - **`docs/rp-review-1.md`** — initial library review (pre-refactor).
