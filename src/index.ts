@@ -29,6 +29,13 @@ export type {
   DatePickerProps,
   CalendarProps,
 } from "./components/form/date-picker/date-picker";
+// Form Components - DateRangePicker (Calendar mode="range" in a Popover)
+export { DateRangePicker } from "./components/form/date-picker/date-range-picker";
+export type {
+  DateRangePickerProps,
+  DateRange,
+} from "./components/form/date-picker/date-range-picker";
+
 // UI Components - Popover (Radix-backed; standalone primitive)
 export {
   Popover,

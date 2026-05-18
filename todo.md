@@ -345,8 +345,12 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
       `<Slider>` auto-renders one Radix Thumb per value in the array
       (`defaultValue={[20, 80]}`), so range is just an array-shaped
       value. Demo at `/slider-new` section 3.
-- [ ] **Date-range picker** — two-month calendar with start + end.
-      Stays / appointments / loan tenure.
+- [x] **Date-range picker** — `<DateRangePicker>` built on
+      react-day-picker's `mode="range"` inside a Popover. Returns the
+      DateRange shape `{from?, to?}`. Default `numberOfMonths={2}` for
+      the Airbnb / Booking side-by-side layout; drop to 1 for narrow
+      popovers. Re-uses the existing Calendar component. Demo at
+      `/date-range-picker`.
 - [ ] **Tag / chip input** — type + Enter to add. Skills, interests,
       tags. Underrated for collecting structured-but-open lists.
 - [ ] **Multi-select Combobox** — today's Combobox is single-select.

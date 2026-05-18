@@ -42,6 +42,7 @@ import NewTabsDemo from "./components/NewTabsDemo";
 import NewAccordionDemo from "./components/NewAccordionDemo";
 import NewCardDemo from "./components/NewCardDemo";
 import NewSheetDemo from "./components/NewSheetDemo";
+import NewDateRangePickerDemo from "./components/NewDateRangePickerDemo";
 import { Toaster } from "./components/toast/toaster";
 
 /**
@@ -96,6 +97,7 @@ const NAV: NavGroup[] = [
       { to: "/accordion", label: "Accordion" },
       { to: "/card", label: "Card" },
       { to: "/sheet", label: "Sheet / Drawer" },
+      { to: "/date-range-picker", label: "DateRangePicker" },
     ],
   },
 ];
@@ -238,6 +240,7 @@ const App: React.FC = () => {
             <Route path="/accordion" element={<NewAccordionDemo />} />
             <Route path="/card" element={<NewCardDemo />} />
             <Route path="/sheet" element={<NewSheetDemo />} />
+            <Route path="/date-range-picker" element={<NewDateRangePickerDemo />} />
           </Routes>
         </main>
       </div>

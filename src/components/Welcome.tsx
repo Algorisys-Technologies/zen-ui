@@ -35,6 +35,7 @@ const COMPONENTS = [
   { to: "/accordion", name: "Accordion", description: "Radix-backed collapsible sections; single + multiple expand modes" },
   { to: "/card", name: "Card", description: "Surface primitive + SelectableCard variant for goal pickers / plan selectors" },
   { to: "/sheet", name: "Sheet / Drawer", description: "Slide-in side panel on Radix Dialog; right / left / top / bottom" },
+  { to: "/date-range-picker", name: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled" },
 ];
 
 const Welcome = () => {
