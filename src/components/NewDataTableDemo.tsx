@@ -636,7 +636,57 @@ const columns = [
       </section>
 
       <section className="demo-section">
-        <h2>20. Everything together</h2>
+        <h2>20. Bulk actions + select-all-across-pages</h2>
+        <CodeExample
+          title="renderBulkActions shows when ≥ 1 row is selected"
+          description={`Caller supplies the action buttons; DataTable supplies the selected count, the dismiss ✕, and the "Select all N matching" link that appears when only the current page is fully checked but more rows match the filter.`}
+          code={`<DataTable
+  data={medium}
+  columns={columns}
+  enableRowSelection
+  enablePagination
+  enableColumnFilters
+  renderBulkActions={({ rows, clear }) => (
+    <>
+      <Button size="sm" onClick={() => alert(\`Delete \${rows.length}\`)}>
+        Delete
+      </Button>
+      <Button size="sm" variant="outline" onClick={clear}>
+        Cancel
+      </Button>
+    </>
+  )}
+/>`}
+        >
+          <DataTable
+            data={MEDIUM}
+            columns={columns}
+            enableRowSelection
+            enablePagination
+            enableColumnFilters
+            renderBulkActions={({ rows, clear }) => (
+              <>
+                <Button
+                  size="sm"
+                  color="error"
+                  onClick={() => {
+                    alert(`Pretend-deleting ${rows.length} row(s)`);
+                    clear();
+                  }}
+                >
+                  Delete
+                </Button>
+                <Button size="sm" variant="outline" color="neutral" onClick={clear}>
+                  Cancel
+                </Button>
+              </>
+            )}
+          />
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>21. Everything together</h2>
         <CodeExample
           title="All toggles on, virtualization off (uses pagination instead)"
           code={`<DataTable

@@ -180,6 +180,33 @@ export interface DataTableProps<TData, TValue = unknown> {
    */
   getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string;
   /**
+   * Render a contextual toolbar when one or more rows are selected. The
+   * caller decides what actions go inside (Delete, Export, Approve, …);
+   * DataTable supplies the surrounding chrome — selected count, a
+   * "Clear selection" button, and a "Select all N matching" affordance
+   * when only the current page is checked but more rows match the
+   * current filter.
+   *
+   *   <DataTable
+   *     enableRowSelection
+   *     renderBulkActions={({ rows, clear }) => (
+   *       <>
+   *         <Button onClick={() => mutate(rows)}>Delete</Button>
+   *         <Button variant="outline" onClick={clear}>Cancel</Button>
+   *       </>
+   *     )}
+   *   />
+   *
+   * Receives the table, the selected `Row<TData>[]`, and a `clear()`
+   * helper that resets selection.
+   */
+  renderBulkActions?: (ctx: {
+    table: TanStackTable<TData>;
+    rows: Row<TData>[];
+    clear: () => void;
+  }) => React.ReactNode;
+
+  /**
    * Inline cell editing. Declare `meta.editable: true` (or a
    * `(row) => boolean`) on any column to opt that column in. Double-click
    * (or Enter when focused) swaps the cell content for the matching input
@@ -267,6 +294,7 @@ export function DataTable<TData, TValue = unknown>({
   enableRowOrdering = false,
   onRowOrderChange,
   getRowId,
+  renderBulkActions,
   enableColumnOrdering = false,
   onColumnOrderChange,
   enableColumnResizing = false,
@@ -777,6 +805,8 @@ export function DataTable<TData, TValue = unknown>({
         }}
       />
 
+      <BulkActionBar table={table} renderBulkActions={renderBulkActions} />
+
       <ActiveFilterChips table={table} />
 
       <div className="rounded-zen-md border border-zen-border">
@@ -867,6 +897,104 @@ function Toolbar<TData>({
           />
         )}
         {enableColumnVisibility && <ColumnsMenu table={table} />}
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------- Bulk-action bar -------------------------- */
+/**
+ * Contextual toolbar shown while ≥ 1 row is selected. Layout:
+ *
+ *   ┌────────────────────────────────────────────────────────────────┐
+ *   │ ✓ 3 selected   [Select all 40 matching]   <caller actions>  ✕ │
+ *   └────────────────────────────────────────────────────────────────┘
+ *
+ * The "Select all N matching" link appears when only the current page
+ * is fully checked but more rows match the active filters (i.e. when
+ * pagination has hidden additional matches behind it). Clicking it
+ * extends selection to every row in `getFilteredRowModel()`.
+ *
+ * Auto-hides when nothing is selected or the caller didn't pass
+ * `renderBulkActions`.
+ */
+function BulkActionBar<TData>({
+  table,
+  renderBulkActions,
+}: {
+  table: TanStackTable<TData>;
+  renderBulkActions?: (ctx: {
+    table: TanStackTable<TData>;
+    rows: Row<TData>[];
+    clear: () => void;
+  }) => React.ReactNode;
+}) {
+  const selectedRows = table.getSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
+  if (selectedCount === 0 || !renderBulkActions) return null;
+
+  const filtered = table.getFilteredRowModel().rows;
+  const totalFiltered = filtered.length;
+  const allFilteredSelected = selectedCount === totalFiltered;
+  const allPageRowsSelected = table.getIsAllPageRowsSelected();
+  const moreOffPage = totalFiltered > selectedCount;
+  const showCrossPage =
+    allPageRowsSelected && !allFilteredSelected && moreOffPage;
+
+  const clear = () => table.resetRowSelection();
+  const selectAllMatching = () => {
+    const next: RowSelectionState = {};
+    filtered.forEach((r) => {
+      next[r.id] = true;
+    });
+    table.setRowSelection(next);
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-3 py-2",
+        "rounded-zen-md bg-zen-primary-soft border border-zen-primary-soft",
+        "text-zen-primary-soft-fg",
+      )}
+      role="toolbar"
+      aria-label="Bulk actions for selected rows"
+    >
+      <span className="text-sm font-medium">
+        {selectedCount} selected
+      </span>
+      {showCrossPage ? (
+        <button
+          type="button"
+          onClick={selectAllMatching}
+          className={cn(
+            "text-xs underline underline-offset-2",
+            "bg-transparent border-0 cursor-pointer text-inherit",
+            "hover:opacity-80",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
+          )}
+        >
+          Select all {totalFiltered} matching
+        </button>
+      ) : null}
+      <div className="ml-auto flex items-center gap-2">
+        {renderBulkActions({ table, rows: selectedRows, clear })}
+        <button
+          type="button"
+          onClick={clear}
+          aria-label="Clear selection"
+          className={cn(
+            "inline-flex items-center justify-center h-6 w-6",
+            "rounded-zen-full bg-transparent border-0 cursor-pointer",
+            "text-current opacity-70 hover:opacity-100 hover:bg-black/10",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+          )}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
     </div>
   );
