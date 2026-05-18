@@ -777,6 +777,8 @@ export function DataTable<TData, TValue = unknown>({
         }}
       />
 
+      <ActiveFilterChips table={table} />
+
       <div className="rounded-zen-md border border-zen-border">
         {enableVirtualization ? (
           <VirtualizedBody
@@ -867,6 +869,147 @@ function Toolbar<TData>({
         {enableColumnVisibility && <ColumnsMenu table={table} />}
       </div>
     </div>
+  );
+}
+
+/* --------------------------- Active filter chips --------------------- */
+/**
+ * Renders a removable chip for every active column filter + the global
+ * filter, plus a "Clear all" button. Auto-hides when nothing's filtered.
+ *
+ * Column-filter values can be:
+ *   - plain string (legacy)           "abc"
+ *   - text variant     { op, value }   { op: "contains", value: "abc" }
+ *   - number variant   { op, value }   { op: "gte", value: 60000 }
+ *   - numberRange       [min, max]      [60000, 200000]
+ *   - select / boolean  scalar          "Admin" | true
+ * The label tries each shape in turn and falls back to JSON.stringify.
+ */
+function ActiveFilterChips<TData>({
+  table,
+}: {
+  table: TanStackTable<TData>;
+}) {
+  const colFilters = table.getState().columnFilters;
+  const globalFilter = table.getState().globalFilter as string | undefined;
+  const hasGlobal = typeof globalFilter === "string" && globalFilter.length > 0;
+  if (colFilters.length === 0 && !hasGlobal) return null;
+
+  const labelForColumn = (id: string): string => {
+    const col = table.getColumn(id);
+    const h = col?.columnDef.header;
+    return typeof h === "string" ? h : id;
+  };
+
+  const formatValue = (value: unknown): string => {
+    if (value === null || value === undefined || value === "") return "";
+    if (Array.isArray(value)) {
+      const [min, max] = value as (number | null)[];
+      if (min == null && max == null) return "";
+      if (min == null) return `≤ ${max}`;
+      if (max == null) return `≥ ${min}`;
+      return `${min} – ${max}`;
+    }
+    if (typeof value === "object") {
+      const v = value as { op?: string; value?: unknown };
+      if (v.op && v.value !== undefined && v.value !== null && v.value !== "") {
+        const symbols: Record<string, string> = {
+          contains: "≈",
+          equals: "=",
+          starts: "a…",
+          ends: "…a",
+          eq: "=",
+          ne: "≠",
+          gt: ">",
+          lt: "<",
+          gte: "≥",
+          lte: "≤",
+        };
+        return `${symbols[v.op] ?? v.op} ${v.value}`;
+      }
+      return "";
+    }
+    if (typeof value === "boolean") return value ? "Yes" : "No";
+    return String(value);
+  };
+
+  return (
+    <div
+      className="flex flex-wrap items-center gap-2"
+      role="group"
+      aria-label="Active filters"
+    >
+      <span className="text-xs text-zen-muted-fg">Filters:</span>
+      {hasGlobal ? (
+        <Chip
+          label={`Search: ${globalFilter}`}
+          onRemove={() => table.setGlobalFilter("")}
+        />
+      ) : null}
+      {colFilters.map((f) => {
+        const formatted = formatValue(f.value);
+        if (!formatted) return null;
+        return (
+          <Chip
+            key={f.id}
+            label={`${labelForColumn(f.id)}: ${formatted}`}
+            onRemove={() => table.getColumn(f.id)?.setFilterValue(undefined)}
+          />
+        );
+      })}
+      <button
+        type="button"
+        onClick={() => {
+          table.resetColumnFilters();
+          table.setGlobalFilter("");
+        }}
+        className={cn(
+          "ml-1 inline-flex items-center text-xs px-2 py-0.5 rounded-zen-sm",
+          "text-zen-muted-fg hover:text-zen-foreground hover:bg-zen-muted",
+          "bg-transparent border-0 cursor-pointer",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+        )}
+      >
+        Clear all
+      </button>
+    </div>
+  );
+}
+
+function Chip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 px-2 py-0.5",
+        "text-xs font-medium",
+        "rounded-zen-full bg-zen-primary-soft text-zen-primary-soft-fg",
+        "border border-zen-primary-soft",
+      )}
+    >
+      <span>{label}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Remove ${label}`}
+        className={cn(
+          "inline-flex items-center justify-center",
+          "h-4 w-4 rounded-zen-full bg-transparent border-0 cursor-pointer",
+          "text-current opacity-70 hover:opacity-100 hover:bg-black/10",
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+        )}
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </span>
   );
 }
 
