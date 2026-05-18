@@ -435,3 +435,105 @@ the smallest shipable set is:
 3. Drawer / Sheet
 4. Address autocomplete (with a swappable provider adapter)
 5. Signature pad
+
+---
+
+## Roadmap — CRM & ERP-class applications
+
+The onboarding roadmap above optimises for forms-heavy linear journeys.
+Building **CRM (with kanban)** and **ERP (with master + transaction
+nested forms)** apps surfaces a new class of needs: long-lived record
+views, drag-and-drop pipelines, line-item grids, hierarchy navigation,
+and dense desktop layouts. This section captures the gap; group by
+component class (primitive / compound / layout / hook) so authors can
+slot work into the right tier of the library.
+
+### Layout primitives (cross-cutting; both CRM and ERP need them)
+
+- [ ] **ResizablePanes / Splitter** — horizontal + vertical split with a
+      draggable gutter; persists ratio in localStorage. Master-detail
+      and side-by-side panels rely on this.
+- [ ] **MasterDetailLayout** — opinionated two-pane wrapper on top of
+      ResizablePanes (list left, detail right, mobile = stacked).
+- [ ] **PageHeader** — title + subtitle + breadcrumb + actions slot.
+      Every CRUD page rolls its own today; standardise.
+- [ ] **Toolbar** — action-bar primitive with overflow `…` menu when
+      space is tight. Useful in card-detail, line-item rows, kanban
+      column headers.
+
+### Display compound components
+
+- [ ] **KanbanBoard** — multi-column draggable cards (@dnd-kit, already
+      a dep). Drag between columns, optional WIP limits, swim lanes,
+      virtualised column body for long lists. CRM-anchor component.
+- [ ] **Timeline / ActivityFeed** — chronological list of events with
+      icon prefix + day-grouping + "load more". Deal history, customer
+      interactions, audit log.
+- [ ] **TreeView** — hierarchical list with expand/collapse, drag-to-
+      reparent, lazy-load children. Chart of accounts, BOM, org tree,
+      folder structures.
+- [ ] **PipelineStages** — read-only horizontal stage indicator (Lead
+      → Qualified → Proposal → Won). Cousin of Stepper but for display
+      rather than navigation.
+- [ ] **ApprovalChain** — multi-stage approval indicator with avatars +
+      status per stage. ERP / workflow staple.
+- [ ] **AuditTrail** — who-changed-what diff list. Shaped like Timeline
+      but rows are `{ field, oldValue, newValue, by, at }`.
+- [ ] **NotificationsInbox** — bell + dropdown panel with read/unread,
+      grouping by day, action buttons inline.
+- [ ] **UserMenu / WorkspaceSwitcher** — top-right account chip + org
+      switcher. Universal across CRM/ERP/SaaS.
+
+### Form / input primitives (record-detail editors)
+
+- [ ] **InlineEdit** — standalone click-to-edit text/select/date field
+      for record-detail pages. DataTable already has cell-level edit;
+      this is the surface for single-record screens.
+- [ ] **LookupField** — code+description autocomplete with "create
+      new on the fly" (vendor / customer / item picker). Scan-by-code
+      semantics are different from MultiCombobox's filter-by-substring.
+- [ ] **AddressBlock** — composite (line1 / line2 / city / state / zip
+      / country) with country-aware label swaps + per-country
+      validation hooks. Pairs with the Tier-4 address autocomplete.
+- [ ] **TagPicker** — multi-tag with creatable + per-tag color
+      management. TagInput is the input layer; this adds the color
+      registry.
+- [ ] **MentionsInput** — `@username` autocomplete on a Textarea.
+      Cmdk-powered, similar in shape to MultiCombobox.
+- [ ] **ContextMenu** — right-click menu. Radix `ContextMenu` exists
+      and is unwrapped; ~30-min wrap to land it.
+
+### Form composition compounds (ERP master + transaction shape)
+
+- [ ] **LineItems / RepeatingFields** — header + row pattern (invoice
+      header + N line items) with add / duplicate / delete / reorder,
+      RHF `useFieldArray` integration. Drives ~80 % of ERP UIs.
+- [ ] **EditableGrid** — spreadsheet-feel data entry: Tab moves
+      cell→cell, paste-from-Excel, copy-down (Ctrl+D), formula cells.
+      Distinct from DataTable's one-cell inline edit; this is the
+      data-entry version. ERP-anchor component.
+- [ ] **FormSection** — Accordion-shaped but form-aware: validates
+      collapsed sections, shows an error-count badge on the section
+      header, scrolls into view on first invalid submit.
+- [ ] **CommentThread** — threaded comments with author + timestamp +
+      reply layout + edit / delete + soft-deleted markers. Anchor for
+      collaboration features.
+
+### Hooks / patterns (no JSX surface)
+
+- [ ] **useCalculatedField** — derived RHF field that recomputes from
+      sibling values (line total, GST, grand total). Thin RHF helper.
+- [ ] **useConditionalField** — show / hide / require based on another
+      field's value. Pairs with the onboarding-roadmap entry but
+      formalises it as a hook with a TypeScript-friendly predicate.
+
+### Anchor components — build these first
+
+Just like Stepper + Sheet anchored the onboarding tier, two components
+unlock the bulk of CRM/ERP use cases:
+
+1. **KanbanBoard** — unlocks CRM-class apps.
+2. **LineItems + EditableGrid** (paired) — unlocks ERP-class apps.
+
+The rest in this section is half-day or less per item; these two are
+the 1–2-day builds where the depth investment shows up.
