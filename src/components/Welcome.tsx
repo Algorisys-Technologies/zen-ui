@@ -31,6 +31,7 @@ const COMPONENTS = [
   { to: "/stepper", name: "Stepper", description: "Multi-step wizard for onboarding + journey apps (horizontal / vertical, linear / non-linear)" },
   { to: "/banner", name: "Banner", description: "Page-top persistent callout — verification reminders, maintenance windows, impersonation" },
   { to: "/empty-state", name: "EmptyState", description: "First-run / no-data / no-results surface; icon + title + description + actions" },
+  { to: "/tabs", name: "Tabs", description: "Radix-backed tabbed navigation; underline + pills variants, horizontal / vertical" },
 ];
 
 const Welcome = () => {

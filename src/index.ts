@@ -261,6 +261,20 @@ export type {
   ToastInput,
 } from "./components/toast/use-toast";
 
+// UI Components - Tabs (Radix-backed; underline + pills variants)
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  tabsListVariants,
+  tabsTriggerVariants,
+} from "./components/tabs/tabs";
+export type {
+  TabsListProps,
+  TabsTriggerProps,
+} from "./components/tabs/tabs";
+
 // UI Components - EmptyState (first-run / no-data surface; compound API)
 export {
   EmptyState,

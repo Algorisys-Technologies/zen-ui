@@ -290,8 +290,10 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
       `form.trigger()` blocks forward navigation on validation
       failure. Demo at `/stepper` wires a 4-step onboarding with
       RHF + Zod.
-- [ ] **Tabs** — section navigation (Personal / Address / Identity /
-      Review) when steps are too heavy.
+- [x] **Tabs** — Radix-backed compound (Tabs / TabsList / TabsTrigger /
+      TabsContent). `underline` (default) + `pills` variants, both
+      with horizontal + vertical orientation. Disabled triggers,
+      controlled + uncontrolled. Demo at `/tabs`.
 - [ ] **Accordion / Collapsible** — review screens, "show details"
       sections, FAQ during onboarding.
 - [ ] **Card (selection variant)** — choice cards beat radio lists for
