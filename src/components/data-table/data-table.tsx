@@ -815,6 +815,7 @@ export function DataTable<TData, TValue = unknown>({
         table={table}
         enableColumnFilters={enableColumnFilters}
         enableColumnVisibility={enableColumnVisibility}
+        enableColumnPinning={enableColumnPinning}
         enableExport={enableExport}
         exportFilename={exportFilename}
         exportOnlySelected={exportOnlySelected}
@@ -879,6 +880,7 @@ function Toolbar<TData>({
   table,
   enableColumnFilters,
   enableColumnVisibility,
+  enableColumnPinning,
   enableExport,
   exportFilename,
   exportOnlySelected,
@@ -889,6 +891,7 @@ function Toolbar<TData>({
   table: TanStackTable<TData>;
   enableColumnFilters: boolean;
   enableColumnVisibility: boolean;
+  enableColumnPinning: boolean;
   enableExport: boolean;
   exportFilename: string;
   exportOnlySelected: boolean;
@@ -920,7 +923,9 @@ function Toolbar<TData>({
             onlySelected={exportOnlySelected}
           />
         )}
-        {enableColumnVisibility && <ColumnsMenu table={table} />}
+        {enableColumnVisibility && (
+          <ColumnsMenu table={table} enableColumnPinning={enableColumnPinning} />
+        )}
       </div>
     </div>
   );
@@ -1335,10 +1340,27 @@ function SortableRow({
   );
 }
 
-function ColumnsMenu<TData>({ table }: { table: TanStackTable<TData> }) {
-  const hideable = table
-    .getAllColumns()
-    .filter((c) => c.getCanHide());
+/**
+ * ColumnsMenu — "Columns" dropdown.
+ *
+ * Default mode: a list of checkbox items, one per hide-able column, that
+ * toggle column visibility (the historical behavior).
+ *
+ * When `enableColumnPinning` is on we switch from `DropdownMenuCheckboxItem`
+ * to a custom row layout per column so we can fit two extra controls on
+ * the right: pin-left (◀) and pin-right (▶). Each is a 3-state toggle —
+ * highlighted when the column is currently pinned to that side, click to
+ * pin / unpin. We `e.preventDefault()` inside the click handler so the
+ * menu stays open while the user adjusts multiple columns.
+ */
+function ColumnsMenu<TData>({
+  table,
+  enableColumnPinning,
+}: {
+  table: TanStackTable<TData>;
+  enableColumnPinning?: boolean;
+}) {
+  const hideable = table.getAllColumns().filter((c) => c.getCanHide());
   if (hideable.length === 0) return null;
   return (
     <DropdownMenu>
@@ -1347,21 +1369,98 @@ function ColumnsMenu<TData>({ table }: { table: TanStackTable<TData> }) {
           Columns
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-44">
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="min-w-56">
+        <DropdownMenuLabel>
+          {enableColumnPinning ? "Manage columns" : "Toggle columns"}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {hideable.map((column) => (
-          <DropdownMenuCheckboxItem
-            key={column.id}
-            checked={column.getIsVisible()}
-            onCheckedChange={(v) => column.toggleVisibility(v === true)}
-          >
-            {(typeof column.columnDef.header === "string" && column.columnDef.header) ||
-              column.id}
-          </DropdownMenuCheckboxItem>
-        ))}
+        {hideable.map((column) => {
+          const label =
+            (typeof column.columnDef.header === "string" &&
+              column.columnDef.header) ||
+            column.id;
+          if (!enableColumnPinning) {
+            return (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                checked={column.getIsVisible()}
+                onCheckedChange={(v) => column.toggleVisibility(v === true)}
+              >
+                {label}
+              </DropdownMenuCheckboxItem>
+            );
+          }
+          const pin = column.getIsPinned();
+          return (
+            <div
+              key={column.id}
+              className="flex items-center gap-2 px-2 py-1.5 text-sm"
+            >
+              <Checkbox
+                checked={column.getIsVisible()}
+                onCheckedChange={(v) => column.toggleVisibility(v === true)}
+                aria-label={`Toggle visibility of ${label}`}
+              />
+              <span className="flex-1 truncate">{label}</span>
+              <PinButton
+                active={pin === "left"}
+                side="left"
+                label={label}
+                onClick={(e) => {
+                  e.preventDefault();
+                  column.pin(pin === "left" ? false : "left");
+                }}
+              />
+              <PinButton
+                active={pin === "right"}
+                side="right"
+                label={label}
+                onClick={(e) => {
+                  e.preventDefault();
+                  column.pin(pin === "right" ? false : "right");
+                }}
+              />
+            </div>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function PinButton({
+  active,
+  side,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  side: "left" | "right";
+  label: string;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={
+        active ? `Unpin ${label} from ${side}` : `Pin ${label} to ${side}`
+      }
+      aria-pressed={active}
+      title={
+        active ? `Unpin from ${side}` : `Pin to ${side}`
+      }
+      className={cn(
+        "inline-flex items-center justify-center h-6 w-6 rounded-zen-sm",
+        "border-0 cursor-pointer text-xs",
+        active
+          ? "bg-zen-primary text-zen-primary-fg"
+          : "bg-transparent text-zen-muted-fg hover:bg-zen-muted hover:text-zen-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+      )}
+    >
+      {side === "left" ? "◀" : "▶"}
+    </button>
   );
 }
 
