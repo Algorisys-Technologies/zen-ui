@@ -282,10 +282,14 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
 
 ### Tier 1 — high-impact essentials (build first)
 
-- [ ] **Stepper / Wizard** — multi-step forms reduce abandonment 20-30%
-      vs. single-page (Baymard). Per-step validation, linear /
-      non-linear flows, back / continue / save-exit, controlled
-      progress. Composes with `<Form>` so each step is an RHF subtree.
+- [x] **Stepper / Wizard** — compound API: `Stepper` / `StepperList` /
+      `StepperPanel` / `StepperNavigation` + `useStepper()` hook.
+      Horizontal + vertical orientation, linear (default) +
+      non-linear modes, per-step status override (`pending` /
+      `current` / `completed` / `error`), `onBeforeNext` gate so
+      `form.trigger()` blocks forward navigation on validation
+      failure. Demo at `/stepper` wires a 4-step onboarding with
+      RHF + Zod.
 - [ ] **Tabs** — section navigation (Personal / Address / Identity /
       Review) when steps are too heavy.
 - [ ] **Accordion / Collapsible** — review screens, "show details"

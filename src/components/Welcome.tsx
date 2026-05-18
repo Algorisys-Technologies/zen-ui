@@ -28,6 +28,7 @@ const COMPONENTS = [
   { to: "/otp-new", name: "InputOTP", description: "input-otp library, themed; paste / autocomplete / a11y" },
   { to: "/phone-input-new", name: "PhoneInput", description: "Composition: Select (country) + Input (number)" },
   { to: "/fab-new", name: "FAB", description: "Fixed-position Button wrapper + DropdownMenu for speed-dial" },
+  { to: "/stepper", name: "Stepper", description: "Multi-step wizard for onboarding + journey apps (horizontal / vertical, linear / non-linear)" },
 ];
 
 const Welcome = () => {

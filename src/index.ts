@@ -261,6 +261,23 @@ export type {
   ToastInput,
 } from "./components/toast/use-toast";
 
+// UI Components - Stepper / Wizard (compound API for multi-step flows)
+export {
+  Stepper,
+  StepperList,
+  StepperPanel,
+  StepperNavigation,
+  useStepper,
+} from "./components/stepper/stepper";
+export type {
+  StepperProps,
+  StepperListProps,
+  StepperPanelProps,
+  StepperNavigationProps,
+  StepperStep,
+  StepStatus,
+} from "./components/stepper/stepper";
+
 // UI Components - Alert (zen-theme spec)
 export {
   Alert,
