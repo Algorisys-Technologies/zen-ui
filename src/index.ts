@@ -60,6 +60,13 @@ export type { TimePickerProps } from "./components/form/time-picker/time-picker"
 export { DateTimePicker } from "./components/form/date-picker/date-time-picker";
 export type { DateTimePickerProps } from "./components/form/date-picker/date-time-picker";
 
+// QR / Barcode scanner — native BarcodeDetector with custom-decoder escape hatch
+export { QRScanner } from "./components/qr-scanner/qr-scanner";
+export type {
+  QRScannerProps,
+  QRScannerScan,
+} from "./components/qr-scanner/qr-scanner";
+
 // UI Components - Popover (Radix-backed; standalone primitive)
 export {
   Popover,

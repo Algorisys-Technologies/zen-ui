@@ -401,8 +401,10 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
       Calendar + TimePicker in one Popover._
 - [ ] **Country picker** — specialized Combobox with flag + ISO + dial
       code. Often paired with PhoneInput.
-- [ ] **QR scanner** — `getUserMedia` + jsQR. Payments, doc handoff,
-      device pairing.
+- [x] **QR scanner** — `getUserMedia` + jsQR. Payments, doc handoff,
+      device pairing. _Shipped: native `BarcodeDetector` (Chromium /
+      Safari 17+) with `decode` escape hatch for browsers without it
+      so the library doesn't bundle a heavy polyfill._
 - [ ] **Command palette** — `cmdk` already a dep via Combobox; surface
       as `<CommandPalette open shortcut="cmd+k">` for power-user apps.
 - [ ] **Map / geolocation picker** — pluggable Leaflet / Mapbox;
