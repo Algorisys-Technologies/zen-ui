@@ -38,6 +38,7 @@ const COMPONENTS = [
   { to: "/date-range-picker", name: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled" },
   { to: "/tag-input", name: "TagInput", description: "Type + Enter chip input; comma-paste splits, Backspace removes, per-tag validator, max-N" },
   { to: "/multi-combobox", name: "MultiCombobox", description: "Multi-select Combobox with chip trigger + overflow collapse + sync / async option loading" },
+  { to: "/rating", name: "Rating", description: "5-star rating input; hover preview, arrow-key nav, sm / md / lg, customizable max" },
 ];
 
 const Welcome = () => {

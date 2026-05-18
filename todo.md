@@ -336,7 +336,11 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
 - [ ] **Address autocomplete** — Combobox + provider adapter
       (Google Places / Mapbox / OS). Single biggest checkout-time
       reducer (~30 % per Baymard).
-- [ ] **Rating** (5-star) — feedback collection.
+- [x] **Rating** (5-star) — `<Rating>` with hover preview, arrow-key
+      nav (radiogroup semantics), 3 sizes, customizable `max`,
+      `allowClear` toggle on the active star, read-only display mode,
+      optional hidden input for native form submission. Demo at
+      `/rating`.
 - [ ] **NPS** (0-10 strip with promoter / detractor labels) — survey
       primitive distinct from rating.
 - [ ] **Likert scale** (5-point agree/disagree) — also distinct from

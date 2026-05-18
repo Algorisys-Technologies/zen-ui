@@ -29,6 +29,10 @@ export type {
   DatePickerProps,
   CalendarProps,
 } from "./components/form/date-picker/date-picker";
+// Survey primitives - Rating (5-star feedback input)
+export { Rating } from "./components/survey/rating";
+export type { RatingProps } from "./components/survey/rating";
+
 // Form Components - TagInput (type + Enter chip input)
 export { TagInput } from "./components/form/tag-input/tag-input";
 export type { TagInputProps } from "./components/form/tag-input/tag-input";
