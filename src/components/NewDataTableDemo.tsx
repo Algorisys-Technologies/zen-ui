@@ -13,7 +13,19 @@ type Person = {
   role: "Admin" | "Manager" | "Member" | "Guest";
   status: "active" | "invited" | "suspended";
   lastSeen: string;
+  /* extra columns used by the pinning demo to push the row width past
+   * the viewport so horizontal scrolling actually happens. */
+  department: string;
+  location: string;
+  phone: string;
+  manager: string;
+  salary: number;
+  joinedYear: number;
 };
+
+const DEPARTMENTS = ["Engineering", "Product", "Design", "Sales", "Support", "Ops"];
+const LOCATIONS = ["Bengaluru", "Mumbai", "Pune", "Delhi", "Hyderabad", "Chennai"];
+const MANAGERS = ["Frances Allen", "Adele Goldberg", "Radia Perlman", "Barbara Liskov"];
 
 const NAMES = [
   "Ada Lovelace", "Alan Turing", "Grace Hopper", "Edsger Dijkstra", "Donald Knuth",
@@ -35,6 +47,12 @@ const makePeople = (count: number): Person[] =>
       role: ROLES[i % ROLES.length],
       status: STATUSES[i % STATUSES.length],
       lastSeen: new Date(Date.now() - i * 86_400_000).toLocaleDateString(),
+      department: DEPARTMENTS[i % DEPARTMENTS.length],
+      location: LOCATIONS[i % LOCATIONS.length],
+      phone: `+91 9${String(800000000 + i * 137).padStart(9, "0")}`,
+      manager: MANAGERS[i % MANAGERS.length],
+      salary: 60_000 + (i * 1234) % 240_000,
+      joinedYear: 2018 + (i % 8),
     };
   });
 
@@ -62,24 +80,85 @@ const columns: ColumnDef<Person>[] = [
   { accessorKey: "lastSeen", header: "Last seen" },
 ];
 
-/* Sized columns — every leaf has an explicit `size`, so the virtualized
- * grid (which uses px widths when given) emits a row wider than the
- * viewport. That horizontal overflow is what column pinning pins against. */
-const sizedColumns: ColumnDef<Person>[] = [
-  { accessorKey: "name", header: "Name", size: 200 },
-  { accessorKey: "email", header: "Email", size: 280 },
-  { accessorKey: "role", header: "Role", size: 140 },
+/* Filter-variant columns — show the per-column filter operators.
+ * `meta.filterVariant` picks the input control AND wires the matching
+ * filterFn automatically. `filterOptions` feeds the `select` variant. */
+const variantColumns: ColumnDef<Person>[] = [
+  {
+    accessorKey: "name",
+    header: "Name",
+    meta: { filterVariant: "text" },
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    meta: { filterVariant: "text" },
+  },
+  {
+    accessorKey: "role",
+    header: "Role",
+    meta: {
+      filterVariant: "select",
+      filterOptions: ROLES.map((r) => ({ label: r, value: r })),
+    },
+  },
   {
     accessorKey: "status",
     header: "Status",
-    size: 140,
+    cell: ({ row }) => (
+      <Badge variant="soft" color={statusBadgeColor(row.original.status)}>
+        {row.original.status}
+      </Badge>
+    ),
+    meta: {
+      filterVariant: "select",
+      filterOptions: STATUSES.map((s) => ({ label: s, value: s })),
+    },
+  },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) => row.original.salary.toLocaleString("en-IN"),
+    meta: { filterVariant: "numberRange" },
+  },
+  {
+    accessorKey: "joinedYear",
+    header: "Joined",
+    meta: { filterVariant: "number" },
+  },
+];
+
+/* Sized columns — every leaf has an explicit `size`, so the virtualized
+ * grid (which uses px widths when given) emits a row wider than the
+ * viewport. That horizontal overflow is what column pinning pins against.
+ * Eleven columns at ~1900 px total > the demo viewport, so the middle
+ * columns scroll while pinned name (left) + last seen (right) stay put. */
+const sizedColumns: ColumnDef<Person>[] = [
+  { accessorKey: "name", header: "Name", size: 180 },
+  { accessorKey: "email", header: "Email", size: 240 },
+  { accessorKey: "phone", header: "Phone", size: 160 },
+  { accessorKey: "role", header: "Role", size: 110 },
+  {
+    accessorKey: "status",
+    header: "Status",
+    size: 120,
     cell: ({ row }) => (
       <Badge variant="soft" color={statusBadgeColor(row.original.status)}>
         {row.original.status}
       </Badge>
     ),
   },
-  { accessorKey: "lastSeen", header: "Last seen", size: 160 },
+  { accessorKey: "department", header: "Department", size: 140 },
+  { accessorKey: "location", header: "Location", size: 130 },
+  { accessorKey: "manager", header: "Manager", size: 180 },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    size: 130,
+    cell: ({ row }) => row.original.salary.toLocaleString("en-IN"),
+  },
+  { accessorKey: "joinedYear", header: "Joined", size: 100 },
+  { accessorKey: "lastSeen", header: "Last seen", size: 140 },
 ];
 
 /* -------------------------- demo ----------------------------------- */
@@ -440,27 +519,27 @@ const handleOrderChange = (orderedIds: string[]) => {
         <h2>16. Column pinning</h2>
         <CodeExample
           title="Freeze columns to the left or right edge"
-          description={`enableColumnPinning + initialColumnPinning={{ left, right }}. Pinned cells get a 1-px divider + soft shadow on their inner edge. Combine freely with stickyHeader so the corner cells stay locked in both directions.`}
+          description={`enableColumnPinning + initialColumnPinning={{ left, right }}. Pinned cells get a 1-px divider + soft shadow on their inner edge. The 11 columns here total ~1900 px so scrolling sideways slides the middle columns past the pinned Name (left) and Last seen (right). Combine with stickyHeader for a 2-D freeze.`}
           code={`<DataTable
   data={medium}
-  columns={columns}
+  columns={sizedColumns}     // 11 columns, all with explicit \`size\`
   enableColumnPinning
   initialColumnPinning={{ left: ["name"], right: ["lastSeen"] }}
   enableSorting
   enableColumnResizing
   stickyHeader
-  maxBodyHeight={280}
+  maxBodyHeight={320}
 />`}
         >
           <DataTable
             data={MEDIUM}
-            columns={columns}
+            columns={sizedColumns}
             enableColumnPinning
             initialColumnPinning={{ left: ["name"], right: ["lastSeen"] }}
             enableSorting
             enableColumnResizing
             stickyHeader
-            maxBodyHeight={280}
+            maxBodyHeight={320}
           />
         </CodeExample>
       </section>
@@ -491,7 +570,42 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section className="demo-section">
-        <h2>18. Everything together</h2>
+        <h2>18. Per-column filter operators</h2>
+        <CodeExample
+          title="meta.filterVariant picks the input control + filterFn"
+          description={`Each column declares meta.filterVariant: "text" | "number" | "numberRange" | "select" | "boolean". The matching control renders in the filter row and the matching filterFn is wired in automatically. Text and number variants get a tiny op-select (=, ≠, >, <, ≥, ≤, contains, starts with, ends with).`}
+          code={`const columns = [
+  { accessorKey: "name",   header: "Name",
+    meta: { filterVariant: "text" } },
+  { accessorKey: "role",   header: "Role",
+    meta: { filterVariant: "select",
+            filterOptions: [{ label: "Admin", value: "Admin" }, …] } },
+  { accessorKey: "salary", header: "Salary",
+    meta: { filterVariant: "numberRange" } },
+  { accessorKey: "joinedYear", header: "Joined",
+    meta: { filterVariant: "number" } },
+];
+
+<DataTable
+  data={medium}
+  columns={columns}
+  enableSorting
+  enableColumnFilters
+  enablePerColumnFilters
+/>`}
+        >
+          <DataTable
+            data={MEDIUM}
+            columns={variantColumns}
+            enableSorting
+            enableColumnFilters
+            enablePerColumnFilters
+          />
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>19. Everything together</h2>
         <CodeExample
           title="All toggles on, virtualization off (uses pagination instead)"
           code={`<DataTable

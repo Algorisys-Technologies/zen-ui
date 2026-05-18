@@ -12,6 +12,7 @@ import {
   type ColumnOrderState,
   type ColumnPinningState,
   type ColumnSizingState,
+  type FilterFn,
   type PaginationState,
   type RowSelectionState,
   type SortingState,
@@ -66,6 +67,7 @@ import {
   TableHeader,
   TableRow,
 } from "./table";
+import { FilterCell, filterFnByVariant, type FilterVariant } from "./filters";
 
 /**
  * DataTable — headless via @tanstack/react-table, optionally virtualized
@@ -291,7 +293,9 @@ export function DataTable<TData, TValue = unknown>({
   const rowOrderingActive = enableRowOrdering && !enableVirtualization;
 
   /* Prepend leading columns: drag-grip (if enabled) then select-checkbox
-   * (if enabled). Both are opt-in. */
+   * (if enabled). Both are opt-in. For user columns we also auto-attach
+   * the variant-matching `filterFn` (text/number/select/…) when `meta.
+   * filterVariant` is declared and the caller didn't set their own. */
   const augmentedColumns = React.useMemo<ColumnDef<TData, TValue>[]>(() => {
     const leading: ColumnDef<TData, TValue>[] = [];
 
@@ -335,7 +339,23 @@ export function DataTable<TData, TValue = unknown>({
       });
     }
 
-    return [...leading, ...columns];
+    const withVariantFilters: ColumnDef<TData, TValue>[] = columns.map((col) => {
+      const meta = col.meta as { filterVariant?: FilterVariant } | undefined;
+      if (meta?.filterVariant && !col.filterFn) {
+        return {
+          ...col,
+          // The variant filterFns are data-shape-agnostic — they read via
+          // row.getValue(columnId) and compare against the filter value —
+          // so widening to FilterFn<TData> is safe.
+          filterFn: filterFnByVariant[
+            meta.filterVariant
+          ] as unknown as FilterFn<TData>,
+        };
+      }
+      return col;
+    });
+
+    return [...leading, ...withVariantFilters];
   }, [columns, enableRowSelection, rowOrderingActive]);
 
   const table = useReactTable({
@@ -557,15 +577,7 @@ export function DataTable<TData, TValue = unknown>({
                 >
                   {header.column.getCanFilter() &&
                   !header.id.startsWith("__") ? (
-                    <Input
-                      value={(header.column.getFilterValue() as string) ?? ""}
-                      onChange={(e) =>
-                        header.column.setFilterValue(e.target.value)
-                      }
-                      placeholder="Filter…"
-                      aria-label={`Filter ${header.column.id}`}
-                      className="h-7 text-xs"
-                    />
+                    <FilterCell column={header.column} />
                   ) : null}
                 </TableHead>
               );
