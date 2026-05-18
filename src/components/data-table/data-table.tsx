@@ -14,6 +14,7 @@ import {
   type ColumnSizingState,
   type FilterFn,
   type PaginationState,
+  type Row,
   type RowSelectionState,
   type SortingState,
   type Table as TanStackTable,
@@ -167,6 +168,18 @@ export interface DataTableProps<TData, TValue = unknown> {
   enableRowOrdering?: boolean;
   onRowOrderChange?: (orderedIds: string[]) => void;
   /**
+   * Stable row-id resolver. Defaults to the row's array index, which is
+   * fine for static lists but breaks identity-tracking features the
+   * moment rows reorder or get inserted: row selection by id, row
+   * reorder drag-and-drop, and inline cell editing (the editingCell
+   * pointer stops matching after a commit re-renders the row).
+   *
+   *   <DataTable data={users} getRowId={(u) => u.id} … />
+   *
+   * Mirrors TanStack's getRowId option signature.
+   */
+  getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string;
+  /**
    * Inline cell editing. Declare `meta.editable: true` (or a
    * `(row) => boolean`) on any column to opt that column in. Double-click
    * (or Enter when focused) swaps the cell content for the matching input
@@ -253,6 +266,7 @@ export function DataTable<TData, TValue = unknown>({
   enableColumnSeparators = false,
   enableRowOrdering = false,
   onRowOrderChange,
+  getRowId,
   enableColumnOrdering = false,
   onColumnOrderChange,
   enableColumnResizing = false,
@@ -432,6 +446,7 @@ export function DataTable<TData, TValue = unknown>({
     enableColumnResizing,
     columnResizeMode: "onChange",
     enableColumnPinning,
+    getRowId,
     manualPagination: !!manualPagination,
     pageCount: manualPagination?.pageCount,
     onColumnOrderChange: (updater) => {

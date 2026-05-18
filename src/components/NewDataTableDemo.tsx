@@ -172,9 +172,9 @@ const NewDataTableDemo: React.FC = () => {
   );
 
   // Section 9 — row reorder. We own the data array; on drag-end we
-  // re-arrange it. Stable IDs are critical, so we pass getRowId via the
-  // table props (TanStack uses row index by default which changes after
-  // a reorder).
+  // re-arrange it. Stable IDs are critical: without `getRowId` TanStack
+  // would key by row.index (which changes after a reorder) and the
+  // orderedIds → Person.id lookup below would silently come back empty.
   const [orderable, setOrderable] = useState<Person[]>(() => makePeople(6));
   const handleRowOrderChange = (orderedIds: string[]) => {
     setOrderable((prev) => {
@@ -369,6 +369,7 @@ const handleOrderChange = (orderedIds: string[]) => {
 <DataTable
   data={data}
   columns={columns}
+  getRowId={(row) => row.id}   // stable identity across reorders
   enableRowOrdering
   onRowOrderChange={handleOrderChange}
 />`}
@@ -376,6 +377,7 @@ const handleOrderChange = (orderedIds: string[]) => {
           <DataTable
             data={orderable}
             columns={columns}
+            getRowId={(row) => row.id}
             enableRowOrdering
             onRowOrderChange={handleRowOrderChange}
           />
@@ -716,14 +718,11 @@ const InlineEditDemo: React.FC = () => {
     <DataTable
       data={rows}
       columns={editColumns}
-      /* rowId defaults to the row's array index — for this static demo
-       * that's stable across cell-edit re-renders. For data that can
-       * also reorder, expose `getRowId` per row. */
+      getRowId={(row) => row.id}
       onCellEdit={({ rowId, columnId, value }) => {
-        const idx = Number(rowId);
         setRows((prev) =>
-          prev.map((r, i) =>
-            i === idx
+          prev.map((r) =>
+            r.id === rowId
               ? {
                   ...r,
                   [columnId]:
