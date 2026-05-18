@@ -412,6 +412,8 @@ export type {
   ComboboxOption,
   ComboboxProps,
 } from "./components/combobox/combobox";
+export { MultiCombobox } from "./components/combobox/multi-combobox";
+export type { MultiComboboxProps } from "./components/combobox/multi-combobox";
 export {
   Command,
   CommandInput,

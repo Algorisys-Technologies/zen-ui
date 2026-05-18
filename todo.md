@@ -356,8 +356,14 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
       per-tag `validate`, `max` cap, `unique` dedupe. Chips render as
       removable pills (or via a `renderTag` override). Demo at
       `/tag-input`.
-- [ ] **Multi-select Combobox** — today's Combobox is single-select.
-      Multi with a selected-chip row above the list.
+- [x] **Multi-select Combobox** — `<MultiCombobox>` sibling of
+      Combobox with `value: string[]` semantics. Selected items render
+      as removable chips inside the trigger with `maxDisplayed`
+      collapse into "+N more". Same sync / async option-loading story
+      as Combobox (debounce + AbortController + monotonic seq). Label
+      cache keeps chip labels human even when the async result page
+      rotates. Built-in Clear-all footer affordance. Demo at
+      `/multi-combobox`.
 
 ### Tier 3 — friction reducers (move the needle on completion)
 

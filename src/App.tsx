@@ -44,6 +44,7 @@ import NewCardDemo from "./components/NewCardDemo";
 import NewSheetDemo from "./components/NewSheetDemo";
 import NewDateRangePickerDemo from "./components/NewDateRangePickerDemo";
 import NewTagInputDemo from "./components/NewTagInputDemo";
+import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import { Toaster } from "./components/toast/toaster";
 
 /**
@@ -100,6 +101,7 @@ const NAV: NavGroup[] = [
       { to: "/sheet", label: "Sheet / Drawer" },
       { to: "/date-range-picker", label: "DateRangePicker" },
       { to: "/tag-input", label: "TagInput" },
+      { to: "/multi-combobox", label: "MultiCombobox" },
     ],
   },
 ];
@@ -244,6 +246,7 @@ const App: React.FC = () => {
             <Route path="/sheet" element={<NewSheetDemo />} />
             <Route path="/date-range-picker" element={<NewDateRangePickerDemo />} />
             <Route path="/tag-input" element={<NewTagInputDemo />} />
+            <Route path="/multi-combobox" element={<NewMultiComboboxDemo />} />
           </Routes>
         </main>
       </div>
