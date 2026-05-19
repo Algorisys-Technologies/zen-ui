@@ -50,6 +50,10 @@ import NewTagInputDemo from "./components/NewTagInputDemo";
 import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
 import NewFileUploadDemo from "./components/NewFileUploadDemo";
+import NewDataTableDemo from "./components/NewDataTableDemo";
+import NewComboboxDemo from "./components/NewComboboxDemo";
+import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
+import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 
 applyTheme(getInitialTheme());
 
@@ -96,6 +100,10 @@ render(
       <Route path="/phone-input" component={NewPhoneInputDemo} />
       <Route path="/otp" component={NewOTPDemo} />
       <Route path="/file-upload" component={NewFileUploadDemo} />
+      <Route path="/data-table" component={NewDataTableDemo} />
+      <Route path="/combobox" component={NewComboboxDemo} />
+      <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
+      <Route path="/lazy-options" component={NewLazyOptionsDemo} />
     </Router>
   ),
   root,

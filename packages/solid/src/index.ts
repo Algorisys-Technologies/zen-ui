@@ -301,3 +301,42 @@ export type { InputOTPProps } from "./components/form/otp/otp";
 
 export { FileUpload } from "./components/file-upload/file-upload";
 export type { FileUploadProps, FileRejection } from "./components/file-upload/file-upload";
+
+// Tier 3 batch B — special-lib components
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+} from "./components/data-table/table";
+export type { TableProps } from "./components/data-table/table";
+
+export { DataTable } from "./components/data-table/data-table";
+export type {
+  DataTableProps,
+  DataTableManualPagination,
+} from "./components/data-table/data-table";
+export type {
+  FilterVariant,
+  TextOp,
+  TextFilterValue,
+  NumberOp,
+  NumberFilterValue,
+  NumberRangeFilterValue,
+} from "./components/data-table/filters";
+export type {
+  EditVariant,
+  CellEditPayload,
+} from "./components/data-table/edit-cell";
+
+export { VirtualizedItems } from "./components/listbox/virtualized-items";
+export type { VirtualizedItemsProps } from "./components/listbox/virtualized-items";
+
+export { Combobox } from "./components/combobox/combobox";
+export type { ComboboxProps, ComboboxOption } from "./components/combobox/combobox";
+export { MultiCombobox } from "./components/combobox/multi-combobox";
+export type { MultiComboboxProps } from "./components/combobox/multi-combobox";

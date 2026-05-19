@@ -102,6 +102,15 @@ const NAV: NavGroup[] = [
       { label: "FileUpload", path: "/file-upload" },
     ],
   },
+  {
+    group: "Data",
+    items: [
+      { label: "DataTable", path: "/data-table" },
+      { label: "Combobox", path: "/combobox" },
+      { label: "MultiCombobox", path: "/multi-combobox" },
+      { label: "VirtualizedItems", path: "/lazy-options" },
+    ],
+  },
 ];
 
 const App: Component<ParentProps> = (props) => {
