@@ -1360,7 +1360,14 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
   const rows = () => props.table.getRowModel().rows;
   const colCount = () => props.table.getAllLeafColumns().length;
 
-  const headerRows = (
+  // HeaderRows is rendered as a sub-component (not a pre-evaluated JSX
+  // expression) so its child HeaderCell → SortableHeaderTh → createSortable()
+  // calls happen INSIDE the DragDropProvider context below. A previous
+  // version stored this as `const headerRows = (...)` which evaluated
+  // eagerly and ran createSortable outside the provider, producing the
+  // "useDragDropContext is not a function or its return value is not
+  // iterable" error.
+  const HeaderRows = () => (
     <TableHeader class={props.headerVariantThead}>
       <For each={props.table.getHeaderGroups()}>
         {(hg) => (
@@ -1421,24 +1428,22 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
     </TableHeader>
   );
 
-  const wrappedHeader = (
-    <Show
-      when={props.enableColumnOrdering}
-      fallback={headerRows}
-    >
-      <DragDropProvider
-        collisionDetector={closestCenter}
-        onDragEnd={props.onColumnDragEnd}
-      >
-        <DragDropSensors />
-        <SortableProvider ids={props.visibleColumnIds}>{headerRows}</SortableProvider>
-      </DragDropProvider>
-    </Show>
-  );
-
   return (
     <Table containerStyle={props.stickyHeaderActive ? { "max-height": `${props.maxBodyHeight}px` } : undefined}>
-      {wrappedHeader}
+      <Show
+        when={props.enableColumnOrdering}
+        fallback={<HeaderRows />}
+      >
+        <DragDropProvider
+          collisionDetector={closestCenter}
+          onDragEnd={props.onColumnDragEnd}
+        >
+          <DragDropSensors />
+          <SortableProvider ids={props.visibleColumnIds}>
+            <HeaderRows />
+          </SortableProvider>
+        </DragDropProvider>
+      </Show>
       <TableBody>
         <Show
           when={!props.loading && rows().length > 0}

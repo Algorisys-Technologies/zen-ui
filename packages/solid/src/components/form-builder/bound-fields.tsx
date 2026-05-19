@@ -1,4 +1,5 @@
 import { type JSX, For, Show, splitProps } from "solid-js";
+import { setValue } from "@modular-forms/solid";
 import { cn } from "../../lib/cn";
 import { Checkbox } from "../form/checkbox/checkbox";
 import { Input, Textarea, type InputProps, type TextareaProps } from "../form/input/input";
@@ -112,7 +113,10 @@ export function BoundInput<TFields extends FieldValues = FieldValues>(
   ]);
   return (
     <local.Field name={local.name}>
-      {(field: { name: string; value: unknown; error: string }, fieldProps: { name: string; ref: (el: unknown) => void }) => {
+      {(
+        field: { name: string; value: unknown; error: string },
+        fieldProps: Record<string, unknown>,
+      ) => {
         const id = `${local.name}-${field.name}`;
         return (
           <Frame
@@ -155,7 +159,10 @@ export function BoundTextarea<TFields extends FieldValues = FieldValues>(
   ]);
   return (
     <local.Field name={local.name}>
-      {(field: { name: string; value: unknown; error: string }, fieldProps: { name: string; ref: (el: unknown) => void }) => {
+      {(
+        field: { name: string; value: unknown; error: string },
+        fieldProps: Record<string, unknown>,
+      ) => {
         const id = `${local.name}-${field.name}`;
         return (
           <Frame
@@ -208,14 +215,10 @@ export function BoundSelect<TFields extends FieldValues = FieldValues>(
             options={props.options}
             value={(field.value as string | undefined) ?? undefined}
             onChange={(v) => {
-              // modular-forms updates via fieldProps onInput, but Select
-              // doesn't drive that — fall back to the form store API.
-              const form = props.of as unknown as {
-                internal: { setValue: (name: string, value: unknown) => void };
-              };
-              // Use any-cast to bypass strict generics; modular-forms exposes
-              // setValue via the `internal` namespace.
-              form.internal?.setValue?.(props.name, v ?? undefined);
+              // Kobalte Select doesn't drive modular-forms's hidden input;
+              // push the value into the form store directly.
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              setValue(props.of as never, props.name as never, (v ?? "") as never);
             }}
             placeholder={props.placeholder}
             disabled={props.disabled}
@@ -239,7 +242,7 @@ export function BoundCheckbox<TFields extends FieldValues = FieldValues>(
 ) {
   return (
     <props.Field name={props.name} type="boolean">
-      {(field: { name: string; value: unknown; error: string }, fieldProps: { name: string; ref: (el: unknown) => void }) => (
+      {(field: { name: string; value: unknown; error: string }) => (
         <Frame
           id={`${props.name}-${field.name}`}
           label={props.label}
@@ -252,15 +255,10 @@ export function BoundCheckbox<TFields extends FieldValues = FieldValues>(
             <Checkbox
               checked={(field.value as boolean | undefined) ?? false}
               onChange={(v) => {
-                const input = document.getElementsByName(fieldProps.name)[0] as HTMLInputElement | undefined;
-                if (input) {
-                  input.checked = v;
-                  input.dispatchEvent(new Event("input", { bubbles: true }));
-                  input.dispatchEvent(new Event("change", { bubbles: true }));
-                }
+                setValue(props.of as never, props.name as never, v as never);
               }}
               disabled={props.disabled}
-              name={fieldProps.name}
+              name={props.name}
             />
             <Show when={props.inlineLabel}>
               <span class="text-sm">{props.inlineLabel}</span>
@@ -284,7 +282,7 @@ export function BoundSwitch<TFields extends FieldValues = FieldValues>(
 ) {
   return (
     <props.Field name={props.name} type="boolean">
-      {(field: { name: string; value: unknown; error: string }, fieldProps: { name: string; ref: (el: unknown) => void }) => (
+      {(field: { name: string; value: unknown; error: string }) => (
         <Frame
           id={`${props.name}-${field.name}`}
           label={props.label}
@@ -297,15 +295,10 @@ export function BoundSwitch<TFields extends FieldValues = FieldValues>(
             <Switch
               checked={(field.value as boolean | undefined) ?? false}
               onChange={(v) => {
-                const input = document.getElementsByName(fieldProps.name)[0] as HTMLInputElement | undefined;
-                if (input) {
-                  input.checked = v;
-                  input.dispatchEvent(new Event("input", { bubbles: true }));
-                  input.dispatchEvent(new Event("change", { bubbles: true }));
-                }
+                setValue(props.of as never, props.name as never, v as never);
               }}
               disabled={props.disabled}
-              name={fieldProps.name}
+              name={props.name}
             />
             <Show when={props.inlineLabel}>
               <span class="text-sm">{props.inlineLabel}</span>
@@ -330,7 +323,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>(
 ) {
   return (
     <props.Field name={props.name}>
-      {(field: { name: string; value: unknown; error: string }, fieldProps: { name: string; ref: (el: unknown) => void }) => (
+      {(field: { name: string; value: unknown; error: string }) => (
         <Frame
           id={`${props.name}-${field.name}`}
           label={props.label}
@@ -342,12 +335,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>(
           <RadioGroup
             value={(field.value as string | undefined) ?? ""}
             onChange={(v) => {
-              const input = document.getElementsByName(fieldProps.name)[0] as HTMLInputElement | undefined;
-              if (input) {
-                input.value = v;
-                input.dispatchEvent(new Event("input", { bubbles: true }));
-                input.dispatchEvent(new Event("change", { bubbles: true }));
-              }
+              setValue(props.of as never, props.name as never, v as never);
             }}
             orientation={props.orientation}
             disabled={props.disabled}
@@ -376,7 +364,7 @@ export function BoundSlider<TFields extends FieldValues = FieldValues>(
 ) {
   return (
     <props.Field name={props.name} type="number">
-      {(field: { name: string; value: unknown; error: string }, fieldProps: { name: string; ref: (el: unknown) => void }) => (
+      {(field: { name: string; value: unknown; error: string }) => (
         <Frame
           id={`${props.name}-${field.name}`}
           label={props.label}
@@ -389,12 +377,7 @@ export function BoundSlider<TFields extends FieldValues = FieldValues>(
             value={[(field.value as number | undefined) ?? 0]}
             onChange={(vs) => {
               const v = vs[0] ?? 0;
-              const input = document.getElementsByName(fieldProps.name)[0] as HTMLInputElement | undefined;
-              if (input) {
-                input.value = String(v);
-                input.dispatchEvent(new Event("input", { bubbles: true }));
-                input.dispatchEvent(new Event("change", { bubbles: true }));
-              }
+              setValue(props.of as never, props.name as never, v as never);
             }}
             minValue={props.minValue}
             maxValue={props.maxValue}
