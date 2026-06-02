@@ -11,11 +11,11 @@ const NewOTPDemo: React.FC = () => {
   const [code, setCode] = useState("");
   return (
     <div className="demo-page">
-      <h1>InputOTP (new — shadcn-style on input-otp)</h1>
+      <h1>InputOTP</h1>
       <p className="lede">
-        One-time-code input on the <code>input-otp</code> library. Handles paste,
-        keyboard nav, mobile autocomplete (<code>one-time-code</code>), and
-        backspace-across-slots — we just style. Themed via{" "}
+        One-time-code input — one <code>&lt;input&gt;</code> per digit, zero
+        dependencies. Handles paste, keyboard nav, mobile autocomplete (
+        <code>one-time-code</code>), and backspace-across-slots. Themed via{" "}
         <code>--zen-*</code>.
       </p>
 

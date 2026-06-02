@@ -17,10 +17,8 @@ import { Calendar } from "./date-picker";
  *   const [range, setRange] = useState<DateRange | undefined>();
  *   <DateRangePicker value={range} onValueChange={setRange} />
  *
- * Returns the same `DateRange` shape react-day-picker exports —
- * `{ from?: Date, to?: Date }`. The user clicks the first day to
- * anchor the range, then a second day to close it; clicking outside
- * the existing range resets the anchor.
+ * The popover stays open while dates are selected. Use Done to apply and
+ * close, or Cancel to discard changes.
  *
  * Defaults to a 2-month side-by-side calendar (the conventional
  * range-picker layout from Airbnb / Booking patterns); override via
@@ -38,6 +36,14 @@ export interface DateRangePickerProps {
   /** Format used in the trigger label for each side. Defaults to
    *  toLocaleDateString(). */
   formatDate?: (date: Date) => string;
+  /** Label for the cancel action in the popover footer. */
+  cancelLabel?: string;
+  /** Label for the apply action in the popover footer. */
+  doneLabel?: string;
+}
+
+function isCompleteRange(range: DateRange | undefined): boolean {
+  return Boolean(range?.from && range?.to);
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({
@@ -49,26 +55,68 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   className,
   numberOfMonths = 2,
   formatDate = (d) => d.toLocaleDateString(),
+  cancelLabel = "Cancel",
+  doneLabel = "Done",
 }) => {
+  const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<DateRange | undefined>(
     defaultValue,
   );
   const isControlled = value !== undefined;
-  const range = isControlled ? value : internal;
+  const committed = isControlled ? value : internal;
 
-  const update = (next: DateRange | undefined) => {
-    if (!isControlled) setInternal(next);
-    onValueChange?.(next);
+  const [draft, setDraft] = React.useState<DateRange | undefined>(committed);
+  const rangeAtOpenRef = React.useRef<DateRange | undefined>(committed);
+
+  React.useEffect(() => {
+    if (!open) {
+      setDraft(committed);
+    }
+  }, [committed, open]);
+
+  const commit = React.useCallback(
+    (next: DateRange | undefined) => {
+      if (!isControlled) setInternal(next);
+      onValueChange?.(next);
+    },
+    [isControlled, onValueChange],
+  );
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      rangeAtOpenRef.current = committed;
+      setDraft(committed);
+    } else {
+      setDraft(rangeAtOpenRef.current);
+    }
+    setOpen(nextOpen);
   };
 
-  const label = range?.from
-    ? range.to
-      ? `${formatDate(range.from)} – ${formatDate(range.to)}`
-      : formatDate(range.from)
+  const handleSelect = (next: DateRange | undefined) => {
+    setDraft(next);
+  };
+
+  const handleDone = () => {
+    if (!isCompleteRange(draft)) return;
+    commit(draft);
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    setDraft(rangeAtOpenRef.current);
+    setOpen(false);
+  };
+
+  const label = committed?.from
+    ? committed.to
+      ? `${formatDate(committed.from)} – ${formatDate(committed.to)}`
+      : formatDate(committed.from)
     : placeholder;
 
+  const calendarMonth = draft?.from ?? committed?.from;
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -76,7 +124,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           disabled={typeof disabled === "boolean" ? disabled : undefined}
           className={cn(
             "min-w-[16rem] justify-between font-normal",
-            !range?.from && "text-zen-muted-fg",
+            !committed?.from && "text-zen-muted-fg",
             className,
           )}
           iconLeft={<CalendarIcon />}
@@ -87,11 +135,33 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="range"
-          selected={range}
-          onSelect={update}
+          selected={draft}
+          onSelect={handleSelect}
           numberOfMonths={numberOfMonths}
+          defaultMonth={calendarMonth}
           disabled={typeof disabled === "boolean" ? undefined : disabled}
         />
+        <div className="flex justify-end gap-2 border-t border-zen-border px-3 py-2">
+          <Button
+            type="button"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            onClick={handleCancel}
+          >
+            {cancelLabel}
+          </Button>
+          <Button
+            type="button"
+            variant="solid"
+            color="primary"
+            size="sm"
+            onClick={handleDone}
+            disabled={!isCompleteRange(draft)}
+          >
+            {doneLabel}
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

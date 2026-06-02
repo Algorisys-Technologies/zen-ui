@@ -1,0 +1,5 @@
+/* react-day-picker uses `font: inherit`; with html at 62.5% that yields ~10px day numerals */
+.zen-calendar .rdp-day_button,
+.zen-calendar .rdp-weekday {
+  font-size: 14px;
+}

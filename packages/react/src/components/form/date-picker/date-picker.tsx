@@ -1,6 +1,7 @@
 import * as React from "react";
 import { DayPicker, type DayPickerProps } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import "./calendar.css";
 import { cn } from "../../../lib/cn";
 import { Button } from "../../button/button";
 import {
@@ -18,7 +19,7 @@ export type CalendarProps = DayPickerProps;
 const Calendar: React.FC<CalendarProps> = ({ className, ...props }) => (
   <DayPicker
     className={cn(
-      "p-3 [--rdp-accent-color:var(--zen-color-primary)] [--rdp-accent-background-color:var(--zen-color-primary-soft)]",
+      "zen-calendar p-3 [--rdp-accent-color:var(--zen-color-primary)] [--rdp-accent-background-color:var(--zen-color-primary-soft)]",
       className,
     )}
     {...props}
@@ -53,6 +54,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   className,
   formatDate = (d) => d.toLocaleDateString(),
 }) => {
+  const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<Date | undefined>(defaultValue);
   const isControlled = value !== undefined;
   const date = isControlled ? value : internal;
@@ -60,10 +62,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const update = (d: Date | undefined) => {
     if (!isControlled) setInternal(d);
     onValueChange?.(d);
+    if (d) setOpen(false);
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"

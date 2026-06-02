@@ -1,7 +1,7 @@
 import * as React from "react";
-import { DayPicker, type DayPickerProps } from "react-day-picker";
-import "react-day-picker/dist/style.css";
+import type { DayPickerProps } from "react-day-picker";
 import { cn } from "../../../lib/cn";
+import { Calendar } from "./date-picker";
 import { Button } from "../../button/button";
 import {
   Popover,
@@ -145,12 +145,11 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <DayPicker
+        <Calendar
           mode="single"
           selected={date}
           onSelect={onDaySelect}
           disabled={typeof disabled === "boolean" ? undefined : disabled}
-          className="p-3 [--rdp-accent-color:var(--zen-color-primary)] [--rdp-accent-background-color:var(--zen-color-primary-soft)]"
         />
         <div className="flex items-center justify-between gap-3 border-t border-zen-border px-3 py-2.5">
           <label className="text-xs text-zen-muted-fg">Time</label>

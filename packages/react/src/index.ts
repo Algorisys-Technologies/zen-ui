@@ -132,13 +132,14 @@ export {
 export { Slider } from "./components/form/slider/slider";
 export type { SliderProps } from "./components/form/slider/slider";
 
-// Form Components - InputOTP (shadcn-style on top of input-otp)
+// Form Components - InputOTP (one <input> per digit, zero-dependency)
 export {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
   InputOTPSeparator,
 } from "./components/form/otp/otp";
+export type { InputOTPProps } from "./components/form/otp/otp";
 
 // UI Components - Avatar (Radix-backed compound API)
 export {

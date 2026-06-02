@@ -1,0 +1,15 @@
+/**
+ * OTP slot borders use CSS variables so they follow the active theme and can be
+ * overridden per-instance via InputOTP `borderColor` / `focusBorderColor`.
+ */
+.zen-otp-slot {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--zen-otp-slot-border, var(--zen-color-border));
+}
+
+.zen-otp-slot:focus {
+  border-width: 2px;
+  border-color: var(--zen-otp-slot-focus-border, var(--zen-color-primary));
+  outline: none;
+}
