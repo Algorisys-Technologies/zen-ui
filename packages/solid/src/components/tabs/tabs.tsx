@@ -63,7 +63,9 @@ const tabsListVariants = cva("inline-flex items-stretch", {
       pills: "rounded-zen-md bg-zen-muted p-1 gap-1",
     },
     orientation: {
-      horizontal: "flex-row",
+      // flex-wrap so a horizontal tab list with many tabs wraps to multiple
+      // rows instead of overflowing/clipping its container.
+      horizontal: "flex-row flex-wrap",
       vertical: "flex-col items-start",
     },
   },
