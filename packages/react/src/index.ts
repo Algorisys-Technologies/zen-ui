@@ -323,6 +323,10 @@ export {
 } from "./components/sheet/sheet";
 export type { SheetContentProps } from "./components/sheet/sheet";
 
+// UI Components - Stack (flexbox layout primitive)
+export { Stack } from "./components/stack/stack";
+export type { StackProps } from "./components/stack/stack";
+
 // UI Components - Card (generic surface + SelectableCard for "pick one")
 export {
   Card,
