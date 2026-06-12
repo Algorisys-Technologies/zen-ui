@@ -284,7 +284,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
 
 const Chip: React.FC<{
   label: string;
-  onRemove: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onRemove: (e: React.SyntheticEvent) => void;
 }> = ({ label, onRemove }) => (
   <span
     className={cn(
@@ -295,9 +295,18 @@ const Chip: React.FC<{
     )}
   >
     <span className="truncate">{label}</span>
-    <button
-      type="button"
+    {/* role="button" span (not a <button>) so it can live inside the trigger
+     * <Button> without nesting interactive <button> elements (invalid HTML). */}
+    <span
+      role="button"
+      tabIndex={0}
       onClick={onRemove}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onRemove(e);
+        }
+      }}
       onPointerDown={(e) => e.stopPropagation()}
       /* stopPropagation on pointerdown so the click doesn't trigger
        * the parent Popover trigger (which would open the menu when
@@ -324,7 +333,7 @@ const Chip: React.FC<{
         <line x1="18" y1="6" x2="6" y2="18" />
         <line x1="6" y1="6" x2="18" y2="18" />
       </svg>
-    </button>
+    </span>
   </span>
 );
 
