@@ -22,6 +22,10 @@ export default defineConfig({
         "solid-js/web",
         "solid-js/store",
         "solid-js/h",
+        // Optional peer deps — lazy-loaded by Map/RichText. Never bundled;
+        // consumers install them only if they use those components.
+        "leaflet",
+        "jodit",
       ],
       output: {
         globals: {

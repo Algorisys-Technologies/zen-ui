@@ -409,3 +409,72 @@ export type {
   NotificationsInboxProps,
   Notification,
 } from "./components/notifications-inbox/notifications-inbox";
+
+// ---------------------------------------------------------------------------
+// Ported from the React binding — see CLAUDE.md's parity rule. Where Solid has
+// no equivalent of a React-only dep (cmdk, recharts, react-webcam), the port
+// rebuilds the behaviour rather than pulling React in; per-file port notes list
+// any behavioural gaps.
+// ---------------------------------------------------------------------------
+
+export { Stack } from "./components/stack/stack";
+export type { StackProps } from "./components/stack/stack";
+
+export {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbEllipsis,
+} from "./components/breadcrumb/breadcrumb";
+export type {
+  BreadcrumbProps,
+  BreadcrumbListProps,
+  BreadcrumbItemProps,
+  BreadcrumbLinkProps,
+  BreadcrumbPageProps,
+  BreadcrumbSeparatorProps,
+  BreadcrumbEllipsisProps,
+} from "./components/breadcrumb/breadcrumb";
+
+export { Pagination, usePaginationRange } from "./components/pagination/pagination";
+
+export {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+  CommandLoading,
+  defaultFilter,
+} from "./components/command/command";
+export type { CommandFilter, CommandEmptyProps } from "./components/command/command";
+
+export {
+  Sidebar,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
+} from "./components/sidebar/sidebar";
+export type {
+  SidebarMenuButtonProps,
+  SidebarTriggerProps,
+} from "./components/sidebar/sidebar";
+
+// Heavy / optional peer deps — lazy-loaded, never bundled.
+export { Chart } from "./components/chart/chart";
+export { RichText } from "./components/rich-text/rich-text";
+export { Map } from "./components/map/map";
+export { Camera } from "./components/camera/camera";
