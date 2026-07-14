@@ -18,6 +18,10 @@ import { cn } from "../../lib/cn";
  * name.
  */
 
+/** `title` is caller-supplied and lands inside markup, so escape it. */
+const escapeXml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 export interface IconProps extends Omit<React.SVGProps<SVGSVGElement>, "name"> {
   name: IconName;
   /** Width and height in px. Default 16 — matches the inline SVGs this replaces. */
@@ -42,9 +46,13 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(
       role={title ? "img" : undefined}
       aria-hidden={title ? undefined : true}
       aria-label={title}
-      // Path data is our own constant, not user input — see core/src/icons.ts.
+      // Path data is a compile-time constant from core/src/icons.ts; `name` is
+      // typed to IconName and indexes a frozen literal. `title` is the one
+      // caller-supplied value and is escaped.
       dangerouslySetInnerHTML={{
-        __html: title ? `<title>${title}</title>${ZEN_ICONS[name]}` : ZEN_ICONS[name],
+        __html: title
+          ? `<title>${escapeXml(title)}</title>${ZEN_ICONS[name]}`
+          : ZEN_ICONS[name],
       }}
       {...props}
     />

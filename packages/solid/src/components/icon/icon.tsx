@@ -16,6 +16,10 @@ import { cn } from "../../lib/cn";
  * carries the meaning; that promotes it to `role="img"` with a name.
  */
 
+/** `title` is caller-supplied and lands inside markup, so escape it. */
+const escapeXml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 export type IconProps = Omit<JSX.SvgSVGAttributes<SVGSVGElement>, "name"> & {
   name: IconName;
   /** Width and height in px. Default 16 — matches the inline SVGs this replaces. */
@@ -32,7 +36,7 @@ export const Icon = (props: IconProps) => {
   const size = () => local.size ?? 16;
   const body = () =>
     local.title
-      ? `<title>${local.title}</title>${ZEN_ICONS[local.name]}`
+      ? `<title>${escapeXml(local.title)}</title>${ZEN_ICONS[local.name]}`
       : ZEN_ICONS[local.name];
 
   return (
@@ -49,7 +53,10 @@ export const Icon = (props: IconProps) => {
       role={local.title ? "img" : undefined}
       aria-hidden={local.title ? undefined : true}
       aria-label={local.title}
-      // Path data is our own constant, not user input — see core/src/icons.ts.
+      // Path data is a compile-time constant from core/src/icons.ts: `name` is
+      // typed to IconName and indexes a frozen literal, so no caller markup
+      // reaches here. `title` is the one caller-supplied value and is escaped.
+      // eslint-disable-next-line solid/no-innerhtml
       innerHTML={body()}
       {...rest}
     />
