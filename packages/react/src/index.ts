@@ -159,6 +159,10 @@ export type {
   AvatarSize,
 } from "./components/avatar/avatar";
 
+// Tree (Fiori-shaped; also zen-ui's first tree of any kind)
+export { Tree } from "./components/tree/tree";
+export type { TreeProps, TreeNode } from "./components/tree/tree";
+
 // Object atoms (Fiori-shaped: ObjectStatus / Number / Identifier / Marker)
 export {
   ObjectStatus,

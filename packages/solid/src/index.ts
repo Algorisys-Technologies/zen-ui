@@ -38,6 +38,9 @@ export type {
 } from "./components/button/button-family";
 export type { ButtonProps } from "./components/button/button";
 
+export { Tree } from "./components/tree/tree";
+export type { TreeProps, TreeNode } from "./components/tree/tree";
+
 export {
   ObjectStatus,
   ObjectNumber,
