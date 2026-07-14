@@ -19,7 +19,13 @@ import { cn } from "../../lib/cn";
  * document-style) or "pills" (segmented switcher).
  */
 
-export type TabsProps = {
+// `onChange` is omitted from the DOM attributes: it collides with the
+// generic DOM change-event handler, but Kobalte's root reports the newly
+// selected tab value instead.
+export type TabsProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children" | "onChange"
+> & {
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
@@ -31,7 +37,7 @@ export type TabsProps = {
 };
 
 export const Tabs = (props: TabsProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "value",
     "defaultValue",
     "onChange",
@@ -43,6 +49,7 @@ export const Tabs = (props: TabsProps) => {
   ]);
   return (
     <KTabs
+      {...rest}
       value={local.value}
       defaultValue={local.defaultValue}
       onChange={local.onChange}
@@ -87,15 +94,20 @@ const tabsListVariants = cva("zen-inline-flex zen-items-stretch", {
   },
 });
 
-export type TabsListProps = VariantProps<typeof tabsListVariants> & {
-  class?: string;
-  children?: JSX.Element;
-};
+export type TabsListProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> &
+  VariantProps<typeof tabsListVariants> & {
+    class?: string;
+    children?: JSX.Element;
+  };
 
 export const TabsList = (props: TabsListProps) => {
-  const [local] = splitProps(props, ["variant", "orientation", "class", "children"]);
+  const [local, rest] = splitProps(props, ["variant", "orientation", "class", "children"]);
   return (
     <KTabs.List
+      {...rest}
       data-variant={local.variant ?? "underline"}
       class={cn(
         tabsListVariants({ variant: local.variant, orientation: local.orientation }),
@@ -138,17 +150,23 @@ const tabsTriggerVariants = cva(
   },
 );
 
-export type TabsTriggerProps = VariantProps<typeof tabsTriggerVariants> & {
-  value: string;
-  disabled?: boolean;
-  class?: string;
-  children?: JSX.Element;
-};
+// Kobalte's Trigger renders a <button>. NOTE: do not use
+// `ComponentProps<typeof KTabs.Trigger>` here — Kobalte's Trigger is generic
+// over `T extends ValidComponent = "button"`, so ComponentProps resolves T to
+// its constraint and degrades to `any`, silently accepting typos.
+export type TabsTriggerProps = Omit<JSX.HTMLAttributes<HTMLButtonElement>, "class" | "children"> &
+  VariantProps<typeof tabsTriggerVariants> & {
+    value: string;
+    disabled?: boolean;
+    class?: string;
+    children?: JSX.Element;
+  };
 
 export const TabsTrigger = (props: TabsTriggerProps) => {
-  const [local] = splitProps(props, ["variant", "value", "disabled", "class", "children"]);
+  const [local, rest] = splitProps(props, ["variant", "value", "disabled", "class", "children"]);
   return (
     <KTabs.Trigger
+      {...rest}
       value={local.value}
       disabled={local.disabled}
       class={cn(tabsTriggerVariants({ variant: local.variant }), local.class)}
@@ -158,16 +176,20 @@ export const TabsTrigger = (props: TabsTriggerProps) => {
   );
 };
 
-export type TabsContentProps = {
+export type TabsContentProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   value: string;
   class?: string;
   children?: JSX.Element;
 };
 
 export const TabsContent = (props: TabsContentProps) => {
-  const [local] = splitProps(props, ["value", "class", "children"]);
+  const [local, rest] = splitProps(props, ["value", "class", "children"]);
   return (
     <KTabs.Content
+      {...rest}
       value={local.value}
       class={cn(
         "zen-mt-3 focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring zen-rounded-zen-sm",

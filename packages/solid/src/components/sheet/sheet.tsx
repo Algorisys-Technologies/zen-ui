@@ -29,15 +29,19 @@ export const SheetTrigger = KDialog.Trigger;
 export const SheetClose = KDialog.CloseButton;
 export const SheetPortal = KDialog.Portal;
 
-type DivProps = {
+export type SheetOverlayProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   class?: string;
   children?: JSX.Element;
 };
 
-export const SheetOverlay = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export const SheetOverlay = (props: SheetOverlayProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KDialog.Overlay
+      {...rest}
       class={cn(
         "zen-fixed zen-inset-0 zen-z-50 zen-bg-black/40",
         "data-[expanded]:zen-anim-fade-in",
@@ -88,20 +92,27 @@ const sheetContentVariants = cva(
   },
 );
 
-export type SheetContentProps = VariantProps<typeof sheetContentVariants> & {
-  class?: string;
-  children?: JSX.Element;
-  /** Show a built-in close ✕ in the top-right. Default true. */
-  showCloseButton?: boolean;
-};
+export type SheetContentProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> &
+  VariantProps<typeof sheetContentVariants> & {
+    class?: string;
+    children?: JSX.Element;
+    /** Show a built-in close ✕ in the top-right. Default true. */
+    showCloseButton?: boolean;
+  };
 
 export const SheetContent = (props: SheetContentProps) => {
-  const [local] = splitProps(props, ["class", "side", "showCloseButton", "children"]);
+  const [local, rest] = splitProps(props, ["class", "side", "showCloseButton", "children"]);
   const showClose = () => local.showCloseButton ?? true;
   return (
     <KDialog.Portal>
       <SheetOverlay />
-      <KDialog.Content class={cn(sheetContentVariants({ side: local.side }), local.class)}>
+      <KDialog.Content
+        {...rest}
+        class={cn(sheetContentVariants({ side: local.side }), local.class)}
+      >
         {local.children}
         {showClose() ? (
           <KDialog.CloseButton
@@ -124,17 +135,36 @@ export const SheetContent = (props: SheetContentProps) => {
   );
 };
 
-export const SheetHeader = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export type SheetHeaderProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const SheetHeader = (props: SheetHeaderProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div class={cn("zen-flex zen-flex-col zen-gap-1.5", local.class)}>{local.children}</div>
+    <div {...rest} class={cn("zen-flex zen-flex-col zen-gap-1.5", local.class)}>
+      {local.children}
+    </div>
   );
 };
 
-export const SheetFooter = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export type SheetFooterProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const SheetFooter = (props: SheetFooterProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
+      {...rest}
       class={cn(
         "zen-mt-auto zen-flex zen-flex-col-reverse zen-gap-2 sm:zen-flex-row sm:zen-justify-end",
         local.class,
@@ -145,10 +175,20 @@ export const SheetFooter = (props: DivProps) => {
   );
 };
 
-export const SheetTitle = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+// Kobalte's Title defaults to <h2>.
+export type SheetTitleProps = Omit<
+  JSX.HTMLAttributes<HTMLHeadingElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const SheetTitle = (props: SheetTitleProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KDialog.Title
+      {...rest}
       class={cn(
         "zen-text-base zen-font-semibold zen-leading-tight zen-text-zen-foreground zen-m-0",
         local.class,
@@ -159,10 +199,19 @@ export const SheetTitle = (props: DivProps) => {
   );
 };
 
-export const SheetDescription = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+// Kobalte's Description defaults to <p>.
+export type SheetDescriptionProps = Omit<
+  JSX.HTMLAttributes<HTMLParagraphElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const SheetDescription = (props: SheetDescriptionProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <KDialog.Description class={cn("zen-text-sm zen-text-zen-muted-fg zen-m-0", local.class)}>
+    <KDialog.Description {...rest} class={cn("zen-text-sm zen-text-zen-muted-fg zen-m-0", local.class)}>
       {local.children}
     </KDialog.Description>
   );

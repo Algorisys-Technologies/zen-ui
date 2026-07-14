@@ -11,15 +11,19 @@ import { cn } from "../../lib/cn";
  * later if needed (likely via @corvu/scroll-area or solid-presence).
  */
 
-export type ScrollAreaProps = {
+export type ScrollAreaProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   class?: string;
   children?: JSX.Element;
 };
 
 export const ScrollArea = (props: ScrollAreaProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
+      {...rest}
       class={cn(
         "zen-relative zen-overflow-auto",
         // Subtle Webkit/Firefox scrollbar styling, falling back to native.

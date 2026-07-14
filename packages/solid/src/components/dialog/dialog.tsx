@@ -30,15 +30,19 @@ export const DialogTrigger = KDialog.Trigger;
 export const DialogPortal = KDialog.Portal;
 export const DialogClose = KDialog.CloseButton;
 
-type DivProps = {
+export type DialogOverlayProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   class?: string;
   children?: JSX.Element;
 };
 
-export const DialogOverlay = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export const DialogOverlay = (props: DialogOverlayProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KDialog.Overlay
+      {...rest}
       class={cn("zen-fixed zen-inset-0 zen-z-50 zen-bg-black/50", local.class)}
     >
       {local.children}
@@ -46,7 +50,10 @@ export const DialogOverlay = (props: DivProps) => {
   );
 };
 
-export type DialogContentProps = {
+export type DialogContentProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   class?: string;
   children?: JSX.Element;
   /** Render the ✕ close affordance in the top-right corner. Default true. */
@@ -54,12 +61,13 @@ export type DialogContentProps = {
 };
 
 export const DialogContent = (props: DialogContentProps) => {
-  const [local] = splitProps(props, ["class", "children", "showCloseButton"]);
+  const [local, rest] = splitProps(props, ["class", "children", "showCloseButton"]);
   const showClose = () => local.showCloseButton ?? true;
   return (
     <KDialog.Portal>
       <DialogOverlay />
       <KDialog.Content
+        {...rest}
         class={cn(
           "zen-fixed zen-left-1/2 zen-top-1/2 zen-z-50 -zen-translate-x-1/2 -zen-translate-y-1/2",
           "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
@@ -87,19 +95,39 @@ export const DialogContent = (props: DialogContentProps) => {
   );
 };
 
-export const DialogHeader = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export type DialogHeaderProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const DialogHeader = (props: DialogHeaderProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div class={cn("zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3 zen-pr-8", local.class)}>
+    <div
+      {...rest}
+      class={cn("zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3 zen-pr-8", local.class)}
+    >
       {local.children}
     </div>
   );
 };
 
-export const DialogFooter = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export type DialogFooterProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const DialogFooter = (props: DialogFooterProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
+      {...rest}
       class={cn(
         "zen-flex zen-flex-col-reverse sm:zen-flex-row sm:zen-justify-end zen-gap-2 zen-mt-5",
         local.class,
@@ -110,10 +138,20 @@ export const DialogFooter = (props: DivProps) => {
   );
 };
 
-export const DialogTitle = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+// Kobalte's Title defaults to <h2>.
+export type DialogTitleProps = Omit<
+  JSX.HTMLAttributes<HTMLHeadingElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const DialogTitle = (props: DialogTitleProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KDialog.Title
+      {...rest}
       class={cn(
         "zen-text-lg zen-font-semibold zen-leading-tight zen-text-zen-foreground",
         local.class,
@@ -124,10 +162,20 @@ export const DialogTitle = (props: DivProps) => {
   );
 };
 
-export const DialogDescription = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+// Kobalte's Description defaults to <p>.
+export type DialogDescriptionProps = Omit<
+  JSX.HTMLAttributes<HTMLParagraphElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const DialogDescription = (props: DialogDescriptionProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KDialog.Description
+      {...rest}
       class={cn("zen-text-sm zen-text-zen-muted-fg zen-leading-snug", local.class)}
     >
       {local.children}

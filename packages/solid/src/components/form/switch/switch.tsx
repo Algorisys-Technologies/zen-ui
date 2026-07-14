@@ -16,7 +16,9 @@ import { cn } from "../../../lib/cn";
 
 export type SwitchSize = "sm" | "md" | "lg";
 
-export type SwitchProps = {
+// `onChange` is omitted from the DOM attributes: our Switch reports the new
+// checked boolean directly, which collides with the DOM's change event.
+export type SwitchProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "onChange"> & {
   size?: SwitchSize;
   class?: string;
   /**
@@ -48,7 +50,7 @@ const THUMB_SIZES: Record<SwitchSize, string> = {
 };
 
 export const Switch = (props: SwitchProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "class",
     "id",
     "size",
@@ -63,7 +65,12 @@ export const Switch = (props: SwitchProps) => {
   ]);
   const size = () => local.size ?? "md";
   return (
+    // `id` is deliberately NOT forwarded here — it's routed to KSwitch.Input
+    // below so `<label for>` targets the actual native input, not this
+    // wrapping group div (Kobalte generates the Input's id from the root's,
+    // which would produce a different string than what the caller passed).
     <KSwitch
+      {...rest}
       checked={local.checked}
       defaultChecked={local.defaultChecked}
       onChange={local.onChange}

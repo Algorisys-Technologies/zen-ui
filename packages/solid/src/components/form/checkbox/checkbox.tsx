@@ -15,7 +15,9 @@ import { cn } from "../../../lib/cn";
 
 export type CheckboxSize = "sm" | "md" | "lg";
 
-export type CheckboxProps = {
+// `onChange` is omitted from the DOM attributes: our Checkbox reports the new
+// checked boolean directly, which collides with the DOM's change event.
+export type CheckboxProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "onChange"> & {
   size?: CheckboxSize;
   class?: string;
   checked?: boolean;
@@ -37,7 +39,7 @@ const BOX_SIZES: Record<CheckboxSize, string> = {
 };
 
 export const Checkbox = (props: CheckboxProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "class",
     "size",
     "checked",
@@ -52,6 +54,7 @@ export const Checkbox = (props: CheckboxProps) => {
   ]);
   return (
     <KCheckbox
+      {...rest}
       checked={local.checked}
       defaultChecked={local.defaultChecked}
       indeterminate={local.indeterminate}

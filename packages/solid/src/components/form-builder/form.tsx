@@ -128,17 +128,37 @@ export function FormField(props: FormFieldProps) {
 }
 
 /* ----------------------------- FormItem -------------------------------- */
-export const FormItem = (props: { class?: string; children?: JSX.Element }) => {
-  const [local] = splitProps(props, ["class", "children"]);
-  return <div class={cn("zen-space-y-1.5", local.class)}>{local.children}</div>;
+export type FormItemProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "children"> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const FormItem = (props: FormItemProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
+  return (
+    <div {...rest} class={cn("zen-space-y-1.5", local.class)}>
+      {local.children}
+    </div>
+  );
 };
 
 /* ----------------------------- FormLabel ------------------------------- */
-export const FormLabel = (props: { class?: string; children?: JSX.Element }) => {
+export type FormLabelProps = Omit<
+  JSX.LabelHTMLAttributes<HTMLLabelElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const FormLabel = (props: FormLabelProps) => {
   const ctx = useFormField();
-  const [local] = splitProps(props, ["class", "children"]);
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
+    // `for` is set after `rest` so the field-id wiring always wins over any
+    // stray `for` a caller might pass.
     <label
+      {...rest}
       for={ctx.itemId}
       class={cn(
         "zen-text-sm zen-font-medium zen-leading-none",
@@ -173,23 +193,44 @@ export const FormControl = (props: { children: JSX.Element; class?: string }) =>
 };
 
 /* ----------------------------- FormDescription ------------------------- */
-export const FormDescription = (props: { class?: string; children?: JSX.Element }) => {
+export type FormDescriptionProps = Omit<
+  JSX.HTMLAttributes<HTMLParagraphElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const FormDescription = (props: FormDescriptionProps) => {
   const ctx = useFormField();
-  const [local] = splitProps(props, ["class", "children"]);
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <p id={ctx.descriptionId} class={cn("zen-text-xs zen-text-zen-muted-fg", local.class)}>
+    <p
+      {...rest}
+      id={ctx.descriptionId}
+      class={cn("zen-text-xs zen-text-zen-muted-fg", local.class)}
+    >
       {local.children}
     </p>
   );
 };
 
 /* ----------------------------- FormMessage ----------------------------- */
-export const FormMessage = (props: { class?: string; children?: JSX.Element }) => {
+export type FormMessageProps = Omit<
+  JSX.HTMLAttributes<HTMLParagraphElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const FormMessage = (props: FormMessageProps) => {
   const ctx = useFormField();
-  const [local] = splitProps(props, ["class", "children"]);
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <Show when={ctx.error() || local.children}>
       <p
+        {...rest}
         id={ctx.messageId}
         class={cn("zen-text-xs zen-font-medium zen-text-zen-error", local.class)}
         role="alert"

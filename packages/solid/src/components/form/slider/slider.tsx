@@ -1,4 +1,4 @@
-import { createMemo, For, splitProps } from "solid-js";
+import { type JSX, createMemo, For, splitProps } from "solid-js";
 import { Slider as KSlider } from "@kobalte/core/slider";
 import { cn } from "../../../lib/cn";
 
@@ -13,7 +13,9 @@ import { cn } from "../../../lib/cn";
  * RTL and form submission (via name + value).
  */
 
-export type SliderProps = {
+// `onChange` is omitted from the DOM attributes: our Slider reports the new
+// number[] value directly, which collides with the DOM's change event.
+export type SliderProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "onChange"> & {
   value?: number[];
   defaultValue?: number[];
   onChange?: (value: number[]) => void;
@@ -28,7 +30,7 @@ export type SliderProps = {
 };
 
 export const Slider = (props: SliderProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "value",
     "defaultValue",
     "onChange",
@@ -47,6 +49,7 @@ export const Slider = (props: SliderProps) => {
   });
   return (
     <KSlider
+      {...rest}
       value={local.value}
       defaultValue={local.defaultValue}
       onChange={local.onChange}

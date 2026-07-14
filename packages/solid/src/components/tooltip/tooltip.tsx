@@ -22,7 +22,11 @@ export const Tooltip = KTooltip;
 export const TooltipTrigger = KTooltip.Trigger;
 export const TooltipPortal = KTooltip.Portal;
 
-export type TooltipContentProps = {
+// Kobalte's Content renders a <div>.
+export type TooltipContentProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   /** Render an arrow pointing at the trigger. Default false. */
   arrow?: boolean;
   class?: string;
@@ -30,10 +34,11 @@ export type TooltipContentProps = {
 };
 
 export const TooltipContent = (props: TooltipContentProps) => {
-  const [local] = splitProps(props, ["class", "arrow", "children"]);
+  const [local, rest] = splitProps(props, ["class", "arrow", "children"]);
   return (
     <KTooltip.Portal>
       <KTooltip.Content
+        {...rest}
         class={cn(
           "zen-z-50 zen-max-w-xs zen-px-2.5 zen-py-1.5",
           "zen-rounded-zen-md zen-bg-zen-neutral zen-text-xs zen-text-zen-neutral-fg",

@@ -1,4 +1,4 @@
-import { splitProps } from "solid-js";
+import { type JSX, splitProps } from "solid-js";
 import { Progress as KProgress } from "@kobalte/core/progress";
 import { cn } from "../../lib/cn";
 
@@ -22,7 +22,22 @@ export type ProgressColor =
   | "warning"
   | "error";
 
-export type ProgressProps = {
+// Kobalte's Progress root renders a <div>. `children` is omitted (not
+// re-added): this component always renders its own fixed Track/Fill and
+// never forwards user children, so accepting the prop would silently drop
+// whatever was passed instead of rendering it. The generic ARIA range
+// attributes (`aria-valuenow`/`-max`/`-min`/`-text`) are also omitted:
+// Kobalte computes and types them as `number` from value/minValue/maxValue,
+// narrower than the generic `number | string` on JSX.HTMLAttributes.
+export type ProgressProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  | "class"
+  | "children"
+  | "aria-valuenow"
+  | "aria-valuemax"
+  | "aria-valuemin"
+  | "aria-valuetext"
+> & {
   value?: number;
   minValue?: number;
   maxValue?: number;
@@ -48,7 +63,7 @@ const FILL_BG: Record<ProgressColor, string> = {
 };
 
 export const Progress = (props: ProgressProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "class",
     "size",
     "color",
@@ -59,6 +74,7 @@ export const Progress = (props: ProgressProps) => {
   ]);
   return (
     <KProgress
+      {...rest}
       value={local.value}
       minValue={local.minValue}
       maxValue={local.maxValue}

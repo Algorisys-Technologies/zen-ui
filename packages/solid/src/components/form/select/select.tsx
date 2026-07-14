@@ -1,4 +1,4 @@
-import { splitProps, Show } from "solid-js";
+import { type JSX, splitProps, Show } from "solid-js";
 import { Select as KSelect } from "@kobalte/core/select";
 import { cn } from "../../../lib/cn";
 
@@ -29,7 +29,9 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export type SelectProps = {
+// `onChange` is omitted from the DOM attributes: our Select reports the new
+// value string (or null) directly, which collides with the DOM's change event.
+export type SelectProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "onChange"> & {
   options: SelectOption[];
   value?: string;
   defaultValue?: string;
@@ -46,7 +48,7 @@ export type SelectProps = {
 };
 
 export const Select = (props: SelectProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "options",
     "value",
     "defaultValue",
@@ -62,6 +64,7 @@ export const Select = (props: SelectProps) => {
 
   return (
     <KSelect<SelectOption>
+      {...rest}
       options={local.options}
       optionValue="value"
       optionTextValue="label"

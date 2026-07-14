@@ -19,7 +19,13 @@ import { cn } from "../../lib/cn";
  * Content element.
  */
 
-export type AccordionProps = {
+// `onChange` is omitted from the DOM attributes: it collides with the
+// generic DOM change-event handler, but Kobalte's root reports the new
+// open value(s) instead.
+export type AccordionProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children" | "onChange"
+> & {
   value?: string[];
   defaultValue?: string[];
   onChange?: (value: string[]) => void;
@@ -32,7 +38,7 @@ export type AccordionProps = {
 };
 
 export const Accordion = (props: AccordionProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "value",
     "defaultValue",
     "onChange",
@@ -43,6 +49,7 @@ export const Accordion = (props: AccordionProps) => {
   ]);
   return (
     <KAccordion
+      {...rest}
       value={local.value}
       defaultValue={local.defaultValue}
       onChange={local.onChange}
@@ -55,7 +62,10 @@ export const Accordion = (props: AccordionProps) => {
   );
 };
 
-export type AccordionItemProps = {
+export type AccordionItemProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   value: string;
   disabled?: boolean;
   class?: string;
@@ -63,9 +73,10 @@ export type AccordionItemProps = {
 };
 
 export const AccordionItem = (props: AccordionItemProps) => {
-  const [local] = splitProps(props, ["value", "disabled", "class", "children"]);
+  const [local, rest] = splitProps(props, ["value", "disabled", "class", "children"]);
   return (
     <KAccordion.Item
+      {...rest}
       value={local.value}
       disabled={local.disabled}
       class={cn("zen-border-b zen-border-zen-border last:zen-border-b-0", local.class)}
@@ -75,16 +86,21 @@ export const AccordionItem = (props: AccordionItemProps) => {
   );
 };
 
-export type AccordionTriggerProps = {
+// Kobalte's Trigger renders a <button>.
+export type AccordionTriggerProps = Omit<
+  JSX.HTMLAttributes<HTMLButtonElement>,
+  "class" | "children"
+> & {
   class?: string;
   children?: JSX.Element;
 };
 
 export const AccordionTrigger = (props: AccordionTriggerProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KAccordion.Header class="zen-flex">
       <KAccordion.Trigger
+        {...rest}
         class={cn(
           "zen-flex zen-flex-1 zen-items-center zen-justify-between zen-gap-2",
           "zen-py-3 zen-px-1 zen-text-sm zen-font-medium zen-text-left",
@@ -117,15 +133,24 @@ export const AccordionTrigger = (props: AccordionTriggerProps) => {
   );
 };
 
-export type AccordionContentProps = {
+// Kobalte's Content renders a <div>. `rest` is forwarded to Content itself
+// (not the inner div), matching the React binding where the outer
+// Radix Content carries `{...props}` and only the inner div gets `class`.
+export type AccordionContentProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   class?: string;
   children?: JSX.Element;
 };
 
 export const AccordionContent = (props: AccordionContentProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <KAccordion.Content class="zen-overflow-hidden zen-text-sm data-[closed]:zen-anim-accordion-up data-[expanded]:zen-anim-accordion-down">
+    <KAccordion.Content
+      {...rest}
+      class="zen-overflow-hidden zen-text-sm data-[closed]:zen-anim-accordion-up data-[expanded]:zen-anim-accordion-down"
+    >
       <div class={cn("zen-pb-3 zen-px-1 zen-pt-0 zen-text-zen-foreground", local.class)}>
         {local.children}
       </div>

@@ -1,4 +1,4 @@
-import { Show, createMemo, createSignal, mergeProps, splitProps } from "solid-js";
+import { type JSX, Show, createMemo, createSignal, mergeProps, splitProps } from "solid-js";
 import { cn } from "../../../lib/cn";
 
 /**
@@ -10,7 +10,10 @@ import { cn } from "../../../lib/cn";
 
 type Format = "24h" | "12h";
 
-export type TimePickerProps = {
+export type TimePickerProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "id" | "aria-label"
+> & {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string | undefined) => void;
@@ -66,7 +69,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
     },
     rawProps,
   );
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "value",
     "defaultValue",
     "onValueChange",
@@ -140,6 +143,8 @@ export const TimePicker = (rawProps: TimePickerProps) => {
 
   return (
     <div
+      {...rest}
+      id={local.id}
       class={cn("zen-inline-flex zen-items-center zen-gap-1", local.class)}
       role="group"
       aria-label={local["aria-label"] ?? "Time"}

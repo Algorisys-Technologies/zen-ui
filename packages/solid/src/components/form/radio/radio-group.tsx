@@ -17,7 +17,12 @@ import { cn } from "../../../lib/cn";
 
 export type RadioSize = "sm" | "md" | "lg";
 
-export type RadioGroupProps = {
+// `onChange` is omitted from the DOM attributes: our RadioGroup reports the
+// new value string directly, which collides with the DOM's change event.
+export type RadioGroupProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children" | "onChange"
+> & {
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
@@ -30,7 +35,7 @@ export type RadioGroupProps = {
 };
 
 export const RadioGroup = (props: RadioGroupProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "class",
     "value",
     "defaultValue",
@@ -43,6 +48,7 @@ export const RadioGroup = (props: RadioGroupProps) => {
   ]);
   return (
     <KRadioGroup
+      {...rest}
       value={local.value}
       defaultValue={local.defaultValue}
       onChange={local.onChange}
@@ -71,7 +77,10 @@ const DOT_SIZES: Record<RadioSize, string> = {
   lg: "zen-h-2.5 zen-w-2.5",
 };
 
-export type RadioGroupItemProps = {
+export type RadioGroupItemProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   value: string;
   disabled?: boolean;
   size?: RadioSize;
@@ -80,7 +89,7 @@ export type RadioGroupItemProps = {
 };
 
 export const RadioGroupItem = (props: RadioGroupItemProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "class",
     "value",
     "disabled",
@@ -90,6 +99,7 @@ export const RadioGroupItem = (props: RadioGroupItemProps) => {
   const size = () => local.size ?? "md";
   return (
     <KRadioGroup.Item
+      {...rest}
       value={local.value}
       disabled={local.disabled}
       class={cn("zen-inline-flex zen-items-center zen-gap-2", local.class)}
