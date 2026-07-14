@@ -16,9 +16,18 @@ export type NavItem = {
 export type NavGroup = {
   group: string;
   items: NavItem[];
+  /** Groups flagged `catalogue: false` are sidebar-only (e.g. Getting started). */
+  catalogue?: boolean;
 };
 
 export const NAV: NavGroup[] = [
+  {
+    // The landing page was reachable only by typing "/" — the sidebar had no
+    // link to it, unlike the React demo. Mirrors React's "Getting started".
+    group: "Getting started",
+    catalogue: false,
+    items: [{ label: "Welcome", path: "/" }],
+  },
   {
     group: "Primitives",
     items: [

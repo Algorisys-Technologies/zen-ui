@@ -18,7 +18,8 @@ const SectionLabel = (props: { children: string }) => (
 
 const Welcome = () => {
   const { themes } = useTheme();
-  const total = NAV.reduce((n, g) => n + g.items.length, 0);
+  const groups = NAV.filter((g) => g.catalogue !== false);
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
 
   return (
     <div class="zen-mx-auto zen-max-w-5xl zen-px-6 zen-py-10">
@@ -67,7 +68,7 @@ const Welcome = () => {
 
       <section>
         <SectionLabel>{`Components (${total})`}</SectionLabel>
-        <For each={NAV}>
+        <For each={groups}>
           {(group) => (
             <div class="zen-mb-8">
               <h3 class="zen-mb-3 zen-mt-0 zen-text-sm zen-font-semibold zen-text-zen-foreground">
