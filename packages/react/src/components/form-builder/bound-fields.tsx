@@ -456,7 +456,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>({
             disabled={disabled}
             style={
               orientation === "horizontal"
-                ? { display: "flex", flexDirection: "row", gap: "0.75rem" }
+                ? { display: "flex", flexDirection: "row", gap: "var(--zen-space-3)" }
                 : undefined
             }
           >

@@ -46,7 +46,7 @@ const ThemeSwitcher: React.FC = () => {
                   <Swatches preview={t.preview} />
                   <span style={{ fontWeight: 500 }}>{t.label}</span>
                 </div>
-                <span style={{ fontSize: "0.6875rem", color: "var(--zen-color-muted-fg)" }}>
+                <span className="zen-text-xs zen-text-zen-muted-fg">
                   {t.description}
                 </span>
               </div>

@@ -131,11 +131,16 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
           </span>
         </Show>
       </PopoverTrigger>
-      <PopoverContent class="zen-p-0 zen-overflow-hidden">
-        <div
-          class="zen-flex zen-items-center zen-justify-between zen-px-4 zen-py-2.5 zen-border-b zen-border-zen-border"
-          style={{ width: `${props.width ?? 360}px` }}
-        >
+      {/*
+        Width goes on PopoverContent, not on an inner div — matching the React
+        binding. PopoverContent defaults to `w-72` (288px) and clips overflow, so
+        a 360px inner div was cut off mid-word. An inline style beats the class.
+      */}
+      <PopoverContent
+        class="zen-p-0 zen-overflow-hidden"
+        style={{ width: `${props.width ?? 360}px` }}
+      >
+        <div class="zen-flex zen-items-center zen-justify-between zen-px-4 zen-py-2.5 zen-border-b zen-border-zen-border">
           <h3 class="zen-text-sm zen-font-semibold zen-text-zen-foreground zen-m-0">
             {triggerLabel()}
             <Show when={hasUnread()}>
@@ -161,7 +166,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
         <div
           role="list"
           aria-label={triggerLabel()}
-          style={{ "max-height": `${props.maxHeight ?? 420}px`, "overflow-y": "auto", width: `${props.width ?? 360}px` }}
+          style={{ "max-height": `${props.maxHeight ?? 420}px`, "overflow-y": "auto" }}
         >
           <Show
             when={groups().length > 0}

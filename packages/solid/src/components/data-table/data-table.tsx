@@ -1936,7 +1936,7 @@ function VirtualizedBody<TData>(props: {
                     return (
                       <div
                         style={{
-                          padding: "0.25rem 0.3125rem",
+                          padding: "var(--zen-space-1)",
                           "min-width": 0,
                           background: props.headerStickyBg,
                           ...(pin ?? {}),
@@ -1964,7 +1964,7 @@ function VirtualizedBody<TData>(props: {
               role="row"
               style={{
                 "text-align": "center",
-                padding: "0.9375rem",
+                padding: "var(--zen-space-4)",
                 color: "var(--zen-color-muted-fg)",
               }}
             >
@@ -2007,7 +2007,7 @@ function VirtualizedBody<TData>(props: {
                         <div
                           role="cell"
                           style={{
-                            padding: "0.4688rem 0.3125rem",
+                            padding: "var(--zen-space-2) var(--zen-space-1)",
                             display: "flex",
                             "align-items": "center",
                             "min-width": 0,
