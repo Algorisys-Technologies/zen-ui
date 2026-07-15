@@ -11,7 +11,7 @@
  * the same coordinates always give the same number. A grid that reshuffles as
  * you scroll makes "did my filter work?" unanswerable.
  */
-import type { PivotField, PivotMembersRequest, PivotMembersResult } from "./pivot";
+import type { PivotField, PivotMembersRequest, PivotMembersResult } from "@algorisys/zen-ui-core/pivot";
 
 export const PIVOT_FIELDS: PivotField[] = [
   { key: "country", label: "Country", type: "dimension" },

@@ -6,3 +6,4 @@ export * from "./mask";
 export * from "./color";
 export * from "./date-range";
 export * from "./chart";
+export * from "./pivot";

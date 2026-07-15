@@ -1,6 +1,6 @@
 import { Show, createSignal } from "solid-js";
 import { PivotWorkbench, PivotGrid } from "./pivot";
-import type { PivotLayout } from "./pivot";
+import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
 import { DemoPage, DemoSection } from "./demo-helpers";
 import {
   PIVOT_FIELDS,

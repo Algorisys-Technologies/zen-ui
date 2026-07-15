@@ -2,11 +2,11 @@ import { createDroppable } from "@thisbeyond/solid-dnd";
 import type { JSX } from "solid-js";
 import { Show } from "solid-js";
 import { cn } from "../../lib/cn";
-import type { ZoneType } from "./pivot-layout";
+import type { PivotZone } from "@algorisys/zen-ui-core/pivot";
 import { Icon } from "../icon/icon";
 
 export interface PivotDropZoneProps {
-  id: ZoneType;
+  id: PivotZone;
   title: string;
   icon?: string;
   hideTitle?: boolean;

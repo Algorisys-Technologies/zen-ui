@@ -15,7 +15,8 @@
     "./mask": "./src/mask.ts",
     "./color": "./src/color.ts",
     "./date-range": "./src/date-range.ts",
-    "./chart": "./src/chart.ts"
+    "./chart": "./src/chart.ts",
+    "./pivot": "./src/pivot.ts"
   },
   "files": [
     "src",

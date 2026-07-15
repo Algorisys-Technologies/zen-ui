@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, Show, untrack } from "solid-js";
 import {
   DragDropProvider,
   DragDropSensors,
@@ -15,18 +15,19 @@ import { Icon } from "../icon/icon";
 import { PivotDropZone } from "./pivot-drop-zone";
 import { PivotFieldChip } from "./pivot-field-chip";
 import {
+  availableFields as availableFieldsIn,
   createEmptyLayout,
-  addFieldToZone,
+  describeMove,
+  moveFieldToZone,
   updateValueAggregation,
-  removeFieldFromLayout,
-} from "./pivot-layout";
+} from "@algorisys/zen-ui-core/pivot";
 import type {
   PivotLayout,
-  ZoneType,
-  AggregationType,
-} from "./pivot-layout";
-import type { PivotField, PivotMembersRequest, PivotMembersResult } from "./pivot-state";
-import type { PivotFilterSelection } from "./pivot-filter-state";
+  PivotZone,
+  PivotAggregation,
+} from "@algorisys/zen-ui-core/pivot";
+import type { PivotField, PivotMembersRequest, PivotMembersResult } from "@algorisys/zen-ui-core/pivot";
+import type { PivotFilterSelection } from "@algorisys/zen-ui-core/pivot";
 export type { PivotField, PivotMembersRequest, PivotMembersResult, PivotFilterSelection };
 
 export interface PivotWorkbenchProps {
@@ -103,14 +104,24 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
     props.initialLayout || createEmptyLayout()
   );
 
-  const availableFields = () => {
-    const layout = draftLayout();
-    const usedIds = new Set([
-      ...layout.rows,
-      ...layout.columns,
-      ...layout.values.map(v => v.id)
-    ]);
-    return props.fields.filter((f) => !usedIds.has(f.key));
+  const availableFields = () => availableFieldsIn(draftLayout(), props.fields);
+
+  /**
+   * What a screen reader has just been told. Drag changes the layout silently:
+   * to anyone not watching the chips, nothing happened. Both the pointer path
+   * and the keyboard path below announce through here, so they cannot diverge.
+   */
+  const [announcement, setAnnouncement] = createSignal("");
+
+  /**
+   * The ONE way a field moves — drag calls it, the chip's menu calls it.
+   *
+   * Two paths that each did their own layout surgery is how the drag handler
+   * ended up deleting fields while the menu did not exist at all.
+   */
+  const moveField = (fieldId: string, zone: PivotZone, index?: number) => {
+    setDraftLayout((prev) => moveFieldToZone(prev, fieldId, zone, { index }));
+    setAnnouncement(describeMove(untrack(() => props.fields), fieldId, zone, index));
   };
 
   const hasAnyFilters = () => {
@@ -132,30 +143,35 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
     // the data. Once a zone holds a chip, that chip is the droppable that wins
     // (mostIntersecting scores by overlap ratio, and a chip-sized target beats a
     // zone-sized one), so the old `droppable.id.split("-")[0]` read "country" as
-    // a zone, addFieldToZone hit its `default: return cleanLayout`, and the drop
+    // a zone, moveFieldToZone hit its `default: return cleanLayout`, and the drop
     // silently removed the field instead of adding it.
     //
     // The effect: the first field into an empty zone worked and every one after
     // it did nothing. A pivot that holds one field per zone is not a pivot.
-    const toZone = ((droppable.data?.zone ?? droppable.id) as string) as ZoneType;
+    const toZone = ((droppable.data?.zone ?? droppable.id) as string) as PivotZone;
 
-    // Determine if it's a reorder within same zone or moving between zones
-    const sourceZone = props.fields.find(f => f.key === fieldId) ? 
-      (draftLayout().rows.includes(fieldId) ? "rows" :
-       draftLayout().columns.includes(fieldId) ? "columns" :
-       draftLayout().values.some(v => v.id === fieldId) ? "values" : "available") : "available";
+    // Dropped ON a chip? Land at that chip's position. Dropped on bare zone?
+    // Append. The old code appended in both cases, so a reorder flung the chip
+    // to the bottom — and the two functions written to honour a drop index were
+    // exported and never called.
+    const overFieldId = droppable.data?.zone ? (droppable.id as string) : undefined;
+    const index =
+      overFieldId && overFieldId !== fieldId ? indexInZone(untrack(draftLayout), overFieldId, toZone) : undefined;
 
-    if (sourceZone === toZone && droppable.data?.sortable) {
-      // Reordering within the same zone
-      setDraftLayout(prev => addFieldToZone(removeFieldFromLayout(prev, fieldId), fieldId, toZone));
-    } else {
-      // Moving to a new zone
-      if (toZone === "available") {
-         setDraftLayout(prev => removeFieldFromLayout(prev, fieldId));
-      } else {
-         setDraftLayout(prev => addFieldToZone(prev, fieldId, toZone));
-      }
-    }
+    moveField(fieldId, toZone, index);
+  };
+
+  /** Where a field sits inside its zone, or undefined if it is not in one. */
+  const indexInZone = (layout: PivotLayout, fieldId: string, zone: PivotZone): number | undefined => {
+    const i =
+      zone === "rows"
+        ? layout.rows.indexOf(fieldId)
+        : zone === "columns"
+          ? layout.columns.indexOf(fieldId)
+          : zone === "values"
+            ? layout.values.findIndex((v) => v.id === fieldId)
+            : -1;
+    return i === -1 ? undefined : i;
   };
 
   const applyLayout = () => {
@@ -164,13 +180,11 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
     props.onLayoutApply?.(newLayout);
   };
 
-  const handleAggregationChange = (fieldId: string, agg: AggregationType) => {
+  const handleAggregationChange = (fieldId: string, agg: PivotAggregation) => {
     setDraftLayout(prev => updateValueAggregation(prev, fieldId, agg));
   };
 
-  const handleRemoveField = (fieldId: string) => {
-    setDraftLayout(prev => removeFieldFromLayout(prev, fieldId));
-  };
+  const handleRemoveField = (fieldId: string) => moveField(fieldId, "available");
 
   const handleSelectionChange = (fieldId: string, selection: PivotFilterSelection | null) => {
     setDraftLayout(prev => {
@@ -185,7 +199,13 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
   };
 
   return (
-    <div class={cn("zen-flex zen-flex-col zen-h-full zen-w-full zen-min-h-0 zen-min-w-0 zen-border zen-border-zen-border zen-rounded-md zen-overflow-hidden", props.class)}>
+    <div class={cn("zen-flex zen-flex-col zen-h-full zen-w-full zen-min-h-0 zen-min-w-0 zen-border zen-border-zen-border zen-rounded-zen-md zen-overflow-hidden", props.class)}>
+      {/* Every layout change says so out loud. A drag is invisible to a screen
+          reader: the chips move and nothing is announced. Polite, so it waits
+          for a pause rather than interrupting. */}
+      <div aria-live="polite" aria-atomic="true" class="zen-sr-only">
+        {announcement()}
+      </div>
       <Show 
         when={props.showBuilder !== false}
         fallback={
@@ -252,6 +272,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                         {(field) => (
                           <SortableChip
                             fieldKey={field.key}
+                            onMoveToZone={(z: PivotZone) => moveField(field.key, z)}
                             fields={props.fields}
                             zone="available"
                             onRemove={() => handleRemoveField(field.key)}
@@ -278,6 +299,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                           {(val) => (
                             <SortableChip
                               fieldKey={val.id}
+                              onMoveToZone={(z: PivotZone) => moveField(val.id, z)}
                               fields={props.fields}
                               zone="values"
                               aggregation={val.aggregation}
@@ -299,6 +321,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                             return (
                               <SortableChip
                                 fieldKey={fieldId}
+                                onMoveToZone={(z: PivotZone) => moveField(fieldId, z)}
                                 fields={props.fields}
                                 zone="rows"
                                 onRemove={() => handleRemoveField(fieldId)}
@@ -323,6 +346,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                             return (
                               <SortableChip
                                 fieldKey={fieldId}
+                                onMoveToZone={(z: PivotZone) => moveField(fieldId, z)}
                                 fields={props.fields}
                                 zone="columns"
                                 onRemove={() => handleRemoveField(fieldId)}

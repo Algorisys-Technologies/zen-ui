@@ -1,6 +1,6 @@
 import { VIRTUAL_SCROLL_WINDOW_PAGE_SIZE } from "./virtual-scroll";
 import { useWindowedOptionPages } from "./use-windowed-option-pages";
-import type { PivotFilterOptionsBody } from "../pivot-filter-state";
+import type { PivotFilterOptionsBody } from "@algorisys/zen-ui-core/pivot";
 
 export interface UsePivotFilterOptionsProps {
   columnKey: string;

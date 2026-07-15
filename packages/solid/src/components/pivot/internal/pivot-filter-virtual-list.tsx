@@ -1,7 +1,7 @@
 import { type Component, Show } from "solid-js";
 import { WindowedVirtualList } from "./windowed-virtual-list";
-import type { PivotFilterSelection } from "../pivot-filter-state";
-import { isPivotValueSelected } from "../pivot-filter-state";
+import type { PivotFilterSelection } from "@algorisys/zen-ui-core/pivot";
+import { isValueSelected } from "@algorisys/zen-ui-core/pivot";
 import type { PivotFilterOptionsWindow } from "./pivot-filter-options-window";
 import { Icon } from "../../icon/icon";
 import { cn } from "../../../lib/cn";
@@ -29,10 +29,10 @@ export const PivotFilterVirtualList: Component<PivotFilterVirtualListProps> = (
       optionsWindows={props.optionsWindows}
       loadingWindow={props.loadingWindow}
       onVisibleRange={props.onVisibleRange}
-      isSelected={(value) => isPivotValueSelected(props.selection(), value)}
+      isSelected={(value) => isValueSelected(props.selection(), value)}
       renderRow={(value) => {
         const selected = () =>
-          isPivotValueSelected(props.selection(), value);
+          isValueSelected(props.selection(), value);
         return (
           <button
             type="button"

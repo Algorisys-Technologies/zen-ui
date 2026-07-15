@@ -471,29 +471,62 @@ export {
 } from "./components/data-table/table";
 export type { TableProps } from "./components/data-table/table";
 
+// Pivot — the components from this binding, the model from core.
+//
+// The whole model surface is re-exported, not a subset. It used to export
+// PivotWorkbench while withholding PivotMembersRequest/Result, so `loadMembers`
+// — the pivot's single integration point — had a signature no consumer could
+// name. The demo only got away with it by deep-importing past the root.
 export {
   PivotWorkbench,
   PivotGrid,
   PivotDropZone,
   PivotFieldChip,
-  createEmptyLayout,
-  addFieldToZone,
-  removeFieldFromLayout,
-  insertFieldIntoZone,
-  reorderFieldInZone,
-  updateValueAggregation,
   PivotFilterMenu,
 } from "./components/pivot";
 export type {
   PivotWorkbenchProps,
-  PivotField,
   PivotGridProps,
-  PivotLayout,
-  ZoneType,
-  AggregationType,
-  PivotValueField,
+  PivotDropZoneProps,
+  PivotFieldChipProps,
   PivotFilterMenuProps,
 } from "./components/pivot";
+
+export {
+  createEmptyLayout,
+  moveFieldToZone,
+  removeFieldFromLayout,
+  updateValueAggregation,
+  zoneOf,
+  zoneLabel,
+  fieldLabel,
+  availableFields,
+  isLayoutRenderable,
+  defaultAggregationForField,
+  normalizeFilterSelection,
+  isFilterActive,
+  isValueSelected,
+  hasActiveFilters,
+  describeFilterSelection,
+  describeMove,
+  PIVOT_ZONES,
+  PIVOT_AGGREGATIONS,
+} from "@algorisys/zen-ui-core/pivot";
+export type {
+  PivotLayout,
+  PivotField,
+  PivotFieldType,
+  PivotValueField,
+  PivotZone,
+  PivotAggregation,
+  PivotFilters,
+  PivotFilterSelection,
+  PivotFilterOptionsBody,
+  PivotMembersRequest,
+  PivotMembersResult,
+  PivotSort,
+  SortDirection,
+} from "@algorisys/zen-ui-core/pivot";
 
 export { DataTable } from "./components/data-table/data-table";
 export type {

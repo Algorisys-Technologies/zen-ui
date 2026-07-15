@@ -1,6 +1,6 @@
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import { createVirtualizer } from "@tanstack/solid-virtual";
-import type { PivotLayout } from "./pivot-layout";
+import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
 
 const PIVOT_ROW_CLASS = "zen-border-b zen-border-zen-border/60 zen-bg-transparent even:zen-bg-transparent hover:zen-bg-transparent";

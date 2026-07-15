@@ -13,8 +13,8 @@ import type {
   PivotFilterOptionsBody,
   PivotFilterSelection,
   SortDirection,
-} from "./pivot-filter-state";
-import { isPivotFilterActive } from "./pivot-filter-state";
+} from "@algorisys/zen-ui-core/pivot";
+import { isFilterActive } from "@algorisys/zen-ui-core/pivot";
 import { usePivotFilterOptions } from "./internal/use-pivot-filter-options";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
@@ -86,7 +86,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
     loadOptions: props.loadOptions,
   });
 
-  const filterActive = () => isPivotFilterActive(props.selection());
+  const filterActive = () => isFilterActive(props.selection());
   const formatValue = (value: string) =>
     props.formatValue ? props.formatValue(value) : value;
 
