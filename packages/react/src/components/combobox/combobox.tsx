@@ -45,6 +45,18 @@ import {
  *
  * The async signature replaces `options`; the component handles
  * debounce, abort-on-stale, and loading / no-results states.
+ *
+ * Creatable (the option does not exist yet):
+ *
+ *   <Combobox
+ *     options={tags}
+ *     creatable
+ *     onCreate={(label) => addTag(label)}
+ *   />
+ *
+ * The component does not add the option itself — it cannot know where the
+ * list lives or what a new one's `value` should be. `onCreate` hands the
+ * caller the typed text; adding it to `options` and selecting it is theirs.
  */
 
 export interface ComboboxOption {
@@ -73,6 +85,20 @@ export interface ComboboxProps {
   emptyMessage?: string;
   /** Async-mode: ms to wait after the last keystroke before calling onSearch. */
   debounceMs?: number;
+  /**
+   * Offer to create the typed text when it matches no option's label.
+   * Needs `onCreate` to do anything.
+   */
+  creatable?: boolean;
+  /**
+   * Called with the typed text when the create row is chosen. The component
+   * does not touch `options`: it cannot know where the list lives or what a
+   * new option's `value` should be, so adding and selecting it is the
+   * caller's job.
+   */
+  onCreate?: (label: string) => void;
+  /** Verb on the create row — `Create "foo"`. Default "Create". */
+  createLabel?: string;
   /** Trigger button's width. Defaults to 240. */
   width?: number | string;
   disabled?: boolean;
@@ -89,6 +115,9 @@ const Combobox: React.FC<ComboboxProps> = ({
   searchPlaceholder = "Search…",
   emptyMessage = "No results.",
   debounceMs = 250,
+  creatable,
+  onCreate,
+  createLabel = "Create",
   width = 240,
   disabled,
   className,
@@ -164,6 +193,14 @@ const Combobox: React.FC<ComboboxProps> = ({
     onValueChange?.(next, opt);
   };
 
+  // Compared against the LABEL, not the value: the user is typing what they
+  // read, and "already exists" has to mean the same thing to them as to us.
+  const typed = query.trim();
+  const alreadyExists = allOptions.some(
+    (o) => o.label.trim().toLowerCase() === typed.toLowerCase(),
+  );
+  const showCreate = Boolean(creatable && onCreate) && typed.length > 0 && !alreadyExists;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -205,6 +242,9 @@ const Combobox: React.FC<ComboboxProps> = ({
             {isAsync && asyncLoading ? (
               <CommandLoading>Searching…</CommandLoading>
             ) : null}
+            {/* CommandEmpty only shows when nothing matches. With a create row
+                present that is exactly when it is NOT empty — you get
+                "Create foo" instead of "No results", which is the point. */}
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {allOptions.map((o) => (
@@ -234,6 +274,27 @@ const Combobox: React.FC<ComboboxProps> = ({
                 </CommandItem>
               ))}
             </CommandGroup>
+            {showCreate ? (
+              <CommandGroup>
+                <CommandItem
+                  // The typed text is a keyword so cmdk's filter always keeps
+                  // this row: a create row that filters itself out is useless
+                  // exactly when it is needed.
+                  value={`__create__${typed}`}
+                  keywords={[typed]}
+                  onSelect={() => {
+                    onCreate!(typed);
+                    setQuery("");
+                    setOpen(false);
+                  }}
+                >
+                  <PlusIcon style={{ marginRight: 6 }} />
+                  <span style={{ flex: 1 }}>
+                    {createLabel} “{typed}”
+                  </span>
+                </CommandItem>
+              </CommandGroup>
+            ) : null}
           </CommandList>
         </Command>
       </PopoverContent>
@@ -244,6 +305,13 @@ const Combobox: React.FC<ComboboxProps> = ({
 const ChevronIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
+const PlusIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={style}>
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
 

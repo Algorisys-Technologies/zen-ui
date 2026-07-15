@@ -51,10 +51,32 @@ export type ComboboxProps = {
   searchPlaceholder?: string;
   emptyMessage?: string;
   debounceMs?: number;
+  /**
+   * Offer to create the typed text when it matches no option's label.
+   * Needs `onCreate` to do anything.
+   */
+  creatable?: boolean;
+  /**
+   * Called with the typed text when the create row is chosen. The component
+   * does not touch `options`: it cannot know where the list lives or what a
+   * new option's `value` should be, so adding and selecting it is the
+   * caller's job.
+   */
+  onCreate?: (label: string) => void;
+  /** Verb on the create row — `Create "foo"`. Default "Create". */
+  createLabel?: string;
   width?: number | string;
   disabled?: boolean;
   class?: string;
 };
+
+/**
+ * Kobalte builds the listbox from `options`, so the create row is a synthetic
+ * OPTION rather than a button under the list — that keeps it arrow-navigable
+ * and selectable with Enter like every other row. React reaches the same place
+ * through a cmdk item; the mechanism differs, the behaviour does not.
+ */
+const CREATE_SENTINEL = "__zen_create__";
 
 export const Combobox = (rawProps: ComboboxProps) => {
   const [props] = splitProps(rawProps, [
@@ -67,6 +89,9 @@ export const Combobox = (rawProps: ComboboxProps) => {
     "searchPlaceholder",
     "emptyMessage",
     "debounceMs",
+    "creatable",
+    "onCreate",
+    "createLabel",
     "width",
     "disabled",
     "class",
@@ -78,10 +103,34 @@ export const Combobox = (rawProps: ComboboxProps) => {
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
   let lastQueryToken = 0;
 
-  const effectiveOptions = createMemo<ComboboxOption[]>(() => {
+  const [query, setQuery] = createSignal("");
+
+  const baseOptions = createMemo<ComboboxOption[]>(() => {
     if (isAsync()) return asyncOptions();
     return props.options ?? [];
   });
+
+  // Compared against the LABEL, not the value: the user is typing what they
+  // read, and "already exists" has to mean the same thing to them as to us.
+  const typed = () => query().trim();
+  const showCreate = createMemo(
+    () =>
+      Boolean(props.creatable && props.onCreate) &&
+      typed().length > 0 &&
+      !baseOptions().some((o) => o.label.trim().toLowerCase() === typed().toLowerCase()),
+  );
+
+  const effectiveOptions = createMemo<ComboboxOption[]>(() =>
+    showCreate()
+      ? [
+          ...baseOptions(),
+          {
+            value: CREATE_SENTINEL,
+            label: `${props.createLabel ?? "Create"} “${typed()}”`,
+          },
+        ]
+      : baseOptions(),
+  );
 
   const runSearch = (q: string) => {
     if (!props.onSearch) return;
@@ -99,6 +148,9 @@ export const Combobox = (rawProps: ComboboxProps) => {
   };
 
   const onInputChange = (q: string) => {
+    // Tracked in both modes now: `creatable` needs the typed text to know
+    // whether to offer it, and that is not an async-only concern.
+    setQuery(q);
     if (!isAsync()) return;
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => runSearch(q), props.debounceMs ?? 250);
@@ -129,6 +181,13 @@ export const Combobox = (rawProps: ComboboxProps) => {
       optionDisabled="disabled"
       value={selectedOption()}
       onChange={(opt) => {
+        // The create row is not a selection: hand the text back and leave the
+        // value alone, or the sentinel becomes the answer.
+        if (opt?.value === CREATE_SENTINEL) {
+          props.onCreate?.(typed());
+          setQuery("");
+          return;
+        }
         const next = opt?.value ?? "";
         if (!isControlled()) setInternalValue(next);
         props.onValueChange?.(next, opt);

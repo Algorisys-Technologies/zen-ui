@@ -14,11 +14,57 @@ const FRAMEWORKS = [
 
 const NewComboboxDemo = () => {
   const [picked, setPicked] = createSignal("");
+  // The component never touches `options` — creating and selecting is the
+  // caller's job, which is exactly what this section demonstrates.
+  const [tags, setTags] = createSignal([
+    { value: "bug", label: "bug" },
+    { value: "docs", label: "docs" },
+  ]);
+  const [tag, setTag] = createSignal("");
+
   return (
     <DemoPage
       title="Combobox"
       description="Searchable single-select. Built on Kobalte Combobox."
     >
+      <DemoSection
+        title="Creatable"
+        codeTitle="Offer the typed text when it matches nothing"
+        codeDescription="Type a tag that does not exist — 'design', say — and the list offers to create it instead of saying 'No results'. The component does not add the option itself: it cannot know where your list lives or what a new option's value should be, so onCreate hands you the text and adding it is yours. Typing an existing label offers nothing, because it already exists."
+        code={`const [tags, setTags] = createSignal([{ value: "bug", label: "bug" }, …]);
+
+<Combobox
+  options={tags()}
+  value={tag()}
+  onValueChange={setTag}
+  creatable
+  onCreate={(label) => {
+    const opt = { value: label.toLowerCase(), label };
+    setTags((prev) => [...prev, opt]);   // the caller owns the list
+    setTag(opt.value);                    // and the selection
+  }}
+/>`}
+      >
+        <div style={{ display: "flex", "flex-direction": "column", gap: "10px" }}>
+          <Combobox
+            options={tags()}
+            value={tag()}
+            onValueChange={setTag}
+            creatable
+            onCreate={(label) => {
+              const opt = { value: label.toLowerCase(), label };
+              setTags((prev) => [...prev, opt]);
+              setTag(opt.value);
+            }}
+            placeholder="Pick or create a tag"
+            searchPlaceholder="Type a tag…"
+          />
+          <p class="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+            tags → <code>{tags().map((t) => t.label).join(", ")}</code>
+          </p>
+        </div>
+      </DemoSection>
+
       <DemoSection
         title="Sync · in-memory options"
         codeTitle="Static list, filtered as you type"

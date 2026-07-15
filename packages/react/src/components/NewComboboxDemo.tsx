@@ -32,6 +32,13 @@ const fakeSearch = async (query: string): Promise<ComboboxOption[]> => {
 
 const NewComboboxDemo: React.FC = () => {
   const [pickedSync, setPickedSync] = useState("");
+  // The component never touches `options` — creating and selecting is the
+  // caller's job, which is exactly what this section demonstrates.
+  const [tags, setTags] = useState<ComboboxOption[]>([
+    { value: "bug", label: "bug" },
+    { value: "docs", label: "docs" },
+  ]);
+  const [tag, setTag] = useState("");
   const [pickedLarge, setPickedLarge] = useState("");
   const [pickedAsync, setPickedAsync] = useState("");
 
@@ -46,6 +53,46 @@ const NewComboboxDemo: React.FC = () => {
         async (server-driven with debounce + abort) modes share one
         component — pass <code>options</code> or <code>onSearch</code>.
       </p>
+
+      <section className="demo-section">
+        <h2>0. Creatable</h2>
+        <CodeExample
+          title="Offer the typed text when it matches nothing"
+          description="Type a tag that does not exist — 'design', say — and the list offers to create it instead of saying 'No results'. The component does not add the option itself: it cannot know where your list lives or what a new option's value should be, so onCreate hands you the text and adding it is yours. Typing an existing label offers nothing, because it already exists."
+          code={`const [tags, setTags] = useState([{ value: "bug", label: "bug" }, …]);
+
+<Combobox
+  options={tags}
+  value={tag}
+  onValueChange={setTag}
+  creatable
+  onCreate={(label) => {
+    const opt = { value: label.toLowerCase(), label };
+    setTags((prev) => [...prev, opt]);   // the caller owns the list
+    setTag(opt.value);                    // and the selection
+  }}
+/>`}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Combobox
+              options={tags}
+              value={tag}
+              onValueChange={setTag}
+              creatable
+              onCreate={(label) => {
+                const opt = { value: label.toLowerCase(), label };
+                setTags((prev) => [...prev, opt]);
+                setTag(opt.value);
+              }}
+              placeholder="Pick or create a tag"
+              searchPlaceholder="Type a tag…"
+            />
+            <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+              tags → <code>{tags.map((t) => t.label).join(", ")}</code>
+            </p>
+          </div>
+        </CodeExample>
+      </section>
 
       <section className="demo-section">
         <h2>1. Basic — in-memory options</h2>
