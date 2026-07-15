@@ -54,6 +54,9 @@ dist-demo
 # Without this line `*.md` above swallows it AT ANY DEPTH and the notes are
 # silently untracked — the whole point of them is that they ship.
 !release-notes/**/*.md
+# Session handoff. Same trap as release-notes above: `*.md` matches at any
+# depth, and a handoff that does not survive the session is worthless.
+!handoff.md
 !todo.md
 !README.md
 *.txt
