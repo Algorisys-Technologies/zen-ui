@@ -82,6 +82,14 @@ export type {
   SelectDialogItem,
 } from "./components/select-dialog/select-dialog";
 
+export { ValueHelp } from "./components/value-help/value-help";
+export type {
+  ValueHelpProps,
+  ValueHelpCondition,
+  ValueHelpOperator,
+  ValueHelpResult,
+} from "./components/value-help/value-help";
+
 export { ObjectPageLayout } from "./components/object-page/object-page";
 export type {
   ObjectPageLayoutProps,

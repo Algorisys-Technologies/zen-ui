@@ -81,6 +81,7 @@ import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDem
 import NewDynamicPageDemo from "./components/NewDynamicPageDemo";
 import NewObjectPageDemo from "./components/NewObjectPageDemo";
 import NewSelectDialogDemo from "./components/NewSelectDialogDemo";
+import NewValueHelpDemo from "./components/NewValueHelpDemo";
 import { Toaster } from "./components/toast/toaster";
 
 /**
@@ -258,6 +259,7 @@ const App: React.FC = () => {
             <Route path="/dynamic-page" element={<NewDynamicPageDemo />} />
             <Route path="/object-page" element={<NewObjectPageDemo />} />
             <Route path="/select-dialog" element={<NewSelectDialogDemo />} />
+            <Route path="/value-help" element={<NewValueHelpDemo />} />
           </Routes>
         </main>
       </div>

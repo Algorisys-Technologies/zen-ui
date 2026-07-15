@@ -107,6 +107,7 @@ export const NAV: NavGroup[] = [
     title: "Fiori table ecosystem",
     items: [
       { to: "/select-dialog", label: "SelectDialog", description: "Searchable list picker — single commits on click, multi commits on OK" },
+      { to: "/value-help", label: "ValueHelp", description: "F4 lookup dialog — the list picker plus a condition builder" },
     ],
   },
   {

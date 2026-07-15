@@ -30,21 +30,6 @@ export interface SelectListItem {
   disabled?: boolean;
 }
 
-const matches = (item: SelectListItem, q: string) =>
-  item.label.toLowerCase().includes(q) ||
-  (item.description?.toLowerCase().includes(q) ?? false);
-
-/** Client-side filter over label + description. `external` hands it to the caller. */
-export const filterItems = (
-  items: SelectListItem[],
-  query: string,
-  external?: boolean,
-): SelectListItem[] => {
-  const q = query.trim().toLowerCase();
-  if (external || !q) return items;
-  return items.filter((i) => matches(i, q));
-};
-
 export const SelectSearchField = (props: {
   value: string;
   onValueChange: (v: string) => void;

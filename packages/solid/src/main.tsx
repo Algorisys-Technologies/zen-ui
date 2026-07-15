@@ -81,6 +81,7 @@ import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDem
 import NewDynamicPageDemo from "./components/NewDynamicPageDemo";
 import NewObjectPageDemo from "./components/NewObjectPageDemo";
 import NewSelectDialogDemo from "./components/NewSelectDialogDemo";
+import NewValueHelpDemo from "./components/NewValueHelpDemo";
 
 applyTheme(getInitialTheme());
 
@@ -161,6 +162,7 @@ render(
       <Route path="/dynamic-page" component={NewDynamicPageDemo} />
       <Route path="/object-page" component={NewObjectPageDemo} />
       <Route path="/select-dialog" component={NewSelectDialogDemo} />
+      <Route path="/value-help" component={NewValueHelpDemo} />
     </Router>
   ),
   root,

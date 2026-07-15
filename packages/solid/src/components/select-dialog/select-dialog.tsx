@@ -5,9 +5,9 @@ import { Button } from "../button/button";
 import {
   SelectSearchField,
   SelectListBody,
-  filterItems,
   type SelectListItem,
 } from "../select-list/select-list";
+import { filterItems } from "../select-list/filter";
 
 /**
  * SelectDialog — Fiori's list picker: a modal with a search field, a scrollable

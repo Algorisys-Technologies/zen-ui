@@ -199,6 +199,15 @@ export type {
   DynamicPageFooterProps,
 } from "./components/dynamic-page/dynamic-page";
 
+// ValueHelp (Fiori-shaped: the F4 lookup dialog — list + condition builder)
+export { ValueHelp } from "./components/value-help/value-help";
+export type {
+  ValueHelpProps,
+  ValueHelpCondition,
+  ValueHelpOperator,
+  ValueHelpResult,
+} from "./components/value-help/value-help";
+
 // SelectDialog (Fiori-shaped: the searchable list picker)
 export { SelectDialog } from "./components/select-dialog/select-dialog";
 export type {

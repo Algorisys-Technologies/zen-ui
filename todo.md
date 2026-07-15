@@ -20,8 +20,10 @@ prepped for release. Decide each of these before any merge / publish.
       guide alongside.
 - [ ] **README update** — current README / DEV_GUIDE.md /
       library_usage.md still describe the legacy API.
-- [ ] **Remote push** — branch only lives locally; `git remote add` +
-      `git push -u` when ready for collaborators.
+- [x] **Remote push** — stale as written. `origin` is
+      `github.com:Algorisys-Technologies/zen-ui` and `dev` tracks `origin/dev`;
+      pushed 2026-07-15. `main` is also on the remote, so the branch-strategy
+      question above is about merging, not about publishing.
 - [ ] **Unit + interaction tests** — none exist on the new components.
       Cover at minimum: keyboard nav on DropdownMenu / Select,
       indeterminate Checkbox, Switch + RadioGroup form submission
@@ -550,13 +552,12 @@ Tracked against `docs/fiori-gap-analysis.md`. Tier numbering is that doc's.
 
 **Done, both bindings**: icon set (48), Object atoms, Button family, Tree,
 Toolbar (overflow), Page, Bar, ShellBar, FlexibleColumnLayout, DynamicPage,
-ObjectPageLayout, SelectDialog, Sidebar sub-items + collapsed flyout.
+ObjectPageLayout, SelectDialog, ValueHelp, Sidebar sub-items + collapsed flyout.
 
-**Tier 1's rows are all built** (SideNavigation closed 2026-07-15; one caveat
-about a named `NavigationLayout` wrapper below). Tier 2 is roughly half and was
-previously untracked here. Tier 3 is 1 of 4 dialogs. Status below is checked
-against `index.ts` exports in both bindings, not against memory of what a session
-said it built.
+**Tier 1 is closed** (2026-07-15). Tier 2 is roughly half and was previously
+untracked here. Tier 3 is 2 of 4 dialogs. Status below is checked against
+`index.ts` exports in both bindings, not against memory of what a session said it
+built — Tier 1 spent a day marked done while a row was missing.
 
 - [ ] **`Page` and `Bar` have no demo or nav entry.** Shipped in 9aab1eb as
       exports only, so they violate the "add it to nav.ts, add its Route" rule
@@ -576,10 +577,13 @@ said it built.
       bindings, and `src/nav.ts` is already the single source of truth for the
       sidebar AND the landing catalogue, so the palette can render from it with
       no third list to drift. Must land in React AND Solid per the parity rule.
-- [ ] **Tier 1 — app frame. 9 of the gap doc's 9 rows, with one caveat.** Was
-      marked done 2026-07-15, but that entry scoped "app frame" to the four
-      components that session happened to build; the tier's table has nine rows.
-      Re-opened, then closed properly the same day.
+- [x] **Tier 1 — app frame. Closed 2026-07-15, all 9 of the gap doc's rows.**
+      Had been marked done earlier that day, but that entry scoped "app frame"
+      to the four components that session happened to build while the tier's
+      table has nine rows. Re-opened after checking exports, then closed
+      properly: SideNavigation's real gaps (sub-items + flyout) shipped, and
+      NavigationLayout deliberately not built. Two of the nine rows were
+      already-shipped components the earlier entry simply had not counted.
   - [x] **SideNavigation behaviours** — done 2026-07-15, both bindings, as an
         extension of `Sidebar` rather than a second nav shell (decided with the
         gap doc's recommendation in view; two collapsible sidebars would drift).
@@ -594,12 +598,15 @@ said it built.
         when collapsed. Diverges from shadcn, where `SidebarMenuSub` is only the
         `<ul>` — noted in the component docstring. 13 behaviours driven per
         binding (`subnav-verify.tmp.mjs`).
-  - [ ] **Caveat: no named `NavigationLayout` wrapper.** The gap doc's row is
-        "NavigationLayout + SideNavigation", and only the SideNavigation half is
-        built. Its own note scopes the gap to "collapse-to-icons + popup-menu
-        behavior", which is closed, and the wrapper is a trivial composition of
-        ShellBar + Sidebar + Page. Decide whether it earns a component or the
-        row is done. Not counted as a build item until then.
+  - [x] **`NavigationLayout` will not be built** (decided 2026-07-15). The gap
+        doc's row is "NavigationLayout + SideNavigation" and only the
+        SideNavigation half exists, but the row's own note scopes the gap to
+        "collapse-to-icons + popup-menu behavior", which is closed. The wrapper
+        is `<ShellBar/>` above a flex row of `<Sidebar/>` and `<Page/>`: a
+        component that owns no state and no behaviour, only a div. Everything
+        exported is a promise, and this one would buy nothing a caller cannot
+        write in four lines. Revisit only if a real layout concern shows up
+        (persisted rail width, responsive collapse breakpoints).
   - [ ] _Pre-existing demo cosmetic, both bindings_: `<strong>Acme</strong>` in
         the Sidebar demo's header does not hide when the rail collapses, so it
         spills over the page content. The demo's brand is caller-land, but
@@ -654,7 +661,7 @@ said it built.
         (`DropdownMenu` composes to it), Token / Tokenizer (`TagInput` is
         close), Wizard branching + validation gating (`Stepper` lacks it).
 
-- [ ] **Tier 3 — table ecosystem. 1 of 4 dialogs.** Persistence question settled
+- [ ] **Tier 3 — table ecosystem. 2 of 4 dialogs.** Persistence question settled
       2026-07-15: **build the stateless dialogs first**, defer anything that
       needs a store.
       - [x] SelectDialog — searchable list picker, single + multi select.
@@ -684,7 +691,20 @@ said it built.
               per click. Fixed with Solid's `children()` helper. Worth a sweep:
               any Solid demo child that portals had the same duplicate.
             - Multi-select committed in tick order (see above).
-      - [ ] ValueHelp — the F4 field picker; builds on SelectDialog.
+      - [x] ValueHelp — the F4 field picker. Done 2026-07-15, both bindings:
+            component + demo + nav + route, 15 behaviours driven per binding
+            (`vh-verify.tmp.mjs`). Two tabs — **Select** (the shared list) and
+            **Conditions** (include/exclude, 9 operators, `BT` revealing a second
+            bound). Both halves commit together from `onConfirm`, because a real
+            filter is "these three, plus anything starting with X".
+            Unlike SelectDialog, a row click never commits: the Conditions tab
+            needs an OK too, so OK is the only way out. Rules with no value are
+            dropped on commit (and a `BT` missing either bound is not a range) —
+            committing them would be a silent no-op.
+            The list is shared via `select-list`, extracted in 8e7a744 rather
+            than duplicated; a Dialog cannot nest inside another Dialog's tab.
+            Surfaced two Solid a11y bugs, both wider than ValueHelp — see
+            Known-latent below.
       - [ ] ViewSettingsDialog — sort / group / filter settings.
       - [ ] FilterBar — filter fields + Go / Adapt Filters, variant slot.
       - [ ] _Deferred until saved views have a home_: VariantManagement, p13n
@@ -705,6 +725,27 @@ said it built.
       are the least (they assume annotations we do not have).
 
 ### Known-latent, found while porting
+
+- [ ] **Solid: a Select inside a Dialog has its options hidden from screen
+      readers.** Found 2026-07-15 while driving ValueHelp; affects any
+      Select-in-Dialog, not just that component, and React/Radix is unaffected.
+      Kobalte's Dialog aria-hidden's every body-level sibling to enforce
+      modality, and Kobalte's Select portals its listbox to the body, so the
+      dialog hides the Select's own popup. Measured on /value-help: **9
+      `li[role=option]` in the DOM, 0 in the accessibility tree** (the portal's
+      container div carries `aria-hidden="true"`). It looks and clicks fine, so
+      only an a11y-tree query catches it. `vh-verify.tmp.mjs` drives those
+      options via raw DOM and prints a note each time, so the defect stays
+      visible rather than silently passing.
+      Fix is not obvious: rendering the listbox inside the dialog dodges the
+      sweep but DialogContent is `overflow-hidden` and carries a transform,
+      which becomes the containing block for `position: fixed`. Likely upstream.
+      Same family as the `Dialog.Content` clobbering fixed in 3083781.
+- [ ] **Solid: `<Select aria-label>` never reaches the control.** It lands on a
+      wrapper `div[role=group]`, so the trigger has no accessible name and the
+      label is announced on a group instead. React puts it on the trigger. Found
+      alongside the above. Same class as the Checkbox/RadioGroupItem/Select `id`
+      bug below — Kobalte roots swallow attributes meant for sub-parts.
 
 - [ ] Checkbox, RadioGroupItem and Select land a caller's `id` on the wrapper
       rather than the native control, so `<label for>` will not associate —
