@@ -104,6 +104,62 @@ export {
   toISODate,
 } from "@algorisys/zen-ui-core/date-range";
 
+// Pivot — the components from this binding, the model from core.
+//
+// The whole model surface, not a subset: the Solid binding shipped PivotWorkbench
+// while withholding PivotMembersRequest/Result, so `loadMembers` — the pivot's
+// single integration point — had a signature no consumer could name.
+export {
+  PivotWorkbench,
+  PivotGrid,
+  PivotDropZone,
+  PivotFieldChip,
+  PivotFilterMenu,
+} from "./components/pivot";
+export type {
+  PivotWorkbenchProps,
+  PivotGridProps,
+  PivotDropZoneProps,
+  PivotFieldChipProps,
+  PivotFilterMenuProps,
+} from "./components/pivot";
+
+export {
+  createEmptyLayout,
+  moveFieldToZone,
+  removeFieldFromLayout,
+  updateValueAggregation,
+  zoneOf,
+  zoneLabel,
+  fieldLabel,
+  availableFields,
+  isLayoutRenderable,
+  defaultAggregationForField,
+  normalizeFilterSelection,
+  isFilterActive,
+  isValueSelected,
+  hasActiveFilters,
+  describeFilterSelection,
+  describeMove,
+  PIVOT_ZONES,
+  PIVOT_AGGREGATIONS,
+} from "@algorisys/zen-ui-core/pivot";
+export type {
+  PivotLayout,
+  PivotField,
+  PivotFieldType,
+  PivotValueField,
+  PivotZone,
+  PivotAggregation,
+  PivotFilters,
+  PivotFilterSelection,
+  PivotFilterOptionsBody,
+  PivotMembersRequest,
+  PivotMembersResult,
+  PivotSort,
+  SortDirection,
+} from "@algorisys/zen-ui-core/pivot";
+
 // Carousel (CSS scroll-snap; every child is a slide, no CarouselItem to import)
 export { Carousel } from "./components/carousel/carousel";
 export type { CarouselProps } from "./components/carousel/carousel";

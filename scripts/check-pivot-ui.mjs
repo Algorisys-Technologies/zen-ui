@@ -202,10 +202,16 @@ const gridRole = await grid.getAttribute("role");
 if (gridRole !== "grid") ok(`the table does not claim role="grid" without grid navigation (role=${gridRole ?? "implicit table"})`);
 else bad("role=grid", "claims grid semantics but has no arrow-key navigation");
 
-const scoped = await page.locator("th[scope]").count();
+// The INVARIANT, not the tally: absolute counts depend on the grid's
+// dimensions, which differ between runs. Every <th> that carries meaning must
+// carry scope; the only ones that may not are the aria-hidden spacers used for
+// column padding, which name nothing.
+const unscoped = await page.locator("th:not([scope])").evaluateAll((els) =>
+  els.filter((e) => e.getAttribute("aria-hidden") !== "true").length,
+);
 const ths = await page.locator("th").count();
-if (ths > 0 && scoped > 0) ok(`${scoped}/${ths} headers carry scope`);
-else bad("th scope", `${scoped} of ${ths} <th> have scope — headers are unassociated`);
+if (ths > 0 && unscoped === 0) ok(`every meaningful header carries scope (${ths} <th>, ${unscoped} unscoped and not aria-hidden)`);
+else bad("th scope", `${unscoped} of ${ths} <th> have no scope and are not aria-hidden — those headers are unassociated`);
 
 const region = page.locator('[role="region"]').first();
 const label = await region.getAttribute("aria-label");
