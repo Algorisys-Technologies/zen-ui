@@ -28,6 +28,12 @@ export interface WindowedVirtualListProps {
   formatValue?: (value: string) => string;
   label: string;
   className?: string;
+  /**
+   * Draw the indicator as a radio rather than a checkbox. A square box is a
+   * promise you can tick more than one; when the menu takes a single value that
+   * promise is a lie, and the user only finds out by trying. Mirrors Solid.
+   */
+  singleSelect?: boolean;
 }
 
 const ROW_HEIGHT = 36;
@@ -41,6 +47,7 @@ export const WindowedVirtualList: React.FC<WindowedVirtualListProps> = ({
   formatValue,
   label,
   className,
+  singleSelect,
 }) => (
   <ul role="listbox" aria-label={`${label} values`} className="zen-m-0 zen-list-none zen-p-0">
     <VirtualizedItems<string>
@@ -76,7 +83,8 @@ export const WindowedVirtualList: React.FC<WindowedVirtualListProps> = ({
             <span
               aria-hidden
               className={cn(
-                "zen-flex zen-size-4 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-border zen-border-zen-border",
+                "zen-flex zen-size-4 zen-shrink-0 zen-items-center zen-justify-center zen-border zen-border-zen-border",
+                singleSelect ? "zen-rounded-full" : "zen-rounded-zen-sm",
                 isSelected(item) && "zen-bg-zen-primary zen-text-zen-primary-fg",
               )}
             >

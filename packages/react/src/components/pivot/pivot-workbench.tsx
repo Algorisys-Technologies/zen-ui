@@ -189,6 +189,13 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
     filters: draft.filters,
     selection: draft.filters[fieldKey],
     loadMembers,
+    // Available is a preview of a field you have not placed yet, so its filter
+    // picks ONE member — it answers "what is in here", not "which of these do I
+    // want". A placed field filters for real and takes as many as you like.
+    // The prop was implemented in the chip and the menu but never passed here,
+    // so React's available fields multi-selected while Solid's did not. Mirrors
+    // the Solid binding.
+    singleSelect: zone === "available",
     onSelectionChange: (sel) => setDraft((prev) => withFilter(prev, fieldKey, sel)),
     onMoveToZone: (z) => moveField(fieldKey, z),
     onRemove: zone === "available" ? undefined : () => moveField(fieldKey, "available"),

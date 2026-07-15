@@ -163,6 +163,7 @@ export const PivotFilterMenu: React.FC<PivotFilterMenuProps> = ({
               onToggle={toggle}
               onVisibleRange={pages.handleVisibleRange}
               formatValue={formatValue}
+              singleSelect={singleSelect}
             />
           )}
 
