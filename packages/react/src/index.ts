@@ -464,6 +464,14 @@ export {
   cardVariants,
 } from "./components/card/card";
 export type { CardProps } from "./components/card/card";
+
+// StatCard (a labelled figure on the Card surface — icon, delta, somewhere to go)
+export { StatCard } from "./components/stat-card/stat-card";
+export type {
+  StatCardProps,
+  StatCardTrend,
+  StatCardColor,
+} from "./components/stat-card/stat-card";
 export {
   SelectableCard,
   SelectableCardGroup,

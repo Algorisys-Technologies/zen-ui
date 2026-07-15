@@ -68,6 +68,7 @@ export const NAV: NavGroup[] = [
       { to: "/tabs", label: "Tabs", description: "Radix-backed tabbed navigation; underline + pills variants, horizontal / vertical" },
       { to: "/accordion", label: "Accordion", description: "Radix-backed collapsible sections; single + multiple expand modes" },
       { to: "/card", label: "Card", description: "Surface primitive + SelectableCard variant for goal pickers / plan selectors" },
+      { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go" },
       { to: "/sheet", label: "Sheet / Drawer", description: "Slide-in side panel on Radix Dialog; right / left / top / bottom" },
       { to: "/date-range-picker", label: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled" },
       { to: "/tag-input", label: "TagInput", description: "Type + Enter chip input; comma-paste splits, Backspace removes, per-tag validator, max-N" },

@@ -94,6 +94,7 @@ import NewValueHelpDemo from "./components/NewValueHelpDemo";
 import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
 import NewFilterBarDemo from "./components/NewFilterBarDemo";
 import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
+import NewStatCardDemo from "./components/NewStatCardDemo";
 import { Toaster } from "./components/toast/toaster";
 
 /**
@@ -280,6 +281,7 @@ const App: React.FC = () => {
             <Route path="/view-settings" element={<NewViewSettingsDemo />} />
             <Route path="/filter-bar" element={<NewFilterBarDemo />} />
             <Route path="/page-header" element={<NewPageHeaderDemo />} />
+            <Route path="/stat-card" element={<NewStatCardDemo />} />
           </Routes>
         </main>
       </div>

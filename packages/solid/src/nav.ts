@@ -34,6 +34,7 @@ export const NAV: NavGroup[] = [
       { label: "Button", path: "/button", description: "Variants \u00d7 colours \u00d7 sizes \u00d7 shapes via CVA; polymorphic `as` prop" },
       { label: "Badge", path: "/badge", description: "Styled span with variants \u00d7 colours; `as` for clickable badges" },
       { label: "Card", path: "/card", description: "Surface primitive + SelectableCard for goal pickers / plan selectors" },
+      { label: "StatCard", path: "/stat-card", description: "A labelled figure — icon, delta, and somewhere to go" },
       { label: "Skeleton", path: "/skeleton", description: "Animated muted-box placeholder; size it with utility classes" },
       { label: "Loading", path: "/loading", description: "Animated spinner with sr-only label; colour=current inside buttons" },
       { label: "FAB", path: "/fab", description: "Fixed-position floating action button + speed-dial menu" },
