@@ -1,7 +1,10 @@
 # SAP Fiori for Web — Component Gap Analysis
 
-**Date:** 2026-07-14
-**zen-ui version reviewed:** `@algorisys/zen-ui-react` 2.2.0 (branch `dev`, commit `f379e16`)
+**Surveyed:** 2026-07-14 against `@algorisys/zen-ui-react` 2.2.0 (branch `dev`, commit `f379e16`)
+**Revised:** 2026-07-15 — Tier 1 and much of Tier 2 have been built since the survey, so the
+status column and the executive summary were refreshed against `index.ts` rather than left
+describing a library that no longer exists. Four rows had been reporting ❌ for components that
+already shipped.
 **Reference:** [SAP Fiori Design System for Web](https://www.sap.com/design-system/fiori-design-web)
 
 ## How this was compiled
@@ -23,15 +26,15 @@ Two source notes worth recording, because they cost time:
 
 ## Executive summary
 
-zen-ui is a **shadcn/Radix-style general-purpose library**; Fiori is an **enterprise application design system**. Measured against Fiori's own inventory, zen-ui covers the *form and primitive* layer well and is nearly absent at the *application frame* and *enterprise data* layers.
+zen-ui is a **shadcn/Radix-style general-purpose library**; Fiori is an **enterprise application design system**. This document was written when zen-ui covered the *form and primitive* layer well and was nearly absent at the *application frame* and *enterprise data* layers. Tiers 1–2 have largely been built since; the percentages below are current as of the revision date above, not as of the original survey.
 
 Roughly:
 
-- **Primitives / form controls** — ~80% covered. Real gaps are narrow (ColorPicker, SegmentedButton, SplitButton, Tree, Toolbar, DynamicDateRange).
-- **App frame** (ShellBar, FlexibleColumnLayout, DynamicPage, ObjectPage) — **0% covered**. This is the single largest gap and the one that most defines a "Fiori-like" app.
-- **Enterprise object atoms** (ObjectStatus/Number/Identifier/Marker, MessageStrip variants, QuickView) — **0% covered**.
-- **Table ecosystem beyond the grid itself** (FilterBar, VariantManagement, p13n, ValueHelp, SelectDialog, export) — **~15% covered**; zen-ui's `DataTable` has the mechanics (sorting/filtering/grouping/pinning/resizing/virtualization) but none of the surrounding Fiori dialogs or persistence.
-- **Tiles, micro charts, planning calendars, Smart controls** — **0% covered**.
+- **Primitives / form controls** — ~80% covered. Real gaps are narrow (ColorPicker, DynamicDateRange, Carousel). SegmentedButton, SplitButton, ToggleButton, Tree, Toolbar and MaskInput have since been built.
+- **App frame** (ShellBar, FlexibleColumnLayout, DynamicPage, ObjectPage) — was 0%, now **built in both bindings**, plus `Page`/`Bar` and a light `PageHeader` for screens that want a heading rather than a snapping header. This was the largest gap and the one that most defines a "Fiori-like" app; it is closed.
+- **Enterprise object atoms** (ObjectStatus/Number/Identifier/Marker) — was 0%, now **built in both bindings**. MessageStrip variants and QuickView remain.
+- **Table ecosystem beyond the grid itself** — was ~15%. `SelectDialog`, `ValueHelp`, `ViewSettingsDialog` and `FilterBar` are built; **VariantManagement, p13n and export remain**, which is where the persistence story lives.
+- **Tiles, micro charts, planning calendars, Smart controls** — **0% covered**, and mostly should stay that way (see the caveat below).
 
 An important scoping caveat: **most of what's listed below should not be built.** Fiori's tail (Smart controls, OData annotations, Analysis Path Framework, T-Account) is inseparable from SAP's backend. The value of this document is Tiers 1–2; Tiers 3–4 are recorded for completeness, not as a roadmap.
 
@@ -97,17 +100,17 @@ These are small components that carry enormous weight in enterprise UIs.
 
 | Component | What it is | zen-ui overlap |
 |---|---|---|
-| **SegmentedButton** (+ Item) | Mutually exclusive button group | ❌ |
-| **SplitButton** | Default action + dropdown arrow | ❌ |
-| **ToggleButton** | Button with pressed state | ❌ |
+| **SegmentedButton** (+ Item) | Mutually exclusive button group | ✅ `SegmentedButton` |
+| **SplitButton** | Default action + dropdown arrow | ✅ `SplitButton` |
+| **ToggleButton** | Button with pressed state | ✅ `ToggleButton` |
 | **MenuButton** | Button opening a menu | ⚠️ `DropdownMenu` composes to this |
 | **StepInput** | Numeric input with +/- steppers | ✅ `NumberField` |
 | **ColorPicker** / **ColorPalette** (+ Item, Popover) | HSL/RGB picker; predefined swatch grid | ❌ |
-| **MaskInput** | Fixed character mask input | ❌ |
+| **MaskInput** | Fixed character mask input | ✅ `MaskInput` — engine shared via `core/mask` |
 | **DynamicDateRange** | **Semantic relative dates** — "Today", "Last 7 Days", "This Quarter", "From…" | ❌ Big gap; `DateRangePicker` only does absolute ranges. |
 | **Token** / **Tokenizer** | Chip collection | ⚠️ `TagInput` is close |
 | **Link**, **Title**, **Label**, **Text**, **ExpandableText** | Typography primitives; ExpandableText = show more/less | ❌ zen-ui has no typography layer |
-| **Icon** | SVG icon from the SAP icon font (~1,000 icons) | ❌ zen-ui ships **no icon dependency at all** (verified: no `lucide-react` in deps) |
+| **Icon** | SVG icon from the SAP icon font (~1,000 icons) | ⚠️ `Icon` ships 48 hand-drawn glyphs and still no icon dependency. The set, not the component, is the gap. |
 | **Panel** | Collapsible titled container | ⚠️ `Accordion` partially |
 | **Carousel** | Swipeable rotating items | ❌ |
 | **IllustratedMessage** | Empty/error state **with illustration** | ⚠️ `EmptyState` lacks the illustration set |

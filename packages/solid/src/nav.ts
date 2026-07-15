@@ -115,6 +115,7 @@ export const NAV: NavGroup[] = [
       { label: "TagInput", path: "/tag-input", description: "Type + Enter chip input; comma-paste splits, per-tag validator" },
       { label: "PhoneInput", path: "/phone-input", description: "Composition: Select (country) + Input (number)" },
       { label: "InputOTP", path: "/otp", description: "One input per digit, zero-dep; paste / autocomplete / a11y" },
+      { label: "MaskInput", path: "/mask-input", description: "Fixed-template input — 99-9999, aa-99; the mask decides what may be typed" },
       { label: "FileUpload", path: "/file-upload", description: "Drag-and-drop or browse; accept / max-size validation, progress" },
     ],
   },

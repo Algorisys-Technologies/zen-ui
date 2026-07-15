@@ -137,6 +137,11 @@ export {
 export { Slider } from "./components/form/slider/slider";
 export type { SliderProps, SliderMark } from "./components/form/slider/slider";
 
+// Form Components - MaskInput (fixed-template input; engine shared via core)
+export { MaskInput } from "./components/form/mask-input/mask-input";
+export type { MaskInputProps } from "./components/form/mask-input/mask-input";
+export type { MaskRules } from "@algorisys/zen-ui-core/mask";
+
 // Form Components - InputOTP (one <input> per digit, zero-dependency)
 export {
   InputOTP,

@@ -52,6 +52,7 @@ export const NAV: NavGroup[] = [
       { to: "/number-field-new", label: "NumberField", description: "Number input with \u2212/+ stepper, clamp, decimal step" },
       { to: "/date-picker-new", label: "DatePicker", description: "react-day-picker in a Radix Popover; inline Calendar too" },
       { to: "/otp-new", label: "InputOTP", description: "one input per digit, zero-dep; paste / autocomplete / a11y" },
+      { to: "/mask-input", label: "MaskInput", description: "Fixed-template input — 99-9999, aa-99; the mask decides what may be typed" },
       { to: "/phone-input-new", label: "PhoneInput", description: "Composition: Select (country) + Input (number)" },
       { to: "/fab-new", label: "FAB", description: "Fixed-position Button wrapper + DropdownMenu for speed-dial" },
       { to: "/form-new", label: "Form (RHF + Zod)", description: "react-hook-form + Zod resolver; FormField / FormItem / FormLabel / FormMessage" },

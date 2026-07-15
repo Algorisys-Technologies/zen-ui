@@ -87,6 +87,7 @@ import NewFilterBarDemo from "./components/NewFilterBarDemo";
 import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
 import NewStatCardDemo from "./components/NewStatCardDemo";
 import NewCustomizingDemo from "./components/NewCustomizingDemo";
+import NewMaskInputDemo from "./components/NewMaskInputDemo";
 
 applyTheme(getInitialTheme());
 
@@ -173,6 +174,7 @@ render(
       <Route path="/page-header" component={NewPageHeaderDemo} />
       <Route path="/stat-card" component={NewStatCardDemo} />
       <Route path="/customizing" component={NewCustomizingDemo} />
+      <Route path="/mask-input" component={NewMaskInputDemo} />
     </Router>
   ),
   root,

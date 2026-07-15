@@ -310,6 +310,10 @@ export type {
   AccordionContentProps,
 } from "./components/accordion/accordion";
 
+export { MaskInput } from "./components/form/mask-input/mask-input";
+export type { MaskInputProps } from "./components/form/mask-input/mask-input";
+export type { MaskRules } from "@algorisys/zen-ui-core/mask";
+
 export { Slider } from "./components/form/slider/slider";
 export type { SliderProps, SliderMark } from "./components/form/slider/slider";
 

@@ -11,7 +11,8 @@
     "./uno-preset": "./src/uno-preset.ts",
     "./tokens.css": "./styles/tokens.css",
     "./preflight.css": "./styles/preflight.css",
-    "./icons": "./src/icons.ts"
+    "./icons": "./src/icons.ts",
+    "./mask": "./src/mask.ts"
   },
   "files": [
     "src",
