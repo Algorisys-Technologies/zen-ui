@@ -12,6 +12,13 @@ import { cn } from "../../lib/cn";
  * "2 of 5", etc. on arrow-key nav. Hover preview tints stars up to the
  * pointed-at index but doesn't commit until click. Click an
  * already-selected star to clear (disable via `allowClear={false}`).
+ *
+ * `allowHalf` keeps all of that and doubles the options: each star
+ * grows a left and a right hit target, arrows step by 0.5, and the
+ * radios announce "2.5 stars". The stars stay whole — it is the
+ * options that halve, not the picture.
+ *
+ * Mirrors the React binding's API.
  */
 
 export interface RatingProps {
@@ -20,6 +27,11 @@ export interface RatingProps {
   onValueChange?: (value: number) => void;
   /** Number of stars rendered. Default 5. */
   max?: number;
+  /**
+   * Allow half-star values (0.5, 1, 1.5 …). Each star becomes two
+   * options rather than each half becoming a star.
+   */
+  allowHalf?: boolean;
   /** Accessible name for the radiogroup. Required for a11y. */
   label?: string;
   /** Show "n / max" caption next to the stars. */
@@ -50,6 +62,7 @@ export const Rating = (props: RatingProps) => {
 
   const display = createMemo(() => hover() || value());
   const interactive = createMemo(() => !props.disabled && !props.readOnly);
+  const step = createMemo(() => (props.allowHalf ? 0.5 : 1));
 
   const update = (next: number) => {
     const clamped = Math.max(0, Math.min(max(), next));
@@ -61,13 +74,13 @@ export const Rating = (props: RatingProps) => {
     if (!interactive()) return;
     if (e.key === "ArrowRight" || e.key === "ArrowUp") {
       e.preventDefault();
-      update(Math.min(max(), value() + 1));
+      update(Math.min(max(), value() + step()));
     } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
       e.preventDefault();
-      update(Math.max(0, value() - 1));
+      update(Math.max(0, value() - step()));
     } else if (e.key === "Home") {
       e.preventDefault();
-      update(1);
+      update(step());
     } else if (e.key === "End") {
       e.preventDefault();
       update(max());
@@ -75,6 +88,40 @@ export const Rating = (props: RatingProps) => {
   };
 
   const stars = createMemo(() => Array.from({ length: max() }, (_, i) => i + 1));
+
+  /** 0, 0.5 or 1 — how much of star `n` is lit. */
+  const fillOf = (n: number) => Math.max(0, Math.min(1, display() - (n - 1)));
+
+  const stepLabel = (s: number) => `${s} ${s === 1 ? "star" : "stars"}`;
+
+  /** One option: a transparent hit target laid over its half (or whole) star. */
+  const StepButton = (p: { s: number; half?: "left" | "right" }) => (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={value() === p.s}
+      aria-label={stepLabel(p.s)}
+      disabled={props.disabled}
+      tabIndex={value() === p.s || (value() === 0 && p.s === step()) ? 0 : -1}
+      onClick={() => {
+        if (!interactive()) return;
+        if (allowClear() && value() === p.s) update(0);
+        else update(p.s);
+      }}
+      onMouseEnter={() => interactive() && setHover(p.s)}
+      onMouseLeave={() => interactive() && setHover(0)}
+      onFocus={() => interactive() && setHover(0)}
+      class={cn(
+        "zen-absolute zen-inset-y-0 zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-0",
+        "zen-rounded-zen-sm",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+        (props.disabled || props.readOnly) && "zen-cursor-default",
+        p.half === "left" && "zen-left-0 zen-w-1/2",
+        p.half === "right" && "zen-right-0 zen-w-1/2",
+        !p.half && "zen-inset-x-0",
+      )}
+    />
+  );
 
   return (
     <div
@@ -91,39 +138,18 @@ export const Rating = (props: RatingProps) => {
       )}
     >
       <For each={stars()}>
-        {(n) => {
-          const filled = createMemo(() => n <= display());
-          return (
-            <button
-              type="button"
-              role="radio"
-              aria-checked={value() === n}
-              aria-label={`${n} ${n === 1 ? "star" : "stars"}`}
-              disabled={props.disabled}
-              tabIndex={value() === n || (value() === 0 && n === 1) ? 0 : -1}
-              onClick={() => {
-                if (!interactive()) return;
-                if (allowClear() && value() === n) update(0);
-                else update(n);
-              }}
-              onMouseEnter={() => interactive() && setHover(n)}
-              onMouseLeave={() => interactive() && setHover(0)}
-              onFocus={() => interactive() && setHover(0)}
-              class={cn(
-                "zen-bg-transparent zen-border-0 zen-p-0.5 zen-cursor-pointer",
-                "zen-rounded-zen-sm zen-transition-colors",
-                "zen-text-zen-border",
-                filled() && "zen-text-zen-warning",
-                interactive() && "hover:zen-text-zen-warning",
-                "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-                (props.disabled || props.readOnly) && "zen-cursor-default",
-                props.disabled && "hover:zen-text-zen-border",
-              )}
-            >
-              <StarIcon size={SIZES[size()]} filled={filled()} />
-            </button>
-          );
-        }}
+        {(n) => (
+          // The star is drawn once and the options sit over it, rather than
+          // each option drawing half a star: two clipped halves side by side
+          // seam visibly down the middle of every star.
+          <span class="zen-relative zen-inline-flex zen-p-0.5">
+            <StarVisual size={SIZES[size()]} fill={fillOf(n)} />
+            <Show when={props.allowHalf} fallback={<StepButton s={n} />}>
+              <StepButton s={n - 0.5} half="left" />
+              <StepButton s={n} half="right" />
+            </Show>
+          </span>
+        )}
       </For>
       <Show when={props.showValue}>
         <span
@@ -142,6 +168,28 @@ export const Rating = (props: RatingProps) => {
     </div>
   );
 };
+
+/**
+ * A star lit `fill` of the way across (0, 0.5 or 1). The lit copy is clipped
+ * over the unlit one, so a half star is one star half-lit rather than two
+ * half-stars butted together — those seam down the middle at every size.
+ */
+const StarVisual = (props: { size: number; fill: number }): JSX.Element => (
+  <span
+    class="zen-relative zen-inline-block zen-shrink-0 zen-text-zen-border"
+    style={{ width: `${props.size}px`, height: `${props.size}px` }}
+  >
+    <StarIcon size={props.size} filled={false} />
+    <Show when={props.fill > 0}>
+      <span
+        class="zen-absolute zen-inset-y-0 zen-left-0 zen-overflow-hidden zen-text-zen-warning"
+        style={{ width: `${props.fill * 100}%` }}
+      >
+        <StarIcon size={props.size} filled />
+      </span>
+    </Show>
+  </span>
+);
 
 const StarIcon = (props: { size: number; filled: boolean }): JSX.Element => (
   <svg
