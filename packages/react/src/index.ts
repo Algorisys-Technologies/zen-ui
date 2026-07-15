@@ -663,6 +663,10 @@ export {
   TableCell,
   TableCaption,
 } from "./components/data-table/table";
+// Prop types are part of the API: a component whose props cannot be named is
+// hard to wrap, extend or store in a variable. This existed and was simply not
+// exported — Solid's binding exported its equivalent.
+export type { TableProps } from "./components/data-table/table";
 export { DataTable } from "./components/data-table/data-table";
 export type {
   DataTableProps,
@@ -757,3 +761,19 @@ export type { MapProps, MapMarker } from "./components/map/map";
 // UI Components - Camera (lazy react-webcam wrapper; optional peer dep)
 export { Camera } from "./components/camera/camera";
 export type { CameraProps } from "./components/camera/camera";
+
+// DataTable's filter + inline-edit vocabulary, and BoundSelect's option shape.
+// All defined, all exported from their own modules, none re-exported from here
+// — while Solid's root exported every one. A caller could pass a
+// `meta.filterVariant` and never name its type. Found by `bun run check:parity`,
+// which is the point of having it.
+export type {
+  FilterVariant,
+  TextOp,
+  TextFilterValue,
+  NumberOp,
+  NumberFilterValue,
+  NumberRangeFilterValue,
+} from "./components/data-table/filters";
+export type { EditVariant, CellEditPayload } from "./components/data-table/edit-cell";
+export type { SelectOption } from "./components/form-builder/bound-fields";

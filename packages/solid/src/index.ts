@@ -690,3 +690,11 @@ export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
 export { RichText } from "./components/rich-text/rich-text";
 export { Map } from "./components/map/map";
 export { Camera } from "./components/camera/camera";
+// Prop types are part of the API: a component whose props cannot be named is
+// hard to wrap, extend or store in a variable. These existed and were simply not
+// exported.
+export type { CameraProps } from "./components/camera/camera";
+export type { MapProps, MapMarker } from "./components/map/map";
+export type { PaginationProps } from "./components/pagination/pagination";
+export type { RichTextProps } from "./components/rich-text/rich-text";
+export type { SidebarProviderProps } from "./components/sidebar/sidebar";
