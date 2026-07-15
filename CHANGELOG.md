@@ -11,6 +11,61 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] — 2026-07-15
+
+Packaging only. No component, prop or visual change.
+
+### Fixed
+
+- **The library is tree-shakeable.** It was published as a single bundled module
+  (`preserveModules: false`) and declared no `sideEffects`, so a bundler could
+  drop nothing: one `<Button>` cost 151 kB gzipped, and adding eight more
+  components cost a further 330 bytes. Now 17 kB / 57 kB. Solid: 83 kB → 16 kB.
+  The two settings only work together — bundled into one module `sideEffects` is
+  all-or-nothing and the module is used; split into modules without
+  `sideEffects` rollup must assume each has side effects. Fixing either alone
+  measures as a no-op (12 bytes), which is why this survived.
+  `sideEffects` is `["**/*.css"]`, not `false`: the entry imports `tokens.css`
+  and `virtual:uno.css` for effect and a blanket `false` lets a bundler shake the
+  stylesheet out and render the library unstyled.
+- **Consumers received no TypeScript types.** Both bindings declared
+  `"types": "./dist/index.d.ts"` while `tsc` emitted `dist/src/index.d.ts`, with
+  no `rootDir` set. Every zen-ui import was silently `any`. It survived a release
+  because `emptyOutDir: false` preserved a stale `dist/index.d.ts` on machines
+  that had built an older layout; a clean clone never had one. Fixed with
+  `rootDir: "./src"`, mirroring `preserveModulesRoot`.
+- **The landing page footer advertised v0.1** from the day it was written
+  through 3.0.0 — hardcoded, on the most public page in the repo. It now reads
+  core's `package.json` via vite `define`, resolved against the config file
+  rather than `process.cwd()` (a bare relative path worked under
+  `bun --filter`, which enters the package dir, and threw under `deploy.sh`,
+  which runs vite from the repo root — so the one command that publishes was the
+  one that failed).
+
+### Added
+
+- `scripts/check-bundle-size.mjs` (`check:size`) — builds real consumer apps
+  against the built `dist` and weighs gzipped output against budgets. Bundle
+  regressions are invisible to a build log; the 151 kB button passed every
+  check in the repo.
+- `scripts/check-package-artifacts.mjs` (`check:package`) — asserts every path
+  `package.json` promises exists on a clean `dist`, that the entry `.d.ts` is
+  real rather than a stub, and that both tree-shaking prerequisites are present
+  so a future edit cannot silently drop one.
+- `scripts/check-release.ts` (`check:release`) — asserts the version agrees
+  across the four places that describe a release, and that no page hardcodes a
+  version literal.
+- `release-notes/` — per-version prose for people upgrading. Allowlisted in
+  `.gitignore`, which has a `*.md` rule that matches at any depth.
+- `bun run check:dist` — builds both libs then runs `check:package` +
+  `check:size`.
+
+### Changed
+
+- `dist/` is now one file per module (379 files) rather than a single
+  `index.js`. Deep paths into `dist/` were never a supported API.
+- CLAUDE.md documents the "ship it" procedure.
+
 ## [3.0.0] — 2026-07-15
 
 The first release. Nothing before this was published or tagged, so everything

@@ -69,3 +69,7 @@ vite.config.http.ts
 
 # Built by ./deploy.sh — the whole site (landing + both demos) as one static tree.
 dist-site/
+
+# scratch dirs from scripts/check-bundle-size.mjs (must live in-repo for
+# node to resolve vite plugins; removed on exit, ignored in case of a crash)
+.zen-size-*/

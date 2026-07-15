@@ -31,7 +31,12 @@ export default defineConfig({
         globals: {
           "solid-js": "Solid",
         },
-        preserveModules: false,
+        // One file per module. Half of what makes the library tree-shakeable;
+        // the other half is `sideEffects` in package.json, and NEITHER WORKS
+        // ALONE — see the React binding's config for the full reasoning and the
+        // numbers. Mirrors React: this is a parity-relevant build setting.
+        preserveModules: true,
+        preserveModulesRoot: "src",
         assetFileNames: (assetInfo) => {
           if (assetInfo.name && assetInfo.name.endsWith(".css")) {
             return "style.css";
