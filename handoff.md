@@ -5,17 +5,19 @@ with no memory of it — including me.
 
 ## Where things stand
 
-`dev` is **4 commits ahead of `main` and of `origin/dev`**, all unpushed, tree
-clean. `main` is still v5.0.0, tagged, and the site at
-<https://algorisys-technologies.github.io/zen-ui/> serves 5.0.0 — so nothing
-below is live yet.
+`main == dev == origin/main == origin/dev == f710023`, tagged **v6.0.0**, tree
+clean. The site at <https://algorisys-technologies.github.io/zen-ui/> serves
+6.0.0 — verified by fetching each deployed bundle and grepping the version out
+of it, not by trusting that the deploy said "Published". All three entry points
+(`/`, `/builder/`, `/builder-solid/`) return 200.
 
-The four: this handoff (twice), the impeccable install, and the pivot alignment.
-**The pivot commit is breaking and unreleased**, so the next `ship it` is a
-major, not a minor.
+**Nothing is open.** All three of this file's decisions are settled below, and
+the work behind them is released.
 
-Three releases shipped this session: **4.0.0** (tree-shaking + types), **5.0.0**
-(pivot single-select). Both are described in `release-notes/`.
+Three releases shipped in the 2026-07-16 session: **4.0.0** (tree-shaking +
+types), **5.0.0** (pivot single-select), **6.0.0** (the Solid pivot workbench
+laid out like React's — breaking, because a visual change is). Each is described
+in `release-notes/`.
 
 Gates, all green as of the last run:
 
@@ -24,9 +26,14 @@ Gates, all green as of the last run:
 | `bun run check` | 343 checks |
 | `bun run check:dist` | Button 17 kB React / 16 kB Solid |
 | `bun run lint` / `lint:solid` | React 29 problems; Solid 8 errors / 46 warnings — **on baseline, not zero** |
-| `visual-check` both bindings | 79 routes each; 3 errors, all an offline avatar CDN (`i.pravatar.cc`) — pre-existing, not ours |
+| `visual-check` both bindings | 79 routes each; 3 errors, all an offline avatar CDN (`i.pravatar.cc`) — pre-existing, not ours. **No blank pages** — `find .visual/<binding> -name '*.png' -size -10k` is the one-command check, since a blank render is ~5.3 kB against 70–120 kB for a real one |
 
-## Open — decide before continuing
+`packages/*/dist` was rebuilt after `./deploy.sh --publish`, so both hold demo
+builds at the dev bases (`/builder/`, `/builder-solid/`) rather than deploy's
+`/zen-ui/`. That is the state `visual-check` and `preview` want. `check:dist`
+wants the opposite — run `build:lib` first, and run it last.
+
+## Settled — nothing here needs a decision
 
 ### 1. ~~Impeccable is installed GLOBALLY~~ — SETTLED, it is project-scoped now
 
