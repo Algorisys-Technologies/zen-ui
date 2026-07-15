@@ -1,14 +1,16 @@
 import * as React from "react";
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
   pointerWithin,
   useSensor,
   useSensors,
   type CollisionDetection,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
-import { useSortable } from "@dnd-kit/sortable";
+import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   availableFields as availableFieldsIn,
@@ -19,6 +21,7 @@ import {
   isLayoutRenderable,
   moveFieldToZone,
   updateValueAggregation,
+  zoneOf,
   type PivotField,
   type PivotFilterSelection,
   type PivotLayout,
@@ -134,6 +137,18 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
   /** What a screen reader has just been told. A drag is otherwise silent. */
   const [announcement, setAnnouncement] = React.useState("");
 
+  /**
+   * The chip under the pointer, rendered into a DragOverlay.
+   *
+   * dnd-kit does not move the drag source across containers: useSortable only
+   * displaces it while `overIndex` is valid, and `overIndex` is an index WITHIN
+   * the same SortableContext — so dragging a chip from Available onto the Rows
+   * zone leaves it at -1 and the chip never moves. That is by design; the
+   * library's answer for multi-container dragging is an overlay, which also
+   * escapes the zone's overflow instead of being clipped by it.
+   */
+  const [dragging, setDragging] = React.useState<string | null>(null);
+
   const sensors = useSensors(
     // A small distance, so a click on the ⋮ handle or the remove button is not
     // read as the start of a drag.
@@ -149,8 +164,11 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
     [fields],
   );
 
+  const onDragStart = (event: DragStartEvent) => setDragging(String(event.active.id));
+
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setDragging(null);
     if (!over) return;
     const fieldId = String(active.id);
 
@@ -188,7 +206,13 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
         {announcement}
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={pivotCollisionDetection} onDragEnd={onDragEnd}>
+      <DndContext
+          sensors={sensors}
+          collisionDetection={pivotCollisionDetection}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => setDragging(null)}
+        >
         <div className="zen-flex zen-w-full zen-flex-col zen-gap-2 zen-bg-zen-background zen-p-2">
           {showBuilder ? (
             <>
@@ -227,38 +251,62 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
                 horizontal
                 isEmpty={available.length === 0}
               >
-                {available.map((f) => (
-                  <SortableChip key={f.key} {...chipProps(f.key, "available")} />
-                ))}
+                {/* SortableContext per zone — the analogue of Solid's
+                    SortableProvider. useSortable's `transform` is computed by
+                    the sorting strategy, and without a context there is no
+                    strategy: the chip registers as draggable and dims while
+                    dragging, but never moves. rectSortingStrategy rather than a
+                    list strategy because this zone wraps. */}
+                <SortableContext items={available.map((f) => f.key)} strategy={rectSortingStrategy}>
+                  {available.map((f) => (
+                    <SortableChip key={f.key} {...chipProps(f.key, "available")} />
+                  ))}
+                </SortableContext>
               </PivotDropZone>
 
               <div className="zen-grid zen-grid-cols-1 zen-gap-2 sm:zen-grid-cols-3">
                 <PivotDropZone id="values" title="Values" isEmpty={draft.values.length === 0}>
-                  {draft.values.map((v) => (
-                    <SortableChip
-                      key={v.id}
-                      {...chipProps(v.id, "values")}
-                      aggregation={v.aggregation}
-                      onAggregationChange={(agg) => setDraft((prev) => updateValueAggregation(prev, v.id, agg))}
-                    />
-                  ))}
+                  <SortableContext items={draft.values.map((v) => v.id)} strategy={rectSortingStrategy}>
+                    {draft.values.map((v) => (
+                      <SortableChip
+                        key={v.id}
+                        {...chipProps(v.id, "values")}
+                        aggregation={v.aggregation}
+                        onAggregationChange={(agg) => setDraft((prev) => updateValueAggregation(prev, v.id, agg))}
+                      />
+                    ))}
+                  </SortableContext>
                 </PivotDropZone>
 
                 <PivotDropZone id="rows" title="Rows" isEmpty={draft.rows.length === 0}>
-                  {draft.rows.map((id) => (
-                    <SortableChip key={id} {...chipProps(id, "rows")} />
-                  ))}
+                  <SortableContext items={draft.rows} strategy={rectSortingStrategy}>
+                    {draft.rows.map((id) => (
+                      <SortableChip key={id} {...chipProps(id, "rows")} />
+                    ))}
+                  </SortableContext>
                 </PivotDropZone>
 
                 <PivotDropZone id="columns" title="Columns" isEmpty={draft.columns.length === 0}>
-                  {draft.columns.map((id) => (
-                    <SortableChip key={id} {...chipProps(id, "columns")} />
-                  ))}
+                  <SortableContext items={draft.columns} strategy={rectSortingStrategy}>
+                    {draft.columns.map((id) => (
+                      <SortableChip key={id} {...chipProps(id, "columns")} />
+                    ))}
+                  </SortableContext>
                 </PivotDropZone>
               </div>
             </>
           ) : null}
         </div>
+
+        {/* The chip that follows the pointer. Rendered in a portal above
+            everything, so a zone's overflow cannot clip it. */}
+        <DragOverlay>
+          {dragging ? (
+            <div data-pivot-drag-overlay className="zen-inline-flex zen-cursor-grabbing zen-opacity-90 zen-shadow-md">
+              <PivotFieldChip fieldKey={dragging} fields={fields} zone={zoneOf(draft, dragging)} />
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
 
       <div className="zen-relative zen-min-h-0 zen-min-w-0 zen-flex-1 zen-bg-zen-background zen-p-2">
