@@ -36,6 +36,7 @@ export const NAV: NavGroup[] = [
       { to: "/button-new", label: "Button", description: "forwardRef, asChild, CVA variants \u00d7 colors \u00d7 sizes \u00d7 shapes" },
       { to: "/tooltip-new", label: "Tooltip", description: "Radix Tooltip \u2014 positioning, dismissal, a11y" },
       { to: "/popover", label: "Popover", description: "Anchored panel; asChild trigger, side/align, separate anchor" },
+      { to: "/link", label: "Link", description: "Styled anchor; asChild for router links, external, disabled" },
       { to: "/dropdown-menu", label: "DropdownMenu", description: "Radix DropdownMenu \u2014 action menus, sub-menus, checkbox/radio items" },
       { to: "/separator", label: "Separator", description: "Radix Separator \u2014 horizontal / vertical with decorative semantics" },
       { to: "/switch-new", label: "Switch", description: "Radix Switch \u2014 sizes, controlled / uncontrolled, form submission" },

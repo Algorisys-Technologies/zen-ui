@@ -79,6 +79,10 @@ export type {
   Notification,
 } from "./components/notifications-inbox/notifications-inbox";
 
+// Link (styled anchor; asChild for router links, external + disabled)
+export { Link, linkVariants } from "./components/link/link";
+export type { LinkProps } from "./components/link/link";
+
 // UI Components - Popover (Radix-backed; standalone primitive)
 export {
   Popover,

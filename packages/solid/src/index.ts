@@ -130,6 +130,9 @@ export type {
 export { Icon, ZEN_ICON_NAMES } from "./components/icon/icon";
 export type { IconProps, IconName } from "./components/icon/icon";
 
+export { Link, linkVariants } from "./components/link/link";
+export type { LinkProps } from "./components/link/link";
+
 export { Badge, badgeVariants } from "./components/badge/badge";
 export type { BadgeProps } from "./components/badge/badge";
 
