@@ -28,6 +28,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "5.0.0",
+    date: "2026-07-16",
+    kind: "breaking",
+    title: "Pivot: available fields filter to one member at a time",
+    detail:
+      "React's available fields multi-selected; Solid's did not. A field in Available Fields is not placed yet, so its filter previews what is in there — one member. Placed fields (Rows, Columns, Values) still take as many as you like. The indicator is now a radio rather than a checkbox, because a square box promised a second click would add.",
+  },
+  {
     version: "4.0.0",
     date: "2026-07-15",
     kind: "breaking",

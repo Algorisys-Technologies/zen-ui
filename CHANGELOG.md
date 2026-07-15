@@ -11,6 +11,33 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] — 2026-07-16
+
+### Fixed
+
+- **Pivot: available fields single-select in React, as Solid already did.** The
+  React binding's available-fields filter multi-selected; Solid's took one
+  member at a time. The prop was not missing — `singleSelect` was fully
+  implemented in `pivot-field-chip` and `pivot-filter-menu`, and the chip
+  forwarded it. `PivotWorkbench`'s `chipProps` is shared across all four zones
+  and set every property except that one, so it was never passed. Solid's
+  workbench passes `singleSelect={true}` for the available zone only; React now
+  does too.
+  Available is a preview of an unplaced field, so its filter answers "what is in
+  here" with one member; a placed field filters for real and takes many. Hence
+  per-zone rather than global.
+- **Pivot: the single-select affordance, which React lacked entirely.** The
+  indicator is now a radio when single-select and a checkbox otherwise, matching
+  Solid. React drew a square box unconditionally — a promise you can tick more
+  than one, which was exactly the bug.
+
+Both are breaking under this repo's rule that altered visual output is a
+breaking change: the menu looks different and a second click no longer adds.
+
+Verified by driving both demos — open a field's filter, click two options, count
+what stays selected: React 1, Solid 1, radio indicators in both. A typecheck
+cannot see this; both bindings compiled clean while disagreeing.
+
 ## [4.0.0] — 2026-07-15
 
 Packaging only. No component, prop or visual change.
