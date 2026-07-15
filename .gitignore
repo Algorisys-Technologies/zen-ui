@@ -62,3 +62,6 @@ vite.config.http.ts
 # npm configuration (contains tokens)
 .npmrc
 .visual/
+
+# Built by ./deploy.sh — the whole site (landing + both demos) as one static tree.
+dist-site/

@@ -1,20 +1,19 @@
 import { useState } from "react";
 import "./App.css";
-import { NavLink, Routes, Route } from "react-router-dom";
+import { NavLink, Routes, Route, useLocation } from "react-router-dom";
 import { NAV } from "./nav";
-// The version comes from the package that is actually published, so the footer
-// cannot drift from what a consumer installs. resolveJsonModule is already on,
-// and Vite emits JSON as named exports, so only `version` survives tree-shaking
-// — the rest of package.json never reaches the bundle.
-import { version as ZEN_VERSION } from "../package.json";
 
 /**
  * Derived from NAV, never hand-counted: nav.ts is already the single source of
  * truth for the sidebar and the landing catalogue, and a hard-coded number here
- * would drift the moment a component is added. `catalogue: false` groups
- * (Getting started) are routes, not components, so they do not count.
+ * would drift the moment a component is added.
+ *
+ * Two exclusions, for two different reasons. `catalogue: false` groups (Getting
+ * started) are routes rather than components. `components: false` groups
+ * (Patterns) ARE on the landing page but are screens assembled from the
+ * components above — counting them would count the same components twice.
  */
-const COMPONENT_COUNT = NAV.filter((g) => g.catalogue !== false).reduce(
+const COMPONENT_COUNT = NAV.filter((g) => g.catalogue !== false && g.components !== false).reduce(
   (n, g) => n + g.items.length,
   0,
 );
@@ -27,6 +26,45 @@ const COMPONENT_COUNT = NAV.filter((g) => g.catalogue !== false).reduce(
  */
 const ROOT_URL = new URL("..", new URL(import.meta.env.BASE_URL, window.location.origin))
   .pathname;
+
+/**
+ * "View code" opens the demo file for the route you are on — the USAGE, not the
+ * component's internals. The page already prints a snippet, but that snippet is
+ * a hand-typed `code` string sitting next to the JSX it claims to describe, and
+ * nothing keeps the two honest. This is the file that actually ran.
+ *
+ * Pinned to `main` rather than the current branch: a link that only resolves on
+ * whatever branch happened to build it is a link that breaks on every other one.
+ * The paths come from nav.ts and are checked by `bun run check:nav`.
+ */
+const SOURCE_BASE = "https://github.com/Algorisys-Technologies/zen-ui/blob/main/";
+
+/** The nav entry for the current route, if it has a source. */
+const useSourceHref = (): string | undefined => {
+  const { pathname } = useLocation();
+  for (const group of NAV) {
+    for (const item of group.items) {
+      if (item.to === pathname && item.source) return SOURCE_BASE + item.source;
+    }
+  }
+  return undefined;
+};
+
+const ViewCode: React.FC = () => {
+  const href = useSourceHref();
+  if (!href) return null;
+  return (
+    <a
+      className="app-home-link"
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      title="The demo source for this page on GitHub"
+    >
+      View code <span aria-hidden>↗</span>
+    </a>
+  );
+};
 
 import Welcome from "./components/Welcome";
 import ThemeSwitcher from "./components/theme-switcher";
@@ -107,6 +145,8 @@ import NewLinkDemo from "./components/NewLinkDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
+import NewListReportDemo from "./components/NewListReportDemo";
+import ReleaseNotes from "./components/ReleaseNotes";
 import { Toaster } from "./components/toast/toaster";
 
 /**
@@ -213,6 +253,7 @@ const App: React.FC = () => {
           <a className="app-home-link" href={ROOT_URL}>
             <span aria-hidden>←</span> All demos
           </a>
+          <ViewCode />
           <ThemeSwitcher />
         </div>
       </header>
@@ -301,14 +342,20 @@ const App: React.FC = () => {
             <Route path="/color-picker" element={<NewColorPickerDemo />} />
             <Route path="/carousel" element={<NewCarouselDemo />} />
             <Route path="/dynamic-date-range" element={<NewDynamicDateRangeDemo />} />
+            <Route path="/list-report" element={<NewListReportDemo />} />
           </Routes>
         </main>
       </div>
       <footer className="app-footer">
-        <span>zen-ui · shadcn / Radix-style components by Algorisys</span>
-        <span className="app-version" title="@algorisys/zen-ui-react">
-          v{ZEN_VERSION}
+        <span>
+          © {new Date().getFullYear()}{" "}
+          <a href="https://www.algorisys.com" target="_blank" rel="noreferrer noopener">
+            Algorisys Technologies Pvt. Ltd
+          </a>
+          <span className="app-footer-sep">·</span>
+          zen-ui · shadcn / Radix-style components
         </span>
+        <ReleaseNotes />
       </footer>
       {/* Mounted once near the root so toast({...}) can be called from
        * anywhere in the demo tree. */}

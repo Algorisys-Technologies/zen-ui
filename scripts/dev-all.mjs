@@ -1,15 +1,25 @@
 /**
- * Every demo behind one URL.
+ * The whole site behind one URL, laid out exactly as it deploys.
  *
  * React and Solid cannot share a vite server — the two JSX transforms fight
- * over the same files — so this runs one child server per app and puts a hub in
- * front that proxies each binding's base path to its child. You run one command
- * and open one port; the split stays an implementation detail.
+ * over the same files — so this runs one child server per app and puts a router
+ * in front. You run one command and open one port; the split stays an
+ * implementation detail.
  *
  *   bun run dev:all   ->  http://localhost:5170
  *
- * The proxy passes the path through unrewritten, so each child sees the same
- * URL the browser asked for and its configured `base` still matches.
+ *   /                 the landing page   (apps/landing)
+ *   /builder/         the React demo     (packages/react)
+ *   /builder-solid/   the Solid demo     (packages/solid)
+ *
+ * That is the same shape ./deploy.sh publishes, one prefix down (/zen-ui/…), so
+ * the home page you develop against is the home page that ships. There used to
+ * be a hand-written hub page here instead, and the landing page was linked on
+ * its own port because the hub had already taken "/" — two home pages, one of
+ * which nobody would remember to update.
+ *
+ * The proxy passes the path through unrewritten, so each child sees the same URL
+ * the browser asked for and its configured `base` still matches.
  *
  * Adding an app: one entry in ./demos.mjs.
  */
@@ -112,55 +122,47 @@ for (const demo of DEMOS) {
   });
 }
 
-const href = (d) => (d.base ? `${d.base}/` : `http://localhost:${d.port}/`);
+/**
+ * The proxy table. Two rules, and both have already broken this once:
+ *
+ *  - LONGEST BASE FIRST. Vite tests the keys in insertion order, and "/" would
+ *    otherwise swallow /builder before it was ever reached.
+ *  - ANCHORED, not a bare prefix. "/builder" is a PREFIX of "/builder-solid",
+ *    so a plain string key sent every Solid URL to the React server, which
+ *    answered with its own 404 ("did you mean /builder/builder-solid/…?").
+ *    Requiring a "/" or end-of-string after the base keeps them apart whatever
+ *    order they are declared in, and keeps a future /builder-vue apart too.
+ *
+ * "/" is the exception to the anchoring: `^/(/|$)` would match only "/" itself,
+ * so the landing page's every asset would fall through to nothing. It is the
+ * catch-all, and being last is what makes that safe.
+ */
+const proxyTable = Object.fromEntries(
+  running
+    .slice()
+    .sort((a, b) => b.base.length - a.base.length)
+    .map((d) => [
+      d.base === "/" ? "^/" : `^${d.base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(/|$)`,
+      { target: `http://localhost:${d.port}`, changeOrigin: true, ws: true },
+    ]),
+);
 
-// The hub is started inside try/catch for one reason: the children are already
-// spawned and detached by now, so a hub that throws on the way up (a taken port
-// is the usual cause) would exit and strand them holding their ports.
+// Started inside try/catch for one reason: the children are already spawned and
+// detached by now, so a router that throws on the way up (a taken port is the
+// usual cause) would exit and strand them holding their ports.
 let hub;
 try {
   hub = await createServer({
     configFile: false,
-    root: resolve(HERE, "demo-hub"),
+    // Every path is proxied to a child, so this server never serves a file of
+    // its own. The root only has to exist.
+    root: ROOT,
     server: {
       port: hubPort,
       strictPort: true,
-      // Anchored regex, not a bare prefix: "/builder" is a PREFIX of
-      // "/builder-solid", so a plain string key sends every Solid URL to the
-      // React server, which answers with its own 404 ("did you mean
-      // /builder/builder-solid/…?"). Requiring a "/" or end-of-string after the
-      // base keeps the two apart whatever order they are declared in, and keeps
-      // a future /builder-vue from colliding too.
-      proxy: Object.fromEntries(
-        running
-          .filter((d) => d.base)
-          .map((d) => [
-            `^${d.base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(/|$)`,
-            { target: `http://localhost:${d.port}`, changeOrigin: true, ws: true },
-          ]),
-      ),
+      proxy: proxyTable,
     },
-    plugins: [
-      {
-        name: "zen-demo-hub-cards",
-        // Rendered from the registry rather than hand-written into the HTML, so
-        // the page cannot list an app this script is not actually serving.
-        transformIndexHtml: (html) =>
-          html.replace(
-            "<!--DEMO_CARDS-->",
-            running
-              .map(
-                (d) => `
-        <a class="card${d.external ? " card-external" : ""}" href="${href(d)}">
-          <h2>${d.label}</h2>
-          <p>${d.blurb}</p>
-          <code>${d.base ? `${d.base}/` : `:${d.port}`}</code>
-        </a>`,
-              )
-              .join(""),
-          ),
-      },
-    ],
+    plugins: [],
   });
   await hub.listen();
 } catch (err) {
@@ -174,9 +176,8 @@ try {
   await shutdown(1); // never leave the children holding their ports
 }
 
-console.log(`\n  zen-ui demos  ->  http://localhost:${hubPort}/\n`);
-for (const d of running) {
-  const url = d.base ? `http://localhost:${hubPort}${d.base}/` : href(d);
-  console.log(`    ${d.label.padEnd(13)} ${url}`);
+console.log(`\n  zen-ui  ->  http://localhost:${hubPort}/\n`);
+for (const d of running.slice().sort((a, b) => a.base.length - b.base.length)) {
+  console.log(`    ${d.label.padEnd(13)} http://localhost:${hubPort}${d.base === "/" ? "/" : `${d.base}/`}`);
 }
 console.log("");

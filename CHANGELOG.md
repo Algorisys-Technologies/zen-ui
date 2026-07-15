@@ -92,6 +92,12 @@ document's root font size to 10px.
   hover change and mousedown/mouseup landed on different nodes.
 - **`Link` with `asChild` blanked the page** — Radix `Slot` takes exactly one
   child; now composed with `Slottable`, as `Button` already did.
+- **Dialog, AlertDialog and Sheet were unreadable in a dark theme.** Each
+  painted its own background but let its text colour inherit. They portal to
+  `<body>`, so "inherit" means the consuming document's colour rather than the
+  app's: the panel went dark and the text stayed black, at about 1.2:1. The
+  `--zen-color-foreground` token was correct throughout — nothing read it. A
+  surface that paints its own background must paint its own foreground.
 - **RichText shipped unstyled** — a dependency's `exports` map blocked the
   stylesheet subpath and Vite dropped the import silently.
 

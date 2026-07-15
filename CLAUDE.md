@@ -64,33 +64,73 @@ bun run dev:landing
 bun run build:lib        # publishable React lib -> packages/react/dist
 bun run build:lib:solid
 bun run lint             # lint:solid for the Solid binding
+
+bun run check            # every pure-logic contract (cn, mask, colour, dates, nav)
+
+./deploy.sh              # build the whole site -> dist-site/, verify, publish nothing
+./deploy.sh --preview    # …and serve it exactly as GitHub Pages will
+./deploy.sh --publish    # …and push it to the gh-pages branch
 ```
+
+`deploy.sh` assembles the landing page and both demos into one tree —
+`/zen-ui/`, `/zen-ui/builder/`, `/zen-ui/builder-solid/` — and is the only place
+that knows the deploy base. The three vite configs still say `/`, `/builder/`
+and `/builder-solid/`, which are the right answers for `dev:all` and the wrong
+ones for Pages; the apps read the real base back through
+`import.meta.env.BASE_URL` for their router basenames and cross-links, so
+nothing is hardcoded twice. Two things there will bite an edit:
+
+- **A wrong base fails silently in three different ways** — the router matches
+  nothing and renders a blank page inside a working shell, the landing page's
+  demo links walk off the deployment, and the CSS 404s into an unstyled page.
+  None of it fails the build. `scripts/check-site.mjs` drives the built tree for
+  that reason; `scripts/serve-site.mjs` reproduces Pages' real semantics (serve
+  the file, else the **root** `404.html` — not `index.html`, which is what every
+  SPA dev server does and exactly what hides this).
+- **Deep links need the 404 bounce.** `/zen-ui/builder/carousel` is not a file.
+  The root `404.html` works out which app was wanted and re-enters it with the
+  route in `?p=`. It matches on `builder/` **with the slash** — `builder` is a
+  prefix of `builder-solid`, the same trap the dev hub's proxy table hit.
 
 `dev:all` is the one to reach for when comparing the bindings: React and Solid
 cannot share a vite server (the two JSX transforms fight over the same files),
-so it runs one child server per binding on an OS-assigned free port and proxies
-each binding's base path to its child. You open one port; the split stays an
-implementation detail. Adding a framework is one entry in
-[scripts/demos.mjs](scripts/demos.mjs) — the hub page, the proxy table and the
-spawned servers all derive from it.
+so it runs one child server per app on an OS-assigned free port and routes to
+them. You open one port; the split stays an implementation detail. Adding a
+framework is one entry in [scripts/demos.mjs](scripts/demos.mjs) — the proxy
+table and the spawned servers both derive from it.
 
-The landing app is the exception: its base is `/`, the same path the hub
-occupies, so it is linked on its own port rather than proxied. Re-basing it
-under `/landing` would break every absolute asset URL it serves.
+It serves the same shape `./deploy.sh` publishes, one prefix down:
+
+| dev:all | GitHub Pages | what |
+|---|---|---|
+| `/` | `/zen-ui/` | the landing page — the home |
+| `/builder/` | `/zen-ui/builder/` | the React demo |
+| `/builder-solid/` | `/zen-ui/builder-solid/` | the Solid demo |
+
+**The landing page is the home in both, deliberately.** There used to be a
+hand-written hub page at `/` instead, with the landing page linked on its own
+port because the hub had already taken `/` — two home pages, one of which
+nobody would remember to update. The hub is gone. The landing page is not
+re-based to get here: it stays at `base: "/"` and its links to the demos resolve
+against `import.meta.env.BASE_URL`, which is what lets the same page be the home
+at `/` in dev and at `/zen-ui/` on Pages.
 
 Three things that bit while building it, and will bite the next edit:
 
 - **A base that is a prefix of another base silently mis-routes.** `/builder` is
   a prefix of `/builder-solid`, so a plain string proxy key sent every Solid URL
-  to the React server, which answered with its own 404 — while the hub started
-  perfectly and the page looked right. The keys are anchored regexes
-  (`^/builder(/|$)`) for that reason — do not "simplify" them back.
+  to the React server, which answered with its own 404 — while the router
+  started perfectly and the page looked right. The keys are anchored regexes
+  (`^/builder(/|$)`) for that reason — do not "simplify" them back. `/` is the
+  one exception: it is the catch-all (`^/`), because `^/(/|$)` would match only
+  `/` itself and drop every asset. **The table is sorted longest-base-first** so
+  the catch-all cannot swallow `/builder` before it is reached.
 - **Killing a detached child right after spawning it races setsid().**
   `detached: true` means the child calls `setsid()` *after* the fork, so
   `process.kill(-pid)` fired milliseconds later throws `ESRCH`, the signal
   reaches nobody, and the child survives as an orphan holding its port — where
-  it answers the next run's health check. The hub failing on a taken port does
-  exactly this, and stranded four vite servers. `killGroup()` retries through
+  it answers the next run's health check. The router failing on a taken port
+  does exactly this, and stranded four vite servers. `killGroup()` retries through
   `ESRCH` for that reason.
 - **Child ports are deliberately not pinned.** Vite's default 5173 is probably
   already taken by your own `bun run dev`, and nobody types the child ports

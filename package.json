@@ -9,11 +9,12 @@
   ],
   "scripts": {
     "dev:all": "node scripts/dev-all.mjs",
-    "check": "bun run check:cn && bun run check:mask && bun run check:color && bun run check:date-range",
+    "check": "bun run check:cn && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:nav",
     "check:cn": "bun run scripts/check-cn.ts",
     "check:mask": "bun run scripts/check-mask.ts",
     "check:color": "bun run scripts/check-color.ts",
     "check:date-range": "bun run scripts/check-date-range.ts",
+    "check:nav": "bun run scripts/check-nav.ts",
     "dev": "bun --filter @algorisys/zen-ui-react dev",
     "build": "bun --filter @algorisys/zen-ui-react build",
     "build:lib": "bun --filter @algorisys/zen-ui-react build:lib",

@@ -60,7 +60,7 @@ export const SheetOverlay = (props: SheetOverlayProps) => {
 
 const sheetContentVariants = cva(
   [
-    "zen-fixed zen-z-50 zen-flex zen-flex-col zen-gap-4 zen-bg-zen-background zen-p-6 zen-shadow-zen-lg",
+    "zen-fixed zen-z-50 zen-flex zen-flex-col zen-gap-4 zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
     "zen-transition zen-ease-in-out",
     "focus-visible:zen-outline-none",
   ].join(" "),

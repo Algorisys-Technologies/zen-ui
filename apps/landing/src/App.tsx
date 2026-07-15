@@ -6,6 +6,17 @@ import {
   type ThemeName,
 } from "@algorisys/zen-ui-core/theme";
 
+/**
+ * Demo links, resolved against the base this page is SERVED under.
+ *
+ * A bare "/builder/" is origin-absolute and only correct when the landing page
+ * sits at the origin root. On GitHub Pages it is served from /zen-ui/, where
+ * "/builder/" points at github.io/builder/ — off the deployment entirely. Vite
+ * bakes BASE_URL in at build time ("/" in dev, "/zen-ui/" on Pages) and it
+ * always ends in a slash, so this is correct in both without a special case.
+ */
+const demo = (app: string) => `${import.meta.env.BASE_URL}${app}/`;
+
 type Status = "stable" | "alpha" | "planned";
 
 interface Binding {
@@ -76,7 +87,7 @@ const BINDINGS: Binding[] = [
       "Inline editing + column DnD",
       "shadcn-style asChild via Slot",
     ],
-    demoHref: "/builder/",
+    demoHref: demo("builder"),
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/react",
     installCmd: "npm install @algorisys/zen-ui-react",
     accent: "var(--zen-color-info)",
@@ -94,7 +105,7 @@ const BINDINGS: Binding[] = [
       "Polymorphic `as` (no Slot)",
       "Shares core tokens + UnoCSS preset",
     ],
-    demoHref: "/builder-solid/",
+    demoHref: demo("builder-solid"),
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/solid",
     installCmd: "npm install @algorisys/zen-ui-solid",
     accent: "var(--zen-color-success)",
@@ -307,13 +318,13 @@ const App = () => (
         </p>
         <div class="flex items-center justify-center gap-3 mt-6">
           <a
-            href="/builder/"
+            href={demo("builder")}
             class="inline-flex items-center justify-center h-11 px-6 text-sm font-medium rounded-zen-md bg-zen-primary text-zen-primary-fg no-underline hover:opacity-90"
           >
             Try the React demo
           </a>
           <a
-            href="/builder-solid/"
+            href={demo("builder-solid")}
             class="inline-flex items-center justify-center h-11 px-6 text-sm font-medium rounded-zen-md border border-zen-border bg-zen-background text-zen-foreground no-underline hover:bg-zen-muted"
           >
             Try the Solid demo

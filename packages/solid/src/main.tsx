@@ -93,15 +93,25 @@ import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
 import NewPivotDemo from "./components/NewPivotDemo";
+import NewListReportDemo from "./components/NewListReportDemo";
 
 applyTheme(getInitialTheme());
 
 const root = document.getElementById("root");
 if (!root) throw new Error("#root not found");
 
+// The router's base must match the base the app is actually SERVED under, or no
+// route matches on a direct visit or a refresh. Derived from Vite's BASE_URL
+// rather than hardcoded to "/builder-solid", because the base is not fixed: it
+// is "/builder-solid/" under dev:all and "/zen-ui/builder-solid/" on GitHub
+// Pages, where a hardcoded value would match nothing and render a blank page.
+// BASE_URL is baked in at build time and always has a trailing slash; base must
+// not. Mirrors the React binding.
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 render(
   () => (
-    <Router base="/builder-solid" root={App}>
+    <Router base={BASE} root={App}>
       <Route path="/" component={Welcome} />
       <Route path="/button" component={NewButtonDemo} />
       <Route path="/badge" component={NewBadgeDemo} />
@@ -185,6 +195,7 @@ render(
       <Route path="/carousel" component={NewCarouselDemo} />
       <Route path="/dynamic-date-range" component={NewDynamicDateRangeDemo} />
       <Route path="/pivot" component={NewPivotDemo} />
+      <Route path="/list-report" component={NewListReportDemo} />
     </Router>
   ),
   root,

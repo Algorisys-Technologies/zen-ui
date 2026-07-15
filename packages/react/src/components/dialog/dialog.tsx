@@ -56,7 +56,12 @@ const DialogContent = React.forwardRef<
       className={cn(
         "zen-fixed zen-left-1/2 zen-top-1/2 zen-z-50 -zen-translate-x-1/2 -zen-translate-y-1/2",
         "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
-        "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-p-6 zen-shadow-zen-lg",
+        // A surface that paints its own background MUST paint its own
+        // foreground. This is portalled to <body>, so "inherit" means the
+        // consumer's body colour, not the app's — with a dark theme the panel
+        // went dark and the text stayed black, at about 1.2:1. The token was
+        // right the whole time; nothing read it.
+        "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
         "focus:zen-outline-none",
         className,
       )}

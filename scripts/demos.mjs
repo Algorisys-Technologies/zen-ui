@@ -1,22 +1,21 @@
 /**
  * The demo registry — the single source of truth for what `dev:all` runs and
- * what the hub page links to. Adding an entry here is the whole job: the hub
- * page, the proxy table and the spawned servers all derive from it.
+ * where it routes each path. Adding an app is one entry here.
  *
- * Two kinds of entry:
+ * Every entry has a `base`, which must match the app's own vite `base`: the
+ * proxy passes the path through unrewritten, so the child sees the same URL the
+ * browser asked for.
  *
- *   base            proxied through the hub, so it shares the hub's origin.
- *                   Must match the app's own vite `base`, because the hub
- *                   proxies the path through unrewritten — the child server
- *                   sees the same URL the browser asked for.
+ * The landing page's base is "/", so it is the catch-all and must be matched
+ * LAST — the proxy table is sorted longest-base-first for that reason. It used
+ * to be linked on its own port instead, because the hub page occupied "/" and
+ * only one of them could have it. The hub page is gone: the landing page IS the
+ * home now, in dev exactly as on GitHub Pages, so there is no second home page
+ * to drift.
  *
- *   external: true  linked to directly on its own port. For apps whose base is
- *                   "/", which cannot be mounted under a sub-path without
- *                   changing how they deploy.
- *
- * Deliberately no port on either kind. Children get a free one at runtime — you
- * never type it, so pinning would only invent a collision with the `bun run
- * dev` you may already have on vite's default 5173.
+ * Deliberately no ports. Children get a free one at runtime — you never type
+ * it, so pinning would only invent a collision with the `bun run dev` you may
+ * already have on vite's default 5173.
  */
 export const DEMOS = [
   {
@@ -40,10 +39,11 @@ export const DEMOS = [
     label: "Landing page",
     blurb: "The marketing page. Ships CSS to nobody; depends on core alone.",
     dir: "apps/landing",
-    // base "/" — the hub's own path. Linked on its own port rather than
-    // proxied: mounting it under /landing would break every absolute asset URL
-    // it serves, and re-basing it would change how it deploys.
-    external: true,
+    // The home page, at "/" — the same thing GitHub Pages serves at /zen-ui/.
+    // Its links to the demos resolve against import.meta.env.BASE_URL, so this
+    // is not a re-base: it stays at "/" and simply takes the path the hub used
+    // to squat on.
+    base: "/",
   },
 ];
 

@@ -269,6 +269,21 @@
   color: var(--zen-color-muted-fg);
 }
 
+.app-footer a {
+  color: var(--zen-color-foreground);
+  text-decoration: none;
+}
+.app-footer a:hover {
+  text-decoration: underline;
+}
+
+.app-footer-sep {
+  margin: 0 0.375rem;
+  color: var(--zen-color-border);
+}
+
+/* The version chip is a button now — it opens the release notes. Resetting the
+   UA button styles rather than restating them, so it still reads as a chip. */
 .app-version {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.6875rem;
@@ -276,4 +291,16 @@
   border: 1px solid var(--zen-color-border);
   border-radius: 0.25rem;
   color: var(--zen-color-foreground);
+  background: none;
+  cursor: pointer;
+  line-height: inherit;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.app-version:hover {
+  background: var(--zen-color-muted);
+  border-color: var(--zen-color-muted-fg);
+}
+.app-version:focus-visible {
+  outline: 2px solid var(--zen-color-ring);
+  outline-offset: 2px;
 }
