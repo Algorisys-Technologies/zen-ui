@@ -53,8 +53,21 @@ export default defineConfig({
           "react-dom": "ReactDOM",
           "react-router-dom": "ReactRouterDOM",
         },
-        // Preserve module structure for better tree-shaking
-        preserveModules: false,
+        // Emit one file per module instead of a single bundle. This is half of
+        // what makes the library tree-shakeable; the other half is
+        // `sideEffects` in package.json, and NEITHER WORKS ALONE:
+        //
+        //   - Bundled into one module, `sideEffects: false` is all-or-nothing —
+        //     the blob is used (you imported Button), so none of it can go.
+        //   - Split into modules but without `sideEffects`, rollup must assume
+        //     every module might do something on import, and keeps them all.
+        //
+        // Together they took a single <Button> from 151 kB gzipped to 17 kB.
+        // The comment here used to claim `false` was "for better tree-shaking",
+        // which was backwards: it was the thing preventing it. Measured with
+        // scripts/check-bundle-size.mjs — run it before changing this.
+        preserveModules: true,
+        preserveModulesRoot: "src",
         // Ensure CSS file is named style.css to match package.json exports
         assetFileNames: (assetInfo) => {
           // Rename the CSS file to style.css

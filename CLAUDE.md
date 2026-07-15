@@ -325,7 +325,8 @@ same version — it will not tell you the prose is stale.
 ### 4. Ship
 
 ```bash
-bun run check          # 343 contract checks, incl. check:release
+bun run check          # pure-logic contracts, incl. check:release
+bun run check:dist     # builds both libs, then check:package + check:size
 bun run lint           # React 29 problems; Solid 8 errors / 46 warnings
 node scripts/visual-check.mjs react && node scripts/visual-check.mjs solid
 
@@ -339,6 +340,32 @@ git checkout dev
 `deploy.sh` rebuilds `packages/*/dist` with the `/zen-ui/` base — **it clobbers
 your local demo builds.** Rebuild after deploying, or the next `preview` serves
 a demo whose asset URLs all point at `/zen-ui/`.
+
+**`check:dist` and `visual-check` want opposite `dist` contents**, because
+`build` (demo) and `build:lib` (library) write to the same folder. Run
+`check:dist` last, or re-run whichever build the other clobbered — a
+`check:size` failure that says "dist is missing" usually means a demo build
+overwrote the library.
+
+### What the dist checks are for
+
+Both guard failures that were invisible to every other check in the repo, and
+both shipped:
+
+- **`check:size`** builds real consumer apps and weighs the gzipped output. A
+  `<Button>` cost 151 kB — 59% of the whole library — because the package was
+  one bundled module with no `sideEffects`, so nothing could be dropped. A build
+  log cannot see this; the number on disk cannot either (`dist/index.js` is
+  ~1.1 MB by design, whitespace preserved so `@__PURE__` annotations survive for
+  the consumer's bundler). **The two settings only work together** — fixing
+  either alone measures as a no-op, which is exactly how it survived. If a budget
+  trips, run `node scripts/check-bundle-size.mjs --report` and find which import
+  chain grew. Do not raise the budget to make it pass.
+- **`check:package`** asserts every path `package.json` promises exists on a
+  **clean** `dist`. Both bindings shipped `"types"` pointing at a file the build
+  never wrote, so consumers got no TypeScript at all — and it survived a release
+  because `emptyOutDir: false` kept a stale `index.d.ts` alive on any machine
+  that had built the old layout once. `rm -rf dist` before believing `dist`.
 
 ## Theming
 

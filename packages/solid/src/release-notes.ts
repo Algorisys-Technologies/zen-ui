@@ -28,6 +28,30 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "4.0.0",
+    date: "2026-07-15",
+    kind: "breaking",
+    title: "TypeScript types work now — and may surface real errors",
+    detail:
+      'package.json pointed "types" at a file the build never wrote, so every zen-ui import was silently `any`. Code that compiled against `any` now type-checks for real; errors that appear on upgrade were always there, just invisible.',
+  },
+  {
+    version: "4.0.0",
+    date: "2026-07-15",
+    kind: "improved",
+    title: "A Button costs 17 kB instead of 151 kB",
+    detail:
+      "The library was published as one bundled module and never declared sideEffects, so your bundler could drop nothing — importing one component gave you all of them. Nothing to change: rebuild and your bundle shrinks.",
+  },
+  {
+    version: "4.0.0",
+    date: "2026-07-15",
+    kind: "fixed",
+    title: "dist/ is one file per module",
+    detail:
+      "Deep paths into dist/ have changed. They were never a supported API — import from the package entry.",
+  },
+  {
     version: "3.0.0",
     date: "2026-07-15",
     kind: "new",
