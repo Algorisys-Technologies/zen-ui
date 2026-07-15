@@ -267,24 +267,3 @@ export function pivotFilterWindowValueAt(
   return undefined;
 }
 
-/** Global row indexes to render for the current scroll position. */
-export function pivotFilterVisibleIndices(
-  scrollTop: number,
-  viewportHeight: number,
-  rowHeight: number,
-  total: number,
-  overscan: number,
-): number[] {
-  if (total <= 0 || rowHeight <= 0) {
-    return [];
-  }
-  const start = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan);
-  const end = Math.min(
-    total - 1,
-    Math.ceil((scrollTop + viewportHeight) / rowHeight) + overscan,
-  );
-  if (end < start) {
-    return [];
-  }
-  return Array.from({ length: end - start + 1 }, (_, offset) => start + offset);
-}
