@@ -64,7 +64,33 @@ bun run dev:landing
 bun run build:lib        # publishable React lib -> packages/react/dist
 bun run build:lib:solid
 bun run lint             # lint:solid for the Solid binding
+
+bun run check            # every pure-logic contract (cn, mask, colour, dates, nav)
+
+./deploy.sh              # build the whole site -> dist-site/, verify, publish nothing
+./deploy.sh --preview    # …and serve it exactly as GitHub Pages will
+./deploy.sh --publish    # …and push it to the gh-pages branch
 ```
+
+`deploy.sh` assembles the landing page and both demos into one tree —
+`/zen-ui/`, `/zen-ui/builder/`, `/zen-ui/builder-solid/` — and is the only place
+that knows the deploy base. The three vite configs still say `/`, `/builder/`
+and `/builder-solid/`, which are the right answers for `dev:all` and the wrong
+ones for Pages; the apps read the real base back through
+`import.meta.env.BASE_URL` for their router basenames and cross-links, so
+nothing is hardcoded twice. Two things there will bite an edit:
+
+- **A wrong base fails silently in three different ways** — the router matches
+  nothing and renders a blank page inside a working shell, the landing page's
+  demo links walk off the deployment, and the CSS 404s into an unstyled page.
+  None of it fails the build. `scripts/check-site.mjs` drives the built tree for
+  that reason; `scripts/serve-site.mjs` reproduces Pages' real semantics (serve
+  the file, else the **root** `404.html` — not `index.html`, which is what every
+  SPA dev server does and exactly what hides this).
+- **Deep links need the 404 bounce.** `/zen-ui/builder/carousel` is not a file.
+  The root `404.html` works out which app was wanted and re-enters it with the
+  route in `?p=`. It matches on `builder/` **with the slash** — `builder` is a
+  prefix of `builder-solid`, the same trap the dev hub's proxy table hit.
 
 `dev:all` is the one to reach for when comparing the bindings: React and Solid
 cannot share a vite server (the two JSX transforms fight over the same files),
