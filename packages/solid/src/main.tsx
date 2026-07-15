@@ -92,6 +92,7 @@ import NewLinkDemo from "./components/NewLinkDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
+import NewPivotDemo from "./components/NewPivotDemo";
 import NewListReportDemo from "./components/NewListReportDemo";
 
 applyTheme(getInitialTheme());
@@ -193,6 +194,7 @@ render(
       <Route path="/color-picker" component={NewColorPickerDemo} />
       <Route path="/carousel" component={NewCarouselDemo} />
       <Route path="/dynamic-date-range" component={NewDynamicDateRangeDemo} />
+      <Route path="/pivot" component={NewPivotDemo} />
       <Route path="/list-report" component={NewListReportDemo} />
     </Router>
   ),
