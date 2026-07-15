@@ -149,6 +149,42 @@ s = await zones();
 if (s["Available Fields"]?.includes("Country")) ok("a field can be removed the same way");
 else bad("remove", show(s));
 
+// ---- the POINTER path -----------------------------------------------------
+// The keyboard path above and the drag below must reach the same model. This
+// section exists because a review that only drove the keyboard let a drag
+// regression through: the detector matched the nearest chip rather than the one
+// under the pointer, so every drop silently did nothing.
+const dragChip = async (field, zoneTitle) => {
+  // The CHIP, not its ⋮ handle — the handle swallows pointerdown so its menu can
+  // open, so it is deliberately not a drag surface.
+  const src = page.locator(`[data-pivot-chip="${field}"]`).first();
+  const box = await src.boundingBox();
+  const zt = await page.locator(`div:text-is("${zoneTitle}")`).first().boundingBox();
+  if (!box || !zt) return bad("drag setup", `no box for ${field} -> ${zoneTitle}`);
+  const to = { x: zt.x + 70, y: zt.y + 34 };
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  for (let i = 1; i <= 16; i++) {
+    await page.mouse.move(
+      box.x + box.width / 2 + ((to.x - box.x - box.width / 2) * i) / 16,
+      box.y + box.height / 2 + ((to.y - box.y - box.height / 2) * i) / 16,
+    );
+    await page.waitForTimeout(20);
+  }
+  await page.mouse.up();
+  await page.waitForTimeout(400);
+};
+
+await dragChip("Department", "Columns");
+s = await zones();
+if (s.Columns?.includes("Department")) ok(`DRAG: Department -> Columns (empty zone) — ${show(s)}`);
+else bad("drag to an empty zone", show(s));
+
+await dragChip("Gender", "Columns");
+s = await zones();
+if (s.Columns?.length === 2 && s.Columns.includes("Gender")) ok(`DRAG: a second field into a POPULATED zone — Columns[${s.Columns.join(",")}]`);
+else bad("drag into a populated zone", show(s));
+
 // ---- the grid -------------------------------------------------------------
 await openMenu("Country");
 await choose("Rows");

@@ -3,7 +3,6 @@ import {
   DragDropProvider,
   DragDropSensors,
   SortableProvider,
-  closestCenter,
   mostIntersecting,
   createSortable,
 } from "@thisbeyond/solid-dnd";
@@ -18,6 +17,7 @@ import {
   availableFields as availableFieldsIn,
   createEmptyLayout,
   describeMove,
+  fieldLabel,
   moveFieldToZone,
   updateValueAggregation,
 } from "@algorisys/zen-ui-core/pivot";
@@ -70,8 +70,21 @@ export interface PivotWorkbenchProps {
  * Droppable and this signature, so the four `as any` casts were never needed.
  */
 const pivotCollisionDetector: CollisionDetector = (draggable, droppables, context) => {
-  const chips = droppables.filter((d) => d.data?.sortable);
-  const overChip = closestCenter(draggable, chips, context);
+  // mostIntersecting for BOTH, not closestCenter for the chips.
+  //
+  // closestCenter returns the nearest candidate whatever the distance — it never
+  // returns null while any candidate exists. Over a list of chips that means
+  // "some chip, somewhere", so every drop resolved to whichever chip happened to
+  // be nearest (usually a neighbour in Available Fields), its zone came back as
+  // "available", and the drop was a silent no-op. mostIntersecting requires
+  // actual overlap and returns null without it, which is the question being
+  // asked: are we ON a chip, or merely in a zone?
+  //
+  // The dragged chip is excluded because a sortable is its own droppable too:
+  // it always overlaps itself, so it would win every time and every drop would
+  // resolve to where the field already is.
+  const chips = droppables.filter((d) => d.data?.sortable && d.id !== draggable.id);
+  const overChip = mostIntersecting(draggable, chips, context);
   if (overChip) return overChip;
 
   const zones = droppables.filter((d) => !d.data?.sortable);
@@ -87,6 +100,10 @@ const SortableChip = (props: PivotFieldChipProps) => {
     <div
       ref={sortable.ref}
       {...sortable.dragActivators}
+      // A stable hook for the drag surface, so the shared contract can grab a
+      // chip in either binding without depending on a utility class that is an
+      // implementation detail.
+      data-pivot-chip={fieldLabel(props.fields, props.fieldKey)}
       class={cn(
         "zen-max-w-full zen-touch-none",
         (props.zone === "rows" || props.zone === "values") ? "zen-flex zen-w-full" : "zen-inline-flex",
