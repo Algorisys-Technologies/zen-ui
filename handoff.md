@@ -5,9 +5,14 @@ with no memory of it — including me.
 
 ## Where things stand
 
-`main == dev == 256a51e`, tagged **v5.0.0**, tree clean, site live at
-<https://algorisys-technologies.github.io/zen-ui/> serving 5.0.0 (verified by
-fetching the deployed bundle, not by assuming the deploy worked).
+`dev` is **4 commits ahead of `main` and of `origin/dev`**, all unpushed, tree
+clean. `main` is still v5.0.0, tagged, and the site at
+<https://algorisys-technologies.github.io/zen-ui/> serves 5.0.0 — so nothing
+below is live yet.
+
+The four: this handoff (twice), the impeccable install, and the pivot alignment.
+**The pivot commit is breaking and unreleased**, so the next `ship it` is a
+major, not a minor.
 
 Three releases shipped this session: **4.0.0** (tree-shaking + types), **5.0.0**
 (pivot single-select). Both are described in `release-notes/`.
@@ -23,30 +28,46 @@ Gates, all green as of the last run:
 
 ## Open — decide before continuing
 
-### 1. Impeccable is installed GLOBALLY, and that was a mistake
+### 1. ~~Impeccable is installed GLOBALLY~~ — SETTLED, it is project-scoped now
 
-<https://github.com/pbakaus/impeccable> — an AI design-guidance skill (23
-commands, 46 deterministic detectors) the user asked to add **to this project**.
+Resolved 2026-07-16. It lives in `.claude/skills/impeccable`, is committed, and
+the five global copies (`~/.claude`, `~/.gemini`, `~/.opencode`, `~/.pi`,
+`~/.agents`) are gone. `/impeccable init` has still **not** been run, and
+`/impeccable audit` on `apps/landing` is still worth doing.
 
-`npx impeccable install` prompts `project or global? [global]` and, run
-unattended, took the default. It wrote **121 files each into `~/.claude`,
-`~/.gemini`, `~/.opencode`, `~/.pi`, 125 into `~/.agents`, plus hooks into
-`~/.claude` and `~/.agents`**. Those hooks fire on every project, not just this
-one. The repo itself is untouched (a stray `.codex/hooks.json` was removed).
+**Two corrections to what this file used to say**, because both were wrong and
+both would mislead:
 
-`/impeccable init` was **blocked on purpose** — running it would activate an
-unreviewed global mechanism installed by accident. Do not run it until scope is
-settled. Nothing is active until then; impeccable is inert.
+- **The global install wrote no hooks.** This file claimed hooks were installed
+  into `~/.claude` and `~/.agents` and "fire on every project". There was no
+  hook wiring anywhere — no `hooks` key in `~/.claude/settings.json`, no
+  `~/.claude/hooks/`. It was 102 inert skill files per directory. The alarm was
+  unfounded; do not re-raise it from this file's history.
+- **It was 102 files per directory, not 121/125.**
 
-**The user was asked to choose and has not yet:**
+Making "project-scoped" real took two edits the installer does not make, and
+neither is visible in its output:
 
-- **A (recommended)** — remove the global install, reinstall with `project`
-  scope so it and its hooks live in `zen-ui/.claude` and travel with the repo.
-  Matches what was actually asked.
-- **B** — keep it global deliberately, but review the hooks first rather than
-  inherit them from an accepted default.
+- **`.gitignore`'s `*.md` swallowed 33 of the 102 files**, including `SKILL.md`
+  and every `reference/<command>.md` — the ones that ARE the skill. A clone
+  would have got 63 .mjs scripts and nothing that made them mean anything.
+  Allowlisted at the bottom of `.gitignore`. Same trap as `release-notes/`.
+- **The installer writes its hook to `.claude/settings.local.json`**, which the
+  user's *global* gitignore (`~/.config/git/ignore`) excludes as the personal
+  file. Moved to `.claude/settings.json` — the shared one — or it would not have
+  travelled either.
 
-Then run init and `/impeccable audit` on `apps/landing`.
+**The hook is now live for anyone who clones**: PostToolUse on
+`Edit|Write|MultiEdit`, 5s timeout, `.claude/skills/impeccable/scripts/hook.mjs`.
+It works (driven, not assumed) and reports one finding today: `overused-font` on
+`apps/landing`'s **Plus Jakarta Sans** — which is slop.md's "off-the-shelf
+Google font carrying the brand", reached independently. Unfixed; it is a design
+call, and a real one.
+
+> `npx impeccable install --help` **is not a thing** — the flag is unparsed and
+> it runs the real installer. That is how the project install happened. It also
+> overwrote `.claude/settings.local.json`, whose prior contents are unrecoverable
+> (gitignored, never read first). The user waived it.
 
 ### 2. Do NOT delete slop.md yet
 
@@ -70,20 +91,27 @@ Arguments against a straight swap, for whoever evaluates it:
 Recommendation: keep both, doing different jobs. Revisit with evidence from a
 real audit.
 
-### 3. Pivot workbench layout differs between bindings (design call)
+### 3. ~~Pivot workbench layout differs between bindings~~ — SETTLED, aligned
 
-Not a demo bug — the demos' sections match. `PivotWorkbench` itself differs:
+Resolved 2026-07-16: the user ruled **align Solid to React's**, and it is done
+(`4382900`). Solid now renders the toolbar in its own bar and Values | Rows |
+Columns as three equal `sm:zen-grid-cols-3` columns. Its drag-and-drop survived —
+`scripts/check-pivot-ui.mjs` passes fully on both bindings.
 
-- **React**: toolbar (`n rows · n cols` + View Data) in its own bar above
-  Available Fields; then Values | Rows | Columns as three equal columns
-  (`sm:zen-grid-cols-3`, `pivot-workbench.tsx:280`).
-- **Solid**: toolbar folded into the Available Fields header; Values | Columns
-  on one row, Rows below-left.
+Aligning surfaced three divergences that were never about layout, all now closed:
+a hardcoded `en-IN` locale in Solid's row/col counts, Solid counting an *empty*
+filter selection as an active filter (it now uses core's `hasActiveFilters` /
+`isLayoutRenderable`, as React does), and a remove button on Available chips that
+moved a field into the zone it was already in.
 
-My read: **align Solid to React's** — three equal zones is the conventional
-pivot-builder shape and it is a real responsive grid, where Solid's arrangement
-looks incidental. Not done: it is a design decision, and Solid's drag-and-drop
-works — worth not rewriting on a guess. User has not ruled.
+It also found one bug going the **other** way: React's alerts passed
+`<AlertIcon />` with no children, and AlertIcon is a pure slot — both warnings
+rendered an empty box where the icon belongs. React was fixed to match Solid, not
+the reverse.
+
+**This is a breaking change and is unreleased.** A visual change is breaking
+here; the next `ship it` is a major and needs a `release-notes/6.0.0.md` saying
+the Solid workbench reflows.
 
 ## Traps that cost real time this session
 
@@ -97,6 +125,16 @@ CLAUDE.md too; repeated here because they bite fastest.
   build. Run `check:dist` last. "dist is missing" means a demo build won.
 - **`deploy.sh` rebuilds `packages/*/dist` with the `/zen-ui/` base** — rebuild
   the libs afterwards or `preview` serves broken asset URLs.
+- **Both of the above were live at the START of the 2026-07-16 session, and a
+  blank page is what they look like.** `visual-check` on `/pivot` screenshotted
+  pure white and reported a bare `404`, which reads exactly like "the change
+  broke the route". It was neither route nor change: Solid's `dist` held the
+  *library* build (`index100.js`, no `index.html`) because `check:dist` ran last,
+  and React's `dist` held a *demo* build still carrying deploy.sh's
+  `/zen-ui/builder/` asset URLs. **Diagnose with a control route** — if `/button`
+  is blank too, it is the build, not the work. Cheapest tell: a real screenshot
+  is 70–120 kB, a blank one is 5,289 bytes; and `grep -oE 'src="[^"]*"'
+  packages/*/dist/index.html` shows the base immediately.
 - **`rm -rf dist` before believing dist.** `emptyOutDir: false` kept a stale
   `index.d.ts` alive for who knows how long, hiding the fact that consumers got
   no types at all. A clean clone never had one.
