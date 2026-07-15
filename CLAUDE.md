@@ -215,10 +215,15 @@ its demos):
   - **Select** — React exports the Radix compound parts (`SelectTrigger`,
     `SelectContent`, …); Solid exports a single `Select` with `options`. Also a
     divergence rather than a gap.
-  - **Prop types** — Solid exports ~40 `*Props` types React does not, and React
-    exports a few Solid does not. Mechanical, and worth closing: a component
-    whose props cannot be named is hard to wrap. The pivot had exactly this and
-    it made `loadMembers` untypable.
+  - **Prop types** — closed. The gap read as ~33 names, but only **6** were
+    real (a type that existed and was simply not exported: `TableProps` in
+    React; `CameraProps`, `MapProps`, `PaginationProps`, `RichTextProps`,
+    `SidebarProviderProps` in Solid). The other 27 are Solid-only because React
+    declares no equivalent — it types its Radix wrappers with
+    `React.ComponentPropsWithoutRef<typeof X>` rather than a named interface.
+    That is a structural difference between the two libraries, not a gap, and
+    "export it" is not the fix. Measure with the script below before believing
+    a number here, including this one.
 - **Code examples**: React 54/54 demos (~305 examples), Solid 55/57 (158). The
   two demos without have no `DemoSection` to attach one to. The remaining gap is
   section COUNT, not snippets — Solid's demos genuinely have fewer sections.
