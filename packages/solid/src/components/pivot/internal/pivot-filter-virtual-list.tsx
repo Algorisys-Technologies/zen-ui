@@ -36,14 +36,14 @@ export const PivotFilterVirtualList: Component<PivotFilterVirtualListProps> = (
         return (
           <button
             type="button"
-            class="zen-flex zen-h-full zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-text-left zen-text-sm zen-transition-colors hover:zen-bg-zen-secondary hover:zen-text-zen-secondary-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50"
+            class="zen-flex zen-h-full zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-text-left zen-text-sm zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50"
             onClick={() => {
               props.onToggleValue(value);
             }}
           >
             <span
               class={cn(
-                "zen-flex zen-size-4 zen-shrink-0 zen-items-center zen-justify-center zen-border zen-border-zen-input zen-text-zen-primary-fg",
+                "zen-flex zen-size-4 zen-shrink-0 zen-items-center zen-justify-center zen-border zen-border-zen-border zen-text-zen-primary-fg",
                 props.singleSelect ? "zen-rounded-full" : "zen-rounded-sm",
                 selected() && "zen-border-zen-primary zen-bg-zen-primary",
               )}

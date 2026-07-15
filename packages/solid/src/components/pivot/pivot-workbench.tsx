@@ -113,8 +113,6 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
     return props.fields.filter((f) => !usedIds.has(f.key));
   };
 
-  const getFieldDef = (id: string) => props.fields.find(f => f.key === id);
-  
   const hasAnyFilters = () => {
     const layout = draftLayout();
     if (!layout.filters) return false;
@@ -126,7 +124,20 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
     if (!droppable) return;
 
     const fieldId = draggable.id as string;
-    const toZone = (droppable.id as string).split("-")[0] as ZoneType; // support zone or zone-chip
+
+    // The zone comes from the droppable's DATA, not from parsing its id.
+    //
+    // Zones are createDroppable("rows") — id IS the zone, no data. Chips are
+    // createSortable(fieldKey, { zone }) — id is a FIELD KEY, and the zone is in
+    // the data. Once a zone holds a chip, that chip is the droppable that wins
+    // (mostIntersecting scores by overlap ratio, and a chip-sized target beats a
+    // zone-sized one), so the old `droppable.id.split("-")[0]` read "country" as
+    // a zone, addFieldToZone hit its `default: return cleanLayout`, and the drop
+    // silently removed the field instead of adding it.
+    //
+    // The effect: the first field into an empty zone worked and every one after
+    // it did nothing. A pivot that holds one field per zone is not a pivot.
+    const toZone = ((droppable.data?.zone ?? droppable.id) as string) as ZoneType;
 
     // Determine if it's a reorder within same zone or moving between zones
     const sourceZone = props.fields.find(f => f.key === fieldId) ? 
@@ -197,7 +208,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                     </div>
                     <div class="zen-flex zen-items-center zen-gap-4">
                       <Show when={props.totalRows !== undefined || props.totalCols !== undefined}>
-                        <div class="zen-text-xs zen-text-zen-muted-foreground zen-leading-relaxed">
+                        <div class="zen-text-xs zen-text-zen-muted-fg zen-leading-relaxed">
                           <div class="zen-flex zen-items-center zen-gap-1.5">
                             <Show when={props.totalRows !== undefined}>
                               <span>
@@ -218,7 +229,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                       <Show when={hasAnyFilters()}>
                         <button
                           type="button"
-                          class="zen-text-sm zen-text-zen-muted-foreground hover:zen-text-zen-foreground zen-transition-colors zen-p-1 -zen-m-1"
+                          class="zen-text-sm zen-text-zen-muted-fg hover:zen-text-zen-foreground zen-transition-colors zen-p-1 -zen-m-1"
                           onClick={() => {
                             if (props.onClearFilters) {
                               props.onClearFilters();
