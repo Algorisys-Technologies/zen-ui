@@ -40,13 +40,8 @@ dist-demo
 # allowlisted. Revert these two lines if the intent was to keep them local —
 # note that CLAUDE.md must live at the repo root to be picked up automatically,
 # so it cannot simply move under docs/.
-#
-# slop.md joins them for the same reason: CLAUDE.md now points at it as part of
-# reviewing any UI change, so leaving it ignored would dangle that link for
-# anyone cloning.
 !CLAUDE.md
 !LOOPS.md
-!slop.md
 !CHANGELOG.md
 !DEV_GUIDE.md
 !docs/**/*.md

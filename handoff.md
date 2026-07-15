@@ -60,36 +60,44 @@ neither is visible in its output:
 **The hook is now live for anyone who clones**: PostToolUse on
 `Edit|Write|MultiEdit`, 5s timeout, `.claude/skills/impeccable/scripts/hook.mjs`.
 It works (driven, not assumed) and reports one finding today: `overused-font` on
-`apps/landing`'s **Plus Jakarta Sans** — which is slop.md's "off-the-shelf
-Google font carrying the brand", reached independently. Unfixed; it is a design
-call, and a real one.
+`apps/landing`'s **Plus Jakarta Sans** — the off-the-shelf Google font carrying
+the brand. Unfixed; it is a design call, and a real one. (This is now the only
+surviving trace of slop.md, which flagged the same thing independently before it
+was removed — see item 2.)
 
 > `npx impeccable install --help` **is not a thing** — the flag is unparsed and
 > it runs the real installer. That is how the project install happened. It also
 > overwrote `.claude/settings.local.json`, whose prior contents are unrecoverable
 > (gitignored, never read first). The user waived it.
 
-### 2. Do NOT delete slop.md yet
+### 2. ~~Do NOT delete slop.md yet~~ — SETTLED, it is gone
 
-The user said "if impeccable is good you can remove slop.md". That is a real
-question, but it has not been answered — impeccable's README has been read, its
-46 rules have not.
+Resolved 2026-07-16. **The premise was wrong, which is why the analysis below it
+was moot.** This file argued at length against a straight swap — "repo doctrine,
+not a generic guide", 1,599 lines that would lose their only home. The user then
+said they had added slop.md **only to test it** (one commit, `d6a82a6`,
+2026-07-15, of an external document from `pols.dev/slop.md`). It was never repo
+doctrine. It was an evaluation, and it concluded.
 
-Arguments against a straight swap, for whoever evaluates it:
+Removed, along with the three things that referenced it: CLAUDE.md's
+Development-guidelines block and its Other-references line, and `.gitignore`'s
+`!slop.md` allowlist. Design review is now impeccable, which CLAUDE.md points at
+instead.
 
-- **slop.md is repo doctrine, not a generic guide.** CLAUDE.md carves out how it
-  applies *here*: which entries are live for a primitive vs a landing page, and
-  an explicit override that its "no em dash" rule does not apply to this repo's
-  engineering prose. Impeccable knows none of that.
-- **Different kinds of thing.** slop.md is prose law; impeccable is tooling.
-  Detectors catch what they pattern-match; they do not encode "centre what you
-  meant to centre and prove it."
-- The overlap is real but partial. Before deleting 1,599 lines and 157 sections,
-  find which slop.md rules have **no** detector equivalent — those would lose
-  their only home.
+**One rule was kept, because it outlived its source.** CLAUDE.md's carve-out —
+this repo's docs, comments and commit messages deliberately use em dashes, do
+not sweep them out — now hangs off impeccable, which has its own
+`em-dash-overuse` detector. Worth knowing that the detector **cannot reach this
+repo's prose**: it reads rendered UI body text only, so a 53-em-dash CLAUDE.md
+and an 11-em-dash `.tsx` both come back clean (measured, not assumed). If em
+dashes are ever "found" in this repo's writing, it is an agent generalising from
+the rule's existence, not the tool firing. That is exactly what the carve-out is
+for.
 
-Recommendation: keep both, doing different jobs. Revisit with evidence from a
-real audit.
+**The lesson worth keeping**: this file spent three bullets defending a document
+on the assumption it was load-bearing, without checking `git log` — which showed
+a single commit, by the user, the day before. One command would have replaced the
+whole argument. Check what a thing IS before arguing about what it is worth.
 
 ### 3. ~~Pivot workbench layout differs between bindings~~ — SETTLED, aligned
 

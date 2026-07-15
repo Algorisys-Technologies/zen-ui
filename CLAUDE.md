@@ -24,14 +24,12 @@ traces, and deleting the harness. Tier 5 (XXIII–XXVI) covers the traceability
 that makes a long unattended run recoverable: changelog, `IMPLEMENT.md`
 tracking, and keeping state resumable.
 
-**Read [slop.md](slop.md) as part of reviewing any UI you build or change.**
-LOOPS.md governs whether the code is correct; slop.md governs whether the
-design is *chosen*. It is the anti-slop design law — the catalogue of
-generic, made-by-default interface moves (blue-to-purple gradients, the
-icon-in-a-tinted-tile, glowy pill buttons, the hero stack with a panel on the
-right, the off-the-shelf Google font carrying the brand) plus what the premium
-version of each actually looks like. Walk it point by point *before* calling UI
-work done, not after.
+**The design review is [impeccable](.claude/skills/impeccable), installed
+project-scoped and version-controlled with the code it reviews.** LOOPS.md
+governs whether the code is correct; impeccable governs whether the design is
+*chosen* rather than defaulted-into. `/impeccable audit <target>` is the full
+pass; a PostToolUse hook (`.claude/settings.json`) runs its deterministic
+detectors after every Edit/Write/MultiEdit and reports as a system reminder.
 
 Two notes on applying it here, because it is written for whole brands and this
 is a component library:
@@ -42,11 +40,15 @@ is a component library:
   prove it, clear the cut, no default all-around shadow, no glow, real
   contrast, no dead controls, and never hide content behind an entrance
   animation.
-- **Its "no em dash" rule is about marketing prose, and this repo's docs,
-  comments and commit messages deliberately use them.** Do not sweep them out
-  of engineering writing on slop.md's authority. Where slop.md and a direct
-  instruction from the user conflict, slop.md says the user wins — that applies
-  to the conventions already established in this repo too.
+- **Its em-dash rule is about marketing prose, and this repo's docs, comments
+  and commit messages deliberately use them.** Do not sweep them out of
+  engineering writing on a design tool's authority. The `em-dash-overuse`
+  detector cannot actually reach them — it reads rendered UI body text, not
+  markdown or code comments (measured: a 53-em-dash CLAUDE.md and an
+  11-em-dash .tsx both come back clean) — so if em dashes are ever "found" in
+  this repo's prose, that is a human or an agent generalising, not the tool.
+  Where a design rule and a direct instruction from the user conflict, the user
+  wins; that applies to the conventions already established in this repo too.
 
 ## Commands
 
@@ -375,7 +377,7 @@ reference is in the [README](README.md#token-reference).
 
 ## Other references
 
-- [slop.md](slop.md) — the anti-slop design law. Part of reviewing any UI; see [Development guidelines](#development-guidelines) for how it applies to a component library.
+- [.claude/skills/impeccable](.claude/skills/impeccable) — the design review. Part of reviewing any UI; see [Development guidelines](#development-guidelines) for how it applies to a component library.
 - [docs/fiori-gap-analysis.md](docs/fiori-gap-analysis.md) — component gaps vs SAP Fiori, tiered with a build shortlist.
 - [docs/rp-shadcn-radix-gap.md](docs/rp-shadcn-radix-gap.md) — the shadcn/Radix migration rubric.
 - [todo.md](todo.md) — deferred-work tracker.
