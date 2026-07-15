@@ -146,6 +146,7 @@ import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
 import NewListReportDemo from "./components/NewListReportDemo";
+import NewPivotDemo from "./components/NewPivotDemo";
 import ReleaseNotes from "./components/ReleaseNotes";
 import { Toaster } from "./components/toast/toaster";
 
@@ -343,6 +344,7 @@ const App: React.FC = () => {
             <Route path="/carousel" element={<NewCarouselDemo />} />
             <Route path="/dynamic-date-range" element={<NewDynamicDateRangeDemo />} />
             <Route path="/list-report" element={<NewListReportDemo />} />
+            <Route path="/pivot" element={<NewPivotDemo />} />
           </Routes>
         </main>
       </div>

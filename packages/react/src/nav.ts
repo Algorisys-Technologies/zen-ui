@@ -83,6 +83,7 @@ export const NAV: NavGroup[] = [
       { to: "/fab-new", label: "FAB", description: "Fixed-position Button wrapper + DropdownMenu for speed-dial", source: "packages/react/src/components/NewFABDemo.tsx" },
       { to: "/form-new", label: "Form (RHF + Zod)", description: "react-hook-form + Zod resolver; FormField / FormItem / FormLabel / FormMessage", source: "packages/react/src/components/NewFormDemo.tsx" },
       { to: "/data-table", label: "DataTable", description: "TanStack Table + Virtual; sorting, filtering, grouping, pinning, resizing, windowing", source: "packages/react/src/components/NewDataTableDemo.tsx" },
+      { to: "/pivot", label: "Pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/react/src/components/NewPivotDemo.tsx" },
       { to: "/lazy-options", label: "Lazy options", description: "VirtualizedItems \u2014 drop-in windowing for huge option lists inside Combobox / Select", source: "packages/react/src/components/NewLazyOptionsDemo.tsx" },
       { to: "/combobox", label: "Combobox + Async", description: "cmdk-backed; sync `options` or async `onSearch` with debounced loading", source: "packages/react/src/components/NewComboboxDemo.tsx" },
       { to: "/alert", label: "Alert", description: "Inline semantic callout; compound Icon / Title / Description / Actions API", source: "packages/react/src/components/NewAlertDemo.tsx" },
