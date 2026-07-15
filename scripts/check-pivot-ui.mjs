@@ -218,6 +218,54 @@ const label = await region.getAttribute("aria-label");
 if (label && label !== "Data Grid") ok(`the grid region is named ("${label}")`);
 else bad("grid label", `aria-label is ${JSON.stringify(label)} — hardcoded/absent`);
 
+// ---- the drag has to LOOK like a drag ------------------------------------
+// LAST, deliberately: a half-way release lands wherever each demo's layout puts
+// it, and Escape cancels a drag in dnd-kit but not in solid-dnd — so this check
+// can end with the two layouts in different states. Running it after every
+// state assertion makes that irrelevant instead of a false parity failure.
+// Not decoration: without it a drag gives no feedback at all — you press, the
+// chip stays put, and nothing says the gesture registered. The two bindings do
+// it differently and both are correct: Solid translates the source element,
+// React (dnd-kit) floats an overlay and dims the source, because dnd-kit does
+// not displace a drag source across containers. So this asserts the behaviour a
+// user sees — something follows the pointer — not the mechanism.
+const midDrag = await (async () => {
+  const src = page.locator('[data-pivot-chip="Country"]').first();
+  const box = await src.boundingBox();
+  const zt = await page.locator('div:text-is("Rows")').first().boundingBox();
+  if (!box || !zt) return null;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  for (let i = 1; i <= 8; i++) {
+    await page.mouse.move(
+      box.x + box.width / 2 + ((zt.x + 70 - box.x - box.width / 2) * i) / 16,
+      box.y + box.height / 2 + ((zt.y + 34 - box.y - box.height / 2) * i) / 16,
+    );
+    await page.waitForTimeout(20);
+  }
+  await page.waitForTimeout(180);
+  const m = await page.evaluate(() => {
+    const el = document.querySelector('[data-pivot-chip="Country"]');
+    const ov = document.querySelector("[data-pivot-drag-overlay]");
+    return {
+      source: el ? getComputedStyle(el).transform : "none",
+      overlay: ov?.parentElement ? getComputedStyle(ov.parentElement).transform : null,
+    };
+  });
+  // Cancel rather than drop. This check is about the visual feedback, and a
+  // half-way release lands wherever the layout happens to put it — which is not
+  // the same pixel in both demos, so it would mutate the layout differently in
+  // each and the parity diff would flag a difference that is not one.
+  await page.keyboard.press("Escape");
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+  return m;
+})();
+const moves = (t) => Boolean(t) && t !== "none" && t !== "matrix(1, 0, 0, 1, 0, 0)";
+if (midDrag && (moves(midDrag.source) || moves(midDrag.overlay)))
+  ok(`mid-drag, something follows the pointer (${moves(midDrag.source) ? "the chip itself" : "a drag overlay"})`);
+else bad("drag feedback", `source=${midDrag?.source} overlay=${midDrag?.overlay} — the drag is invisible`);
+
 // ---- clean ---------------------------------------------------------------
 if (errors.length === 0) ok("no console/page errors");
 else bad("console", errors.slice(0, 2).join(" | "));
