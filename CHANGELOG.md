@@ -11,6 +11,92 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] — 2026-07-16
+
+### Changed
+
+- **Pivot: Solid's workbench layout aligned to React's.** React rendered a
+  toolbar bar (`n rows · n cols` + View Data), Available Fields, then Values |
+  Rows | Columns as three equal `sm:zen-grid-cols-3` columns. Solid folded the
+  toolbar into the Available Fields header, stacked Values and Rows in a fixed
+  `lg:zen-w-64` sidebar, and ran Columns as a horizontal strip over the grid.
+  Same props, same core, same drop rules — different shape. Solid now renders
+  React's structure.
+  React's is the one that survives: three equal zones is the conventional
+  pivot-builder shape, and `sm:grid-cols-3` is a real responsive grid where the
+  sidebar/strip split read as incidental. It also hardcoded the grid area's
+  height (`lg:zen-h-[500px] zen-h-[350px]`), which the caller's `children` then
+  had to live inside; the area is now `flex-1` and the grid gets the space that
+  exists.
+  Breaking under this repo's rule that altered visual output is breaking. No prop
+  changed.
+
+### Fixed
+
+- **Pivot: `en-IN` was hardcoded into Solid's row/col counts.** `toLocaleString("en-IN")`
+  gave every consumer Indian digit grouping from a component with no locale prop.
+  Now `toLocaleString()`, as React already did.
+- **Pivot: Solid counted an empty filter selection as an active filter.** Its
+  local `hasAnyFilters` tested `Object.keys(layout.filters).length > 0` — the
+  presence of a key, not whether it filters — so "Clear filters" could appear
+  with nothing to clear. Replaced with core's `hasActiveFilters`, which tests
+  `isFilterActive` per entry. Renderability likewise moves from an inlined
+  `values.length === 0 || (rows.length === 0 && columns.length === 0)` to core's
+  `isLayoutRenderable`. Both bindings now read the same two functions, so the
+  question "is this filter active" has one answer.
+- **Pivot: Available chips carried a dead remove button in Solid.** `onRemove`
+  was passed for the available zone, where it moved the field to the zone it was
+  already in. React passes `undefined` there; Solid now does too.
+- **Pivot: React's warning alerts rendered an empty icon box.** `<AlertIcon />`
+  was passed no children, and `AlertIcon` is a pure slot — it renders
+  `{...props}` into a span, so both "Value field required" and "Dimension
+  required" drew the box and no icon. Solid's `<AlertIcon><Icon name="info" /></AlertIcon>`
+  was correct; React now matches. This is the one fix that went Solid → React
+  rather than the reverse — "align Solid to React" did not mean React was right
+  about everything.
+
+### Internal
+
+- `packages/solid/src/components/pivot/pivot-workbench.tsx` is 49 lines shorter
+  (+150/−199): the sidebar/grid nesting, the `showBuilder` fallback branch that
+  duplicated the children render, and two reimplemented core predicates all go.
+- **Verified by driving it, not by building it.** `scripts/check-pivot-ui.mjs` —
+  deliberately the same file for both bindings — passes fully on each, including
+  the cases this rewrite could plausibly have broken: a field into an empty zone,
+  a SECOND field into a populated one, Escape mid-drag, and the live-region
+  announcements. Solid's drag-and-drop was working before this change and is the
+  reason it was worth pinning.
+- Note for the next `visual-check` run: both `packages/*/dist` were serving stale
+  builds when this landed — Solid's held a library build (`index100.js`, no
+  `index.html`) and React's held a demo build still carrying `deploy.sh`'s
+  `/zen-ui/` base. Both render as a blank page with a bare 404, which reads
+  exactly like a broken route. Diagnose with a control route: if `/button` is
+  blank too, it is the build.
+
+### Repo
+
+- **`slop.md` removed**, and CLAUDE.md's design review now points at
+  [impeccable](.claude/skills/impeccable), installed project-scoped. slop.md was
+  added to evaluate it (one commit, `d6a82a6`, of an external document) and the
+  evaluation concluded. Removed with the references that would otherwise dangle:
+  CLAUDE.md's guidelines block and Other-references line, and `.gitignore`'s
+  `!slop.md` allowlist.
+- CLAUDE.md's em-dash carve-out is **kept and retargeted** — impeccable ships its
+  own `em-dash-overuse` detector, so deleting the exception with its source would
+  have re-opened what it was written to prevent. The detector cannot reach this
+  repo's prose (it reads rendered UI body text; CLAUDE.md's 53 em dashes and a
+  .tsx's 11 both come back clean), but the risk was never the detector firing —
+  it is an agent generalising from the rule's existence.
+- **impeccable is installed project-scoped and committed**, replacing an
+  accidental global install across five agent directories. Two edits the
+  installer does not make were needed for "project-scoped" to mean anything:
+  `.gitignore`'s `*.md` was swallowing `SKILL.md` and all 23
+  `reference/<command>.md` files (33 of 102 — a clone would have got the scripts
+  and nothing that made them mean anything), and the hook it writes lands in
+  `.claude/settings.local.json`, which is gitignored as the personal file, so it
+  moved to `.claude/settings.json`. The hook is now live for anyone who clones:
+  PostToolUse on `Edit|Write|MultiEdit`, 5s timeout.
+
 ## [5.0.0] — 2026-07-16
 
 ### Fixed

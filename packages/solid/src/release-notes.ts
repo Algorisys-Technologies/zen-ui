@@ -28,6 +28,30 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "6.0.0",
+    date: "2026-07-16",
+    kind: "breaking",
+    title: "Pivot: the Solid workbench is laid out like React's",
+    detail:
+      "Solid folded the toolbar into the Available Fields header and stacked Values and Rows in a fixed sidebar with Columns over the grid. It now renders React's shape: a toolbar bar, Available Fields, then Values | Rows | Columns as three equal columns. Your page will reflow, and the grid area no longer has a hardcoded height — set one on your own grid if you relied on it. No prop changed.",
+  },
+  {
+    version: "6.0.0",
+    date: "2026-07-16",
+    kind: "fixed",
+    title: "Pivot: row and column counts respect your locale",
+    detail:
+      "Solid hardcoded Indian digit grouping, so 1234567 read as 12,34,567 for everyone. It now formats to the reader's locale, as React already did.",
+  },
+  {
+    version: "6.0.0",
+    date: "2026-07-16",
+    kind: "fixed",
+    title: "Pivot: warning alerts have their icon, and dead controls are gone",
+    detail:
+      "React's \"Value field required\" and \"Dimension required\" alerts drew an empty box where the icon belongs. In Solid, \"Clear filters\" could appear with nothing to clear, and Available fields had a remove button that moved the field to where it already was.",
+  },
+  {
     version: "5.0.0",
     date: "2026-07-16",
     kind: "breaking",
