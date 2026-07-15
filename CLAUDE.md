@@ -65,7 +65,7 @@ bun run build:lib        # publishable React lib -> packages/react/dist
 bun run build:lib:solid
 bun run lint             # lint:solid for the Solid binding
 
-bun run check            # every pure-logic contract (cn, mask, colour, dates, nav)
+bun run check            # every pure-logic contract + typechecks the scripts themselves
 
 ./deploy.sh              # build the whole site -> dist-site/, verify, publish nothing
 ./deploy.sh --preview    # …and serve it exactly as GitHub Pages will
@@ -206,10 +206,19 @@ The demos must match too — same routes, same sections, same code examples.
 Current state (was: 10 families missing from Solid, and code examples in 1/48 of
 its demos):
 
-- **Exports**: React 219, Solid 204. The only gap is the **Toast** family, and
-  that one is a real API divergence rather than a missing port — React wraps
-  Radix Toast primitives, Solid uses solid-toast. Decide whether to converge the
-  API before "porting" it.
+- **Exports**: React 471 names, Solid 484 (measured 2026-07-15; the old "219 /
+  204" counted only single-line `export {` lines and undercounted both). Both
+  bindings ship 76 components. The real deltas:
+  - **Toast** — a genuine API divergence, not a missing port: React wraps Radix
+    Toast primitives, Solid uses solid-toast. Decide whether to converge the API
+    before "porting" it.
+  - **Select** — React exports the Radix compound parts (`SelectTrigger`,
+    `SelectContent`, …); Solid exports a single `Select` with `options`. Also a
+    divergence rather than a gap.
+  - **Prop types** — Solid exports ~40 `*Props` types React does not, and React
+    exports a few Solid does not. Mechanical, and worth closing: a component
+    whose props cannot be named is hard to wrap. The pivot had exactly this and
+    it made `loadMembers` untypable.
 - **Code examples**: React 54/54 demos (~305 examples), Solid 55/57 (158). The
   two demos without have no `DemoSection` to attach one to. The remaining gap is
   section COUNT, not snippets — Solid's demos genuinely have fewer sections.

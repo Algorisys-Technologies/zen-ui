@@ -64,6 +64,15 @@ document's root font size to 10px.
   stores the PERIOD rather than the dates it currently means, so a saved
   filter still means the last seven days next year. The engine is
   framework-agnostic and lives in `@algorisys/zen-ui-core/date-range`
+- `Pivot` — a drag-and-drop pivot builder (`PivotWorkbench`) and a grid windowed
+  in two dimensions (`PivotGrid`), in both bindings. The workbench computes
+  nothing: you get a `PivotLayout` and answer `getCell(row, col)`, which is what
+  lets it sit over 50 rows or 50 million. Every field is reachable without a
+  drag — each chip's ⋮ handle opens a menu of zones — and every move is
+  announced. The model and the window maths are framework-agnostic
+  (`@algorisys/zen-ui-core/pivot`, `/virtual-window`), which is load-bearing
+  here: the bindings share no drag library, no virtualizer and no menu library,
+  so that is the only place they can agree
 - `Link` — a styled anchor with `inline`, `external` and `disabled`
 - `StatCard` — a labelled figure with an icon, a delta and somewhere to go
 - `Toolbar` — actions that collapse into an overflow menu
