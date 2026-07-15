@@ -11,7 +11,7 @@ import { Loading } from "../../loading/loading";
 import {
   pivotFilterWindowValueAt,
   type PivotFilterOptionsWindow,
-} from "./pivot-filter-options-window";
+} from "@algorisys/zen-ui-core/virtual-window";
 
 const DEFAULT_ROW_HEIGHT_PX = 36;
 const DEFAULT_OVERSCAN_ROWS = 4;

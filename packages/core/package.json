@@ -16,7 +16,8 @@
     "./color": "./src/color.ts",
     "./date-range": "./src/date-range.ts",
     "./chart": "./src/chart.ts",
-    "./pivot": "./src/pivot.ts"
+    "./pivot": "./src/pivot.ts",
+    "./virtual-window": "./src/virtual-window.ts"
   },
   "files": [
     "src",

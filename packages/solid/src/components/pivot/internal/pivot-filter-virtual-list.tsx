@@ -2,7 +2,7 @@ import { type Component, Show } from "solid-js";
 import { WindowedVirtualList } from "./windowed-virtual-list";
 import type { PivotFilterSelection } from "@algorisys/zen-ui-core/pivot";
 import { isValueSelected } from "@algorisys/zen-ui-core/pivot";
-import type { PivotFilterOptionsWindow } from "./pivot-filter-options-window";
+import type { PivotFilterOptionsWindow } from "@algorisys/zen-ui-core/virtual-window";
 import { Icon } from "../../icon/icon";
 import { cn } from "../../../lib/cn";
 

@@ -1,4 +1,4 @@
-import { VIRTUAL_SCROLL_WINDOW_PAGE_SIZE } from "./virtual-scroll";
+import { VIRTUAL_SCROLL_WINDOW_PAGE_SIZE } from "@algorisys/zen-ui-core/virtual-window";
 import { useWindowedOptionPages } from "./use-windowed-option-pages";
 import type { PivotFilterOptionsBody } from "@algorisys/zen-ui-core/pivot";
 

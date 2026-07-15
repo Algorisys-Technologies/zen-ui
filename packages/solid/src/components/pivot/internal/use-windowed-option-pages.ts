@@ -4,9 +4,9 @@ import {
   pivotFilterWindowCoversRange,
   prunePivotFilterWindows,
   type PivotFilterOptionsWindow,
-} from "./pivot-filter-options-window";
-import { VIRTUAL_SCROLL_FETCH_DEBOUNCE_MS } from "./virtual-scroll";
-import { pickNearestWindowStart } from "./virtual-window";
+} from "@algorisys/zen-ui-core/virtual-window";
+import { VIRTUAL_SCROLL_FETCH_DEBOUNCE_MS } from "@algorisys/zen-ui-core/virtual-window";
+import { pickNearestWindowStart } from "@algorisys/zen-ui-core/virtual-window";
 
 const DEFAULT_SEARCH_DEBOUNCE_MS = 300;
 
