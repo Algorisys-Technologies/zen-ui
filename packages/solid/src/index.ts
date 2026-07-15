@@ -471,6 +471,30 @@ export {
 } from "./components/data-table/table";
 export type { TableProps } from "./components/data-table/table";
 
+export {
+  PivotWorkbench,
+  PivotGrid,
+  PivotDropZone,
+  PivotFieldChip,
+  createEmptyLayout,
+  addFieldToZone,
+  removeFieldFromLayout,
+  insertFieldIntoZone,
+  reorderFieldInZone,
+  updateValueAggregation,
+  PivotFilterMenu,
+} from "./components/pivot";
+export type {
+  PivotWorkbenchProps,
+  PivotField,
+  PivotGridProps,
+  PivotLayout,
+  ZoneType,
+  AggregationType,
+  PivotValueField,
+  PivotFilterMenuProps,
+} from "./components/pivot";
+
 export { DataTable } from "./components/data-table/data-table";
 export type {
   DataTableProps,

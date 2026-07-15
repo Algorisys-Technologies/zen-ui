@@ -133,6 +133,7 @@ export const NAV: NavGroup[] = [
     group: "Data",
     items: [
       { label: "DataTable", path: "/data-table", description: "TanStack Table + Virtual; sorting, filtering, grouping, windowing" },
+      { label: "Pivot", path: "/pivot", description: "Drag-and-drop Pivot Table Builder with virtualized 2D windowing" },
       { label: "Combobox", path: "/combobox", description: "Sync options or async onSearch with debounced loading" },
       { label: "MultiCombobox", path: "/multi-combobox", description: "Multi-select with chip trigger + overflow collapse" },
       { label: "VirtualizedItems", path: "/lazy-options", description: "Drop-in windowing for huge option lists" },
