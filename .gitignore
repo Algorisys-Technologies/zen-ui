@@ -57,6 +57,12 @@ dist-demo
 # Session handoff. Same trap as release-notes above: `*.md` matches at any
 # depth, and a handoff that does not survive the session is worthless.
 !handoff.md
+# The impeccable skill is installed project-scoped so it travels with the repo,
+# and it IS its markdown: SKILL.md is the entry point and reference/<command>.md
+# defines each command's flow. `*.md` above matches at any depth, so without this
+# line a clone gets the 63 .mjs scripts and none of the 33 files that make them
+# mean anything — an install that is present, broken, and silent about it.
+!.claude/skills/impeccable/**/*.md
 !todo.md
 !README.md
 *.txt
