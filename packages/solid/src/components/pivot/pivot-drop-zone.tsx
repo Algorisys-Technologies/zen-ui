@@ -3,12 +3,12 @@ import type { JSX } from "solid-js";
 import { Show } from "solid-js";
 import { cn } from "../../lib/cn";
 import type { PivotZone } from "@algorisys/zen-ui-core/pivot";
-import { Icon } from "../icon/icon";
+import { Icon, type IconName } from "../icon/icon";
 
 export interface PivotDropZoneProps {
   id: PivotZone;
   title: string;
-  icon?: string;
+  icon?: IconName;
   hideTitle?: boolean;
   class?: string;
   horizontal?: boolean;
@@ -31,7 +31,7 @@ export function PivotDropZone(props: PivotDropZoneProps) {
       <Show when={!props.hideTitle}>
         <div class="zen-mb-1.5 zen-flex zen-items-center zen-justify-between">
           <div class="zen-flex zen-items-center zen-gap-2 zen-text-sm zen-font-semibold zen-text-zen-foreground zen-select-none">
-            {props.icon && <Icon name={props.icon as any} class="zen-h-4 zen-w-4" />}
+            {props.icon && <Icon name={props.icon} class="zen-h-4 zen-w-4" />}
             {props.title}
           </div>
         </div>

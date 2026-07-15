@@ -88,7 +88,10 @@ export const WindowedVirtualList: Component<WindowedVirtualListProps> = (
   // visible-range callbacks to optionsWindows updates (that feedback loop
   // toggled loading footers inside the scrollport and froze the page).
   createEffect(() => {
-    props.totalCount;
+    // Read to SUBSCRIBE: a bare `props.totalCount;` is a dependency
+    // registration, and reads as a typo without this. void makes the intent
+    // explicit and satisfies no-unused-expressions.
+    void props.totalCount;
     lastReportedRange = null;
     scheduleSync();
   });
@@ -146,11 +149,11 @@ export const WindowedVirtualList: Component<WindowedVirtualListProps> = (
                           aria-label="Loading value"
                         >
                           <span
-                            class="zen-size-4 zen-shrink-0 zen-rounded-sm zen-border zen-border-zen-border zen-bg-zen-muted/60 zen-motion-safe:animate-pulse"
+                            class="zen-size-4 zen-shrink-0 zen-rounded-sm zen-border zen-border-zen-border zen-bg-zen-muted/60 motion-safe:zen-animate-pulse"
                             aria-hidden="true"
                           />
                           <div
-                            class="zen-h-3 zen-w-3/4 zen-rounded-sm zen-bg-zen-muted zen-motion-safe:animate-pulse"
+                            class="zen-h-3 zen-w-3/4 zen-rounded-sm zen-bg-zen-muted motion-safe:zen-animate-pulse"
                             aria-hidden="true"
                           />
                         </div>

@@ -79,6 +79,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
     handleVisibleRange,
     scheduleFetch,
     openPanelFetch,
+    loadError,
   } = usePivotFilterOptions({
     columnKey: props.columnKey,
     isOpen: open,
@@ -134,7 +135,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
     const initialSearch = sel?.kind === "all" ? (sel.optionSearch ?? "") : "";
     setSearch(initialSearch);
     setOpen(true);
-    openPanelFetch(initialSearch);
+    openPanelFetch();
   }
 
   function toggleValue(value: string) {
@@ -156,7 +157,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
         ? exclude.filter((current) => current !== value)
         : [...exclude, value];
       
-      if (nextExclude.length === 0 && (!sel || !(sel as any).optionSearch)) {
+      if (nextExclude.length === 0 && (!sel || sel.kind !== "all" || !sel.optionSearch)) {
          props.onChange(null);
          return;
       }
@@ -409,7 +410,23 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                 </div>
               </div>
             </Show>
-            <Show when={!loading() && totalCount() === 0}>
+            {/* A failed fetch is NOT an empty result. loadError was computed and
+                dropped before it reached here, so a network error rendered as
+                "No matching values" — which sends someone looking for data that
+                is not missing. */}
+            <Show when={!loading() && loadError()}>
+              <div class="zen-flex zen-flex-col zen-items-start zen-gap-1 zen-px-2 zen-py-3" role="alert">
+                <p class="zen-m-0 zen-text-sm zen-text-zen-error">Could not load values.</p>
+                <button
+                  type="button"
+                  class="zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-0 zen-text-xs zen-text-zen-primary hover:zen-underline"
+                  onClick={() => openPanelFetch()}
+                >
+                  Try again
+                </button>
+              </div>
+            </Show>
+            <Show when={!loading() && !loadError() && totalCount() === 0}>
               <div
                 role="listbox"
                 aria-label={`${props.label} values`}

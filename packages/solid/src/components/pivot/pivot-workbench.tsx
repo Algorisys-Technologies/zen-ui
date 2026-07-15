@@ -1,4 +1,4 @@
-import { createSignal, For, Show, untrack } from "solid-js";
+import { type JSX, createSignal, For, Show, untrack } from "solid-js";
 import {
   DragDropProvider,
   DragDropSensors,
@@ -7,13 +7,13 @@ import {
   mostIntersecting,
   createSortable,
 } from "@thisbeyond/solid-dnd";
-import type { DragEvent } from "@thisbeyond/solid-dnd";
+import type { CollisionDetector, DragEvent } from "@thisbeyond/solid-dnd";
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Alert, AlertIcon, AlertContent, AlertTitle, AlertDescription } from "../alert/alert";
 import { Icon } from "../icon/icon";
 import { PivotDropZone } from "./pivot-drop-zone";
-import { PivotFieldChip } from "./pivot-field-chip";
+import { PivotFieldChip, type PivotFieldChipProps } from "./pivot-field-chip";
 import {
   availableFields as availableFieldsIn,
   createEmptyLayout,
@@ -39,7 +39,7 @@ export interface PivotWorkbenchProps {
   class?: string;
   
   // Children to render the grid (passing the applied layout)
-  children?: any;
+  children?: JSX.Element;
   
   // Stats and toolbar
   totalRows?: number;
@@ -55,24 +55,34 @@ export interface PivotWorkbenchProps {
 
 // Custom collision detector that prefers closestCenter for sorting chips,
 // but falls back to mostIntersecting for empty zones.
-const pivotCollisionDetector = (draggable: unknown, droppables: any[], context: unknown) => {
-  // First try to find a sortable chip we are hovering over
-  const sortableDroppables = droppables.filter((d) => d.data?.sortable);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const closest = closestCenter(draggable as any, sortableDroppables, context as any);
-  
-  if (closest) {
-    return closest;
-  }
-  
-  // If not hovering over a specific chip, find the zone we are in
-  const zoneDroppables = droppables.filter((d) => !d.data?.sortable);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return mostIntersecting(draggable as any, zoneDroppables, context as any);
+/**
+ * Prefer the chip you are over; fall back to the zone you are in.
+ *
+ * Both halves are load-bearing and the first one was dead: it filters on
+ * `d.data.sortable`, which nothing ever set, so `sortableDroppables` was always
+ * empty, closestCenter always returned null, and EVERY droppable — zones and
+ * chips alike — went to mostIntersecting. That scores by overlap ratio, so a
+ * chip-sized target always beat a zone-sized one, and the chip's id (a field
+ * key) was then read as a zone name. createSortable marks its data now, so the
+ * detector does what it says.
+ *
+ * Typed against solid-dnd's own CollisionDetector — it exports Draggable,
+ * Droppable and this signature, so the four `as any` casts were never needed.
+ */
+const pivotCollisionDetector: CollisionDetector = (draggable, droppables, context) => {
+  const chips = droppables.filter((d) => d.data?.sortable);
+  const overChip = closestCenter(draggable, chips, context);
+  if (overChip) return overChip;
+
+  const zones = droppables.filter((d) => !d.data?.sortable);
+  return mostIntersecting(draggable, zones, context);
 };
 
-const SortableChip = (props: any) => {
-  const sortable = createSortable(props.fieldKey, { zone: props.zone });
+const SortableChip = (props: PivotFieldChipProps) => {
+  // `sortable: true` is what the collision detector filters on. Without it the
+  // detector's chip branch is unreachable and every drop resolves against a
+  // zone list that also contains chips.
+  const sortable = createSortable(props.fieldKey, { zone: props.zone, sortable: true });
   return (
     <div
       ref={sortable.ref}
@@ -279,7 +289,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                             selection={draftLayout().filters?.[field.key]}
                             filters={draftLayout().filters}
                             loadMembers={props.loadMembers}
-                            onSelectionChange={(sel: any) => handleSelectionChange(field.key, sel)}
+                            onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(field.key, sel)}
                             singleSelect={true}
                           />
                         )}
@@ -303,12 +313,12 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                               fields={props.fields}
                               zone="values"
                               aggregation={val.aggregation}
-                              onAggregationChange={(agg: any) => handleAggregationChange(val.id, agg)}
+                              onAggregationChange={(agg: PivotAggregation) => handleAggregationChange(val.id, agg)}
                               onRemove={() => handleRemoveField(val.id)}
                               selection={draftLayout().filters?.[val.id]}
                               filters={draftLayout().filters}
                               loadMembers={props.loadMembers}
-                              onSelectionChange={(sel: any) => handleSelectionChange(val.id, sel)}
+                              onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(val.id, sel)}
                             />
                           )}
                         </For>
@@ -328,7 +338,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                                 selection={draftLayout().filters?.[fieldId]}
                                 filters={draftLayout().filters}
                                 loadMembers={props.loadMembers}
-                                onSelectionChange={(sel: any) => handleSelectionChange(fieldId, sel)}
+                                onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(fieldId, sel)}
                               />
                             );
                           }}
@@ -353,7 +363,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                                 selection={draftLayout().filters?.[fieldId]}
                                 filters={draftLayout().filters}
                                 loadMembers={props.loadMembers}
-                                onSelectionChange={(sel: any) => handleSelectionChange(fieldId, sel)}
+                                onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(fieldId, sel)}
                               />
                             );
                           }}

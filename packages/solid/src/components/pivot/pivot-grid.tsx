@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Index, onCleanup, Show, untrack } from "solid-js";
 import { createVirtualizer } from "@tanstack/solid-virtual";
 import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
@@ -30,6 +30,13 @@ export interface PivotGridProps {
   colWidth?: number;
   rowHeaderWidth?: number;
 
+  /**
+   * Names the grid for a screen reader. It was hardcoded to "Data Grid" — a
+   * library component cannot know what its consumer's data is, and every pivot
+   * on a page announcing the same generic name is no name at all.
+   */
+  label?: string;
+
   // Fetching
   onVisibleRangeChange?: (range: { rowStart: number; rowEnd: number; colStart: number; colEnd: number }) => void;
 }
@@ -49,11 +56,15 @@ export function PivotGrid(props: PivotGridProps) {
   const colWidth = () => props.colWidth || 200;
   const rowHeaderWidth = () => props.rowHeaderWidth || 160;
 
-  const HEADER_CELL_STYLE = {
+  // A function, not a const. As a component-body object it read props.rowHeight
+  // ONCE at setup and froze: change the prop and the header keeps its old height
+  // while the virtualizer's estimateSize picks up the new one, so the body and
+  // the header quietly desynchronise.
+  const headerCellStyle = (): Record<string, string> => ({
     height: `${rowHeight()}px`,
     "min-height": `${rowHeight()}px`,
     "max-height": `${rowHeight()}px`,
-  };
+  });
 
   function stickyRowLeftStyle(depth: number): Record<string, string> {
     return { left: `${depth * rowHeaderWidth()}px` };
@@ -93,7 +104,15 @@ export function PivotGrid(props: PivotGridProps) {
 
   const frozenLabelsWidthPx = () => props.rowHeaderDepth * rowHeaderWidth();
 
-  const visibleColWindow = () => {
+  /**
+   * Memoized. It was a plain function called from ten places, once per row —
+   * each call re-running the loop and allocating a fresh items array. In the
+   * component whose entire job is virtualization, that is O(rows x cols) of
+   * garbage per scroll frame. It is also what made the grid appear to work
+   * despite the bug below: a new array identity every call forced <For> to
+   * recreate every row, which re-read the data by accident.
+   */
+  const visibleColWindow = createMemo(() => {
     const total = props.totalCols;
     const frozen = frozenLabelsWidthPx();
     if (total <= 0) return { minIndex: 0, maxIndex: -1, items: [], paddingLeft: 0, paddingRight: 0 };
@@ -115,19 +134,25 @@ export function PivotGrid(props: PivotGridProps) {
       paddingLeft: minIndex * colWidth(),
       paddingRight: Math.max(0, (total - safeMax - 1) * colWidth()),
     };
-  };
+  });
 
   createEffect(() => {
     const vRows = rowVirtualizer.getVirtualItems();
-    if (vRows.length > 0 && props.onVisibleRangeChange) {
-      const cols = visibleColWindow();
-      props.onVisibleRangeChange({
+    const cols = visibleColWindow();
+    if (vRows.length === 0) return;
+    // untrack: this is the DATA-FETCH hook, so consumers write signals in it.
+    // Tracked, anything it reads becomes a dependency of this effect and
+    // anything it writes that feeds totalRows/totalCols re-runs it — the
+    // write-what-you-read loop. windowed-virtual-list.tsx already avoids exactly
+    // this and says why; the grid did not.
+    untrack(() =>
+      props.onVisibleRangeChange?.({
         rowStart: vRows[0].index,
         rowEnd: vRows[vRows.length - 1].index,
         colStart: cols.minIndex,
         colEnd: cols.maxIndex,
-      });
-    }
+      }),
+    );
   });
 
   const paddingTop = () => {
@@ -153,55 +178,71 @@ export function PivotGrid(props: PivotGridProps) {
         ref={scrollRef}
         class="zen-flex-1 zen-min-h-0 zen-min-w-0 zen-w-full zen-overflow-auto zen-overscroll-contain zen-rounded-none zen-border-l zen-border-t zen-border-zen-border zen-bg-zen-background"
         role="region"
-        aria-label="Data Grid"
+        aria-label={props.label ?? "Pivot grid"}
         tabIndex={0}
         onScroll={onScroll}
       >
+        {/* A native <table>, so role="table" is implicit and correct.
+            It said role="grid", which is a CONTRACT: a grid owes arrow-key cell
+            navigation and a roving tabindex, and there was none — one tab stop
+            on the scroller and no way to move a cell at a time. Claiming grid
+            semantics tells a screen-reader user to navigate a way that does not
+            work, which is worse than claiming nothing. The roles below were
+            removed for the same reason: every one restated what the native
+            element already means, and  is what forced the
+            contract. */}
         <table
-          role="grid"
           class="zen-w-max zen-min-w-full zen-shrink-0 zen-border-separate zen-border-spacing-0 zen-text-zen-foreground"
           style={{
             "border-collapse": "separate",
             width: `${tableWidthPx()}px`,
           }}
         >
-          <thead role="rowgroup" class={STICKY_HEAD}>
+          <thead class={STICKY_HEAD}>
             <For each={headerRows()}>
               {(headerRowIndex) => (
-                <tr role="row" class={PIVOT_ROW_CLASS}>
+                <tr class={PIVOT_ROW_CLASS}>
                   <Show when={props.rowHeaderDepth > 0}>
-                    <For each={Array.from({ length: props.rowHeaderDepth })}>
+                    {/* Index, not For — Array.from({length}) is a list of
+                        identical undefineds and For keys by identity. */}
+                    <Index each={Array.from({ length: props.rowHeaderDepth })}>
                       {(_, depth) => {
-                        const label = props.layout.rows[depth()]?.replace(/_/g, ' ') || "";
+                        // An accessor: read once, this froze. Reorder the row
+                        // fields without changing how many there are and the
+                        // corner labels kept the old names.
+                        const label = createMemo(() => props.layout.rows[depth]?.replace(/_/g, " ") || "");
                         return (
                           <th
                             role="columnheader"
+                            scope="col"
                             class={cn(STICKY_CORNER, CORNER_HEADER_CLASS, "zen-align-bottom")}
                             style={{
-                              ...stickyRowLeftStyle(depth()),
+                              // Index hands back a NUMBER, where For hands back
+                              // an accessor. Calling it would throw.
+                              ...stickyRowLeftStyle(depth),
                               ...stickyHeaderTopStyle(headerRowIndex),
-                              ...HEADER_CELL_STYLE,
+                              ...headerCellStyle(),
                               width: `${rowHeaderWidth()}px`,
                               "min-width": `${rowHeaderWidth()}px`,
                               "max-width": `${rowHeaderWidth()}px`,
                             }}
                           >
                             <Show when={headerRowIndex === headerRows().length - 1}>
-                              <span class="zen-block zen-mt-auto" title={label}>
-                                {label}
+                              <span class="zen-block zen-mt-auto" title={label()}>
+                                {label()}
                               </span>
                             </Show>
                           </th>
                         );
                       }}
-                    </For>
+                    </Index>
                   </Show>
                   <Show when={visibleColWindow().paddingLeft > 0}>
                     <th
                       class="zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0"
                       style={{
                         ...stickyHeaderTopStyle(headerRowIndex),
-                        ...HEADER_CELL_STYLE,
+                        ...headerCellStyle(),
                         ...colPadStyle(visibleColWindow().paddingLeft),
                       }}
                       aria-hidden="true"
@@ -209,29 +250,33 @@ export function PivotGrid(props: PivotGridProps) {
                   </Show>
                   <For each={visibleColWindow().items}>
                     {(virtualCol) => {
-                      const header = props.getColHeader(headerRowIndex, virtualCol.index);
-                      // In the original, colSpans were handled via the data model returning merged cells. 
-                      // For a generalized UI, if we receive a colSpan from getColHeader, we respect it.
-                      // But since we are windowing, a cell might start out of bounds. The original used PivotHeaderCell to style merged boundaries.
-                      if (header && header.isVisible === false) return null;
-                      
+                      // Same trap as the data cells: read through an accessor or
+                      // the header freezes at whatever the first call returned.
+                      const header = createMemo(() => props.getColHeader(headerRowIndex, virtualCol.index));
+                      // getColHeader may report a header as merged into its
+                      // neighbour (isVisible: false), in which case this cell is
+                      // not drawn — a <Show>, not an early `return null`, which
+                      // runs once and can never change its mind.
                       return (
+                        <Show when={header()?.isVisible !== false}>
                         <th
                           role="columnheader"
+                          scope="col"
                           class="zen-sticky zen-z-10 zen-bg-zen-background zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-left zen-text-xs zen-font-medium zen-text-zen-foreground zen-truncate"
-                          colSpan={header?.colSpan || 1}
+                          colSpan={header()?.colSpan || 1}
                           style={{
-                            width: `${virtualCol.size * (header?.colSpan || 1)}px`,
-                            "min-width": `${virtualCol.size * (header?.colSpan || 1)}px`,
-                            "max-width": `${virtualCol.size * (header?.colSpan || 1)}px`,
-                            ...HEADER_CELL_STYLE,
+                            width: `${virtualCol.size * (header()?.colSpan || 1)}px`,
+                            "min-width": `${virtualCol.size * (header()?.colSpan || 1)}px`,
+                            "max-width": `${virtualCol.size * (header()?.colSpan || 1)}px`,
+                            ...headerCellStyle(),
                             ...stickyHeaderTopStyle(headerRowIndex),
                           }}
                         >
-                          <Show when={!header?.isLoading} fallback={<div class={cn("zen-h-3 zen-w-full", SKELETON_BAR)} />}>
-                            {header?.value || ""}
+                          <Show when={!header()?.isLoading} fallback={<div class={cn("zen-h-3 zen-w-full", SKELETON_BAR)} />}>
+                            {header()?.value || ""}
                           </Show>
                         </th>
+                        </Show>
                       );
                     }}
                   </For>
@@ -240,7 +285,7 @@ export function PivotGrid(props: PivotGridProps) {
                       class="zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0"
                       style={{
                         ...stickyHeaderTopStyle(headerRowIndex),
-                        ...HEADER_CELL_STYLE,
+                        ...headerCellStyle(),
                         ...colPadStyle(visibleColWindow().paddingRight),
                       }}
                       aria-hidden="true"
@@ -250,11 +295,11 @@ export function PivotGrid(props: PivotGridProps) {
               )}
             </For>
           </thead>
-          <tbody role="rowgroup">
+          <tbody>
             <Show when={paddingTop() > 0}>
-              <tr role="row" class="zen-border-0 hover:zen-bg-transparent">
+              <tr class="zen-border-0 hover:zen-bg-transparent">
                 <td
-                  role="gridcell"
+                  
                   colSpan={Math.max(totalColSpan(), 1)}
                   class="zen-border-0 zen-p-0"
                   style={{ height: `${paddingTop()}px` }}
@@ -268,45 +313,50 @@ export function PivotGrid(props: PivotGridProps) {
                 
                 return (
                   <tr
-                    role="row"
                     class={PIVOT_ROW_CLASS}
                     style={{ height: `${virtualRow.size}px` }}
                     data-index={virtualRow.index}
                   >
                     {/* Row Headers */}
                     <Show when={props.rowHeaderDepth > 0}>
-                      <For each={Array.from({ length: props.rowHeaderDepth })}>
+                      {/* Index, not For: `Array.from({length: n})` is a list of
+                          identical undefineds and For keys by referential
+                          identity, so every element is the same element to it. */}
+                      <Index each={Array.from({ length: props.rowHeaderDepth })}>
                         {(_, depth) => {
-                          const header = props.getRowHeader(rowIndex, depth());
-                          // Hide if it's merged into a previous cell
-                          if (header && header.isVisible === false) return null;
-                          
+                          // An accessor, like the data cells — this froze too.
+                          const header = createMemo(() => props.getRowHeader(rowIndex, depth));
                           return (
-                            <th
-                              role="rowheader"
-                              class={cn(
-                                STICKY_ROW_LABEL,
-                                ROW_LABEL_CLASS,
-                                "zen-bg-zen-background zen-align-top",
-                                rowIndex > 0 && (!header || header.isVisible !== false) ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0"
-                              )}
-                              rowSpan={header?.rowSpan || 1}
-                              style={{
-                                ...stickyRowLeftStyle(depth()),
-                                width: `${rowHeaderWidth()}px`,
-                                "min-width": `${rowHeaderWidth()}px`,
-                                "max-width": `${rowHeaderWidth()}px`,
-                              }}
-                            >
-                              <Show when={!header?.isLoading} fallback={<div class={cn("zen-h-3 zen-w-1/2", SKELETON_BAR)} />}>
-                                <span class="zen-block" title={header?.value}>
-                                  {header?.value || ""}
-                                </span>
-                              </Show>
-                            </th>
+                            <Show when={header()?.isVisible !== false}>
+                              <th
+                                role="rowheader"
+                                // Names the row for its cells. Without it, a
+                                // screen reader reads a row of bare numbers.
+                                scope="row"
+                                class={cn(
+                                  STICKY_ROW_LABEL,
+                                  ROW_LABEL_CLASS,
+                                  "zen-bg-zen-background zen-align-top",
+                                  rowIndex > 0 && header()?.isVisible !== false ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0"
+                                )}
+                                rowSpan={header()?.rowSpan || 1}
+                                style={{
+                                  ...stickyRowLeftStyle(depth),
+                                  width: `${rowHeaderWidth()}px`,
+                                  "min-width": `${rowHeaderWidth()}px`,
+                                  "max-width": `${rowHeaderWidth()}px`,
+                                }}
+                              >
+                                <Show when={!header()?.isLoading} fallback={<div class={cn("zen-h-3 zen-w-1/2", SKELETON_BAR)} />}>
+                                  <span class="zen-block" title={header()?.value}>
+                                    {header()?.value || ""}
+                                  </span>
+                                </Show>
+                              </th>
+                            </Show>
                           );
                         }}
-                      </For>
+                      </Index>
                     </Show>
 
                     {/* Left Padding for Virtual Columns */}
@@ -321,10 +371,18 @@ export function PivotGrid(props: PivotGridProps) {
                     {/* Data Cells */}
                     <For each={visibleColWindow().items}>
                       {(virtualCol) => {
-                        const cell = props.getCell(rowIndex, virtualCol.index);
+                        // An accessor, NOT a const. <For>'s child body runs ONCE
+                        // per item, so `const cell = props.getCell(...)` captured
+                        // the first answer forever: when the data arrived the
+                        // grid never re-rendered and the isLoading skeleton could
+                        // never flip. It only looked right because the column
+                        // window reallocated on every scroll and forced <For> to
+                        // rebuild the rows — so it repainted while you scrolled
+                        // and never when data landed, which is the one case it
+                        // exists for.
+                        const cell = createMemo(() => props.getCell(rowIndex, virtualCol.index));
                         return (
                           <td
-                            role="gridcell"
                             class={cn(
                               "zen-border-r zen-border-b zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-right zen-text-sm zen-tabular-nums zen-truncate",
                               rowStripeBg(rowIndex)
@@ -335,8 +393,8 @@ export function PivotGrid(props: PivotGridProps) {
                               "max-width": `${virtualCol.size}px`,
                             }}
                           >
-                            <Show when={!cell?.isLoading} fallback={<div class={cn("zen-ml-auto zen-h-3 zen-w-10", SKELETON_BAR)} />}>
-                              {(cell?.value as string) ?? "-"}
+                            <Show when={!cell()?.isLoading} fallback={<div class={cn("zen-ml-auto zen-h-3 zen-w-10", SKELETON_BAR)} />}>
+                              {(cell()?.value as string) ?? "-"}
                             </Show>
                           </td>
                         );
@@ -356,9 +414,9 @@ export function PivotGrid(props: PivotGridProps) {
               }}
             </For>
             <Show when={paddingBottom() > 0}>
-              <tr role="row" class="zen-border-0 hover:zen-bg-transparent">
+              <tr class="zen-border-0 hover:zen-bg-transparent">
                 <td
-                  role="gridcell"
+                  
                   colSpan={Math.max(totalColSpan(), 1)}
                   class="zen-border-0 zen-p-0"
                   style={{ height: `${paddingBottom()}px` }}

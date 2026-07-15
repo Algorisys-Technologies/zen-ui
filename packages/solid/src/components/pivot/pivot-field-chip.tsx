@@ -181,9 +181,17 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
             selection={() => props.selection}
             onChange={(sel) => props.onSelectionChange?.(sel)}
             loadOptions={async (columnKey, optionSearch, pagination) => {
+              // Every filter EXCEPT this field's own: a column's option list is
+              // narrowed by the other columns, never by itself, or picking a
+              // value would hide every other value you might pick instead.
+              // untracked, because this runs inside an async fetch — reading
+              // props there would register dependencies on nothing.
               const otherFilters = untrack(() => {
                 if (!props.filters) return undefined;
-                const { [props.fieldKey]: _omit, ...rest } = props.filters;
+                const rest: PivotFilters = {};
+                for (const [key, sel] of Object.entries(props.filters)) {
+                  if (key !== props.fieldKey) rest[key] = sel;
+                }
                 return rest;
               });
               return props.loadMembers!({

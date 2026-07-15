@@ -40,8 +40,15 @@ export function usePivotFilterOptions(props: UsePivotFilterOptionsProps) {
     loadingWindow: pages.loadingWindow,
     optionsWindows: pages.optionsWindows,
     totalCount: pages.totalCount,
+    // loadError was computed, set on failure, used to gate fetching — and then
+    // dropped right here, so a filter fetch that threw rendered "No matching
+    // values". A network error and an empty result are not the same answer, and
+    // reporting one as the other sends people looking for missing data.
+    loadError: pages.loadError,
     handleVisibleRange: pages.handleVisibleRange,
     scheduleFetch: (optionSearch: string) => pages.scheduleFetch(optionSearch),
-    openPanelFetch: (_optionSearch: string) => pages.openPanelFetch(),
+    // Takes nothing: openPanelFetch re-reads the search through getSearch(), so
+    // the parameter the caller used to pass was thrown away on arrival.
+    openPanelFetch: () => pages.openPanelFetch(),
   };
 }
