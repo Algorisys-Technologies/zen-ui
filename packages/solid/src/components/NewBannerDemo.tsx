@@ -28,7 +28,12 @@ const NewBannerDemo = () => {
       <DemoSection
         title="Variants"
         codeTitle="color tokens, with an optional action in the trailing slot"
-        codeDescription="Pass `sticky` to pin a banner to the top of the scroll viewport — useful at the layout root."
+        codeDescription={
+          <>
+            Pass <code>sticky</code> to pin a banner to the top of the scroll
+            viewport — useful at the layout root.
+          </>
+        }
         code={`<Banner color="info">
   <BannerIcon><Bell /></BannerIcon>
   <BannerContent>

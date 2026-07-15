@@ -115,7 +115,16 @@ const NewTreeDemo = () => {
   return (
     <DemoPage
       title="Tree"
-      description="Hierarchical, expandable list. Data-driven via `items` rather than compound — WAI-ARIA tree navigation is defined over the flattened visible node list, so the keyboard model needs the whole tree anyway. Implements the ARIA tree pattern: one tab stop (roving tabindex), Arrow up/down over visible rows, Right to expand-or-descend, Left to collapse-or-ascend, Home/End, Enter/Space to select."
+      description={
+        <>
+          Hierarchical, expandable list. Data-driven via <code>items</code> rather
+          than compound — WAI-ARIA tree navigation is defined over the flattened{" "}
+          <em>visible</em> node list, so the keyboard model needs the whole tree
+          anyway. Implements the ARIA tree pattern: one tab stop (roving tabindex),
+          Arrow up/down over visible rows, Right to expand-or-descend, Left to
+          collapse-or-ascend, Home/End, Enter/Space to select.
+        </>
+      }
     >
       <DemoSection
         title="1. Basic — uncontrolled"

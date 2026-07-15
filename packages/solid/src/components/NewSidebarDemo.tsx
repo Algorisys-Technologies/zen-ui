@@ -46,7 +46,15 @@ const CogIcon = () => (
 const NewSidebarDemo = () => (
   <DemoPage
     title="Sidebar"
-    description="Collapsible navigation shell. SidebarProvider holds the open/collapsed state; the parts compose header / scrollable content / grouped menu / footer. Collapsing shrinks the rail to an icon-only strip. Use SidebarMenuButton's `as` to render a router Link, and `active` to mark the current item."
+    description={
+      <>
+        Collapsible navigation shell. <code>SidebarProvider</code> holds the
+        open/collapsed state; the parts compose header / scrollable content /
+        grouped menu / footer. Collapsing shrinks the rail to an icon-only strip.
+        Use <code>SidebarMenuButton</code>'s <code>as</code> to render a router{" "}
+        <code>Link</code>, and <code>active</code> to mark the current item.
+      </>
+    }
   >
     <DemoSection
       title="1. Collapsible rail (click the toggle)"

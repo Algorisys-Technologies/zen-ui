@@ -9,12 +9,19 @@ import "./demo-helpers.css";
  * visually identically.
  */
 
-export const DemoPage = (props: ParentProps<{ title: string; description?: string }>) => (
+/**
+ * Prose props are JSX.Element, not string: the React demos mark up API names
+ * with <code> chips, and a plain string prop cannot. Passing markdown-ish
+ * backticks instead rendered them literally, which is how `render` and `onGo`
+ * ended up on screen as backticked text.
+ *
+ * They are read through Show's callback rather than twice, because a prop
+ * holding JSX is a getter — see the note on CodeExample's children below.
+ */
+export const DemoPage = (props: ParentProps<{ title: string; description?: JSX.Element }>) => (
   <div class="demo-page">
     <h1>{props.title}</h1>
-    <Show when={props.description}>
-      <p class="lede">{props.description}</p>
-    </Show>
+    <Show when={props.description}>{(d) => <p class="lede">{d()}</p>}</Show>
     {props.children}
   </div>
 );
@@ -22,7 +29,7 @@ export const DemoPage = (props: ParentProps<{ title: string; description?: strin
 export const DemoSection = (
   props: ParentProps<{
     title: string;
-    description?: string;
+    description?: JSX.Element;
     /**
      * Snippet that produced `children`. When given, the children render as the
      * live preview of a CodeExample card (heading + copyable code block) rather
@@ -32,9 +39,9 @@ export const DemoSection = (
      */
     code?: string;
     /** CodeExample heading. Defaults to the section title. */
-    codeTitle?: string;
+    codeTitle?: JSX.Element;
     /** CodeExample sub-caption, shown under the heading. */
-    codeDescription?: string;
+    codeDescription?: JSX.Element;
     /** Override the preview area's layout (e.g. to use grid). */
     previewStyle?: JSX.CSSProperties;
   }>,
@@ -42,15 +49,17 @@ export const DemoSection = (
   <section class="demo-section">
     <h2>{props.title}</h2>
     <Show when={props.description}>
-      <p
-        style={{
-          "font-size": "0.875rem",
-          color: "var(--zen-color-muted-fg)",
-          margin: "0 0 0.75rem",
-        }}
-      >
-        {props.description}
-      </p>
+      {(d) => (
+        <p
+          style={{
+            "font-size": "0.875rem",
+            color: "var(--zen-color-muted-fg)",
+            margin: "0 0 0.75rem",
+          }}
+        >
+          {d()}
+        </p>
+      )}
     </Show>
     <Show
       when={props.code}
@@ -101,8 +110,8 @@ export const Row = (props: { children: JSX.Element }) => (
  * / .example-code).
  */
 export const CodeExample = (props: {
-  title: string;
-  description?: string;
+  title: JSX.Element;
+  description?: JSX.Element;
   code: string;
   children?: JSX.Element;
   previewStyle?: JSX.CSSProperties;
@@ -129,9 +138,7 @@ export const CodeExample = (props: {
       <div class="example-head">
         <div>
           <h3>{props.title}</h3>
-          <Show when={props.description}>
-            <p>{props.description}</p>
-          </Show>
+          <Show when={props.description}>{(d) => <p>{d()}</p>}</Show>
         </div>
         <button
           type="button"

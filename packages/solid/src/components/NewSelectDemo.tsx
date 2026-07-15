@@ -7,7 +7,12 @@ const NewSelectDemo = () => {
   return (
     <DemoPage
       title="Select"
-      description="Single-select dropdown built on Kobalte Select. Data-driven via `options` array."
+      description={
+        <>
+          Single-select dropdown built on Kobalte Select. Data-driven via{" "}
+          <code>options</code> array.
+        </>
+      }
     >
       <DemoSection
         title="Default"

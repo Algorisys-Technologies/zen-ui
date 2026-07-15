@@ -12,7 +12,12 @@ const NewTimePickerDemo = () => {
       <DemoSection
         title="24h (default)"
         codeTitle="value + onValueChange"
-        codeDescription="onValueChange emits `string | undefined` — undefined while the hour or minute segment is blank."
+        codeDescription={
+          <>
+            onValueChange emits <code>string | undefined</code> — undefined while
+            the hour or minute segment is blank.
+          </>
+        }
         code={`const [t1, setT1] = createSignal<string | undefined>("09:30");
 
 <TimePicker value={t1()} onValueChange={setT1} />

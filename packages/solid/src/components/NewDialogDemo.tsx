@@ -28,7 +28,7 @@ const NewDialogDemo = () => (
   >
     <DemoSection
       title="Dialog (generic modal)"
-      codeTitle="Compound API — polymorphic trigger via `as`"
+      codeTitle="Compound API — polymorphic trigger via as"
       codeDescription="Esc, click-outside, and the auto-rendered X button all dismiss."
       code={`<Dialog>
   <DialogTrigger as={Button}>Edit profile</DialogTrigger>

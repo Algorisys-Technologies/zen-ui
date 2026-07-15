@@ -28,7 +28,15 @@ const ROWS: { title: string; id: string; marker: ObjectMarkerType; num: string; 
 const NewObjectDemo = () => (
   <DemoPage
     title="Object atoms"
-    description="The small semantic display elements object pages, list reports and tables are built out of: ObjectStatus, ObjectNumber, ObjectIdentifier and ObjectMarker. `state` maps onto the existing --zen-color-{success,warning,error,info} roles, so these retheme with everything else."
+    description={
+      <>
+        The small semantic display elements object pages, list reports and tables
+        are built out of: <code>ObjectStatus</code>, <code>ObjectNumber</code>,{" "}
+        <code>ObjectIdentifier</code> and <code>ObjectMarker</code>. <code>state</code>{" "}
+        maps onto the existing <code>--zen-color-&#123;success,warning,error,info&#125;</code>{" "}
+        roles, so these retheme with everything else.
+      </>
+    }
   >
     <DemoSection
       title="1. ObjectStatus — states"

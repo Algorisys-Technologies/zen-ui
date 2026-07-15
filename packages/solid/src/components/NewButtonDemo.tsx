@@ -4,7 +4,12 @@ import { DemoPage, DemoSection } from "./demo-helpers";
 const NewButtonDemo = () => (
   <DemoPage
     title="Button"
-    description="Solid port of the React Button. Polymorphic via `as` instead of `asChild`."
+    description={
+      <>
+        Solid port of the React Button. Polymorphic via <code>as</code> instead of{" "}
+        <code>asChild</code>.
+      </>
+    }
   >
     <DemoSection
       title="Variants"
@@ -61,7 +66,13 @@ const NewButtonDemo = () => (
     <DemoSection
       title="States"
       codeTitle="loading · disabled · iconLeft"
-      codeDescription="While loading, a spinner replaces iconLeft and the button is disabled. Icons are passed as props (iconLeft / iconRight) rather than in children, so they survive `as` composition."
+      codeDescription={
+        <>
+          While loading, a spinner replaces iconLeft and the button is disabled. Icons are
+          passed as props (iconLeft / iconRight) rather than in children, so they survive{" "}
+          <code>as</code> composition.
+        </>
+      }
       code={`<Button loading>Loading</Button>
 <Button disabled>Disabled</Button>
 <Button iconLeft={<span aria-hidden="true">+</span>}>With icon</Button>`}
@@ -76,10 +87,19 @@ const NewButtonDemo = () => (
     </DemoSection>
 
     <DemoSection
-      title="Polymorphic (`as`)"
-      description="Render the button styles on an <a> element."
+      title="Polymorphic (as)"
+      description={
+        <>
+          Render the button styles on an <code>&lt;a&gt;</code> element.
+        </>
+      }
       codeTitle="as — Solid's answer to Radix asChild"
-      codeDescription="Element-specific props (href, target, …) typecheck against whatever you pass to `as`. Pass as={A} from @solidjs/router for a client-side link."
+      codeDescription={
+        <>
+          Element-specific props (href, target, …) typecheck against whatever you pass to{" "}
+          <code>as</code>. Pass {"as={A}"} from @solidjs/router for a client-side link.
+        </>
+      }
       code={`<Button as="a" href="#" variant="outline">
   Anchor link
 </Button>`}

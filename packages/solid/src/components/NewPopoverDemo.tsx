@@ -6,7 +6,7 @@ const NewPopoverDemo = () => (
   <DemoPage title="Popover" description="Anchored panel built on Kobalte Popover.">
     <DemoSection
       title="Basic"
-      codeTitle="PopoverTrigger is polymorphic via `as` — render it as a Button"
+      codeTitle="PopoverTrigger is polymorphic via as — render it as a Button"
       code={`<Popover>
   <PopoverTrigger as={Button} variant="outline">Open popover</PopoverTrigger>
   <PopoverContent>

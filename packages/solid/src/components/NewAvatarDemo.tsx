@@ -53,7 +53,12 @@ const NewAvatarDemo = () => (
     <DemoSection
       title="Group with overflow"
       codeTitle="max collapses the tail into a +N avatar"
-      codeDescription="`size` sizes the +N overflow avatar; `spacing` (tight · default · loose) controls the stack overlap."
+      codeDescription={
+        <>
+          <code>size</code> sizes the +N overflow avatar; <code>spacing</code>{" "}
+          (tight · default · loose) controls the stack overlap.
+        </>
+      }
       code={`<AvatarGroup max={3} size="md">
   <Avatar><AvatarFallback>A</AvatarFallback></Avatar>
   <Avatar><AvatarFallback>B</AvatarFallback></Avatar>

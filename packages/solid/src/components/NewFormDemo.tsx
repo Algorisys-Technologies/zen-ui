@@ -49,7 +49,14 @@ const NewFormDemo = () => {
       <DemoSection
         title="BoundFields — config-driven form"
         codeTitle="Each Bound* adapter renders label + control + error from one line"
-        codeDescription="Pass the form store as `of` and modular-forms' Field component as `Field`. The adapters read `field.error`, so any validator you wire into createForm({ validate }) surfaces automatically."
+        codeDescription={
+          <>
+            Pass the form store as <code>of</code> and modular-forms' Field
+            component as <code>Field</code>. The adapters read{" "}
+            <code>field.error</code>, so any validator you wire into{" "}
+            {"createForm({ validate })"} surfaces automatically.
+          </>
+        }
         code={`const [form, { Form: MForm, Field }] = createForm<SignUpValues>();
 
 <Form>

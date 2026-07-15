@@ -12,7 +12,14 @@ import { DemoPage, DemoSection } from "./demo-helpers";
 const NewBreadcrumbDemo = () => (
   <DemoPage
     title="Breadcrumb"
-    description="Navigation trail. Accessible compound built on semantic <nav>/<ol>/<li>, themed via --zen-* tokens. BreadcrumbLink is polymorphic via `as`, so it can render a router Link."
+    description={
+      <>
+        Navigation trail. Accessible compound built on semantic{" "}
+        <code>&lt;nav&gt;/&lt;ol&gt;/&lt;li&gt;</code>, themed via{" "}
+        <code>--zen-*</code> tokens. <code>BreadcrumbLink</code> is polymorphic
+        via <code>as</code>, so it can render a router <code>Link</code>.
+      </>
+    }
   >
     <DemoSection title="1. Basic" codeTitle="Trail ending on the current page" code={`<Breadcrumb>
   <BreadcrumbList>

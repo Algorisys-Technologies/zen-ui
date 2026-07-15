@@ -9,7 +9,14 @@ const NewPaginationDemo = () => {
   return (
     <DemoPage
       title="Pagination"
-      description="Standalone, controlled page navigator for lists / cards / server-driven feeds (zen-ui's DataTable has its own built-in pager). Renders Prev / numbered pages with ellipses / Next. `page` is 1-based."
+      description={
+        <>
+          Standalone, controlled page navigator for lists / cards / server-driven
+          feeds (zen-ui's <code>DataTable</code> has its own built-in pager).
+          Renders Prev / numbered pages with ellipses / Next. <code>page</code> is
+          1-based.
+        </>
+      }
     >
       <DemoSection
         title="1. Basic"

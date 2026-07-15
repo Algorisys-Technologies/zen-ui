@@ -14,7 +14,13 @@ const NewAccordionDemo = () => (
     <DemoSection
       title="Single (default — Kobalte)"
       codeTitle="collapsible — one section open at a time"
-      codeDescription="Kobalte takes `collapsible` + `multiple` flags rather than Radix's type prop, and value / defaultValue are always string[]."
+      codeDescription={
+        <>
+          Kobalte takes <code>collapsible</code> + <code>multiple</code> flags
+          rather than Radix's type prop, and value / defaultValue are always
+          string[].
+        </>
+      }
       code={`<Accordion collapsible defaultValue={["basic"]}>
   <AccordionItem value="basic">
     <AccordionTrigger>Basic info</AccordionTrigger>

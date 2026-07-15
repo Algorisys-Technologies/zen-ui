@@ -12,7 +12,13 @@ const NewSwitchDemo = () => {
       <DemoSection
         title="Sizes"
         codeTitle="sm · md · lg"
-        codeDescription="Pass `label` and Kobalte wires up the <label> for you — no external <label for> needed."
+        codeDescription={
+          <>
+            Pass <code>label</code> and Kobalte wires up the{" "}
+            <code>&lt;label&gt;</code> for you — no external{" "}
+            <code>&lt;label for&gt;</code> needed.
+          </>
+        }
         code={`<Switch size="sm" defaultChecked label="Small" />
 <Switch size="md" defaultChecked label="Medium" />
 <Switch size="lg" defaultChecked label="Large" />`}

@@ -5,12 +5,23 @@ import { DemoPage, DemoSection } from "./demo-helpers";
 const NewTooltipDemo = () => (
   <DemoPage
     title="Tooltip"
-    description="Hover / focus hint built on Kobalte Tooltip. No <TooltipProvider> needed — Kobalte uses per-instance roots."
+    description={
+      <>
+        Hover / focus hint built on Kobalte Tooltip. No{" "}
+        <code>&lt;TooltipProvider&gt;</code> needed — Kobalte uses per-instance
+        roots.
+      </>
+    }
   >
     <DemoSection
       title="Default"
       codeTitle="as={Button} renders the trigger as your own component"
-      codeDescription="Kobalte's polymorphic `as` replaces Radix's asChild. No <TooltipProvider> wrapper is needed."
+      codeDescription={
+        <>
+          Kobalte's polymorphic <code>as</code> replaces Radix's asChild. No{" "}
+          <code>&lt;TooltipProvider&gt;</code> wrapper is needed.
+        </>
+      }
       code={`<Tooltip>
   <TooltipTrigger as={Button} variant="outline">Hover me</TooltipTrigger>
   <TooltipContent>This is a tooltip.</TooltipContent>

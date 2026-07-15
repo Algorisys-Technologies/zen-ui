@@ -20,7 +20,15 @@ const ACTIONS: ToolbarAction[] = [
 const NewToolbarDemo = () => (
   <DemoPage
     title="Toolbar"
-    description="A row of actions that collapses into an overflow menu when it runs out of room. `actions` is data rather than children: an overflowed action has to re-render as a menu item, which is a different element than the button it was — the same element cannot be in two places, so the toolbar needs the action's intent to render it either way."
+    description={
+      <>
+        A row of actions that collapses into an overflow menu when it runs out of
+        room. <code>actions</code> is data rather than children: an overflowed
+        action has to re-render as a <em>menu item</em>, which is a different
+        element than the button it was — the same element cannot be in two places,
+        so the toolbar needs the action's intent to render it either way.
+      </>
+    }
   >
     <DemoSection
       title="1. Full width — everything fits"
@@ -78,7 +86,12 @@ const NewToolbarDemo = () => (
     <DemoSection
       title="4. With leading content"
       codeTitle="children are leading content and never overflow"
-      codeDescription="A title, a count — whatever names the bar. Only `actions` collapse."
+      codeDescription={
+        <>
+          A title, a count — whatever names the bar. Only <code>actions</code>{" "}
+          collapse.
+        </>
+      }
       code={`<Toolbar actions={ACTIONS} aria-label="Order actions">
   <h3>Orders</h3>
   <span class="zen-text-xs zen-text-zen-muted-fg">128 items</span>

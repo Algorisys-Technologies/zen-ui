@@ -12,7 +12,12 @@ const NewCheckboxDemo = () => {
       <DemoSection
         title="Sizes"
         codeTitle="sm · md · lg"
-        codeDescription="`label` renders an inline Kobalte label to the right of the box — no wrapping <label> needed."
+        codeDescription={
+          <>
+            <code>label</code> renders an inline Kobalte label to the right of
+            the box — no wrapping <code>&lt;label&gt;</code> needed.
+          </>
+        }
         code={`<Checkbox size="sm" defaultChecked label="Small" />
 <Checkbox size="md" defaultChecked label="Medium" />
 <Checkbox size="lg" defaultChecked label="Large" />`}
@@ -25,7 +30,13 @@ const NewCheckboxDemo = () => {
       <DemoSection
         title="Controlled"
         codeTitle="checked + onChange"
-        codeDescription="onChange hands you a plain boolean, so a setter can be passed straight through. Drop `checked` and use `defaultChecked` to go uncontrolled."
+        codeDescription={
+          <>
+            onChange hands you a plain boolean, so a setter can be passed
+            straight through. Drop <code>checked</code> and use{" "}
+            <code>defaultChecked</code> to go uncontrolled.
+          </>
+        }
         code={`const [a, setA] = createSignal(false);
 
 <Checkbox
