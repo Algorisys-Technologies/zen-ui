@@ -17,6 +17,10 @@ export interface PivotDropZoneProps {
 }
 
 export function PivotDropZone(props: PivotDropZoneProps) {
+  // A zone's id IS its identity ("rows"), fixed for the life of the component,
+  // and solid-dnd registers the droppable once under it. Reading it reactively
+  // would mean re-registering a droppable that never changes.
+  // eslint-disable-next-line solid/reactivity
   const droppable = createDroppable(props.id);
   
   return (

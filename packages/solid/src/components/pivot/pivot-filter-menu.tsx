@@ -81,10 +81,18 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
     openPanelFetch,
     loadError,
   } = usePivotFilterOptions({
-    columnKey: props.columnKey,
+    // Getters, not values. Read plainly, these capture whatever columnKey and
+    // loadOptions were at setup — so a chip reused for a different field would
+    // keep fetching the old one's members. Reading through props is the whole
+    // contract of a Solid props object.
+    get columnKey() {
+      return props.columnKey;
+    },
     isOpen: open,
     getOptionSearch: search,
-    loadOptions: props.loadOptions,
+    get loadOptions() {
+      return props.loadOptions;
+    },
   });
 
   const filterActive = () => isFilterActive(props.selection());

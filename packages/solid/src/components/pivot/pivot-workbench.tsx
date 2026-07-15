@@ -96,6 +96,11 @@ const SortableChip = (props: PivotFieldChipProps) => {
   // `sortable: true` is what the collision detector filters on. Without it the
   // detector's chip branch is unreachable and every drop resolves against a
   // zone list that also contains chips.
+  // <For> keys chips by field key, so a chip is RECREATED rather than reassigned
+  // when a field changes zone: fieldKey and zone are fixed for this instance's
+  // life. solid-dnd registers the sortable once; a reactive read would
+  // re-register it mid-drag.
+  // eslint-disable-next-line solid/reactivity
   const sortable = createSortable(props.fieldKey, { zone: props.zone, sortable: true });
   return (
     <div

@@ -17,8 +17,12 @@ export interface UsePivotFilterOptionsProps {
 export function usePivotFilterOptions(props: UsePivotFilterOptionsProps) {
   const pages = useWindowedOptionPages({
     pageSize: VIRTUAL_SCROLL_WINDOW_PAGE_SIZE,
-    isActive: props.isOpen,
-    getSearch: props.getOptionSearch,
+    // Wrapped, not passed. `isActive: props.isOpen` reads the prop ONCE and
+    // captures whatever function was there at setup; if the parent ever passes
+    // a different one, the hook keeps calling the old. Forwarding through an
+    // arrow reads props each call, which is what a props object is for.
+    isActive: () => props.isOpen(),
+    getSearch: () => props.getOptionSearch(),
     loadPage: async (offset, limit, search) => {
       if (!props.loadOptions) {
         return { values: [], hasMore: false, total: 0 };

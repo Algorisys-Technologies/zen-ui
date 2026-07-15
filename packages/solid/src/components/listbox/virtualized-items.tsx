@@ -83,7 +83,12 @@ export function VirtualizedItems<T>(props: VirtualizedItemsProps<T>): JSX.Elemen
       typeof props.estimateSize === "function"
         ? props.estimateSize(index)
         : ((props.estimateSize as number | undefined) ?? 36),
-    overscan: props.overscan ?? 6,
+    // A getter, like `count` above. As a plain value this read props.overscan
+    // once at setup and froze: passing a different overscan later changed
+    // nothing, silently.
+    get overscan() {
+      return props.overscan ?? 6;
+    },
   });
 
   // Report the visible window so pages can be fetched, and ONLY when it

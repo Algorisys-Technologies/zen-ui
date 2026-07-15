@@ -180,6 +180,10 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
             label={label()}
             selection={() => props.selection}
             onChange={(sel) => props.onSelectionChange?.(sel)}
+            // A callback prop the menu invokes on demand, not a tracked scope —
+            // the rule cannot tell the difference. The one reactive read inside
+            // is already wrapped in untrack() for exactly this reason.
+            // eslint-disable-next-line solid/reactivity
             loadOptions={async (columnKey, optionSearch, pagination) => {
               // Every filter EXCEPT this field's own: a column's option list is
               // narrowed by the other columns, never by itself, or picking a
