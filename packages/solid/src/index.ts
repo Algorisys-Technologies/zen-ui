@@ -136,6 +136,9 @@ export { ColorPalette } from "./components/color-picker/color-palette";
 export type { ColorPaletteProps } from "./components/color-picker/color-palette";
 export type { ColorOption } from "@algorisys/zen-ui-core/color";
 
+export { Carousel } from "./components/carousel/carousel";
+export type { CarouselProps } from "./components/carousel/carousel";
+
 export { Link, linkVariants } from "./components/link/link";
 export type { LinkProps } from "./components/link/link";
 

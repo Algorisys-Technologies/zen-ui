@@ -105,6 +105,7 @@ import NewMaskInputDemo from "./components/NewMaskInputDemo";
 import NewPopoverDemo from "./components/NewPopoverDemo";
 import NewLinkDemo from "./components/NewLinkDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
+import NewCarouselDemo from "./components/NewCarouselDemo";
 import { Toaster } from "./components/toast/toaster";
 
 /**
@@ -297,6 +298,7 @@ const App: React.FC = () => {
             <Route path="/popover" element={<NewPopoverDemo />} />
             <Route path="/link" element={<NewLinkDemo />} />
             <Route path="/color-picker" element={<NewColorPickerDemo />} />
+            <Route path="/carousel" element={<NewCarouselDemo />} />
           </Routes>
         </main>
       </div>

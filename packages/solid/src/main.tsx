@@ -90,6 +90,7 @@ import NewCustomizingDemo from "./components/NewCustomizingDemo";
 import NewMaskInputDemo from "./components/NewMaskInputDemo";
 import NewLinkDemo from "./components/NewLinkDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
+import NewCarouselDemo from "./components/NewCarouselDemo";
 
 applyTheme(getInitialTheme());
 
@@ -179,6 +180,7 @@ render(
       <Route path="/mask-input" component={NewMaskInputDemo} />
       <Route path="/link" component={NewLinkDemo} />
       <Route path="/color-picker" component={NewColorPickerDemo} />
+      <Route path="/carousel" component={NewCarouselDemo} />
     </Router>
   ),
   root,

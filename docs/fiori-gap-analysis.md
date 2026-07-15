@@ -30,7 +30,7 @@ zen-ui is a **shadcn/Radix-style general-purpose library**; Fiori is an **enterp
 
 Roughly:
 
-- **Primitives / form controls** — ~80% covered. Real gaps are narrow (ColorPicker, DynamicDateRange, Carousel). SegmentedButton, SplitButton, ToggleButton, Tree, Toolbar and MaskInput have since been built.
+- **Primitives / form controls** — ~80% covered. The one real gap left is DynamicDateRange. SegmentedButton, SplitButton, ToggleButton, Tree, Toolbar, MaskInput, ColorPicker and Carousel have since been built.
 - **App frame** (ShellBar, FlexibleColumnLayout, DynamicPage, ObjectPage) — was 0%, now **built in both bindings**, plus `Page`/`Bar` and a light `PageHeader` for screens that want a heading rather than a snapping header. This was the largest gap and the one that most defines a "Fiori-like" app; it is closed.
 - **Enterprise object atoms** (ObjectStatus/Number/Identifier/Marker) — was 0%, now **built in both bindings**. MessageStrip variants and QuickView remain.
 - **Table ecosystem beyond the grid itself** — was ~15%. `SelectDialog`, `ValueHelp`, `ViewSettingsDialog` and `FilterBar` are built; **VariantManagement, p13n and export remain**, which is where the persistence story lives.
@@ -112,7 +112,7 @@ These are small components that carry enormous weight in enterprise UIs.
 | **Link**, **Title**, **Label**, **Text**, **ExpandableText** | Typography primitives; ExpandableText = show more/less | ❌ zen-ui has no typography layer |
 | **Icon** | SVG icon from the SAP icon font (~1,000 icons) | ⚠️ `Icon` ships 48 hand-drawn glyphs and still no icon dependency. The set, not the component, is the gap. |
 | **Panel** | Collapsible titled container | ⚠️ `Accordion` partially |
-| **Carousel** | Swipeable rotating items | ❌ |
+| **Carousel** | Swipeable rotating items | ✅ `Carousel` — CSS scroll-snap; every child is a slide, `perView` for a strip. No autoplay, by design. |
 | **IllustratedMessage** | Empty/error state **with illustration** | ⚠️ `EmptyState` lacks the illustration set |
 | **Wizard** (+ Step, Tab) | Multi-step guided task | ⚠️ `Stepper` is close; no branching/validation gating |
 | **BusyIndicator** / **BusyDialog** | Spinner / modal blocker | ✅ `Loading` |

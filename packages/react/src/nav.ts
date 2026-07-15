@@ -38,6 +38,7 @@ export const NAV: NavGroup[] = [
       { to: "/popover", label: "Popover", description: "Anchored panel; asChild trigger, side/align, separate anchor" },
       { to: "/link", label: "Link", description: "Styled anchor; asChild for router links, external, disabled" },
       { to: "/color-picker", label: "ColorPicker", description: "Swatch palette + the platform picker; hex in, hex out" },
+      { to: "/carousel", label: "Carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay" },
       { to: "/dropdown-menu", label: "DropdownMenu", description: "Radix DropdownMenu \u2014 action menus, sub-menus, checkbox/radio items" },
       { to: "/separator", label: "Separator", description: "Radix Separator \u2014 horizontal / vertical with decorative semantics" },
       { to: "/switch-new", label: "Switch", description: "Radix Switch \u2014 sizes, controlled / uncontrolled, form submission" },

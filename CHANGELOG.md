@@ -45,6 +45,12 @@ document's root font size to 10px.
 - `MaskInput` — fixed-template input. The mask engine is framework-agnostic and
   lives in `@algorisys/zen-ui-core/mask`, so both bindings cannot disagree
   about what a mask means
+- `ColorPicker` / `ColorPalette` — a swatch that opens a palette, a hex field
+  and the platform's own picker. The colour maths is framework-agnostic and
+  lives in `@algorisys/zen-ui-core/color`
+- `Carousel` — a scroll-snap slide strip. Every child is a slide, so there is
+  no `CarouselItem` to import, and `perView` turns the stage into a strip.
+  Deliberately has no autoplay
 - `Link` — a styled anchor with `inline`, `external` and `disabled`
 - `StatCard` — a labelled figure with an icon, a delta and somewhere to go
 - `Toolbar` — actions that collapse into an overflow menu

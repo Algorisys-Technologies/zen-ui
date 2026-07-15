@@ -87,6 +87,10 @@ export { ColorPalette } from "./components/color-picker/color-palette";
 export type { ColorPaletteProps } from "./components/color-picker/color-palette";
 export type { ColorOption } from "@algorisys/zen-ui-core/color";
 
+// Carousel (CSS scroll-snap; every child is a slide, no CarouselItem to import)
+export { Carousel } from "./components/carousel/carousel";
+export type { CarouselProps } from "./components/carousel/carousel";
+
 // Link (styled anchor; asChild for router links, external + disabled)
 export { Link, linkVariants } from "./components/link/link";
 export type { LinkProps } from "./components/link/link";
