@@ -45,7 +45,7 @@ export function PivotDropZone(props: PivotDropZoneProps) {
       >
         {props.children}
         <Show when={props.isEmpty}>
-          <div class="zen-text-xs zen-text-zen-muted-foreground/50 zen-italic zen-py-0.5 zen-select-none zen-pointer-events-none">
+          <div class="zen-text-xs zen-text-zen-muted-fg/50 zen-italic zen-py-0.5 zen-select-none zen-pointer-events-none">
             Drop fields here
           </div>
         </Show>

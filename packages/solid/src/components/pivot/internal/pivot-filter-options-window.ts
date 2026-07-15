@@ -59,20 +59,13 @@ export function pivotFilterMissingWindowStarts(
   return missingWindowStarts(toSpans(windows), minIndex, maxIndex, pageSize).filter(
     (pageStart) => {
       const pageEnd = pageStart + pageSize - 1;
-      return !isLeadingOverscanOnly(
-        minIndex,
-        pageStart,
-        pageEnd,
-        windows,
-        maxIndex,
-      );
+      return !isLeadingOverscanOnly(minIndex, pageEnd, windows, maxIndex);
     },
   );
 }
 
 function isLeadingOverscanOnly(
   minIndex: number,
-  pageStart: number,
   pageEnd: number,
   windows: readonly PivotFilterOptionsWindow[],
   maxIndex: number,

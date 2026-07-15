@@ -29,6 +29,19 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
   const isMeasure = createMemo(() => selectedField()?.type === "measure");
   const filtered = createMemo(() => props.hasActiveFilter ?? (props.selection && (props.selection.kind === "include" ? props.selection.values.length > 0 : true)));
 
+  // Narrowed accessors, because `<Show when={x.kind === "include"}>` narrows the
+  // CONDITION and not the children — they are a separate scope, so `values` was
+  // being read off a union that may be the "all" variant. Half the reads were
+  // patched with `as any` and half were left to fail the build; both hid the
+  // same thing. Handing Show the narrowed value gives the children a typed
+  // accessor and needs no casts.
+  const included = createMemo(() =>
+    props.selection?.kind === "include" && props.selection.values.length > 0 ? props.selection : undefined,
+  );
+  const excluded = createMemo(() =>
+    props.selection?.kind === "all" && props.selection.exclude.length > 0 ? props.selection : undefined,
+  );
+
   return (
     <div
       class={cn(
@@ -38,26 +51,30 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
       <Badge
         variant="outline"
         class={cn(
-          "zen-cursor-grab zen-select-none active:zen-cursor-grabbing zen-bg-zen-surface zen-shadow-sm zen-max-w-full zen-h-7",
+          "zen-cursor-grab zen-select-none active:zen-cursor-grabbing zen-bg-zen-background zen-shadow-sm zen-max-w-full zen-h-7",
           (props.zone === "rows" || props.zone === "values") && "zen-w-full",
           filtered() ? "zen-text-zen-primary zen-border-zen-primary/30" : "zen-text-zen-foreground",
           props.disabled && "zen-opacity-50 zen-cursor-not-allowed"
         )}
       >
-        <Icon name="more-vertical" class="zen-h-3 zen-w-3 zen-text-zen-muted-foreground/50 zen-shrink-0" />
-        <Icon name={props.zone === "values" ? "plus" : "file"} class="zen-h-3 zen-w-3 zen-text-zen-muted-foreground zen-shrink-0" />
+        <Icon name="more-vertical" class="zen-h-3 zen-w-3 zen-text-zen-muted-fg/50 zen-shrink-0" />
+        <Icon name={props.zone === "values" ? "plus" : "file"} class="zen-h-3 zen-w-3 zen-text-zen-muted-fg zen-shrink-0" />
         
         <span class={cn("zen-truncate zen-flex-1 zen-min-w-0", filtered() && "zen-italic")}>
           <span class="zen-font-medium">{label()}</span>
-          <Show when={props.selection?.kind === "include" && props.selection.values.length > 0}>
-            <span class="zen-font-normal">
-              : {props.selection!.values.length === 1 
-                  ? (isMeasure() ? Number((props.selection as any)!.values[0]).toLocaleString("en-US", { maximumFractionDigits: 2 }) : (props.selection as any)!.values[0])
-                  : `${props.selection!.values.length} selected`}
-            </span>
+          <Show when={included()}>
+            {(sel) => (
+              <span class="zen-font-normal">
+                : {sel().values.length === 1
+                    ? isMeasure()
+                      ? Number(sel().values[0]).toLocaleString("en-US", { maximumFractionDigits: 2 })
+                      : sel().values[0]
+                    : `${sel().values.length} selected`}
+              </span>
+            )}
           </Show>
-          <Show when={props.selection?.kind === "all" && props.selection.exclude.length > 0}>
-             <span class="zen-font-normal">: All (except {props.selection!.exclude.length})</span>
+          <Show when={excluded()}>
+            {(sel) => <span class="zen-font-normal">: All (except {sel().exclude.length})</span>}
           </Show>
         </span>
         
@@ -109,7 +126,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
             formatValue={(val) => (isMeasure() ? Number(val).toLocaleString("en-US", { maximumFractionDigits: 2 }) : val)}
             triggerClass={cn(
               "zen-flex zen-shrink-0 zen-items-center zen-justify-center zen-rounded-sm zen-p-1 zen-transition-colors",
-              filtered() ? "zen-text-zen-primary hover:zen-bg-zen-muted hover:zen-text-zen-primary-fg" : "zen-text-zen-muted-foreground hover:zen-bg-zen-muted hover:zen-text-zen-foreground"
+              filtered() ? "zen-text-zen-primary hover:zen-bg-zen-muted hover:zen-text-zen-primary-fg" : "zen-text-zen-muted-fg hover:zen-bg-zen-muted hover:zen-text-zen-foreground"
             )}
             triggerChildren={<Icon name="chevron-down" class="zen-h-3.5 zen-w-3.5" />}
             singleSelect={props.singleSelect}
@@ -119,7 +136,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
         <Show when={props.zone !== "values" && (!props.loadMembers || !props.onSelectionChange)}>
            <button
              type="button"
-             class="zen-flex zen-shrink-0 zen-items-center zen-justify-center zen-rounded-sm zen-p-1 zen-text-zen-muted-foreground zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground"
+             class="zen-flex zen-shrink-0 zen-items-center zen-justify-center zen-rounded-sm zen-p-1 zen-text-zen-muted-fg zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground"
            >
              <Icon name="chevron-down" class="zen-h-3.5 zen-w-3.5" />
            </button>
@@ -128,7 +145,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
         <Show when={props.zone !== "available" && props.onRemove}>
           <button
             type="button"
-            class="zen-ml-1 zen-rounded-sm hover:zen-bg-zen-muted zen-p-1 zen-text-zen-muted-foreground focus:zen-outline-none"
+            class="zen-ml-1 zen-rounded-sm hover:zen-bg-zen-muted zen-p-1 zen-text-zen-muted-fg focus:zen-outline-none"
             onClick={(e) => {
               e.stopPropagation();
               props.onRemove?.();

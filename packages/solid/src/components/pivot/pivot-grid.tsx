@@ -4,7 +4,7 @@ import type { PivotLayout } from "./pivot-layout";
 import { cn } from "../../lib/cn";
 
 const PIVOT_ROW_CLASS = "zen-border-b zen-border-zen-border/60 zen-bg-transparent even:zen-bg-transparent hover:zen-bg-transparent";
-const CORNER_HEADER_CLASS = "zen-px-2 zen-py-1 zen-text-left zen-text-sm zen-font-medium zen-text-zen-muted-foreground zen-capitalize";
+const CORNER_HEADER_CLASS = "zen-px-2 zen-py-1 zen-text-left zen-text-sm zen-font-medium zen-text-zen-muted-fg zen-capitalize";
 const ROW_LABEL_CLASS = "zen-px-2 zen-py-1 zen-text-left zen-text-xs zen-font-medium zen-normal-case zen-tracking-normal zen-text-zen-foreground zen-break-words zen-leading-tight";
 
 const STICKY_HEAD = "zen-bg-zen-muted";
@@ -42,7 +42,7 @@ function colPadStyle(width: number): Record<string, string> {
   return { width: `${width}px`, "min-width": `${width}px` };
 }
 
-const SKELETON_BAR = "zen-rounded-sm zen-bg-zen-muted-foreground/25 motion-safe:zen-animate-pulse";
+const SKELETON_BAR = "zen-rounded-sm zen-bg-zen-muted-fg/25 motion-safe:zen-animate-pulse";
 
 export function PivotGrid(props: PivotGridProps) {
   const rowHeight = () => props.rowHeight || 25;

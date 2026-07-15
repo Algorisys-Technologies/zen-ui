@@ -30,6 +30,16 @@ export function fieldLabel(fields: PivotField[], key: string): string {
   return field?.label ?? key;
 }
 
-export function defaultAggregationForField(field: PivotField): PivotAggregation {
+/**
+ * The default aggregation for a field.
+ *
+ * STUB: returns "sum" for every field, whatever it is — the parameter is here
+ * for the signature, not because it is read. So a count-like or average-like
+ * measure silently defaults to a sum, which is a plausible number and the wrong
+ * one. Left as-is deliberately rather than guessed at: what a field's natural
+ * aggregation is depends on the data model, and inventing a rule here would bake
+ * in a guess that is harder to find than this comment.
+ */
+export function defaultAggregationForField(_field: PivotField): PivotAggregation {
   return "sum";
 }

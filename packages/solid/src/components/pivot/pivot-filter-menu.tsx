@@ -276,7 +276,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
         ref={buttonRef}
         type="button"
         class={props.triggerClass ?? cn(
-          "zen-inline-flex zen-min-h-11 zen-min-w-11 zen-cursor-pointer zen-items-center zen-justify-center zen-gap-1 zen-rounded-sm zen-p-2 zen-text-zen-muted-foreground zen-transition-colors hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
+          "zen-inline-flex zen-min-h-11 zen-min-w-11 zen-cursor-pointer zen-items-center zen-justify-center zen-gap-1 zen-rounded-sm zen-p-2 zen-text-zen-muted-fg zen-transition-colors hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
           (filterActive() || props.sortDirection) && "zen-text-zen-primary",
         )}
         aria-label={`Sort or filter ${props.label}`}
@@ -325,7 +325,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                 <button
                   type="button"
                   class={cn(
-                    "zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-left zen-text-sm zen-transition-colors hover:zen-bg-zen-secondary hover:zen-text-zen-secondary-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
+                    "zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-left zen-text-sm zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
                     props.sortDirection === "asc" && "zen-font-medium zen-text-zen-primary",
                   )}
                   onClick={() => {
@@ -341,7 +341,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                 <button
                   type="button"
                   class={cn(
-                    "zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-left zen-text-sm zen-transition-colors hover:zen-bg-zen-secondary hover:zen-text-zen-secondary-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
+                    "zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-left zen-text-sm zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
                     props.sortDirection === "desc" &&
                       "zen-font-medium zen-text-zen-primary",
                   )}
@@ -361,7 +361,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
               <input
                 ref={searchInputRef}
                 type="text"
-                class="zen-h-7 zen-w-full zen-border-0 zen-bg-transparent zen-text-sm zen-text-zen-foreground zen-outline-none placeholder:zen-font-normal placeholder:zen-text-zen-muted-foreground"
+                class="zen-h-7 zen-w-full zen-border-0 zen-bg-transparent zen-text-sm zen-text-zen-foreground zen-outline-none placeholder:zen-font-normal placeholder:zen-text-zen-muted-fg"
                 placeholder={`Search ${props.label.toLowerCase()}…`}
                 aria-label={`Search ${props.label.toLowerCase()} values`}
                 value={search()}
@@ -375,12 +375,12 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
               <div class="zen-border-b zen-border-zen-border zen-p-1">
                 <button
                   type="button"
-                  class="zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-left zen-text-sm zen-font-medium zen-transition-colors hover:zen-bg-zen-secondary hover:zen-text-zen-secondary-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50"
+                  class="zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-left zen-text-sm zen-font-medium zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50"
                   onClick={toggleSelectAll}
                 >
                   <span
                     class={cn(
-                      "zen-flex zen-size-4 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-sm zen-border zen-border-zen-input zen-text-zen-primary-fg",
+                      "zen-flex zen-size-4 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-sm zen-border zen-border-zen-border zen-text-zen-primary-fg",
                       (selectAllChecked() || selectAllPartial()) &&
                         "zen-border-zen-primary zen-bg-zen-primary",
                     )}
@@ -415,7 +415,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                 aria-label={`${props.label} values`}
                 class="zen-max-h-64 zen-overflow-y-auto zen-p-1"
               >
-                <p class="zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-foreground">
+                <p class="zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-fg">
                   No matching values
                 </p>
               </div>
@@ -439,7 +439,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
               <div class="zen-border-t zen-border-zen-border zen-p-1">
                 <button
                   type="button"
-                  class="zen-w-full zen-cursor-pointer zen-rounded-md zen-px-2 zen-py-1.5 zen-text-left zen-text-sm zen-text-zen-muted-foreground zen-transition-colors hover:zen-bg-zen-secondary hover:zen-text-zen-secondary-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50"
+                  class="zen-w-full zen-cursor-pointer zen-rounded-md zen-px-2 zen-py-1.5 zen-text-left zen-text-sm zen-text-zen-muted-fg zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50"
                   onClick={() => {
                     props.onChange(null);
                   }}
