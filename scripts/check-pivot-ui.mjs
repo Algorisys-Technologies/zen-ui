@@ -266,6 +266,42 @@ if (midDrag && (moves(midDrag.source) || moves(midDrag.overlay)))
   ok(`mid-drag, something follows the pointer (${moves(midDrag.source) ? "the chip itself" : "a drag overlay"})`);
 else bad("drag feedback", `source=${midDrag?.source} overlay=${midDrag?.overlay} — the drag is invisible`);
 
+// ---- Escape cancels ------------------------------------------------------
+// A drag begun by accident must be abandonable. dnd-kit ships this; solid-dnd
+// does not, so the Solid binding raises a flag its drop handler reads — and
+// both announce the same sentence, because a cancel that is silent is
+// indistinguishable from a drop that did nothing.
+{
+  const beforeCancel = JSON.stringify(await zones());
+  const src = page.locator('[data-pivot-chip="Name"]').first();
+  const box = await src.boundingBox();
+  const zt = await page.locator('div:text-is("Rows")').first().boundingBox();
+  if (box && zt) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    for (let i = 1; i <= 16; i++) {
+      await page.mouse.move(
+        box.x + box.width / 2 + ((zt.x + 70 - box.x - box.width / 2) * i) / 16,
+        box.y + box.height / 2 + ((zt.y + 34 - box.y - box.height / 2) * i) / 16,
+      );
+      await page.waitForTimeout(18);
+    }
+    // Fully over the target: releasing here WOULD drop it.
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(200);
+    await page.mouse.up();
+    await page.waitForTimeout(320);
+
+    const afterCancel = JSON.stringify(await zones());
+    if (afterCancel === beforeCancel) ok("Escape mid-drag cancels — the layout is untouched");
+    else bad("escape cancel", `the field moved anyway:\n       ${beforeCancel}\n    -> ${afterCancel}`);
+
+    const said = (await page.locator('[aria-live="polite"]').first().innerText()).trim();
+    if (/cancelled/i.test(said)) ok(`…and says so ("${said}")`);
+    else bad("cancel announcement", `aria-live reads "${said}"`);
+  } else bad("escape setup", "no drag surface");
+}
+
 // ---- clean ---------------------------------------------------------------
 if (errors.length === 0) ok("no console/page errors");
 else bad("console", errors.slice(0, 2).join(" | "));

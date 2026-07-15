@@ -18,7 +18,6 @@ export type WindowedOptionPage = {
 
 export type UseWindowedOptionPagesProps = {
   pageSize: number;
-  searchDebounceMs?: number;
   /** When false, visible-range flushes are skipped (e.g. closed dropdown). */
   isActive?: () => boolean;
   getSearch: () => string;
@@ -27,16 +26,13 @@ export type UseWindowedOptionPagesProps = {
     limit: number,
     search: string,
   ) => Promise<WindowedOptionPage>;
-  /**
-   * Resolve list length after a page fetch. Default matches column-filter
-   * behavior; pivot members use hasMore-aware sizing on the first page.
-   */
-  resolveTotal?: (args: {
-    startIndex: number;
-    page: WindowedOptionPage;
-    previousTotal: number;
-  }) => number;
-  onError?: (caught: unknown, initial: boolean) => void;
+  // searchDebounceMs / resolveTotal / onError are gone. All three were
+  // optional, defaulted, and passed by nobody — generalisation for a second
+  // caller that does not exist. resolveTotal's doc even described it ("default
+  // matches column-filter behavior"), which is how imported abstraction reads
+  // once the thing it was imported for never arrives. The errors that onError
+  // was for are surfaced through `loadError` instead, which the UI actually
+  // reads.
 };
 
 /**
@@ -59,8 +55,7 @@ export function useWindowedOptionPages(props: UseWindowedOptionPagesProps) {
   const inFlightWindowStarts = new Set<number>();
 
   const isActive = () => props.isActive?.() ?? true;
-  const searchDebounceMs = () =>
-    props.searchDebounceMs ?? DEFAULT_SEARCH_DEBOUNCE_MS;
+
 
   function resetListState() {
     setOptionsWindows([]);
@@ -137,7 +132,7 @@ export function useWindowedOptionPages(props: UseWindowedOptionPagesProps) {
         );
         return [...next, { startIndex, values: page.values }];
       });
-      const resolve = props.resolveTotal ?? defaultResolveTotal;
+      const resolve = defaultResolveTotal;
       setTotalCount((previousTotal) =>
         resolve({ startIndex, page, previousTotal }),
       );
@@ -156,7 +151,6 @@ export function useWindowedOptionPages(props: UseWindowedOptionPagesProps) {
             : "Failed to load options.";
         setLoadError(message);
       }
-      props.onError?.(caught, initial);
     } finally {
       inFlightWindowStarts.delete(startIndex);
       const isCurrent = sequence === fetchSequence;
@@ -181,7 +175,7 @@ export function useWindowedOptionPages(props: UseWindowedOptionPagesProps) {
       searchDebounce = undefined;
       resetListState();
       void fetchWindow(0, true);
-    }, searchDebounceMs());
+    }, DEFAULT_SEARCH_DEBOUNCE_MS);
     void search;
   }
 

@@ -1,10 +1,11 @@
-import { type JSX, createSignal, For, Show, untrack } from "solid-js";
+import { type JSX, createEffect, createSignal, For, Show, onCleanup, untrack } from "solid-js";
 import {
   DragDropProvider,
   DragDropSensors,
   SortableProvider,
-  mostIntersecting,
   createSortable,
+  mostIntersecting,
+  useDragDropContext,
 } from "@thisbeyond/solid-dnd";
 import type { CollisionDetector, DragEvent } from "@thisbeyond/solid-dnd";
 import { cn } from "../../lib/cn";
@@ -120,6 +121,39 @@ const SortableChip = (props: PivotFieldChipProps) => {
   );
 };
 
+/**
+ * Escape cancels the drag.
+ *
+ * @dnd-kit gives React this for free; solid-dnd ships pointer sensors and no
+ * cancel, so a drag begun by accident could only be finished. Escaping out of a
+ * gesture is a reflex, and the alternative — drop it somewhere wrong and drag it
+ * back — is not one.
+ *
+ * solid-dnd has no "abort": dragEnd() ENDS the drag and fires onDragEnd, which
+ * performs the drop. So this raises a flag first and the drop handler reads it.
+ * Lives inside DragDropProvider because useDragDropContext only exists there.
+ */
+const CancelDragOnEscape = (props: { onCancel: () => void }) => {
+  const ctx = useDragDropContext();
+  if (!ctx) return null;
+  const [state, { dragEnd }] = ctx;
+
+  createEffect(() => {
+    if (!state.active.draggable) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      props.onCancel();
+      dragEnd();
+    };
+    // Capture, and on window: focus is nowhere useful mid-drag.
+    window.addEventListener("keydown", onKey, true);
+    onCleanup(() => window.removeEventListener("keydown", onKey, true));
+  });
+
+  return null;
+};
+
 export function PivotWorkbench(props: PivotWorkbenchProps) {
   const [draftLayout, setDraftLayout] = createSignal<PivotLayout>(
     props.initialLayout || createEmptyLayout()
@@ -157,8 +191,17 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
     return Object.keys(layout.filters).length > 0;
   };
 
+  // Set by Escape, read by the very next onDragEnd. A signal would be a render
+  // for something nothing renders.
+  let cancelled = false;
+
   const onDragEnd = (event: DragEvent) => {
     const { draggable, droppable } = event;
+    if (cancelled) {
+      cancelled = false;
+      setAnnouncement("Move cancelled.");
+      return;
+    }
     if (!droppable) return;
 
     const fieldId = draggable.id as string;
@@ -245,6 +288,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
       >
         <div class="zen-flex zen-flex-col zen-w-full zen-h-full zen-min-h-0 zen-min-w-0 zen-border zen-border-zen-border zen-rounded-md zen-overflow-hidden zen-bg-zen-background">
           <DragDropProvider onDragEnd={onDragEnd} collisionDetector={pivotCollisionDetector}>
+            <CancelDragOnEscape onCancel={() => (cancelled = true)} />
             <DragDropSensors>
               <div class="zen-flex zen-flex-col zen-flex-1 zen-w-full zen-h-full zen-min-h-0 zen-min-w-0 zen-text-zen-foreground zen-font-sans">
                 {/* Header Section */}

@@ -547,7 +547,11 @@ export type {
 } from "./components/data-table/edit-cell";
 
 export { VirtualizedItems } from "./components/listbox/virtualized-items";
-export type { VirtualizedItemsProps } from "./components/listbox/virtualized-items";
+export type {
+  VirtualizedItemsProps,
+  VirtualizedItemsDenseProps,
+  VirtualizedItemsSparseProps,
+} from "./components/listbox/virtualized-items";
 
 export { Combobox } from "./components/combobox/combobox";
 export type { ComboboxProps, ComboboxOption } from "./components/combobox/combobox";

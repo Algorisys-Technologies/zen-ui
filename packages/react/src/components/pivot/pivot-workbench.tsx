@@ -211,7 +211,13 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
           collisionDetection={pivotCollisionDetection}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
-          onDragCancel={() => setDragging(null)}
+          onDragCancel={() => {
+            // dnd-kit cancels internally (Escape) and fires THIS rather than
+            // onDragEnd — so without it the cancel was silent here while Solid
+            // announced it. Same gesture, same sentence.
+            setDragging(null);
+            setAnnouncement("Move cancelled.");
+          }}
         >
         <div className="zen-flex zen-w-full zen-flex-col zen-gap-2 zen-bg-zen-background zen-p-2">
           {showBuilder ? (

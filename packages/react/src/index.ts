@@ -671,7 +671,11 @@ export type {
 
 // Listbox helpers (windowed rendering for large option lists)
 export { VirtualizedItems } from "./components/listbox/virtualized-items";
-export type { VirtualizedItemsProps } from "./components/listbox/virtualized-items";
+export type {
+  VirtualizedItemsProps,
+  VirtualizedItemsDenseProps,
+  VirtualizedItemsSparseProps,
+} from "./components/listbox/virtualized-items";
 
 // Combobox + Command (cmdk-backed; sync or async option loading)
 export { Combobox } from "./components/combobox/combobox";
