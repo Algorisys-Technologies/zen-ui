@@ -20,12 +20,20 @@ import { cn } from "../../lib/cn";
  * scales like Never → Always, importance scales like Not important →
  * Critical, etc.).
  *
- * Two layouts:
+ * Three layouts:
  *   - "segmented" (default) — horizontal connected pill strip with
  *     short labels. Compact; fits inline questionnaires.
  *   - "stacked" — vertical list with radio button + label per row.
  *     More readable; better for long option labels and accessibility
  *     in narrow viewports.
+ *   - "scale" — the mark above a radio dot, with optional captions
+ *     anchoring the ends. This is the numeric ("1 … 5", anchored
+ *     "Strongly disagree" → "Strongly agree") and emoji shape.
+ *
+ * The scale length is `options`, never markup. Apps that hardcode
+ * `[1,2,3,4,5].map(...)` beside a variable-length data model silently
+ * render a 7-point scale as 5 and lose answers; driving it from
+ * `options` makes that unrepresentable.
  *
  * Semantically a radiogroup. Optional `question` prop renders the
  * question itself above the scale and becomes the radiogroup's
@@ -38,6 +46,16 @@ export interface LikertOption {
   /** Short label used by the segmented layout when the full label is
    *  too long. Falls back to label. */
   shortLabel?: string;
+  /** Custom mark for the option — an emoji, icon or number. Replaces
+   *  the option's visible text in any layout.
+   *
+   *  A thunk, not a node, so the Solid binding can mirror this prop
+   *  without evaluating it eagerly and losing reactivity.
+   *
+   *  The output is aria-hidden and `label` stays the accessible name:
+   *  a screen reader announcing "slightly smiling face" instead of
+   *  "Neutral" is not the answer the respondent gave. */
+  renderOption?: () => React.ReactNode;
 }
 
 const DEFAULT_OPTIONS: LikertOption[] = [
@@ -58,8 +76,16 @@ export interface LikertProps {
    *  Strongly agree scale. */
   options?: LikertOption[];
   /** "segmented" (default) — connected pill strip, short labels.
-   *  "stacked"  — vertical list, full radio + label per row. */
-  layout?: "segmented" | "stacked";
+   *  "stacked"  — vertical list, full radio + label per row.
+   *  "scale"    — mark above a radio dot; numeric and emoji scales. */
+  layout?: "segmented" | "stacked" | "scale";
+  /** Caption anchoring the low end, e.g. "Strongly disagree". A bare
+   *  numeric scale means nothing without its ends named. Rendered by
+   *  layout="scale" only; a caption, not the accessible name — that
+   *  still comes from `question`. */
+  minLabel?: string;
+  /** Caption anchoring the high end, e.g. "Strongly agree". */
+  maxLabel?: string;
   disabled?: boolean;
   readOnly?: boolean;
   className?: string;
@@ -76,6 +102,8 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
       question,
       options = DEFAULT_OPTIONS,
       layout = "segmented",
+      minLabel,
+      maxLabel,
       disabled,
       readOnly,
       className,
@@ -135,10 +163,14 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
           aria-readonly={readOnly || undefined}
           onKeyDown={onKeyDown}
           className={cn(
-            layout === "segmented"
-              ? // scroll the scale horizontally on narrow widths (keep corner clip vertically)
-                "zen-flex zen-max-w-full zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-overflow-x-auto zen-overflow-y-hidden zen-bg-zen-background"
-              : "zen-flex zen-flex-col zen-gap-1",
+            layout === "segmented" &&
+              // scroll the scale horizontally on narrow widths (keep corner clip vertically)
+              "zen-flex zen-max-w-full zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-overflow-x-auto zen-overflow-y-hidden zen-bg-zen-background",
+            layout === "stacked" && "zen-flex zen-flex-col zen-gap-1",
+            // No border or fill: the marks are the affordance, and the ends are
+            // named by the captions underneath rather than by a frame.
+            layout === "scale" &&
+              "zen-flex zen-max-w-full zen-items-end zen-justify-between zen-gap-1 zen-overflow-x-auto",
             disabled && "zen-opacity-50",
           )}
         >
@@ -146,6 +178,56 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
             const selected = value === opt.value;
             const isFirst = i === 0;
             const isLast = i === options.length - 1;
+            if (layout === "scale") {
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  // The mark is decorative; the label is the answer.
+                  aria-label={opt.label}
+                  disabled={disabled}
+                  tabIndex={selected || (currentIndex < 0 && i === 0) ? 0 : -1}
+                  onClick={() => interactive && update(opt.value)}
+                  title={opt.label}
+                  className={cn(
+                    "zen-flex zen-flex-1 zen-flex-col zen-items-center zen-gap-1.5",
+                    "zen-min-w-[2.5rem] zen-px-1 zen-py-1.5 zen-rounded-zen-sm",
+                    "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-transition-colors",
+                    interactive && "hover:zen-bg-zen-muted",
+                    "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+                    (disabled || readOnly) && "zen-cursor-default",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "zen-text-base zen-leading-none",
+                      selected
+                        ? "zen-text-zen-foreground zen-font-semibold"
+                        : "zen-text-zen-muted-fg",
+                    )}
+                  >
+                    {opt.renderOption ? opt.renderOption() : opt.label}
+                  </span>
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "zen-inline-flex zen-items-center zen-justify-center",
+                      "zen-h-4 zen-w-4 zen-rounded-zen-full zen-border",
+                      selected
+                        ? "zen-border-zen-primary zen-bg-zen-primary"
+                        : "zen-border-zen-border zen-bg-zen-background",
+                    )}
+                  >
+                    {selected ? (
+                      <span className="zen-h-1.5 zen-w-1.5 zen-rounded-zen-full zen-bg-zen-primary-fg" />
+                    ) : null}
+                  </span>
+                </button>
+              );
+            }
             if (layout === "stacked") {
               return (
                 <button
@@ -153,6 +235,10 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
                   type="button"
                   role="radio"
                   aria-checked={selected}
+                  // Explicit rather than inherited from the text: a
+                  // renderOption mark is aria-hidden, which would otherwise
+                  // leave this radio with no accessible name at all.
+                  aria-label={opt.label}
                   disabled={disabled}
                   tabIndex={
                     selected || (currentIndex < 0 && i === 0) ? 0 : -1
@@ -182,7 +268,11 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
                       <span className="zen-h-1.5 zen-w-1.5 zen-rounded-zen-full zen-bg-zen-primary-fg" />
                     ) : null}
                   </span>
-                  <span>{opt.label}</span>
+                  {opt.renderOption ? (
+                    <span aria-hidden>{opt.renderOption()}</span>
+                  ) : (
+                    <span>{opt.label}</span>
+                  )}
                 </button>
               );
             }
@@ -215,14 +305,28 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
                   isLast && "zen-rounded-r-zen-md",
                 )}
               >
-                <span className="zen-hidden md:zen-inline">{opt.label}</span>
-                <span className="md:zen-hidden">
-                  {opt.shortLabel ?? opt.label}
-                </span>
+                {opt.renderOption ? (
+                  <span aria-hidden>{opt.renderOption()}</span>
+                ) : (
+                  <>
+                    <span className="zen-hidden md:zen-inline">{opt.label}</span>
+                    <span className="md:zen-hidden">
+                      {opt.shortLabel ?? opt.label}
+                    </span>
+                  </>
+                )}
               </button>
             );
           })}
         </div>
+        {layout === "scale" && (minLabel || maxLabel) ? (
+          // Captions, not controls: they name the ends of the scale and are
+          // not themselves answerable.
+          <div className="zen-flex zen-items-start zen-justify-between zen-gap-4 zen-text-xs zen-text-zen-muted-fg">
+            <span>{minLabel}</span>
+            <span className="zen-text-right">{maxLabel}</span>
+          </div>
+        ) : null}
         {inputName && value !== undefined ? (
           <input type="hidden" name={inputName} value={value} />
         ) : null}

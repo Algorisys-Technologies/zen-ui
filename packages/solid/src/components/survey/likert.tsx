@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, Show } from "solid-js";
+import { type JSX, createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { cn } from "../../lib/cn";
 
 /**
@@ -15,9 +15,15 @@ import { cn } from "../../lib/cn";
  * Defaults to a 5-point Strongly disagree → Strongly agree scale.
  * Override `options` for variants (frequency, importance, etc.).
  *
- * Two layouts:
+ * Three layouts:
  *   - "segmented" (default) — horizontal connected pill strip.
  *   - "stacked"  — vertical list, radio button + label per row.
+ *   - "scale"    — the mark above a radio dot, with optional captions
+ *     anchoring the ends. The numeric and emoji shape.
+ *
+ * The scale length is `options`, never markup — see the React binding.
+ *
+ * Mirrors the React binding's API.
  */
 
 export interface LikertOption {
@@ -25,6 +31,17 @@ export interface LikertOption {
   label: string;
   /** Short label used by segmented layout when full label is too long. */
   shortLabel?: string;
+  /** Custom mark for the option — an emoji, icon or number. Replaces
+   *  the option's visible text in any layout.
+   *
+   *  A thunk rather than a value: a JSX value prop would be evaluated
+   *  eagerly at call time and lose reactivity. React mirrors the same
+   *  shape with ReactNode.
+   *
+   *  The output is aria-hidden and `label` stays the accessible name:
+   *  a screen reader announcing "slightly smiling face" instead of
+   *  "Neutral" is not the answer the respondent gave. */
+  renderOption?: () => JSX.Element;
 }
 
 const DEFAULT_OPTIONS: LikertOption[] = [
@@ -41,7 +58,17 @@ export interface LikertProps {
   onValueChange?: (value: string) => void;
   question?: string;
   options?: LikertOption[];
-  layout?: "segmented" | "stacked";
+  /** "segmented" (default) — connected pill strip, short labels.
+   *  "stacked"  — vertical list, full radio + label per row.
+   *  "scale"    — mark above a radio dot; numeric and emoji scales. */
+  layout?: "segmented" | "stacked" | "scale";
+  /** Caption anchoring the low end, e.g. "Strongly disagree". A bare
+   *  numeric scale means nothing without its ends named. Rendered by
+   *  layout="scale" only; a caption, not the accessible name — that
+   *  still comes from `question`. */
+  minLabel?: string;
+  /** Caption anchoring the high end, e.g. "Strongly agree". */
+  maxLabel?: string;
   disabled?: boolean;
   readOnly?: boolean;
   class?: string;
@@ -91,7 +118,17 @@ export const Likert = (props: LikertProps) => {
   };
 
   return (
-    <div class={cn("zen-inline-flex zen-flex-col zen-gap-2", props.class)}>
+    <div
+      class={cn(
+        // Scale spreads its marks with justify-between, which needs free space
+        // to distribute — a shrink-wrapped inline-flex root has none, and the
+        // marks would bunch up where React's (block-level flex) spread. The
+        // other layouts keep the inline-flex they already had.
+        layout() === "scale" ? "zen-flex zen-max-w-full" : "zen-inline-flex",
+        "zen-flex-col zen-gap-2",
+        props.class,
+      )}
+    >
       <Show when={props.question}>
         <p class="zen-text-sm zen-font-medium zen-text-zen-foreground zen-m-0">{props.question}</p>
       </Show>
@@ -102,9 +139,13 @@ export const Likert = (props: LikertProps) => {
         aria-readonly={props.readOnly || undefined}
         onKeyDown={onKeyDown}
         class={cn(
-          layout() === "segmented"
-            ? "zen-inline-flex zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-overflow-hidden zen-bg-zen-background"
-            : "zen-flex zen-flex-col zen-gap-1",
+          layout() === "segmented" &&
+            "zen-inline-flex zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-overflow-hidden zen-bg-zen-background",
+          layout() === "stacked" && "zen-flex zen-flex-col zen-gap-1",
+          // No border or fill: the marks are the affordance, and the ends are
+          // named by the captions underneath rather than by a frame.
+          layout() === "scale" &&
+            "zen-flex zen-max-w-full zen-items-end zen-justify-between zen-gap-1 zen-overflow-x-auto",
           props.disabled && "zen-opacity-50",
         )}
       >
@@ -115,8 +156,9 @@ export const Likert = (props: LikertProps) => {
             const isLast = createMemo(() => i() === options().length - 1);
 
             return (
-              <Show
-                when={layout() === "stacked"}
+              // Segmented is the fallback, so it stays the default exactly as
+              // it was when this was a two-way Show.
+              <Switch
                 fallback={
                   <button
                     type="button"
@@ -145,15 +187,80 @@ export const Likert = (props: LikertProps) => {
                       isLast() && "zen-rounded-r-zen-md",
                     )}
                   >
-                    <span class="zen-hidden md:zen-inline">{opt.label}</span>
-                    <span class="md:zen-hidden">{opt.shortLabel ?? opt.label}</span>
+                    <Show
+                      when={opt.renderOption}
+                      fallback={
+                        <>
+                          <span class="zen-hidden md:zen-inline">{opt.label}</span>
+                          <span class="md:zen-hidden">{opt.shortLabel ?? opt.label}</span>
+                        </>
+                      }
+                    >
+                      {(render) => <span aria-hidden="true">{render()()}</span>}
+                    </Show>
                   </button>
                 }
               >
+                <Match when={layout() === "scale"}>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={selected()}
+                    // The mark is decorative; the label is the answer.
+                    aria-label={opt.label}
+                    disabled={props.disabled}
+                    tabIndex={
+                      selected() || (currentIndex() < 0 && i() === 0) ? 0 : -1
+                    }
+                    onClick={() => interactive() && update(opt.value)}
+                    title={opt.label}
+                    class={cn(
+                      "zen-flex zen-flex-1 zen-flex-col zen-items-center zen-gap-1.5",
+                      "zen-min-w-[2.5rem] zen-px-1 zen-py-1.5 zen-rounded-zen-sm",
+                      "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-transition-colors",
+                      interactive() && "hover:zen-bg-zen-muted",
+                      "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+                      (props.disabled || props.readOnly) && "zen-cursor-default",
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      class={cn(
+                        "zen-text-base zen-leading-none",
+                        selected()
+                          ? "zen-text-zen-foreground zen-font-semibold"
+                          : "zen-text-zen-muted-fg",
+                      )}
+                    >
+                      <Show when={opt.renderOption} fallback={opt.label}>
+                        {(render) => render()()}
+                      </Show>
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class={cn(
+                        "zen-inline-flex zen-items-center zen-justify-center",
+                        "zen-h-4 zen-w-4 zen-rounded-zen-full zen-border",
+                        selected()
+                          ? "zen-border-zen-primary zen-bg-zen-primary"
+                          : "zen-border-zen-border zen-bg-zen-background",
+                      )}
+                    >
+                      <Show when={selected()}>
+                        <span class="zen-h-1.5 zen-w-1.5 zen-rounded-zen-full zen-bg-zen-primary-fg" />
+                      </Show>
+                    </span>
+                  </button>
+                </Match>
+                <Match when={layout() === "stacked"}>
                 <button
                   type="button"
                   role="radio"
                   aria-checked={selected()}
+                  // Explicit rather than inherited from the text: a
+                  // renderOption mark is aria-hidden, which would otherwise
+                  // leave this radio with no accessible name at all.
+                  aria-label={opt.label}
                   disabled={props.disabled}
                   tabIndex={
                     selected() || (currentIndex() < 0 && i() === 0) ? 0 : -1
@@ -183,13 +290,24 @@ export const Likert = (props: LikertProps) => {
                       <span class="zen-h-1.5 zen-w-1.5 zen-rounded-zen-full zen-bg-zen-primary-fg" />
                     </Show>
                   </span>
-                  <span>{opt.label}</span>
+                  <Show when={opt.renderOption} fallback={<span>{opt.label}</span>}>
+                    {(render) => <span aria-hidden="true">{render()()}</span>}
+                  </Show>
                 </button>
-              </Show>
+                </Match>
+              </Switch>
             );
           }}
         </For>
       </div>
+      <Show when={layout() === "scale" && (props.minLabel || props.maxLabel)}>
+        {/* Captions, not controls: they name the ends of the scale and are
+            not themselves answerable. */}
+        <div class="zen-flex zen-items-start zen-justify-between zen-gap-4 zen-text-xs zen-text-zen-muted-fg">
+          <span>{props.minLabel}</span>
+          <span class="zen-text-right">{props.maxLabel}</span>
+        </div>
+      </Show>
       <Show when={props.name && value() !== undefined}>
         <input type="hidden" name={props.name} value={value()} />
       </Show>
