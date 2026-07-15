@@ -50,6 +50,10 @@ dist-demo
 !CHANGELOG.md
 !DEV_GUIDE.md
 !docs/**/*.md
+# release-notes/ is the per-version human release note that `ship it` writes.
+# Without this line `*.md` above swallows it AT ANY DEPTH and the notes are
+# silently untracked — the whole point of them is that they ship.
+!release-notes/**/*.md
 !todo.md
 !README.md
 *.txt

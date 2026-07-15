@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev:all": "node scripts/dev-all.mjs",
-    "check": "bun run check:types && bun run check:cn && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:nav && bun run check:parity",
+    "check": "bun run check:types && bun run check:cn && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:nav && bun run check:parity && bun run check:release",
     "check:types": "tsc --project scripts/tsconfig.json",
     "check:cn": "bun run scripts/check-cn.ts",
     "check:mask": "bun run scripts/check-mask.ts",
@@ -20,6 +20,7 @@
     "check:virtual-window": "bun run scripts/check-virtual-window.ts",
     "check:nav": "bun run scripts/check-nav.ts",
     "check:parity": "bun run scripts/check-parity.ts",
+    "check:release": "bun run scripts/check-release.ts",
     "dev": "bun --filter @algorisys/zen-ui-react dev",
     "build": "bun --filter @algorisys/zen-ui-react build",
     "build:lib": "bun --filter @algorisys/zen-ui-react build:lib",

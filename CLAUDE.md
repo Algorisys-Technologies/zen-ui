@@ -258,6 +258,88 @@ sidebar and the landing-page catalogue. Adding a component means: add it to
 `nav.ts`, add its `<Route>`. Nothing else. (They were previously two hand-kept
 lists and drifted 16 entries apart.)
 
+## "Ship it" — the release procedure
+
+When the user says **"ship it"**, that is the whole instruction. It means: write
+the release notes, bump the version, sync `main`. Do all of it; do not ask which
+part.
+
+### 1. Decide the version
+
+All three packages carry **one** version and bump together, including the ones
+with no changes. They ship one API — two version numbers describing it would
+only diverge, and force every question to start by naming a binding.
+`apps/landing` is exempt: it is an unpublished page, its `0.0.0` is deliberate,
+and it *displays* core's version rather than owning one.
+
+Pick it from what actually changed, not from how big the diff felt:
+
+| Bump | When |
+|---|---|
+| **major** | A consumer's working code stops working, or starts looking different. Renamed or removed prop, changed default, new required peer, altered visual output. |
+| **minor** | New component, new prop, new variant — additive only. |
+| **patch** | A bug fix that changes nothing anyone was relying on. |
+
+**A visual change is breaking.** A component library's output *is* its API; a
+restyle that reflows someone's page breaks them as surely as a renamed prop.
+3.0.0 was major because the element reset became opt-in.
+
+### 2. Write `release-notes/<version>.md`
+
+This is the part with no shortcut. It is prose for **someone who uses zen-ui and
+does not work on it** — they do not know the file you touched or the issue
+number, and "misc fixes" tells them nothing.
+
+- **Lead with what breaks**, and show the upgrade in code. A breaking change
+  with no migration line is a bug report from every consumer.
+- **Name the bug, not the commit.** "Dialogs were unreadable in dark mode —
+  about 1.2:1" beats "fix dialog tokens".
+- **Say what a thing is for**, not that it exists. "Pick 'Last 7 days' and the
+  filter stores the period, not the two dates it means today" beats "added
+  `DynamicDateRange`."
+- **Skip the churn.** Refactors, tests and internal renames go in
+  `CHANGELOG.md`. A reader who upgrades cannot act on them.
+- Follow [3.0.0.md](release-notes/3.0.0.md).
+
+> **`.gitignore` has `*.md`, and it matches at any depth.** The folder is
+> allowlisted (`!release-notes/**/*.md`). If you rename or move it, allowlist the
+> new path or the notes are silently untracked — a release note that does not
+> ship is the one failure mode this folder exists to prevent.
+
+### 3. Update the other three places, because a release lives in four
+
+Nothing generates these from each other; they are four audiences and merging
+them would lose the distinction. `bun run check:release` asserts they name the
+same version — it will not tell you the prose is stale.
+
+| File | Audience | What it wants |
+|---|---|---|
+| `release-notes/<v>.md` | users upgrading | the prose above |
+| `CHANGELOG.md` | maintainers | Keep a Changelog, the churn included |
+| `packages/{react,solid}/src/release-notes.ts` | the demo footer chip | one line per change, both bindings |
+| `packages/{core,react,solid}/package.json` | consumers | the number |
+
+`release-notes.ts` is capped at 10 entries but sorts breaking-first via
+`KIND_PRIORITY`, so a breaking change cannot fall off the end.
+
+### 4. Ship
+
+```bash
+bun run check          # 343 contract checks, incl. check:release
+bun run lint           # React 29 problems; Solid 8 errors / 46 warnings
+node scripts/visual-check.mjs react && node scripts/visual-check.mjs solid
+
+git commit && git tag v<version>
+git checkout main && git merge --ff-only dev && git push origin main --tags
+git checkout dev
+
+./deploy.sh --publish
+```
+
+`deploy.sh` rebuilds `packages/*/dist` with the `/zen-ui/` base — **it clobbers
+your local demo builds.** Rebuild after deploying, or the next `preview` serves
+a demo whose asset URLs all point at `/zen-ui/`.
+
 ## Theming
 
 Override `--zen-*` custom properties; that is the whole public theming surface.

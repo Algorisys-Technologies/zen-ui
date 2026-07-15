@@ -376,7 +376,7 @@ const App = () => (
     <footer class="border-t border-zen-border mt-12">
       <div class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between text-xs text-zen-muted-fg">
         <span>Built by Algorisys Technologies. MIT-style internal use.</span>
-        <span>v0.1 · {new Date().getFullYear()}</span>
+        <span>v{__ZEN_VERSION__} · {new Date().getFullYear()}</span>
       </div>
     </footer>
   </div>
