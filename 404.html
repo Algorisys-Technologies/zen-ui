@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Redirecting…</title>
+<script>
+(function () {
+  var BASE = "/zen-ui/";
+  // Longest first. "builder" is a PREFIX of "builder-solid" — the same trap the
+  // dev hub's proxy table hit, where a plain prefix match sent every Solid URL
+  // to the React server. Matching on the trailing slash is what actually makes
+  // it safe; the ordering is belt and braces.
+  var APPS = ["builder-solid", "builder"];
+  var path = location.pathname;
+  if (path.indexOf(BASE) !== 0) { location.replace(BASE); return; }
+  var rest = path.slice(BASE.length);
+  for (var i = 0; i < APPS.length; i++) {
+    var app = APPS[i];
+    if (rest === app || rest.indexOf(app + "/") === 0) {
+      var route = rest.slice(app.length) || "/";
+      location.replace(BASE + app + "/?p=" + encodeURIComponent(route) + location.hash);
+      return;
+    }
+  }
+  // Not a demo route — a genuinely missing page. The landing page is the site.
+  location.replace(BASE);
+})();
+</script>
