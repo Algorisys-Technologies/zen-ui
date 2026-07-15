@@ -32,6 +32,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Alert, AlertContent, AlertDescription, AlertIcon, AlertTitle } from "../alert/alert";
 import { Button } from "../button/button";
+import { Icon } from "../icon/icon";
 import { PivotDropZone } from "./pivot-drop-zone";
 import { PivotFieldChip, type PivotFieldChipProps } from "./pivot-field-chip";
 
@@ -329,7 +330,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
           <div className="zen-flex zen-flex-col zen-gap-2">
             {applied.values.length === 0 ? (
               <Alert color="warning">
-                <AlertIcon />
+                <AlertIcon><Icon name="info" /></AlertIcon>
                 <AlertContent>
                   <AlertTitle>Value field required</AlertTitle>
                   <AlertDescription>Drop at least one field into Values to calculate data.</AlertDescription>
@@ -338,7 +339,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
             ) : null}
             {applied.rows.length === 0 && applied.columns.length === 0 ? (
               <Alert color="warning">
-                <AlertIcon />
+                <AlertIcon><Icon name="info" /></AlertIcon>
                 <AlertContent>
                   <AlertTitle>Dimension required</AlertTitle>
                   <AlertDescription>Drop at least one field into Rows or Columns.</AlertDescription>

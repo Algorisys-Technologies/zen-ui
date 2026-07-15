@@ -19,6 +19,8 @@ import {
   createEmptyLayout,
   describeMove,
   fieldLabel,
+  hasActiveFilters,
+  isLayoutRenderable,
   moveFieldToZone,
   updateValueAggregation,
 } from "@algorisys/zen-ui-core/pivot";
@@ -190,12 +192,6 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
     setAnnouncement(describeMove(untrack(() => props.fields), fieldId, zone, index));
   };
 
-  const hasAnyFilters = () => {
-    const layout = draftLayout();
-    if (!layout.filters) return false;
-    return Object.keys(layout.filters).length > 0;
-  };
-
   // Set by Escape, read by the very next onDragEnd. A signal would be a render
   // for something nothing renders.
   let cancelled = false;
@@ -274,207 +270,161 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
   };
 
   return (
-    <div class={cn("zen-flex zen-flex-col zen-h-full zen-w-full zen-min-h-0 zen-min-w-0 zen-border zen-border-zen-border zen-rounded-zen-md zen-overflow-hidden", props.class)}>
+    <div class={cn("zen-flex zen-h-full zen-w-full zen-min-w-0 zen-flex-col zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border", props.class)}>
       {/* Every layout change says so out loud. A drag is invisible to a screen
           reader: the chips move and nothing is announced. Polite, so it waits
           for a pause rather than interrupting. */}
       <div aria-live="polite" aria-atomic="true" class="zen-sr-only">
         {announcement()}
       </div>
-      <Show 
-        when={props.showBuilder !== false}
-        fallback={
-          <div class="zen-flex-1 zen-min-h-0 zen-min-w-0 zen-relative zen-bg-zen-background">
-            <Show when={props.children}>
-              {props.children}
-            </Show>
-          </div>
-        }
-      >
-        <div class="zen-flex zen-flex-col zen-w-full zen-h-full zen-min-h-0 zen-min-w-0 zen-border zen-border-zen-border zen-rounded-md zen-overflow-hidden zen-bg-zen-background">
-          <DragDropProvider onDragEnd={onDragEnd} collisionDetector={pivotCollisionDetector}>
-            <CancelDragOnEscape onCancel={() => (cancelled = true)} />
-            <DragDropSensors>
-              <div class="zen-flex zen-flex-col zen-flex-1 zen-w-full zen-h-full zen-min-h-0 zen-min-w-0 zen-text-zen-foreground zen-font-sans">
-                {/* Header Section */}
-                <div class="zen-border-b zen-border-zen-border zen-bg-zen-muted/30 zen-p-3">
-                  <div class="zen-mb-3 zen-flex zen-items-center zen-justify-between">
-                    <div class="zen-text-sm zen-font-semibold zen-text-zen-foreground zen-select-none">
-                      Available Fields
-                    </div>
-                    <div class="zen-flex zen-items-center zen-gap-4">
-                      <Show when={props.totalRows !== undefined || props.totalCols !== undefined}>
-                        <div class="zen-text-xs zen-text-zen-muted-fg zen-leading-relaxed">
-                          <div class="zen-flex zen-items-center zen-gap-1.5">
-                            <Show when={props.totalRows !== undefined}>
-                              <span>
-                                <span class="zen-font-medium zen-text-zen-foreground">{props.totalRows?.toLocaleString("en-IN")}</span> rows
-                              </span>
-                            </Show>
-                            <Show when={props.totalRows !== undefined && props.totalCols !== undefined}>
-                              <span>&middot;</span>
-                            </Show>
-                            <Show when={props.totalCols !== undefined}>
-                              <span>
-                                <span class="zen-font-medium zen-text-zen-foreground">{props.totalCols?.toLocaleString("en-IN")}</span> cols
-                              </span>
-                            </Show>
-                          </div>
-                        </div>
-                      </Show>
-                      <Show when={hasAnyFilters()}>
-                        <button
-                          type="button"
-                          class="zen-text-sm zen-text-zen-muted-fg hover:zen-text-zen-foreground zen-transition-colors zen-p-1 -zen-m-1"
-                          onClick={() => {
-                            if (props.onClearFilters) {
-                              props.onClearFilters();
-                            } else {
-                              setDraftLayout(prev => ({ ...prev, filters: {} }));
-                            }
-                          }}
-                        >
-                          Clear filters
-                        </button>
-                      </Show>
-                      <Button onClick={applyLayout} variant="solid" size="sm">
-                        View Data
-                      </Button>
-                    </div>
-                  </div>
-                  <PivotDropZone id="available" title="Available Fields" hideTitle horizontal class="zen-border-0 zen-bg-transparent zen-p-0" isEmpty={availableFields().length === 0}>
-                    <SortableProvider ids={availableFields().map(f => f.key)}>
-                      <For each={availableFields()}>
-                        {(field) => (
-                          <SortableChip
-                            fieldKey={field.key}
-                            onMoveToZone={(z: PivotZone) => moveField(field.key, z)}
-                            fields={props.fields}
-                            zone="available"
-                            onRemove={() => handleRemoveField(field.key)}
-                            selection={draftLayout().filters?.[field.key]}
-                            filters={draftLayout().filters}
-                            loadMembers={props.loadMembers}
-                            onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(field.key, sel)}
-                            singleSelect={true}
-                          />
-                        )}
-                      </For>
-                    </SortableProvider>
-                  </PivotDropZone>
-                </div>
-
-                {/* Main Content Area */}
-                <div class="zen-flex zen-flex-col lg:zen-flex-row zen-flex-1 zen-min-h-0 zen-min-w-0">
-                  
-                  {/* Sidebar */}
-                  <div class="zen-flex zen-flex-col zen-w-full lg:zen-w-64 zen-shrink-0 zen-border-b lg:zen-border-b-0 lg:zen-border-r zen-border-zen-border">
-                    <PivotDropZone id="values" title="Values" class="zen-min-h-24 lg:zen-min-h-16" isEmpty={draftLayout().values.length === 0}>
-                      <SortableProvider ids={draftLayout().values.map(v => v.id)}>
-                        <For each={draftLayout().values}>
-                          {(val) => (
-                            <SortableChip
-                              fieldKey={val.id}
-                              onMoveToZone={(z: PivotZone) => moveField(val.id, z)}
-                              fields={props.fields}
-                              zone="values"
-                              aggregation={val.aggregation}
-                              onAggregationChange={(agg: PivotAggregation) => handleAggregationChange(val.id, agg)}
-                              onRemove={() => handleRemoveField(val.id)}
-                              selection={draftLayout().filters?.[val.id]}
-                              filters={draftLayout().filters}
-                              loadMembers={props.loadMembers}
-                              onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(val.id, sel)}
-                            />
-                          )}
-                        </For>
-                      </SortableProvider>
-                    </PivotDropZone>
-                    <PivotDropZone id="rows" title="Rows" class="zen-flex-1 zen-min-h-24 lg:zen-min-h-16 zen-border-t zen-border-zen-border" isEmpty={draftLayout().rows.length === 0}>
-                      <SortableProvider ids={draftLayout().rows}>
-                        <For each={draftLayout().rows}>
-                          {(fieldId) => {
-                            return (
-                              <SortableChip
-                                fieldKey={fieldId}
-                                onMoveToZone={(z: PivotZone) => moveField(fieldId, z)}
-                                fields={props.fields}
-                                zone="rows"
-                                onRemove={() => handleRemoveField(fieldId)}
-                                selection={draftLayout().filters?.[fieldId]}
-                                filters={draftLayout().filters}
-                                loadMembers={props.loadMembers}
-                                onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(fieldId, sel)}
-                              />
-                            );
-                          }}
-                        </For>
-                      </SortableProvider>
-                    </PivotDropZone>
-                  </div>
-
-                  {/* Grid Area */}
-                  <div class="zen-flex zen-flex-col zen-flex-1 zen-min-w-0 zen-min-h-0">
-                    <PivotDropZone id="columns" title="Columns" horizontal class="zen-bg-zen-muted/10 zen-border-b zen-border-zen-border zen-shrink-0 zen-min-h-16" isEmpty={draftLayout().columns.length === 0}>
-                      <SortableProvider ids={draftLayout().columns}>
-                        <For each={draftLayout().columns}>
-                          {(fieldId) => {
-                            return (
-                              <SortableChip
-                                fieldKey={fieldId}
-                                onMoveToZone={(z: PivotZone) => moveField(fieldId, z)}
-                                fields={props.fields}
-                                zone="columns"
-                                onRemove={() => handleRemoveField(fieldId)}
-                                selection={draftLayout().filters?.[fieldId]}
-                                filters={draftLayout().filters}
-                                loadMembers={props.loadMembers}
-                                onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(fieldId, sel)}
-                              />
-                            );
-                          }}
-                        </For>
-                      </SortableProvider>
-                    </PivotDropZone>
-                    <div class="zen-flex-1 zen-relative zen-bg-zen-background lg:zen-h-[500px] zen-h-[350px] zen-min-h-0 zen-min-w-0">
-                      <Show when={appliedLayout().values.length === 0 || (appliedLayout().rows.length === 0 && appliedLayout().columns.length === 0)}>
-                        <div class="zen-p-4 zen-flex zen-flex-col zen-gap-2">
-                          <Show when={appliedLayout().values.length === 0}>
-                            <Alert color="warning" variant="soft">
-                               <AlertIcon><Icon name="info" /></AlertIcon>
-                               <AlertContent>
-                                 <AlertTitle>Value field required</AlertTitle>
-                                 <AlertDescription>Please drop at least one field into the Values section to calculate data.</AlertDescription>
-                               </AlertContent>
-                            </Alert>
-                          </Show>
-                          <Show when={appliedLayout().rows.length === 0 && appliedLayout().columns.length === 0}>
-                            <Alert color="warning" variant="soft">
-                               <AlertIcon><Icon name="info" /></AlertIcon>
-                               <AlertContent>
-                                 <AlertTitle>Dimension required</AlertTitle>
-                                 <AlertDescription>Please drop at least one field into the Rows or Columns section.</AlertDescription>
-                               </AlertContent>
-                            </Alert>
-                          </Show>
-                        </div>
-                      </Show>
-                      
-                      <Show when={appliedLayout().values.length > 0 && (appliedLayout().rows.length > 0 || appliedLayout().columns.length > 0)}>
-                        <div class="zen-absolute zen-inset-0">
-                          <Show when={props.children}>
-                            {props.children}
-                          </Show>
-                        </div>
-                      </Show>
-                    </div>
-                  </div>
+      <DragDropProvider onDragEnd={onDragEnd} collisionDetector={pivotCollisionDetector}>
+        <CancelDragOnEscape onCancel={() => (cancelled = true)} />
+        <DragDropSensors>
+          <div class="zen-flex zen-w-full zen-flex-col zen-gap-2 zen-bg-zen-background zen-p-2">
+            <Show when={props.showBuilder !== false}>
+              <div class="zen-flex zen-items-center zen-justify-between zen-gap-2">
+                <span class="zen-text-xs zen-text-zen-muted-fg">
+                  {(props.totalRows ?? 0).toLocaleString()} rows &middot; {(props.totalCols ?? 0).toLocaleString()} cols
+                </span>
+                <div class="zen-flex zen-items-center zen-gap-2">
+                  <Show when={hasActiveFilters(draftLayout().filters)}>
+                    <button
+                      type="button"
+                      class="-zen-m-1 zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-1 zen-text-sm zen-text-zen-muted-fg hover:zen-text-zen-foreground"
+                      onClick={() => {
+                        if (props.onClearFilters) props.onClearFilters();
+                        else setDraftLayout((prev) => ({ ...prev, filters: {} }));
+                      }}
+                    >
+                      Clear filters
+                    </button>
+                  </Show>
+                  <Button size="sm" onClick={applyLayout}>
+                    View Data
+                  </Button>
                 </div>
               </div>
-            </DragDropSensors>
-          </DragDropProvider>
-        </div>
-      </Show>
+
+              <PivotDropZone id="available" title="Available Fields" horizontal isEmpty={availableFields().length === 0}>
+                <SortableProvider ids={availableFields().map((f) => f.key)}>
+                  <For each={availableFields()}>
+                    {(field) => (
+                      <SortableChip
+                        fieldKey={field.key}
+                        onMoveToZone={(z: PivotZone) => moveField(field.key, z)}
+                        fields={props.fields}
+                        zone="available"
+                        selection={draftLayout().filters?.[field.key]}
+                        filters={draftLayout().filters}
+                        loadMembers={props.loadMembers}
+                        onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(field.key, sel)}
+                        // Available is a preview of a field you have not placed
+                        // yet, so its filter picks ONE member — it answers "what
+                        // is in here", not "which of these do I want".
+                        singleSelect={true}
+                      />
+                    )}
+                  </For>
+                </SortableProvider>
+              </PivotDropZone>
+
+              <div class="zen-grid zen-grid-cols-1 zen-gap-2 sm:zen-grid-cols-3">
+                <PivotDropZone id="values" title="Values" isEmpty={draftLayout().values.length === 0}>
+                  <SortableProvider ids={draftLayout().values.map((v) => v.id)}>
+                    <For each={draftLayout().values}>
+                      {(val) => (
+                        <SortableChip
+                          fieldKey={val.id}
+                          onMoveToZone={(z: PivotZone) => moveField(val.id, z)}
+                          fields={props.fields}
+                          zone="values"
+                          aggregation={val.aggregation}
+                          onAggregationChange={(agg: PivotAggregation) => handleAggregationChange(val.id, agg)}
+                          onRemove={() => handleRemoveField(val.id)}
+                          selection={draftLayout().filters?.[val.id]}
+                          filters={draftLayout().filters}
+                          loadMembers={props.loadMembers}
+                          onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(val.id, sel)}
+                        />
+                      )}
+                    </For>
+                  </SortableProvider>
+                </PivotDropZone>
+
+                <PivotDropZone id="rows" title="Rows" isEmpty={draftLayout().rows.length === 0}>
+                  <SortableProvider ids={draftLayout().rows}>
+                    <For each={draftLayout().rows}>
+                      {(fieldId) => (
+                        <SortableChip
+                          fieldKey={fieldId}
+                          onMoveToZone={(z: PivotZone) => moveField(fieldId, z)}
+                          fields={props.fields}
+                          zone="rows"
+                          onRemove={() => handleRemoveField(fieldId)}
+                          selection={draftLayout().filters?.[fieldId]}
+                          filters={draftLayout().filters}
+                          loadMembers={props.loadMembers}
+                          onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(fieldId, sel)}
+                        />
+                      )}
+                    </For>
+                  </SortableProvider>
+                </PivotDropZone>
+
+                <PivotDropZone id="columns" title="Columns" isEmpty={draftLayout().columns.length === 0}>
+                  <SortableProvider ids={draftLayout().columns}>
+                    <For each={draftLayout().columns}>
+                      {(fieldId) => (
+                        <SortableChip
+                          fieldKey={fieldId}
+                          onMoveToZone={(z: PivotZone) => moveField(fieldId, z)}
+                          fields={props.fields}
+                          zone="columns"
+                          onRemove={() => handleRemoveField(fieldId)}
+                          selection={draftLayout().filters?.[fieldId]}
+                          filters={draftLayout().filters}
+                          loadMembers={props.loadMembers}
+                          onSelectionChange={(sel: PivotFilterSelection | null) => handleSelectionChange(fieldId, sel)}
+                        />
+                      )}
+                    </For>
+                  </SortableProvider>
+                </PivotDropZone>
+              </div>
+            </Show>
+          </div>
+        </DragDropSensors>
+      </DragDropProvider>
+
+      <div class="zen-relative zen-min-h-0 zen-min-w-0 zen-flex-1 zen-bg-zen-background zen-p-2">
+        <Show
+          when={isLayoutRenderable(appliedLayout())}
+          fallback={
+            <div class="zen-flex zen-flex-col zen-gap-2">
+              <Show when={appliedLayout().values.length === 0}>
+                <Alert color="warning">
+                  <AlertIcon><Icon name="info" /></AlertIcon>
+                  <AlertContent>
+                    <AlertTitle>Value field required</AlertTitle>
+                    <AlertDescription>Drop at least one field into Values to calculate data.</AlertDescription>
+                  </AlertContent>
+                </Alert>
+              </Show>
+              <Show when={appliedLayout().rows.length === 0 && appliedLayout().columns.length === 0}>
+                <Alert color="warning">
+                  <AlertIcon><Icon name="info" /></AlertIcon>
+                  <AlertContent>
+                    <AlertTitle>Dimension required</AlertTitle>
+                    <AlertDescription>Drop at least one field into Rows or Columns.</AlertDescription>
+                  </AlertContent>
+                </Alert>
+              </Show>
+            </div>
+          }
+        >
+          {props.children}
+        </Show>
+      </div>
     </div>
   );
 }
