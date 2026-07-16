@@ -33,6 +33,54 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "7.1.0",
+    date: "2026-07-16",
+    kind: "new",
+    title: "Search — a search field as a component",
+    detail:
+      "Magnifier, a type=search input (role=searchbox), and a clear button that shows only when there is text. sm / md / lg, controlled or uncontrolled. zen-ui had inlined this exact affordance seven times before extracting it.",
+  },
+  {
+    version: "7.1.0",
+    date: "2026-07-16",
+    kind: "new",
+    title: "PasswordInput — a password field with a show/hide toggle",
+    detail:
+      "The toggle is a real button (keyboard reachable, labelled, aria-pressed) rather than an icon only a mouse can hit, and it never moves focus out of the field. Every native input attribute passes through.",
+  },
+  {
+    version: "7.1.0",
+    date: "2026-07-16",
+    kind: "new",
+    title: "SkipToContent — the keyboard bypass for the app frame",
+    detail:
+      "Invisible until focused; the first Tab reveals it and Enter jumps past the header and nav to the content. Now that zen-ui ships a full app frame, this is the WCAG 2.4.1 bypass it needed.",
+  },
+  {
+    version: "7.1.0",
+    date: "2026-07-16",
+    kind: "improved",
+    title: "Type and motion are re-themeable now",
+    detail:
+      "The type scale and the animations used hardcoded values no --zen-* override could reach. --zen-font-* and --zen-duration- / --zen-ease-* now back them, so you can set a brand font or retime motion. Defaults are the old values to the pixel — nothing looks different.",
+  },
+  {
+    version: "7.1.0",
+    date: "2026-07-16",
+    kind: "fixed",
+    title: "Animations respect reduced motion",
+    detail:
+      "If a visitor's system asks for less motion, the animations now shrink to nothing. They did not before — the timings had no shared place to answer the setting.",
+  },
+  {
+    version: "7.1.0",
+    date: "2026-07-16",
+    kind: "fixed",
+    title: "Solid: a standalone <label for> associates with Checkbox, RadioGroup and Select",
+    detail:
+      "The caller's id had landed on a wrapper the browser cannot label, so clicking the label did nothing. It now lands on the native control, which both names and toggles it.",
+  },
+  {
     version: "7.0.0",
     date: "2026-07-16",
     kind: "breaking",

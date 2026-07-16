@@ -11,10 +11,11 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [7.1.0] - 2026-07-16
 
-Additive — a minor when it ships. From the Carbon gap analysis
-([docs/carbon-gap-analysis.md](docs/carbon-gap-analysis.md)) shortlist.
+Additive. Components and foundations from the Carbon gap analysis
+([docs/carbon-gap-analysis.md](docs/carbon-gap-analysis.md)) shortlist, plus a
+Solid accessibility fix.
 
 ### Added
 
