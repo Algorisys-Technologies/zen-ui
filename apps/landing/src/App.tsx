@@ -94,7 +94,7 @@ const BINDINGS: Binding[] = [
     package: "@algorisys/zen-ui-react",
     status: "stable",
     blurb:
-      "57 primitives on Radix UI, react-hook-form + Zod, TanStack Table + Virtual. Built first; treated as the reference binding.",
+      "79 primitives on Radix UI, react-hook-form + Zod, TanStack Table + Virtual. Built first; treated as the reference binding.",
     features: [
       "Radix-backed compound APIs",
       "DataTable with virtualization",
@@ -112,7 +112,7 @@ const BINDINGS: Binding[] = [
     package: "@algorisys/zen-ui-solid",
     status: "alpha",
     blurb:
-      "57 primitives on Kobalte, @modular-forms/solid, @tanstack/solid-table + virtual, @thisbeyond/solid-dnd. Signal-native, byte-for-byte the same theme.",
+      "79 primitives on Kobalte, @modular-forms/solid, @tanstack/solid-table + virtual, @thisbeyond/solid-dnd. Signal-native, byte-for-byte the same theme.",
     features: [
       "Kobalte-backed compound APIs",
       "DataTable at React parity",
@@ -128,9 +128,9 @@ const BINDINGS: Binding[] = [
   {
     name: "Vanilla",
     package: "@algorisys/zen-ui-vanilla",
-    status: "experiment",
+    status: "alpha",
     blurb:
-      "8 primitives, no framework and no primitive library — props in, a DOM node out. Built to test whether core is really framework-agnostic. It found four shipped bugs, including an animation layer that had never run in any binding.",
+      "79 primitives, no framework and no primitive library — props in, a DOM node out. A full third binding at parity with React and Solid, not on npm yet. Building it found four shipped bugs, including an animation layer that had never run in any binding.",
     features: [
       "Zero runtime dependencies",
       "Factory API: Button({…}).el",
