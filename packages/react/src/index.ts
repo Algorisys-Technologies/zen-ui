@@ -21,6 +21,14 @@ export { Textarea } from "./components/form/input/textarea";
 export type { TextareaProps } from "./components/form/input/textarea";
 export { DEFAULT_EMAIL_DOMAINS } from "./components/form/input/input.constants";
 
+// Form Components - Search (magnifier + clear button; type=search / role=searchbox)
+export { Search } from "./components/form/search/search";
+export type { SearchProps, SearchSize } from "./components/form/search/search";
+
+// Form Components - PasswordInput (native input with a show/hide toggle)
+export { PasswordInput } from "./components/form/password-input/password-input";
+export type { PasswordInputProps } from "./components/form/password-input/password-input";
+
 // Form Components - NumberField (shadcn-style)
 export { NumberField } from "./components/form/number-field/number-field";
 export type { NumberFieldProps } from "./components/form/number-field/number-field";

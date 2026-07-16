@@ -437,6 +437,10 @@ export { Toaster, toast } from "./components/toast/toaster";
 export { Input, Textarea } from "./components/form/input/input";
 export type { InputProps, TextareaProps } from "./components/form/input/input";
 export { DEFAULT_EMAIL_DOMAINS } from "./components/form/input/input.constants";
+export { Search } from "./components/form/search/search";
+export type { SearchProps, SearchSize } from "./components/form/search/search";
+export { PasswordInput } from "./components/form/password-input/password-input";
+export type { PasswordInputProps } from "./components/form/password-input/password-input";
 
 export { NumberField } from "./components/form/number-field/number-field";
 export type { NumberFieldProps } from "./components/form/number-field/number-field";

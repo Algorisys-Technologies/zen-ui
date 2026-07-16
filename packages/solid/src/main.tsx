@@ -45,6 +45,8 @@ import NewSelectDemo from "./components/NewSelectDemo";
 import NewScrollAreaDemo from "./components/NewScrollAreaDemo";
 import NewToastDemo from "./components/NewToastDemo";
 import NewInputDemo from "./components/NewInputDemo";
+import SearchDemo from "./components/SearchDemo";
+import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
 import NewTagInputDemo from "./components/NewTagInputDemo";
 import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
@@ -144,6 +146,8 @@ render(
       <Route path="/scroll-area" component={NewScrollAreaDemo} />
       <Route path="/toast" component={NewToastDemo} />
       <Route path="/input" component={NewInputDemo} />
+      <Route path="/search" component={SearchDemo} />
+      <Route path="/password-input" component={PasswordInputDemo} />
       <Route path="/number-field" component={NewNumberFieldDemo} />
       <Route path="/tag-input" component={NewTagInputDemo} />
       <Route path="/phone-input" component={NewPhoneInputDemo} />

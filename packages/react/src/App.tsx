@@ -85,6 +85,8 @@ import NewSelectDemo from "./components/NewSelectDemo";
 import NewSliderDemo from "./components/NewSliderDemo";
 import NewScrollAreaDemo from "./components/NewScrollAreaDemo";
 import NewInputDemo from "./components/NewInputDemo";
+import SearchDemo from "./components/SearchDemo";
+import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
 import NewDatePickerDemo from "./components/NewDatePickerDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
@@ -280,6 +282,8 @@ const App: React.FC = () => {
             <Route path="/slider-new" element={<NewSliderDemo />} />
             <Route path="/scroll-area-new" element={<NewScrollAreaDemo />} />
             <Route path="/input-new" element={<NewInputDemo />} />
+            <Route path="/search" element={<SearchDemo />} />
+            <Route path="/password-input" element={<PasswordInputDemo />} />
             <Route path="/number-field-new" element={<NewNumberFieldDemo />} />
             <Route path="/date-picker-new" element={<NewDatePickerDemo />} />
             <Route path="/otp-new" element={<NewOTPDemo />} />

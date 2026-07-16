@@ -75,6 +75,8 @@ export const NAV: NavGroup[] = [
       { to: "/slider-new", label: "Slider", description: "Radix Slider \u2014 single + range, vertical, keyboard control", source: "packages/react/src/components/NewSliderDemo.tsx" },
       { to: "/scroll-area-new", label: "ScrollArea", description: "Radix ScrollArea \u2014 custom scrollbars, both axes", source: "packages/react/src/components/NewScrollAreaDemo.tsx" },
       { to: "/input-new", label: "Input + Textarea", description: "Plain styled <input> / <textarea>, all native attrs", source: "packages/react/src/components/NewInputDemo.tsx" },
+      { to: "/search", label: "Search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/react/src/components/SearchDemo.tsx" },
+      { to: "/password-input", label: "PasswordInput", description: "Password field with a show / hide toggle; every native input attribute passes through", source: "packages/react/src/components/PasswordInputDemo.tsx" },
       { to: "/number-field-new", label: "NumberField", description: "Number input with \u2212/+ stepper, clamp, decimal step", source: "packages/react/src/components/NewNumberFieldDemo.tsx" },
       { to: "/date-picker-new", label: "DatePicker", description: "react-day-picker in a Radix Popover; inline Calendar too", source: "packages/react/src/components/NewDatePickerDemo.tsx" },
       { to: "/otp-new", label: "InputOTP", description: "one input per digit, zero-dep; paste / autocomplete / a11y", source: "packages/react/src/components/NewOTPDemo.tsx" },

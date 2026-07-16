@@ -11,6 +11,42 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Additive — a minor when it ships. From the Carbon gap analysis
+([docs/carbon-gap-analysis.md](docs/carbon-gap-analysis.md)) shortlist.
+
+### Added
+
+- **`Search`** — a search field as a component, in all three bindings. Magnifier,
+  `type="search"` (so the platform gives it `role="searchbox"`), a
+  keyboard-reachable clear button that shows only when there is text, `sm`/`md`/`lg`,
+  controlled or uncontrolled. zen-ui had inlined this exact affordance seven times
+  (ShellBar, ValueHelp, SelectDialog, DataTable, the select list, Combobox,
+  MultiCombobox); this is the extraction. Files:
+  `packages/{react,solid,vanilla}/src/components/form/search/`.
+- **`PasswordInput`** — a password field with a show/hide toggle, in all three
+  bindings. The toggle is a real `<button>` (keyboard reachable, labelled,
+  `aria-pressed`), and it never moves focus out of the field; every native input
+  attribute passes through. Files:
+  `packages/{react,solid,vanilla}/src/components/form/password-input/`.
+- **Type + motion tokens** in core. `--zen-font-*` (family, size scale xs–5xl,
+  weights) and `--zen-duration-*` / `--zen-ease-*` now back the theme, so
+  `zen-text-*` / `zen-font-*` / `zen-anim-*` resolve through `--zen-*` instead of
+  hardcoded literals. Computed output is unchanged (verified against the published
+  stylesheet) — the point is that type and motion are now re-themeable through the
+  documented `--zen-*` surface, which they were not. Files:
+  `packages/core/styles/tokens.css`, `packages/core/src/uno-preset.ts`.
+
+### Fixed
+
+- **The twelve `zen-anim-*` animations now honour `prefers-reduced-motion`.** A media
+  block in `tokens.css` drops the duration tokens to near-zero — touching only
+  `--zen-*` custom properties, so it stays inside the library's rule that the
+  published stylesheet may set only `--zen-*` and the elements zen-ui renders. There
+  was no reduced-motion story before, because the timings were inlined per keyframe
+  with nowhere central to answer it.
+
 ## [7.0.0] - 2026-07-16
 
 Found by building a third binding with no framework and asking whether the shared

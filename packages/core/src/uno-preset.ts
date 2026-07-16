@@ -85,6 +85,47 @@ export const zenUnoTheme = {
     "zen-xl": "var(--zen-shadow-xl)",
     "zen-2xl": "var(--zen-shadow-2xl)",
   },
+  // Type + motion. These OVERRIDE the matching keys in presetUno's theme with
+  // `var(--zen-*)` indirection — UnoCSS deep-merges, so keys not listed here
+  // (text-6xl…9xl, the numeric duration scale) keep their built-in literals.
+  // The var values in tokens.css equal those literals, so every existing
+  // `zen-text-*` / `zen-font-*` / `zen-anim-*` renders identically; what changes
+  // is that a consumer can now retheme type and motion through `--zen-*`, which
+  // they could not before (there were no type or motion tokens at all).
+  fontFamily: {
+    sans: "var(--zen-font-sans)",
+    serif: "var(--zen-font-serif)",
+    mono: "var(--zen-font-mono)",
+  },
+  fontSize: {
+    xs: ["var(--zen-font-size-xs)", "var(--zen-line-height-xs)"],
+    sm: ["var(--zen-font-size-sm)", "var(--zen-line-height-sm)"],
+    base: ["var(--zen-font-size-base)", "var(--zen-line-height-base)"],
+    lg: ["var(--zen-font-size-lg)", "var(--zen-line-height-lg)"],
+    xl: ["var(--zen-font-size-xl)", "var(--zen-line-height-xl)"],
+    "2xl": ["var(--zen-font-size-2xl)", "var(--zen-line-height-2xl)"],
+    "3xl": ["var(--zen-font-size-3xl)", "var(--zen-line-height-3xl)"],
+    "4xl": ["var(--zen-font-size-4xl)", "var(--zen-line-height-4xl)"],
+    "5xl": ["var(--zen-font-size-5xl)", "var(--zen-line-height-5xl)"],
+  },
+  fontWeight: {
+    light: "var(--zen-font-weight-light)",
+    normal: "var(--zen-font-weight-normal)",
+    medium: "var(--zen-font-weight-medium)",
+    semibold: "var(--zen-font-weight-semibold)",
+    bold: "var(--zen-font-weight-bold)",
+  },
+  // Named motion keys added ALONGSIDE the numeric duration scale (deep-merge),
+  // so `zen-duration-fast` / `zen-ease-standard` are available to authors while
+  // `zen-duration-150` (used by variants.ts) keeps working.
+  duration: {
+    fast: "var(--zen-duration-fast)",
+    moderate: "var(--zen-duration-moderate)",
+  },
+  easing: {
+    standard: "var(--zen-ease-standard)",
+    collapse: "var(--zen-ease-collapse)",
+  },
 } as const;
 
 /**
@@ -110,18 +151,18 @@ export const zenUnoTheme = {
  * timings live here, so a name and its `@keyframes zen-<name>` are one edit apart.
  */
 export const ZEN_ANIMATIONS: Record<string, string> = {
-  "accordion-down": "zen-accordion-down 200ms cubic-bezier(0.87, 0, 0.13, 1)",
-  "accordion-up": "zen-accordion-up 200ms cubic-bezier(0.87, 0, 0.13, 1)",
-  "fade-in": "zen-fade-in 200ms ease-out",
-  "fade-out": "zen-fade-out 200ms ease-in",
-  "slide-in-right": "zen-slide-in-right 250ms cubic-bezier(0.32, 0.72, 0, 1)",
-  "slide-out-right": "zen-slide-out-right 200ms cubic-bezier(0.32, 0.72, 0, 1)",
-  "slide-in-left": "zen-slide-in-left 250ms cubic-bezier(0.32, 0.72, 0, 1)",
-  "slide-out-left": "zen-slide-out-left 200ms cubic-bezier(0.32, 0.72, 0, 1)",
-  "slide-in-top": "zen-slide-in-top 250ms cubic-bezier(0.32, 0.72, 0, 1)",
-  "slide-out-top": "zen-slide-out-top 200ms cubic-bezier(0.32, 0.72, 0, 1)",
-  "slide-in-bottom": "zen-slide-in-bottom 250ms cubic-bezier(0.32, 0.72, 0, 1)",
-  "slide-out-bottom": "zen-slide-out-bottom 200ms cubic-bezier(0.32, 0.72, 0, 1)",
+  "accordion-down": "zen-accordion-down var(--zen-duration-fast) var(--zen-ease-collapse)",
+  "accordion-up": "zen-accordion-up var(--zen-duration-fast) var(--zen-ease-collapse)",
+  "fade-in": "zen-fade-in var(--zen-duration-fast) var(--zen-ease-out)",
+  "fade-out": "zen-fade-out var(--zen-duration-fast) var(--zen-ease-in)",
+  "slide-in-right": "zen-slide-in-right var(--zen-duration-moderate) var(--zen-ease-standard)",
+  "slide-out-right": "zen-slide-out-right var(--zen-duration-fast) var(--zen-ease-standard)",
+  "slide-in-left": "zen-slide-in-left var(--zen-duration-moderate) var(--zen-ease-standard)",
+  "slide-out-left": "zen-slide-out-left var(--zen-duration-fast) var(--zen-ease-standard)",
+  "slide-in-top": "zen-slide-in-top var(--zen-duration-moderate) var(--zen-ease-standard)",
+  "slide-out-top": "zen-slide-out-top var(--zen-duration-fast) var(--zen-ease-standard)",
+  "slide-in-bottom": "zen-slide-in-bottom var(--zen-duration-moderate) var(--zen-ease-standard)",
+  "slide-out-bottom": "zen-slide-out-bottom var(--zen-duration-fast) var(--zen-ease-standard)",
 };
 
 /** Structural mirror of UnoCSS's DynamicRule, declared here so core keeps its

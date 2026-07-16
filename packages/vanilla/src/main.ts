@@ -19,6 +19,8 @@ import AccordionDemo from "./components/AccordionDemo";
 import TabsDemo from "./components/TabsDemo";
 import DialogDemo from "./components/DialogDemo";
 import InputDemo from "./components/InputDemo";
+import SearchDemo from "./components/SearchDemo";
+import PasswordInputDemo from "./components/PasswordInputDemo";
 import SelectDemo from "./components/SelectDemo";
 import ComboboxDemo from "./components/ComboboxDemo";
 import SeparatorDemo from "./components/SeparatorDemo";
@@ -106,6 +108,8 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/tabs": TabsDemo,
   "/dialog": DialogDemo,
   "/input": InputDemo,
+  "/search": SearchDemo,
+  "/password-input": PasswordInputDemo,
   "/select": SelectDemo,
   "/combobox": ComboboxDemo,
   "/separator": SeparatorDemo,

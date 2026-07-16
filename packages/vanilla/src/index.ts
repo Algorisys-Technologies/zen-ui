@@ -24,6 +24,10 @@ export type { DialogProps, DialogHandle } from "./components/dialog/dialog";
 
 export { Input, INPUT_CLASS } from "./components/form/input/input";
 export type { InputProps, InputHandle } from "./components/form/input/input";
+export { Search } from "./components/form/search/search";
+export type { SearchProps, SearchSize, SearchHandle } from "./components/form/search/search";
+export { PasswordInput } from "./components/form/password-input/password-input";
+export type { PasswordInputProps, PasswordInputHandle } from "./components/form/password-input/password-input";
 
 export { MaskInput } from "./components/form/mask-input/mask-input";
 export type { MaskInputProps, MaskInputHandle, MaskRules } from "./components/form/mask-input/mask-input";
