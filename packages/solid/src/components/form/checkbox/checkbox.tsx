@@ -51,6 +51,7 @@ export const Checkbox = (props: CheckboxProps) => {
     "name",
     "value",
     "label",
+    "id",
   ]);
   return (
     <KCheckbox
@@ -65,7 +66,11 @@ export const Checkbox = (props: CheckboxProps) => {
       value={local.value}
       class={cn("zen-inline-flex zen-items-center zen-gap-2", local.class)}
     >
-      <KCheckbox.Input class="zen-sr-only" />
+      {/* The caller's `id` goes on the native <input>, not the root. Kobalte puts
+          a group id on the root <div> and derives `${id}-input` for the control,
+          so a caller's `<label for={id}>` would point at a non-labelable div and
+          never associate. Landing it on the input restores `<label for>`. */}
+      <KCheckbox.Input id={local.id} class="zen-sr-only" />
       <KCheckbox.Control
         class={cn(
           "zen-peer zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",

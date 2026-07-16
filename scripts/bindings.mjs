@@ -102,6 +102,7 @@ export const BINDINGS = [
       "PopoverTrigger", "RatingSize", "SearchHandle", "SelectDialogHandle", "SelectableCard", "SelectableCardItemSpec", "SheetClose",
       "SheetContent", "SheetDescription", "SheetFooter", "SheetHandle", "SheetHeader", "SheetOverlay",
       "SheetPortal", "SheetSide", "SheetTitle", "SheetTrigger", "SidebarContextValue", "SidebarProviderHandle",
+      "SkipToContentHandle",
       "SortingColumn", "SortingState", "SplitButtonMenuItem", "StepperApi", "StepperHandle", "StepperList",
       "StepperNavigation", "StepperNavigationOptions", "StepperPanel", "TEXTAREA_CLASS", "TabSpec", "TabsContent",
       "TabsList", "TabsTrigger", "TextareaHandle", "TimePickerHandle", "ToastVariant", "TooltipContent",

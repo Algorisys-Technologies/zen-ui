@@ -28,6 +28,25 @@ const NewCheckboxDemo = () => {
       </DemoSection>
 
       <DemoSection
+        title="External label association"
+        codeTitle="<label for> targets the native control"
+        codeDescription={
+          <>
+            A caller's <code>id</code> lands on the hidden native input, so a
+            standalone <code>&lt;label for&gt;</code> associates with the box and
+            toggles it — clicking the text checks it.
+          </>
+        }
+        code={`<Checkbox id="terms" />
+<label for="terms">I accept the terms</label>`}
+      >
+        <div class="zen-flex zen-items-center zen-gap-2">
+          <Checkbox id="terms" />
+          <label for="terms" class="zen-text-sm">I accept the terms</label>
+        </div>
+      </DemoSection>
+
+      <DemoSection
         title="Controlled"
         codeTitle="checked + onChange"
         codeDescription={

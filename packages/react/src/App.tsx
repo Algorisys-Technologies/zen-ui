@@ -131,6 +131,7 @@ import NewButtonFamilyDemo from "./components/NewButtonFamilyDemo";
 import NewTreeDemo from "./components/NewTreeDemo";
 import NewToolbarDemo from "./components/NewToolbarDemo";
 import NewShellBarDemo from "./components/NewShellBarDemo";
+import SkipToContentDemo from "./components/SkipToContentDemo";
 import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDemo";
 import NewDynamicPageDemo from "./components/NewDynamicPageDemo";
 import NewObjectPageDemo from "./components/NewObjectPageDemo";
@@ -327,6 +328,7 @@ const App: React.FC = () => {
             <Route path="/button-family" element={<NewButtonFamilyDemo />} />
             <Route path="/tree" element={<NewTreeDemo />} />
             <Route path="/toolbar" element={<NewToolbarDemo />} />
+            <Route path="/skip-to-content" element={<SkipToContentDemo />} />
             <Route path="/shellbar" element={<NewShellBarDemo />} />
             <Route
               path="/flexible-column-layout"

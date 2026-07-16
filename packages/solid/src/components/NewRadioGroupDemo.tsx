@@ -28,6 +28,33 @@ const NewRadioGroupDemo = () => {
       </DemoSection>
 
       <DemoSection
+        title="External label association"
+        codeTitle="<label for> targets each item's native input"
+        codeDescription={
+          <>
+            Each item's <code>id</code> lands on its native radio input, so a
+            standalone <code>&lt;label for&gt;</code> associates and selects it —
+            clicking the text checks the radio.
+          </>
+        }
+        code={`<RadioGroup>
+  <RadioGroupItem value="a" id="opt-a" /> <label for="opt-a">Option A</label>
+  <RadioGroupItem value="b" id="opt-b" /> <label for="opt-b">Option B</label>
+</RadioGroup>`}
+      >
+        <RadioGroup>
+          <div class="zen-flex zen-items-center zen-gap-2">
+            <RadioGroupItem value="a" id="opt-a" />
+            <label for="opt-a" class="zen-text-sm">Option A</label>
+          </div>
+          <div class="zen-flex zen-items-center zen-gap-2">
+            <RadioGroupItem value="b" id="opt-b" />
+            <label for="opt-b" class="zen-text-sm">Option B</label>
+          </div>
+        </RadioGroup>
+      </DemoSection>
+
+      <DemoSection
         title="Horizontal"
         codeTitle="orientation switches the group to a flex row"
         code={`<RadioGroup defaultValue="medium" orientation="horizontal">

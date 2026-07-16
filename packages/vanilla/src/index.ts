@@ -143,6 +143,8 @@ export type { ColorPickerProps, ColorPaletteProps } from "./components/color-pic
 export { MultiCombobox } from "./components/combobox/multi-combobox";
 // ComboboxOption already re-exported from ./components/combobox/combobox above.
 export type { MultiComboboxProps } from "./components/combobox/multi-combobox";
+export { SkipToContent, SKIP_TO_CONTENT_CLASS } from "./components/skip-to-content/skip-to-content";
+export type { SkipToContentProps, SkipToContentHandle } from "./components/skip-to-content/skip-to-content";
 export { ShellBar } from "./components/shellbar/shellbar";
 export type { ShellBarProps, ShellBarItem, ShellBarMenuItem, ShellBarProfile } from "./components/shellbar/shellbar";
 export { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarTrigger } from "./components/sidebar/sidebar";

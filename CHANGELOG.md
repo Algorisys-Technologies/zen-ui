@@ -37,6 +37,12 @@ Additive — a minor when it ships. From the Carbon gap analysis
   stylesheet) — the point is that type and motion are now re-themeable through the
   documented `--zen-*` surface, which they were not. Files:
   `packages/core/styles/tokens.css`, `packages/core/src/uno-preset.ts`.
+- **`SkipToContent`** — the keyboard bypass an app frame owes its users, in all
+  three bindings. Visually hidden until focused; the first Tab reveals it and Enter
+  jumps past the header and nav to the content (WCAG 2.4.1, Bypass Blocks). Also
+  from the Carbon shortlist — zen-ui now ships a full app frame (ShellBar + Sidebar
+  + Page) and this was the missing bypass. Files:
+  `packages/{react,solid,vanilla}/src/components/skip-to-content/`.
 
 ### Fixed
 
@@ -46,6 +52,14 @@ Additive — a minor when it ships. From the Carbon gap analysis
   published stylesheet may set only `--zen-*` and the elements zen-ui renders. There
   was no reduced-motion story before, because the timings were inlined per keyframe
   with nowhere central to answer it.
+- **Solid: `<label for>` now associates with Checkbox, RadioGroupItem and Select.**
+  Kobalte put a caller's `id` on the root `<div role="group">` and derived
+  `${id}-input` for the native control, so an external `<label for={id}>` pointed at
+  a non-labelable div and never associated. The `id` now lands on the native control
+  (Checkbox → `Input`, RadioGroupItem → `ItemInput`, Select → the `Trigger` button).
+  Verified in a browser that clicking the label toggles/selects. React and vanilla
+  were never affected — they put the `id` on a `<button>`, which is labelable — so
+  the old CLAUDE.md note that grouped all three bindings was wrong; only Solid was.
 
 ## [7.0.0] - 2026-07-16
 

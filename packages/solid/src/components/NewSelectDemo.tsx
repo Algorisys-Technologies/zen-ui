@@ -49,6 +49,33 @@ const NewSelectDemo = () => {
       </DemoSection>
 
       <DemoSection
+        title="External label association"
+        codeTitle="<label for> targets the trigger"
+        codeDescription={
+          <>
+            The caller's <code>id</code> lands on the trigger button, so a
+            standalone <code>&lt;label for&gt;</code> associates with and names the
+            select — clicking the label focuses it.
+          </>
+        }
+        code={`<label for="country2">Country</label>
+<Select id="country2" options={countries} />`}
+      >
+        <div class="zen-grid zen-gap-1" style={{ "max-width": "260px" }}>
+          <label for="country2" class="zen-text-sm">Country</label>
+          <Select
+            id="country2"
+            options={[
+              { value: "us", label: "United States" },
+              { value: "uk", label: "United Kingdom" },
+              { value: "au", label: "Australia" },
+            ]}
+            placeholder="Choose a country"
+          />
+        </div>
+      </DemoSection>
+
+      <DemoSection
         title="With error"
         codeTitle="errorMessage marks the trigger invalid and renders below it"
         code={`<Select

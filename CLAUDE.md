@@ -234,10 +234,17 @@ its demos):
 - **Code examples**: React 54/54 demos (~305 examples), Solid 55/57 (158). The
   two demos without have no `DemoSection` to attach one to. The remaining gap is
   section COUNT, not snippets — Solid's demos genuinely have fewer sections.
-- **Known latent, same class as the fixed ones**: Checkbox, RadioGroupItem and
-  Select still land a caller's `id` on the wrapper rather than the native
-  control, so `<label for>` will not associate. Kobalte derives sub-part ids from
-  the root.
+- **`<label for>` association — fixed in Solid, was never broken in React or
+  vanilla.** The old note here claimed all three bindings landed a caller's `id`
+  on a wrapper. Measured, that was only true of **Solid**: Kobalte puts the
+  caller's `id` on the root `<div role="group">` and derives `${id}-input` for the
+  control, so `<label for={id}>` pointed at a non-labelable div. React (Radix) and
+  vanilla put the `id` on a `<button role="checkbox|radio">`, and a `<button>` **is**
+  a labelable element — verified in a browser that `<label for>` both names and
+  toggles it. The Solid fix routes the caller's `id` to the native control:
+  Checkbox → `Checkbox.Input`, RadioGroupItem → `ItemInput`, Select → the
+  `Trigger` button. Verified: clicking the external label now toggles/selects the
+  Solid control.
 
 Before adding anything new, check the delta:
 

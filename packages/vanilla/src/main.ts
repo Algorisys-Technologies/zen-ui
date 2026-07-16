@@ -69,6 +69,7 @@ import FileUploadDemo from "./components/FileUploadDemo";
 import ColorPickerDemo from "./components/ColorPickerDemo";
 import MultiComboboxDemo from "./components/MultiComboboxDemo";
 import ShellBarDemo from "./components/ShellBarDemo";
+import SkipToContentDemo from "./components/SkipToContentDemo";
 import SidebarDemo from "./components/SidebarDemo";
 import DatePickerDemo from "./components/DatePickerDemo";
 import NotificationsInboxDemo from "./components/NotificationsInboxDemo";
@@ -157,6 +158,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/file-upload": FileUploadDemo,
   "/color-picker": ColorPickerDemo,
   "/multi-combobox": MultiComboboxDemo,
+  "/skip-to-content": SkipToContentDemo,
   "/shellbar": ShellBarDemo,
   "/sidebar": SidebarDemo,
   "/date-picker": DatePickerDemo,

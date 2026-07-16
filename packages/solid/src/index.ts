@@ -50,6 +50,8 @@ export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
 export { Tree } from "./components/tree/tree";
 export type { TreeProps, TreeNode } from "./components/tree/tree";
 
+export { SkipToContent, SKIP_TO_CONTENT_CLASS } from "./components/skip-to-content/skip-to-content";
+export type { SkipToContentProps } from "./components/skip-to-content/skip-to-content";
 export { ShellBar } from "./components/shellbar/shellbar";
 export type {
   ShellBarProps,

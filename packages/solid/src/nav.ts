@@ -219,6 +219,7 @@ export const NAV: NavGroup[] = [
     group: "Zen app frame",
     items: [
       { label: "PageHeader", path: "/page-header", description: "A heading with a back affordance and one action — the light one", source: "packages/solid/src/components/NewPageHeaderDemo.tsx" },
+      { label: "SkipToContent", path: "/skip-to-content", description: "Keyboard bypass — the first Tab reveals a link that jumps past the app chrome to the content (WCAG 2.4.1)", source: "packages/solid/src/components/SkipToContentDemo.tsx" },
       { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/components/NewShellBarDemo.tsx" },
       { label: "FlexibleColumnLayout", path: "/flexible-column-layout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/solid/src/components/NewFlexibleColumnLayoutDemo.tsx" },
       { label: "DynamicPage", path: "/dynamic-page", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/solid/src/components/NewDynamicPageDemo.tsx" },

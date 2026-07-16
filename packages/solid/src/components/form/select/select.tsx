@@ -60,6 +60,7 @@ export const Select = (props: SelectProps) => {
     "class",
     "label",
     "errorMessage",
+    "id",
   ]);
 
   return (
@@ -100,7 +101,10 @@ export const Select = (props: SelectProps) => {
         </KSelect.Label>
       </Show>
       <KSelect.HiddenSelect />
+      {/* The caller's `id` lands on the trigger (a labelable <button>), not the
+          Kobalte root, so `<label for={id}>` associates and names the control. */}
       <KSelect.Trigger
+        id={local.id}
         class={cn(
           "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-10 zen-px-3 zen-w-full",
           "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-sm zen-text-zen-foreground",

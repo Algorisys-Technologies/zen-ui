@@ -79,6 +79,7 @@ import NewButtonFamilyDemo from "./components/NewButtonFamilyDemo";
 import NewTreeDemo from "./components/NewTreeDemo";
 import NewToolbarDemo from "./components/NewToolbarDemo";
 import NewShellBarDemo from "./components/NewShellBarDemo";
+import SkipToContentDemo from "./components/SkipToContentDemo";
 import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDemo";
 import NewDynamicPageDemo from "./components/NewDynamicPageDemo";
 import NewObjectPageDemo from "./components/NewObjectPageDemo";
@@ -179,6 +180,7 @@ render(
       <Route path="/button-family" component={NewButtonFamilyDemo} />
       <Route path="/tree" component={NewTreeDemo} />
       <Route path="/toolbar" component={NewToolbarDemo} />
+      <Route path="/skip-to-content" component={SkipToContentDemo} />
       <Route path="/shellbar" component={NewShellBarDemo} />
       <Route
         path="/flexible-column-layout"
