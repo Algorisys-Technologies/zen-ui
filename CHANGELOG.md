@@ -11,6 +11,86 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-07-16
+
+Found by building a third binding with no framework and asking whether the shared
+core was actually framework-agnostic. It was not.
+
+### Fixed
+
+- **The entire animation layer was dead CSS, in every binding, since it was
+  written.** All twelve `zen-anim-*` classes were hand-written rules in
+  `core/styles/tokens.css`, and every component used them only behind a state
+  variant (`data-[state=open]:zen-anim-accordion-down`) — 24 usages across the two
+  bindings, zero bare. UnoCSS cannot build a variant of a class it does not own, so
+  it emitted nothing and the plain rule matched no element on any page. They are now
+  real utilities, declared as `ZEN_ANIMATIONS` + `zenAnimationsPreset` in
+  `core/src/uno-preset.ts`. Accordion, Sheet and the fades animate for the first
+  time. Files: `packages/core/src/uno-preset.ts`, `packages/core/styles/tokens.css`,
+  `packages/{react,solid,vanilla}/uno.config.ts`.
+- **`core/styles/tokens.css` named a Radix implementation detail.** The collapsible
+  keyframes interpolated height to `var(--radix-accordion-content-height)` in the
+  one file shared by every binding. Kobalte publishes `--kb-accordion-content-height`
+  and a frameworkless binding publishes neither, so this could only ever have worked
+  for Radix. The keyframes now read `--zen-collapsible-content-height` and each
+  binding maps its own measurement onto it. Files: `packages/core/styles/tokens.css`,
+  `packages/{react,solid}/src/components/accordion/accordion.tsx`,
+  `packages/vanilla/src/lib/presence.ts`.
+- **`zen-transition-[grid-template-rows]` generated nothing**, so DynamicPage's
+  header collapsed instantly directly beneath a comment explaining how it animated.
+  UnoCSS has no arbitrary-value form of `transition-*`; the arbitrary-property form
+  (`zen-[transition-property:…]`) is the one that works. Files:
+  `packages/{react,solid}/src/components/dynamic-page/dynamic-page.tsx`.
+
+### Added
+
+- **`scripts/check-css-live.ts`**, wired into `bun run check`. Extracts every `zen-`
+  utility from every binding's source and asks the real generator whether it
+  resolves. Catches the whole family above in ~0.2s with no browser and no build. It
+  would have caught all twelve on the day they were written.
+- **`scripts/check-collapsible-var.mjs`**, one driven contract run against all three
+  bindings. Asserts the accordion's height actually interpolates, because a class
+  name and a variable name can both be right while nothing moves.
+- **`scripts/check-vanilla-ui.mjs`**, 20 driven assertions over the behaviour the
+  vanilla binding had to write itself (focus trap, scroll lock, dismiss, roving
+  focus, mask engine).
+- **`scripts/bindings.mjs`** — the binding registry. CLAUDE.md claimed "adding a
+  framework is one entry in `scripts/demos.mjs`"; that was true for `dev:all` and
+  nothing else. `check-nav`, `check-parity`, `check-release` and `demos.mjs` now
+  derive from it, and comparisons run against the REFERENCE binding rather than
+  pairwise.
+- **`packages/vanilla`** — `@algorisys/zen-ui-vanilla`, a full third binding: every
+  component family React and Solid ship, no framework, no primitive library, zero
+  runtime dependencies. Data-driven where React uses compound children — one factory
+  per family, returning a `{ el, update, destroy }` handle. Started as an
+  eight-component slice to test the seam (and found the four bugs above); grown to
+  parity and held to it — the `partial` registry flag is gone, and `check-parity`
+  now compares it against React with its data-driven divergences declared in
+  `scripts/bindings.mjs`. Wired into `dev:all`, `deploy.sh` (`/builder-vanilla/`) and
+  `check:dist`, but **not published to npm** this release while its data APIs settle.
+- **`PORTING.md`** — the old-idiom → new-idiom map (LOOPS XXXVI).
+
+### Changed
+
+- **`buttonVariants` / `badgeVariants` moved to `@algorisys/zen-ui-core/variants`.**
+  They were duplicated per binding — byte-identical, but only because someone
+  hand-copied correctly every time, and a third binding would have made three
+  copies. Both bindings still re-export them and the published CSS is unchanged,
+  verified by diffing the built stylesheet across the move. Variants that name a
+  state attribute (Tabs, Accordion) deliberately did NOT move: Radix's
+  `data-[state=active]` and Kobalte's `data-[selected]` are the same decision in two
+  dialects, and merging them would trade a duplication for a lie.
+- **`RELEASE_NOTES` moved to `@algorisys/zen-ui-core/release-notes`.** Pure data whose
+  own header said "keep this in sync with the Solid binding's copy" — by hand, with
+  nothing checking. Both bindings re-export it, so no import moved.
+- **Each binding's `uno.config.ts` now names the files Uno must scan.** Uno's default
+  pipeline covers `.tsx`/`.vue`/`.svelte` — every framework with a template syntax —
+  but not plain `.ts`, so `core/src/variants.ts` was invisible to the generator and
+  the hoist silently deleted 13 rules from the published stylesheet while the build,
+  the typecheck and `check:parity` all stayed green. The vanilla binding needs `.ts`
+  scanned outright: its components are plain TypeScript, and on the default config
+  none of its classes were emitted at all.
+
 ## [6.0.0] — 2026-07-16
 
 ### Changed

@@ -60,6 +60,12 @@ dist-demo
 !.claude/skills/impeccable/**/*.md
 !todo.md
 !README.md
+# The old-idiom -> new-idiom map for the vanilla binding (LOOPS XXXVI: "write the
+# mapping down"). It is what keeps three bindings agreeing on one API instead of
+# drifting, so it is team documentation in the same sense as LOOPS.md — and the
+# `*.md` rule above would swallow it exactly the way it nearly swallowed the
+# release notes.
+!PORTING.md
 *.txt
 components-list.txt
 components-list.csv

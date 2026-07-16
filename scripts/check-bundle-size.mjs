@@ -60,21 +60,54 @@ createRoot(document.getElementById("root")).render(<Card><Button>a</Button><Inpu
 import { render } from "solid-js/web";
 render(() => <Button>Hi</Button>, document.getElementById("root"));`,
   },
+  {
+    binding: "vanilla",
+    name: "one Button",
+    /**
+     * 30, the same as the other two, because the measured number is the same: 17 kB.
+     *
+     * That is worth knowing rather than assuming. A binding with no framework
+     * "obviously" ought to be smaller, and it is not — measured, 81 kB of the 92 kB
+     * raw payload is tailwind-merge, which `cn()` requires. React and Solid pay the
+     * identical bill and externalise their frameworks, so all three land at ~17 kB.
+     * The framework was never the weight; the design system is.
+     *
+     * So this budget guards the same thing theirs do: if it trips, something got
+     * pulled in that should not have been. Run with --report and find the chain.
+     * Do not raise it to make it pass.
+     */
+    budgetKB: 30,
+    code: `import { Button } from "@algorisys/zen-ui-vanilla";
+document.getElementById("root").append(Button({ children: "Hi" }).el);`,
+  },
 ];
 
 const EXTERNAL = {
   react: ["react", "react-dom", "react-dom/client", "react/jsx-runtime"],
   solid: ["solid-js", "solid-js/web", "solid-js/store"],
+  // Empty on purpose, and it is the whole point of this binding: there is no
+  // framework runtime to keep single-instance and no primitive library to
+  // externalise. If this list ever grows, "zero runtime dependencies" has quietly
+  // stopped being true and the number below stops meaning what it says.
+  vanilla: [],
 };
 
 const PLUGIN = {
   react: `import react from "@vitejs/plugin-react";\nconst plugins = [react()];`,
   solid: `import solid from "vite-plugin-solid";\nconst plugins = [solid()];`,
+  // No JSX, so no transform — but `plugins` must still EXIST, because the
+  // generated config references it unconditionally. Omitting this key threw
+  // "ReferenceError: plugins is not defined" and reported it as "build failed",
+  // which reads exactly like a size problem and is not one.
+  vanilla: `const plugins = [];`,
 };
 
-for (const b of ["react", "solid"]) {
+// Every binding under test must have a built dist, named from the CASES rather
+// than hardcoded — a case for a binding nobody built reports a bundling error
+// instead of the truth.
+for (const b of [...new Set(CASES.map((c) => c.binding))]) {
   if (!existsSync(join(ROOT, `packages/${b}/dist/index.js`))) {
-    console.error(`\n  packages/${b}/dist is missing — run: bun run build:lib${b === "solid" ? ":solid" : ""}\n`);
+    console.error(`\n  packages/${b}/dist is missing — run: bun run build:lib for ${b}\n`);
     process.exit(1);
   }
 }
@@ -88,7 +121,9 @@ const dir = mkdtempSync(join(ROOT, ".zen-size-"));
 console.log("");
 
 for (const [i, c] of CASES.entries()) {
-  const entry = join(dir, `e${i}.jsx`);
+  // .jsx for the JSX bindings; the vanilla case is plain JS and esbuild would
+  // still parse .jsx fine, but naming it honestly keeps the failure legible.
+  const entry = join(dir, `e${i}.${c.binding === "vanilla" ? "js" : "jsx"}`);
   writeFileSync(entry, c.code);
   const out = join(dir, `o${i}`);
   const cfg = join(dir, `v${i}.mjs`);

@@ -9,11 +9,14 @@
  * So this re-derives the truth from the routers and compares, rather than
  * trusting the values to have stayed correct:
  *
- *   App.tsx / main.tsx  route -> component -> imported file    (the truth)
- *   nav.ts              route -> source                        (the claim)
+ *   the router      route -> component -> imported file    (the truth)
+ *   nav.ts          route -> source                        (the claim)
+ *
+ * Every binding, from scripts/bindings.mjs. This file used to hardcode two, which
+ * is how a third binding could exist and be checked by nothing.
  */
-import { existsSync } from "node:fs";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { BINDINGS } from "./bindings.mjs";
 
 let f = 0;
 const t = (ok: boolean, name: string, detail = "") => {
@@ -21,61 +24,40 @@ const t = (ok: boolean, name: string, detail = "") => {
   console.log(`  ${ok ? "ok  " : "FAIL"} ${name.padEnd(52)} ${ok ? "" : detail}`);
 };
 
-type Binding = {
-  label: string;
-  router: string;
-  nav: string;
-  pkg: string;
-  routeRe: RegExp;
-  navRe: RegExp;
-};
-
-const BINDINGS: Binding[] = [
-  {
-    label: "react",
-    router: "packages/react/src/App.tsx",
-    nav: "packages/react/src/nav.ts",
-    pkg: "packages/react",
-    routeRe: /<Route\s+path="([^"]+)"\s+element=\{<(\w+)\s*\/>\}/g,
-    navRe: /\{[^{}\n]*to:\s*"([^"]+)"[^{}\n]*\}/g,
-  },
-  {
-    label: "solid",
-    router: "packages/solid/src/main.tsx",
-    nav: "packages/solid/src/nav.ts",
-    pkg: "packages/solid",
-    routeRe: /<Route\s+path="([^"]+)"\s+component=\{(\w+)\}/g,
-    navRe: /\{[^{}\n]*path:\s*"([^"]+)"[^{}\n]*\}/g,
-  },
-];
-
 for (const b of BINDINGS) {
-  console.log(`\n${b.label}`);
+  console.log(`\n${b.id}`);
   const router = readFileSync(b.router, "utf8");
-  const nav = readFileSync(b.nav, "utf8");
+  const nav = readFileSync(`${b.dir}/src/nav.ts`, "utf8");
 
   const imports = new Map<string, string>();
-  for (const m of router.matchAll(/import\s+(\w+)\s+from\s+"\.\/components\/([^"]+)"/g)) {
-    imports.set(m[1], m[2]);
-  }
+  for (const m of router.matchAll(b.importRe)) imports.set(m[1], m[2]);
 
   /** route -> the file the router really renders. */
   const truth = new Map<string, string>();
   for (const m of router.matchAll(b.routeRe)) {
     const file = imports.get(m[2]);
-    if (file) truth.set(m[1], `${b.pkg}/src/components/${file}.tsx`);
+    if (file) truth.set(m[1], `${b.dir}/src/components/${file}.tsx`);
+  }
+  // The vanilla binding has no JSX, so its demos are .ts. Resolve whichever exists
+  // rather than assuming the extension — guessing wrong would report every route
+  // as broken, and a check that cries wolf is a check everyone turns off.
+  for (const [route, file] of truth) {
+    if (!existsSync(file) && existsSync(file.replace(/\.tsx$/, ".ts"))) {
+      truth.set(route, file.replace(/\.tsx$/, ".ts"));
+    }
   }
 
   /** route -> what nav.ts claims. */
   const claims: { route: string; source?: string }[] = [];
   for (const m of nav.matchAll(b.navRe)) {
-    const entry = m[0];
-    const src = /source:\s*"([^"]+)"/.exec(entry);
+    const src = /source:\s*"([^"]+)"/.exec(m[0]);
     claims.push({ route: m[1], source: src?.[1] });
   }
 
   const routed = claims.filter((c) => truth.has(c.route));
-  t(routed.length > 50, `${routed.length} routed nav entries found`, `only ${routed.length}`);
+  // Every binding is a full binding now, held to one floor. vanilla was an
+  // 8-component slice with its own smaller floor; that flag is gone.
+  t(routed.length > 50, `${routed.length} routed nav entries found`, `only ${routed.length}, want > 50`);
 
   const missing = routed.filter((c) => !c.source);
   t(missing.length === 0, "every routed nav entry has a source", `missing: ${missing.map((m) => m.route).join(", ")}`);

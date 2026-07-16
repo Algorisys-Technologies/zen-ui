@@ -345,29 +345,33 @@
 /* ===================================================================== *
  * Animations                                                            *
  *                                                                       *
- * Shared keyframes consumed by components via UnoCSS `animate-*`        *
- * utility classes. Radix sets the `--radix-*-height` CSS var on the     *
- * collapsible content; the keyframes interpolate height between 0 and  *
- * that var.                                                             *
+ * Keyframes only. The `zen-anim-*` classes that used to live here are   *
+ * now real UnoCSS utilities, declared in ../src/uno-preset.ts — see the *
+ * ZEN_ANIMATIONS comment there for why (short version: as plain CSS     *
+ * classes they could not be varianted, so every one of them was dead    *
+ * and nothing in the library had ever animated).                        *
+ *                                                                       *
+ * A keyframe that needs the content's natural height reads              *
+ * --zen-collapsible-content-height. Each binding maps its own primitive *
+ * library's measurement onto that name: Radix publishes                 *
+ * --radix-accordion-content-height, Kobalte publishes                   *
+ * --kb-accordion-content-height, and a binding with no primitive        *
+ * library measures and sets it directly. This file used to read the     *
+ * Radix name — in the one place that is meant to be framework-agnostic  *
+ * — so it could only ever have worked for Radix.                        *
  * ===================================================================== */
 @keyframes zen-accordion-down {
   from { height: 0; }
-  to { height: var(--radix-accordion-content-height); }
+  to { height: var(--zen-collapsible-content-height); }
 }
 @keyframes zen-accordion-up {
-  from { height: var(--radix-accordion-content-height); }
+  from { height: var(--zen-collapsible-content-height); }
   to { height: 0; }
 }
-.zen-anim-accordion-down {
-  animation: zen-accordion-down 200ms cubic-bezier(0.87, 0, 0.13, 1);
-}
-.zen-anim-accordion-up {
-  animation: zen-accordion-up 200ms cubic-bezier(0.87, 0, 0.13, 1);
-}
 
-/* Sheet slide + overlay fade. Used by <Sheet> (built on Radix Dialog)
- * for slide-in panels from any edge. The Radix data-state=open/closed
- * attribute toggles between the in / out keyframes. */
+/* Sheet slide + overlay fade. Used by <Sheet> for slide-in panels from
+ * any edge; the binding's open/closed state attribute selects the in /
+ * out keyframe. */
 @keyframes zen-fade-in   { from { opacity: 0; } to { opacity: 1; } }
 @keyframes zen-fade-out  { from { opacity: 1; } to { opacity: 0; } }
 @keyframes zen-slide-in-right  { from { transform: translateX(100%); } to { transform: translateX(0); } }
@@ -378,14 +382,3 @@
 @keyframes zen-slide-out-top   { from { transform: translateY(0); } to { transform: translateY(-100%); } }
 @keyframes zen-slide-in-bottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes zen-slide-out-bottom{ from { transform: translateY(0); } to { transform: translateY(100%); } }
-
-.zen-anim-fade-in        { animation: zen-fade-in 200ms ease-out; }
-.zen-anim-fade-out       { animation: zen-fade-out 200ms ease-in; }
-.zen-anim-slide-in-right { animation: zen-slide-in-right 250ms cubic-bezier(0.32, 0.72, 0, 1); }
-.zen-anim-slide-out-right{ animation: zen-slide-out-right 200ms cubic-bezier(0.32, 0.72, 0, 1); }
-.zen-anim-slide-in-left  { animation: zen-slide-in-left 250ms cubic-bezier(0.32, 0.72, 0, 1); }
-.zen-anim-slide-out-left { animation: zen-slide-out-left 200ms cubic-bezier(0.32, 0.72, 0, 1); }
-.zen-anim-slide-in-top   { animation: zen-slide-in-top 250ms cubic-bezier(0.32, 0.72, 0, 1); }
-.zen-anim-slide-out-top  { animation: zen-slide-out-top 200ms cubic-bezier(0.32, 0.72, 0, 1); }
-.zen-anim-slide-in-bottom { animation: zen-slide-in-bottom 250ms cubic-bezier(0.32, 0.72, 0, 1); }
-.zen-anim-slide-out-bottom{ animation: zen-slide-out-bottom 200ms cubic-bezier(0.32, 0.72, 0, 1); }

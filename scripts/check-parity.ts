@@ -23,6 +23,7 @@
  */
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { BINDINGS, REFERENCE } from "./bindings.mjs";
 
 let f = 0;
 const t = (ok: boolean, name: string, detail = "") => {
@@ -56,12 +57,20 @@ const typeExists = (pkg: string, name: string): boolean => {
   }
 };
 
-const react = exportedNames("packages/react/src/index.ts");
-const solid = exportedNames("packages/solid/src/index.ts");
+/** Every binding's public surface, measured. */
+const surfaces = new Map(BINDINGS.map((b) => [b.id, exportedNames(`${b.dir}/src/index.ts`)]));
+const react = surfaces.get("react")!;
+const solid = surfaces.get("solid")!;
 
 console.log("\nexport counts (measured, not remembered)");
-console.log(`       React ${react.size} names, Solid ${solid.size}`);
-t(react.size > 400 && solid.size > 400, "both roots export a full surface");
+for (const b of BINDINGS) {
+  console.log(`       ${b.label.padEnd(8)} ${surfaces.get(b.id)!.size} names`);
+}
+// One floor for every binding — vanilla is a full binding now, not a slice.
+for (const b of BINDINGS) {
+  const n = surfaces.get(b.id)!.size;
+  t(n > 400, `${b.id}: root exports a full surface`, `only ${n}, want > 400`);
+}
 
 console.log("\nevery type that EXISTS is EXPORTED");
 // Any type, not just *Props. MapMarker was the proof: it exists in both
@@ -79,7 +88,7 @@ for (const [pkg, mine, theirs] of [
   );
 }
 
-console.log("\ncomponents exist in both bindings");
+console.log("\ncomponents exist in every FULL binding");
 // A component, not a type: exported, capitalised, not a *Props / *Variants.
 const componentish = (names: Set<string>) =>
   new Set(
@@ -108,13 +117,35 @@ const DIVERGENT = new Set([
   "TextOp", "defaultFilter", "cn",
 ]);
 
-const rc = componentish(react);
-const sc = componentish(solid);
-const onlyReact = [...rc].filter((n) => !sc.has(n) && !DIVERGENT.has(n)).sort();
-const onlySolid = [...sc].filter((n) => !rc.has(n) && !DIVERGENT.has(n)).sort();
-
-t(onlyReact.length === 0, "no component exists only in React", onlyReact.join(", "));
-t(onlySolid.length === 0, "no component exists only in Solid", onlySolid.join(", "));
+/**
+ * Compared against the REFERENCE binding rather than pairwise. With two bindings
+ * those are the same thing; with three, pairwise means N² arguments about which
+ * one is right, and the answer is always React.
+ *
+ * Every binding is held to the full rule — CLAUDE.md's "a component that exists
+ * only in React is a bug, not a roadmap item". vanilla used to carry a `partial`
+ * flag that skipped it here while it was an 8-component slice; dropping that flag
+ * from bindings.mjs was the decision to hold it to the same parity as Solid.
+ */
+const ref = componentish(surfaces.get(REFERENCE.id)!);
+for (const b of BINDINGS) {
+  if (b.id === REFERENCE.id) continue;
+  // A binding may declare its OWN divergences in bindings.mjs, unioned with the
+  // global set. This is where a structurally-different binding records that it
+  // does not mirror the reference's API name-for-name. The vanilla binding is
+  // data-driven (no framework, so no context to power compound children): it has
+  // every component FAMILY but exposes them as factories taking data + returning
+  // a handle, not as compound parts. So React's `AccordionContent` has no vanilla
+  // twin, and vanilla's `AccordionItemSpec` / `DialogHandle` have no React twin —
+  // the same class of decision as Solid's data-driven Select, and recorded the
+  // same way. See PORTING.md.
+  const divergent = new Set([...DIVERGENT, ...((b as { divergent?: string[] }).divergent ?? [])]);
+  const mine = componentish(surfaces.get(b.id)!);
+  const onlyRef = [...ref].filter((n) => !mine.has(n) && !divergent.has(n)).sort();
+  const onlyMine = [...mine].filter((n) => !ref.has(n) && !divergent.has(n)).sort();
+  t(onlyRef.length === 0, `no component exists only in ${REFERENCE.label}`, onlyRef.join(", "));
+  t(onlyMine.length === 0, `no component exists only in ${b.label}`, onlyMine.join(", "));
+}
 
 console.log("\nthe demos match too");
 const navPaths = (file: string, key: "to" | "path"): Set<string> => {

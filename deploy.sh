@@ -16,6 +16,10 @@
 #   /zen-ui/                    the landing page   (apps/landing)
 #   /zen-ui/builder/            the React demo     (packages/react)
 #   /zen-ui/builder-solid/      the Solid demo     (packages/solid)
+#   /zen-ui/builder-vanilla/    the vanilla demo   (packages/vanilla)
+#
+# The demo list is NOT hardcoded here: it comes from scripts/bindings.mjs, the one
+# registry. This file used to name react and solid in six places.
 #
 # The landing page is the root rather than dev-all's hub page: apps/landing's
 # own vite config has said so since it was written, and the demos' "← All demos"
@@ -24,7 +28,7 @@
 #
 # WHY EVERY BASE IS PASSED IN
 #
-# The three apps hardcode "/", "/builder/" and "/builder-solid/" in their vite
+# Each app hardcodes its own base ("/", "/builder/", …) in its vite
 # configs, which are the right answers only when the site is at the origin root.
 # On a project Pages site everything sits under /zen-ui/. Rather than edit three
 # configs to hardcode a different wrong answer, the base is a deploy-time input
@@ -61,24 +65,41 @@ done
 say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 die() { printf '\033[31mFAIL: %s\033[0m\n' "$*" >&2; exit 1; }
 
-say "Building for base $BASE"
+# The bindings, from scripts/bindings.mjs — the one registry. This file used to
+# name react and solid in six places, so a third binding could exist, build, and
+# never reach the site. `dirs` and `slugs` stay index-aligned.
+eval "$(node --input-type=module -e '
+  import { BINDINGS } from "./scripts/bindings.mjs";
+  const q = (a) => a.map((x) => `"${x}"`).join(" ");
+  console.log(`APP_DIRS=(${q(BINDINGS.map((b) => b.dir))})`);
+  console.log(`APP_SLUGS=(${q(BINDINGS.map((b) => b.base.replace(/^\//, "")))})`);
+  // Longest-first: "builder" is a PREFIX of "builder-solid" and "builder-vanilla".
+  const bySlug = BINDINGS.map((b) => b.base.replace(/^\//, "")).sort((a, b) => b.length - a.length);
+  // The 404 shim is JS, so it needs a JS array literal, not a bash one.
+  console.log(`APPS_JSON=${JSON.stringify(bySlug.map((s) => `"${s}"`).join(","))}`);
+')"
+[ ${#APP_SLUGS[@]} -gt 0 ] || die "no bindings resolved from scripts/bindings.mjs"
+
+say "Building for base $BASE  (${APP_SLUGS[*]})"
 
 # --- build ------------------------------------------------------------------
 # NOTE: these are the DEMO builds, which write to packages/*/dist and clobber
 # whatever `build:lib` left there. Rebuild the library before inspecting
 # dist/style.css afterwards. (See CLAUDE.md.)
 npx --yes vite build apps/landing      --base "$BASE"               --config apps/landing/vite.config.ts
-npx --yes vite build packages/react    --base "${BASE}builder/"     --config packages/react/vite.config.demo.ts
-npx --yes vite build packages/solid    --base "${BASE}builder-solid/" --config packages/solid/vite.config.demo.ts
+for i in "${!APP_DIRS[@]}"; do
+  npx --yes vite build "${APP_DIRS[$i]}" --base "${BASE}${APP_SLUGS[$i]}/" --config "${APP_DIRS[$i]}/vite.config.demo.ts"
+done
 
 # --- assemble ---------------------------------------------------------------
 say "Assembling $OUT"
 rm -rf "$OUT"
 mkdir -p "$OUT"
 cp -R apps/landing/dist/.      "$OUT/"
-mkdir -p "$OUT/builder" "$OUT/builder-solid"
-cp -R packages/react/dist/.    "$OUT/builder/"
-cp -R packages/solid/dist/.    "$OUT/builder-solid/"
+for i in "${!APP_DIRS[@]}"; do
+  mkdir -p "$OUT/${APP_SLUGS[$i]}"
+  cp -R "${APP_DIRS[$i]}/dist/." "$OUT/${APP_SLUGS[$i]}/"
+done
 
 # GitHub Pages runs Jekyll unless told not to, and Jekyll drops files and
 # directories whose names begin with an underscore. Vite does not emit any
@@ -104,11 +125,12 @@ cat > "$OUT/404.html" <<HTML
 <script>
 (function () {
   var BASE = "$BASE";
-  // Longest first. "builder" is a PREFIX of "builder-solid" — the same trap the
-  // dev hub's proxy table hit, where a plain prefix match sent every Solid URL
-  // to the React server. Matching on the trailing slash is what actually makes
-  // it safe; the ordering is belt and braces.
-  var APPS = ["builder-solid", "builder"];
+  // Longest first. "builder" is a PREFIX of both "builder-solid" and
+  // "builder-vanilla" — the same trap the dev hub's proxy table hit, where a plain
+  // prefix match sent every Solid URL to the React server. Matching on the trailing
+  // slash is what actually makes it safe; the ordering is belt and braces.
+  // Generated from scripts/bindings.mjs, already sorted longest-first.
+  var APPS = [$APPS_JSON];
   var path = location.pathname;
   if (path.indexOf(BASE) !== 0) { location.replace(BASE); return; }
   var rest = path.slice(BASE.length);
@@ -130,7 +152,7 @@ HTML
 # the router reads the URL. Injected right after <head>, so it runs ahead of the
 # module script rather than racing it.
 SHIM='<script>(function(){var m=location.search.match(/[?&]p=([^&]*)/);if(m){var r=decodeURIComponent(m[1]);history.replaceState(null,"",location.pathname.replace(/\/$/,"")+r+location.hash);}})();</script>'
-for app in builder builder-solid; do
+for app in "${APP_SLUGS[@]}"; do
   f="$OUT/$app/index.html"
   [ -f "$f" ] || die "$f is missing — did that app build?"
   python3 - "$f" "$SHIM" <<'PY'

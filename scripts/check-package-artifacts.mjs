@@ -14,6 +14,7 @@
  * Run AFTER build:lib and build:lib:solid, against a clean dist.
  */
 import { existsSync, readFileSync } from "node:fs";
+import { BINDINGS } from "./bindings.mjs";
 import { join } from "node:path";
 
 let f = 0;
@@ -29,8 +30,10 @@ const paths = (node, acc = []) => {
   return acc;
 };
 
-for (const pkg of ["react", "solid"]) {
-  const base = `packages/${pkg}`;
+// Every binding, from scripts/bindings.mjs. Both bindings once shipped a "types"
+// path the build never wrote, and it survived a release because a stale file kept
+// it alive locally — so a third binding checked by nobody is not hypothetical.
+for (const { id: pkg, dir: base } of BINDINGS) {
   const json = JSON.parse(readFileSync(`${base}/package.json`, "utf8"));
 
   console.log(`\n${pkg}: every declared path resolves`);

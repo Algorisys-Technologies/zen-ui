@@ -2,6 +2,8 @@ export * from "./cn";
 export * from "./icons";
 export * from "./theme";
 export * from "./uno-preset";
+export * from "./variants";
+export * from "./release-notes";
 export * from "./mask";
 export * from "./color";
 export * from "./date-range";

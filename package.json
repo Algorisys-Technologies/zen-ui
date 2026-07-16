@@ -9,9 +9,10 @@
   ],
   "scripts": {
     "dev:all": "node scripts/dev-all.mjs",
-    "check": "bun run check:types && bun run check:cn && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:nav && bun run check:parity && bun run check:release",
+    "check": "bun run check:types && bun run check:cn && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:nav && bun run check:parity && bun run check:release",
     "check:types": "tsc --project scripts/tsconfig.json",
     "check:cn": "bun run scripts/check-cn.ts",
+    "check:css-live": "bun run scripts/check-css-live.ts",
     "check:mask": "bun run scripts/check-mask.ts",
     "check:color": "bun run scripts/check-color.ts",
     "check:date-range": "bun run scripts/check-date-range.ts",
@@ -23,7 +24,7 @@
     "check:release": "bun run scripts/check-release.ts",
     "check:package": "node scripts/check-package-artifacts.mjs",
     "check:size": "node scripts/check-bundle-size.mjs",
-    "check:dist": "bun run build:lib && bun run build:lib:solid && bun run check:package && bun run check:size",
+    "check:dist": "bun run build:lib && bun run build:lib:solid && bun run build:lib:vanilla && bun run check:package && bun run check:size",
     "dev": "bun --filter @algorisys/zen-ui-react dev",
     "build": "bun --filter @algorisys/zen-ui-react build",
     "build:lib": "bun --filter @algorisys/zen-ui-react build:lib",
@@ -35,7 +36,12 @@
     "lint:solid": "bun --filter @algorisys/zen-ui-solid lint",
     "preview:solid": "bun --filter @algorisys/zen-ui-solid preview",
     "dev:landing": "bun --filter @algorisys/zen-ui-landing dev",
-    "build:landing": "bun --filter @algorisys/zen-ui-landing build"
+    "build:landing": "bun --filter @algorisys/zen-ui-landing build",
+    "dev:vanilla": "bun --filter @algorisys/zen-ui-vanilla dev",
+    "build:vanilla": "bun --filter @algorisys/zen-ui-vanilla build",
+    "build:lib:vanilla": "bun --filter @algorisys/zen-ui-vanilla build:lib",
+    "lint:vanilla": "bun --filter @algorisys/zen-ui-vanilla lint",
+    "preview:vanilla": "bun --filter @algorisys/zen-ui-vanilla preview"
   },
   "devDependencies": {
     "jodit": "^4.13.3",

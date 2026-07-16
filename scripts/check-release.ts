@@ -18,6 +18,7 @@
  * same version.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { BINDINGS } from "./bindings.mjs";
 
 let f = 0;
 const t = (ok: boolean, name: string, detail = "") => {
@@ -29,13 +30,20 @@ const pkgVersion = (name: string): string =>
   JSON.parse(readFileSync(`packages/${name}/package.json`, "utf8")).version;
 
 const core = pkgVersion("core");
-const react = pkgVersion("react");
-const solid = pkgVersion("solid");
 
-console.log("\none version, three packages");
+console.log(`\none version, ${BINDINGS.length + 1} packages`);
 // They ship one API. Two version numbers describing it would only diverge and
-// force every question to name a binding first.
-t(core === react && react === solid, `core/react/solid all at ${core}`, `core ${core}, react ${react}, solid ${solid}`);
+// force every question to name a binding first. Driven by the registry, so a new
+// binding is version-checked the day it exists rather than the day someone
+// remembers to add it here.
+const mismatched = BINDINGS.filter((b) => pkgVersion(b.id) !== core).map(
+  (b) => `${b.id} ${pkgVersion(b.id)}`,
+);
+t(
+  mismatched.length === 0,
+  `core + ${BINDINGS.map((b) => b.id).join(" + ")} all at ${core}`,
+  `core is ${core}; ${mismatched.join(", ")}`,
+);
 
 const version = core;
 
@@ -79,8 +87,7 @@ console.log("\nno page hardcodes a version");
 // value from core via vite's `define`, and this asserts nobody types one back.
 for (const [name, file] of [
   ["landing", "apps/landing/src/App.tsx"],
-  ["react demo", "packages/react/src/App.tsx"],
-  ["solid demo", "packages/solid/src/App.tsx"],
+  ...BINDINGS.map((b) => [`${b.id} demo`, b.router] as const),
 ] as const) {
   const src = readFileSync(file, "utf8");
   // A literal like `v0.1` or `v3.0.0` sitting in JSX text.
@@ -89,14 +96,27 @@ for (const [name, file] of [
 }
 
 console.log("\nthe demo footer names it too");
-// The footer's notes are per-binding and hand-written for a different audience.
-// They need not match word for word — but the newest one must be THIS release,
-// or the footer is advertising the last one.
-for (const binding of ["react", "solid"]) {
-  const src = readFileSync(`packages/${binding}/src/release-notes.ts`, "utf8");
+// One copy, in core: the notes are pure data and there is one set of them for one
+// design system. They used to live per-binding, hand-synced, with nothing checking
+// — so this used to be a loop over two files that could each be wrong separately.
+{
+  const src = readFileSync("packages/core/src/release-notes.ts", "utf8");
   const versions = [...src.matchAll(/version:\s*"([^"]+)"/g)].map((m) => m[1]);
   const uniq = [...new Set(versions)];
-  t(uniq.includes(version), `${binding}: the footer lists ${version}`, `it lists ${uniq.join(", ") || "nothing"}`);
+  t(uniq.includes(version), `core: the footer lists ${version}`, `it lists ${uniq.join(", ") || "nothing"}`);
+  // Each binding must still REACH them, or its footer silently shows nothing.
+  for (const b of BINDINGS) {
+    const shim = `${b.dir}/src/release-notes.ts`;
+    if (!existsSync(shim)) {
+      // Say so rather than pass quietly. A binding with no footer is a fact worth
+      // printing; a green tick claiming it "reads the notes from core" would be a
+      // check telling a small lie, which is how a suite stops being believed.
+      console.log(`       ${b.id}: no footer notes — nothing to reach`);
+      continue;
+    }
+    const reaches = /zen-ui-core\/release-notes/.test(readFileSync(shim, "utf8"));
+    t(reaches, `${b.id}: reads the notes from core`, `${shim} does not re-export them`);
+  }
 }
 
 console.log(f ? `\n${f} FAILED\n` : "\nall passed\n");

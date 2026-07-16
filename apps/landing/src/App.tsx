@@ -17,7 +17,7 @@ import {
  */
 const demo = (app: string) => `${import.meta.env.BASE_URL}${app}/`;
 
-type Status = "stable" | "alpha" | "planned";
+type Status = "stable" | "alpha" | "planned" | "experiment";
 
 interface Binding {
   name: string;
@@ -48,6 +48,20 @@ const SOLID_LOGO = (
     <path d="M163,35S110-4,69,5l-3,1c-12,3-22,9-28,17l-2,3-15,26,26,5c11,7,25,10,38,7l46,9,32-37Z" />
     <path d="M152,42l-44-2c-12,0-24,2-34,8L43,75l-26-5L1,99c10,17,31,25,50,20l34-9c13-4,24-12,32-23l16-22L143,40Z" opacity=".3" />
     <path d="M133,76c-10-3-20-3-30,0L66,87l-26-5L1,99c10,17,31,25,50,20l34-9c13-4,24-12,32-23Z" opacity=".5" />
+  </svg>
+);
+
+/** No framework, so no framework's mark: the platform's own brackets. */
+const VANILLA_LOGO = (
+  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden>
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M8 4 3 12l5 8M16 4l5 8-5 8M13.5 3.5l-3 17"
+    />
   </svg>
 );
 
@@ -112,6 +126,23 @@ const BINDINGS: Binding[] = [
     logo: SOLID_LOGO,
   },
   {
+    name: "Vanilla",
+    package: "@algorisys/zen-ui-vanilla",
+    status: "experiment",
+    blurb:
+      "8 primitives, no framework and no primitive library — props in, a DOM node out. Built to test whether core is really framework-agnostic. It found four shipped bugs, including an animation layer that had never run in any binding.",
+    features: [
+      "Zero runtime dependencies",
+      "Factory API: Button({…}).el",
+      "Behaviour written by hand: focus trap, dismiss, roving focus",
+      "Not published — a research result, not a product",
+    ],
+    demoHref: demo("builder-vanilla"),
+    repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/vanilla",
+    accent: "var(--zen-color-accent-purple)",
+    logo: VANILLA_LOGO,
+  },
+  {
     name: "Vue",
     package: "@algorisys/zen-ui-vue",
     status: "planned",
@@ -159,6 +190,14 @@ const StatusBadge = (props: { status: Status }) => {
       label: "Planned",
       class:
         "bg-zen-muted text-zen-muted-fg border border-zen-border",
+    },
+    // Distinct from "alpha" on purpose. Alpha means early but headed for release;
+    // this one is a question we ran, and the honest answer to "when can I install
+    // it" is "you cannot".
+    experiment: {
+      label: "Experiment",
+      class:
+        "bg-zen-primary-soft text-zen-primary-soft-fg border border-zen-primary-soft",
     },
   };
   return (

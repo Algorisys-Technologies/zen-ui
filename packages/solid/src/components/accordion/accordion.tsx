@@ -149,6 +149,12 @@ export const AccordionContent = (props: AccordionContentProps) => {
   return (
     <KAccordion.Content
       {...rest}
+      /* core's keyframes interpolate height to --zen-collapsible-content-height,
+       * a neutral name. core used to read Radix's --radix-accordion-content-height
+       * directly, which Kobalte never sets — so this animation could not have run
+       * here even once the class started generating. Kobalte publishes the same
+       * measurement under its own name; this is the mapping. */
+      style={{ "--zen-collapsible-content-height": "var(--kb-accordion-content-height)" }}
       class="zen-overflow-hidden zen-text-sm data-[closed]:zen-anim-accordion-up data-[expanded]:zen-anim-accordion-down"
     >
       <div class={cn("zen-pb-3 zen-px-1 zen-pt-0 zen-text-zen-foreground", local.class)}>

@@ -21,10 +21,11 @@ import { join } from "node:path";
 const BINDINGS = {
   react: { dir: "packages/react", base: "/builder", port: 4319 },
   solid: { dir: "packages/solid", base: "/builder-solid", port: 4320 },
+  vanilla: { dir: "packages/vanilla", base: "/builder-vanilla", port: 4321 },
 };
 
 const argv = process.argv.slice(2);
-const which = argv[0] === "both" ? ["react", "solid"] : [argv[0] ?? "react"];
+const which = argv[0] === "both" ? Object.keys(BINDINGS) : [argv[0] ?? "react"];
 const themeIdx = argv.indexOf("--theme");
 const theme = themeIdx > -1 ? argv[themeIdx + 1] : "default";
 const routes = argv.slice(1).filter((a) => !a.startsWith("--") && a !== theme);
@@ -48,7 +49,8 @@ async function waitForServer(url, tries = 60) {
 async function routesFor(binding) {
   const navPath = join(process.cwd(), BINDINGS[binding].dir, "src/nav.ts");
   const src = await import("node:fs").then((fs) => fs.readFileSync(navPath, "utf8"));
-  const key = binding === "react" ? "to" : "path";
+  // nav.ts uses `to` in React and vanilla, `path` in Solid.
+  const key = binding === "solid" ? "path" : "to";
   return [...src.matchAll(new RegExp(`${key}: "([^"]+)"`, "g"))].map((m) => m[1]);
 }
 

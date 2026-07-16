@@ -312,7 +312,13 @@ export const DynamicPageHeader = React.forwardRef<HTMLDivElement, DynamicPageHea
         className={cn(
           // 1fr → 0fr on a grid row collapses to zero without anyone measuring
           // the content, and animates, which `height: auto` cannot.
-          "zen-grid zen-shrink-0 zen-overflow-hidden zen-border-b zen-border-zen-border zen-bg-zen-background zen-transition-[grid-template-rows] zen-duration-200 zen-ease-out",
+          //
+          // The transition-property is spelled as an arbitrary PROPERTY
+          // (`zen-[transition-property:…]`), not as `zen-transition-[…]`. Uno has
+          // no arbitrary-value form of its `transition-*` rule, so the latter
+          // matched nothing and this header collapsed instantly — the one thing
+          // the comment above says it does not do. Pinned by check:css-live.
+          "zen-grid zen-shrink-0 zen-overflow-hidden zen-border-b zen-border-zen-border zen-bg-zen-background zen-[transition-property:grid-template-rows] zen-duration-200 zen-ease-out",
           headerExpanded ? "zen-grid-rows-[1fr]" : "zen-grid-rows-[0fr]",
           // Pinned: ride along under the sticky title instead of scrolling away.
           // The border-b sits on THIS element, outside the clipped row, so a

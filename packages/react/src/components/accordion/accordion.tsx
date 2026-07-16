@@ -86,11 +86,20 @@ AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, style, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    /* Radix sets --radix-accordion-content-height; we use it via the
-     * `accordion-down` / `accordion-up` keyframes below. */
+    /* core's keyframes interpolate height to --zen-collapsible-content-height, a
+     * neutral name — core is shared with bindings that are not on Radix, and it
+     * used to read Radix's name directly. Radix publishes the measurement under
+     * its own name; this is the mapping. `style` spreads after, so a caller can
+     * still override. */
+    style={
+      {
+        "--zen-collapsible-content-height": "var(--radix-accordion-content-height)",
+        ...style,
+      } as React.CSSProperties
+    }
     className={cn(
       "zen-overflow-hidden zen-text-sm",
       "data-[state=closed]:zen-anim-accordion-up data-[state=open]:zen-anim-accordion-down",
