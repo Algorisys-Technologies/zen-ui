@@ -65,6 +65,19 @@ const VANILLA_LOGO = (
   </svg>
 );
 
+const WEB_COMPONENTS_LOGO = (
+  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden>
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 2 3 7v10l9 5 9-5V7l-9-5ZM9.5 9.5 7 12l2.5 2.5M14.5 9.5 17 12l-2.5 2.5"
+    />
+  </svg>
+);
+
 const VUE_LOGO = (
   <svg viewBox="0 0 261.76 226.69" width="44" height="44">
     <path
@@ -141,6 +154,24 @@ const BINDINGS: Binding[] = [
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/vanilla",
     accent: "var(--zen-color-accent-purple)",
     logo: VANILLA_LOGO,
+  },
+  {
+    name: "Web Components",
+    package: "@algorisys/zen-ui-web-components",
+    status: "alpha",
+    blurb:
+      "The same components as native custom elements — <zen-button>, <zen-tabs>, <zen-data-table>. Light-DOM wrappers over the vanilla factories, so they render byte-for-byte the same and drop into any framework, or none.",
+    features: [
+      "150+ <zen-*> custom elements",
+      "Light DOM — the shared zen-* stylesheet just works",
+      "Attributes, JS properties, and JSON attrs for data",
+      "Handle methods + CustomEvents: open(), zen-value-change",
+    ],
+    demoHref: demo("builder-wc"),
+    repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/web-components",
+    installCmd: "npm install @algorisys/zen-ui-web-components",
+    accent: "var(--zen-color-primary)",
+    logo: WEB_COMPONENTS_LOGO,
   },
   {
     name: "Vue",

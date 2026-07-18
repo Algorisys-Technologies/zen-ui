@@ -13,6 +13,43 @@
  * REACT IS THE REFERENCE. Where bindings disagree, it wins, and checks that
  * compare bindings compare each one against it rather than pairwise.
  */
+/**
+ * The divergent set shared by every data-driven, no-framework-primitive binding.
+ *
+ * vanilla and web-components have the SAME public surface (web-components
+ * re-exports vanilla's exports verbatim and adds only a declarative custom-element
+ * layer over the same factories), so they diverge from React in exactly the same
+ * way. Kept as one const so the two cannot drift: update it once when the surface
+ * moves. See the note on the vanilla entry for what each name is and why.
+ */
+const DATA_DRIVEN_DIVERGENT = [
+  "AccordionContent", "AccordionItem", "AccordionItemSpec", "AccordionTrigger", "AlertClose", "AlertDialogAction",
+  "AlertDialogCancel", "AlertDialogContent", "AlertDialogDescription", "AlertDialogFooter", "AlertDialogHandle", "AlertDialogHeader",
+  "AlertDialogOverlay", "AlertDialogPortal", "AlertDialogTitle", "AlertDialogTrigger", "BAR_DESIGN", "BannerClose",
+  "BannerDescription", "BannerTitle", "CalendarMode", "CalendarSelected", "CameraHandle", "CheckboxHandle",
+  "CheckedState", "Child", "Command", "CommandEmpty", "CommandGroup", "CommandInput",
+  "CommandItem", "CommandList", "CommandLoading", "CommandSeparator", "DEFAULT_EMAIL_DOMAINS", "DataTableCellContext",
+  "DataTableColumn", "DateTimePickerHandle", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter",
+  "DialogHandle", "DialogHeader", "DialogOverlay", "DialogPortal", "DialogTitle", "DialogTrigger",
+  "DropdownMenuActionItem", "DropdownMenuAlign", "DropdownMenuCheckboxItem", "DropdownMenuCheckboxItemSpec", "DropdownMenuContent", "DropdownMenuGroup",
+  "DropdownMenuHandle", "DropdownMenuItem", "DropdownMenuItemSpec", "DropdownMenuLabel", "DropdownMenuLabelItem", "DropdownMenuPortal",
+  "DropdownMenuRadioGroup", "DropdownMenuRadioGroupSpec", "DropdownMenuRadioItem", "DropdownMenuRadioOption", "DropdownMenuSeparator", "DropdownMenuSeparatorItem",
+  "DropdownMenuShortcut", "DropdownMenuSide", "DropdownMenuSub", "DropdownMenuSubContent", "DropdownMenuSubSpec", "DropdownMenuSubTrigger",
+  "DropdownMenuTrigger", "FieldApi", "FieldState", "Form", "FormControl", "FormController",
+  "FormErrors", "FormFieldConfig", "FormOptions", "FormSchema", "INPUT_CLASS", "IconHandle",
+  "InputHandle", "InputOTPGroup", "InputOTPSeparator", "InputOTPSlot", "MaskInputHandle", "NotificationsInboxHandle",
+  "NumberFieldHandle", "PasswordInputHandle", "PopoverAlign", "PopoverAnchor", "PopoverContent", "PopoverHandle", "PopoverSide",
+  "PopoverTrigger", "RatingSize", "SearchHandle", "SelectDialogHandle", "SelectableCard", "SelectableCardItemSpec", "SheetClose",
+  "SheetContent", "SheetDescription", "SheetFooter", "SheetHandle", "SheetHeader", "SheetOverlay",
+  "SheetPortal", "SheetSide", "SheetTitle", "SheetTrigger", "SidebarContextValue", "SidebarProviderHandle",
+  "SkipToContentHandle",
+  "SortingColumn", "SortingState", "SplitButtonMenuItem", "StepperApi", "StepperHandle", "StepperList",
+  "StepperNavigation", "StepperNavigationOptions", "StepperPanel", "TEXTAREA_CLASS", "TabSpec", "TabsContent",
+  "TabsList", "TabsTrigger", "TextareaHandle", "TimePickerHandle", "ToastVariant", "TooltipContent",
+  "TooltipHandle", "TooltipPortal", "TooltipSide", "TooltipTrigger", "ValidationMode", "Validator",
+  "ValueHelpItem", "ViewSettingsDialogHandle", "ZenComponent",
+];
+
 export const BINDINGS = [
   {
     id: "react",
@@ -79,36 +116,34 @@ export const BINDINGS = [
      *     data-driven API needs where React defers to a child element.
      *
      * Enumerated, not suffix-matched: a real missing component must FAIL here, and
-     * a wildcard on `*Handle` would hide one that was genuinely dropped. Regenerate
-     * with check-parity's own logic if the surface moves; do not hand-edit blind.
+     * a wildcard on `*Handle` would hide one that was genuinely dropped. Shared
+     * with web-components (identical surface) via DATA_DRIVEN_DIVERGENT above;
+     * regenerate with check-parity's own logic if the surface moves.
      */
-    divergent: [
-      "AccordionContent", "AccordionItem", "AccordionItemSpec", "AccordionTrigger", "AlertClose", "AlertDialogAction",
-      "AlertDialogCancel", "AlertDialogContent", "AlertDialogDescription", "AlertDialogFooter", "AlertDialogHandle", "AlertDialogHeader",
-      "AlertDialogOverlay", "AlertDialogPortal", "AlertDialogTitle", "AlertDialogTrigger", "BAR_DESIGN", "BannerClose",
-      "BannerDescription", "BannerTitle", "CalendarMode", "CalendarSelected", "CameraHandle", "CheckboxHandle",
-      "CheckedState", "Child", "Command", "CommandEmpty", "CommandGroup", "CommandInput",
-      "CommandItem", "CommandList", "CommandLoading", "CommandSeparator", "DEFAULT_EMAIL_DOMAINS", "DataTableCellContext",
-      "DataTableColumn", "DateTimePickerHandle", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter",
-      "DialogHandle", "DialogHeader", "DialogOverlay", "DialogPortal", "DialogTitle", "DialogTrigger",
-      "DropdownMenuActionItem", "DropdownMenuAlign", "DropdownMenuCheckboxItem", "DropdownMenuCheckboxItemSpec", "DropdownMenuContent", "DropdownMenuGroup",
-      "DropdownMenuHandle", "DropdownMenuItem", "DropdownMenuItemSpec", "DropdownMenuLabel", "DropdownMenuLabelItem", "DropdownMenuPortal",
-      "DropdownMenuRadioGroup", "DropdownMenuRadioGroupSpec", "DropdownMenuRadioItem", "DropdownMenuRadioOption", "DropdownMenuSeparator", "DropdownMenuSeparatorItem",
-      "DropdownMenuShortcut", "DropdownMenuSide", "DropdownMenuSub", "DropdownMenuSubContent", "DropdownMenuSubSpec", "DropdownMenuSubTrigger",
-      "DropdownMenuTrigger", "FieldApi", "FieldState", "Form", "FormControl", "FormController",
-      "FormErrors", "FormFieldConfig", "FormOptions", "FormSchema", "INPUT_CLASS", "IconHandle",
-      "InputHandle", "InputOTPGroup", "InputOTPSeparator", "InputOTPSlot", "MaskInputHandle", "NotificationsInboxHandle",
-      "NumberFieldHandle", "PasswordInputHandle", "PopoverAlign", "PopoverAnchor", "PopoverContent", "PopoverHandle", "PopoverSide",
-      "PopoverTrigger", "RatingSize", "SearchHandle", "SelectDialogHandle", "SelectableCard", "SelectableCardItemSpec", "SheetClose",
-      "SheetContent", "SheetDescription", "SheetFooter", "SheetHandle", "SheetHeader", "SheetOverlay",
-      "SheetPortal", "SheetSide", "SheetTitle", "SheetTrigger", "SidebarContextValue", "SidebarProviderHandle",
-      "SkipToContentHandle",
-      "SortingColumn", "SortingState", "SplitButtonMenuItem", "StepperApi", "StepperHandle", "StepperList",
-      "StepperNavigation", "StepperNavigationOptions", "StepperPanel", "TEXTAREA_CLASS", "TabSpec", "TabsContent",
-      "TabsList", "TabsTrigger", "TextareaHandle", "TimePickerHandle", "ToastVariant", "TooltipContent",
-      "TooltipHandle", "TooltipPortal", "TooltipSide", "TooltipTrigger", "ValidationMode", "Validator",
-      "ValueHelpItem", "ViewSettingsDialogHandle", "ZenComponent",
-    ],
+    divergent: DATA_DRIVEN_DIVERGENT,
+  },
+  {
+    id: "web-components",
+    label: "Web Components",
+    pkg: "@algorisys/zen-ui-web-components",
+    dir: "packages/web-components",
+    base: "/builder-wc",
+    // A declarative custom-element layer OVER the vanilla factories: each <zen-*>
+    // element wraps the matching factory and renders it in the light DOM. It
+    // re-exports vanilla's entire public surface verbatim, so its export names —
+    // and therefore its divergence from React — are identical to vanilla's.
+    router: "packages/web-components/src/main.ts",
+    // No JSX: the routes are an object literal, same shape as vanilla.
+    routeRe: /"([^"]+)":\s*(\w+),/g,
+    navKey: "to",
+    navRe: /\{[^{}\n]*to:\s*"([^"]+)"[^{}\n]*\}/g,
+    importRe: /import\s+(\w+)\s+from\s+"\.\/components\/([^"]+)"/g,
+    title: "Zen UI · Web Components",
+    // vanilla's divergences, plus the two public types unique to this binding's
+    // custom-element layer (the descriptor shape a consumer uses to define their
+    // own <zen-*> element). Both are capitalised non-Props types, so check-parity
+    // reads them as "a component only Web Components has" without this.
+    divergent: [...DATA_DRIVEN_DIVERGENT, "ElementDef", "AttrType"],
   },
 ];
 

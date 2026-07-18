@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "7.2.0",
+    date: "2026-07-18",
+    kind: "new",
+    title: "A fourth binding: zen-ui as native custom elements",
+    detail:
+      "@algorisys/zen-ui-web-components is every component as a <zen-*> custom element — <zen-button>, <zen-tabs>, <zen-data-table>. They render in the light DOM, so the same zen-* stylesheet and --zen-* tokens style them exactly as in the other bindings, and they drop into any framework, or none. Set attributes for HTML authoring, JS properties for data, and listen for zen-value-change and friends.",
+  },
+  {
     version: "7.1.0",
     date: "2026-07-16",
     kind: "new",

@@ -1,0 +1,62 @@
+import { ZEN_ICON_NAMES } from "@algorisys/zen-ui-vanilla";
+import { DemoPage } from "./demo-helpers";
+
+/**
+ * Icon demo — the web-components port. <zen-icon> renders an <svg> from `name` /
+ * `size` / `title`. Colour is text colour: stroke=currentColor inherits from the
+ * host, so a `zen-text-*` class on the element is the whole colour API.
+ */
+
+function icon(attrs: Record<string, string>): HTMLElement {
+  const n = document.createElement("zen-icon");
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
+}
+
+export default function IconDemo(): HTMLElement {
+  return DemoPage({
+    title: "Icon",
+    description:
+      "Geometry comes straight from @algorisys/zen-ui-core/icons — the same path data React and Solid draw. Nothing was redrawn for this binding.",
+    sections: [
+      {
+        title: "1. The whole set",
+        description: `${ZEN_ICON_NAMES.length} icons, one source, three bindings.`,
+        codeTitle: "<zen-icon name>",
+        code: `<zen-icon name="check"></zen-icon>
+<zen-icon name="bell" size="20"></zen-icon>`,
+        render: () =>
+          ZEN_ICON_NAMES.map((name) => {
+            const cell = document.createElement("span");
+            cell.title = name;
+            cell.style.display = "inline-flex";
+            cell.style.padding = "0.35rem";
+            cell.append(icon({ name, size: "20" }));
+            return cell;
+          }),
+      },
+      {
+        title: "2. Colour is text colour",
+        description: "stroke=currentColor, so zen-text-* is the whole colour API — no colour prop.",
+        codeTitle: "inherits currentColor",
+        code: `<zen-icon name="x-circle" size="24" class="zen-text-zen-error"></zen-icon>`,
+        render: () =>
+          (
+            [
+              ["check-circle", "zen-text-zen-success"],
+              ["warn", "zen-text-zen-warning"],
+              ["x-circle", "zen-text-zen-error"],
+              ["info", "zen-text-zen-info"],
+            ] as const
+          ).map(([name, cls]) => icon({ name, size: "24", class: cls })),
+      },
+      {
+        title: "3. Accessible name",
+        description: "Decorative by default. Pass `title` when the icon alone carries the meaning.",
+        codeTitle: "title promotes it to role=img",
+        code: `<zen-icon name="trash" title="Delete"></zen-icon>`,
+        render: () => icon({ name: "trash", size: "24", title: "Delete" }),
+      },
+    ],
+  });
+}

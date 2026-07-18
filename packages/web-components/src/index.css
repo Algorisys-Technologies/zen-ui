@@ -1,0 +1,41 @@
+/* Global base styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+:root {
+  --font-family: "Plus Jakarta Sans", sans-serif, "Lato";
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family, "Plus Jakarta Sans", "Lato", sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* The app shell owns scrolling: .app-content is the single scroll container.
+   The document itself must not scroll, or you get a second scrollbar racing the
+   first and a "sticky" header that scrolls away. overflow-x:hidden alone made
+   things worse rather than better — per spec, hiding one axis computes the other
+   to `auto`, quietly turning <html> INTO a scroll container. */
+html,
+body {
+  overflow: hidden;
+}
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}

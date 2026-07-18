@@ -33,6 +33,14 @@ import { DEMOS, HUB_PORT } from "./demos.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
 
+// Launch vite through the runtime already running this script + the locally
+// installed vite CLI, rather than `npx vite`. `npx` is not guaranteed on PATH
+// (a node install without npm, or a bun-only shell that runs this via the node
+// npm-script), and when it is missing every child dies with ENOENT before the
+// hub even starts. process.execPath is whatever launched dev-all — always present
+// — and vite is a workspace dependency, so this path always resolves.
+const VITE_BIN = resolve(ROOT, "node_modules/vite/bin/vite.js");
+
 /** The one port you open. Override when 5170 is taken: ZEN_HUB_PORT=5180. */
 const hubPort = Number(process.env.ZEN_HUB_PORT) || HUB_PORT;
 
@@ -100,8 +108,8 @@ const running = [];
 for (const demo of DEMOS) {
   const port = await freePort();
   const child = spawn(
-    "npx",
-    ["vite", ...(demo.config ? ["--config", demo.config] : []), "--port", String(port), "--strictPort"],
+    process.execPath,
+    [VITE_BIN, ...(demo.config ? ["--config", demo.config] : []), "--port", String(port), "--strictPort"],
     { cwd: resolve(ROOT, demo.dir), stdio: ["ignore", "pipe", "pipe"], detached: true },
   );
   children.push(child);
