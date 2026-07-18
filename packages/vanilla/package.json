@@ -1,0 +1,75 @@
+{
+  "name": "@algorisys/zen-ui-vanilla",
+  "version": "7.2.0",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles": {
+      "import": "./dist/style.css",
+      "types": "./dist/styles.d.ts",
+      "default": "./dist/style.css"
+    },
+    "./preflight": "./dist/preflight.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/algorisys/zen-ui.git"
+  },
+  "homepage": "https://github.com/algorisys/zen-ui",
+  "publishConfig": {
+    "@algorisys:registry": "https://npm.pkg.github.com/"
+  },
+  "scripts": {
+    "dev": "vite --config vite.config.demo.ts",
+    "build": "tsc -b && vite build --config vite.config.demo.ts",
+    "build:lib": "vite build --config vite.config.lib.ts && npm run build:types && cp src/styles.d.ts dist/styles.d.ts && cp ../core/styles/preflight.css dist/preflight.css",
+    "build:types": "tsc --project tsconfig.lib.json --emitDeclarationOnly",
+    "publish:lib": "npm run build:lib && npm publish",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src",
+    "preview": "vite preview --config vite.config.demo.ts"
+  },
+  "dependencies": {
+    "@algorisys/zen-ui-core": "workspace:*",
+    "class-variance-authority": "^0.7.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^24.6.0",
+    "@unocss/preset-uno": "^66.5.4",
+    "eslint": "^9.36.0",
+    "eslint-config-prettier": "^8.8.0",
+    "globals": "^16.4.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "unocss": "^66.5.4",
+    "vite": "^7.1.7",
+    "leaflet": "^1.9.4",
+    "jodit": "^4.13.3",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "leaflet": "^1.9.0",
+    "jodit": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "leaflet": {
+      "optional": true
+    },
+    "jodit": {
+      "optional": true
+    }
+  }
+}

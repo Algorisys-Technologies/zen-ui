@@ -25,19 +25,19 @@ import { cn } from "../../lib/cn";
  */
 
 const cardVariants = cva(
-  "rounded-zen-md border bg-zen-background text-zen-foreground",
+  "zen-rounded-zen-md zen-border zen-bg-zen-background zen-text-zen-foreground",
   {
     variants: {
       variant: {
-        elevated: "border-zen-border shadow-zen-sm",
-        outlined: "border-zen-border",
-        ghost: "border-transparent",
+        elevated: "zen-border-zen-border zen-shadow-zen-sm",
+        outlined: "zen-border-zen-border",
+        ghost: "zen-border-transparent",
       },
       padding: {
         none: "",
-        sm: "p-3",
-        md: "p-5",
-        lg: "p-6",
+        sm: "zen-p-3",
+        md: "zen-p-5",
+        lg: "zen-p-6",
       },
     },
     defaultVariants: {
@@ -68,7 +68,7 @@ export const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col gap-1 p-5 pb-3", className)}
+    className={cn("zen-flex zen-flex-col zen-gap-1 zen-p-5 zen-pb-3", className)}
     {...props}
   />
 ));
@@ -81,7 +81,7 @@ export const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-base font-semibold leading-tight m-0 text-zen-foreground",
+      "zen-text-base zen-font-semibold zen-leading-tight zen-m-0 zen-text-zen-foreground",
       className,
     )}
     {...props}
@@ -95,7 +95,7 @@ export const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-zen-muted-fg m-0", className)}
+    className={cn("zen-text-sm zen-text-zen-muted-fg zen-m-0", className)}
     {...props}
   />
 ));
@@ -105,7 +105,7 @@ export const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-5 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("zen-p-5 zen-pt-0", className)} {...props} />
 ));
 CardContent.displayName = "CardContent";
 
@@ -116,7 +116,7 @@ export const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center gap-2 p-5 pt-3 border-t border-zen-border",
+      "zen-flex zen-items-center zen-gap-2 zen-p-5 zen-pt-3 zen-border-t zen-border-zen-border",
       className,
     )}
     {...props}

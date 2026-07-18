@@ -20,14 +20,14 @@ export interface SwitchProps
 }
 
 const TRACK_SIZES: Record<SwitchSize, string> = {
-  sm: "h-4 w-7",
-  md: "h-5 w-9",
-  lg: "h-6 w-11",
+  sm: "zen-h-4 zen-w-7",
+  md: "zen-h-5 zen-w-9",
+  lg: "zen-h-6 zen-w-11",
 };
 const THUMB_SIZES: Record<SwitchSize, string> = {
-  sm: "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0.5",
-  md: "h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0.5",
-  lg: "h-5 w-5 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0.5",
+  sm: "zen-h-3 zen-w-3 data-[state=checked]:zen-translate-x-3 data-[state=unchecked]:zen-translate-x-0.5",
+  md: "zen-h-4 zen-w-4 data-[state=checked]:zen-translate-x-4 data-[state=unchecked]:zen-translate-x-0.5",
+  lg: "zen-h-5 zen-w-5 data-[state=checked]:zen-translate-x-5 data-[state=unchecked]:zen-translate-x-0.5",
 };
 
 const Switch = React.forwardRef<
@@ -37,11 +37,11 @@ const Switch = React.forwardRef<
   <SwitchPrimitive.Root
     ref={ref}
     className={cn(
-      "peer inline-flex shrink-0 cursor-pointer items-center rounded-zen-full",
-      "transition-colors",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
-      "disabled:cursor-not-allowed disabled:opacity-50",
-      "data-[state=checked]:bg-zen-primary data-[state=unchecked]:bg-zen-muted",
+      "zen-peer zen-inline-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-rounded-zen-full",
+      "zen-transition-colors",
+      "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+      "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
+      "data-[state=checked]:zen-bg-zen-primary data-[state=unchecked]:zen-bg-zen-muted",
       TRACK_SIZES[size],
       className,
     )}
@@ -49,8 +49,8 @@ const Switch = React.forwardRef<
   >
     <SwitchPrimitive.Thumb
       className={cn(
-        "block rounded-zen-full bg-zen-background shadow-md ring-0",
-        "transition-transform",
+        "zen-block zen-rounded-zen-full zen-bg-zen-background zen-shadow-md zen-ring-0",
+        "zen-transition-transform",
         THUMB_SIZES[size],
       )}
     />

@@ -168,7 +168,7 @@ export const InputOTP = (rawProps: InputOTPProps) => {
     <OTPContext.Provider value={ctx}>
       <div
         class={cn(
-          "flex items-center gap-2 has-[:disabled]:opacity-50",
+          "zen-flex zen-items-center zen-gap-2 has-[:disabled]:zen-opacity-50",
           props.containerClass,
           props.class,
         )}
@@ -228,24 +228,37 @@ const DefaultSlots = (props: {
 
 // --- Compound parts --------------------------------------------------------
 
-export const InputOTPGroup = (props: { class?: string; children?: JSX.Element }) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export type InputOTPGroupProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "children"> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const InputOTPGroup = (props: InputOTPGroupProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div class={cn("flex items-center gap-2", local.class)}>{local.children}</div>
+    <div {...rest} class={cn("zen-flex zen-items-center zen-gap-2", local.class)}>
+      {local.children}
+    </div>
   );
 };
 
 const slotBaseClass = cn(
-  "zen-otp-slot h-11 w-11 rounded-zen-md bg-zen-background p-0",
-  "text-center text-base font-medium text-zen-foreground tabular-nums",
-  "transition-colors",
-  "disabled:cursor-not-allowed disabled:opacity-50",
+  "zen-otp-slot zen-h-11 zen-w-11 zen-rounded-zen-md zen-bg-zen-background zen-p-0",
+  "zen-text-center zen-text-base zen-font-medium zen-text-zen-foreground zen-tabular-nums",
+  "zen-transition-colors",
+  "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
 );
 
-export const InputOTPSlot = (
-  rawProps: { index: number; class?: string; disabled?: boolean },
-) => {
-  const [local] = splitProps(rawProps, ["index", "class", "disabled"]);
+// `disabled` is re-declared below only to keep it documented alongside
+// `index`; its type is identical to the DOM's, so no Omit is required for it.
+export type InputOTPSlotProps = Omit<JSX.InputHTMLAttributes<HTMLInputElement>, "class"> & {
+  index: number;
+  class?: string;
+  disabled?: boolean;
+};
+
+export const InputOTPSlot = (rawProps: InputOTPSlotProps) => {
+  const [local, rest] = splitProps(rawProps, ["index", "class", "disabled"]);
   const ctx = useOTPContext();
   const char = () => ctx.value()[local.index] ?? "";
   const isDisabled = () => ctx.disabled() || local.disabled;
@@ -308,6 +321,7 @@ export const InputOTPSlot = (
 
   return (
     <input
+      {...rest}
       ref={(el) => ctx.setRef(local.index, el)}
       type="text"
       inputmode="numeric"
@@ -324,10 +338,14 @@ export const InputOTPSlot = (
   );
 };
 
-export const InputOTPSeparator = (props: { class?: string }) => {
-  const [local] = splitProps(props, ["class"]);
+export type InputOTPSeparatorProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class"> & {
+  class?: string;
+};
+
+export const InputOTPSeparator = (props: InputOTPSeparatorProps) => {
+  const [local, rest] = splitProps(props, ["class"]);
   return (
-    <div role="separator" class={local.class}>
+    <div {...rest} role="separator" class={local.class}>
       <DashIcon />
     </div>
   );

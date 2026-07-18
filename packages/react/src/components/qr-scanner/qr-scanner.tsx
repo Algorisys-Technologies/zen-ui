@@ -243,7 +243,7 @@ const QRScanner = React.forwardRef<HTMLDivElement, QRScannerProps>(
       <div
         ref={ref}
         className={cn(
-          "relative overflow-hidden rounded-zen-md border border-zen-border bg-zen-muted",
+          "zen-relative zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-muted",
           className,
         )}
         style={{ aspectRatio: `${aspectRatio} / 1` }}
@@ -254,21 +254,21 @@ const QRScanner = React.forwardRef<HTMLDivElement, QRScannerProps>(
           playsInline
           muted
           className={cn(
-            "absolute inset-0 h-full w-full object-cover",
-            !showSurface && "invisible",
+            "zen-absolute zen-inset-0 zen-h-full zen-w-full zen-object-cover",
+            !showSurface && "zen-invisible",
           )}
         />
 
         {!hideViewfinder && showSurface && <Viewfinder />}
 
         {!showSurface && (
-          <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-sm text-zen-muted-fg">
+          <div className="zen-absolute zen-inset-0 zen-flex zen-items-center zen-justify-center zen-p-4 zen-text-center zen-text-sm zen-text-zen-muted-fg">
             {fallback ?? <DefaultFallback status={status} />}
           </div>
         )}
 
         {status === "starting" && (
-          <div className="absolute inset-x-0 bottom-2 text-center text-xs text-white/80">
+          <div className="zen-absolute zen-inset-x-0 zen-bottom-2 zen-text-center zen-text-xs zen-text-white/80">
             Starting camera…
           </div>
         )}
@@ -282,7 +282,7 @@ const Viewfinder: React.FC = () => (
   <svg
     viewBox="0 0 100 100"
     preserveAspectRatio="none"
-    className="pointer-events-none absolute inset-0 h-full w-full"
+    className="zen-pointer-events-none zen-absolute zen-inset-0 zen-h-full zen-w-full"
     aria-hidden
   >
     <g

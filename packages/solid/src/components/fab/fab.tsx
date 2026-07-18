@@ -15,13 +15,13 @@ import { Button, type ButtonProps } from "../button/button";
  * DropdownMenu trigger — Solid's `as` prop makes this clean.
  */
 
-const fabContainer = cva("fixed z-40", {
+const fabContainer = cva("zen-fixed zen-z-40", {
   variants: {
     position: {
-      "bottom-right": "bottom-6 right-6",
-      "bottom-left": "bottom-6 left-6",
-      "top-right": "top-6 right-6",
-      "top-left": "top-6 left-6",
+      "bottom-right": "zen-bottom-6 zen-right-6",
+      "bottom-left": "zen-bottom-6 zen-left-6",
+      "top-right": "zen-top-6 zen-right-6",
+      "top-left": "zen-top-6 zen-left-6",
     },
   },
   defaultVariants: {
@@ -35,9 +35,9 @@ export type FABProps = Omit<ButtonProps, "shape" | "size"> &
   };
 
 const SHAPE_BY_SIZE: Record<NonNullable<FABProps["size"]>, string> = {
-  md: "h-12 w-12",
-  lg: "h-14 w-14",
-  xl: "h-16 w-16",
+  md: "zen-h-12 zen-w-12",
+  lg: "zen-h-14 zen-w-14",
+  xl: "zen-h-16 zen-w-16",
 };
 
 export const FAB = (rawProps: FABProps) => {
@@ -48,7 +48,7 @@ export const FAB = (rawProps: FABProps) => {
       <Button
         color={local.color}
         shape="circle"
-        class={cn("shadow-md hover:shadow-lg", SHAPE_BY_SIZE[local.size], local.class)}
+        class={cn("zen-shadow-md hover:zen-shadow-lg", SHAPE_BY_SIZE[local.size], local.class)}
         {...rest}
       />
     </div>

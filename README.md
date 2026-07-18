@@ -483,6 +483,8 @@ the next major safely.
 - **`docs/rp-review-1.md`** — initial library review (pre-refactor).
 - **`docs/rp-shadcn-radix-gap.md`** — the migration rubric: shadcn /
   Radix patterns + how each component maps.
+- **`docs/fiori-gap-analysis.md`** — component gap analysis against the SAP
+  Fiori for Web design system; tiered by value, with a build shortlist.
 - **`todo.md`** — deferred-work tracker (Phase 2 + release housekeeping).
 
 ---
@@ -493,10 +495,41 @@ This repo uses bun workspaces. Run from the workspace root:
 
 ```bash
 bun install
+bun run dev:all      # every demo behind one URL -> localhost:5170
 bun run dev          # React demo app, served at /builder/
 bun run build:lib    # build packages/react/ to packages/react/dist/
 bun run lint
 ```
+
+### One URL for every demo
+
+`bun run dev:all` is the one to reach for when comparing the bindings — it
+starts everything and puts it behind a single page:
+
+```
+zen-ui demos  ->  http://localhost:5170/
+
+  React         http://localhost:5170/builder/
+  Solid         http://localhost:5170/builder-solid/
+  Landing page  http://localhost:34063/     (own port; see below)
+```
+
+React and Solid cannot share one vite server — the two JSX transforms fight
+over the same files — so `dev:all` runs a child server per app and proxies each
+binding's base path to its child. You open one port; the split stays an
+implementation detail. Child ports are OS-assigned rather than pinned, so
+nothing collides with a `bun run dev` you already have on vite's default 5173.
+`Ctrl-C` takes the whole tree down with it.
+
+The **landing page** is the exception: its base is `/`, the same path the hub
+itself occupies, so it cannot be mounted under a sub-path without breaking every
+absolute asset URL it serves. It runs alongside the rest and its card (marked
+`↗`) links straight to its own port.
+
+Adding a framework is one entry in
+[`scripts/demos.mjs`](scripts/demos.mjs) — the hub page, the proxy table and the
+spawned servers all derive from it. If 5170 is taken, `ZEN_HUB_PORT=5180 bun run
+dev:all`.
 
 By default the workspace scripts target the **React** binding — `bun
 run dev` forwards into `packages/react/` and serves the React demo. The

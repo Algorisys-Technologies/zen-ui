@@ -113,7 +113,7 @@ export const FileUpload = (props: FileUploadProps) => {
   };
 
   return (
-    <div class={cn("flex flex-col gap-2", props.class)}>
+    <div class={cn("zen-flex zen-flex-col zen-gap-2", props.class)}>
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -133,22 +133,22 @@ export const FileUpload = (props: FileUploadProps) => {
           }
         }}
         class={cn(
-          "rounded-zen-md border-2 border-dashed p-6 text-center transition-colors cursor-pointer",
-          "flex flex-col items-center justify-center gap-2",
+          "zen-rounded-zen-md zen-border-2 zen-border-dashed zen-p-6 zen-text-center zen-transition-colors zen-cursor-pointer",
+          "zen-flex zen-flex-col zen-items-center zen-justify-center zen-gap-2",
           isOver()
-            ? "border-zen-primary bg-zen-primary-soft"
-            : "border-zen-border bg-zen-muted/30",
-          "hover:bg-zen-muted/60",
-          props.disabled && "opacity-50 cursor-not-allowed pointer-events-none",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
+            ? "zen-border-zen-primary zen-bg-zen-primary-soft"
+            : "zen-border-zen-border zen-bg-zen-muted/30",
+          "hover:zen-bg-zen-muted/60",
+          props.disabled && "zen-opacity-50 zen-cursor-not-allowed zen-pointer-events-none",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
         )}
       >
         <UploadIcon />
-        <div class="text-sm">
+        <div class="zen-text-sm">
           {props.label ?? (
             <>
-              <span class="font-medium">Click to upload</span>{" "}
-              <span class="text-zen-muted-fg">or drag and drop</span>
+              <span class="zen-font-medium">Click to upload</span>{" "}
+              <span class="zen-text-zen-muted-fg">or drag and drop</span>
             </>
           )}
         </div>
@@ -156,7 +156,7 @@ export const FileUpload = (props: FileUploadProps) => {
           when={props.helperText}
           fallback={
             <Show when={props.maxSize}>
-              <div class="text-xs text-zen-muted-fg">
+              <div class="zen-text-xs zen-text-zen-muted-fg">
                 Max {formatBytes(props.maxSize as number)} per file
                 {props.multiple && effectiveMax() !== Infinity
                   ? ` · up to ${effectiveMax()} files`
@@ -165,7 +165,7 @@ export const FileUpload = (props: FileUploadProps) => {
             </Show>
           }
         >
-          <div class="text-xs text-zen-muted-fg">{props.helperText}</div>
+          <div class="zen-text-xs zen-text-zen-muted-fg">{props.helperText}</div>
         </Show>
         <input
           ref={inputRef}
@@ -180,19 +180,19 @@ export const FileUpload = (props: FileUploadProps) => {
             }
             e.currentTarget.value = "";
           }}
-          class="sr-only"
+          class="zen-sr-only"
         />
       </div>
 
       <Show when={showFileList() && files().length > 0}>
-        <ul class="flex flex-col gap-1 text-sm">
+        <ul class="zen-flex zen-flex-col zen-gap-1 zen-text-sm">
           <For each={files()}>
             {(file, idx) => (
-              <li class="flex items-center gap-3 rounded-zen-sm border border-zen-border bg-zen-background px-3 py-2">
+              <li class="zen-flex zen-items-center zen-gap-3 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2">
                 <FileIcon />
-                <div class="flex flex-col min-w-0 flex-1">
-                  <span class="truncate font-medium">{file.name}</span>
-                  <span class="text-xs text-zen-muted-fg">{formatBytes(file.size)}</span>
+                <div class="zen-flex zen-flex-col zen-min-w-0 zen-flex-1">
+                  <span class="zen-truncate zen-font-medium">{file.name}</span>
+                  <span class="zen-text-xs zen-text-zen-muted-fg">{formatBytes(file.size)}</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -217,14 +217,14 @@ export const FileUpload = (props: FileUploadProps) => {
 };
 
 const UploadIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden class="text-zen-muted-fg">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden class="zen-text-zen-muted-fg">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
     <polyline points="17 8 12 3 7 8" />
     <line x1="12" y1="3" x2="12" y2="15" />
   </svg>
 );
 const FileIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden class="text-zen-muted-fg shrink-0">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden class="zen-text-zen-muted-fg zen-shrink-0">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
     <polyline points="14 2 14 8 20 8" />
   </svg>

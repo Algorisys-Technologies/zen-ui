@@ -4,6 +4,7 @@ import { CodeExample } from "./demo-helpers";
 
 const NewRatingDemo: React.FC = () => {
   const [stars, setStars] = useState(0);
+  const [half, setHalf] = useState(2.5);
 
   return (
     <div className="demo-page">
@@ -15,6 +16,31 @@ const NewRatingDemo: React.FC = () => {
         radiogroup so screen readers announce "1 of 5" / "2 of 5" on
         arrow-key nav.
       </p>
+
+      <section className="demo-section">
+        <h2>0. Half stars</h2>
+        <CodeExample
+          title="allowHalf — each star becomes two options"
+          description="The stars stay whole; it is the options that halve. Each star grows a left and a right hit target, the arrow keys step by 0.5, and the radios announce '2.5 stars' rather than a bare number. Everything else — hover preview, click-to-clear, the radiogroup — is unchanged."
+          code={`const [rating, setRating] = useState(2.5);
+
+<Rating allowHalf value={rating} onValueChange={setRating} label="Rate the venue" showValue />`}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Rating
+              allowHalf
+              value={half}
+              onValueChange={setHalf}
+              label="Rate the venue"
+              size="lg"
+              showValue
+            />
+            <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+              value → <code>{half}</code>
+            </p>
+          </div>
+        </CodeExample>
+      </section>
 
       <section className="demo-section">
         <h2>1. Default — uncontrolled</h2>
@@ -48,7 +74,7 @@ const NewRatingDemo: React.FC = () => {
               label="Rate your last delivery"
               showValue
             />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               Current rating: <code>{stars}</code>
             </p>
           </div>
@@ -72,7 +98,7 @@ const NewRatingDemo: React.FC = () => {
                 <code
                   style={{
                     width: 50,
-                    fontSize: "1.2rem",
+                    fontSize: "0.75rem",
                     color: "var(--zen-color-muted-fg)",
                   }}
                 >

@@ -82,7 +82,7 @@ const NewBoundFieldsDemo: React.FC = () => {
           <FormProvider {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              style={{ display: "grid", gap: "1.6rem", maxWidth: 520 }}
+              style={{ display: "grid", gap: "1rem", maxWidth: 520 }}
             >
               <BoundInput
                 name="email"
@@ -170,7 +170,7 @@ const NewBoundFieldsDemo: React.FC = () => {
 
 Both wire to the same useForm() / FormProvider; mix freely in the same form.`}
         >
-          <p style={{ color: "var(--zen-color-muted-fg)", fontSize: "1.3rem", margin: 0 }}>
+          <p style={{ color: "var(--zen-color-muted-fg)", fontSize: "0.8125rem", margin: 0 }}>
             See the code snippet for the rundown.
           </p>
         </CodeExample>

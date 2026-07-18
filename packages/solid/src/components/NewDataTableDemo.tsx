@@ -210,10 +210,10 @@ const NewDataTableDemo = () => {
   const [editRows, setEditRows] = createSignal<Person[]>(makePeople(8));
 
   return (
-    <div class="space-y-8">
+    <div class="zen-space-y-8">
       <header>
-        <h1 class="text-2xl font-semibold m-0">DataTable</h1>
-        <p class="text-zen-muted-fg mt-2 max-w-2xl">
+        <h1 class="zen-text-2xl zen-font-semibold zen-m-0">DataTable</h1>
+        <p class="zen-text-zen-muted-fg zen-mt-2 zen-max-w-2xl">
           Headless data layer (<code>@tanstack/solid-table</code>) + windowing
           (<code>@tanstack/solid-virtual</code>) + DnD via{" "}
           <code>@thisbeyond/solid-dnd</code>, wrapped in the styled Table
@@ -223,7 +223,7 @@ const NewDataTableDemo = () => {
       </header>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">0. headerVariant — brand intensity of the column header</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">0. headerVariant — brand intensity of the column header</h2>
         <CodeExample
           title='headerVariant: "plain" (default) | "underline" | "branded"'
           description="Pick how much brand color shows up in the header."
@@ -231,17 +231,17 @@ const NewDataTableDemo = () => {
 <DataTable data={people} columns={columns} headerVariant="underline" />
 <DataTable data={people} columns={columns} headerVariant="branded" />`}
         >
-          <div class="flex flex-col gap-6">
+          <div class="zen-flex zen-flex-col zen-gap-6">
             <div>
-              <h4 class="m-0 mb-1 text-sm text-zen-muted-fg">plain (default)</h4>
+              <h4 class="zen-m-0 zen-mb-1 zen-text-sm zen-text-zen-muted-fg">plain (default)</h4>
               <DataTable data={SMALL} columns={columns} />
             </div>
             <div>
-              <h4 class="m-0 mb-1 text-sm text-zen-muted-fg">underline</h4>
+              <h4 class="zen-m-0 zen-mb-1 zen-text-sm zen-text-zen-muted-fg">underline</h4>
               <DataTable data={SMALL} columns={columns} headerVariant="underline" />
             </div>
             <div>
-              <h4 class="m-0 mb-1 text-sm text-zen-muted-fg">branded</h4>
+              <h4 class="zen-m-0 zen-mb-1 zen-text-sm zen-text-zen-muted-fg">branded</h4>
               <DataTable data={SMALL} columns={columns} headerVariant="branded" />
             </div>
           </div>
@@ -249,7 +249,7 @@ const NewDataTableDemo = () => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">1. Minimal — no toggles</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">1. Minimal — no toggles</h2>
         <CodeExample
           title="Just data + columns"
           code={`<DataTable data={people} columns={columns} />`}
@@ -259,7 +259,7 @@ const NewDataTableDemo = () => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">2. Sorting (per-column toggle in the header)</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">2. Sorting (per-column toggle in the header)</h2>
         <CodeExample
           title="enableSorting"
           description="Click a column header to cycle asc → desc → unsorted."
@@ -270,7 +270,7 @@ const NewDataTableDemo = () => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">3. Pagination (client-side)</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">3. Pagination (client-side)</h2>
         <CodeExample
           title="enablePagination with page-size selector"
           code={`<DataTable data={medium} columns={columns} enablePagination pageSize={10} />`}
@@ -280,7 +280,7 @@ const NewDataTableDemo = () => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">4. Global filter + column visibility</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">4. Global filter + column visibility</h2>
         <CodeExample
           title="enableColumnFilters (global) + enableColumnVisibility"
           description="The toolbar shows a search input and a Columns dropdown."
@@ -305,7 +305,7 @@ const NewDataTableDemo = () => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">5. Row selection</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">5. Row selection</h2>
         <CodeExample
           title="enableRowSelection prepends a select column"
           description="Header checkbox supports tri-state (none / some / all)."
@@ -321,7 +321,7 @@ const NewDataTableDemo = () => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">6. Virtualized — 2 000 rows, no pagination</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">6. Virtualized — 2 000 rows, no pagination</h2>
         <CodeExample
           title="enableVirtualization renders only the visible window"
           description="Scroll the table body. Sticky header stays in view."
@@ -344,7 +344,7 @@ const NewDataTableDemo = () => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">7. Server-driven pagination (manual)</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">7. Server-driven pagination (manual)</h2>
         <CodeExample
           title="manualPagination overrides client-side paging"
           description="Pass { pageIndex, pageCount, onPageChange }. The DataTable shows the slice you give it; it does not slice further."
@@ -362,7 +362,7 @@ const slice = await fetch(\`/api/people?page=\${page()}\`);
   }}
 />`}
         >
-          <div class="flex flex-col gap-2">
+          <div class="zen-flex zen-flex-col zen-gap-2">
             <DataTable
               data={serverSlice()}
               columns={columns}
@@ -373,11 +373,11 @@ const slice = await fetch(\`/api/people?page=\${page()}\`);
                 onPageChange: setServerPage,
               }}
             />
-            <div class="flex gap-2">
+            <div class="zen-flex zen-gap-2">
               <Button size="sm" variant="outline" onClick={() => setServerPage(0)}>
                 Reset to page 1
               </Button>
-              <span class="self-center text-xs text-zen-muted-fg">
+              <span class="zen-self-center zen-text-xs zen-text-zen-muted-fg">
                 page {serverPage() + 1} / {serverPageCount} (simulated server)
               </span>
             </div>
@@ -386,7 +386,7 @@ const slice = await fetch(\`/api/people?page=\${page()}\`);
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">8. Column separators (Zen theme opt-in)</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">8. Column separators (Zen theme opt-in)</h2>
         <CodeExample
           title="enableColumnSeparators draws 1-px vertical dividers"
           description="Per Zen theme table spec — opt-in. Renders border-r on every cell except the last."
@@ -401,7 +401,7 @@ const slice = await fetch(\`/api/people?page=\${page()}\`);
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">9. Row reorder (drag handle)</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">9. Row reorder (drag handle)</h2>
         <CodeExample
           title="enableRowOrdering + onRowOrderChange"
           description="Grip-handle column appears as the leading column. Drag a row up or down — the callback fires with the new ID order. Not compatible with virtualization."
@@ -431,7 +431,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">10. Multi-sort (Shift-click a second header)</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">10. Multi-sort (Shift-click a second header)</h2>
         <CodeExample
           title="enableSorting + enableMultiSort"
           description="Click one header to sort, then Shift-click another to add it as a secondary sort."
@@ -454,7 +454,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">11. Column resizing (drag the right edge)</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">11. Column resizing (drag the right edge)</h2>
         <CodeExample
           title="enableColumnResizing"
           description="A 4-px resize handle appears on the right edge of every header."
@@ -465,7 +465,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">12. Column ordering (drag headers)</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">12. Column ordering (drag headers)</h2>
         <CodeExample
           title="enableColumnOrdering + optional onColumnOrderChange"
           description="Drag a header sideways to reorder."
@@ -481,7 +481,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">13. Per-column filters</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">13. Per-column filters</h2>
         <CodeExample
           title="enablePerColumnFilters"
           description="A second header row renders an Input under every filterable column."
@@ -502,7 +502,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">14. CSV / JSON export</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">14. CSV / JSON export</h2>
         <CodeExample
           title="enableExport (+ exportFilename, exportOnlySelected)"
           description="Adds an Export menu to the toolbar with CSV and JSON items."
@@ -529,7 +529,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">15. Sticky header</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">15. Sticky header</h2>
         <CodeExample
           title="stickyHeader pins the <thead> while the body scrolls"
           description="Body is constrained to maxBodyHeight (default 480 px) so the sticky header has a real scroll context."
@@ -552,7 +552,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">16. Column pinning</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">16. Column pinning</h2>
         <CodeExample
           title="Freeze columns to the left or right edge"
           description="enableColumnPinning + initialColumnPinning={{ left, right }}."
@@ -581,7 +581,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">
           17. Virtualization + pinning + resize + reorder + filters
         </h2>
         <CodeExample
@@ -616,7 +616,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">18. Per-column filter operators</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">18. Per-column filter operators</h2>
         <CodeExample
           title="meta.filterVariant picks the input control + filterFn"
           description="text | number | numberRange | select | boolean — each gets a tailored input."
@@ -647,7 +647,7 @@ const handleOrderChange = (orderedIds: string[]) => {
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">19. Inline cell editing</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">19. Inline cell editing</h2>
         <CodeExample
           title="meta.editable opts a column in; onCellEdit gets the commit"
           description="Double-click (or focus + Enter / Space) any editable cell."
@@ -693,7 +693,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">20. Bulk actions + select-all-across-pages</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">20. Bulk actions + select-all-across-pages</h2>
         <CodeExample
           title="renderBulkActions shows when ≥ 1 row is selected"
           description="Caller supplies the action buttons; DataTable supplies the count, ✕, and Select-all-N-matching link."
@@ -741,7 +741,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">21. Expandable rows</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">21. Expandable rows</h2>
         <CodeExample
           title="renderSubRow renders a full-width detail panel under each expanded row"
           description="Prepends a chevron toggle column. Not wired into virtualized mode in this release."
@@ -760,7 +760,7 @@ const columns = [
             data={SMALL}
             columns={columns}
             renderSubRow={(row) => (
-              <div class="px-6 py-3 text-sm grid grid-cols-3 gap-x-6 gap-y-2 text-zen-foreground">
+              <div class="zen-px-6 zen-py-3 zen-text-sm zen-grid zen-grid-cols-3 zen-gap-x-6 zen-gap-y-2 zen-text-zen-foreground">
                 <div><strong>Department:</strong> {row.original.department}</div>
                 <div><strong>Location:</strong> {row.original.location}</div>
                 <div><strong>Manager:</strong> {row.original.manager}</div>
@@ -774,7 +774,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">22. rowClassName — per-row styling</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">22. rowClassName — per-row styling</h2>
         <CodeExample
           title="Tint rows based on data — e.g. suspended users get a red wash"
           description="The hook is called once per rendered body row. Returned class merges after the built-in classes."
@@ -803,7 +803,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">23. Row grouping</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">23. Row grouping</h2>
         <CodeExample
           title="enableGrouping + initialGrouping — group by one or more columns"
           description="Rows that share a value nest under a header row; aggregations show in the header."
@@ -826,7 +826,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="text-base font-semibold mb-2">24. Everything together</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">24. Everything together</h2>
         <CodeExample
           title="All toggles on, virtualization off (uses pagination instead)"
           code={`<DataTable

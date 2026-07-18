@@ -34,11 +34,17 @@ try {
 // styling on first paint when the user has previously picked Zen or Dark.
 applyTheme(getInitialTheme());
 
-// vite.config.demo.ts serves the app under `base: '/builder/'`, so React Router
-// needs the same basename to match routes correctly on direct visits / refreshes.
+// The router's basename must match the base the app is actually SERVED under,
+// or no route matches on a direct visit or a refresh. Derived from Vite's
+// BASE_URL rather than hardcoded to "/builder", because the base is not fixed:
+// it is "/builder/" under dev:all and "/zen-ui/builder/" on GitHub Pages, where
+// a hardcoded "/builder" would match nothing and render a blank page. BASE_URL
+// is baked in at build time and always has a trailing slash; basename must not.
+const BASENAME = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter basename="/builder">
+    <BrowserRouter basename={BASENAME}>
       <App />
     </BrowserRouter>
   </StrictMode>

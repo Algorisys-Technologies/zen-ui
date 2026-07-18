@@ -20,9 +20,9 @@ export interface CheckboxProps
 }
 
 const BOX_SIZES: Record<CheckboxSize, string> = {
-  sm: "h-3.5 w-3.5",
-  md: "h-4 w-4",
-  lg: "h-5 w-5",
+  sm: "zen-h-3.5 zen-w-3.5",
+  md: "zen-h-4 zen-w-4",
+  lg: "zen-h-5 zen-w-5",
 };
 
 const Checkbox = React.forwardRef<
@@ -32,18 +32,18 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "peer shrink-0 rounded-zen-sm border border-zen-border bg-zen-background",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
-      "disabled:cursor-not-allowed disabled:opacity-50",
-      "data-[state=checked]:bg-zen-primary data-[state=checked]:border-zen-primary data-[state=checked]:text-zen-primary-fg",
-      "data-[state=indeterminate]:bg-zen-primary data-[state=indeterminate]:border-zen-primary data-[state=indeterminate]:text-zen-primary-fg",
+      "zen-peer zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
+      "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+      "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
+      "data-[state=checked]:zen-bg-zen-primary data-[state=checked]:zen-border-zen-primary data-[state=checked]:zen-text-zen-primary-fg",
+      "data-[state=indeterminate]:zen-bg-zen-primary data-[state=indeterminate]:zen-border-zen-primary data-[state=indeterminate]:zen-text-zen-primary-fg",
       BOX_SIZES[size],
       className,
     )}
     {...props}
   >
     <CheckboxPrimitive.Indicator
-      className={cn("flex items-center justify-center text-current")}
+      className={cn("zen-flex zen-items-center zen-justify-center zen-text-current")}
     >
       {props.checked === "indeterminate" ? (
         <DashIcon />

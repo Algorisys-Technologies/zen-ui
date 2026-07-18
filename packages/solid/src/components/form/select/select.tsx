@@ -1,4 +1,4 @@
-import { splitProps, Show } from "solid-js";
+import { type JSX, splitProps, Show } from "solid-js";
 import { Select as KSelect } from "@kobalte/core/select";
 import { cn } from "../../../lib/cn";
 
@@ -29,7 +29,9 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export type SelectProps = {
+// `onChange` is omitted from the DOM attributes: our Select reports the new
+// value string (or null) directly, which collides with the DOM's change event.
+export type SelectProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "onChange"> & {
   options: SelectOption[];
   value?: string;
   defaultValue?: string;
@@ -46,7 +48,7 @@ export type SelectProps = {
 };
 
 export const Select = (props: SelectProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "options",
     "value",
     "defaultValue",
@@ -58,10 +60,12 @@ export const Select = (props: SelectProps) => {
     "class",
     "label",
     "errorMessage",
+    "id",
   ]);
 
   return (
     <KSelect<SelectOption>
+      {...rest}
       options={local.options}
       optionValue="value"
       optionTextValue="label"
@@ -78,12 +82,12 @@ export const Select = (props: SelectProps) => {
         <KSelect.Item
           item={itemProps.item}
           class={cn(
-            "relative flex cursor-default select-none items-center rounded-zen-sm py-1.5 pl-8 pr-2 text-sm outline-none",
-            "data-[highlighted]:bg-zen-muted",
-            "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+            "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+            "data-[highlighted]:zen-bg-zen-muted",
+            "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
           )}
         >
-          <KSelect.ItemIndicator class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+          <KSelect.ItemIndicator class="zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
             <CheckIcon />
           </KSelect.ItemIndicator>
           <KSelect.ItemLabel>{itemProps.item.rawValue.label}</KSelect.ItemLabel>
@@ -92,40 +96,43 @@ export const Select = (props: SelectProps) => {
       class={local.class}
     >
       <Show when={local.label}>
-        <KSelect.Label class="text-sm font-medium text-zen-foreground block mb-1">
+        <KSelect.Label class="zen-text-sm zen-font-medium zen-text-zen-foreground zen-block zen-mb-1">
           {local.label}
         </KSelect.Label>
       </Show>
       <KSelect.HiddenSelect />
+      {/* The caller's `id` lands on the trigger (a labelable <button>), not the
+          Kobalte root, so `<label for={id}>` associates and names the control. */}
       <KSelect.Trigger
+        id={local.id}
         class={cn(
-          "flex items-center justify-between gap-2 h-10 px-3 w-full",
-          "rounded-zen-md border border-zen-border bg-zen-background text-sm text-zen-foreground",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
-          "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-          "data-[invalid]:border-zen-error",
+          "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-10 zen-px-3 zen-w-full",
+          "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-sm zen-text-zen-foreground",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+          "data-[disabled]:zen-cursor-not-allowed data-[disabled]:zen-opacity-50",
+          "data-[invalid]:zen-border-zen-error",
         )}
       >
-        <KSelect.Value<SelectOption> class="truncate">
+        <KSelect.Value<SelectOption> class="zen-truncate">
           {(state) => state.selectedOption()?.label ?? null}
         </KSelect.Value>
-        <KSelect.Icon class="text-zen-muted-fg">
+        <KSelect.Icon class="zen-text-zen-muted-fg">
           <ChevronDown />
         </KSelect.Icon>
       </KSelect.Trigger>
       <Show when={local.errorMessage}>
-        <KSelect.ErrorMessage class="text-xs text-zen-error mt-1">
+        <KSelect.ErrorMessage class="zen-text-xs zen-text-zen-error zen-mt-1">
           {local.errorMessage}
         </KSelect.ErrorMessage>
       </Show>
       <KSelect.Portal>
         <KSelect.Content
           class={cn(
-            "z-50 min-w-32 overflow-hidden",
-            "rounded-zen-md border bg-zen-background p-1 text-zen-foreground shadow-md",
+            "zen-z-50 zen-min-w-32 zen-overflow-hidden",
+            "zen-rounded-zen-md zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md",
           )}
         >
-          <KSelect.Listbox class="overflow-y-auto max-h-72" />
+          <KSelect.Listbox class="zen-overflow-y-auto zen-max-h-72" />
         </KSelect.Content>
       </KSelect.Portal>
     </KSelect>

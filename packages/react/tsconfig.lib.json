@@ -8,6 +8,13 @@
     "noEmit": false,
     // Output directory for compiled files and declarations
     "outDir": "./dist",
+    // Emit dist/index.d.ts, not dist/src/index.d.ts. Without this, tsc infers
+    // rootDir from the inputs and keeps the src/ prefix, so the declarations
+    // landed at dist/src/ while package.json's "types" pointed at dist/ — and
+    // consumers got NO types at all. It survived because emptyOutDir:false kept
+    // a stale dist/index.d.ts alive on machines that had once built it; a fresh
+    // clone never had one. Mirrors preserveModulesRoot:"src" in the vite config.
+    "rootDir": "./src",
     // Preserve module structure for better tree-shaking
     "preserveWatchOutput": true,
     // Relax unused variable checks for library build

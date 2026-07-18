@@ -344,10 +344,10 @@ const NewButtonDemo: React.FC = () => {
   Pink with thick border
 </Button>`}
         >
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+          <Button className="zen-bg-purple-600 hover:zen-bg-purple-700 zen-text-white">
             Custom purple
           </Button>
-          <Button className="bg-pink-500 hover:bg-pink-600 text-white border-2 border-pink-700">
+          <Button className="zen-bg-pink-500 hover:zen-bg-pink-600 zen-text-white zen-border-2 zen-border-pink-700">
             Pink with thick border
           </Button>
         </CodeExample>

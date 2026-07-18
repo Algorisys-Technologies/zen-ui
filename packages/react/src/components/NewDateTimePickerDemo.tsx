@@ -36,7 +36,7 @@ const NewDateTimePickerDemo: React.FC = () => {
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <DateTimePicker value={when} onValueChange={setWhen} />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               ISO: <code>{when?.toISOString() ?? "(none)"}</code>
             </p>
           </div>

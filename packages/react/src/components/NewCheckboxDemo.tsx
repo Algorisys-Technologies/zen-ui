@@ -33,7 +33,7 @@ const NewCheckboxDemo: React.FC = () => {
   <span>I agree to the terms</span>
 </label>`}
         >
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "1.4rem" }}>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "0.875rem" }}>
             <Checkbox checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} />
             <span>I agree to the terms</span>
           </label>
@@ -92,7 +92,7 @@ const parent = all ? true : some ? "indeterminate" : false;
   onCheckedChange={(v) => setSelected(v === true ? topics : [])}
 />`}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: "1.4rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: "0.875rem" }}>
             <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
               <Checkbox
                 checked={parent}
@@ -102,7 +102,7 @@ const parent = all ? true : some ? "indeterminate" : false;
               />
               <strong>All topics</strong>
             </label>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: "2.4rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: "1.5rem" }}>
               {TOPICS.map((t) => (
                 <label key={t} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                   <Checkbox
@@ -130,9 +130,9 @@ const parent = all ? true : some ? "indeterminate" : false;
   className="data-[state=checked]:bg-zen-success data-[state=checked]:border-zen-success"
 />`}
         >
-          <Checkbox defaultChecked className="data-[state=checked]:bg-zen-success data-[state=checked]:border-zen-success" />
-          <Checkbox defaultChecked className="data-[state=checked]:bg-zen-warning data-[state=checked]:border-zen-warning" />
-          <Checkbox defaultChecked className="data-[state=checked]:bg-zen-error data-[state=checked]:border-zen-error" />
+          <Checkbox defaultChecked className="data-[state=checked]:zen-bg-zen-success data-[state=checked]:zen-border-zen-success" />
+          <Checkbox defaultChecked className="data-[state=checked]:zen-bg-zen-warning data-[state=checked]:zen-border-zen-warning" />
+          <Checkbox defaultChecked className="data-[state=checked]:zen-bg-zen-error data-[state=checked]:zen-border-zen-error" />
         </CodeExample>
       </section>
 
@@ -156,7 +156,7 @@ const parent = all ? true : some ? "indeterminate" : false;
               const fd = new FormData(e.currentTarget);
               alert(`interests = ${fd.getAll("interests").join(", ") || "(none)"}`);
             }}
-            style={{ display: "flex", alignItems: "center", gap: "1.2rem", fontSize: "1.4rem" }}
+            style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "0.875rem" }}
           >
             <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
               <Checkbox name="interests" value="design" /> Design
@@ -167,13 +167,13 @@ const parent = all ? true : some ? "indeterminate" : false;
             <button
               type="submit"
               style={{
-                padding: "0.6rem 1.2rem",
+                padding: "0.375rem 0.75rem",
                 background: "var(--zen-color-primary)",
                 color: "white",
                 border: 0,
                 borderRadius: 6,
                 cursor: "pointer",
-                fontSize: "1.3rem",
+                fontSize: "0.8125rem",
               }}
             >
               Submit

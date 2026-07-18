@@ -141,7 +141,7 @@ const NewNotificationsInboxDemo: React.FC = () => {
             >
               Reset feed
             </Button>
-            <span style={{ fontSize: "1.2rem", color: "var(--zen-color-muted-fg)" }}>
+            <span style={{ fontSize: "0.75rem", color: "var(--zen-color-muted-fg)" }}>
               {feed.filter((n) => !n.read).length} unread
             </span>
           </div>
@@ -183,7 +183,7 @@ const NewNotificationsInboxDemo: React.FC = () => {
             >
               Close panel
             </Button>
-            <span style={{ fontSize: "1.2rem", color: "var(--zen-color-muted-fg)" }}>
+            <span style={{ fontSize: "0.75rem", color: "var(--zen-color-muted-fg)" }}>
               open: <code>{String(controlledOpen)}</code>
             </span>
           </div>
@@ -235,7 +235,7 @@ const NewNotificationsInboxDemo: React.FC = () => {
                 ),
               }))}
             />
-            <div style={{ fontSize: "1.2rem", color: "var(--zen-color-muted-fg)" }}>
+            <div style={{ fontSize: "0.75rem", color: "var(--zen-color-muted-fg)" }}>
               {actionLog.length === 0 ? (
                 <em>No actions yet</em>
               ) : (

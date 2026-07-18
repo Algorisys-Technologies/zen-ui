@@ -37,8 +37,8 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitive.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col p-4",
-      "md:max-w-sm",
+      "zen-fixed zen-top-0 zen-right-0 zen-z-[100] zen-flex zen-max-h-screen zen-w-full zen-flex-col zen-p-4",
+      "md:zen-max-w-sm",
       className,
     )}
     {...props}
@@ -48,25 +48,25 @@ ToastViewport.displayName = ToastPrimitive.Viewport.displayName;
 
 const toastVariants = cva(
   [
-    "group pointer-events-auto relative flex w-full items-start gap-3",
-    "overflow-hidden rounded-zen-md border p-4 shadow-zen-lg",
-    "data-[swipe=cancel]:translate-x-0",
-    "data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)]",
-    "data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)]",
-    "data-[swipe=move]:transition-none",
+    "zen-group zen-pointer-events-auto zen-relative zen-flex zen-w-full zen-items-start zen-gap-3",
+    "zen-overflow-hidden zen-rounded-zen-md zen-border zen-p-4 zen-shadow-zen-lg",
+    "data-[swipe=cancel]:zen-translate-x-0",
+    "data-[swipe=end]:zen-translate-x-[var(--radix-toast-swipe-end-x)]",
+    "data-[swipe=move]:zen-translate-x-[var(--radix-toast-swipe-move-x)]",
+    "data-[swipe=move]:zen-transition-none",
   ].join(" "),
   {
     variants: {
       variant: {
         default:
-          "bg-zen-background border-zen-border text-zen-foreground",
+          "zen-bg-zen-background zen-border-zen-border zen-text-zen-foreground",
         success:
-          "bg-zen-success-soft border-zen-success text-zen-success-soft-fg",
+          "zen-bg-zen-success-soft zen-border-zen-success zen-text-zen-success-soft-fg",
         warning:
-          "bg-zen-warning-soft border-zen-warning text-zen-warning-soft-fg",
+          "zen-bg-zen-warning-soft zen-border-zen-warning zen-text-zen-warning-soft-fg",
         destructive:
-          "bg-zen-error-soft border-zen-error text-zen-error-soft-fg",
-        info: "bg-zen-info-soft border-zen-info text-zen-info-soft-fg",
+          "zen-bg-zen-error-soft zen-border-zen-error zen-text-zen-error-soft-fg",
+        info: "zen-bg-zen-info-soft zen-border-zen-info zen-text-zen-info-soft-fg",
       },
     },
     defaultVariants: { variant: "default" },
@@ -96,10 +96,10 @@ const ToastAction = React.forwardRef<
   <ToastPrimitive.Action
     ref={ref}
     className={cn(
-      "ml-auto inline-flex h-8 shrink-0 items-center justify-center",
-      "rounded-zen-sm border border-current/30 bg-transparent px-3 text-sm font-medium",
-      "hover:bg-current/10",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+      "zen-ml-auto zen-inline-flex zen-h-8 zen-shrink-0 zen-items-center zen-justify-center",
+      "zen-rounded-zen-sm zen-border zen-border-current/30 zen-bg-transparent zen-px-3 zen-text-sm zen-font-medium",
+      "hover:zen-bg-current/10",
+      "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       className,
     )}
     {...props}
@@ -116,10 +116,10 @@ const ToastClose = React.forwardRef<
     toast-close=""
     aria-label="Close"
     className={cn(
-      "absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center",
-      "rounded-zen-sm bg-transparent border-0 cursor-pointer opacity-70",
-      "hover:opacity-100 hover:bg-current/10",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+      "zen-absolute zen-right-2 zen-top-2 zen-inline-flex zen-h-6 zen-w-6 zen-items-center zen-justify-center",
+      "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-opacity-70",
+      "hover:zen-opacity-100 hover:zen-bg-current/10",
+      "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       className,
     )}
     {...props}
@@ -138,7 +138,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitive.Title
     ref={ref}
-    className={cn("text-sm font-semibold leading-tight", className)}
+    className={cn("zen-text-sm zen-font-semibold zen-leading-tight", className)}
     {...props}
   />
 ));
@@ -150,7 +150,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitive.Description
     ref={ref}
-    className={cn("text-sm opacity-90 leading-snug", className)}
+    className={cn("zen-text-sm zen-opacity-90 zen-leading-snug", className)}
     {...props}
   />
 ));

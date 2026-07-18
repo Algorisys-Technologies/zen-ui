@@ -31,8 +31,8 @@ export const Separator = (rawProps: SeparatorProps) => {
       }
       data-orientation={local.orientation}
       class={cn(
-        "shrink-0 bg-zen-border",
-        local.orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
+        "zen-shrink-0 zen-bg-zen-border",
+        local.orientation === "horizontal" ? "zen-h-px zen-w-full" : "zen-h-full zen-w-px",
         local.class,
       )}
       {...rest}

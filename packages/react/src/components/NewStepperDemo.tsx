@@ -63,8 +63,8 @@ function BasicsStep({ form }: { form: UseFormReturn<FormValues> }) {
   const stepper = useStepper();
   return (
     <>
-      <h3 className="text-base font-semibold mb-3">Basic info</h3>
-      <div className="grid gap-4">
+      <h3 className="zen-text-base zen-font-semibold zen-mb-3">Basic info</h3>
+      <div className="zen-grid zen-gap-4">
         <FormField
           control={form.control}
           name="name"
@@ -102,7 +102,7 @@ function BasicsStep({ form }: { form: UseFormReturn<FormValues> }) {
       <StepperNavigation
         onBeforeNext={() => form.trigger(["name", "email"])}
       />
-      <p className="text-xs text-zen-muted-fg mt-3">
+      <p className="zen-text-xs zen-text-zen-muted-fg zen-mt-3">
         Step {stepper.currentIndex + 1} of {stepper.steps.length}
       </p>
     </>
@@ -112,8 +112,8 @@ function BasicsStep({ form }: { form: UseFormReturn<FormValues> }) {
 function AddressStep({ form }: { form: UseFormReturn<FormValues> }) {
   return (
     <>
-      <h3 className="text-base font-semibold mb-3">Address</h3>
-      <div className="grid gap-4">
+      <h3 className="zen-text-base zen-font-semibold zen-mb-3">Address</h3>
+      <div className="zen-grid zen-gap-4">
         <FormField
           control={form.control}
           name="street"
@@ -127,7 +127,7 @@ function AddressStep({ form }: { form: UseFormReturn<FormValues> }) {
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="zen-grid zen-grid-cols-2 zen-gap-4">
           <FormField
             control={form.control}
             name="city"
@@ -176,8 +176,8 @@ function AddressStep({ form }: { form: UseFormReturn<FormValues> }) {
 function IdentityStep({ form }: { form: UseFormReturn<FormValues> }) {
   return (
     <>
-      <h3 className="text-base font-semibold mb-3">Government ID</h3>
-      <div className="grid gap-4">
+      <h3 className="zen-text-base zen-font-semibold zen-mb-3">Government ID</h3>
+      <div className="zen-grid zen-gap-4">
         <FormField
           control={form.control}
           name="idType"
@@ -238,7 +238,7 @@ function ReviewStep({
   const v = form.getValues();
   return (
     <>
-      <h3 className="text-base font-semibold mb-3">Review and submit</h3>
+      <h3 className="zen-text-base zen-font-semibold zen-mb-3">Review and submit</h3>
       {submitted ? (
         <Alert color="success">
           <AlertTitle>Submitted</AlertTitle>
@@ -249,18 +249,18 @@ function ReviewStep({
         </Alert>
       ) : (
         <>
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm border border-zen-border rounded-zen-md p-4">
-            <dt className="text-zen-muted-fg">Name</dt>
+          <dl className="zen-grid zen-grid-cols-2 zen-gap-x-6 zen-gap-y-2 zen-text-sm zen-border zen-border-zen-border zen-rounded-zen-md zen-p-4">
+            <dt className="zen-text-zen-muted-fg">Name</dt>
             <dd>{v.name || "—"}</dd>
-            <dt className="text-zen-muted-fg">Email</dt>
+            <dt className="zen-text-zen-muted-fg">Email</dt>
             <dd>{v.email || "—"}</dd>
-            <dt className="text-zen-muted-fg">Address</dt>
+            <dt className="zen-text-zen-muted-fg">Address</dt>
             <dd>
               {v.street || "—"}
               {v.city ? `, ${v.city}` : ""}
               {v.country ? `, ${v.country}` : ""}
             </dd>
-            <dt className="text-zen-muted-fg">ID</dt>
+            <dt className="zen-text-zen-muted-fg">ID</dt>
             <dd>
               {v.idType ? `${v.idType} · ${v.idNumber || "—"}` : "—"}
             </dd>
@@ -374,15 +374,15 @@ const SimpleHorizontalDemo: React.FC = () => {
     >
       <StepperList />
       <StepperPanel value="a">
-        <p className="text-sm py-4">Welcome screen content.</p>
+        <p className="zen-text-sm zen-py-4">Welcome screen content.</p>
         <StepperNavigation />
       </StepperPanel>
       <StepperPanel value="b">
-        <p className="text-sm py-4">Profile fields would go here.</p>
+        <p className="zen-text-sm zen-py-4">Profile fields would go here.</p>
         <StepperNavigation />
       </StepperPanel>
       <StepperPanel value="c">
-        <p className="text-sm py-4">All done — final screen.</p>
+        <p className="zen-text-sm zen-py-4">All done — final screen.</p>
         <StepperNavigation
           submitLabel="Finish"
           onSubmit={() => alert("Finished!")}
@@ -408,21 +408,21 @@ const NonLinearDemo: React.FC = () => {
     >
       <StepperList />
       <StepperPanel value="planning">
-        <p className="text-sm py-4">
+        <p className="zen-text-sm zen-py-4">
           Click any step header — non-linear mode lets you jump around.
         </p>
         <StepperNavigation />
       </StepperPanel>
       <StepperPanel value="design">
-        <p className="text-sm py-4">Design content.</p>
+        <p className="zen-text-sm zen-py-4">Design content.</p>
         <StepperNavigation />
       </StepperPanel>
       <StepperPanel value="build">
-        <p className="text-sm py-4">Build content.</p>
+        <p className="zen-text-sm zen-py-4">Build content.</p>
         <StepperNavigation />
       </StepperPanel>
       <StepperPanel value="ship">
-        <p className="text-sm py-4">Ship content.</p>
+        <p className="zen-text-sm zen-py-4">Ship content.</p>
         <StepperNavigation submitLabel="Done" onSubmit={() => undefined} />
       </StepperPanel>
     </Stepper>
@@ -449,7 +449,7 @@ const ErrorStateDemo: React.FC = () => {
     >
       <StepperList />
       <StepperPanel value="c">
-        <p className="text-sm py-4">
+        <p className="zen-text-sm zen-py-4">
           The Payment step has{" "}
           <code>status: &quot;error&quot;</code>; its indicator turns
           red and the label uses <code>--zen-color-error</code>.
@@ -582,7 +582,7 @@ const NewStepperDemo: React.FC = () => {
   );
 }`}
         >
-          <p className="text-xs text-zen-muted-fg">
+          <p className="zen-text-xs zen-text-zen-muted-fg">
             The "Step N of M" caption under section 2's Basics step is rendered
             via <code>useStepper()</code>.
           </p>

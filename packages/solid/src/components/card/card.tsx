@@ -17,19 +17,19 @@ import { cn } from "../../lib/cn";
  */
 
 const cardVariants = cva(
-  "rounded-zen-md border bg-zen-background text-zen-foreground",
+  "zen-rounded-zen-md zen-border zen-bg-zen-background zen-text-zen-foreground",
   {
     variants: {
       variant: {
-        elevated: "border-zen-border shadow-zen-sm",
-        outlined: "border-zen-border",
-        ghost: "border-transparent",
+        elevated: "zen-border-zen-border zen-shadow-zen-sm",
+        outlined: "zen-border-zen-border",
+        ghost: "zen-border-transparent",
       },
       padding: {
         none: "",
-        sm: "p-3",
-        md: "p-5",
-        lg: "p-6",
+        sm: "zen-p-3",
+        md: "zen-p-5",
+        lg: "zen-p-6",
       },
     },
     defaultVariants: {
@@ -65,7 +65,7 @@ type SectionProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class"> & {
 export const CardHeader = (props: SectionProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div class={cn("flex flex-col gap-1 p-5 pb-3", local.class)} {...rest}>
+    <div class={cn("zen-flex zen-flex-col zen-gap-1 zen-p-5 zen-pb-3", local.class)} {...rest}>
       {local.children}
     </div>
   );
@@ -80,7 +80,7 @@ export const CardTitle = (props: TitleProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <h3
-      class={cn("text-base font-semibold leading-tight m-0 text-zen-foreground", local.class)}
+      class={cn("zen-text-base zen-font-semibold zen-leading-tight zen-m-0 zen-text-zen-foreground", local.class)}
       {...rest}
     >
       {local.children}
@@ -96,7 +96,7 @@ type ParagraphProps = Omit<JSX.HTMLAttributes<HTMLParagraphElement>, "class"> & 
 export const CardDescription = (props: ParagraphProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <p class={cn("text-sm text-zen-muted-fg m-0", local.class)} {...rest}>
+    <p class={cn("zen-text-sm zen-text-zen-muted-fg zen-m-0", local.class)} {...rest}>
       {local.children}
     </p>
   );
@@ -105,7 +105,7 @@ export const CardDescription = (props: ParagraphProps) => {
 export const CardContent = (props: SectionProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div class={cn("p-5 pt-0", local.class)} {...rest}>
+    <div class={cn("zen-p-5 zen-pt-0", local.class)} {...rest}>
       {local.children}
     </div>
   );
@@ -115,7 +115,7 @@ export const CardFooter = (props: SectionProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
-      class={cn("flex items-center gap-2 p-5 pt-3 border-t border-zen-border", local.class)}
+      class={cn("zen-flex zen-items-center zen-gap-2 zen-p-5 zen-pt-3 zen-border-t zen-border-zen-border", local.class)}
       {...rest}
     >
       {local.children}

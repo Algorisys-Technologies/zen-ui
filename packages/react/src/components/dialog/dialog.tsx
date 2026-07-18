@@ -39,7 +39,7 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/50", className)}
+    className={cn("zen-fixed zen-inset-0 zen-z-50 zen-bg-black/50", className)}
     {...props}
   />
 ));
@@ -54,10 +54,15 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-        "w-full max-w-lg max-h-[85vh] overflow-y-auto",
-        "rounded-zen-md border border-zen-border bg-zen-background p-6 shadow-zen-lg",
-        "focus:outline-none",
+        "zen-fixed zen-left-1/2 zen-top-1/2 zen-z-50 -zen-translate-x-1/2 -zen-translate-y-1/2",
+        "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
+        // A surface that paints its own background MUST paint its own
+        // foreground. This is portalled to <body>, so "inherit" means the
+        // consumer's body colour, not the app's — with a dark theme the panel
+        // went dark and the text stayed black, at about 1.2:1. The token was
+        // right the whole time; nothing read it.
+        "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
+        "focus:zen-outline-none",
         className,
       )}
       {...props}
@@ -66,10 +71,10 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Close
         aria-label="Close"
         className={cn(
-          "absolute right-3 top-3 h-7 w-7 inline-flex items-center justify-center",
-          "rounded-zen-sm bg-transparent border-0 cursor-pointer text-zen-muted-fg",
-          "hover:text-zen-foreground hover:bg-zen-muted",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+          "zen-absolute zen-right-3 zen-top-3 zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center",
+          "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg",
+          "hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
         )}
       >
         <XIcon />
@@ -84,7 +89,7 @@ const DialogHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("flex flex-col gap-1 text-left mb-3 pr-8", className)}
+    className={cn("zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3 zen-pr-8", className)}
     {...props}
   />
 );
@@ -96,7 +101,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5",
+      "zen-flex zen-flex-col-reverse sm:zen-flex-row sm:zen-justify-end zen-gap-2 zen-mt-5",
       className,
     )}
     {...props}
@@ -111,7 +116,7 @@ const DialogTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-tight text-zen-foreground",
+      "zen-text-lg zen-font-semibold zen-leading-tight zen-text-zen-foreground",
       className,
     )}
     {...props}
@@ -125,7 +130,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-zen-muted-fg leading-snug", className)}
+    className={cn("zen-text-sm zen-text-zen-muted-fg zen-leading-snug", className)}
     {...props}
   />
 ));

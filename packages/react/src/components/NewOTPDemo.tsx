@@ -47,7 +47,7 @@ const NewOTPDemo: React.FC = () => {
                 <InputOTPSlot index={5} />
               </InputOTPGroup>
             </InputOTP>
-            <span style={{ fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+            <span style={{ fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
               value: "{code}"
             </span>
           </div>

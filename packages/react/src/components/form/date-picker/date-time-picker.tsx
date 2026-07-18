@@ -135,8 +135,8 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
           color="neutral"
           disabled={typeof disabled === "boolean" ? disabled : undefined}
           className={cn(
-            "w-72 justify-between font-normal",
-            !date && "text-zen-muted-fg",
+            "zen-w-72 zen-justify-between zen-font-normal",
+            !date && "zen-text-zen-muted-fg",
             className,
           )}
           iconLeft={<CalendarIcon />}
@@ -144,15 +144,15 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
           {triggerLabel}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="zen-w-auto zen-p-0" align="start">
         <Calendar
           mode="single"
           selected={date}
           onSelect={onDaySelect}
           disabled={typeof disabled === "boolean" ? undefined : disabled}
         />
-        <div className="flex items-center justify-between gap-3 border-t border-zen-border px-3 py-2.5">
-          <label className="text-xs text-zen-muted-fg">Time</label>
+        <div className="zen-flex zen-items-center zen-justify-between zen-gap-3 zen-border-t zen-border-zen-border zen-px-3 zen-py-2.5">
+          <label className="zen-text-xs zen-text-zen-muted-fg">Time</label>
           <TimePicker
             value={dateToTimeString(date, showSeconds)}
             onValueChange={onTimeChange}

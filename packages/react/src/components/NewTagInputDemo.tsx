@@ -38,7 +38,7 @@ const NewTagInputDemo: React.FC = () => {
               placeholder="Add a skill…"
               inputAriaLabel="Skills"
             />
-            <p className="text-xs text-zen-muted-fg mt-2 m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-mt-2 zen-m-0">
               <strong>{skills.length}</strong> skill(s):{" "}
               <code>{JSON.stringify(skills)}</code>
               <br />
@@ -71,7 +71,7 @@ const NewTagInputDemo: React.FC = () => {
               placeholder="Invite by email — paste a comma list"
               inputAriaLabel="Email addresses"
             />
-            <p className="text-xs text-zen-muted-fg mt-2 m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-mt-2 zen-m-0">
               Validator rejects anything that doesn't look like an
               email — the candidate stays in the input so you can fix
               it instead of losing the typing. Try pasting:{" "}
@@ -94,7 +94,7 @@ const NewTagInputDemo: React.FC = () => {
               max={3}
               placeholder={tags.length >= 3 ? "Limit reached" : "Up to 3 tags"}
             />
-            <p className="text-xs text-zen-muted-fg mt-2 m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-mt-2 zen-m-0">
               {tags.length} / 3
             </p>
           </div>

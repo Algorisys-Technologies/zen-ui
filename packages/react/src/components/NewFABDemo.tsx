@@ -23,7 +23,7 @@ const NewFABDemo: React.FC = () => {
 
       <section className="demo-section">
         <h2>1. Inline preview</h2>
-        <p style={{ fontSize: "1.3rem", color: "var(--zen-color-muted-fg)", marginTop: -8 }}>
+        <p style={{ fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)", marginTop: -8 }}>
           The real FABs render <em>fixed-position</em> over the whole page;
           to keep this docs page tidy they're enabled via the toggle below.
         </p>
@@ -35,13 +35,13 @@ const NewFABDemo: React.FC = () => {
           <button
             onClick={() => setShowAll((v) => !v)}
             style={{
-              padding: "0.6rem 1.2rem",
+              padding: "0.375rem 0.75rem",
               background: "var(--zen-color-primary)",
               color: "white",
               border: 0,
               borderRadius: 6,
               cursor: "pointer",
-              fontSize: "1.3rem",
+              fontSize: "0.8125rem",
             }}
           >
             {showAll ? "Hide fixed FABs" : "Show fixed FABs"}
@@ -90,7 +90,7 @@ const NewFABDemo: React.FC = () => {
                     iconLeft={<PlusIcon />}
                     aria-label="Quick actions"
                     /* override the fixed positioning so it stays inside the demo card */
-                    className="!static"
+                    className="!zen-static"
                   />
                 </div>
               </DropdownMenuTrigger>
@@ -115,7 +115,7 @@ const NewFABDemo: React.FC = () => {
               <FAB
                 key={size}
                 size={size}
-                className="!static"
+                className="!zen-static"
                 aria-label={`Size ${size}`}
                 iconLeft={<PlusIcon />}
               />
@@ -133,10 +133,10 @@ const NewFABDemo: React.FC = () => {
 <FAB color="warning" iconLeft={<AlertIcon />} />`}
         >
           <div style={{ display: "flex", gap: 16 }}>
-            <FAB color="primary" className="!static" iconLeft={<PlusIcon />} aria-label="Add" />
-            <FAB color="success" className="!static" iconLeft={<CheckIcon />} aria-label="Confirm" />
-            <FAB color="error" className="!static" iconLeft={<TrashIcon />} aria-label="Delete" />
-            <FAB color="warning" className="!static" iconLeft={<AlertIcon />} aria-label="Alert" />
+            <FAB color="primary" className="!zen-static" iconLeft={<PlusIcon />} aria-label="Add" />
+            <FAB color="success" className="!zen-static" iconLeft={<CheckIcon />} aria-label="Confirm" />
+            <FAB color="error" className="!zen-static" iconLeft={<TrashIcon />} aria-label="Delete" />
+            <FAB color="warning" className="!zen-static" iconLeft={<AlertIcon />} aria-label="Alert" />
           </div>
         </CodeExample>
       </section>

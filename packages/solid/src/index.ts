@@ -4,8 +4,10 @@
 // Side-effect CSS imports. Tokens must load before any UnoCSS utility
 // (bg-zen-*, text-zen-*, …) is evaluated, otherwise those classes
 // resolve to var(--zen-color-…) → empty.
+// Only `--zen-*` custom properties and `.zen-*` classes ship from here. The
+// element reset is opt-in via `@algorisys/zen-ui-solid/preflight` so the library
+// cannot restyle a consumer's document — see docs/css-interop.md.
 import "@algorisys/zen-ui-core/tokens.css";
-import "@algorisys/zen-ui-core/preflight.css";
 import "virtual:uno.css";
 
 // Theming
@@ -21,7 +23,142 @@ export type { PolymorphicProps } from "./lib/polymorphic";
 // ---------------------------------------------------------------------------
 
 export { Button, buttonVariants } from "./components/button/button";
+
+export {
+  ToggleButton,
+  SegmentedButton,
+  SegmentedButtonItem,
+  SplitButton,
+} from "./components/button/button-family";
+export type {
+  ToggleButtonProps,
+  SegmentedButtonProps,
+  SegmentedButtonItemProps,
+  SplitButtonProps,
+} from "./components/button/button-family";
 export type { ButtonProps } from "./components/button/button";
+
+export { Page, Bar } from "./components/page/page";
+export type { PageProps, BarProps } from "./components/page/page";
+
+export { PageHeader } from "./components/page-header/page-header";
+export type { PageHeaderProps } from "./components/page-header/page-header";
+
+export { Toolbar } from "./components/toolbar/toolbar";
+export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
+
+export { Tree } from "./components/tree/tree";
+export type { TreeProps, TreeNode } from "./components/tree/tree";
+
+export { SkipToContent, SKIP_TO_CONTENT_CLASS } from "./components/skip-to-content/skip-to-content";
+export type { SkipToContentProps } from "./components/skip-to-content/skip-to-content";
+export { ShellBar } from "./components/shellbar/shellbar";
+export type {
+  ShellBarProps,
+  ShellBarItem,
+  ShellBarMenuItem,
+  ShellBarProfile,
+} from "./components/shellbar/shellbar";
+
+export { FlexibleColumnLayout } from "./components/flexible-column-layout/flexible-column-layout";
+export type {
+  FlexibleColumnLayoutProps,
+  FlexibleColumnLayoutType,
+  FlexibleColumnLayoutChangeDetail,
+  FlexibleColumnName,
+} from "./components/flexible-column-layout/flexible-column-layout";
+
+export {
+  DynamicPage,
+  DynamicPageTitle,
+  DynamicPageHeader,
+  DynamicPageFooter,
+} from "./components/dynamic-page/dynamic-page";
+export type {
+  DynamicPageProps,
+  DynamicPageTitleProps,
+  DynamicPageHeaderProps,
+  DynamicPageFooterProps,
+} from "./components/dynamic-page/dynamic-page";
+
+export { SelectDialog } from "./components/select-dialog/select-dialog";
+export type {
+  SelectDialogProps,
+  SelectDialogItem,
+} from "./components/select-dialog/select-dialog";
+
+export { ViewSettingsDialog } from "./components/view-settings/view-settings-dialog";
+export type {
+  ViewSettingsDialogProps,
+  ViewSettingsValue,
+  ViewSettingsItem,
+  ViewSettingsFilterGroup,
+} from "./components/view-settings/view-settings-dialog";
+
+export { FilterBar } from "./components/filter-bar/filter-bar";
+export type { FilterBarProps, FilterBarField } from "./components/filter-bar/filter-bar";
+
+export { ValueHelp } from "./components/value-help/value-help";
+export type {
+  ValueHelpProps,
+  ValueHelpCondition,
+  ValueHelpOperator,
+  ValueHelpResult,
+} from "./components/value-help/value-help";
+
+export { ObjectPageLayout } from "./components/object-page/object-page";
+export type {
+  ObjectPageLayoutProps,
+  ObjectPageSection,
+  ObjectPageSubSection,
+} from "./components/object-page/object-page";
+
+export {
+  ObjectStatus,
+  ObjectNumber,
+  ObjectIdentifier,
+  ObjectMarker,
+  objectStatusVariants,
+} from "./components/object/object";
+export type {
+  ObjectStatusProps,
+  ObjectNumberProps,
+  ObjectIdentifierProps,
+  ObjectMarkerProps,
+  ObjectState,
+  ObjectMarkerType,
+} from "./components/object/object";
+
+export { Icon, ZEN_ICON_NAMES } from "./components/icon/icon";
+export type { IconProps, IconName } from "./components/icon/icon";
+
+export { ColorPicker } from "./components/color-picker/color-picker";
+export type { ColorPickerProps } from "./components/color-picker/color-picker";
+export { ColorPalette } from "./components/color-picker/color-palette";
+export type { ColorPaletteProps } from "./components/color-picker/color-palette";
+export type { ColorOption } from "@algorisys/zen-ui-core/color";
+
+export { DynamicDateRange } from "./components/form/dynamic-date-range/dynamic-date-range";
+export type { DynamicDateRangeProps } from "./components/form/dynamic-date-range/dynamic-date-range";
+export type {
+  DateRangeValue,
+  DateRangeOperator,
+  ResolvedRange,
+  OperatorMeta,
+} from "@algorisys/zen-ui-core/date-range";
+export {
+  resolveDateRange,
+  formatDateRangeValue,
+  DATE_RANGE_OPERATORS,
+  parseISODate,
+  toISODate,
+} from "@algorisys/zen-ui-core/date-range";
+
+export { Carousel } from "./components/carousel/carousel";
+export type { CarouselProps } from "./components/carousel/carousel";
+
+export { Link, linkVariants } from "./components/link/link";
+export type { LinkProps } from "./components/link/link";
 
 export { Badge, badgeVariants } from "./components/badge/badge";
 export type { BadgeProps } from "./components/badge/badge";
@@ -36,6 +173,13 @@ export {
   cardVariants,
 } from "./components/card/card";
 export type { CardProps } from "./components/card/card";
+
+export { StatCard } from "./components/stat-card/stat-card";
+export type {
+  StatCardProps,
+  StatCardTrend,
+  StatCardColor,
+} from "./components/stat-card/stat-card";
 
 export {
   SelectableCard,
@@ -196,8 +340,12 @@ export type {
   AccordionContentProps,
 } from "./components/accordion/accordion";
 
+export { MaskInput } from "./components/form/mask-input/mask-input";
+export type { MaskInputProps } from "./components/form/mask-input/mask-input";
+export type { MaskRules } from "@algorisys/zen-ui-core/mask";
+
 export { Slider } from "./components/form/slider/slider";
-export type { SliderProps } from "./components/form/slider/slider";
+export type { SliderProps, SliderMark } from "./components/form/slider/slider";
 
 export {
   Popover,
@@ -291,6 +439,10 @@ export { Toaster, toast } from "./components/toast/toaster";
 export { Input, Textarea } from "./components/form/input/input";
 export type { InputProps, TextareaProps } from "./components/form/input/input";
 export { DEFAULT_EMAIL_DOMAINS } from "./components/form/input/input.constants";
+export { Search } from "./components/form/search/search";
+export type { SearchProps, SearchSize } from "./components/form/search/search";
+export { PasswordInput } from "./components/form/password-input/password-input";
+export type { PasswordInputProps } from "./components/form/password-input/password-input";
 
 export { NumberField } from "./components/form/number-field/number-field";
 export type { NumberFieldProps } from "./components/form/number-field/number-field";
@@ -325,6 +477,63 @@ export {
 } from "./components/data-table/table";
 export type { TableProps } from "./components/data-table/table";
 
+// Pivot — the components from this binding, the model from core.
+//
+// The whole model surface is re-exported, not a subset. It used to export
+// PivotWorkbench while withholding PivotMembersRequest/Result, so `loadMembers`
+// — the pivot's single integration point — had a signature no consumer could
+// name. The demo only got away with it by deep-importing past the root.
+export {
+  PivotWorkbench,
+  PivotGrid,
+  PivotDropZone,
+  PivotFieldChip,
+  PivotFilterMenu,
+} from "./components/pivot";
+export type {
+  PivotWorkbenchProps,
+  PivotGridProps,
+  PivotDropZoneProps,
+  PivotFieldChipProps,
+  PivotFilterMenuProps,
+} from "./components/pivot";
+
+export {
+  createEmptyLayout,
+  moveFieldToZone,
+  removeFieldFromLayout,
+  updateValueAggregation,
+  zoneOf,
+  zoneLabel,
+  fieldLabel,
+  availableFields,
+  isLayoutRenderable,
+  defaultAggregationForField,
+  normalizeFilterSelection,
+  isFilterActive,
+  isValueSelected,
+  hasActiveFilters,
+  describeFilterSelection,
+  describeMove,
+  PIVOT_ZONES,
+  PIVOT_AGGREGATIONS,
+} from "@algorisys/zen-ui-core/pivot";
+export type {
+  PivotLayout,
+  PivotField,
+  PivotFieldType,
+  PivotValueField,
+  PivotZone,
+  PivotAggregation,
+  PivotFilters,
+  PivotFilterSelection,
+  PivotFilterOptionsBody,
+  PivotMembersRequest,
+  PivotMembersResult,
+  PivotSort,
+  SortDirection,
+} from "@algorisys/zen-ui-core/pivot";
+
 export { DataTable } from "./components/data-table/data-table";
 export type {
   DataTableProps,
@@ -344,7 +553,11 @@ export type {
 } from "./components/data-table/edit-cell";
 
 export { VirtualizedItems } from "./components/listbox/virtualized-items";
-export type { VirtualizedItemsProps } from "./components/listbox/virtualized-items";
+export type {
+  VirtualizedItemsProps,
+  VirtualizedItemsDenseProps,
+  VirtualizedItemsSparseProps,
+} from "./components/listbox/virtualized-items";
 
 export { Combobox } from "./components/combobox/combobox";
 export type { ComboboxProps, ComboboxOption } from "./components/combobox/combobox";
@@ -404,3 +617,90 @@ export type {
   NotificationsInboxProps,
   Notification,
 } from "./components/notifications-inbox/notifications-inbox";
+
+// ---------------------------------------------------------------------------
+// Ported from the React binding — see CLAUDE.md's parity rule. Where Solid has
+// no equivalent of a React-only dep (cmdk, recharts, react-webcam), the port
+// rebuilds the behaviour rather than pulling React in; per-file port notes list
+// any behavioural gaps.
+// ---------------------------------------------------------------------------
+
+export { Stack } from "./components/stack/stack";
+export type { StackProps } from "./components/stack/stack";
+
+export {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbEllipsis,
+} from "./components/breadcrumb/breadcrumb";
+export type {
+  BreadcrumbProps,
+  BreadcrumbListProps,
+  BreadcrumbItemProps,
+  BreadcrumbLinkProps,
+  BreadcrumbPageProps,
+  BreadcrumbSeparatorProps,
+  BreadcrumbEllipsisProps,
+} from "./components/breadcrumb/breadcrumb";
+
+export { Pagination, usePaginationRange } from "./components/pagination/pagination";
+
+export {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+  CommandLoading,
+  defaultFilter,
+} from "./components/command/command";
+export type { CommandFilter, CommandEmptyProps } from "./components/command/command";
+
+export {
+  Sidebar,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  useSidebar,
+} from "./components/sidebar/sidebar";
+export type {
+  SidebarMenuButtonProps,
+  SidebarMenuSubProps,
+  SidebarMenuSubButtonProps,
+  SidebarTriggerProps,
+} from "./components/sidebar/sidebar";
+
+// Heavy / optional peer deps — lazy-loaded, never bundled.
+export { Chart } from "./components/chart/chart";
+// The types were missing here while React exported them, so Solid consumers
+// could use Chart but never name its props. A parity bug, not a design.
+export type { ChartProps, ChartSeries } from "./components/chart/chart";
+export type { Slice } from "@algorisys/zen-ui-core/chart";
+export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
+export { RichText } from "./components/rich-text/rich-text";
+export { Map } from "./components/map/map";
+export { Camera } from "./components/camera/camera";
+// Prop types are part of the API: a component whose props cannot be named is
+// hard to wrap, extend or store in a variable. These existed and were simply not
+// exported.
+export type { CameraProps } from "./components/camera/camera";
+export type { MapProps, MapMarker } from "./components/map/map";
+export type { PaginationProps } from "./components/pagination/pagination";
+export type { RichTextProps } from "./components/rich-text/rich-text";
+export type { SidebarProviderProps } from "./components/sidebar/sidebar";

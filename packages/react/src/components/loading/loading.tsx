@@ -14,22 +14,22 @@ import { cn } from "../../lib/cn";
  * carry the loading semantics (e.g. `aria-busy` on the parent button).
  */
 
-const spinnerVariants = cva("animate-spin", {
+const spinnerVariants = cva("zen-animate-spin", {
   variants: {
     size: {
-      sm: "h-3 w-3",
-      md: "h-4 w-4",
-      lg: "h-6 w-6",
-      xl: "h-10 w-10",
+      sm: "zen-h-3 zen-w-3",
+      md: "zen-h-4 zen-w-4",
+      lg: "zen-h-6 zen-w-6",
+      xl: "zen-h-10 zen-w-10",
     },
     color: {
-      primary: "text-zen-primary",
-      neutral: "text-zen-foreground",
-      info: "text-zen-info",
-      success: "text-zen-success",
-      warning: "text-zen-warning",
-      error: "text-zen-error",
-      current: "text-current",
+      primary: "zen-text-zen-primary",
+      neutral: "zen-text-zen-foreground",
+      info: "zen-text-zen-info",
+      success: "zen-text-zen-success",
+      warning: "zen-text-zen-warning",
+      error: "zen-text-zen-error",
+      current: "zen-text-current",
     },
   },
   defaultVariants: {
@@ -59,7 +59,7 @@ const Loading = React.forwardRef<SVGSVGElement, LoadingProps>(
         {...props}
       >
         <circle
-          className="opacity-25"
+          className="zen-opacity-25"
           cx="12"
           cy="12"
           r="10"
@@ -67,7 +67,7 @@ const Loading = React.forwardRef<SVGSVGElement, LoadingProps>(
           strokeWidth="4"
         />
         <path
-          className="opacity-75"
+          className="zen-opacity-75"
           fill="currentColor"
           d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
         />

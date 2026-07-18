@@ -1,4 +1,4 @@
-import { Show, createMemo, createSignal, mergeProps, splitProps } from "solid-js";
+import { type JSX, Show, createMemo, createSignal, mergeProps, splitProps } from "solid-js";
 import { cn } from "../../../lib/cn";
 
 /**
@@ -10,7 +10,10 @@ import { cn } from "../../../lib/cn";
 
 type Format = "24h" | "12h";
 
-export type TimePickerProps = {
+export type TimePickerProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "id" | "aria-label"
+> & {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string | undefined) => void;
@@ -66,7 +69,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
     },
     rawProps,
   );
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "value",
     "defaultValue",
     "onValueChange",
@@ -115,9 +118,9 @@ export const TimePicker = (rawProps: TimePickerProps) => {
   };
 
   const segmentStyle =
-    "h-9 w-10 inline-flex items-center justify-center text-sm tabular-nums " +
-    "bg-transparent border border-zen-border rounded-zen-sm text-center " +
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring";
+    "zen-h-9 zen-w-10 zen-inline-flex zen-items-center zen-justify-center zen-text-sm zen-tabular-nums " +
+    "zen-bg-transparent zen-border zen-border-zen-border zen-rounded-zen-sm zen-text-center " +
+    "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring";
 
   const handleArrow = (
     e: KeyboardEvent,
@@ -140,7 +143,9 @@ export const TimePicker = (rawProps: TimePickerProps) => {
 
   return (
     <div
-      class={cn("inline-flex items-center gap-1", local.class)}
+      {...rest}
+      id={local.id}
+      class={cn("zen-inline-flex zen-items-center zen-gap-1", local.class)}
       role="group"
       aria-label={local["aria-label"] ?? "Time"}
     >
@@ -184,7 +189,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
         class={segmentStyle}
         aria-label="Hours"
       />
-      <span class="text-zen-muted-fg">:</span>
+      <span class="zen-text-zen-muted-fg">:</span>
       <input
         type="text"
         inputMode="numeric"
@@ -206,7 +211,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
         aria-label="Minutes"
       />
       <Show when={local.showSeconds}>
-        <span class="text-zen-muted-fg">:</span>
+        <span class="zen-text-zen-muted-fg">:</span>
         <input
           type="text"
           inputMode="numeric"
@@ -230,9 +235,9 @@ export const TimePicker = (rawProps: TimePickerProps) => {
           onClick={togglePeriod}
           disabled={local.disabled || local.readOnly}
           class={cn(
-            "h-9 px-2 text-xs font-medium rounded-zen-sm border border-zen-border bg-transparent cursor-pointer",
-            "hover:bg-zen-muted",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+            "zen-h-9 zen-px-2 zen-text-xs zen-font-medium zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-transparent zen-cursor-pointer",
+            "hover:zen-bg-zen-muted",
+            "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
           )}
         >
           {period()}

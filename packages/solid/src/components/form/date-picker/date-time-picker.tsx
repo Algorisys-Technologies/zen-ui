@@ -117,22 +117,22 @@ export const DateTimePicker = (rawProps: DateTimePickerProps) => {
         disabled={props.disabled === true}
         iconLeft={<CalendarIcon />}
         class={cn(
-          "w-72 justify-between font-normal",
-          !date() && "text-zen-muted-fg",
+          "zen-w-72 zen-justify-between zen-font-normal",
+          !date() && "zen-text-zen-muted-fg",
           props.class,
         )}
       >
         {triggerLabel()}
       </PopoverTrigger>
-      <PopoverContent class="w-auto p-0">
+      <PopoverContent class="zen-w-auto zen-p-0">
         <Calendar
           mode="single"
           selected={date()}
           onSelect={onDaySelect}
           disabled={typeof props.disabled === "function" ? props.disabled : undefined}
         />
-        <div class="flex items-center justify-between gap-3 border-t border-zen-border px-3 py-2.5">
-          <label class="text-xs text-zen-muted-fg">Time</label>
+        <div class="zen-flex zen-items-center zen-justify-between zen-gap-3 zen-border-t zen-border-zen-border zen-px-3 zen-py-2.5">
+          <label class="zen-text-xs zen-text-zen-muted-fg">Time</label>
           <TimePicker
             value={dateToTimeString(date(), !!props.showSeconds)}
             onValueChange={onTimeChange}

@@ -69,18 +69,18 @@ const BoundFieldFrame: React.FC<BoundFieldFrameProps> = ({
   className,
   children,
 }) => (
-  <div className={cn("flex flex-col gap-1.5", className)}>
+  <div className={cn("zen-flex zen-flex-col zen-gap-1.5", className)}>
     {label ? (
       <label
         htmlFor={id}
         className={cn(
-          "text-sm font-medium leading-none",
-          error ? "text-zen-error" : "text-zen-foreground",
+          "zen-text-sm zen-font-medium zen-leading-none",
+          error ? "zen-text-zen-error" : "zen-text-zen-foreground",
         )}
       >
         {label}
         {required ? (
-          <span aria-hidden className="ml-0.5 text-zen-error">
+          <span aria-hidden className="zen-ml-0.5 zen-text-zen-error">
             *
           </span>
         ) : null}
@@ -88,10 +88,10 @@ const BoundFieldFrame: React.FC<BoundFieldFrameProps> = ({
     ) : null}
     {children}
     {description && !error ? (
-      <p className="text-xs text-zen-muted-fg">{description}</p>
+      <p className="zen-text-xs zen-text-zen-muted-fg">{description}</p>
     ) : null}
     {error ? (
-      <p className="text-xs font-medium text-zen-error" role="alert">
+      <p className="zen-text-xs zen-font-medium zen-text-zen-error" role="alert">
         {error}
       </p>
     ) : null}
@@ -323,10 +323,10 @@ export function BoundCheckbox<TFields extends FieldValues = FieldValues>({
       name={name}
       rules={rules}
       render={({ field }: { field: ControllerRenderProps<TFields, Path<TFields>> }) => (
-        <div className={cn("flex flex-col gap-1.5", fieldClassName)}>
+        <div className={cn("zen-flex zen-flex-col zen-gap-1.5", fieldClassName)}>
           <label
             htmlFor={id}
-            className="inline-flex items-center gap-2 cursor-pointer text-sm"
+            className="zen-inline-flex zen-items-center zen-gap-2 zen-cursor-pointer zen-text-sm"
           >
             <Checkbox
               id={id}
@@ -338,10 +338,10 @@ export function BoundCheckbox<TFields extends FieldValues = FieldValues>({
             <span>{label}</span>
           </label>
           {description && !error ? (
-            <p className="text-xs text-zen-muted-fg pl-6">{description}</p>
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-pl-6">{description}</p>
           ) : null}
           {error ? (
-            <p className="text-xs font-medium text-zen-error pl-6" role="alert">
+            <p className="zen-text-xs zen-font-medium zen-text-zen-error zen-pl-6" role="alert">
               {error}
             </p>
           ) : null}
@@ -379,18 +379,18 @@ export function BoundSwitch<TFields extends FieldValues = FieldValues>({
       name={name}
       rules={rules}
       render={({ field }) => (
-        <div className={cn("flex items-center justify-between gap-3", fieldClassName)}>
+        <div className={cn("zen-flex zen-items-center zen-justify-between zen-gap-3", fieldClassName)}>
           <div>
             {label ? (
-              <label htmlFor={id} className="text-sm font-medium cursor-pointer">
+              <label htmlFor={id} className="zen-text-sm zen-font-medium zen-cursor-pointer">
                 {label}
               </label>
             ) : null}
             {description ? (
-              <p className="text-xs text-zen-muted-fg">{description}</p>
+              <p className="zen-text-xs zen-text-zen-muted-fg">{description}</p>
             ) : null}
             {error ? (
-              <p className="text-xs font-medium text-zen-error" role="alert">
+              <p className="zen-text-xs zen-font-medium zen-text-zen-error" role="alert">
                 {error}
               </p>
             ) : null}
@@ -456,7 +456,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>({
             disabled={disabled}
             style={
               orientation === "horizontal"
-                ? { display: "flex", flexDirection: "row", gap: "1.2rem" }
+                ? { display: "flex", flexDirection: "row", gap: "var(--zen-space-3)" }
                 : undefined
             }
           >
@@ -466,7 +466,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>({
                 <label
                   key={opt.value}
                   htmlFor={optId}
-                  className="inline-flex items-center gap-2 cursor-pointer text-sm"
+                  className="zen-inline-flex zen-items-center zen-gap-2 zen-cursor-pointer zen-text-sm"
                 >
                   <RadioGroupItem
                     id={optId}

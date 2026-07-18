@@ -24,11 +24,11 @@ export const Table = (props: TableProps) => {
   const [local, rest] = splitProps(props, ["class", "containerClass", "containerStyle"]);
   return (
     <div
-      class={cn("relative w-full overflow-auto", local.containerClass)}
+      class={cn("zen-relative zen-w-full zen-overflow-auto", local.containerClass)}
       style={local.containerStyle}
     >
       <table
-        class={cn("w-full caption-bottom text-sm border-collapse", local.class)}
+        class={cn("zen-w-full zen-caption-bottom zen-text-sm zen-border-collapse", local.class)}
         {...rest}
       />
     </div>
@@ -43,7 +43,7 @@ export const TableHeader = (props: SectionProps) => {
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <thead
-      class={cn("[&_tr]:border-b [&_tr]:border-zen-border", local.class)}
+      class={cn("[&_tr]:zen-border-b [&_tr]:zen-border-zen-border", local.class)}
       {...rest}
     />
   );
@@ -52,7 +52,7 @@ export const TableHeader = (props: SectionProps) => {
 export const TableBody = (props: SectionProps) => {
   const [local, rest] = splitProps(props, ["class"]);
   return (
-    <tbody class={cn("[&_tr:last-child]:border-0", local.class)} {...rest} />
+    <tbody class={cn("[&_tr:last-child]:zen-border-0", local.class)} {...rest} />
   );
 };
 
@@ -61,7 +61,7 @@ export const TableFooter = (props: SectionProps) => {
   return (
     <tfoot
       class={cn(
-        "border-t border-zen-border bg-zen-muted/50 font-medium",
+        "zen-border-t zen-border-zen-border zen-bg-zen-muted/50 zen-font-medium",
         local.class,
       )}
       {...rest}
@@ -76,12 +76,12 @@ export const TableRow = (
   return (
     <tr
       class={cn(
-        "border-b border-zen-border",
-        "transition-[background-color,box-shadow,outline-color] duration-100",
-        "hover:bg-zen-muted/50 hover:shadow-zen-sm",
-        "data-[state=selected]:bg-zen-primary-soft",
-        "data-[state=selected]:[box-shadow:0_4px_12px_0_var(--zen-color-primary-soft)]",
-        "data-[state=selected]:outline data-[state=selected]:outline-1 data-[state=selected]:-outline-offset-1 data-[state=selected]:outline-zen-primary",
+        "zen-border-b zen-border-zen-border",
+        "zen-transition-[background-color,box-shadow,outline-color] zen-duration-100",
+        "hover:zen-bg-zen-muted/50 hover:zen-shadow-zen-sm",
+        "data-[state=selected]:zen-bg-zen-primary-soft",
+        "data-[state=selected]:zen-[box-shadow:0_4px_12px_0_var(--zen-color-primary-soft)]",
+        "data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1 data-[state=selected]:-zen-outline-offset-1 data-[state=selected]:zen-outline-zen-primary",
         local.class,
       )}
       {...rest}
@@ -96,8 +96,8 @@ export const TableHead = (
   return (
     <th
       class={cn(
-        "h-10 px-2 py-2 text-left align-middle font-medium text-xs",
-        "text-zen-muted-fg",
+        "zen-h-10 zen-px-2 zen-py-2 zen-text-left zen-align-middle zen-font-medium zen-text-xs",
+        "zen-text-zen-muted-fg",
         local.class,
       )}
       {...rest}
@@ -111,7 +111,7 @@ export const TableCell = (
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <td
-      class={cn("px-2 py-3 align-middle text-sm text-zen-foreground", local.class)}
+      class={cn("zen-px-2 zen-py-3 zen-align-middle zen-text-sm zen-text-zen-foreground", local.class)}
       {...rest}
     />
   );
@@ -121,5 +121,5 @@ export const TableCaption = (
   props: Omit<JSX.HTMLAttributes<HTMLTableCaptionElement>, "class"> & { class?: string },
 ) => {
   const [local, rest] = splitProps(props, ["class"]);
-  return <caption class={cn("mt-3 text-sm text-zen-muted-fg", local.class)} {...rest} />;
+  return <caption class={cn("zen-mt-3 zen-text-sm zen-text-zen-muted-fg", local.class)} {...rest} />;
 };

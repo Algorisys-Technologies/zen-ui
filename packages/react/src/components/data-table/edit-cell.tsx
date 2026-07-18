@@ -79,7 +79,7 @@ interface EditorProps {
 }
 
 const editorWrapClass =
-  "flex items-center w-full h-full m-[-0.5rem] p-[0.4rem] bg-zen-background ring-2 ring-zen-ring rounded-zen-sm";
+  "zen-flex zen-items-center zen-w-full zen-h-full zen-m-[-0.5rem] zen-p-[0.4rem] zen-bg-zen-background zen-ring-2 zen-ring-zen-ring zen-rounded-zen-sm";
 
 function TextEditor({ initialValue, onCommit, onCancel }: EditorProps) {
   const [value, setValue] = React.useState(String(initialValue ?? ""));
@@ -104,7 +104,7 @@ function TextEditor({ initialValue, onCommit, onCancel }: EditorProps) {
           }
         }}
         onBlur={() => onCommit(value)}
-        className="h-7 text-sm border-0 ring-0 focus-visible:ring-0 px-1"
+        className="zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1"
       />
     </div>
   );
@@ -148,7 +148,7 @@ function NumberEditor({ initialValue, onCommit, onCancel }: EditorProps) {
       <NumberField
         value={value ?? undefined}
         onValueChange={setValue}
-        className="h-7 text-sm border-0 ring-0 focus-visible:ring-0 px-1"
+        className="zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1"
       />
     </div>
   );
@@ -180,7 +180,7 @@ function SelectEditor({
           if (!open) onCancel();
         }}
       >
-        <SelectTrigger className="h-7 text-sm">
+        <SelectTrigger className="zen-h-7 zen-text-sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -264,9 +264,9 @@ export function EditableCell<TData>({
       role="button"
       aria-label={`Edit ${columnName}`}
       className={cn(
-        "w-full h-full inline-flex items-center cursor-text",
-        "rounded-zen-sm",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+        "zen-w-full zen-h-full zen-inline-flex zen-items-center zen-cursor-text",
+        "zen-rounded-zen-sm",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
     >
       {children}

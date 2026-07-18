@@ -32,7 +32,7 @@ const ThemeSwitcher: React.FC = () => {
           Theme · {active.label}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-64">
+      <DropdownMenuContent align="end" className="zen-min-w-64">
         <DropdownMenuLabel>Demo theme</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
@@ -46,7 +46,7 @@ const ThemeSwitcher: React.FC = () => {
                   <Swatches preview={t.preview} />
                   <span style={{ fontWeight: 500 }}>{t.label}</span>
                 </div>
-                <span style={{ fontSize: "1.1rem", color: "var(--zen-color-muted-fg)" }}>
+                <span className="zen-text-xs zen-text-zen-muted-fg">
                   {t.description}
                 </span>
               </div>

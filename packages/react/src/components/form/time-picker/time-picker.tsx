@@ -267,9 +267,9 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
             : parts[k as Exclude<SegmentKey, "p">];
       const isEmpty = k === "p" ? empty : v === null;
       return cn(
-        "px-1 tabular-nums rounded-zen-sm select-none",
-        "focus:outline-none focus-visible:bg-zen-primary-soft focus-visible:text-zen-primary",
-        isEmpty && "text-zen-muted-fg",
+        "zen-px-1 zen-tabular-nums zen-rounded-zen-sm zen-select-none",
+        "focus:zen-outline-none focus-visible:zen-bg-zen-primary-soft focus-visible:zen-text-zen-primary",
+        isEmpty && "zen-text-zen-muted-fg",
       );
     };
 
@@ -287,15 +287,15 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
         aria-disabled={disabled || undefined}
         aria-readonly={readOnly || undefined}
         className={cn(
-          "inline-flex h-10 items-center rounded-zen-md border border-zen-border bg-zen-background px-3 text-sm",
-          "focus-within:ring-2 focus-within:ring-zen-ring focus-within:border-zen-primary",
-          disabled && "opacity-50 cursor-not-allowed pointer-events-none",
-          readOnly && "bg-zen-muted",
+          "zen-inline-flex zen-h-10 zen-items-center zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-text-sm",
+          "focus-within:zen-ring-2 focus-within:zen-ring-zen-ring focus-within:zen-border-zen-primary",
+          disabled && "zen-opacity-50 zen-cursor-not-allowed zen-pointer-events-none",
+          readOnly && "zen-bg-zen-muted",
           className,
         )}
       >
         <ClockIcon />
-        <div className="ml-2 flex items-center gap-0.5 text-zen-foreground">
+        <div className="zen-ml-2 zen-flex zen-items-center zen-gap-0.5 zen-text-zen-foreground">
           <div
             ref={(el) => {
               segRefs.current.h = el;
@@ -313,7 +313,7 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
           >
             {segmentDisplay("h")}
           </div>
-          <span aria-hidden className="text-zen-muted-fg">
+          <span aria-hidden className="zen-text-zen-muted-fg">
             :
           </span>
           <div
@@ -335,7 +335,7 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
           </div>
           {showSeconds && (
             <>
-              <span aria-hidden className="text-zen-muted-fg">
+              <span aria-hidden className="zen-text-zen-muted-fg">
                 :
               </span>
               <div
@@ -368,7 +368,7 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
               aria-valuetext={period}
               onKeyDown={handlePeriodKeyDown}
               onFocus={handleFocus("p")}
-              className={cn(segmentClass("p"), "ml-1 uppercase")}
+              className={cn(segmentClass("p"), "zen-ml-1 zen-uppercase")}
             >
               {period}
             </div>
@@ -397,7 +397,7 @@ const ClockIcon = () => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="text-zen-muted-fg"
+    className="zen-text-zen-muted-fg"
     aria-hidden
   >
     <circle cx="12" cy="12" r="9" />

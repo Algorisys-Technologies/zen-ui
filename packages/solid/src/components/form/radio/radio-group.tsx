@@ -17,7 +17,12 @@ import { cn } from "../../../lib/cn";
 
 export type RadioSize = "sm" | "md" | "lg";
 
-export type RadioGroupProps = {
+// `onChange` is omitted from the DOM attributes: our RadioGroup reports the
+// new value string directly, which collides with the DOM's change event.
+export type RadioGroupProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children" | "onChange"
+> & {
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
@@ -30,7 +35,7 @@ export type RadioGroupProps = {
 };
 
 export const RadioGroup = (props: RadioGroupProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "class",
     "value",
     "defaultValue",
@@ -43,6 +48,7 @@ export const RadioGroup = (props: RadioGroupProps) => {
   ]);
   return (
     <KRadioGroup
+      {...rest}
       value={local.value}
       defaultValue={local.defaultValue}
       onChange={local.onChange}
@@ -51,7 +57,7 @@ export const RadioGroup = (props: RadioGroupProps) => {
       required={local.required}
       orientation={local.orientation}
       class={cn(
-        local.orientation === "horizontal" ? "flex gap-3" : "grid gap-2",
+        local.orientation === "horizontal" ? "zen-flex zen-gap-3" : "zen-grid zen-gap-2",
         local.class,
       )}
     >
@@ -61,17 +67,20 @@ export const RadioGroup = (props: RadioGroupProps) => {
 };
 
 const ITEM_SIZES: Record<RadioSize, string> = {
-  sm: "h-3.5 w-3.5",
-  md: "h-4 w-4",
-  lg: "h-5 w-5",
+  sm: "zen-h-3.5 zen-w-3.5",
+  md: "zen-h-4 zen-w-4",
+  lg: "zen-h-5 zen-w-5",
 };
 const DOT_SIZES: Record<RadioSize, string> = {
-  sm: "h-1.5 w-1.5",
-  md: "h-2 w-2",
-  lg: "h-2.5 w-2.5",
+  sm: "zen-h-1.5 zen-w-1.5",
+  md: "zen-h-2 zen-w-2",
+  lg: "zen-h-2.5 zen-w-2.5",
 };
 
-export type RadioGroupItemProps = {
+export type RadioGroupItemProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   value: string;
   disabled?: boolean;
   size?: RadioSize;
@@ -80,37 +89,42 @@ export type RadioGroupItemProps = {
 };
 
 export const RadioGroupItem = (props: RadioGroupItemProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "class",
     "value",
     "disabled",
     "size",
     "children",
+    "id",
   ]);
   const size = () => local.size ?? "md";
   return (
     <KRadioGroup.Item
+      {...rest}
       value={local.value}
       disabled={local.disabled}
-      class={cn("inline-flex items-center gap-2", local.class)}
+      class={cn("zen-inline-flex zen-items-center zen-gap-2", local.class)}
     >
-      <KRadioGroup.ItemInput />
+      {/* The caller's `id` goes on the item's native <input>, not the item root:
+          Kobalte derives the input id from the root, so `<label for={id}>` on the
+          root (a non-labelable div) would never associate. */}
+      <KRadioGroup.ItemInput id={local.id} />
       <KRadioGroup.ItemControl
         class={cn(
-          "aspect-square rounded-zen-full border border-zen-border text-zen-primary bg-zen-background",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
-          "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-          "data-[checked]:border-zen-primary",
-          "flex items-center justify-center",
+          "zen-aspect-square zen-rounded-zen-full zen-border zen-border-zen-border zen-text-zen-primary zen-bg-zen-background",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+          "data-[disabled]:zen-cursor-not-allowed data-[disabled]:zen-opacity-50",
+          "data-[checked]:zen-border-zen-primary",
+          "zen-flex zen-items-center zen-justify-center",
           ITEM_SIZES[size()],
         )}
       >
         <KRadioGroup.ItemIndicator>
-          <span class={cn("block rounded-zen-full bg-zen-primary", DOT_SIZES[size()])} />
+          <span class={cn("zen-block zen-rounded-zen-full zen-bg-zen-primary", DOT_SIZES[size()])} />
         </KRadioGroup.ItemIndicator>
       </KRadioGroup.ItemControl>
       {local.children ? (
-        <KRadioGroup.ItemLabel class="text-sm">{local.children}</KRadioGroup.ItemLabel>
+        <KRadioGroup.ItemLabel class="zen-text-sm">{local.children}</KRadioGroup.ItemLabel>
       ) : null}
     </KRadioGroup.Item>
   );

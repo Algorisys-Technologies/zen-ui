@@ -16,7 +16,7 @@ const NewSkeletonDemo: React.FC = () => (
         title="className controls dimensions"
         code={`<Skeleton className="h-4 w-64" />`}
       >
-        <Skeleton className="h-4 w-64" />
+        <Skeleton className="zen-h-4 zen-w-64" />
       </CodeExample>
     </section>
 
@@ -31,9 +31,9 @@ const NewSkeletonDemo: React.FC = () => (
 </div>`}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 480 }}>
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-11/12" />
-          <Skeleton className="h-4 w-9/12" />
+          <Skeleton className="zen-h-4 zen-w-full" />
+          <Skeleton className="zen-h-4 zen-w-11/12" />
+          <Skeleton className="zen-h-4 zen-w-9/12" />
         </div>
       </CodeExample>
     </section>
@@ -44,9 +44,9 @@ const NewSkeletonDemo: React.FC = () => (
         title="rounded-zen-full for circular shapes"
         code={`<Skeleton className="h-10 w-10 rounded-zen-full" />`}
       >
-        <Skeleton className="h-10 w-10 rounded-zen-full" />
-        <Skeleton className="h-12 w-12 rounded-zen-full" />
-        <Skeleton className="h-16 w-16 rounded-zen-full" />
+        <Skeleton className="zen-h-10 zen-w-10 zen-rounded-zen-full" />
+        <Skeleton className="zen-h-12 zen-w-12 zen-rounded-zen-full" />
+        <Skeleton className="zen-h-16 zen-w-16 zen-rounded-zen-full" />
       </CodeExample>
     </section>
 
@@ -63,10 +63,10 @@ const NewSkeletonDemo: React.FC = () => (
 </div>`}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", maxWidth: 480 }}>
-          <Skeleton className="h-12 w-12 rounded-zen-full" />
+          <Skeleton className="zen-h-12 zen-w-12 zen-rounded-zen-full" />
           <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="zen-h-4 zen-w-1/2" />
+            <Skeleton className="zen-h-3 zen-w-3/4" />
           </div>
         </div>
       </CodeExample>
@@ -87,9 +87,9 @@ const NewSkeletonDemo: React.FC = () => (
         <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 480 }}>
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} style={{ display: "flex", gap: 16 }}>
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-4 w-16" />
+              <Skeleton className="zen-h-4 zen-w-20" />
+              <Skeleton className="zen-h-4 zen-w-32" />
+              <Skeleton className="zen-h-4 zen-w-16" />
             </div>
           ))}
         </div>
@@ -102,9 +102,9 @@ const NewSkeletonDemo: React.FC = () => (
         title="Override the muted background"
         code={`<Skeleton className="h-4 w-32 bg-zen-primary-soft" />`}
       >
-        <Skeleton className="h-4 w-32 bg-zen-primary-soft" />
-        <Skeleton className="h-4 w-32 bg-zen-success-soft" />
-        <Skeleton className="h-4 w-32 bg-zen-error-soft" />
+        <Skeleton className="zen-h-4 zen-w-32 zen-bg-zen-primary-soft" />
+        <Skeleton className="zen-h-4 zen-w-32 zen-bg-zen-success-soft" />
+        <Skeleton className="zen-h-4 zen-w-32 zen-bg-zen-error-soft" />
       </CodeExample>
     </section>
   </div>

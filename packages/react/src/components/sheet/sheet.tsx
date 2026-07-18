@@ -52,9 +52,9 @@ const SheetOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/40",
-      "data-[state=open]:animate-zen-fade-in",
-      "data-[state=closed]:animate-zen-fade-out",
+      "zen-fixed zen-inset-0 zen-z-50 zen-bg-black/40",
+      "data-[state=open]:zen-anim-fade-in",
+      "data-[state=closed]:zen-anim-fade-out",
       className,
     )}
     {...props}
@@ -64,33 +64,33 @@ SheetOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const sheetContentVariants = cva(
   [
-    "fixed z-50 flex flex-col gap-4 bg-zen-background p-6 shadow-zen-lg",
-    "transition ease-in-out",
-    "focus-visible:outline-none",
+    "zen-fixed zen-z-50 zen-flex zen-flex-col zen-gap-4 zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
+    "zen-transition zen-ease-in-out",
+    "focus-visible:zen-outline-none",
   ].join(" "),
   {
     variants: {
       side: {
         right: [
-          "inset-y-0 right-0 h-full w-3/4 max-w-md border-l border-zen-border",
-          "data-[state=open]:animate-zen-slide-in-right",
-          "data-[state=closed]:animate-zen-slide-out-right",
+          "zen-inset-y-0 zen-right-0 zen-h-full zen-w-3/4 zen-max-w-md zen-border-l zen-border-zen-border",
+          "data-[state=open]:zen-anim-slide-in-right",
+          "data-[state=closed]:zen-anim-slide-out-right",
         ].join(" "),
         left: [
-          "inset-y-0 left-0 h-full w-3/4 max-w-md border-r border-zen-border",
-          "data-[state=open]:animate-zen-slide-in-left",
-          "data-[state=closed]:animate-zen-slide-out-left",
+          "zen-inset-y-0 zen-left-0 zen-h-full zen-w-3/4 zen-max-w-md zen-border-r zen-border-zen-border",
+          "data-[state=open]:zen-anim-slide-in-left",
+          "data-[state=closed]:zen-anim-slide-out-left",
         ].join(" "),
         top: [
-          "inset-x-0 top-0 w-full max-h-[80vh] border-b border-zen-border",
-          "data-[state=open]:animate-zen-slide-in-top",
-          "data-[state=closed]:animate-zen-slide-out-top",
+          "zen-inset-x-0 zen-top-0 zen-w-full zen-max-h-[80vh] zen-border-b zen-border-zen-border",
+          "data-[state=open]:zen-anim-slide-in-top",
+          "data-[state=closed]:zen-anim-slide-out-top",
         ].join(" "),
         bottom: [
-          "inset-x-0 bottom-0 w-full max-h-[80vh] border-t border-zen-border",
-          "rounded-t-zen-lg",
-          "data-[state=open]:animate-zen-slide-in-bottom",
-          "data-[state=closed]:animate-zen-slide-out-bottom",
+          "zen-inset-x-0 zen-bottom-0 zen-w-full zen-max-h-[80vh] zen-border-t zen-border-zen-border",
+          "zen-rounded-t-zen-lg",
+          "data-[state=open]:zen-anim-slide-in-bottom",
+          "data-[state=closed]:zen-anim-slide-out-bottom",
         ].join(" "),
       },
     },
@@ -123,10 +123,10 @@ const SheetContent = React.forwardRef<
         <DialogPrimitive.Close
           aria-label="Close sheet"
           className={cn(
-            "absolute top-3 right-3 inline-flex items-center justify-center",
-            "h-7 w-7 rounded-zen-sm bg-transparent border-0 cursor-pointer",
-            "text-zen-muted-fg hover:text-zen-foreground hover:bg-zen-muted",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+            "zen-absolute zen-top-3 zen-right-3 zen-inline-flex zen-items-center zen-justify-center",
+            "zen-h-7 zen-w-7 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
+            "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+            "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
           )}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -145,7 +145,7 @@ const SheetHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("flex flex-col gap-1.5", className)}
+    className={cn("zen-flex zen-flex-col zen-gap-1.5", className)}
     {...props}
   />
 );
@@ -157,7 +157,7 @@ const SheetFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "mt-auto flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+      "zen-mt-auto zen-flex zen-flex-col-reverse zen-gap-2 sm:zen-flex-row sm:zen-justify-end",
       className,
     )}
     {...props}
@@ -172,7 +172,7 @@ const SheetTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-base font-semibold leading-tight text-zen-foreground m-0",
+      "zen-text-base zen-font-semibold zen-leading-tight zen-text-zen-foreground zen-m-0",
       className,
     )}
     {...props}
@@ -186,7 +186,7 @@ const SheetDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-zen-muted-fg m-0", className)}
+    className={cn("zen-text-sm zen-text-zen-muted-fg zen-m-0", className)}
     {...props}
   />
 ));

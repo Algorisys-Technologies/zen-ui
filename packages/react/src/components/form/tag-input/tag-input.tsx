@@ -153,11 +153,11 @@ export const TagInput = React.forwardRef<HTMLInputElement, TagInputProps>(
     return (
       <div
         className={cn(
-          "flex flex-wrap items-center gap-1.5",
-          "min-h-10 w-full rounded-zen-md border border-zen-border bg-zen-background",
-          "px-2 py-1.5 text-sm",
-          "focus-within:outline-none focus-within:ring-2 focus-within:ring-zen-ring focus-within:ring-offset-2",
-          disabled && "opacity-50 cursor-not-allowed",
+          "zen-flex zen-flex-wrap zen-items-center zen-gap-1.5",
+          "zen-min-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background",
+          "zen-px-2 zen-py-1.5 zen-text-sm",
+          "focus-within:zen-outline-none focus-within:zen-ring-2 focus-within:zen-ring-zen-ring focus-within:zen-ring-offset-2",
+          disabled && "zen-opacity-50 zen-cursor-not-allowed",
           className,
         )}
         onClick={(e) => {
@@ -181,9 +181,9 @@ export const TagInput = React.forwardRef<HTMLInputElement, TagInputProps>(
             <span
               key={`${tag}-${i}`}
               className={cn(
-                "inline-flex items-center gap-1 px-2 py-0.5",
-                "text-xs font-medium",
-                "rounded-zen-full bg-zen-primary-soft text-zen-primary-soft-fg",
+                "zen-inline-flex zen-items-center zen-gap-1 zen-px-2 zen-py-0.5",
+                "zen-text-xs zen-font-medium",
+                "zen-rounded-zen-full zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
               )}
             >
               <span>{tag}</span>
@@ -193,11 +193,11 @@ export const TagInput = React.forwardRef<HTMLInputElement, TagInputProps>(
                 aria-label={`Remove ${tag}`}
                 disabled={disabled}
                 className={cn(
-                  "inline-flex items-center justify-center",
-                  "h-4 w-4 rounded-zen-full bg-transparent border-0 cursor-pointer",
-                  "text-current opacity-70 hover:opacity-100 hover:bg-black/10",
-                  "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
-                  "disabled:cursor-not-allowed",
+                  "zen-inline-flex zen-items-center zen-justify-center",
+                  "zen-h-4 zen-w-4 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
+                  "zen-text-current zen-opacity-70 hover:zen-opacity-100 hover:zen-bg-black/10",
+                  "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
+                  "disabled:zen-cursor-not-allowed",
                 )}
               >
                 <svg
@@ -234,9 +234,9 @@ export const TagInput = React.forwardRef<HTMLInputElement, TagInputProps>(
           disabled={disabled}
           aria-label={inputAriaLabel}
           className={cn(
-            "flex-1 min-w-[6rem] bg-transparent border-0",
-            "text-sm outline-none placeholder:text-zen-muted-fg",
-            "disabled:cursor-not-allowed",
+            "zen-flex-1 zen-min-w-[6rem] zen-bg-transparent zen-border-0",
+            "zen-text-sm zen-outline-none placeholder:zen-text-zen-muted-fg",
+            "disabled:zen-cursor-not-allowed",
           )}
         />
       </div>

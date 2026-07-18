@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "noEmit": false,
+    "outDir": "./dist",
+    // Emit dist/index.d.ts, not dist/src/index.d.ts. Mirrors preserveModulesRoot:"src".
+    "rootDir": "./src",
+    "preserveWatchOutput": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*Demo.ts",
+    "src/app.ts",
+    "src/main.ts"
+  ]
+}

@@ -43,7 +43,7 @@ const NewProgressDemo: React.FC = () => {
 <Progress value={70} color="warning" />
 <Progress value={70} color="error" />`}
         >
-          <div style={{ width: "100%", maxWidth: 480, display: "grid", gap: "0.6rem" }}>
+          <div style={{ width: "100%", maxWidth: 480, display: "grid", gap: "0.375rem" }}>
             <Progress value={70} color="primary" />
             <Progress value={70} color="neutral" />
             <Progress value={70} color="info" />
@@ -62,7 +62,7 @@ const NewProgressDemo: React.FC = () => {
 <Progress value={55} size="md" />
 <Progress value={55} size="lg" />`}
         >
-          <div style={{ width: "100%", maxWidth: 480, display: "grid", gap: "0.6rem" }}>
+          <div style={{ width: "100%", maxWidth: 480, display: "grid", gap: "0.375rem" }}>
             <Progress value={55} size="sm" />
             <Progress value={55} size="md" />
             <Progress value={55} size="lg" />
@@ -82,9 +82,9 @@ useEffect(() => {
 
 <Progress value={v} />`}
         >
-          <div style={{ width: "100%", maxWidth: 480, display: "grid", gap: "0.8rem" }}>
+          <div style={{ width: "100%", maxWidth: 480, display: "grid", gap: "0.5rem" }}>
             <Progress value={animated} />
-            <span style={{ fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+            <span style={{ fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
               value: {animated}%
             </span>
           </div>
@@ -104,7 +104,7 @@ useEffect(() => {
 </div>`}
         >
           <div style={{ width: "100%", maxWidth: 480 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.3rem", marginBottom: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8125rem", marginBottom: 6 }}>
               <span>Uploading dataset.csv</span>
               <span>68%</span>
             </div>

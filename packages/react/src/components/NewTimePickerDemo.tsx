@@ -37,7 +37,7 @@ const NewTimePickerDemo: React.FC = () => {
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <TimePicker value={time} onValueChange={setTime} />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               Value: <code>{time ?? "(empty)"}</code>
             </p>
           </div>
@@ -114,7 +114,7 @@ const NewTimePickerDemo: React.FC = () => {
             <button
               type="submit"
               style={{
-                padding: "0.6rem 1.2rem",
+                padding: "0.375rem 0.75rem",
                 background: "var(--zen-color-primary)",
                 color: "white",
                 border: 0,

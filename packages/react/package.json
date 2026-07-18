@@ -1,7 +1,10 @@
 {
   "name": "@algorisys/zen-ui-react",
-  "version": "2.1.1",
+  "version": "7.2.0",
   "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -14,7 +17,8 @@
       "import": "./dist/style.css",
       "types": "./dist/styles.d.ts",
       "default": "./dist/style.css"
-    }
+    },
+    "./preflight": "./dist/preflight.css"
   },
   "files": [
     "dist"
@@ -30,7 +34,7 @@
   "scripts": {
     "dev": "vite --config vite.config.demo.ts",
     "build": "tsc -b && vite build --config vite.config.demo.ts",
-    "build:lib": "vite build --config vite.config.lib.ts && npm run build:types && cp src/styles.d.ts dist/styles.d.ts",
+    "build:lib": "vite build --config vite.config.lib.ts && npm run build:types && cp src/styles.d.ts dist/styles.d.ts && cp ../core/styles/preflight.css dist/preflight.css",
     "build:types": "tsc --project tsconfig.lib.json --emitDeclarationOnly",
     "publish:lib": "npm run build:lib && npm publish",
     "lint": "eslint src",
@@ -41,7 +45,29 @@
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "recharts": "^2.0.0 || ^3.0.0",
+    "jodit-pro-react": "*",
+    "leaflet": "^1.9.0",
+    "react-leaflet": "^4.0.0 || ^5.0.0",
+    "react-webcam": "^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "recharts": {
+      "optional": true
+    },
+    "jodit-pro-react": {
+      "optional": true
+    },
+    "leaflet": {
+      "optional": true
+    },
+    "react-leaflet": {
+      "optional": true
+    },
+    "react-webcam": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@algorisys/zen-ui-core": "workspace:*",
@@ -93,8 +119,13 @@
     "eslint-plugin-react-refresh": "^0.4.22",
     "gh-pages": "^6.3.0",
     "globals": "^16.4.0",
+    "jodit-pro-react": "^5.2.44",
+    "leaflet": "^1.9.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-leaflet": "^5.0.0",
+    "react-webcam": "^7.2.0",
+    "recharts": "^3.0.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",
     "unocss": "^66.5.4",

@@ -1,6 +1,70 @@
 import { useState } from "react";
 import "./App.css";
-import { NavLink, Routes, Route } from "react-router-dom";
+import { NavLink, Routes, Route, useLocation } from "react-router-dom";
+import { NAV } from "./nav";
+
+/**
+ * Derived from NAV, never hand-counted: nav.ts is already the single source of
+ * truth for the sidebar and the landing catalogue, and a hard-coded number here
+ * would drift the moment a component is added.
+ *
+ * Two exclusions, for two different reasons. `catalogue: false` groups (Getting
+ * started) are routes rather than components. `components: false` groups
+ * (Patterns) ARE on the landing page but are screens assembled from the
+ * components above — counting them would count the same components twice.
+ */
+const COMPONENT_COUNT = NAV.filter((g) => g.catalogue !== false && g.components !== false).reduce(
+  (n, g) => n + g.items.length,
+  0,
+);
+
+/**
+ * The root site, one level up from this demo's own base — derived, not "/".
+ * The demo is mounted at /builder/ under `dev:all` and at /zen-ui/builder/ on
+ * GH-Pages, and the way out has to land on the right root in both. Hardcoding
+ * "/" would walk out of the deployment entirely.
+ */
+const ROOT_URL = new URL("..", new URL(import.meta.env.BASE_URL, window.location.origin))
+  .pathname;
+
+/**
+ * "View code" opens the demo file for the route you are on — the USAGE, not the
+ * component's internals. The page already prints a snippet, but that snippet is
+ * a hand-typed `code` string sitting next to the JSX it claims to describe, and
+ * nothing keeps the two honest. This is the file that actually ran.
+ *
+ * Pinned to `main` rather than the current branch: a link that only resolves on
+ * whatever branch happened to build it is a link that breaks on every other one.
+ * The paths come from nav.ts and are checked by `bun run check:nav`.
+ */
+const SOURCE_BASE = "https://github.com/Algorisys-Technologies/zen-ui/blob/main/";
+
+/** The nav entry for the current route, if it has a source. */
+const useSourceHref = (): string | undefined => {
+  const { pathname } = useLocation();
+  for (const group of NAV) {
+    for (const item of group.items) {
+      if (item.to === pathname && item.source) return SOURCE_BASE + item.source;
+    }
+  }
+  return undefined;
+};
+
+const ViewCode: React.FC = () => {
+  const href = useSourceHref();
+  if (!href) return null;
+  return (
+    <a
+      className="app-home-link"
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      title="The demo source for this page on GitHub"
+    >
+      View code <span aria-hidden>↗</span>
+    </a>
+  );
+};
 
 import Welcome from "./components/Welcome";
 import ThemeSwitcher from "./components/theme-switcher";
@@ -21,6 +85,8 @@ import NewSelectDemo from "./components/NewSelectDemo";
 import NewSliderDemo from "./components/NewSliderDemo";
 import NewScrollAreaDemo from "./components/NewScrollAreaDemo";
 import NewInputDemo from "./components/NewInputDemo";
+import SearchDemo from "./components/SearchDemo";
+import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
 import NewDatePickerDemo from "./components/NewDatePickerDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
@@ -52,73 +118,46 @@ import NewTimePickerDemo from "./components/NewTimePickerDemo";
 import NewDateTimePickerDemo from "./components/NewDateTimePickerDemo";
 import NewQRScannerDemo from "./components/NewQRScannerDemo";
 import NewNotificationsInboxDemo from "./components/NewNotificationsInboxDemo";
+import NewBreadcrumbDemo from "./components/NewBreadcrumbDemo";
+import NewPaginationDemo from "./components/NewPaginationDemo";
+import NewSidebarDemo from "./components/NewSidebarDemo";
+import NewChartDemo from "./components/NewChartDemo";
+import NewRichTextDemo from "./components/NewRichTextDemo";
+import NewMapDemo from "./components/NewMapDemo";
+import NewCameraDemo from "./components/NewCameraDemo";
+import NewIconDemo from "./components/NewIconDemo";
+import NewObjectDemo from "./components/NewObjectDemo";
+import NewButtonFamilyDemo from "./components/NewButtonFamilyDemo";
+import NewTreeDemo from "./components/NewTreeDemo";
+import NewToolbarDemo from "./components/NewToolbarDemo";
+import NewShellBarDemo from "./components/NewShellBarDemo";
+import SkipToContentDemo from "./components/SkipToContentDemo";
+import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDemo";
+import NewDynamicPageDemo from "./components/NewDynamicPageDemo";
+import NewObjectPageDemo from "./components/NewObjectPageDemo";
+import NewSelectDialogDemo from "./components/NewSelectDialogDemo";
+import NewValueHelpDemo from "./components/NewValueHelpDemo";
+import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
+import NewFilterBarDemo from "./components/NewFilterBarDemo";
+import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
+import NewStatCardDemo from "./components/NewStatCardDemo";
+import NewCustomizingDemo from "./components/NewCustomizingDemo";
+import NewMaskInputDemo from "./components/NewMaskInputDemo";
+import NewPopoverDemo from "./components/NewPopoverDemo";
+import NewLinkDemo from "./components/NewLinkDemo";
+import NewColorPickerDemo from "./components/NewColorPickerDemo";
+import NewCarouselDemo from "./components/NewCarouselDemo";
+import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
+import NewListReportDemo from "./components/NewListReportDemo";
+import NewPivotDemo from "./components/NewPivotDemo";
+import ReleaseNotes from "./components/ReleaseNotes";
 import { Toaster } from "./components/toast/toaster";
 
 /**
  * Navigation data — single source of truth for the sidebar.
  * Add a new component's route here and it shows up under the right group.
  */
-type NavEntry = { to: string; label: string };
-type NavGroup = { title: string; items: NavEntry[] };
 
-const NAV: NavGroup[] = [
-  {
-    title: "Getting started",
-    items: [{ to: "/", label: "Welcome" }],
-  },
-  {
-    title: "Components",
-    items: [
-      { to: "/button-new", label: "Button" },
-      { to: "/tooltip-new", label: "Tooltip" },
-      { to: "/dropdown-menu", label: "DropdownMenu" },
-      { to: "/separator", label: "Separator" },
-      { to: "/switch-new", label: "Switch" },
-      { to: "/checkbox-new", label: "Checkbox" },
-      { to: "/radio-group", label: "RadioGroup" },
-      { to: "/progress-new", label: "Progress" },
-      { to: "/avatar-new", label: "Avatar" },
-      { to: "/badge-new", label: "Badge" },
-      { to: "/skeleton-new", label: "Skeleton" },
-      { to: "/loading-new", label: "Loading" },
-      { to: "/select-new", label: "Select" },
-      { to: "/slider-new", label: "Slider" },
-      { to: "/scroll-area-new", label: "ScrollArea" },
-      { to: "/input-new", label: "Input + Textarea" },
-      { to: "/number-field-new", label: "NumberField" },
-      { to: "/date-picker-new", label: "DatePicker" },
-      { to: "/otp-new", label: "InputOTP" },
-      { to: "/phone-input-new", label: "PhoneInput" },
-      { to: "/fab-new", label: "FAB" },
-      { to: "/form-new", label: "Form (RHF + Zod)" },
-      { to: "/data-table", label: "DataTable" },
-      { to: "/lazy-options", label: "Lazy options" },
-      { to: "/combobox", label: "Combobox + Async" },
-      { to: "/alert", label: "Alert" },
-      { to: "/dialog", label: "Dialog + AlertDialog" },
-      { to: "/toast", label: "Toast" },
-      { to: "/file-upload", label: "FileUpload" },
-      { to: "/form-bound", label: "Bound* fields" },
-      { to: "/stepper", label: "Stepper" },
-      { to: "/banner", label: "Banner" },
-      { to: "/empty-state", label: "EmptyState" },
-      { to: "/tabs", label: "Tabs" },
-      { to: "/accordion", label: "Accordion" },
-      { to: "/card", label: "Card" },
-      { to: "/sheet", label: "Sheet / Drawer" },
-      { to: "/date-range-picker", label: "DateRangePicker" },
-      { to: "/tag-input", label: "TagInput" },
-      { to: "/multi-combobox", label: "MultiCombobox" },
-      { to: "/rating", label: "Rating" },
-      { to: "/nps", label: "NPS" },
-      { to: "/likert", label: "Likert" },
-      { to: "/time-picker", label: "TimePicker" },
-      { to: "/date-time-picker", label: "DateTimePicker" },
-      { to: "/qr-scanner", label: "QRScanner" },
-      { to: "/notifications-inbox", label: "NotificationsInbox" },
-    ],
-  },
-];
 
 const Sidebar: React.FC<{ collapsed: boolean }> = ({ collapsed }) => (
   <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`} aria-hidden={collapsed}>
@@ -207,11 +246,18 @@ const App: React.FC = () => {
           <div className="app-header-text">
             <h1 className="app-title">Zen UI Component Library</h1>
             <p className="app-subtitle">
-              shadcn / Radix-style React component library by Algorisys.
+              shadcn / Radix-style React component library by Algorisys ·{" "}
+              {COMPONENT_COUNT} components
             </p>
           </div>
         </div>
         <div className="app-header-actions">
+          {/* A real anchor: this leaves the SPA for the root site, so the
+              router must not intercept it. */}
+          <a className="app-home-link" href={ROOT_URL}>
+            <span aria-hidden>←</span> All demos
+          </a>
+          <ViewCode />
           <ThemeSwitcher />
         </div>
       </header>
@@ -237,6 +283,8 @@ const App: React.FC = () => {
             <Route path="/slider-new" element={<NewSliderDemo />} />
             <Route path="/scroll-area-new" element={<NewScrollAreaDemo />} />
             <Route path="/input-new" element={<NewInputDemo />} />
+            <Route path="/search" element={<SearchDemo />} />
+            <Route path="/password-input" element={<PasswordInputDemo />} />
             <Route path="/number-field-new" element={<NewNumberFieldDemo />} />
             <Route path="/date-picker-new" element={<NewDatePickerDemo />} />
             <Route path="/otp-new" element={<NewOTPDemo />} />
@@ -268,9 +316,55 @@ const App: React.FC = () => {
             <Route path="/date-time-picker" element={<NewDateTimePickerDemo />} />
             <Route path="/qr-scanner" element={<NewQRScannerDemo />} />
             <Route path="/notifications-inbox" element={<NewNotificationsInboxDemo />} />
+            <Route path="/breadcrumb" element={<NewBreadcrumbDemo />} />
+            <Route path="/pagination" element={<NewPaginationDemo />} />
+            <Route path="/sidebar" element={<NewSidebarDemo />} />
+            <Route path="/chart" element={<NewChartDemo />} />
+            <Route path="/rich-text" element={<NewRichTextDemo />} />
+            <Route path="/map" element={<NewMapDemo />} />
+            <Route path="/camera" element={<NewCameraDemo />} />
+            <Route path="/icon" element={<NewIconDemo />} />
+            <Route path="/object" element={<NewObjectDemo />} />
+            <Route path="/button-family" element={<NewButtonFamilyDemo />} />
+            <Route path="/tree" element={<NewTreeDemo />} />
+            <Route path="/toolbar" element={<NewToolbarDemo />} />
+            <Route path="/skip-to-content" element={<SkipToContentDemo />} />
+            <Route path="/shellbar" element={<NewShellBarDemo />} />
+            <Route
+              path="/flexible-column-layout"
+              element={<NewFlexibleColumnLayoutDemo />}
+            />
+            <Route path="/dynamic-page" element={<NewDynamicPageDemo />} />
+            <Route path="/object-page" element={<NewObjectPageDemo />} />
+            <Route path="/select-dialog" element={<NewSelectDialogDemo />} />
+            <Route path="/value-help" element={<NewValueHelpDemo />} />
+            <Route path="/view-settings" element={<NewViewSettingsDemo />} />
+            <Route path="/filter-bar" element={<NewFilterBarDemo />} />
+            <Route path="/page-header" element={<NewPageHeaderDemo />} />
+            <Route path="/stat-card" element={<NewStatCardDemo />} />
+            <Route path="/customizing" element={<NewCustomizingDemo />} />
+            <Route path="/mask-input" element={<NewMaskInputDemo />} />
+            <Route path="/popover" element={<NewPopoverDemo />} />
+            <Route path="/link" element={<NewLinkDemo />} />
+            <Route path="/color-picker" element={<NewColorPickerDemo />} />
+            <Route path="/carousel" element={<NewCarouselDemo />} />
+            <Route path="/dynamic-date-range" element={<NewDynamicDateRangeDemo />} />
+            <Route path="/list-report" element={<NewListReportDemo />} />
+            <Route path="/pivot" element={<NewPivotDemo />} />
           </Routes>
         </main>
       </div>
+      <footer className="app-footer">
+        <span>
+          © {new Date().getFullYear()}{" "}
+          <a href="https://www.algorisys.com" target="_blank" rel="noreferrer noopener">
+            Algorisys Technologies Pvt. Ltd
+          </a>
+          <span className="app-footer-sep">·</span>
+          zen-ui · shadcn / Radix-style components
+        </span>
+        <ReleaseNotes />
+      </footer>
       {/* Mounted once near the root so toast({...}) can be called from
        * anywhere in the demo tree. */}
       <Toaster />

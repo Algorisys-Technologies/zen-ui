@@ -28,7 +28,13 @@ export const Toaster = (props: { position?: "top-left" | "top-center" | "top-rig
         color: "var(--zen-color-foreground)",
         border: "1px solid var(--zen-color-border)",
         "border-radius": "var(--zen-radius-md)",
-        padding: "0.75rem 1rem",
+        // solid-toast takes a style object, not classes, so these use the
+        // spacing tokens directly. The values were authored as `0.75rem 1rem`
+        // / `0.875rem` — the standard 12/16px and 14px steps — but the app used
+        // to force `html { font-size: 62.5% }`, which silently rendered them at
+        // 7.5/10px with an unreadable 8.75px font. With that rule gone they now
+        // mean what they say.
+        padding: "var(--zen-space-3) var(--zen-space-4)",
         "box-shadow": "var(--zen-shadow-md)",
         "font-size": "0.875rem",
       },

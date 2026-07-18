@@ -42,7 +42,7 @@ interface EditorProps {
 }
 
 const editorWrapClass =
-  "flex items-center w-full h-full m-[-0.5rem] p-[0.4rem] bg-zen-background ring-2 ring-zen-ring rounded-zen-sm";
+  "zen-flex zen-items-center zen-w-full zen-h-full zen-m-[-0.5rem] zen-p-[0.4rem] zen-bg-zen-background zen-ring-2 zen-ring-zen-ring zen-rounded-zen-sm";
 
 function TextEditor(props: EditorProps) {
   const [value, setValue] = createSignal(String(props.initialValue ?? ""));
@@ -67,7 +67,7 @@ function TextEditor(props: EditorProps) {
           }
         }}
         onBlur={() => props.onCommit(value())}
-        class="h-7 text-sm border-0 ring-0 focus-visible:ring-0 px-1"
+        class="zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1"
       />
     </div>
   );
@@ -107,7 +107,7 @@ function NumberEditor(props: EditorProps) {
       <NumberField
         value={value() ?? undefined}
         onValueChange={setValue}
-        class="h-7 text-sm border-0 ring-0 focus-visible:ring-0 px-1"
+        class="zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1"
       />
     </div>
   );
@@ -185,9 +185,9 @@ export function EditableCell<TData>(props: EditableCellProps<TData>) {
                 : props.cell.column.id
             }`}
             class={cn(
-              "w-full h-full inline-flex items-center cursor-text",
-              "rounded-zen-sm",
-              "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+              "zen-w-full zen-h-full zen-inline-flex zen-items-center zen-cursor-text",
+              "zen-rounded-zen-sm",
+              "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
             )}
           >
             {props.children}

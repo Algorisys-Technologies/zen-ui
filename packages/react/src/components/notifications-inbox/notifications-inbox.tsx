@@ -174,11 +174,11 @@ const NotificationsInbox = React.forwardRef<
                 : triggerLabel
             }
             className={cn(
-              "relative inline-flex h-10 w-10 items-center justify-center rounded-zen-full",
-              "text-zen-foreground bg-transparent",
-              "hover:bg-zen-muted",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
-              "transition-colors",
+              "zen-relative zen-inline-flex zen-h-10 zen-w-10 zen-items-center zen-justify-center zen-rounded-zen-full",
+              "zen-text-zen-foreground zen-bg-transparent",
+              "hover:zen-bg-zen-muted",
+              "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+              "zen-transition-colors",
               className,
             )}
           >
@@ -187,11 +187,11 @@ const NotificationsInbox = React.forwardRef<
               <span
                 aria-hidden
                 className={cn(
-                  "absolute -top-0.5 -right-0.5 inline-flex items-center justify-center",
-                  "min-w-[1.25rem] h-5 px-1 rounded-zen-full",
-                  "text-[0.65rem] font-semibold leading-none",
-                  "bg-zen-error text-zen-error-fg",
-                  "ring-2 ring-zen-background",
+                  "zen-absolute -zen-top-0.5 -zen-right-0.5 zen-inline-flex zen-items-center zen-justify-center",
+                  "zen-min-w-[1.25rem] zen-h-5 zen-px-1 zen-rounded-zen-full",
+                  "zen-text-[0.65rem] zen-font-semibold zen-leading-none",
+                  "zen-bg-zen-error zen-text-zen-error-fg",
+                  "zen-ring-2 zen-ring-zen-background",
                 )}
               >
                 {badgeText}
@@ -202,14 +202,14 @@ const NotificationsInbox = React.forwardRef<
         <PopoverContent
           align={align}
           sideOffset={8}
-          className="p-0 overflow-hidden"
+          className="zen-p-0 zen-overflow-hidden"
           style={{ width }}
         >
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-zen-border">
-            <h3 className="text-sm font-semibold text-zen-foreground m-0">
+          <div className="zen-flex zen-items-center zen-justify-between zen-px-4 zen-py-2.5 zen-border-b zen-border-zen-border">
+            <h3 className="zen-text-sm zen-font-semibold zen-text-zen-foreground zen-m-0">
               {triggerLabel}
               {hasUnread && (
-                <span className="ml-1.5 text-xs font-normal text-zen-muted-fg">
+                <span className="zen-ml-1.5 zen-text-xs zen-font-normal zen-text-zen-muted-fg">
                   ({computedUnread})
                 </span>
               )}
@@ -219,9 +219,9 @@ const NotificationsInbox = React.forwardRef<
                 type="button"
                 onClick={onMarkAllRead}
                 className={cn(
-                  "text-xs font-medium text-zen-primary",
-                  "hover:underline focus-visible:outline-none focus-visible:underline",
-                  "bg-transparent border-0 cursor-pointer p-0",
+                  "zen-text-xs zen-font-medium zen-text-zen-primary",
+                  "hover:zen-underline focus-visible:zen-outline-none focus-visible:zen-underline",
+                  "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-p-0",
                 )}
               >
                 Mark all as read
@@ -239,10 +239,10 @@ const NotificationsInbox = React.forwardRef<
             ) : (
               groups.map((g) => (
                 <section key={g.label} aria-label={g.label}>
-                  <h4 className="px-4 pt-3 pb-1 text-[0.65rem] font-semibold uppercase tracking-wide text-zen-muted-fg m-0">
+                  <h4 className="zen-px-4 zen-pt-3 zen-pb-1 zen-text-[0.65rem] zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg zen-m-0">
                     {g.label}
                   </h4>
-                  <ul className="list-none p-0 m-0">
+                  <ul className="zen-list-none zen-p-0 zen-m-0">
                     {g.items.map((n) => (
                       <Row
                         key={n.id}
@@ -258,14 +258,14 @@ const NotificationsInbox = React.forwardRef<
           </div>
 
           {onViewAll && (
-            <div className="border-t border-zen-border">
+            <div className="zen-border-t zen-border-zen-border">
               <button
                 type="button"
                 onClick={onViewAll}
                 className={cn(
-                  "block w-full px-4 py-2.5 text-center text-sm font-medium text-zen-primary",
-                  "hover:bg-zen-muted focus-visible:outline-none focus-visible:bg-zen-muted",
-                  "bg-transparent border-0 cursor-pointer",
+                  "zen-block zen-w-full zen-px-4 zen-py-2.5 zen-text-center zen-text-sm zen-font-medium zen-text-zen-primary",
+                  "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-bg-zen-muted",
+                  "zen-bg-transparent zen-border-0 zen-cursor-pointer",
                 )}
               >
                 View all
@@ -295,34 +295,34 @@ const Row: React.FC<{
       <span
         aria-hidden
         className={cn(
-          "mt-1.5 shrink-0 flex items-center justify-center",
-          icon ? "h-5 w-5 text-zen-muted-fg" : "h-2 w-2 rounded-zen-full",
-          !icon && !read && "bg-zen-primary",
-          !icon && read && "bg-transparent",
+          "zen-mt-1.5 zen-shrink-0 zen-flex zen-items-center zen-justify-center",
+          icon ? "zen-h-5 zen-w-5 zen-text-zen-muted-fg" : "zen-h-2 zen-w-2 zen-rounded-zen-full",
+          !icon && !read && "zen-bg-zen-primary",
+          !icon && read && "zen-bg-transparent",
         )}
       >
         {icon}
       </span>
-      <div className="min-w-0 flex-1">
+      <div className="zen-min-w-0 zen-flex-1">
         <div
           className={cn(
-            "text-sm leading-snug",
-            read ? "text-zen-muted-fg" : "font-medium text-zen-foreground",
+            "zen-text-sm zen-leading-snug",
+            read ? "zen-text-zen-muted-fg" : "zen-font-medium zen-text-zen-foreground",
           )}
         >
           {title}
         </div>
         {description && (
-          <div className="mt-0.5 text-xs text-zen-muted-fg leading-snug">
+          <div className="zen-mt-0.5 zen-text-xs zen-text-zen-muted-fg zen-leading-snug">
             {description}
           </div>
         )}
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <span className="text-[0.65rem] uppercase tracking-wide text-zen-muted-fg">
+        <div className="zen-mt-1 zen-flex zen-items-center zen-justify-between zen-gap-2">
+          <span className="zen-text-[0.65rem] zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">
             {relativeTime(toDate(timestamp), now)}
           </span>
           {actions && (
-            <div className="flex items-center gap-1.5">{actions}</div>
+            <div className="zen-flex zen-items-center zen-gap-1.5">{actions}</div>
           )}
         </div>
       </div>
@@ -330,18 +330,18 @@ const Row: React.FC<{
   );
 
   const baseClass = cn(
-    "flex items-start gap-3 px-4 py-2.5 text-left w-full",
-    "border-l-2",
-    read ? "border-transparent" : "border-zen-primary bg-zen-primary-soft/30",
+    "zen-flex zen-items-start zen-gap-3 zen-px-4 zen-py-2.5 zen-text-left zen-w-full",
+    "zen-border-l-2",
+    read ? "zen-border-transparent" : "zen-border-zen-primary zen-bg-zen-primary-soft/30",
     interactive &&
-      "cursor-pointer hover:bg-zen-muted focus-visible:bg-zen-muted focus-visible:outline-none",
+      "zen-cursor-pointer hover:zen-bg-zen-muted focus-visible:zen-bg-zen-muted focus-visible:zen-outline-none",
   );
 
   return (
     <li
       role="listitem"
       aria-current={!read ? "true" : undefined}
-      className="border-b border-zen-border last:border-b-0"
+      className="zen-border-b zen-border-zen-border last:zen-border-b-0"
     >
       {href ? (
         <a
@@ -354,7 +354,7 @@ const Row: React.FC<{
               activate();
             }
           }}
-          className={cn(baseClass, "no-underline text-inherit")}
+          className={cn(baseClass, "zen-no-underline zen-text-inherit")}
         >
           {rowContent}
         </a>
@@ -362,7 +362,7 @@ const Row: React.FC<{
         <button
           type="button"
           onClick={activate}
-          className={cn(baseClass, "bg-transparent")}
+          className={cn(baseClass, "zen-bg-transparent")}
         >
           {rowContent}
         </button>
@@ -374,11 +374,11 @@ const Row: React.FC<{
 };
 
 const EmptyState: React.FC<{ message: React.ReactNode }> = ({ message }) => (
-  <div className="flex flex-col items-center justify-center px-6 py-10 text-center">
-    <span className="text-zen-muted-fg/60 mb-2">
+  <div className="zen-flex zen-flex-col zen-items-center zen-justify-center zen-px-6 zen-py-10 zen-text-center">
+    <span className="zen-text-zen-muted-fg/60 zen-mb-2">
       <BellIcon size={28} />
     </span>
-    <p className="text-sm text-zen-muted-fg m-0">{message}</p>
+    <p className="zen-text-sm zen-text-zen-muted-fg zen-m-0">{message}</p>
   </div>
 );
 

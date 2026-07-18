@@ -190,7 +190,7 @@ const NewBannerDemo: React.FC = () => {
   </BannerActions>
 </Banner>`}
         >
-          <p className="text-xs text-zen-muted-fg">
+          <p className="zen-text-xs zen-text-zen-muted-fg">
             (Scroll the demo page to see the example sticky at top of
             this section's preview area — wired in the page chrome of
             real apps via{" "}

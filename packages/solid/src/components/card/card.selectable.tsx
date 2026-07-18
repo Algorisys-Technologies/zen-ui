@@ -24,7 +24,12 @@ import { cn } from "../../lib/cn";
  * idiom across the rest of the binding. Both forms are accepted.
  */
 
-export type SelectableCardGroupProps = {
+// `onChange` is omitted from the DOM attributes: this group reports the new
+// value string directly, which collides with the DOM's change event.
+export type SelectableCardGroupProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children" | "onChange"
+> & {
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
@@ -39,7 +44,7 @@ export type SelectableCardGroupProps = {
 };
 
 export const SelectableCardGroup = (props: SelectableCardGroupProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "value",
     "defaultValue",
     "onChange",
@@ -53,6 +58,7 @@ export const SelectableCardGroup = (props: SelectableCardGroupProps) => {
   ]);
   return (
     <KRadioGroup
+      {...rest}
       value={local.value}
       defaultValue={local.defaultValue}
       onChange={(v) => {
@@ -63,14 +69,17 @@ export const SelectableCardGroup = (props: SelectableCardGroupProps) => {
       disabled={local.disabled}
       required={local.required}
       orientation={local.orientation}
-      class={cn("grid gap-3", local.class)}
+      class={cn("zen-grid zen-gap-3", local.class)}
     >
       {local.children}
     </KRadioGroup>
   );
 };
 
-export type SelectableCardProps = {
+export type SelectableCardProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   value: string;
   title?: JSX.Element;
   icon?: JSX.Element;
@@ -83,7 +92,7 @@ export type SelectableCardProps = {
 };
 
 export const SelectableCard = (props: SelectableCardProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "value",
     "title",
     "icon",
@@ -94,51 +103,52 @@ export const SelectableCard = (props: SelectableCardProps) => {
   ]);
   return (
     <KRadioGroup.Item
+      {...rest}
       value={local.value}
       disabled={local.disabled}
       class={cn(
-        "group relative w-full text-left",
-        "rounded-zen-md border-2 border-zen-border bg-zen-background",
-        "p-4 cursor-pointer transition-colors",
+        "zen-group zen-relative zen-w-full zen-text-left",
+        "zen-rounded-zen-md zen-border-2 zen-border-zen-border zen-bg-zen-background",
+        "zen-p-4 zen-cursor-pointer zen-transition-colors",
         // hover (only when not selected and not disabled)
-        "hover:border-zen-muted-fg",
+        "hover:zen-border-zen-muted-fg",
         // selected — primary ring + soft tint (Kobalte uses data-checked)
-        "data-[checked]:border-zen-primary data-[checked]:bg-zen-primary-soft",
+        "data-[checked]:zen-border-zen-primary data-[checked]:zen-bg-zen-primary-soft",
         // disabled
-        "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-        "data-[disabled]:hover:border-zen-border",
-        "focus-within:outline-none focus-within:ring-2 focus-within:ring-zen-ring focus-within:ring-offset-2",
+        "data-[disabled]:zen-cursor-not-allowed data-[disabled]:zen-opacity-50",
+        "data-[disabled]:hover:zen-border-zen-border",
+        "focus-within:zen-outline-none focus-within:zen-ring-2 focus-within:zen-ring-zen-ring focus-within:zen-ring-offset-2",
         local.class,
       )}
     >
-      <KRadioGroup.ItemInput class="sr-only" />
-      <KRadioGroup.ItemControl class="contents">
+      <KRadioGroup.ItemInput class="zen-sr-only" />
+      <KRadioGroup.ItemControl class="zen-contents">
         {/* Top row: icon + title (+ optional badge) */}
-        <div class="flex items-start gap-3">
+        <div class="zen-flex zen-items-start zen-gap-3">
           {local.icon ? (
             <span
-              aria-hidden
+              aria-hidden="true"
               class={cn(
-                "inline-flex items-center justify-center flex-shrink-0",
-                "h-8 w-8 rounded-zen-sm",
-                "bg-zen-muted text-zen-muted-fg",
-                "group-data-[checked]:bg-zen-primary group-data-[checked]:text-zen-primary-fg",
+                "zen-inline-flex zen-items-center zen-justify-center zen-flex-shrink-0",
+                "zen-h-8 zen-w-8 zen-rounded-zen-sm",
+                "zen-bg-zen-muted zen-text-zen-muted-fg",
+                "group-data-[checked]:zen-bg-zen-primary group-data-[checked]:zen-text-zen-primary-fg",
               )}
             >
               {local.icon}
             </span>
           ) : null}
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
+          <div class="zen-flex-1 zen-min-w-0">
+            <div class="zen-flex zen-items-center zen-gap-2">
               {local.title ? (
-                <KRadioGroup.ItemLabel class="text-sm font-semibold text-zen-foreground">
+                <KRadioGroup.ItemLabel class="zen-text-sm zen-font-semibold zen-text-zen-foreground">
                   {local.title}
                 </KRadioGroup.ItemLabel>
               ) : null}
-              {local.badge ? <span class="ml-auto">{local.badge}</span> : null}
+              {local.badge ? <span class="zen-ml-auto">{local.badge}</span> : null}
             </div>
             {local.children ? (
-              <div class="text-xs text-zen-muted-fg mt-1 leading-relaxed">
+              <div class="zen-text-xs zen-text-zen-muted-fg zen-mt-1 zen-leading-relaxed">
                 {local.children}
               </div>
             ) : null}
@@ -148,10 +158,10 @@ export const SelectableCard = (props: SelectableCardProps) => {
         {/* Top-right check indicator — only visible when selected. */}
         <KRadioGroup.ItemIndicator
           class={cn(
-            "absolute top-2.5 right-2.5",
-            "inline-flex items-center justify-center",
-            "h-5 w-5 rounded-zen-full",
-            "bg-zen-primary text-zen-primary-fg",
+            "zen-absolute zen-top-2.5 zen-right-2.5",
+            "zen-inline-flex zen-items-center zen-justify-center",
+            "zen-h-5 zen-w-5 zen-rounded-zen-full",
+            "zen-bg-zen-primary zen-text-zen-primary-fg",
           )}
         >
           <svg
@@ -163,7 +173,7 @@ export const SelectableCard = (props: SelectableCardProps) => {
             stroke-width="3"
             stroke-linecap="round"
             stroke-linejoin="round"
-            aria-hidden
+            aria-hidden="true"
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>

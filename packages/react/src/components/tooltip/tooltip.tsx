@@ -37,19 +37,19 @@ const TooltipContent = React.forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
-      "z-50 max-w-xs px-2.5 py-1.5",
-      "rounded-zen-md bg-zen-neutral text-xs text-zen-neutral-fg",
-      "shadow-md",
+      "zen-z-50 zen-max-w-xs zen-px-2.5 zen-py-1.5",
+      "zen-rounded-zen-md zen-bg-zen-neutral zen-text-xs zen-text-zen-neutral-fg",
+      "zen-shadow-md",
       // Radix sets data-state="delayed-open" / "instant-open" / "closed".
       // Open uses a small transition; closed unmounts so we don't fade out.
-      "transition-opacity duration-100 data-[state=closed]:opacity-0",
+      "zen-transition-opacity zen-duration-100 data-[state=closed]:zen-opacity-0",
       className,
     )}
     {...props}
   >
     {children}
     {arrow ? (
-      <TooltipPrimitive.Arrow className="fill-zen-neutral" width={10} height={5} />
+      <TooltipPrimitive.Arrow className="zen-fill-zen-neutral" width={10} height={5} />
     ) : null}
   </TooltipPrimitive.Content>
 ));

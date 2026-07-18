@@ -53,6 +53,24 @@ export interface MultiComboboxProps {
   searchPlaceholder?: string;
   emptyMessage?: string;
   debounceMs?: number;
+  /**
+   * Offer to create the typed text when it matches no option's label.
+   * Needs `onCreate` to do anything.
+   */
+  creatable?: boolean;
+  /**
+   * Called with the typed text when the create row is chosen. Adding the
+   * option to your list is always yours — the component cannot know where the
+   * list lives or what a new `value` should be.
+   *
+   * RETURN the new option and it is APPENDED to the selection, which is what
+   * "create a tag" almost always means. Return nothing and the selection is
+   * left alone. Mirrors Combobox, where returning selects instead of appends —
+   * the difference is the selection model, not the contract.
+   */
+  onCreate?: (label: string) => ComboboxOption | void;
+  /** Verb on the create row — `Create "foo"`. Default "Create". */
+  createLabel?: string;
   /** Trigger button min width. Defaults to 240. */
   width?: number | string;
   /** Cap how many chips show in the trigger before collapsing into
@@ -75,6 +93,9 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
   searchPlaceholder = "Search…",
   emptyMessage = "No results.",
   debounceMs = 250,
+  creatable,
+  onCreate,
+  createLabel = "Create",
   width = 240,
   maxDisplayed = 3,
   disabled,
@@ -170,6 +191,14 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
 
   const remove = (v: string) => update(selected.filter((x) => x !== v));
 
+  // Compared against the LABEL, not the value: the user is typing what they
+  // read, and "already exists" has to mean the same thing to them as to us.
+  const typed = query.trim();
+  const alreadyExists = allOptions.some(
+    (o) => o.label.trim().toLowerCase() === typed.toLowerCase(),
+  );
+  const showCreate = Boolean(creatable && onCreate) && typed.length > 0 && !alreadyExists;
+
   /* Trigger label — show up to `maxDisplayed` chips, then "+N more". */
   const visible = selected.slice(0, maxDisplayed);
   const overflow = selected.length - visible.length;
@@ -184,14 +213,14 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            "justify-between font-normal text-left min-h-10 h-auto py-1.5",
-            selected.length === 0 && "text-zen-muted-fg",
+            "zen-justify-between zen-font-normal zen-text-left zen-min-h-10 zen-h-auto zen-py-1.5",
+            selected.length === 0 && "zen-text-zen-muted-fg",
             className,
           )}
           style={{ minWidth: width }}
           iconRight={<ChevronIcon />}
         >
-          <span className="flex flex-wrap items-center gap-1 flex-1 min-w-0">
+          <span className="zen-flex zen-flex-wrap zen-items-center zen-gap-1 zen-flex-1 zen-min-w-0">
             {selected.length === 0 ? (
               placeholder
             ) : (
@@ -207,7 +236,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
                   />
                 ))}
                 {overflow > 0 ? (
-                  <span className="text-xs text-zen-muted-fg ml-0.5">
+                  <span className="zen-text-xs zen-text-zen-muted-fg zen-ml-0.5">
                     +{overflow} more
                   </span>
                 ) : null}
@@ -217,7 +246,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="p-0"
+        className="zen-p-0"
         style={{ width: typeof width === "number" ? width : undefined }}
         align="start"
       >
@@ -254,22 +283,53 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
                         marginRight: 6,
                       }}
                     />
-                    <span className="flex-1">{o.label}</span>
+                    <span className="zen-flex-1">{o.label}</span>
                   </CommandItem>
                 );
               })}
             </CommandGroup>
+            {showCreate ? (
+              <CommandGroup>
+                <CommandItem
+                  // The typed text is a keyword so cmdk's filter always keeps
+                  // this row: a create row that filters itself out is useless
+                  // exactly when it is needed.
+                  value={`__create__${typed}`}
+                  keywords={[typed]}
+                  onSelect={() => {
+                    const created = onCreate!(typed);
+                    if (created) {
+                      // Cache the label first: the caller's options update has
+                      // not landed, so the chip would fall back to rendering
+                      // the raw value.
+                      labelCacheRef.current.set(created.value, created.label);
+                      if (!selected.includes(created.value)) {
+                        update([...selected, created.value]);
+                      }
+                    }
+                    setQuery("");
+                    /* Don't close — same as picking an existing option. The
+                     * point of creating a tag is usually to create another. */
+                  }}
+                >
+                  <PlusIcon style={{ marginRight: 6 }} />
+                  <span className="zen-flex-1">
+                    {createLabel} “{typed}”
+                  </span>
+                </CommandItem>
+              </CommandGroup>
+            ) : null}
           </CommandList>
           {showClearAll && selected.length > 0 ? (
-            <div className="border-t border-zen-border p-1">
+            <div className="zen-border-t zen-border-zen-border zen-p-1">
               <button
                 type="button"
                 onClick={() => update([])}
                 className={cn(
-                  "w-full text-left text-xs px-2 py-1 rounded-zen-sm",
-                  "text-zen-muted-fg hover:text-zen-foreground hover:bg-zen-muted",
-                  "bg-transparent border-0 cursor-pointer",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+                  "zen-w-full zen-text-left zen-text-xs zen-px-2 zen-py-1 zen-rounded-zen-sm",
+                  "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+                  "zen-bg-transparent zen-border-0 zen-cursor-pointer",
+                  "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
                 )}
               >
                 Clear all ({selected.length})
@@ -284,30 +344,39 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
 
 const Chip: React.FC<{
   label: string;
-  onRemove: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onRemove: (e: React.SyntheticEvent) => void;
 }> = ({ label, onRemove }) => (
   <span
     className={cn(
-      "inline-flex items-center gap-1 px-1.5 py-0.5",
-      "text-xs font-medium",
-      "rounded-zen-sm bg-zen-primary-soft text-zen-primary-soft-fg",
-      "max-w-[10rem]",
+      "zen-inline-flex zen-items-center zen-gap-1 zen-px-1.5 zen-py-0.5",
+      "zen-text-xs zen-font-medium",
+      "zen-rounded-zen-sm zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
+      "zen-max-w-[10rem]",
     )}
   >
-    <span className="truncate">{label}</span>
-    <button
-      type="button"
+    <span className="zen-truncate">{label}</span>
+    {/* role="button" span (not a <button>) so it can live inside the trigger
+     * <Button> without nesting interactive <button> elements (invalid HTML). */}
+    <span
+      role="button"
+      tabIndex={0}
       onClick={onRemove}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onRemove(e);
+        }
+      }}
       onPointerDown={(e) => e.stopPropagation()}
       /* stopPropagation on pointerdown so the click doesn't trigger
        * the parent Popover trigger (which would open the menu when
        * the user just wanted to remove a chip). */
       aria-label={`Remove ${label}`}
       className={cn(
-        "inline-flex items-center justify-center",
-        "h-3.5 w-3.5 rounded-zen-full bg-transparent border-0 cursor-pointer",
-        "text-current opacity-70 hover:opacity-100 hover:bg-black/10",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+        "zen-inline-flex zen-items-center zen-justify-center",
+        "zen-h-3.5 zen-w-3.5 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
+        "zen-text-current zen-opacity-70 hover:zen-opacity-100 hover:zen-bg-black/10",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
     >
       <svg
@@ -324,7 +393,7 @@ const Chip: React.FC<{
         <line x1="18" y1="6" x2="6" y2="18" />
         <line x1="6" y1="6" x2="18" y2="18" />
       </svg>
-    </button>
+    </span>
   </span>
 );
 
@@ -341,6 +410,13 @@ const ChevronIcon = () => (
     aria-hidden
   >
     <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
+const PlusIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={style}>
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
 

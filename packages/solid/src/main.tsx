@@ -45,6 +45,8 @@ import NewSelectDemo from "./components/NewSelectDemo";
 import NewScrollAreaDemo from "./components/NewScrollAreaDemo";
 import NewToastDemo from "./components/NewToastDemo";
 import NewInputDemo from "./components/NewInputDemo";
+import SearchDemo from "./components/SearchDemo";
+import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
 import NewTagInputDemo from "./components/NewTagInputDemo";
 import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
@@ -62,15 +64,57 @@ import NewTimePickerDemo from "./components/NewTimePickerDemo";
 import NewDateTimePickerDemo from "./components/NewDateTimePickerDemo";
 import NewQRScannerDemo from "./components/NewQRScannerDemo";
 import NewNotificationsInboxDemo from "./components/NewNotificationsInboxDemo";
+import NewStackDemo from "./components/NewStackDemo";
+import NewBreadcrumbDemo from "./components/NewBreadcrumbDemo";
+import NewPaginationDemo from "./components/NewPaginationDemo";
+import NewCommandDemo from "./components/NewCommandDemo";
+import NewSidebarDemo from "./components/NewSidebarDemo";
+import NewChartDemo from "./components/NewChartDemo";
+import NewRichTextDemo from "./components/NewRichTextDemo";
+import NewMapDemo from "./components/NewMapDemo";
+import NewCameraDemo from "./components/NewCameraDemo";
+import NewIconDemo from "./components/NewIconDemo";
+import NewObjectDemo from "./components/NewObjectDemo";
+import NewButtonFamilyDemo from "./components/NewButtonFamilyDemo";
+import NewTreeDemo from "./components/NewTreeDemo";
+import NewToolbarDemo from "./components/NewToolbarDemo";
+import NewShellBarDemo from "./components/NewShellBarDemo";
+import SkipToContentDemo from "./components/SkipToContentDemo";
+import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDemo";
+import NewDynamicPageDemo from "./components/NewDynamicPageDemo";
+import NewObjectPageDemo from "./components/NewObjectPageDemo";
+import NewSelectDialogDemo from "./components/NewSelectDialogDemo";
+import NewValueHelpDemo from "./components/NewValueHelpDemo";
+import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
+import NewFilterBarDemo from "./components/NewFilterBarDemo";
+import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
+import NewStatCardDemo from "./components/NewStatCardDemo";
+import NewCustomizingDemo from "./components/NewCustomizingDemo";
+import NewMaskInputDemo from "./components/NewMaskInputDemo";
+import NewLinkDemo from "./components/NewLinkDemo";
+import NewColorPickerDemo from "./components/NewColorPickerDemo";
+import NewCarouselDemo from "./components/NewCarouselDemo";
+import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
+import NewPivotDemo from "./components/NewPivotDemo";
+import NewListReportDemo from "./components/NewListReportDemo";
 
 applyTheme(getInitialTheme());
 
 const root = document.getElementById("root");
 if (!root) throw new Error("#root not found");
 
+// The router's base must match the base the app is actually SERVED under, or no
+// route matches on a direct visit or a refresh. Derived from Vite's BASE_URL
+// rather than hardcoded to "/builder-solid", because the base is not fixed: it
+// is "/builder-solid/" under dev:all and "/zen-ui/builder-solid/" on GitHub
+// Pages, where a hardcoded value would match nothing and render a blank page.
+// BASE_URL is baked in at build time and always has a trailing slash; base must
+// not. Mirrors the React binding.
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 render(
   () => (
-    <Router base="/builder-solid" root={App}>
+    <Router base={BASE} root={App}>
       <Route path="/" component={Welcome} />
       <Route path="/button" component={NewButtonDemo} />
       <Route path="/badge" component={NewBadgeDemo} />
@@ -103,6 +147,8 @@ render(
       <Route path="/scroll-area" component={NewScrollAreaDemo} />
       <Route path="/toast" component={NewToastDemo} />
       <Route path="/input" component={NewInputDemo} />
+      <Route path="/search" component={SearchDemo} />
+      <Route path="/password-input" component={PasswordInputDemo} />
       <Route path="/number-field" component={NewNumberFieldDemo} />
       <Route path="/tag-input" component={NewTagInputDemo} />
       <Route path="/phone-input" component={NewPhoneInputDemo} />
@@ -120,6 +166,42 @@ render(
       <Route path="/date-time-picker" component={NewDateTimePickerDemo} />
       <Route path="/qr-scanner" component={NewQRScannerDemo} />
       <Route path="/notifications-inbox" component={NewNotificationsInboxDemo} />
+      <Route path="/stack" component={NewStackDemo} />
+      <Route path="/breadcrumb" component={NewBreadcrumbDemo} />
+      <Route path="/pagination" component={NewPaginationDemo} />
+      <Route path="/command" component={NewCommandDemo} />
+      <Route path="/sidebar" component={NewSidebarDemo} />
+      <Route path="/chart" component={NewChartDemo} />
+      <Route path="/rich-text" component={NewRichTextDemo} />
+      <Route path="/map" component={NewMapDemo} />
+      <Route path="/camera" component={NewCameraDemo} />
+      <Route path="/icon" component={NewIconDemo} />
+      <Route path="/object" component={NewObjectDemo} />
+      <Route path="/button-family" component={NewButtonFamilyDemo} />
+      <Route path="/tree" component={NewTreeDemo} />
+      <Route path="/toolbar" component={NewToolbarDemo} />
+      <Route path="/skip-to-content" component={SkipToContentDemo} />
+      <Route path="/shellbar" component={NewShellBarDemo} />
+      <Route
+        path="/flexible-column-layout"
+        component={NewFlexibleColumnLayoutDemo}
+      />
+      <Route path="/dynamic-page" component={NewDynamicPageDemo} />
+      <Route path="/object-page" component={NewObjectPageDemo} />
+      <Route path="/select-dialog" component={NewSelectDialogDemo} />
+      <Route path="/value-help" component={NewValueHelpDemo} />
+      <Route path="/view-settings" component={NewViewSettingsDemo} />
+      <Route path="/filter-bar" component={NewFilterBarDemo} />
+      <Route path="/page-header" component={NewPageHeaderDemo} />
+      <Route path="/stat-card" component={NewStatCardDemo} />
+      <Route path="/customizing" component={NewCustomizingDemo} />
+      <Route path="/mask-input" component={NewMaskInputDemo} />
+      <Route path="/link" component={NewLinkDemo} />
+      <Route path="/color-picker" component={NewColorPickerDemo} />
+      <Route path="/carousel" component={NewCarouselDemo} />
+      <Route path="/dynamic-date-range" component={NewDynamicDateRangeDemo} />
+      <Route path="/pivot" component={NewPivotDemo} />
+      <Route path="/list-report" component={NewListReportDemo} />
     </Router>
   ),
   root,

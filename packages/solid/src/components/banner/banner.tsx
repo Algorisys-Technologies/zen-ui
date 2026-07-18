@@ -12,19 +12,19 @@ import { cn } from "../../lib/cn";
  */
 
 const bannerVariants = cva(
-  "w-full flex items-center gap-3 px-4 py-3 text-sm border-y",
+  "zen-w-full zen-flex zen-items-center zen-gap-3 zen-px-4 zen-py-3 zen-text-sm zen-border-y",
   {
     variants: {
       color: {
-        neutral: "bg-zen-muted text-zen-foreground border-zen-border",
-        primary: "bg-zen-primary-soft text-zen-primary-soft-fg border-zen-primary-soft",
-        info: "bg-zen-info-soft text-zen-info-soft-fg border-zen-info-soft",
-        success: "bg-zen-success-soft text-zen-success-soft-fg border-zen-success-soft",
-        warning: "bg-zen-warning-soft text-zen-warning-soft-fg border-zen-warning-soft",
-        destructive: "bg-zen-error-soft text-zen-error-soft-fg border-zen-error-soft",
+        neutral: "zen-bg-zen-muted zen-text-zen-foreground zen-border-zen-border",
+        primary: "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-border-zen-primary-soft",
+        info: "zen-bg-zen-info-soft zen-text-zen-info-soft-fg zen-border-zen-info-soft",
+        success: "zen-bg-zen-success-soft zen-text-zen-success-soft-fg zen-border-zen-success-soft",
+        warning: "zen-bg-zen-warning-soft zen-text-zen-warning-soft-fg zen-border-zen-warning-soft",
+        destructive: "zen-bg-zen-error-soft zen-text-zen-error-soft-fg zen-border-zen-error-soft",
       },
       sticky: {
-        true: "sticky top-0 z-30",
+        true: "zen-sticky zen-top-0 zen-z-30",
         false: "",
       },
     },
@@ -50,7 +50,7 @@ export const Banner = (props: BannerProps) => {
       class={cn(bannerVariants({ color: local.color, sticky: local.sticky }), local.class)}
       {...rest}
     >
-      <div class="flex items-center gap-3 w-full max-w-[100rem] mx-auto">
+      <div class="zen-flex zen-items-center zen-gap-3 zen-w-full zen-max-w-[100rem] zen-mx-auto">
         {local.children}
       </div>
     </div>
@@ -70,8 +70,8 @@ export const BannerIcon = (props: SpanProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <span
-      aria-hidden
-      class={cn("flex-shrink-0 inline-flex items-center", local.class)}
+      aria-hidden="true"
+      class={cn("zen-flex-shrink-0 zen-inline-flex zen-items-center", local.class)}
       {...rest}
     >
       {local.children}
@@ -83,7 +83,7 @@ export const BannerContent = (props: DivProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
-      class={cn("flex-1 min-w-0 inline-flex flex-wrap items-baseline gap-x-2", local.class)}
+      class={cn("zen-flex-1 zen-min-w-0 zen-inline-flex zen-flex-wrap zen-items-baseline zen-gap-x-2", local.class)}
       {...rest}
     >
       {local.children}
@@ -94,7 +94,7 @@ export const BannerContent = (props: DivProps) => {
 export const BannerTitle = (props: SpanProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <span class={cn("font-semibold", local.class)} {...rest}>
+    <span class={cn("zen-font-semibold", local.class)} {...rest}>
       {local.children}
     </span>
   );
@@ -103,7 +103,7 @@ export const BannerTitle = (props: SpanProps) => {
 export const BannerDescription = (props: SpanProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <span class={cn("opacity-90", local.class)} {...rest}>
+    <span class={cn("zen-opacity-90", local.class)} {...rest}>
       {local.children}
     </span>
   );
@@ -113,7 +113,7 @@ export const BannerActions = (props: DivProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
-      class={cn("flex-shrink-0 flex items-center gap-2", local.class)}
+      class={cn("zen-flex-shrink-0 zen-flex zen-items-center zen-gap-2", local.class)}
       {...rest}
     >
       {local.children}
@@ -132,10 +132,10 @@ export const BannerClose = (props: BannerCloseProps) => {
       type="button"
       aria-label="Dismiss banner"
       class={cn(
-        "flex-shrink-0 inline-flex items-center justify-center",
-        "h-6 w-6 rounded-zen-sm bg-transparent border-0 cursor-pointer",
-        "text-current opacity-70 hover:opacity-100 hover:bg-black/10",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+        "zen-flex-shrink-0 zen-inline-flex zen-items-center zen-justify-center",
+        "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
+        "zen-text-current zen-opacity-70 hover:zen-opacity-100 hover:zen-bg-black/10",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
         local.class,
       )}
       {...rest}
@@ -149,7 +149,7 @@ export const BannerClose = (props: BannerCloseProps) => {
         stroke-width="2.5"
         stroke-linecap="round"
         stroke-linejoin="round"
-        aria-hidden
+        aria-hidden="true"
       >
         <line x1="18" y1="6" x2="6" y2="18" />
         <line x1="6" y1="6" x2="18" y2="18" />

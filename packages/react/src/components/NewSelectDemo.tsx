@@ -51,7 +51,7 @@ const NewSelectDemo: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
-          <span style={{ marginLeft: 12, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: 12, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             value: {fruit || "(none)"}
           </span>
         </CodeExample>
@@ -203,13 +203,13 @@ const NewSelectDemo: React.FC = () => {
             <button
               type="submit"
               style={{
-                padding: "0.6rem 1.2rem",
+                padding: "0.375rem 0.75rem",
                 background: "var(--zen-color-primary)",
                 color: "white",
                 border: 0,
                 borderRadius: 6,
                 cursor: "pointer",
-                fontSize: "1.3rem",
+                fontSize: "0.8125rem",
               }}
             >
               Submit

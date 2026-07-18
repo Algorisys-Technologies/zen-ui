@@ -16,7 +16,24 @@ const NewSheetDemo = () => (
     title="Sheet"
     description="Slide-in side panel built on Kobalte Dialog. Use for filters, edit forms, document review."
   >
-    <DemoSection title="Right (default)">
+    <DemoSection
+      title="Right (default)"
+      codeTitle="SheetTrigger / SheetClose are polymorphic via as"
+      code={`<Sheet>
+  <SheetTrigger as={Button} variant="outline">Open right sheet</SheetTrigger>
+  <SheetContent>
+    <SheetHeader>
+      <SheetTitle>Filters</SheetTitle>
+      <SheetDescription>Narrow your view.</SheetDescription>
+    </SheetHeader>
+    <p class="zen-text-sm zen-text-zen-muted-fg">Form controls would go here.</p>
+    <SheetFooter>
+      <SheetClose as={Button} variant="outline">Cancel</SheetClose>
+      <Button>Apply</Button>
+    </SheetFooter>
+  </SheetContent>
+</Sheet>`}
+    >
       <Sheet>
         <SheetTrigger as={Button} variant="outline">Open right sheet</SheetTrigger>
         <SheetContent>
@@ -24,7 +41,7 @@ const NewSheetDemo = () => (
             <SheetTitle>Filters</SheetTitle>
             <SheetDescription>Narrow your view.</SheetDescription>
           </SheetHeader>
-          <p class="text-sm text-zen-muted-fg">Form controls would go here.</p>
+          <p class="zen-text-sm zen-text-zen-muted-fg">Form controls would go here.</p>
           <SheetFooter>
             <SheetClose as={Button} variant="outline">Cancel</SheetClose>
             <Button>Apply</Button>
@@ -33,7 +50,18 @@ const NewSheetDemo = () => (
       </Sheet>
     </DemoSection>
 
-    <DemoSection title="Other sides">
+    <DemoSection
+      title="Other sides"
+      codeTitle={'side="right" (default) | "left" | "top" | "bottom"'}
+      code={`<Sheet>
+  <SheetTrigger as={Button} variant="outline">Left</SheetTrigger>
+  <SheetContent side="left">
+    <SheetHeader>
+      <SheetTitle>Navigation</SheetTitle>
+    </SheetHeader>
+  </SheetContent>
+</Sheet>`}
+    >
       <Sheet>
         <SheetTrigger as={Button} variant="outline">Left</SheetTrigger>
         <SheetContent side="left">

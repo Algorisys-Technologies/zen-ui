@@ -237,7 +237,7 @@ export const InputOTP = React.forwardRef<HTMLInputElement, InputOTPProps>(
       <OTPInputContext.Provider value={context}>
         <div
           className={cn(
-            "flex items-center gap-2 has-[:disabled]:opacity-50",
+            "zen-flex zen-items-center zen-gap-2 has-[:disabled]:zen-opacity-50",
             containerClassName,
             className,
           )}
@@ -259,15 +259,15 @@ export const InputOTPGroup = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<"div">
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex items-center gap-2", className)} {...props} />
+  <div ref={ref} className={cn("zen-flex zen-items-center zen-gap-2", className)} {...props} />
 ));
 InputOTPGroup.displayName = "InputOTPGroup";
 
 const slotBaseClassName = cn(
-  "zen-otp-slot h-11 w-11 rounded-zen-md bg-zen-background p-0",
-  "text-center text-base font-medium text-zen-foreground tabular-nums",
-  "transition-colors",
-  "disabled:cursor-not-allowed disabled:opacity-50",
+  "zen-otp-slot zen-h-11 zen-w-11 zen-rounded-zen-md zen-bg-zen-background zen-p-0",
+  "zen-text-center zen-text-base zen-font-medium zen-text-zen-foreground zen-tabular-nums",
+  "zen-transition-colors",
+  "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
 );
 
 export const InputOTPSlot = React.forwardRef<

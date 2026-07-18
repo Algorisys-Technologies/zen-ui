@@ -28,17 +28,17 @@ export interface ProgressProps
 }
 
 const TRACK_HEIGHT: Record<ProgressSize, string> = {
-  sm: "h-1",
-  md: "h-2",
-  lg: "h-3",
+  sm: "zen-h-1",
+  md: "zen-h-2",
+  lg: "zen-h-3",
 };
 const FILL_BG: Record<ProgressColor, string> = {
-  primary: "bg-zen-primary",
-  neutral: "bg-zen-neutral",
-  info: "bg-zen-info",
-  success: "bg-zen-success",
-  warning: "bg-zen-warning",
-  error: "bg-zen-error",
+  primary: "zen-bg-zen-primary",
+  neutral: "zen-bg-zen-neutral",
+  info: "zen-bg-zen-info",
+  success: "zen-bg-zen-success",
+  warning: "zen-bg-zen-warning",
+  error: "zen-bg-zen-error",
 };
 
 const Progress = React.forwardRef<
@@ -49,7 +49,7 @@ const Progress = React.forwardRef<
     ref={ref}
     value={value}
     className={cn(
-      "relative w-full overflow-hidden rounded-zen-full bg-zen-muted",
+      "zen-relative zen-w-full zen-overflow-hidden zen-rounded-zen-full zen-bg-zen-muted",
       TRACK_HEIGHT[size],
       className,
     )}
@@ -57,7 +57,7 @@ const Progress = React.forwardRef<
   >
     <ProgressPrimitive.Indicator
       className={cn(
-        "h-full w-full flex-1 transition-transform",
+        "zen-h-full zen-w-full zen-flex-1 zen-transition-transform",
         FILL_BG[color],
       )}
       style={{

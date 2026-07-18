@@ -51,7 +51,7 @@ const NewDateRangePickerDemo: React.FC = () => {
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <DateRangePicker value={stay} onValueChange={setStay} />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               {stay?.from && stay?.to ? (
                 <>
                   Selected stay:{" "}
@@ -110,7 +110,7 @@ const NewDateRangePickerDemo: React.FC = () => {
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <DateRangePicker value={range} onValueChange={setRange} />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               {range
                 ? JSON.stringify(
                     {

@@ -234,19 +234,19 @@ const NewDataTableDemo: React.FC = () => {
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <div>
-              <h4 style={{ margin: "0 0 0.4rem 0", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+              <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
                 plain (default)
               </h4>
               <DataTable data={SMALL} columns={columns} />
             </div>
             <div>
-              <h4 style={{ margin: "0 0 0.4rem 0", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+              <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
                 underline
               </h4>
               <DataTable data={SMALL} columns={columns} headerVariant="underline" />
             </div>
             <div>
-              <h4 style={{ margin: "0 0 0.4rem 0", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+              <h4 style={{ margin: "0 0 0.25rem 0", fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
                 branded
               </h4>
               <DataTable data={SMALL} columns={columns} headerVariant="branded" />
@@ -389,7 +389,7 @@ const slice = await fetch(\`/api/people?page=\${page}\`);
               <Button size="sm" variant="outline" onClick={() => setServerPage(0)}>
                 Reset to page 1
               </Button>
-              <span style={{ alignSelf: "center", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+              <span style={{ alignSelf: "center", fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
                 page {serverPage + 1} / {serverPageCount} (simulated server)
               </span>
             </div>
@@ -778,11 +778,11 @@ const columns = [
             renderSubRow={(row) => (
               <div
                 style={{
-                  padding: "1rem 1.6rem",
-                  fontSize: "1.3rem",
+                  padding: "0.625rem 1rem",
+                  fontSize: "0.8125rem",
                   display: "grid",
                   gridTemplateColumns: "repeat(3, 1fr)",
-                  gap: "0.6rem 1.6rem",
+                  gap: "0.375rem 1rem",
                   color: "var(--zen-color-foreground)",
                 }}
               >

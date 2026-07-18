@@ -6,6 +6,10 @@
     "emitDeclarationOnly": false,
     "noEmit": false,
     "outDir": "./dist",
+    // Emit dist/index.d.ts, not dist/src/index.d.ts — see the React binding's
+    // tsconfig.lib.json for why this was silently broken. Mirrors
+    // preserveModulesRoot:"src" in the vite config.
+    "rootDir": "./src",
     "preserveWatchOutput": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false

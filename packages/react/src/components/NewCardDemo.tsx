@@ -70,14 +70,14 @@ const NewCardDemo: React.FC = () => {
   </CardFooter>
 </Card>`}
         >
-          <div style={{ width: "100%", maxWidth: "32rem" }}>
+          <div style={{ width: "100%", maxWidth: "20rem" }}>
             <Card>
               <CardHeader>
                 <CardTitle>Account</CardTitle>
                 <CardDescription>Your billing + contact info.</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm m-0">
+                <p className="zen-text-sm zen-m-0">
                   You're on the Pro plan, renewing 14 Jun 2026.
                 </p>
               </CardContent>
@@ -110,8 +110,8 @@ const NewCardDemo: React.FC = () => {
           >
             {(["elevated", "outlined", "ghost"] as const).map((v) => (
               <Card key={v} variant={v} padding="md">
-                <strong className="text-sm">{v}</strong>
-                <p className="text-xs text-zen-muted-fg m-0 mt-1">
+                <strong className="zen-text-sm">{v}</strong>
+                <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0 zen-mt-1">
                   variant="{v}" + padding="md"
                 </p>
               </Card>
@@ -171,7 +171,7 @@ const NewCardDemo: React.FC = () => {
                 Generate GST + income-tax-ready exports.
               </SelectableCard>
             </SelectableCardGroup>
-            <p className="text-xs text-zen-muted-fg mt-3">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-mt-3">
               Picked: <code>{goal}</code>
             </p>
           </div>

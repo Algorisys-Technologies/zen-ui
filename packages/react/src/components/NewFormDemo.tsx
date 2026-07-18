@@ -111,7 +111,7 @@ const NewFormDemo: React.FC = () => {
               onSubmit={form.handleSubmit(onSubmit)}
               style={{
                 display: "grid",
-                gap: "1.6rem",
+                gap: "1rem",
                 width: "100%",
                 maxWidth: 520,
               }}
@@ -181,7 +181,7 @@ const NewFormDemo: React.FC = () => {
                         style={{
                           display: "flex",
                           flexDirection: "row",
-                          gap: "1.2rem",
+                          gap: "0.75rem",
                         }}
                       >
                         {(["low", "medium", "high"] as const).map((v) => (
@@ -191,7 +191,7 @@ const NewFormDemo: React.FC = () => {
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 6,
-                              fontSize: "1.3rem",
+                              fontSize: "0.8125rem",
                             }}
                           >
                             <RadioGroupItem value={v} />
@@ -343,7 +343,7 @@ So you write the layout once; a11y and error-text-to-control wiring
 fall out automatically. Switch resolver to yup / valibot / joi any
 time — react-hook-form doesn't care.`}
         >
-          <p style={{ color: "var(--zen-color-muted-fg)", margin: 0, fontSize: "1.3rem" }}>
+          <p style={{ color: "var(--zen-color-muted-fg)", margin: 0, fontSize: "0.8125rem" }}>
             See the code snippet for the rundown.
           </p>
         </CodeExample>

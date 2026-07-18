@@ -28,11 +28,11 @@ const NewQRScannerDemo: React.FC = () => {
 
       <p
         style={{
-          padding: "0.8rem 1.2rem",
+          padding: "0.5rem 0.75rem",
           background: "var(--zen-color-warning-soft)",
           color: "var(--zen-color-warning-fg)",
           borderRadius: 6,
-          fontSize: "1.3rem",
+          fontSize: "0.8125rem",
         }}
       >
         Note: camera access requires a secure context (HTTPS, or{" "}
@@ -49,7 +49,7 @@ const NewQRScannerDemo: React.FC = () => {
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 360 }}>
             <QRScanner onScan={handleScan} />
-            <div style={{ fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+            <div style={{ fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
               Last scan:{" "}
               {last ? (
                 <code>{last.rawValue}</code>
@@ -152,18 +152,18 @@ const decode = async (video: HTMLVideoElement) => {
               <QRScanner onScan={handleScan} />
             </div>
             <div style={{ flex: 1, minWidth: 240 }}>
-              <h3 style={{ margin: "0 0 0.8rem 0", fontSize: "1.4rem" }}>Recent</h3>
+              <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem" }}>Recent</h3>
               {history.length === 0 ? (
-                <p style={{ fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+                <p style={{ fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
                   No scans yet.
                 </p>
               ) : (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "1.3rem" }}>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "0.8125rem" }}>
                   {history.map((v, i) => (
                     <li
                       key={`${v}-${i}`}
                       style={{
-                        padding: "0.5rem 0",
+                        padding: "0.3125rem 0",
                         borderBottom: "1px solid var(--zen-color-border)",
                       }}
                     >

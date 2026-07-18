@@ -37,7 +37,7 @@ const AccordionItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
     ref={ref}
-    className={cn("border-b border-zen-border last:border-b-0", className)}
+    className={cn("zen-border-b zen-border-zen-border last:zen-border-b-0", className)}
     {...props}
   />
 ));
@@ -47,25 +47,25 @@ const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => (
-  <AccordionPrimitive.Header className="flex">
+  <AccordionPrimitive.Header className="zen-flex">
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex flex-1 items-center justify-between gap-2",
-        "py-3 px-1 text-sm font-medium text-left",
-        "bg-transparent border-0 cursor-pointer",
-        "transition-colors hover:text-zen-foreground",
-        "text-zen-foreground",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-inset rounded-zen-sm",
+        "zen-flex zen-flex-1 zen-items-center zen-justify-between zen-gap-2",
+        "zen-py-3 zen-px-1 zen-text-sm zen-font-medium zen-text-left",
+        "zen-bg-transparent zen-border-0 zen-cursor-pointer",
+        "zen-transition-colors hover:zen-text-zen-foreground",
+        "zen-text-zen-foreground",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset zen-rounded-zen-sm",
         /* Rotate the trailing chevron when open via data-state. */
-        "[&[data-state=open]>svg.zen-acc-chevron]:rotate-180",
+        "[&[data-state=open]>svg.zen-acc-chevron]:zen-rotate-180",
         className,
       )}
       {...props}
     >
       {children}
       <svg
-        className="zen-acc-chevron transition-transform duration-200 text-zen-muted-fg flex-shrink-0"
+        className="zen-acc-chevron zen-transition-transform zen-duration-200 zen-text-zen-muted-fg zen-flex-shrink-0"
         width="16"
         height="16"
         viewBox="0 0 24 24"
@@ -86,18 +86,27 @@ AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, style, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    /* Radix sets --radix-accordion-content-height; we use it via the
-     * `accordion-down` / `accordion-up` keyframes below. */
+    /* core's keyframes interpolate height to --zen-collapsible-content-height, a
+     * neutral name — core is shared with bindings that are not on Radix, and it
+     * used to read Radix's name directly. Radix publishes the measurement under
+     * its own name; this is the mapping. `style` spreads after, so a caller can
+     * still override. */
+    style={
+      {
+        "--zen-collapsible-content-height": "var(--radix-accordion-content-height)",
+        ...style,
+      } as React.CSSProperties
+    }
     className={cn(
-      "overflow-hidden text-sm",
-      "data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
+      "zen-overflow-hidden zen-text-sm",
+      "data-[state=closed]:zen-anim-accordion-up data-[state=open]:zen-anim-accordion-down",
     )}
     {...props}
   >
-    <div className={cn("pb-3 px-1 pt-0 text-zen-foreground", className)}>
+    <div className={cn("zen-pb-3 zen-px-1 zen-pt-0 zen-text-zen-foreground", className)}>
       {children}
     </div>
   </AccordionPrimitive.Content>

@@ -71,8 +71,8 @@ const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
     return (
       <div
         className={cn(
-          "inline-flex h-10 items-stretch rounded-zen-md border border-zen-border bg-zen-background overflow-hidden",
-          disabled && "opacity-50 cursor-not-allowed",
+          "zen-inline-flex zen-h-10 zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-overflow-hidden",
+          disabled && "zen-opacity-50 zen-cursor-not-allowed",
           className,
         )}
       >
@@ -82,9 +82,9 @@ const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
           onClick={dec}
           disabled={disabled || atMin}
           className={cn(
-            "px-3 text-base text-zen-foreground bg-transparent",
-            "hover:bg-zen-muted disabled:opacity-50 disabled:cursor-not-allowed",
-            "focus-visible:outline-none focus-visible:bg-zen-muted",
+            "zen-px-3 zen-text-base zen-text-zen-foreground zen-bg-transparent",
+            "hover:zen-bg-zen-muted disabled:zen-opacity-50 disabled:zen-cursor-not-allowed",
+            "focus-visible:zen-outline-none focus-visible:zen-bg-zen-muted",
           )}
         >
           −
@@ -108,12 +108,12 @@ const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
             if (Number.isFinite(n)) update(clamp(n));
           }}
           className={cn(
-            "min-w-0 flex-1 text-center text-sm bg-transparent",
-            "border-x border-zen-border",
-            "focus:outline-none focus-visible:bg-zen-primary-soft",
-            "disabled:cursor-not-allowed",
+            "zen-min-w-0 zen-flex-1 zen-text-center zen-text-sm zen-bg-transparent",
+            "zen-border-x zen-border-zen-border",
+            "focus:zen-outline-none focus-visible:zen-bg-zen-primary-soft",
+            "disabled:zen-cursor-not-allowed",
             // hide native spinners
-            "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+            "zen-[appearance:textfield] [&::-webkit-inner-spin-button]:zen-appearance-none [&::-webkit-outer-spin-button]:zen-appearance-none",
           )}
           {...props}
         />
@@ -123,9 +123,9 @@ const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
           onClick={inc}
           disabled={disabled || atMax}
           className={cn(
-            "px-3 text-base text-zen-foreground bg-transparent",
-            "hover:bg-zen-muted disabled:opacity-50 disabled:cursor-not-allowed",
-            "focus-visible:outline-none focus-visible:bg-zen-muted",
+            "zen-px-3 zen-text-base zen-text-zen-foreground zen-bg-transparent",
+            "hover:zen-bg-zen-muted disabled:zen-opacity-50 disabled:zen-cursor-not-allowed",
+            "focus-visible:zen-outline-none focus-visible:zen-bg-zen-muted",
           )}
         >
           +

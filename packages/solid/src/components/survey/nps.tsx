@@ -86,12 +86,12 @@ export const NPS = (props: NPSProps) => {
       aria-readonly={props.readOnly || undefined}
       onKeyDown={onKeyDown}
       class={cn(
-        "inline-flex flex-col gap-2",
-        props.disabled && "opacity-50",
+        "zen-inline-flex zen-flex-col zen-gap-2",
+        props.disabled && "zen-opacity-50",
         props.class,
       )}
     >
-      <div class="flex items-center gap-1">
+      <div class="zen-flex zen-items-center zen-gap-1">
         <For each={scores}>
           {(n) => {
             const selected = createMemo(() => value() === n);
@@ -112,31 +112,31 @@ export const NPS = (props: NPSProps) => {
                 tabIndex={selected() || (value() === undefined && n === 0) ? 0 : -1}
                 onClick={() => interactive() && update(n)}
                 class={cn(
-                  "h-9 min-w-9 px-2",
-                  "inline-flex items-center justify-center",
-                  "text-sm font-medium tabular-nums",
-                  "rounded-zen-sm border cursor-pointer transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+                  "zen-h-9 zen-min-w-9 zen-px-2",
+                  "zen-inline-flex zen-items-center zen-justify-center",
+                  "zen-text-sm zen-font-medium zen-tabular-nums",
+                  "zen-rounded-zen-sm zen-border zen-cursor-pointer zen-transition-colors",
+                  "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
                   // unselected — soft bucket tint
-                  !selected() && "bg-zen-background",
+                  !selected() && "zen-bg-zen-background",
                   !selected() &&
                     bucket === "detractor" &&
-                    "border-zen-error-soft text-zen-error-soft-fg hover:bg-zen-error-soft",
+                    "zen-border-zen-error-soft zen-text-zen-error-soft-fg hover:zen-bg-zen-error-soft",
                   !selected() &&
                     bucket === "passive" &&
-                    "border-zen-warning-soft text-zen-warning-soft-fg hover:bg-zen-warning-soft",
+                    "zen-border-zen-warning-soft zen-text-zen-warning-soft-fg hover:zen-bg-zen-warning-soft",
                   !selected() &&
                     bucket === "promoter" &&
-                    "border-zen-success-soft text-zen-success-soft-fg hover:bg-zen-success-soft",
+                    "zen-border-zen-success-soft zen-text-zen-success-soft-fg hover:zen-bg-zen-success-soft",
                   // selected — saturated bucket fill
                   selected() && bucket === "detractor" &&
-                    "bg-zen-error text-zen-error-fg border-zen-error",
+                    "zen-bg-zen-error zen-text-zen-error-fg zen-border-zen-error",
                   selected() && bucket === "passive" &&
-                    "bg-zen-warning text-zen-warning-fg border-zen-warning",
+                    "zen-bg-zen-warning zen-text-zen-warning-fg zen-border-zen-warning",
                   selected() && bucket === "promoter" &&
-                    "bg-zen-success text-zen-success-fg border-zen-success",
-                  (props.disabled || props.readOnly) && "cursor-default",
-                  props.disabled && "hover:!bg-zen-background",
+                    "zen-bg-zen-success zen-text-zen-success-fg zen-border-zen-success",
+                  (props.disabled || props.readOnly) && "zen-cursor-default",
+                  props.disabled && "hover:!zen-bg-zen-background",
                 )}
               >
                 {n}
@@ -145,7 +145,7 @@ export const NPS = (props: NPSProps) => {
           }}
         </For>
       </div>
-      <div class="flex justify-between text-xs text-zen-muted-fg px-1">
+      <div class="zen-flex zen-justify-between zen-text-xs zen-text-zen-muted-fg zen-px-1">
         <span>{lowLabel()}</span>
         <span>{highLabel()}</span>
       </div>
@@ -155,10 +155,10 @@ export const NPS = (props: NPSProps) => {
           return (
             <p
               class={cn(
-                "text-xs mt-1 m-0 font-medium",
-                bucketOf(v) === "detractor" && "text-zen-error",
-                bucketOf(v) === "passive" && "text-zen-warning-soft-fg",
-                bucketOf(v) === "promoter" && "text-zen-success",
+                "zen-text-xs zen-mt-1 zen-m-0 zen-font-medium",
+                bucketOf(v) === "detractor" && "zen-text-zen-error",
+                bucketOf(v) === "passive" && "zen-text-zen-warning-soft-fg",
+                bucketOf(v) === "promoter" && "zen-text-zen-success",
               )}
               aria-live="polite"
             >

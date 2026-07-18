@@ -1,133 +1,103 @@
 import { Link } from "react-router-dom";
+import { NAV } from "../nav";
+import { useTheme } from "../lib/theme";
 
 /**
  * Landing page for the demo app.
- * Lists the components shipped in @algorisys/zen-ui-react with quick-jump links
- * into each demo.
+ *
+ * Renders its catalogue from ../nav — the same list the sidebar uses — so the
+ * two cannot drift. It previously kept a hand-maintained copy and had fallen 16
+ * components behind.
+ *
+ * Styled with zen-* utilities and --zen-* tokens only: no inline rem values.
+ * The old version hard-coded sizes like `fontSize: "3.6rem"` on the assumption
+ * that the app forced `html { font-size: 62.5% }` (1rem = 10px). The library no
+ * longer imposes that on its consumers, so those magic numbers stopped meaning
+ * what they said.
  */
 
-const COMPONENTS = [
-  { to: "/button-new", name: "Button", description: "forwardRef, asChild, CVA variants × colors × sizes × shapes" },
-  { to: "/tooltip-new", name: "Tooltip", description: "Radix Tooltip — positioning, dismissal, a11y" },
-  { to: "/dropdown-menu", name: "DropdownMenu", description: "Radix DropdownMenu — action menus, sub-menus, checkbox/radio items" },
-  { to: "/separator", name: "Separator", description: "Radix Separator — horizontal / vertical with decorative semantics" },
-  { to: "/switch-new", name: "Switch", description: "Radix Switch — sizes, controlled / uncontrolled, form submission" },
-  { to: "/checkbox-new", name: "Checkbox", description: "Radix Checkbox — native tri-state indeterminate, sizes" },
-  { to: "/radio-group", name: "RadioGroup", description: "Radix RadioGroup — roving tabindex, arrow nav, form submission" },
-  { to: "/progress-new", name: "Progress", description: "Radix Progress — sizes × colors, accessible value" },
-  { to: "/avatar-new", name: "Avatar", description: "Radix Avatar — image + initials fallback + stacked group" },
-  { to: "/badge-new", name: "Badge", description: "Styled span with variants × colors, asChild for clickable" },
-  { to: "/skeleton-new", name: "Skeleton", description: "Animated muted-box placeholder" },
-  { to: "/loading-new", name: "Loading", description: "Animated spinner with sr-only label, color=current for buttons" },
-  { to: "/select-new", name: "Select", description: "Radix Select — keyboard nav, groups, form submission" },
-  { to: "/slider-new", name: "Slider", description: "Radix Slider — single + range, vertical, keyboard control" },
-  { to: "/scroll-area-new", name: "ScrollArea", description: "Radix ScrollArea — custom scrollbars, both axes" },
-  { to: "/input-new", name: "Input + Textarea", description: "Plain styled <input> / <textarea>, all native attrs" },
-  { to: "/number-field-new", name: "NumberField", description: "Number input with −/+ stepper, clamp, decimal step" },
-  { to: "/date-picker-new", name: "DatePicker", description: "react-day-picker in a Radix Popover; inline Calendar too" },
-  { to: "/otp-new", name: "InputOTP", description: "one input per digit, zero-dep; paste / autocomplete / a11y" },
-  { to: "/phone-input-new", name: "PhoneInput", description: "Composition: Select (country) + Input (number)" },
-  { to: "/fab-new", name: "FAB", description: "Fixed-position Button wrapper + DropdownMenu for speed-dial" },
-  { to: "/stepper", name: "Stepper", description: "Multi-step wizard for onboarding + journey apps (horizontal / vertical, linear / non-linear)" },
-  { to: "/banner", name: "Banner", description: "Page-top persistent callout — verification reminders, maintenance windows, impersonation" },
-  { to: "/empty-state", name: "EmptyState", description: "First-run / no-data / no-results surface; icon + title + description + actions" },
-  { to: "/tabs", name: "Tabs", description: "Radix-backed tabbed navigation; underline + pills variants, horizontal / vertical" },
-  { to: "/accordion", name: "Accordion", description: "Radix-backed collapsible sections; single + multiple expand modes" },
-  { to: "/card", name: "Card", description: "Surface primitive + SelectableCard variant for goal pickers / plan selectors" },
-  { to: "/sheet", name: "Sheet / Drawer", description: "Slide-in side panel on Radix Dialog; right / left / top / bottom" },
-  { to: "/date-range-picker", name: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled" },
-  { to: "/tag-input", name: "TagInput", description: "Type + Enter chip input; comma-paste splits, Backspace removes, per-tag validator, max-N" },
-  { to: "/multi-combobox", name: "MultiCombobox", description: "Multi-select Combobox with chip trigger + overflow collapse + sync / async option loading" },
-  { to: "/rating", name: "Rating", description: "5-star rating input; hover preview, arrow-key nav, sm / md / lg, customizable max" },
-  { to: "/nps", name: "NPS", description: "Net Promoter Score 0-10 strip with detractor / passive / promoter color buckets" },
-  { to: "/likert", name: "Likert", description: "n-point attitudinal scale; segmented + stacked layouts, custom option sets" },
-  { to: "/time-picker", name: "TimePicker", description: "Segmented HH:MM(:SS) input, 12h / 24h, AM/PM, auto-advance + arrow stepping" },
-  { to: "/date-time-picker", name: "DateTimePicker", description: "Calendar + TimePicker in one Popover; preserves time-of-day on day changes" },
-  { to: "/qr-scanner", name: "QRScanner", description: "Camera-based QR / barcode scanner; native BarcodeDetector + custom-decoder escape hatch" },
-  { to: "/notifications-inbox", name: "NotificationsInbox", description: "Bell icon + popover panel; day-grouped feed with unread badge + per-row actions" },
-];
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <h2 className="zen-mb-3 zen-mt-0 zen-text-xs zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">
+    {children}
+  </h2>
+);
 
 const Welcome = () => {
+  const { themes } = useTheme();
+  const groups = NAV.filter((g) => g.catalogue !== false);
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
+
   return (
-    <div
-      style={{
-        maxWidth: 1100,
-        margin: "0 auto",
-        padding: "4rem 3rem 6rem",
-        boxSizing: "border-box",
-      }}
-    >
-      <header style={{ marginBottom: "4rem" }}>
-        <h1
-          style={{
-            fontSize: "3.6rem",
-            fontWeight: 700,
-            color: "var(--zen-color-foreground)",
-            margin: "0 0 1rem 0",
-            letterSpacing: "-0.02em",
-          }}
-        >
+    <div className="zen-mx-auto zen-max-w-5xl zen-px-6 zen-py-10">
+      <header className="zen-mb-10">
+        <h1 className="zen-m-0 zen-text-3xl zen-font-bold zen-tracking-tight zen-text-zen-foreground">
           Zen UI Component Library
         </h1>
-        <p
-          style={{
-            fontSize: "1.6rem",
-            color: "var(--zen-color-muted-fg)",
-            margin: 0,
-            maxWidth: 70 + "ch",
-            lineHeight: 1.6,
-          }}
-        >
-          A React component library shipping shadcn-style primitives on top of
-          Radix UI, themed via CSS custom properties. Each component forwards a
-          ref, supports <code>asChild</code> where it makes sense, and exposes a
-          flat React-idiomatic prop API with no JSON-config layer.
+        <p className="zen-mb-0 zen-mt-3 zen-max-w-2xl zen-text-sm zen-leading-relaxed zen-text-zen-muted-fg">
+          shadcn-style primitives on top of Radix UI, themed entirely through{" "}
+          <code>--zen-*</code> custom properties. Every component forwards a ref,
+          supports <code>asChild</code> where it makes sense, and exposes a flat
+          React-idiomatic prop API with no JSON-config layer.
         </p>
       </header>
 
-      <section style={{ marginBottom: "4rem" }}>
-        <h2 style={{ fontSize: "2rem", margin: "0 0 1.6rem 0", color: "var(--zen-color-foreground)" }}>
-          Components ({COMPONENTS.length})
-        </h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(28rem, 1fr))",
-            gap: "1.6rem",
-          }}
-        >
-          {COMPONENTS.map((c) => (
-            <Link
-              key={c.to}
-              to={c.to}
-              style={{
-                display: "block",
-                padding: "1.8rem",
-                background: "var(--zen-color-background)",
-                border: "1px solid var(--zen-color-border)",
-                borderRadius: 10,
-                textDecoration: "none",
-                color: "inherit",
-                transition: "border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--zen-color-primary)";
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.12)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "var(--zen-color-border)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
+      <section className="zen-mb-10">
+        <SectionLabel>Themes</SectionLabel>
+        <div className="zen-grid zen-grid-cols-1 zen-gap-3 sm:zen-grid-cols-3">
+          {themes.map((t) => (
+            <div
+              key={t.name}
+              data-theme={t.name}
+              className="zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-p-3 zen-shadow-zen-sm"
             >
-              <h3 style={{ fontSize: "1.7rem", margin: "0 0 0.4rem 0", color: "var(--zen-color-foreground)" }}>
-                {c.name}
-              </h3>
-              <p style={{ fontSize: "1.3rem", color: "var(--zen-color-muted-fg)", margin: 0, lineHeight: 1.5 }}>
-                {c.description}
-              </p>
-            </Link>
+              <div className="zen-text-sm zen-font-medium zen-text-zen-foreground">
+                {t.label}
+              </div>
+              <div className="zen-my-2 zen-flex zen-gap-2">
+                {t.preview.map((c) => (
+                  <span
+                    key={c}
+                    className="zen-h-5 zen-w-5 zen-rounded-zen-full zen-border zen-border-zen-border"
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+              <div className="zen-text-xs zen-text-zen-muted-fg">
+                {t.description}
+              </div>
+            </div>
           ))}
         </div>
+      </section>
+
+      <section>
+        <SectionLabel>Components ({total})</SectionLabel>
+        {groups.map((group) => (
+          <div key={group.title} className="zen-mb-8">
+            <h3 className="zen-mb-3 zen-mt-0 zen-text-sm zen-font-semibold zen-text-zen-foreground">
+              {group.title}
+              <span className="zen-ml-2 zen-font-normal zen-text-zen-muted-fg">
+                {group.items.length}
+              </span>
+            </h3>
+            <div className="zen-grid zen-grid-cols-1 zen-gap-3 sm:zen-grid-cols-2 lg:zen-grid-cols-3">
+              {group.items.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="zen-block zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-p-4 zen-no-underline zen-transition-colors hover:zen-border-zen-primary focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2"
+                >
+                  <div className="zen-text-sm zen-font-semibold zen-text-zen-foreground">
+                    {item.label}
+                  </div>
+                  <p className="zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg">
+                    {item.description}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
     </div>
   );

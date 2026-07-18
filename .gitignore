@@ -34,10 +34,38 @@ dist-demo
 
 # Markdown documentation files
 *.md
+# Root *.md is ignored by default with a curated allowlist below.
+# CLAUDE.md is the repo's engineering contract for agents and humans (it points
+# at LOOPS.md); both are team documentation, not personal scratch, so they are
+# allowlisted. Revert these two lines if the intent was to keep them local —
+# note that CLAUDE.md must live at the repo root to be picked up automatically,
+# so it cannot simply move under docs/.
+!CLAUDE.md
+!LOOPS.md
+!CHANGELOG.md
 !DEV_GUIDE.md
 !docs/**/*.md
+# release-notes/ is the per-version human release note that `ship it` writes.
+# Without this line `*.md` above swallows it AT ANY DEPTH and the notes are
+# silently untracked — the whole point of them is that they ship.
+!release-notes/**/*.md
+# Session handoff. Same trap as release-notes above: `*.md` matches at any
+# depth, and a handoff that does not survive the session is worthless.
+!handoff.md
+# The impeccable skill is installed project-scoped so it travels with the repo,
+# and it IS its markdown: SKILL.md is the entry point and reference/<command>.md
+# defines each command's flow. `*.md` above matches at any depth, so without this
+# line a clone gets the 63 .mjs scripts and none of the 33 files that make them
+# mean anything — an install that is present, broken, and silent about it.
+!.claude/skills/impeccable/**/*.md
 !todo.md
 !README.md
+# The old-idiom -> new-idiom map for the vanilla binding (LOOPS XXXVI: "write the
+# mapping down"). It is what keeps three bindings agreeing on one API instead of
+# drifting, so it is team documentation in the same sense as LOOPS.md — and the
+# `*.md` rule above would swallow it exactly the way it nearly swallowed the
+# release notes.
+!PORTING.md
 *.txt
 components-list.txt
 components-list.csv
@@ -47,3 +75,11 @@ vite.config.http.ts
 
 # npm configuration (contains tokens)
 .npmrc
+.visual/
+
+# Built by ./deploy.sh — the whole site (landing + both demos) as one static tree.
+dist-site/
+
+# scratch dirs from scripts/check-bundle-size.mjs (must live in-repo for
+# node to resolve vite plugins; removed on exit, ignored in case of a crash)
+.zen-size-*/

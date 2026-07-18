@@ -32,7 +32,7 @@ const NewBadgeDemo: React.FC = () => (
       >
         {(["solid", "soft", "outline"] as const).map((variant) => (
           <div key={variant} style={{ display: "flex", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
-            <span style={{ width: 70, color: "var(--zen-color-muted-fg)", fontSize: "1.3rem", alignSelf: "center" }}>
+            <span style={{ width: 70, color: "var(--zen-color-muted-fg)", fontSize: "0.8125rem", alignSelf: "center" }}>
               {variant}
             </span>
             {COLORS.map((c) => (
@@ -90,10 +90,10 @@ const NewBadgeDemo: React.FC = () => (
 <Badge className="bg-zen-accent-orange text-zen-foreground">Hot</Badge>
 <Badge className="bg-zen-accent-cream text-zen-foreground">Soft</Badge>`}
       >
-        <Badge className="bg-zen-accent-purple text-white">Beta</Badge>
-        <Badge className="bg-zen-accent-magenta text-white">New</Badge>
-        <Badge className="bg-zen-accent-orange text-zen-foreground">Hot</Badge>
-        <Badge className="bg-zen-accent-cream text-zen-foreground">Soft</Badge>
+        <Badge className="zen-bg-zen-accent-purple zen-text-white">Beta</Badge>
+        <Badge className="zen-bg-zen-accent-magenta zen-text-white">New</Badge>
+        <Badge className="zen-bg-zen-accent-orange zen-text-zen-foreground">Hot</Badge>
+        <Badge className="zen-bg-zen-accent-cream zen-text-zen-foreground">Soft</Badge>
       </CodeExample>
     </section>
 
@@ -105,10 +105,10 @@ const NewBadgeDemo: React.FC = () => (
 <p>Storage usage <Badge variant="outline" color="warning">85%</Badge></p>`}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
-          <h3 style={{ margin: 0, fontSize: "1.6rem" }}>
+          <h3 style={{ margin: 0, fontSize: "1rem" }}>
             Dashboard <Badge color="success">live</Badge>
           </h3>
-          <p style={{ margin: 0, fontSize: "1.4rem" }}>
+          <p style={{ margin: 0, fontSize: "0.875rem" }}>
             Storage usage{" "}
             <Badge variant="outline" color="warning">
               85%

@@ -32,6 +32,13 @@ const fakeSearch = async (query: string): Promise<ComboboxOption[]> => {
 
 const NewComboboxDemo: React.FC = () => {
   const [pickedSync, setPickedSync] = useState("");
+  // The component never touches `options` — creating and selecting is the
+  // caller's job, which is exactly what this section demonstrates.
+  const [tags, setTags] = useState<ComboboxOption[]>([
+    { value: "bug", label: "bug" },
+    { value: "docs", label: "docs" },
+  ]);
+  const [tag, setTag] = useState("");
   const [pickedLarge, setPickedLarge] = useState("");
   const [pickedAsync, setPickedAsync] = useState("");
 
@@ -46,6 +53,46 @@ const NewComboboxDemo: React.FC = () => {
         async (server-driven with debounce + abort) modes share one
         component — pass <code>options</code> or <code>onSearch</code>.
       </p>
+
+      <section className="demo-section">
+        <h2>0. Creatable</h2>
+        <CodeExample
+          title="Offer the typed text when it matches nothing"
+          description="Type a tag that does not exist — 'design', say — and the list offers to create it instead of saying 'No results'. Adding the option is always yours: the component cannot know where your list lives or what a new value should be. RETURN the new option and it is selected for you; return nothing and the value is left alone. Typing an existing label offers nothing, because it already exists."
+          code={`const [tags, setTags] = useState([{ value: "bug", label: "bug" }, …]);
+
+<Combobox
+  options={tags}
+  value={tag}
+  onValueChange={setTag}
+  creatable
+  onCreate={(label) => {
+    const opt = { value: label.toLowerCase(), label };
+    setTags((prev) => [...prev, opt]);   // adding is always yours
+    return opt;                           // returning it selects it for you
+  }}
+/>`}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Combobox
+              options={tags}
+              value={tag}
+              onValueChange={setTag}
+              creatable
+              onCreate={(label) => {
+                const opt = { value: label.toLowerCase(), label };
+                setTags((prev) => [...prev, opt]);
+                return opt;
+              }}
+              placeholder="Pick or create a tag"
+              searchPlaceholder="Type a tag…"
+            />
+            <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+              tags → <code>{tags.map((t) => t.label).join(", ")}</code>
+            </p>
+          </div>
+        </CodeExample>
+      </section>
 
       <section className="demo-section">
         <h2>1. Basic — in-memory options</h2>
@@ -71,7 +118,7 @@ const NewComboboxDemo: React.FC = () => {
             placeholder="Pick a framework"
             searchPlaceholder="Search frameworks…"
           />
-          <span style={{ marginLeft: 12, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: 12, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             value: {pickedSync || "(none)"}
           </span>
         </CodeExample>
@@ -141,7 +188,7 @@ const NewComboboxDemo: React.FC = () => {
             width={280}
             debounceMs={250}
           />
-          <span style={{ marginLeft: 12, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: 12, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             value: {pickedAsync || "(none)"}
           </span>
         </CodeExample>

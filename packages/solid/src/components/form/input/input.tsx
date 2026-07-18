@@ -17,11 +17,11 @@ export const Input = (props: InputProps) => {
     <input
       type={local.type}
       class={cn(
-        "flex h-10 w-full rounded-zen-md border border-zen-border bg-zen-background px-3 py-2 text-sm",
-        "placeholder:text-zen-muted-fg",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+        "zen-flex zen-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2 zen-text-sm",
+        "placeholder:zen-text-zen-muted-fg",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+        "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
+        "file:zen-border-0 file:zen-bg-transparent file:zen-text-sm file:zen-font-medium",
         local.class,
       )}
       {...rest}
@@ -36,10 +36,10 @@ export const Textarea = (props: TextareaProps) => {
   return (
     <textarea
       class={cn(
-        "flex min-h-20 w-full rounded-zen-md border border-zen-border bg-zen-background px-3 py-2 text-sm",
-        "placeholder:text-zen-muted-fg",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "zen-flex zen-min-h-20 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2 zen-text-sm",
+        "placeholder:zen-text-zen-muted-fg",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+        "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
         local.class,
       )}
       {...rest}

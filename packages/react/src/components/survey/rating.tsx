@@ -14,6 +14,11 @@ import { cn } from "../../lib/cn";
  * arrow-key nav. Hover preview tints stars up to the pointed-at index
  * but doesn't commit until click. Click an already-selected star to
  * clear the rating (skip via `allowClear={false}`).
+ *
+ * `allowHalf` keeps all of that and doubles the options: each star
+ * grows a left and a right hit target, arrows step by 0.5, and the
+ * radios announce "2.5 stars". The stars stay whole — it is the
+ * options that halve, not the picture.
  */
 
 export interface RatingProps {
@@ -22,6 +27,11 @@ export interface RatingProps {
   onValueChange?: (value: number) => void;
   /** Number of stars rendered. Default 5. */
   max?: number;
+  /**
+   * Allow half-star values (0.5, 1, 1.5 …). Each star becomes two
+   * options rather than each half becoming a star.
+   */
+  allowHalf?: boolean;
   /** Accessible name for the radiogroup. Required for a11y. */
   label?: string;
   /** Optional caption rendered next to the stars. */
@@ -49,6 +59,7 @@ export const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
       defaultValue,
       onValueChange,
       max = 5,
+      allowHalf,
       label,
       showValue,
       size = "md",
@@ -67,6 +78,7 @@ export const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
 
     const display = hover || value;
     const interactive = !disabled && !readOnly;
+    const step = allowHalf ? 0.5 : 1;
 
     const update = (next: number) => {
       const clamped = Math.max(0, Math.min(max, next));
@@ -78,13 +90,13 @@ export const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
       if (!interactive) return;
       if (e.key === "ArrowRight" || e.key === "ArrowUp") {
         e.preventDefault();
-        update(Math.min(max, value + 1));
+        update(Math.min(max, value + step));
       } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
         e.preventDefault();
-        update(Math.max(0, value - 1));
+        update(Math.max(0, value - step));
       } else if (e.key === "Home") {
         e.preventDefault();
-        update(1);
+        update(step);
       } else if (e.key === "End") {
         e.preventDefault();
         update(max);
@@ -92,6 +104,51 @@ export const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
     };
 
     const stars = Array.from({ length: max }, (_, i) => i + 1);
+    /** The first option, which owns the tab stop when nothing is chosen yet. */
+    const firstStep = step;
+
+    /** 0, 0.5 or 1 — how much of star `n` is lit. */
+    const fillOf = (n: number) => Math.max(0, Math.min(1, display - (n - 1)));
+
+    const stepLabel = (s: number) => `${s} ${s === 1 ? "star" : "stars"}`;
+
+    /**
+     * One option: a transparent hit target laid over its half (or whole) star.
+     *
+     * A function returning JSX, NOT a nested component. As <StepButton/> this
+     * is a fresh component type on every render, so React unmounts and remounts
+     * the button whenever hover state changes — mousedown and mouseup then land
+     * on different nodes and the click never fires. Half-star clicks silently
+     * did nothing.
+     */
+    const stepButton = (s: number, half?: "left" | "right") => (
+      <button
+        key={`${s}-${half ?? "whole"}`}
+        type="button"
+        role="radio"
+        aria-checked={value === s}
+        aria-label={stepLabel(s)}
+        disabled={disabled}
+        tabIndex={value === s || (value === 0 && s === firstStep) ? 0 : -1}
+        onClick={() => {
+          if (!interactive) return;
+          if (allowClear && value === s) update(0);
+          else update(s);
+        }}
+        onMouseEnter={() => interactive && setHover(s)}
+        onMouseLeave={() => interactive && setHover(0)}
+        onFocus={() => interactive && setHover(0)}
+        className={cn(
+          "zen-absolute zen-inset-y-0 zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-0",
+          "zen-rounded-zen-sm",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+          (disabled || readOnly) && "zen-cursor-default",
+          half === "left" && "zen-left-0 zen-w-1/2",
+          half === "right" && "zen-right-0 zen-w-1/2",
+          !half && "zen-inset-x-0",
+        )}
+      />
+    );
 
     return (
       <div
@@ -102,51 +159,33 @@ export const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
         aria-readonly={readOnly || undefined}
         onKeyDown={onKeyDown}
         className={cn(
-          "inline-flex items-center",
+          "zen-inline-flex zen-items-center",
           GAPS[size],
-          disabled && "opacity-50 cursor-not-allowed",
+          disabled && "zen-opacity-50 zen-cursor-not-allowed",
           className,
         )}
       >
-        {stars.map((n) => {
-          const filled = n <= display;
-          return (
-            <button
-              key={n}
-              type="button"
-              role="radio"
-              aria-checked={value === n}
-              aria-label={`${n} ${n === 1 ? "star" : "stars"}`}
-              disabled={disabled}
-              tabIndex={value === n || (value === 0 && n === 1) ? 0 : -1}
-              onClick={() => {
-                if (!interactive) return;
-                if (allowClear && value === n) update(0);
-                else update(n);
-              }}
-              onMouseEnter={() => interactive && setHover(n)}
-              onMouseLeave={() => interactive && setHover(0)}
-              onFocus={() => interactive && setHover(0)}
-              className={cn(
-                "bg-transparent border-0 p-0.5 cursor-pointer",
-                "rounded-zen-sm transition-colors",
-                "text-zen-border",
-                filled && "text-zen-warning",
-                interactive && "hover:text-zen-warning",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
-                (disabled || readOnly) && "cursor-default",
-                disabled && "hover:text-zen-border",
-              )}
-            >
-              <StarIcon size={SIZES[size]} filled={filled} />
-            </button>
-          );
-        })}
+        {stars.map((n) => (
+          // The star is drawn once and the options sit over it, rather than
+          // each option drawing half a star: two clipped halves side by side
+          // seam visibly down the middle of every star.
+          <span key={n} className="zen-relative zen-inline-flex zen-p-0.5">
+            <StarVisual size={SIZES[size]} fill={fillOf(n)} />
+            {allowHalf ? (
+              <>
+                {stepButton(n - 0.5, "left")}
+                {stepButton(n, "right")}
+              </>
+            ) : (
+              stepButton(n)
+            )}
+          </span>
+        ))}
         {showValue ? (
           <span
             className={cn(
-              "ml-1 text-sm font-medium tabular-nums",
-              value > 0 ? "text-zen-foreground" : "text-zen-muted-fg",
+              "zen-ml-1 zen-text-sm zen-font-medium zen-tabular-nums",
+              value > 0 ? "zen-text-zen-foreground" : "zen-text-zen-muted-fg",
             )}
             aria-hidden
           >
@@ -161,6 +200,28 @@ export const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
   },
 );
 Rating.displayName = "Rating";
+
+/**
+ * A star lit `fill` of the way across (0, 0.5 or 1). The lit copy is clipped
+ * over the unlit one, so a half star is one star half-lit rather than two
+ * half-stars butted together — those seam down the middle at every size.
+ */
+const StarVisual: React.FC<{ size: number; fill: number }> = ({ size, fill }) => (
+  <span
+    className="zen-relative zen-inline-block zen-shrink-0 zen-text-zen-border"
+    style={{ width: size, height: size }}
+  >
+    <StarIcon size={size} filled={false} />
+    {fill > 0 ? (
+      <span
+        className="zen-absolute zen-inset-y-0 zen-left-0 zen-overflow-hidden zen-text-zen-warning"
+        style={{ width: `${fill * 100}%` }}
+      >
+        <StarIcon size={size} filled />
+      </span>
+    ) : null}
+  </span>
+);
 
 const StarIcon: React.FC<{ size: number; filled: boolean }> = ({
   size,

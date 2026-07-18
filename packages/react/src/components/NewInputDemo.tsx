@@ -35,7 +35,7 @@ const NewInputDemo: React.FC = () => {
 <Input value={name} onChange={(e) => setName(e.target.value)} />`}
         >
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Type here…" />
-          <span style={{ marginLeft: 12, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: 12, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             value: {name || "(empty)"}
           </span>
         </CodeExample>
@@ -74,11 +74,11 @@ const NewInputDemo: React.FC = () => {
 </label>`}
         >
           <label style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: 360, width: "100%" }}>
-            <span style={{ fontSize: "1.3rem", fontWeight: 500, color: "var(--zen-color-foreground)" }}>
+            <span style={{ fontSize: "0.8125rem", fontWeight: 500, color: "var(--zen-color-foreground)" }}>
               Email
             </span>
             <Input type="email" placeholder="you@algorisys.com" />
-            <span style={{ fontSize: "1.2rem", color: "var(--zen-color-muted-fg)" }}>
+            <span style={{ fontSize: "0.75rem", color: "var(--zen-color-muted-fg)" }}>
               We'll never share your email.
             </span>
           </label>
@@ -101,9 +101,9 @@ const NewInputDemo: React.FC = () => {
               type="email"
               aria-invalid
               defaultValue="invalid@"
-              className="border-zen-error focus-visible:ring-zen-error"
+              className="zen-border-zen-error focus-visible:zen-ring-zen-error"
             />
-            <span style={{ fontSize: "1.2rem", color: "var(--zen-color-error)" }}>
+            <span style={{ fontSize: "0.75rem", color: "var(--zen-color-error)" }}>
               Not a valid email.
             </span>
           </div>
@@ -171,7 +171,7 @@ const BioField: React.FC = () => {
   const [bio, setBio] = useState("");
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: 480, width: "100%" }}>
-      <span style={{ fontSize: "1.3rem", fontWeight: 500 }}>Bio</span>
+      <span style={{ fontSize: "0.8125rem", fontWeight: 500 }}>Bio</span>
       <Textarea
         rows={3}
         maxLength={120}
@@ -179,7 +179,7 @@ const BioField: React.FC = () => {
         onChange={(e) => setBio(e.target.value)}
         placeholder="A short bio…"
       />
-      <span style={{ fontSize: "1.2rem", color: "var(--zen-color-muted-fg)", alignSelf: "flex-end" }}>
+      <span style={{ fontSize: "0.75rem", color: "var(--zen-color-muted-fg)", alignSelf: "flex-end" }}>
         {bio.length} / 120
       </span>
     </label>

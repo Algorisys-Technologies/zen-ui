@@ -39,7 +39,7 @@ const AlertDialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/50", className)}
+    className={cn("zen-fixed zen-inset-0 zen-z-50 zen-bg-black/50", className)}
     {...props}
   />
 ));
@@ -54,10 +54,10 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-        "w-full max-w-lg max-h-[85vh] overflow-y-auto",
-        "rounded-zen-md border border-zen-border bg-zen-background p-6 shadow-zen-lg",
-        "focus:outline-none",
+        "zen-fixed zen-left-1/2 zen-top-1/2 zen-z-50 -zen-translate-x-1/2 -zen-translate-y-1/2",
+        "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
+        "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
+        "focus:zen-outline-none",
         className,
       )}
       {...props}
@@ -70,7 +70,7 @@ const AlertDialogHeader = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col gap-1 text-left mb-3", className)} {...props} />
+  <div className={cn("zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3", className)} {...props} />
 );
 AlertDialogHeader.displayName = "AlertDialogHeader";
 
@@ -80,7 +80,7 @@ const AlertDialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5",
+      "zen-flex zen-flex-col-reverse sm:zen-flex-row sm:zen-justify-end zen-gap-2 zen-mt-5",
       className,
     )}
     {...props}
@@ -94,7 +94,7 @@ const AlertDialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-tight text-zen-foreground", className)}
+    className={cn("zen-text-lg zen-font-semibold zen-leading-tight zen-text-zen-foreground", className)}
     {...props}
   />
 ));
@@ -106,7 +106,7 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-zen-muted-fg leading-snug", className)}
+    className={cn("zen-text-sm zen-text-zen-muted-fg zen-leading-snug", className)}
     {...props}
   />
 ));

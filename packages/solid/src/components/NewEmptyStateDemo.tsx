@@ -20,8 +20,22 @@ const NewEmptyStateDemo = () => (
     title="EmptyState"
     description="First-run / no-data surface. Compound API. Use bordered for drop zones."
   >
-    <DemoSection title="Default">
-      <div class="w-full max-w-md">
+    <DemoSection
+      title="Default"
+      codeTitle="Icon + title + description + actions"
+      code={`<EmptyState>
+  <EmptyStateIcon><Inbox /></EmptyStateIcon>
+  <EmptyStateTitle>No invoices yet</EmptyStateTitle>
+  <EmptyStateDescription>
+    Create your first invoice to track revenue across your team.
+  </EmptyStateDescription>
+  <EmptyStateActions>
+    <Button>Create invoice</Button>
+    <Button variant="outline">Import from CSV</Button>
+  </EmptyStateActions>
+</EmptyState>`}
+    >
+      <div class="zen-w-full zen-max-w-md">
         <EmptyState>
           <EmptyStateIcon><Inbox /></EmptyStateIcon>
           <EmptyStateTitle>No invoices yet</EmptyStateTitle>
@@ -36,8 +50,18 @@ const NewEmptyStateDemo = () => (
       </div>
     </DemoSection>
 
-    <DemoSection title="Bordered (drop zone)">
-      <div class="w-full max-w-md">
+    <DemoSection
+      title="Bordered (drop zone)"
+      codeTitle="Dashed border + muted surface"
+      codeDescription="The bordered variant says 'this region is empty on purpose' — drop zones, placeholder columns, empty swimlanes. Icon and actions are optional."
+      code={`<EmptyState bordered size="sm">
+  <EmptyStateTitle>Drop files here</EmptyStateTitle>
+  <EmptyStateDescription>
+    Or click to browse — PDF, PNG, JPG up to 5 MB.
+  </EmptyStateDescription>
+</EmptyState>`}
+    >
+      <div class="zen-w-full zen-max-w-md">
         <EmptyState bordered size="sm">
           <EmptyStateTitle>Drop files here</EmptyStateTitle>
           <EmptyStateDescription>
@@ -47,8 +71,22 @@ const NewEmptyStateDemo = () => (
       </div>
     </DemoSection>
 
-    <DemoSection title="Large (first-run)">
-      <div class="w-full max-w-2xl">
+    <DemoSection
+      title="Large (first-run)"
+      codeTitle={`size="sm" | "md" | "lg"`}
+      codeDescription="md is the default. sm fits inline (table body, dropdown); lg suits a full-page first-run screen with extra breathing room."
+      code={`<EmptyState size="lg">
+  <EmptyStateIcon><Inbox /></EmptyStateIcon>
+  <EmptyStateTitle>Welcome to your dashboard</EmptyStateTitle>
+  <EmptyStateDescription>
+    Connect a data source to start tracking metrics in real time.
+  </EmptyStateDescription>
+  <EmptyStateActions>
+    <Button>Connect a source</Button>
+  </EmptyStateActions>
+</EmptyState>`}
+    >
+      <div class="zen-w-full zen-max-w-2xl">
         <EmptyState size="lg">
           <EmptyStateIcon><Inbox /></EmptyStateIcon>
           <EmptyStateTitle>Welcome to your dashboard</EmptyStateTitle>

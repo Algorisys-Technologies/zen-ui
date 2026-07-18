@@ -25,8 +25,39 @@ const NewBannerDemo = () => {
       title="Banner"
       description="Page-top persistent callout. Differs from Alert by being full-width with optional sticky."
     >
-      <DemoSection title="Variants">
-        <div class="flex flex-col gap-3 w-full">
+      <DemoSection
+        title="Variants"
+        codeTitle="color tokens, with an optional action in the trailing slot"
+        codeDescription={
+          <>
+            Pass <code>sticky</code> to pin a banner to the top of the scroll
+            viewport — useful at the layout root.
+          </>
+        }
+        code={`<Banner color="info">
+  <BannerIcon><Bell /></BannerIcon>
+  <BannerContent>
+    <BannerTitle>Maintenance window</BannerTitle>
+    <BannerDescription>22:00–22:30 UTC tonight.</BannerDescription>
+  </BannerContent>
+</Banner>
+
+{/* BannerActions holds the call to action */}
+<Banner color="warning">
+  <BannerIcon><Bell /></BannerIcon>
+  <BannerContent>
+    <BannerTitle>Verification required.</BannerTitle>
+    <BannerDescription>Verify your email before continuing.</BannerDescription>
+  </BannerContent>
+  <BannerActions>
+    <Button size="sm" variant="outline">Verify now</Button>
+  </BannerActions>
+</Banner>
+
+<Banner color="success">…</Banner>
+<Banner color="destructive">…</Banner>`}
+      >
+        <div class="zen-flex zen-flex-col zen-gap-3 zen-w-full">
           <Banner color="info">
             <BannerIcon><Bell /></BannerIcon>
             <BannerContent>
@@ -61,9 +92,32 @@ const NewBannerDemo = () => {
         </div>
       </DemoSection>
 
-      <DemoSection title="Dismissible">
+      <DemoSection
+        title="Dismissible"
+        codeTitle="BannerClose wired to caller-managed state"
+        code={`const [show, setShow] = createSignal(true);
+
+<Show
+  when={show()}
+  fallback={
+    <Button size="sm" onClick={() => setShow(true)}>Restore banner</Button>
+  }
+>
+  <Banner color="primary">
+    <BannerIcon><Bell /></BannerIcon>
+    <BannerContent>
+      <BannerTitle>Welcome aboard.</BannerTitle>
+      <BannerDescription>Tour the new features in your dashboard.</BannerDescription>
+    </BannerContent>
+    <BannerActions>
+      <Button size="sm" variant="outline" color="primary">Start tour</Button>
+    </BannerActions>
+    <BannerClose onClick={() => setShow(false)} />
+  </Banner>
+</Show>`}
+      >
         <Show when={show()} fallback={<Button size="sm" onClick={() => setShow(true)}>Restore banner</Button>}>
-          <div class="w-full">
+          <div class="zen-w-full">
             <Banner color="primary">
               <BannerIcon><Bell /></BannerIcon>
               <BannerContent>

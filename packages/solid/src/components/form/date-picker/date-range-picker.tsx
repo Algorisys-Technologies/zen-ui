@@ -103,14 +103,14 @@ export const DateRangePicker = (rawProps: DateRangePickerProps) => {
         disabled={props.disabled === true}
         iconLeft={<CalendarIcon />}
         class={cn(
-          "min-w-[16rem] justify-between font-normal",
-          !committed()?.from && "text-zen-muted-fg",
+          "zen-min-w-[16rem] zen-justify-between zen-font-normal",
+          !committed()?.from && "zen-text-zen-muted-fg",
           props.class,
         )}
       >
         {label()}
       </PopoverTrigger>
-      <PopoverContent class="w-auto p-0">
+      <PopoverContent class="zen-w-auto zen-p-0">
         <Calendar
           mode="range"
           selected={draft()}
@@ -118,7 +118,7 @@ export const DateRangePicker = (rawProps: DateRangePickerProps) => {
           numberOfMonths={props.numberOfMonths ?? 2}
           disabled={typeof props.disabled === "function" ? props.disabled : undefined}
         />
-        <div class="flex justify-end gap-2 border-t border-zen-border px-3 py-2">
+        <div class="zen-flex zen-justify-end zen-gap-2 zen-border-t zen-border-zen-border zen-px-3 zen-py-2">
           <Button type="button" variant="ghost" color="neutral" size="sm" onClick={handleCancel}>
             {props.cancelLabel ?? "Cancel"}
           </Button>

@@ -60,22 +60,22 @@ const NewSheetDemo: React.FC = () => {
                   Narrow the dashboard down to just the rows you care about.
                 </SheetDescription>
               </SheetHeader>
-              <div className="flex flex-col gap-3 mt-2">
-                <label className="text-sm">
-                  <span className="block text-xs text-zen-muted-fg mb-1">
+              <div className="zen-flex zen-flex-col zen-gap-3 zen-mt-2">
+                <label className="zen-text-sm">
+                  <span className="zen-block zen-text-xs zen-text-zen-muted-fg zen-mb-1">
                     Search
                   </span>
                   <Input placeholder="Type to filter…" />
                 </label>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="zen-flex zen-items-center zen-gap-2 zen-text-sm">
                   <Checkbox />
                   <span>Active</span>
                 </label>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="zen-flex zen-items-center zen-gap-2 zen-text-sm">
                   <Checkbox />
                   <span>Suspended</span>
                 </label>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="zen-flex zen-items-center zen-gap-2 zen-text-sm">
                   <Checkbox />
                   <span>Invited</span>
                 </label>
@@ -115,7 +115,7 @@ const NewSheetDemo: React.FC = () => {
                       This panel slid in from the {side} edge.
                     </SheetDescription>
                   </SheetHeader>
-                  <p className="text-sm py-4 m-0">
+                  <p className="zen-text-sm zen-py-4 zen-m-0">
                     Click outside, press Esc, or use the ✕ to close.
                   </p>
                   <SheetFooter>
@@ -158,7 +158,7 @@ const NewSheetDemo: React.FC = () => {
                     The parent component owns the open state.
                   </SheetDescription>
                 </SheetHeader>
-                <p className="text-sm py-4 m-0">
+                <p className="zen-text-sm zen-py-4 zen-m-0">
                   This sheet was opened by a button outside its own
                   trigger via <code>onOpenChange</code>.
                 </p>

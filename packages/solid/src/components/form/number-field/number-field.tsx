@@ -70,8 +70,8 @@ export const NumberField = (props: NumberFieldProps) => {
   return (
     <div
       class={cn(
-        "inline-flex h-10 items-stretch rounded-zen-md border border-zen-border bg-zen-background overflow-hidden",
-        local.disabled && "opacity-50 cursor-not-allowed",
+        "zen-inline-flex zen-h-10 zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-overflow-hidden",
+        local.disabled && "zen-opacity-50 zen-cursor-not-allowed",
         local.class,
       )}
     >
@@ -81,9 +81,9 @@ export const NumberField = (props: NumberFieldProps) => {
         onClick={dec}
         disabled={local.disabled || atMin()}
         class={cn(
-          "px-3 text-base text-zen-foreground bg-transparent",
-          "hover:bg-zen-muted disabled:opacity-50 disabled:cursor-not-allowed",
-          "focus-visible:outline-none focus-visible:bg-zen-muted",
+          "zen-px-3 zen-text-base zen-text-zen-foreground zen-bg-transparent",
+          "hover:zen-bg-zen-muted disabled:zen-opacity-50 disabled:zen-cursor-not-allowed",
+          "focus-visible:zen-outline-none focus-visible:zen-bg-zen-muted",
         )}
       >
         −
@@ -106,11 +106,11 @@ export const NumberField = (props: NumberFieldProps) => {
           if (Number.isFinite(n)) update(clamp(n));
         }}
         class={cn(
-          "min-w-0 flex-1 text-center text-sm bg-transparent",
-          "border-x border-zen-border",
-          "focus:outline-none focus-visible:bg-zen-primary-soft",
-          "disabled:cursor-not-allowed",
-          "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+          "zen-min-w-0 zen-flex-1 zen-text-center zen-text-sm zen-bg-transparent",
+          "zen-border-x zen-border-zen-border",
+          "focus:zen-outline-none focus-visible:zen-bg-zen-primary-soft",
+          "disabled:zen-cursor-not-allowed",
+          "zen-[appearance:textfield] [&::-webkit-inner-spin-button]:zen-appearance-none [&::-webkit-outer-spin-button]:zen-appearance-none",
         )}
         {...rest}
       />
@@ -120,9 +120,9 @@ export const NumberField = (props: NumberFieldProps) => {
         onClick={inc}
         disabled={local.disabled || atMax()}
         class={cn(
-          "px-3 text-base text-zen-foreground bg-transparent",
-          "hover:bg-zen-muted disabled:opacity-50 disabled:cursor-not-allowed",
-          "focus-visible:outline-none focus-visible:bg-zen-muted",
+          "zen-px-3 zen-text-base zen-text-zen-foreground zen-bg-transparent",
+          "hover:zen-bg-zen-muted disabled:zen-opacity-50 disabled:zen-cursor-not-allowed",
+          "focus-visible:zen-outline-none focus-visible:zen-bg-zen-muted",
         )}
       >
         +

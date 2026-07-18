@@ -27,18 +27,18 @@ import { cn } from "../../lib/cn";
 
 const emptyStateVariants = cva(
   [
-    "flex flex-col items-center justify-center text-center",
-    "text-zen-foreground",
+    "zen-flex zen-flex-col zen-items-center zen-justify-center zen-text-center",
+    "zen-text-zen-foreground",
   ].join(" "),
   {
     variants: {
       size: {
-        sm: "py-6 px-3 gap-1.5",
-        md: "py-10 px-6 gap-3",
-        lg: "py-16 px-8 gap-4",
+        sm: "zen-py-6 zen-px-3 zen-gap-1.5",
+        md: "zen-py-10 zen-px-6 zen-gap-3",
+        lg: "zen-py-16 zen-px-8 zen-gap-4",
       },
       bordered: {
-        true: "border-2 border-dashed border-zen-border rounded-zen-md bg-zen-muted/40",
+        true: "zen-border-2 zen-border-dashed zen-border-zen-border zen-rounded-zen-md zen-bg-zen-muted/40",
         false: "",
       },
     },
@@ -78,9 +78,9 @@ export const EmptyStateIcon = React.forwardRef<
     ref={ref}
     aria-hidden
     className={cn(
-      "inline-flex items-center justify-center",
-      "h-12 w-12 rounded-zen-full bg-zen-muted text-zen-muted-fg",
-      "mb-1",
+      "zen-inline-flex zen-items-center zen-justify-center",
+      "zen-h-12 zen-w-12 zen-rounded-zen-full zen-bg-zen-muted zen-text-zen-muted-fg",
+      "zen-mb-1",
       className,
     )}
     {...props}
@@ -94,7 +94,7 @@ export const EmptyStateTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("text-base font-semibold m-0", className)}
+    className={cn("zen-text-base zen-font-semibold zen-m-0", className)}
     {...props}
   />
 ));
@@ -107,7 +107,7 @@ export const EmptyStateDescription = React.forwardRef<
   <p
     ref={ref}
     className={cn(
-      "text-sm text-zen-muted-fg max-w-[40ch] m-0 leading-relaxed",
+      "zen-text-sm zen-text-zen-muted-fg zen-max-w-[40ch] zen-m-0 zen-leading-relaxed",
       className,
     )}
     {...props}
@@ -122,7 +122,7 @@ export const EmptyStateActions = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex flex-wrap items-center justify-center gap-2 mt-2",
+      "zen-flex zen-flex-wrap zen-items-center zen-justify-center zen-gap-2 zen-mt-2",
       className,
     )}
     {...props}

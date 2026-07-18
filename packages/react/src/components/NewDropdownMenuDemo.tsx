@@ -165,7 +165,7 @@ const [showStatus, setShowStatus] = useState(false);
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span style={{ marginLeft: "1.6rem", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: "1rem", fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             toolbar: {String(showToolbar)} · status: {String(showStatus)}
           </span>
         </CodeExample>
@@ -209,7 +209,7 @@ const [showStatus, setShowStatus] = useState(false);
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span style={{ marginLeft: "1.6rem", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: "1rem", fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             position: {position}
           </span>
         </CodeExample>

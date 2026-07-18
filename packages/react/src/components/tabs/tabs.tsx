@@ -37,31 +37,31 @@ const Tabs = TabsPrimitive.Root;
 
 /* ----------------------------- TabsList ------------------------------ */
 
-const tabsListVariants = cva("inline-flex items-stretch", {
+const tabsListVariants = cva("zen-inline-flex zen-items-stretch", {
   variants: {
     variant: {
       underline:
-        "border-b border-zen-border w-full gap-1",
+        "zen-border-b zen-border-zen-border zen-w-full zen-gap-1",
       pills:
-        "rounded-zen-md bg-zen-muted p-1 gap-1",
+        "zen-rounded-zen-md zen-bg-zen-muted zen-p-1 zen-gap-1",
     },
     orientation: {
       // flex-wrap so a horizontal tab list with many tabs wraps to multiple
       // rows instead of overflowing/clipping its container.
-      horizontal: "flex-row flex-wrap",
-      vertical: "flex-col items-start",
+      horizontal: "zen-flex-row zen-flex-wrap",
+      vertical: "zen-flex-col zen-items-start",
     },
   },
   compoundVariants: [
     {
       variant: "underline",
       orientation: "vertical",
-      class: "border-b-0 border-r border-zen-border",
+      class: "zen-border-b-0 zen-border-r zen-border-zen-border",
     },
     {
       variant: "pills",
       orientation: "vertical",
-      class: "items-stretch",
+      class: "zen-items-stretch",
     },
   ],
   defaultVariants: {
@@ -93,26 +93,26 @@ TabsList.displayName = TabsPrimitive.List.displayName;
 
 const tabsTriggerVariants = cva(
   [
-    "inline-flex items-center justify-center whitespace-nowrap",
-    "text-sm font-medium",
-    "border-0 bg-transparent cursor-pointer",
-    "transition-colors",
-    "disabled:opacity-50 disabled:cursor-not-allowed",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-inset",
+    "zen-inline-flex zen-items-center zen-justify-center zen-whitespace-nowrap",
+    "zen-text-sm zen-font-medium",
+    "zen-border-0 zen-bg-transparent zen-cursor-pointer",
+    "zen-transition-colors",
+    "disabled:zen-opacity-50 disabled:zen-cursor-not-allowed",
+    "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
   ].join(" "),
   {
     variants: {
       variant: {
         underline: [
-          "px-3 py-2 -mb-px text-zen-muted-fg",
-          "border-b-2 border-transparent",
-          "hover:text-zen-foreground",
-          "data-[state=active]:text-zen-primary data-[state=active]:border-zen-primary",
+          "zen-px-3 zen-py-2 -zen-mb-px zen-text-zen-muted-fg",
+          "zen-border-b-2 zen-border-transparent",
+          "hover:zen-text-zen-foreground",
+          "data-[state=active]:zen-text-zen-primary data-[state=active]:zen-border-zen-primary",
         ].join(" "),
         pills: [
-          "px-3 py-1.5 rounded-zen-sm text-zen-muted-fg",
-          "hover:text-zen-foreground",
-          "data-[state=active]:bg-zen-background data-[state=active]:text-zen-foreground data-[state=active]:shadow-zen-xs",
+          "zen-px-3 zen-py-1.5 zen-rounded-zen-sm zen-text-zen-muted-fg",
+          "hover:zen-text-zen-foreground",
+          "data-[state=active]:zen-bg-zen-background data-[state=active]:zen-text-zen-foreground data-[state=active]:zen-shadow-zen-xs",
         ].join(" "),
       },
     },
@@ -147,7 +147,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring rounded-zen-sm",
+      "zen-mt-3 focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring zen-rounded-zen-sm",
       className,
     )}
     {...props}

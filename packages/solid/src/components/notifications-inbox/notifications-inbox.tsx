@@ -107,39 +107,44 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
             : triggerLabel()
         }
         class={cn(
-          "relative inline-flex h-10 w-10 items-center justify-center rounded-zen-full",
-          "text-zen-foreground bg-transparent border-0 cursor-pointer",
-          "hover:bg-zen-muted",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
-          "transition-colors",
+          "zen-relative zen-inline-flex zen-h-10 zen-w-10 zen-items-center zen-justify-center zen-rounded-zen-full",
+          "zen-text-zen-foreground zen-bg-transparent zen-border-0 zen-cursor-pointer",
+          "hover:zen-bg-zen-muted",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+          "zen-transition-colors",
           props.class,
         )}
       >
         <BellIcon size={18} />
         <Show when={hasUnread()}>
           <span
-            aria-hidden
+            aria-hidden="true"
             class={cn(
-              "absolute -top-0.5 -right-0.5 inline-flex items-center justify-center",
-              "min-w-[1.25rem] h-5 px-1 rounded-zen-full",
-              "text-[0.65rem] font-semibold leading-none",
-              "bg-zen-error text-zen-error-fg",
-              "ring-2 ring-zen-background",
+              "zen-absolute -zen-top-0.5 -zen-right-0.5 zen-inline-flex zen-items-center zen-justify-center",
+              "zen-min-w-[1.25rem] zen-h-5 zen-px-1 zen-rounded-zen-full",
+              "zen-text-[0.65rem] zen-font-semibold zen-leading-none",
+              "zen-bg-zen-error zen-text-zen-error-fg",
+              "zen-ring-2 zen-ring-zen-background",
             )}
           >
             {badgeText()}
           </span>
         </Show>
       </PopoverTrigger>
-      <PopoverContent class="p-0 overflow-hidden">
-        <div
-          class="flex items-center justify-between px-4 py-2.5 border-b border-zen-border"
-          style={{ width: `${props.width ?? 360}px` }}
-        >
-          <h3 class="text-sm font-semibold text-zen-foreground m-0">
+      {/*
+        Width goes on PopoverContent, not on an inner div — matching the React
+        binding. PopoverContent defaults to `w-72` (288px) and clips overflow, so
+        a 360px inner div was cut off mid-word. An inline style beats the class.
+      */}
+      <PopoverContent
+        class="zen-p-0 zen-overflow-hidden"
+        style={{ width: `${props.width ?? 360}px` }}
+      >
+        <div class="zen-flex zen-items-center zen-justify-between zen-px-4 zen-py-2.5 zen-border-b zen-border-zen-border">
+          <h3 class="zen-text-sm zen-font-semibold zen-text-zen-foreground zen-m-0">
             {triggerLabel()}
             <Show when={hasUnread()}>
-              <span class="ml-1.5 text-xs font-normal text-zen-muted-fg">
+              <span class="zen-ml-1.5 zen-text-xs zen-font-normal zen-text-zen-muted-fg">
                 ({computedUnread()})
               </span>
             </Show>
@@ -149,9 +154,9 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
               type="button"
               onClick={props.onMarkAllRead}
               class={cn(
-                "text-xs font-medium text-zen-primary",
-                "hover:underline focus-visible:outline-none focus-visible:underline",
-                "bg-transparent border-0 cursor-pointer p-0",
+                "zen-text-xs zen-font-medium zen-text-zen-primary",
+                "hover:zen-underline focus-visible:zen-outline-none focus-visible:zen-underline",
+                "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-p-0",
               )}
             >
               Mark all as read
@@ -161,7 +166,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
         <div
           role="list"
           aria-label={triggerLabel()}
-          style={{ "max-height": `${props.maxHeight ?? 420}px`, "overflow-y": "auto", width: `${props.width ?? 360}px` }}
+          style={{ "max-height": `${props.maxHeight ?? 420}px`, "overflow-y": "auto" }}
         >
           <Show
             when={groups().length > 0}
@@ -174,10 +179,10 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
             <For each={groups()}>
               {(g) => (
                 <section aria-label={g.label}>
-                  <h4 class="px-4 pt-3 pb-1 text-[0.65rem] font-semibold uppercase tracking-wide text-zen-muted-fg m-0">
+                  <h4 class="zen-px-4 zen-pt-3 zen-pb-1 zen-text-[0.65rem] zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg zen-m-0">
                     {g.label}
                   </h4>
-                  <ul class="list-none p-0 m-0">
+                  <ul class="zen-list-none zen-p-0 zen-m-0">
                     <For each={g.items}>
                       {(n) => <Row notification={n} now={now()} onSelect={props.onItemSelect} />}
                     </For>
@@ -188,14 +193,14 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
           </Show>
         </div>
         <Show when={props.onViewAll}>
-          <div class="border-t border-zen-border">
+          <div class="zen-border-t zen-border-zen-border">
             <button
               type="button"
               onClick={props.onViewAll}
               class={cn(
-                "block w-full px-4 py-2.5 text-center text-sm font-medium text-zen-primary",
-                "hover:bg-zen-muted focus-visible:outline-none focus-visible:bg-zen-muted",
-                "bg-transparent border-0 cursor-pointer",
+                "zen-block zen-w-full zen-px-4 zen-py-2.5 zen-text-center zen-text-sm zen-font-medium zen-text-zen-primary",
+                "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-bg-zen-muted",
+                "zen-bg-transparent zen-border-0 zen-cursor-pointer",
               )}
             >
               View all
@@ -218,36 +223,36 @@ const Row = (props: {
   const rowContent = (
     <>
       <span
-        aria-hidden
+        aria-hidden="true"
         class={cn(
-          "mt-1.5 shrink-0 flex items-center justify-center",
-          n().icon ? "h-5 w-5 text-zen-muted-fg" : "h-2 w-2 rounded-zen-full",
-          !n().icon && !n().read && "bg-zen-primary",
-          !n().icon && n().read && "bg-transparent",
+          "zen-mt-1.5 zen-shrink-0 zen-flex zen-items-center zen-justify-center",
+          n().icon ? "zen-h-5 zen-w-5 zen-text-zen-muted-fg" : "zen-h-2 zen-w-2 zen-rounded-zen-full",
+          !n().icon && !n().read && "zen-bg-zen-primary",
+          !n().icon && n().read && "zen-bg-transparent",
         )}
       >
         {n().icon}
       </span>
-      <div class="min-w-0 flex-1">
+      <div class="zen-min-w-0 zen-flex-1">
         <div
           class={cn(
-            "text-sm leading-snug",
-            n().read ? "text-zen-muted-fg" : "font-medium text-zen-foreground",
+            "zen-text-sm zen-leading-snug",
+            n().read ? "zen-text-zen-muted-fg" : "zen-font-medium zen-text-zen-foreground",
           )}
         >
           {n().title}
         </div>
         <Show when={n().description}>
-          <div class="mt-0.5 text-xs text-zen-muted-fg leading-snug">
+          <div class="zen-mt-0.5 zen-text-xs zen-text-zen-muted-fg zen-leading-snug">
             {n().description}
           </div>
         </Show>
-        <div class="mt-1 flex items-center justify-between gap-2">
-          <span class="text-[0.65rem] uppercase tracking-wide text-zen-muted-fg">
+        <div class="zen-mt-1 zen-flex zen-items-center zen-justify-between zen-gap-2">
+          <span class="zen-text-[0.65rem] zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">
             {relativeTime(toDate(n().timestamp), props.now)}
           </span>
           <Show when={n().actions}>
-            <div class="flex items-center gap-1.5">{n().actions}</div>
+            <div class="zen-flex zen-items-center zen-gap-1.5">{n().actions}</div>
           </Show>
         </div>
       </div>
@@ -255,17 +260,17 @@ const Row = (props: {
   );
   const baseClass = () =>
     cn(
-      "flex items-start gap-3 px-4 py-2.5 text-left w-full",
-      "border-l-2",
-      n().read ? "border-transparent" : "border-zen-primary bg-zen-primary-soft/30",
+      "zen-flex zen-items-start zen-gap-3 zen-px-4 zen-py-2.5 zen-text-left zen-w-full",
+      "zen-border-l-2",
+      n().read ? "zen-border-transparent" : "zen-border-zen-primary zen-bg-zen-primary-soft/30",
       interactive() &&
-        "cursor-pointer hover:bg-zen-muted focus-visible:bg-zen-muted focus-visible:outline-none",
+        "zen-cursor-pointer hover:zen-bg-zen-muted focus-visible:zen-bg-zen-muted focus-visible:zen-outline-none",
     );
   return (
     <li
       role="listitem"
       aria-current={!n().read ? "true" : undefined}
-      class="border-b border-zen-border last:border-b-0"
+      class="zen-border-b zen-border-zen-border last:zen-border-b-0"
     >
       <Show
         when={n().href}
@@ -274,7 +279,7 @@ const Row = (props: {
             when={interactive()}
             fallback={<div class={baseClass()}>{rowContent}</div>}
           >
-            <button type="button" onClick={activate} class={cn(baseClass(), "bg-transparent border-0")}>
+            <button type="button" onClick={activate} class={cn(baseClass(), "zen-bg-transparent zen-border-0")}>
               {rowContent}
             </button>
           </Show>
@@ -288,7 +293,7 @@ const Row = (props: {
               activate();
             }
           }}
-          class={cn(baseClass(), "no-underline text-inherit")}
+          class={cn(baseClass(), "zen-no-underline zen-text-inherit")}
         >
           {rowContent}
         </a>
@@ -298,11 +303,11 @@ const Row = (props: {
 };
 
 const EmptyState = (props: { message: JSX.Element }) => (
-  <div class="flex flex-col items-center justify-center px-6 py-10 text-center">
-    <span class="text-zen-muted-fg/60 mb-2">
+  <div class="zen-flex zen-flex-col zen-items-center zen-justify-center zen-px-6 zen-py-10 zen-text-center">
+    <span class="zen-text-zen-muted-fg/60 zen-mb-2">
       <BellIcon size={28} />
     </span>
-    <p class="text-sm text-zen-muted-fg m-0">{props.message}</p>
+    <p class="zen-text-sm zen-text-zen-muted-fg zen-m-0">{props.message}</p>
   </div>
 );
 
@@ -316,7 +321,7 @@ const BellIcon = (props: { size?: number }) => (
     stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"
-    aria-hidden
+    aria-hidden="true"
   >
     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
     <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />

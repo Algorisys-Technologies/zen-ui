@@ -46,7 +46,7 @@ const NewNpsDemo: React.FC = () => {
               onValueChange={setScore}
               label="Would you recommend Algorisys to a colleague?"
             />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               {score === undefined
                 ? "(no answer yet)"
                 : `User answered ${score}.`}

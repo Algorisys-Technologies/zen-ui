@@ -86,7 +86,7 @@ const NewLazyOptionsDemo: React.FC = () => {
             value={selected}
             onValueChange={setSelected}
           />
-          <span style={{ marginLeft: 12, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: 12, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             value: {selected}
           </span>
         </CodeExample>
@@ -119,7 +119,7 @@ const NewLazyOptionsDemo: React.FC = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">Jump to record</Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-56">
+              <DropdownMenuContent className="zen-min-w-56">
                 <DropdownMenuLabel>Records</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <VirtualizedItems items={FIVE_K} estimateSize={32} maxHeight={300}>
@@ -134,7 +134,7 @@ const NewLazyOptionsDemo: React.FC = () => {
                 </VirtualizedItems>
               </DropdownMenuContent>
             </DropdownMenu>
-            <span style={{ fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+            <span style={{ fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
               picked: {picked?.label ?? "(none)"}
             </span>
           </div>
@@ -168,7 +168,7 @@ const filtered = useMemo(
               style={{
                 height: 40,
                 padding: "0 12px",
-                fontSize: "1.4rem",
+                fontSize: "0.875rem",
                 border: "1px solid var(--zen-color-border)",
                 borderRadius: "var(--zen-radius-md)",
                 background: "var(--zen-color-background)",
@@ -210,7 +210,7 @@ Trade-off: Radix's keyboard typeahead can only see mounted rows. For
 truly large sets with free-text search, the Combobox primitive
 (filters first, then renders) is the right tool — coming next.`}
         >
-          <p style={{ color: "var(--zen-color-muted-fg)", margin: 0, fontSize: "1.3rem" }}>
+          <p style={{ color: "var(--zen-color-muted-fg)", margin: 0, fontSize: "0.8125rem" }}>
             See the code block for the rundown.
           </p>
         </CodeExample>

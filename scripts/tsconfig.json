@@ -1,0 +1,25 @@
+{
+  // The check scripts run under `bun run`, which executes TypeScript without
+  // typechecking it. So a script can call a function with the wrong arity, get
+  // `undefined` for the missing argument, compute NaN, and still print "all
+  // passed" — which happened: check-virtual-window.ts passed five arguments to a
+  // four-argument function and asserted against the results for a while.
+  //
+  // `bun run check:types` points tsc at them. A contract nobody typechecks is a
+  // contract that can be quietly wrong about the thing it is checking.
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    // The checks share scripts/bindings.mjs — the binding registry — with the
+    // node-only scripts (dev-all, deploy), which cannot import a .ts. So it is
+    // .mjs, and these .ts checks need allowJs to read it.
+    "allowJs": true,
+    "types": ["node"]
+  },
+  "include": ["*.ts"]
+}

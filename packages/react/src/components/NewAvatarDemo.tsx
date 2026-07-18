@@ -114,17 +114,17 @@ const NewAvatarDemo: React.FC = () => (
 <AvatarFallback className="bg-zen-error text-zen-error-fg">!!</AvatarFallback>`}
       >
         <Avatar>
-          <AvatarFallback className="bg-zen-primary text-zen-primary-fg">
+          <AvatarFallback className="zen-bg-zen-primary zen-text-zen-primary-fg">
             RP
           </AvatarFallback>
         </Avatar>
         <Avatar>
-          <AvatarFallback className="bg-zen-success text-zen-success-fg">
+          <AvatarFallback className="zen-bg-zen-success zen-text-zen-success-fg">
             OK
           </AvatarFallback>
         </Avatar>
         <Avatar>
-          <AvatarFallback className="bg-zen-error text-zen-error-fg">
+          <AvatarFallback className="zen-bg-zen-error zen-text-zen-error-fg">
             !!
           </AvatarFallback>
         </Avatar>

@@ -1,5 +1,5 @@
 import { type JSX, splitProps } from "solid-js";
-import { Dialog as KDialog } from "@kobalte/core/dialog";
+import * as KDialog from "@kobalte/core/dialog";
 import { cn } from "../../lib/cn";
 
 /**
@@ -23,30 +23,45 @@ import { cn } from "../../lib/cn";
  * Kobalte supplies focus trap, scroll lock, Esc-to-close, click-outside
  * dismissal, portal rendering, and a11y. For confirm-style dialogs that
  * should block all dismissal until the user answers, use AlertDialog.
+ *
+ * Imported as a module namespace rather than via Kobalte's `Dialog` object:
+ * both `dialog` and `alert-dialog` build their namespace with
+ * `Object.assign(DialogRoot, …)` on the SAME root function, so importing both
+ * in one bundle leaves `Dialog === AlertDialog` and whichever module evaluates
+ * last owns `.Content`. That silently gave every plain Dialog here
+ * role="alertdialog". The `Root`/`Content` named exports are per-module and
+ * unaffected. (Kobalte 0.13.11 — re-check on upgrade.)
  */
 
-export const Dialog = KDialog;
+export const Dialog = KDialog.Root;
 export const DialogTrigger = KDialog.Trigger;
 export const DialogPortal = KDialog.Portal;
 export const DialogClose = KDialog.CloseButton;
 
-type DivProps = {
+export type DialogOverlayProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   class?: string;
   children?: JSX.Element;
 };
 
-export const DialogOverlay = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export const DialogOverlay = (props: DialogOverlayProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KDialog.Overlay
-      class={cn("fixed inset-0 z-50 bg-black/50", local.class)}
+      {...rest}
+      class={cn("zen-fixed zen-inset-0 zen-z-50 zen-bg-black/50", local.class)}
     >
       {local.children}
     </KDialog.Overlay>
   );
 };
 
-export type DialogContentProps = {
+export type DialogContentProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
   class?: string;
   children?: JSX.Element;
   /** Render the ✕ close affordance in the top-right corner. Default true. */
@@ -54,17 +69,18 @@ export type DialogContentProps = {
 };
 
 export const DialogContent = (props: DialogContentProps) => {
-  const [local] = splitProps(props, ["class", "children", "showCloseButton"]);
+  const [local, rest] = splitProps(props, ["class", "children", "showCloseButton"]);
   const showClose = () => local.showCloseButton ?? true;
   return (
     <KDialog.Portal>
       <DialogOverlay />
       <KDialog.Content
+        {...rest}
         class={cn(
-          "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-          "w-full max-w-lg max-h-[85vh] overflow-y-auto",
-          "rounded-zen-md border border-zen-border bg-zen-background p-6 shadow-zen-lg",
-          "focus:outline-none",
+          "zen-fixed zen-left-1/2 zen-top-1/2 zen-z-50 -zen-translate-x-1/2 -zen-translate-y-1/2",
+          "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
+          "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
+          "focus:zen-outline-none",
           local.class,
         )}
       >
@@ -73,10 +89,10 @@ export const DialogContent = (props: DialogContentProps) => {
           <KDialog.CloseButton
             aria-label="Close"
             class={cn(
-              "absolute right-3 top-3 h-7 w-7 inline-flex items-center justify-center",
-              "rounded-zen-sm bg-transparent border-0 cursor-pointer text-zen-muted-fg",
-              "hover:text-zen-foreground hover:bg-zen-muted",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+              "zen-absolute zen-right-3 zen-top-3 zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center",
+              "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg",
+              "hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+              "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
             )}
           >
             <XIcon />
@@ -87,21 +103,41 @@ export const DialogContent = (props: DialogContentProps) => {
   );
 };
 
-export const DialogHeader = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export type DialogHeaderProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const DialogHeader = (props: DialogHeaderProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div class={cn("flex flex-col gap-1 text-left mb-3 pr-8", local.class)}>
+    <div
+      {...rest}
+      class={cn("zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3 zen-pr-8", local.class)}
+    >
       {local.children}
     </div>
   );
 };
 
-export const DialogFooter = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+export type DialogFooterProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const DialogFooter = (props: DialogFooterProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
+      {...rest}
       class={cn(
-        "flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5",
+        "zen-flex zen-flex-col-reverse sm:zen-flex-row sm:zen-justify-end zen-gap-2 zen-mt-5",
         local.class,
       )}
     >
@@ -110,12 +146,22 @@ export const DialogFooter = (props: DivProps) => {
   );
 };
 
-export const DialogTitle = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+// Kobalte's Title defaults to <h2>.
+export type DialogTitleProps = Omit<
+  JSX.HTMLAttributes<HTMLHeadingElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const DialogTitle = (props: DialogTitleProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KDialog.Title
+      {...rest}
       class={cn(
-        "text-lg font-semibold leading-tight text-zen-foreground",
+        "zen-text-lg zen-font-semibold zen-leading-tight zen-text-zen-foreground",
         local.class,
       )}
     >
@@ -124,11 +170,21 @@ export const DialogTitle = (props: DivProps) => {
   );
 };
 
-export const DialogDescription = (props: DivProps) => {
-  const [local] = splitProps(props, ["class", "children"]);
+// Kobalte's Description defaults to <p>.
+export type DialogDescriptionProps = Omit<
+  JSX.HTMLAttributes<HTMLParagraphElement>,
+  "class" | "children"
+> & {
+  class?: string;
+  children?: JSX.Element;
+};
+
+export const DialogDescription = (props: DialogDescriptionProps) => {
+  const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <KDialog.Description
-      class={cn("text-sm text-zen-muted-fg leading-snug", local.class)}
+      {...rest}
+      class={cn("zen-text-sm zen-text-zen-muted-fg zen-leading-snug", local.class)}
     >
       {local.children}
     </KDialog.Description>

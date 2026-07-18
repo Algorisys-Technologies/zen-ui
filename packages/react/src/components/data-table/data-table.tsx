@@ -593,7 +593,7 @@ export function DataTable<TData, TValue = unknown>({
     if (rowOrderingActive) {
       leading.push({
         id: "__drag__",
-        header: () => <span className="sr-only">Reorder</span>,
+        header: () => <span className="zen-sr-only">Reorder</span>,
         cell: ({ row }) => <DragHandle id={row.id} />,
         enableSorting: false,
         enableHiding: false,
@@ -604,7 +604,7 @@ export function DataTable<TData, TValue = unknown>({
     if (expansionEnabled) {
       leading.push({
         id: "__expand__",
-        header: () => <span className="sr-only">Expand</span>,
+        header: () => <span className="zen-sr-only">Expand</span>,
         cell: ({ row }) => (
           <button
             type="button"
@@ -614,12 +614,12 @@ export function DataTable<TData, TValue = unknown>({
               row.getIsExpanded() ? "Collapse row" : "Expand row"
             }
             className={cn(
-              "inline-flex items-center justify-center h-6 w-6",
-              "rounded-zen-sm bg-transparent border-0 cursor-pointer",
-              "text-zen-muted-fg hover:text-zen-foreground hover:bg-zen-muted",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
-              "transition-transform",
-              row.getIsExpanded() && "rotate-90",
+              "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6",
+              "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
+              "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+              "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+              "zen-transition-transform",
+              row.getIsExpanded() && "zen-rotate-90",
             )}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -819,7 +819,7 @@ export function DataTable<TData, TValue = unknown>({
       if (cell.getIsGrouped()) {
         const row = cell.row;
         return (
-          <div className="inline-flex items-center gap-1.5">
+          <div className="zen-inline-flex zen-items-center zen-gap-1.5">
             <button
               type="button"
               onClick={row.getToggleExpandedHandler()}
@@ -828,11 +828,11 @@ export function DataTable<TData, TValue = unknown>({
                 row.getIsExpanded() ? "Collapse group" : "Expand group"
               }
               className={cn(
-                "inline-flex items-center justify-center h-5 w-5 rounded-zen-sm",
-                "bg-transparent border-0 cursor-pointer transition-transform",
-                "text-zen-muted-fg hover:text-zen-foreground hover:bg-zen-muted",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
-                row.getIsExpanded() && "rotate-90",
+                "zen-inline-flex zen-items-center zen-justify-center zen-h-5 zen-w-5 zen-rounded-zen-sm",
+                "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-transition-transform",
+                "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+                "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+                row.getIsExpanded() && "zen-rotate-90",
               )}
             >
               <svg
@@ -849,10 +849,10 @@ export function DataTable<TData, TValue = unknown>({
                 <polyline points="9 6 15 12 9 18" />
               </svg>
             </button>
-            <span className="font-medium">
+            <span className="zen-font-medium">
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
             </span>
-            <span className="text-xs text-zen-muted-fg">
+            <span className="zen-text-xs zen-text-zen-muted-fg">
               ({row.subRows.length})
             </span>
           </div>
@@ -900,10 +900,10 @@ export function DataTable<TData, TValue = unknown>({
 
   /* Column separator: applied to every cell except the last */
   const sepCellClass = enableColumnSeparators
-    ? "border-r border-zen-border last:border-r-0"
+    ? "zen-border-r zen-border-zen-border last:zen-border-r-0"
     : "";
   const sepHeadClass = enableColumnSeparators
-    ? "[&>th]:border-r [&>th]:border-zen-border [&>th:last-child]:border-r-0"
+    ? "[&>th]:zen-border-r [&>th]:zen-border-zen-border [&>th:last-child]:zen-border-r-0"
     : "";
 
   /* Pin styling: sticky offsets + soft shadow on the inner edge of the
@@ -964,13 +964,13 @@ export function DataTable<TData, TValue = unknown>({
    *   branded   → primary-soft fill + primary-soft-fg label text */
   const headerVariantRowClass =
     headerVariant === "branded"
-      ? "bg-zen-primary-soft [&>th]:text-zen-primary-soft-fg [&>th]:font-semibold"
+      ? "zen-bg-zen-primary-soft [&>th]:zen-text-zen-primary-soft-fg [&>th]:zen-font-semibold"
       : "";
   /* underline is applied to the <thead> wrapper so it sits below *all*
    * header rows (main row + filter row) as one band edge. */
   const headerVariantThClass =
     headerVariant === "underline"
-      ? "[&_tr:last-child]:border-b-2 [&_tr:last-child]:border-zen-primary"
+      ? "[&_tr:last-child]:zen-border-b-2 [&_tr:last-child]:zen-border-zen-primary"
       : "";
   /* CSS var that pinned/sticky header cells read for their background
    * (see HeaderCell + filter-row inline style). Falls back to the page
@@ -988,8 +988,8 @@ export function DataTable<TData, TValue = unknown>({
    * bleed through. */
   const stickyRowClass = stickyHeaderActive
     ? headerVariant === "branded"
-      ? "sticky top-0 z-10"
-      : "sticky top-0 z-10 bg-zen-background"
+      ? "zen-sticky zen-top-0 zen-z-10"
+      : "zen-sticky zen-top-0 zen-z-10 zen-bg-zen-background"
     : "";
 
   /* Header-only pin style — same offsets as the body pinStyle but with
@@ -1035,7 +1035,7 @@ export function DataTable<TData, TValue = unknown>({
               return (
                 <TableHead
                   key={`${header.id}-filter`}
-                  className="px-2 py-1"
+                  className="zen-px-2 zen-py-1"
                   style={
                     pin
                       ? { ...pin, zIndex: stickyHeaderActive ? 11 : 1 }
@@ -1087,7 +1087,7 @@ export function DataTable<TData, TValue = unknown>({
           <TableRow>
             <TableCell
               colSpan={augmentedColumns.length}
-              className="text-center text-zen-muted-fg py-6"
+              className="zen-text-center zen-text-zen-muted-fg zen-py-6"
             >
               Loading…
             </TableCell>
@@ -1096,7 +1096,7 @@ export function DataTable<TData, TValue = unknown>({
           <TableRow>
             <TableCell
               colSpan={augmentedColumns.length}
-              className="text-center text-zen-muted-fg py-6"
+              className="zen-text-center zen-text-zen-muted-fg zen-py-6"
             >
               {emptyMessage}
             </TableCell>
@@ -1141,7 +1141,7 @@ export function DataTable<TData, TValue = unknown>({
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   data-grouped={row.getIsGrouped() ? "true" : undefined}
                   className={cn(
-                    row.getIsGrouped() && "bg-zen-muted/40 font-medium",
+                    row.getIsGrouped() && "zen-bg-zen-muted/40 zen-font-medium",
                     rowClassName?.(row),
                   )}
                 >
@@ -1187,7 +1187,7 @@ export function DataTable<TData, TValue = unknown>({
                   <TableRow data-expanded-of={row.id}>
                     <TableCell
                       colSpan={row.getVisibleCells().length}
-                      className="p-0 bg-zen-muted/30"
+                      className="zen-p-0 zen-bg-zen-muted/30"
                     >
                       {renderSubRow(row)}
                     </TableCell>
@@ -1202,7 +1202,7 @@ export function DataTable<TData, TValue = unknown>({
   );
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("zen-space-y-3", className)}>
       <Toolbar
         table={table}
         enableColumnFilters={enableColumnFilters}
@@ -1225,7 +1225,7 @@ export function DataTable<TData, TValue = unknown>({
       <ActiveFilterChips table={table} />
 
       <div
-        className="rounded-zen-md border border-zen-border"
+        className="zen-rounded-zen-md zen-border zen-border-zen-border"
         aria-busy={loading || undefined}
       >
         {enableVirtualization ? (
@@ -1310,16 +1310,16 @@ function Toolbar<TData>({
   )
     return null;
   return (
-    <div className="flex items-center gap-2">
+    <div className="zen-flex zen-items-center zen-gap-2">
       {enableColumnFilters && (
         <Input
           value={globalFilter}
           onChange={(e) => onGlobalFilterChange(e.target.value)}
           placeholder={globalFilterPlaceholder}
-          className="max-w-xs"
+          className="zen-max-w-xs"
         />
       )}
-      <div className="ml-auto flex items-center gap-2">
+      <div className="zen-ml-auto zen-flex zen-items-center zen-gap-2">
         {enableExport && (
           <ExportMenu
             table={table}
@@ -1357,7 +1357,7 @@ function GroupByMenu<TData>({ table }: { table: TanStackTable<TData> }) {
           {activeCount ? `Group by (${activeCount})` : "Group by"}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-44">
+      <DropdownMenuContent align="end" className="zen-min-w-44">
         <DropdownMenuLabel>Group rows by</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {groupable.map((column) => {
@@ -1431,15 +1431,15 @@ function BulkActionBar<TData>({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-3 py-2",
-        "rounded-zen-md bg-zen-primary-soft border border-zen-primary-soft",
-        "text-zen-primary-soft-fg",
+        "zen-flex zen-items-center zen-gap-3 zen-px-3 zen-py-2",
+        "zen-rounded-zen-md zen-bg-zen-primary-soft zen-border zen-border-zen-primary-soft",
+        "zen-text-zen-primary-soft-fg",
       )}
       role="toolbar"
       aria-label="Bulk actions for selected rows"
     >
       <span
-        className="text-sm font-medium"
+        className="zen-text-sm zen-font-medium"
         aria-live="polite"
         aria-atomic="true"
       >
@@ -1450,26 +1450,26 @@ function BulkActionBar<TData>({
           type="button"
           onClick={selectAllMatching}
           className={cn(
-            "text-xs underline underline-offset-2",
-            "bg-transparent border-0 cursor-pointer text-inherit",
-            "hover:opacity-80",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
+            "zen-text-xs zen-underline zen-underline-offset-2",
+            "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-inherit",
+            "hover:zen-opacity-80",
+            "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
           )}
         >
           Select all {totalFiltered} matching
         </button>
       ) : null}
-      <div className="ml-auto flex items-center gap-2">
+      <div className="zen-ml-auto zen-flex zen-items-center zen-gap-2">
         {renderBulkActions({ table, rows: selectedRows, clear })}
         <button
           type="button"
           onClick={clear}
           aria-label="Clear selection"
           className={cn(
-            "inline-flex items-center justify-center h-6 w-6",
-            "rounded-zen-full bg-transparent border-0 cursor-pointer",
-            "text-current opacity-70 hover:opacity-100 hover:bg-black/10",
-            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+            "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6",
+            "zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
+            "zen-text-current zen-opacity-70 hover:zen-opacity-100 hover:zen-bg-black/10",
+            "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
           )}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1545,11 +1545,11 @@ function ActiveFilterChips<TData>({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-2"
+      className="zen-flex zen-flex-wrap zen-items-center zen-gap-2"
       role="group"
       aria-label="Active filters"
     >
-      <span className="text-xs text-zen-muted-fg">Filters:</span>
+      <span className="zen-text-xs zen-text-zen-muted-fg">Filters:</span>
       {hasGlobal ? (
         <Chip
           label={`Search: ${globalFilter}`}
@@ -1574,10 +1574,10 @@ function ActiveFilterChips<TData>({
           table.setGlobalFilter("");
         }}
         className={cn(
-          "ml-1 inline-flex items-center text-xs px-2 py-0.5 rounded-zen-sm",
-          "text-zen-muted-fg hover:text-zen-foreground hover:bg-zen-muted",
-          "bg-transparent border-0 cursor-pointer",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+          "zen-ml-1 zen-inline-flex zen-items-center zen-text-xs zen-px-2 zen-py-0.5 zen-rounded-zen-sm",
+          "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+          "zen-bg-transparent zen-border-0 zen-cursor-pointer",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
         )}
       >
         Clear all
@@ -1596,10 +1596,10 @@ function Chip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5",
-        "text-xs font-medium",
-        "rounded-zen-full bg-zen-primary-soft text-zen-primary-soft-fg",
-        "border border-zen-primary-soft",
+        "zen-inline-flex zen-items-center zen-gap-1 zen-px-2 zen-py-0.5",
+        "zen-text-xs zen-font-medium",
+        "zen-rounded-zen-full zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
+        "zen-border zen-border-zen-primary-soft",
       )}
     >
       <span>{label}</span>
@@ -1608,10 +1608,10 @@ function Chip({
         onClick={onRemove}
         aria-label={`Remove ${label}`}
         className={cn(
-          "inline-flex items-center justify-center",
-          "h-4 w-4 rounded-zen-full bg-transparent border-0 cursor-pointer",
-          "text-current opacity-70 hover:opacity-100 hover:bg-black/10",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+          "zen-inline-flex zen-items-center zen-justify-center",
+          "zen-h-4 zen-w-4 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
+          "zen-text-current zen-opacity-70 hover:zen-opacity-100 hover:zen-bg-black/10",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
         )}
       >
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1689,7 +1689,7 @@ function ExportMenu<TData>({
           Export
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-44">
+      <DropdownMenuContent align="end" className="zen-min-w-44">
         <DropdownMenuLabel>
           Export {onlySelected ? "selected" : "visible"} rows
         </DropdownMenuLabel>
@@ -1780,10 +1780,10 @@ function DragHandle({ id }: { id: string }) {
       {...listeners}
       aria-label="Drag to reorder row"
       className={cn(
-        "cursor-grab active:cursor-grabbing inline-flex items-center justify-center",
-        "h-6 w-6 rounded-zen-sm bg-transparent border-0",
-        "text-zen-muted-fg hover:text-zen-foreground hover:bg-zen-muted",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+        "zen-cursor-grab active:zen-cursor-grabbing zen-inline-flex zen-items-center zen-justify-center",
+        "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0",
+        "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       )}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -1864,7 +1864,7 @@ function ColumnsMenu<TData>({
           Columns
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-56">
+      <DropdownMenuContent align="end" className="zen-min-w-56">
         <DropdownMenuLabel>
           {enableColumnPinning ? "Manage columns" : "Toggle columns"}
         </DropdownMenuLabel>
@@ -1889,14 +1889,14 @@ function ColumnsMenu<TData>({
           return (
             <div
               key={column.id}
-              className="flex items-center gap-2 px-2 py-1.5 text-sm"
+              className="zen-flex zen-items-center zen-gap-2 zen-px-2 zen-py-1.5 zen-text-sm"
             >
               <Checkbox
                 checked={column.getIsVisible()}
                 onCheckedChange={(v) => column.toggleVisibility(v === true)}
                 aria-label={`Toggle visibility of ${label}`}
               />
-              <span className="flex-1 truncate">{label}</span>
+              <span className="zen-flex-1 zen-truncate">{label}</span>
               <PinButton
                 active={pin === "left"}
                 side="left"
@@ -1946,12 +1946,12 @@ function PinButton({
         active ? `Unpin from ${side}` : `Pin to ${side}`
       }
       className={cn(
-        "inline-flex items-center justify-center h-6 w-6 rounded-zen-sm",
-        "border-0 cursor-pointer text-xs",
+        "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
+        "zen-border-0 zen-cursor-pointer zen-text-xs",
         active
-          ? "bg-zen-primary text-zen-primary-fg"
-          : "bg-transparent text-zen-muted-fg hover:bg-zen-muted hover:text-zen-foreground",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+          ? "zen-bg-zen-primary zen-text-zen-primary-fg"
+          : "zen-bg-transparent zen-text-zen-muted-fg hover:zen-bg-zen-muted hover:zen-text-zen-foreground",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       )}
     >
       {side === "left" ? "◀" : "▶"}
@@ -2010,10 +2010,10 @@ function HeaderCell<TData, TValue>({
               : header.column.id
           }, currently ${sortLabel}`}
           className={cn(
-            "w-full h-full px-2 py-2",
-            "inline-flex items-center gap-1 text-left font-inherit text-inherit",
-            "bg-transparent border-0 cursor-pointer",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-inset",
+            "zen-w-full zen-h-full zen-px-2 zen-py-2",
+            "zen-inline-flex zen-items-center zen-gap-1 zen-text-left zen-font-inherit zen-text-inherit",
+            "zen-bg-transparent zen-border-0 zen-cursor-pointer",
+            "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
           )}
         >
           {flexRender(header.column.columnDef.header, header.getContext())}
@@ -2021,7 +2021,7 @@ function HeaderCell<TData, TValue>({
           {sortIndex !== null ? (
             <span
               aria-hidden
-              className="text-[1rem] font-semibold text-zen-muted-fg ml-0.5"
+              className="zen-text-[1rem] zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5"
               title={`Sort priority ${sortIndex}`}
             >
               {sortIndex}
@@ -2029,7 +2029,7 @@ function HeaderCell<TData, TValue>({
           ) : null}
         </button>
       ) : (
-        <span className="px-2 py-2 inline-flex items-center gap-1">
+        <span className="zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
           {flexRender(header.column.columnDef.header, header.getContext())}
         </span>
       )}
@@ -2041,10 +2041,10 @@ function HeaderCell<TData, TValue>({
           onTouchStart={header.getResizeHandler()}
           onClick={(e) => e.stopPropagation()}
           className={cn(
-            "absolute right-0 top-0 h-full w-1.5 cursor-col-resize select-none touch-none",
-            "bg-transparent border-0 p-0",
-            "hover:bg-zen-primary",
-            isResizing && "bg-zen-primary",
+            "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
+            "zen-bg-transparent zen-border-0 zen-p-0",
+            "hover:zen-bg-zen-primary",
+            isResizing && "zen-bg-zen-primary",
           )}
         />
       ) : null}
@@ -2075,9 +2075,9 @@ function HeaderCell<TData, TValue>({
           : undefined
       }
       className={cn(
-        "p-0 transition-colors relative",
-        canSort && "hover:bg-zen-muted",
-        "data-[active=true]:bg-zen-primary-soft data-[active=true]:text-zen-primary-soft-fg",
+        "zen-p-0 zen-transition-colors zen-relative",
+        canSort && "hover:zen-bg-zen-muted",
+        "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
       )}
       style={headStyle}
     >
@@ -2148,7 +2148,7 @@ const SortIndicator = ({ state }: { state: false | "asc" | "desc" }) => {
       </svg>
     );
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-30" aria-hidden>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="zen-opacity-30" aria-hidden>
       <polyline points="8 9 12 5 16 9" />
       <polyline points="16 15 12 19 8 15" />
     </svg>
@@ -2384,7 +2384,7 @@ function VirtualizedBody<TData>({
                   <div
                     key={`${header.id}-filter`}
                     style={{
-                      padding: "0.4rem 0.5rem",
+                      padding: "var(--zen-space-1)",
                       minWidth: 0,
                       background: headerStickyBg,
                       ...(pin ?? {}),
@@ -2409,7 +2409,7 @@ function VirtualizedBody<TData>({
             role="row"
             style={{
               textAlign: "center",
-              padding: "1.5rem",
+              padding: "var(--zen-space-4)",
               color: "var(--zen-color-muted-fg)",
             }}
           >
@@ -2420,7 +2420,7 @@ function VirtualizedBody<TData>({
             role="row"
             style={{
               textAlign: "center",
-              padding: "1.5rem",
+              padding: "var(--zen-space-4)",
               color: "var(--zen-color-muted-fg)",
             }}
           >
@@ -2445,11 +2445,11 @@ function VirtualizedBody<TData>({
                   gridTemplateColumns,
                 }}
                 className={cn(
-                  "border-b border-zen-border transition-[background-color,box-shadow,outline-color] duration-100",
-                  "hover:bg-zen-muted/50 hover:shadow-zen-sm",
+                  "zen-border-b zen-border-zen-border zen-transition-[background-color,box-shadow,outline-color] zen-duration-100",
+                  "hover:zen-bg-zen-muted/50 hover:zen-shadow-zen-sm",
                   // selected — bg + sm shadow + 1px primary inside outline (Zen theme spec)
                   row.getIsSelected() &&
-                    "bg-zen-primary-soft shadow-zen-sm outline outline-1 -outline-offset-1 outline-zen-primary",
+                    "zen-bg-zen-primary-soft zen-shadow-zen-sm zen-outline zen-outline-1 -zen-outline-offset-1 zen-outline-zen-primary",
                   rowClassName?.(row),
                 )}
               >
@@ -2463,7 +2463,7 @@ function VirtualizedBody<TData>({
                       key={cell.id}
                       role="cell"
                       style={{
-                        padding: "0.75rem 0.5rem",
+                        padding: "var(--zen-space-2) var(--zen-space-1)",
                         display: "flex",
                         alignItems: "center",
                         minWidth: 0,
@@ -2522,13 +2522,13 @@ function VirtHeaderCellInner<TData, TValue>({
         <button
           type="button"
           onClick={header.column.getToggleSortingHandler()}
-          className="w-full h-full px-2 py-2 inline-flex items-center gap-1 bg-transparent border-0 cursor-pointer text-inherit font-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-inset"
+          className="zen-w-full zen-h-full zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1 zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-inherit zen-font-inherit focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset"
         >
           {flexRender(header.column.columnDef.header, header.getContext())}
           <SortIndicator state={sorted} />
         </button>
       ) : (
-        <span className="px-2 py-2 inline-flex items-center gap-1">
+        <span className="zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
           {flexRender(header.column.columnDef.header, header.getContext())}
         </span>
       )}
@@ -2544,10 +2544,10 @@ function VirtHeaderCellInner<TData, TValue>({
            * drag listener attached to the outer cell. */
           onPointerDown={(e) => e.stopPropagation()}
           className={cn(
-            "absolute right-0 top-0 h-full w-1.5 cursor-col-resize select-none touch-none",
-            "bg-transparent border-0 p-0",
-            "hover:bg-zen-primary",
-            isResizing && "bg-zen-primary",
+            "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
+            "zen-bg-transparent zen-border-0 zen-p-0",
+            "hover:zen-bg-zen-primary",
+            isResizing && "zen-bg-zen-primary",
           )}
         />
       ) : null}
@@ -2582,12 +2582,12 @@ function VirtHeaderCell<TData, TValue>({
           : undefined
       }
       className={cn(
-        "text-sm flex items-center transition-colors relative",
+        "zen-text-sm zen-flex zen-items-center zen-transition-colors zen-relative",
         branded
-          ? "font-semibold text-zen-primary-soft-fg"
-          : "font-medium text-zen-muted-fg",
-        canSort && "hover:bg-zen-muted",
-        "data-[active=true]:bg-zen-primary-soft data-[active=true]:text-zen-primary-soft-fg",
+          ? "zen-font-semibold zen-text-zen-primary-soft-fg"
+          : "zen-font-medium zen-text-zen-muted-fg",
+        canSort && "hover:zen-bg-zen-muted",
+        "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
       )}
       style={{
         minWidth: 0,
@@ -2644,12 +2644,12 @@ function VirtSortableHeaderCell<TData, TValue>({
           : undefined
       }
       className={cn(
-        "text-sm flex items-center transition-colors relative",
+        "zen-text-sm zen-flex zen-items-center zen-transition-colors zen-relative",
         branded
-          ? "font-semibold text-zen-primary-soft-fg"
-          : "font-medium text-zen-muted-fg",
-        canSort && "hover:bg-zen-muted",
-        "data-[active=true]:bg-zen-primary-soft data-[active=true]:text-zen-primary-soft-fg",
+          ? "zen-font-semibold zen-text-zen-primary-soft-fg"
+          : "zen-font-medium zen-text-zen-muted-fg",
+        canSort && "hover:zen-bg-zen-muted",
+        "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
       )}
       style={{
         minWidth: 0,
@@ -2690,8 +2690,8 @@ function PaginationBar<TData>({
   const pageSizeLabelId = React.useId();
 
   return (
-    <div className="flex items-center justify-between gap-3 text-sm">
-      <div className="text-zen-muted-fg">
+    <div className="zen-flex zen-items-center zen-justify-between zen-gap-3 zen-text-sm">
+      <div className="zen-text-zen-muted-fg">
         {enableRowSelection ? (
           <>
             {selectedCount} of {totalCount} row(s) selected.
@@ -2702,10 +2702,10 @@ function PaginationBar<TData>({
           </>
         )}
       </div>
-      <div className="flex items-center gap-3">
+      <div className="zen-flex zen-items-center zen-gap-3">
         {!manual && (
-          <div className="flex items-center gap-2">
-            <span id={pageSizeLabelId} className="text-zen-muted-fg">
+          <div className="zen-flex zen-items-center zen-gap-2">
+            <span id={pageSizeLabelId} className="zen-text-zen-muted-fg">
               Rows per page
             </span>
             <div style={{ width: 88 }}>
@@ -2727,7 +2727,7 @@ function PaginationBar<TData>({
             </div>
           </div>
         )}
-        <div className="flex items-center gap-1">
+        <div className="zen-flex zen-items-center zen-gap-1">
           <Button
             variant="outline"
             color="neutral"

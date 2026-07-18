@@ -134,8 +134,8 @@ export const Calendar = (props: CalendarProps) => {
   };
 
   return (
-    <div class={cn("p-3 inline-block", props.class)}>
-      <div class="flex gap-4">
+    <div class={cn("zen-p-3 zen-inline-block", props.class)}>
+      <div class="zen-flex zen-gap-4">
         <For each={Array.from({ length: numberOfMonths() }, (_, i) => i)}>
           {(monthOffset) => {
             const month = createMemo(() => addMonths(viewMonth(), monthOffset));
@@ -146,22 +146,22 @@ export const Calendar = (props: CalendarProps) => {
             return (
               <div>
                 <Show when={monthOffset === 0}>
-                  <div class="flex items-center justify-between mb-2">
+                  <div class="zen-flex zen-items-center zen-justify-between zen-mb-2">
                     <button
                       type="button"
                       onClick={() => setViewMonth(addMonths(viewMonth(), -1))}
-                      class="h-7 w-7 inline-flex items-center justify-center rounded-zen-sm bg-transparent border-0 cursor-pointer hover:bg-zen-muted"
+                      class="zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer hover:zen-bg-zen-muted"
                       aria-label="Previous month"
                     >
                       ‹
                     </button>
-                    <div class="text-sm font-medium" aria-live="polite">
+                    <div class="zen-text-sm zen-font-medium" aria-live="polite">
                       {monthLabel()}
                     </div>
                     <button
                       type="button"
                       onClick={() => setViewMonth(addMonths(viewMonth(), 1))}
-                      class="h-7 w-7 inline-flex items-center justify-center rounded-zen-sm bg-transparent border-0 cursor-pointer hover:bg-zen-muted"
+                      class="zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer hover:zen-bg-zen-muted"
                       aria-label="Next month"
                     >
                       ›
@@ -169,14 +169,14 @@ export const Calendar = (props: CalendarProps) => {
                   </div>
                 </Show>
                 <Show when={monthOffset > 0}>
-                  <div class="text-sm font-medium mb-2 text-center">{monthLabel()}</div>
+                  <div class="zen-text-sm zen-font-medium zen-mb-2 zen-text-center">{monthLabel()}</div>
                 </Show>
-                <table class="border-collapse text-sm">
+                <table class="zen-border-collapse zen-text-sm">
                   <thead>
                     <tr>
                       <For each={WEEKDAYS}>
                         {(d) => (
-                          <th class="h-8 w-8 text-xs font-normal text-zen-muted-fg">{d}</th>
+                          <th class="zen-h-8 zen-w-8 zen-text-xs zen-font-normal zen-text-zen-muted-fg">{d}</th>
                         )}
                       </For>
                     </tr>
@@ -193,7 +193,7 @@ export const Calendar = (props: CalendarProps) => {
                               const edge = () => isRangeEdge(d);
                               const isDisabled = () => disabledFn(d);
                               return (
-                                <td class="p-0">
+                                <td class="zen-p-0">
                                   <button
                                     type="button"
                                     disabled={isDisabled()}
@@ -201,16 +201,16 @@ export const Calendar = (props: CalendarProps) => {
                                     aria-pressed={isSel()}
                                     onClick={() => handleSelect(d)}
                                     class={cn(
-                                      "h-8 w-8 inline-flex items-center justify-center rounded-zen-sm",
-                                      "bg-transparent border-0 cursor-pointer text-sm transition-colors",
-                                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
-                                      isOutside() && "text-zen-muted-fg opacity-60",
-                                      !isSel() && !isOutside() && "hover:bg-zen-muted",
-                                      isSel() && props.mode !== "range" && "bg-zen-primary text-zen-primary-fg",
-                                      isSel() && props.mode === "range" && !edge() && "bg-zen-primary-soft",
-                                      edge() && "bg-zen-primary text-zen-primary-fg",
-                                      isToday() && !isSel() && "border border-zen-border",
-                                      isDisabled() && "opacity-30 cursor-not-allowed",
+                                      "zen-h-8 zen-w-8 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm",
+                                      "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-sm zen-transition-colors",
+                                      "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+                                      isOutside() && "zen-text-zen-muted-fg zen-opacity-60",
+                                      !isSel() && !isOutside() && "hover:zen-bg-zen-muted",
+                                      isSel() && props.mode !== "range" && "zen-bg-zen-primary zen-text-zen-primary-fg",
+                                      isSel() && props.mode === "range" && !edge() && "zen-bg-zen-primary-soft",
+                                      edge() && "zen-bg-zen-primary zen-text-zen-primary-fg",
+                                      isToday() && !isSel() && "zen-border zen-border-zen-border",
+                                      isDisabled() && "zen-opacity-30 zen-cursor-not-allowed",
                                     )}
                                   >
                                     {d.getDate()}
@@ -277,14 +277,14 @@ export const DatePicker = (rawProps: DatePickerProps) => {
         disabled={props.disabled === true}
         iconLeft={<CalendarIcon />}
         class={cn(
-          "w-60 justify-between font-normal",
-          !date() && "text-zen-muted-fg",
+          "zen-w-60 zen-justify-between zen-font-normal",
+          !date() && "zen-text-zen-muted-fg",
           props.class,
         )}
       >
         {date() ? fmt(date()!) : (props.placeholder ?? "Pick a date")}
       </PopoverTrigger>
-      <PopoverContent class="w-auto p-0">
+      <PopoverContent class="zen-w-auto zen-p-0">
         <Calendar
           mode="single"
           selected={date()}

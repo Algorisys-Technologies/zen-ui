@@ -19,9 +19,9 @@ const NewSeparatorDemo: React.FC = () => (
 <div>Section below</div>`}
       >
         <div style={{ width: "100%" }}>
-          <div style={{ padding: "0.6rem 0" }}>Section above</div>
+          <div style={{ padding: "0.375rem 0" }}>Section above</div>
           <Separator />
-          <div style={{ padding: "0.6rem 0" }}>Section below</div>
+          <div style={{ padding: "0.375rem 0" }}>Section below</div>
         </div>
       </CodeExample>
     </section>
@@ -31,7 +31,7 @@ const NewSeparatorDemo: React.FC = () => (
       <CodeExample
         title={`orientation="vertical"`}
         description="Container needs an explicit height so the separator can stretch."
-        code={`<div style={{ display: "flex", height: 40, alignItems: "center", gap: "1rem" }}>
+        code={`<div style={{ display: "flex", height: 40, alignItems: "center", gap: "0.625rem" }}>
   <span>Blog</span>
   <Separator orientation="vertical" />
   <span>Docs</span>
@@ -44,7 +44,7 @@ const NewSeparatorDemo: React.FC = () => (
             display: "flex",
             height: 40,
             alignItems: "center",
-            gap: "1rem",
+            gap: "0.625rem",
           }}
         >
           <span>Blog</span>
@@ -75,9 +75,9 @@ const NewSeparatorDemo: React.FC = () => (
 <Separator className="bg-zen-error" />`}
       >
         <div style={{ width: "100%" }}>
-          <Separator className="bg-zen-primary" />
+          <Separator className="zen-bg-zen-primary" />
           <div style={{ height: 8 }} />
-          <Separator className="bg-zen-error" />
+          <Separator className="zen-bg-zen-error" />
         </div>
       </CodeExample>
     </section>

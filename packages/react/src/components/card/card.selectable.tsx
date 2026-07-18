@@ -36,7 +36,7 @@ const SelectableCardGroup = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <RadioGroupPrimitive.Root
     ref={ref}
-    className={cn("grid gap-3", className)}
+    className={cn("zen-grid zen-gap-3", className)}
     {...props}
   />
 ));
@@ -62,46 +62,46 @@ const SelectableCard = React.forwardRef<
   <RadioGroupPrimitive.Item
     ref={ref}
     className={cn(
-      "group relative w-full text-left",
-      "rounded-zen-md border-2 border-zen-border bg-zen-background",
-      "p-4 cursor-pointer transition-colors",
+      "zen-group zen-relative zen-w-full zen-text-left",
+      "zen-rounded-zen-md zen-border-2 zen-border-zen-border zen-bg-zen-background",
+      "zen-p-4 zen-cursor-pointer zen-transition-colors",
       /* hover (only when not selected and not disabled) */
-      "hover:border-zen-muted-fg",
+      "hover:zen-border-zen-muted-fg",
       /* selected state — primary ring + soft tint */
-      "data-[state=checked]:border-zen-primary data-[state=checked]:bg-zen-primary-soft",
+      "data-[state=checked]:zen-border-zen-primary data-[state=checked]:zen-bg-zen-primary-soft",
       /* disabled */
-      "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-zen-border",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
+      "disabled:zen-cursor-not-allowed disabled:zen-opacity-50 disabled:hover:zen-border-zen-border",
+      "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
       className,
     )}
     {...props}
   >
     {/* Top row: icon + title (+ optional badge) + check indicator */}
-    <div className="flex items-start gap-3">
+    <div className="zen-flex zen-items-start zen-gap-3">
       {icon ? (
         <span
           aria-hidden
           className={cn(
-            "inline-flex items-center justify-center flex-shrink-0",
-            "h-8 w-8 rounded-zen-sm",
-            "bg-zen-muted text-zen-muted-fg",
-            "group-data-[state=checked]:bg-zen-primary group-data-[state=checked]:text-zen-primary-fg",
+            "zen-inline-flex zen-items-center zen-justify-center zen-flex-shrink-0",
+            "zen-h-8 zen-w-8 zen-rounded-zen-sm",
+            "zen-bg-zen-muted zen-text-zen-muted-fg",
+            "group-data-[state=checked]:zen-bg-zen-primary group-data-[state=checked]:zen-text-zen-primary-fg",
           )}
         >
           {icon}
         </span>
       ) : null}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+      <div className="zen-flex-1 zen-min-w-0">
+        <div className="zen-flex zen-items-center zen-gap-2">
           {title ? (
-            <span className="text-sm font-semibold text-zen-foreground">
+            <span className="zen-text-sm zen-font-semibold zen-text-zen-foreground">
               {title}
             </span>
           ) : null}
-          {badge ? <span className="ml-auto">{badge}</span> : null}
+          {badge ? <span className="zen-ml-auto">{badge}</span> : null}
         </div>
         {children ? (
-          <div className="text-xs text-zen-muted-fg mt-1 leading-relaxed">
+          <div className="zen-text-xs zen-text-zen-muted-fg zen-mt-1 zen-leading-relaxed">
             {children}
           </div>
         ) : null}
@@ -111,10 +111,10 @@ const SelectableCard = React.forwardRef<
     {/* Top-right check indicator — only visible when selected. */}
     <RadioGroupPrimitive.Indicator
       className={cn(
-        "absolute top-2.5 right-2.5",
-        "inline-flex items-center justify-center",
-        "h-5 w-5 rounded-zen-full",
-        "bg-zen-primary text-zen-primary-fg",
+        "zen-absolute zen-top-2.5 zen-right-2.5",
+        "zen-inline-flex zen-items-center zen-justify-center",
+        "zen-h-5 zen-w-5 zen-rounded-zen-full",
+        "zen-bg-zen-primary zen-text-zen-primary-fg",
       )}
     >
       <svg

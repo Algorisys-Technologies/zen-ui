@@ -58,27 +58,27 @@ const Frame = (props: {
   class?: string;
   children: JSX.Element;
 }) => (
-  <div class={cn("flex flex-col gap-1.5", props.class)}>
+  <div class={cn("zen-flex zen-flex-col zen-gap-1.5", props.class)}>
     <Show when={props.label}>
       <label
         for={props.id}
         class={cn(
-          "text-sm font-medium leading-none",
-          props.error ? "text-zen-error" : "text-zen-foreground",
+          "zen-text-sm zen-font-medium zen-leading-none",
+          props.error ? "zen-text-zen-error" : "zen-text-zen-foreground",
         )}
       >
         {props.label}
         <Show when={props.required}>
-          <span aria-hidden class="ml-0.5 text-zen-error">*</span>
+          <span aria-hidden class="zen-ml-0.5 zen-text-zen-error">*</span>
         </Show>
       </label>
     </Show>
     {props.children}
     <Show when={props.description && !props.error}>
-      <p class="text-xs text-zen-muted-fg">{props.description}</p>
+      <p class="zen-text-xs zen-text-zen-muted-fg">{props.description}</p>
     </Show>
     <Show when={props.error}>
-      <p class="text-xs font-medium text-zen-error" role="alert">{props.error}</p>
+      <p class="zen-text-xs zen-font-medium zen-text-zen-error" role="alert">{props.error}</p>
     </Show>
   </div>
 );
@@ -251,7 +251,7 @@ export function BoundCheckbox<TFields extends FieldValues = FieldValues>(
           required={props.required}
           class={props.fieldClass}
         >
-          <div class="flex items-center gap-2">
+          <div class="zen-flex zen-items-center zen-gap-2">
             <Checkbox
               checked={(field.value as boolean | undefined) ?? false}
               onChange={(v) => {
@@ -261,7 +261,7 @@ export function BoundCheckbox<TFields extends FieldValues = FieldValues>(
               name={props.name}
             />
             <Show when={props.inlineLabel}>
-              <span class="text-sm">{props.inlineLabel}</span>
+              <span class="zen-text-sm">{props.inlineLabel}</span>
             </Show>
           </div>
         </Frame>
@@ -283,28 +283,55 @@ export function BoundSwitch<TFields extends FieldValues = FieldValues>(
   return (
     <props.Field name={props.name} type="boolean">
       {(field: { name: string; value: unknown; error: string }) => (
-        <Frame
-          id={`${props.name}-${field.name}`}
-          label={props.label}
-          description={props.description}
-          error={field.error}
-          required={props.required}
-          class={props.fieldClass}
+        // Settings-row layout, mirroring the React binding: label + description
+        // on the left, Switch pushed right. It previously used Frame (label
+        // stacked above, switch below-left) like a checkbox, which is not what
+        // a switch means and did not match React.
+        <div
+          class={cn(
+            "zen-flex zen-items-center zen-justify-between zen-gap-3",
+            props.fieldClass,
+          )}
         >
-          <div class="flex items-center gap-2">
-            <Switch
-              checked={(field.value as boolean | undefined) ?? false}
-              onChange={(v) => {
-                setValue(props.of as never, props.name as never, v as never);
-              }}
-              disabled={props.disabled}
-              name={props.name}
-            />
-            <Show when={props.inlineLabel}>
-              <span class="text-sm">{props.inlineLabel}</span>
+          <div>
+            <Show when={props.label}>
+              <label
+                for={`${props.name}-${field.name}`}
+                class="zen-text-sm zen-font-medium zen-cursor-pointer"
+              >
+                {props.label}
+                <Show when={props.required}>
+                  <span class="zen-ml-0.5 zen-text-zen-error">*</span>
+                </Show>
+              </label>
+            </Show>
+            <Show when={props.inlineLabel && !props.label}>
+              <span class="zen-text-sm zen-font-medium">{props.inlineLabel}</span>
+            </Show>
+            <Show when={props.description}>
+              <p class="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+                {props.description}
+              </p>
+            </Show>
+            <Show when={field.error}>
+              <p
+                class="zen-m-0 zen-text-xs zen-font-medium zen-text-zen-error"
+                role="alert"
+              >
+                {field.error}
+              </p>
             </Show>
           </div>
-        </Frame>
+          <Switch
+            id={`${props.name}-${field.name}`}
+            checked={(field.value as boolean | undefined) ?? false}
+            onChange={(v) => {
+              setValue(props.of as never, props.name as never, v as never);
+            }}
+            disabled={props.disabled}
+            name={props.name}
+          />
+        </div>
       )}
     </props.Field>
   );

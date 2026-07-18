@@ -123,8 +123,8 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           color="neutral"
           disabled={typeof disabled === "boolean" ? disabled : undefined}
           className={cn(
-            "min-w-[16rem] justify-between font-normal",
-            !committed?.from && "text-zen-muted-fg",
+            "zen-min-w-[16rem] zen-justify-between zen-font-normal",
+            !committed?.from && "zen-text-zen-muted-fg",
             className,
           )}
           iconLeft={<CalendarIcon />}
@@ -132,7 +132,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           {label}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="zen-w-auto zen-p-0" align="start">
         <Calendar
           mode="range"
           selected={draft}
@@ -141,7 +141,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           defaultMonth={calendarMonth}
           disabled={typeof disabled === "boolean" ? undefined : disabled}
         />
-        <div className="flex justify-end gap-2 border-t border-zen-border px-3 py-2">
+        <div className="zen-flex zen-justify-end zen-gap-2 zen-border-t zen-border-zen-border zen-px-3 zen-py-2">
           <Button
             type="button"
             variant="ghost"

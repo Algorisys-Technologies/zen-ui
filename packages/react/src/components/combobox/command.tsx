@@ -25,7 +25,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-zen-md bg-zen-background text-zen-foreground",
+      "zen-flex zen-h-full zen-w-full zen-flex-col zen-overflow-hidden zen-rounded-zen-md zen-bg-zen-background zen-text-zen-foreground",
       className,
     )}
     {...props}
@@ -38,16 +38,16 @@ const CommandInput = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
   <div
-    className="flex items-center border-b border-zen-border px-3"
+    className="zen-flex zen-items-center zen-border-b zen-border-zen-border zen-px-3"
     cmdk-input-wrapper=""
   >
     <SearchIcon />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-10 w-full bg-transparent py-3 text-sm outline-none",
-        "placeholder:text-zen-muted-fg",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "zen-flex zen-h-10 zen-w-full zen-bg-transparent zen-py-3 zen-text-sm zen-outline-none",
+        "placeholder:zen-text-zen-muted-fg",
+        "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
         className,
       )}
       {...props}
@@ -62,7 +62,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn("max-h-72 overflow-y-auto overflow-x-hidden", className)}
+    className={cn("zen-max-h-72 zen-overflow-y-auto zen-overflow-x-hidden", className)}
     {...props}
   />
 ));
@@ -74,7 +74,7 @@ const CommandEmpty = React.forwardRef<
 >((props, ref) => (
   <CommandPrimitive.Empty
     ref={ref}
-    className="py-6 text-center text-sm text-zen-muted-fg"
+    className="zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg"
     {...props}
   />
 ));
@@ -86,7 +86,7 @@ const CommandLoading = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Loading
     ref={ref}
-    className={cn("py-4 text-center text-sm text-zen-muted-fg", className)}
+    className={cn("zen-py-4 zen-text-center zen-text-sm zen-text-zen-muted-fg", className)}
     {...props}
   />
 ));
@@ -99,8 +99,8 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden p-1 text-zen-foreground",
-      "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-zen-muted-fg",
+      "zen-overflow-hidden zen-p-1 zen-text-zen-foreground",
+      "[&_[cmdk-group-heading]]:zen-px-2 [&_[cmdk-group-heading]]:zen-py-1.5 [&_[cmdk-group-heading]]:zen-text-xs [&_[cmdk-group-heading]]:zen-font-semibold [&_[cmdk-group-heading]]:zen-text-zen-muted-fg",
       className,
     )}
     {...props}
@@ -114,7 +114,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-zen-border", className)}
+    className={cn("-zen-mx-1 zen-my-1 zen-h-px zen-bg-zen-border", className)}
     {...props}
   />
 ));
@@ -127,9 +127,9 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center gap-2 rounded-zen-sm px-2 py-1.5 text-sm outline-none",
-      "data-[selected=true]:bg-zen-muted",
-      "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
+      "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-sm zen-outline-none",
+      "data-[selected=true]:zen-bg-zen-muted",
+      "data-[disabled=true]:zen-pointer-events-none data-[disabled=true]:zen-opacity-50",
       className,
     )}
     {...props}
@@ -138,7 +138,7 @@ const CommandItem = React.forwardRef<
 CommandItem.displayName = CommandPrimitive.Item.displayName;
 
 const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 shrink-0 opacity-50" aria-hidden>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="zen-mr-2 zen-shrink-0 zen-opacity-50" aria-hidden>
     <circle cx="11" cy="11" r="8" />
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>

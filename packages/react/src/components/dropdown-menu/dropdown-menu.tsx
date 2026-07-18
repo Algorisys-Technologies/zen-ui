@@ -55,9 +55,9 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex cursor-default items-center gap-2 select-none rounded-zen-sm px-2 py-1.5 text-sm outline-none",
-      "data-[state=open]:bg-zen-muted data-[highlighted]:bg-zen-muted",
-      inset && "pl-8",
+      "zen-flex zen-cursor-default zen-items-center zen-gap-2 zen-select-none zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-sm zen-outline-none",
+      "data-[state=open]:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted",
+      inset && "zen-pl-8",
       className,
     )}
     {...props}
@@ -75,7 +75,7 @@ const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      "z-50 min-w-32 overflow-hidden rounded-zen-md border bg-zen-background p-1 text-zen-foreground shadow-md",
+      "zen-z-50 zen-min-w-32 zen-overflow-hidden zen-rounded-zen-md zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md",
       className,
     )}
     {...props}
@@ -92,7 +92,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-32 overflow-hidden rounded-zen-md border bg-zen-background p-1 text-zen-foreground shadow-md",
+        "zen-z-50 zen-min-w-32 zen-overflow-hidden zen-rounded-zen-md zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md",
         className,
       )}
       {...props}
@@ -111,12 +111,12 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center gap-2 rounded-zen-sm px-2 py-1.5 text-sm outline-none",
-      "data-[highlighted]:bg-zen-muted",
-      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-sm zen-outline-none",
+      "data-[highlighted]:zen-bg-zen-muted",
+      "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
       variant === "destructive" &&
-        "text-zen-error data-[highlighted]:bg-zen-error-soft data-[highlighted]:text-zen-error-soft-fg",
-      inset && "pl-8",
+        "zen-text-zen-error data-[highlighted]:zen-bg-zen-error-soft data-[highlighted]:zen-text-zen-error-soft-fg",
+      inset && "zen-pl-8",
       className,
     )}
     {...props}
@@ -131,15 +131,15 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-zen-sm py-1.5 pl-8 pr-2 text-sm outline-none",
-      "data-[highlighted]:bg-zen-muted",
-      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+      "data-[highlighted]:zen-bg-zen-muted",
+      "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
       className,
     )}
     checked={checked}
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
         <CheckIcon />
       </DropdownMenuPrimitive.ItemIndicator>
@@ -156,14 +156,14 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-zen-sm py-1.5 pl-8 pr-2 text-sm outline-none",
-      "data-[highlighted]:bg-zen-muted",
-      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+      "data-[highlighted]:zen-bg-zen-muted",
+      "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
       className,
     )}
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
         <DotIcon />
       </DropdownMenuPrimitive.ItemIndicator>
@@ -182,8 +182,8 @@ const DropdownMenuLabel = React.forwardRef<
   <DropdownMenuPrimitive.Label
     ref={ref}
     className={cn(
-      "px-2 py-1.5 text-xs font-semibold text-zen-muted-fg",
-      inset && "pl-8",
+      "zen-px-2 zen-py-1.5 zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
+      inset && "zen-pl-8",
       className,
     )}
     {...props}
@@ -197,7 +197,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-zen-border", className)}
+    className={cn("-zen-mx-1 zen-my-1 zen-h-px zen-bg-zen-border", className)}
     {...props}
   />
 ));
@@ -209,7 +209,7 @@ const DropdownMenuShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => (
   <span
     className={cn(
-      "ml-auto text-xs tracking-widest text-zen-muted-fg",
+      "zen-ml-auto zen-text-xs zen-tracking-widest zen-text-zen-muted-fg",
       className,
     )}
     {...props}
@@ -229,7 +229,7 @@ const DotIcon = () => (
   </svg>
 );
 const ChevronRightIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="zen-ml-auto">
     <polyline points="9 18 15 12 9 6" />
   </svg>
 );

@@ -18,6 +18,21 @@ const IMPORTANCE = [
   { value: "critical", label: "Critical" },
 ];
 
+/** The scale length is data. A 7-point scale is seven options, not a fork. */
+const scalePoints = (n: number) =>
+  Array.from({ length: n }, (_, i) => ({
+    value: String(i + 1),
+    label: String(i + 1),
+  }));
+
+const SENTIMENT = [
+  { value: "1", label: "Very dissatisfied", renderOption: () => "😞" },
+  { value: "2", label: "Dissatisfied", renderOption: () => "😐" },
+  { value: "3", label: "Neutral", renderOption: () => "🙂" },
+  { value: "4", label: "Satisfied", renderOption: () => "😊" },
+  { value: "5", label: "Very satisfied", renderOption: () => "😄" },
+];
+
 const SHORT = [
   { value: "no", label: "No" },
   { value: "maybe", label: "Maybe" },
@@ -26,6 +41,9 @@ const SHORT = [
 
 const NewLikertDemo: React.FC = () => {
   const [answer, setAnswer] = useState<string | undefined>();
+  const [scale, setScale] = useState<string | undefined>();
+  const [sentiment, setSentiment] = useState<string | undefined>();
+  const [seven, setSeven] = useState<string | undefined>();
 
   return (
     <div className="demo-page">
@@ -69,7 +87,7 @@ const NewLikertDemo: React.FC = () => {
               onValueChange={setAnswer}
               question="Our support response time meets your expectations."
             />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               Answer: <code>{answer ?? "(none)"}</code>
             </p>
           </div>
@@ -144,7 +162,96 @@ const NewLikertDemo: React.FC = () => {
       </section>
 
       <section className="demo-section">
-        <h2>6. Read-only / disabled</h2>
+        <h2>6. Numeric scale (layout="scale")</h2>
+        <CodeExample
+          title="A linear scale, anchored at both ends"
+          description="The mark sits above the control and minLabel / maxLabel name the ends — a bare 1–5 row means nothing without them. They are captions only; the radiogroup's accessible name still comes from question."
+          code={`<Likert
+  layout="scale"
+  options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))}
+  minLabel="Strongly disagree"
+  maxLabel="Strongly agree"
+  question="I understand what is expected of me at work."
+/>`}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+            <Likert
+              layout="scale"
+              options={scalePoints(5)}
+              minLabel="Strongly disagree"
+              maxLabel="Strongly agree"
+              value={scale}
+              onValueChange={setScale}
+              question="I understand what is expected of me at work."
+            />
+            <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+              answer → <code>{scale ?? "—"}</code>
+            </p>
+          </div>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>7. Scale length is data, not markup</h2>
+        <CodeExample
+          title="A 7-point scale is seven options"
+          description="Nothing about the layout assumes five. Hardcoding [1,2,3,4,5] beside a variable-length data model is how a 7-point scale gets stored and rendered as 5, silently losing answers."
+          code={`const scalePoints = (n: number) =>
+  Array.from({ length: n }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
+
+<Likert layout="scale" options={scalePoints(7)} minLabel="Never" maxLabel="Always" />`}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+            <Likert
+              layout="scale"
+              options={scalePoints(7)}
+              minLabel="Never"
+              maxLabel="Always"
+              value={seven}
+              onValueChange={setSeven}
+              question="How often do you get feedback on your work?"
+            />
+            <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+              answer → <code>{seven ?? "—"}</code>
+            </p>
+          </div>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>8. Emoji scale (renderOption)</h2>
+        <CodeExample
+          title="A custom mark, with the answer still announced"
+          description="renderOption replaces the option's visible text with any node. It is rendered aria-hidden and label stays the accessible name — a screen reader announcing 'slightly smiling face' instead of 'Neutral' is not the answer the respondent gave. Keyboard nav is the same radiogroup as every other layout."
+          code={`<Likert
+  layout="scale"
+  options={[
+    { value: "1", label: "Very dissatisfied", renderOption: () => "😞" },
+    { value: "2", label: "Dissatisfied",      renderOption: () => "😐" },
+    { value: "3", label: "Neutral",           renderOption: () => "🙂" },
+    { value: "4", label: "Satisfied",         renderOption: () => "😊" },
+    { value: "5", label: "Very satisfied",    renderOption: () => "😄" },
+  ]}
+  question="How was your onboarding experience?"
+/>`}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
+            <Likert
+              layout="scale"
+              options={SENTIMENT}
+              value={sentiment}
+              onValueChange={setSentiment}
+              question="How was your onboarding experience?"
+            />
+            <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+              answer → <code>{SENTIMENT.find((o) => o.value === sentiment)?.label ?? "—"}</code>
+            </p>
+          </div>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>9. Read-only / disabled</h2>
         <CodeExample
           title="Display existing answers or lock the control"
           code={`<Likert value="agree" readOnly question="…" />

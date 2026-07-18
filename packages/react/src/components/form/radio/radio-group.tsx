@@ -22,16 +22,16 @@ const RadioGroup = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <RadioGroupPrimitive.Root
     ref={ref}
-    className={cn("grid gap-2", className)}
+    className={cn("zen-grid zen-gap-2", className)}
     {...props}
   />
 ));
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
 
 const ITEM_SIZES: Record<RadioSize, string> = {
-  sm: "h-3.5 w-3.5",
-  md: "h-4 w-4",
-  lg: "h-5 w-5",
+  sm: "zen-h-3.5 zen-w-3.5",
+  md: "zen-h-4 zen-w-4",
+  lg: "zen-h-5 zen-w-5",
 };
 
 export interface RadioGroupItemProps
@@ -46,17 +46,17 @@ const RadioGroupItem = React.forwardRef<
   <RadioGroupPrimitive.Item
     ref={ref}
     className={cn(
-      "aspect-square rounded-zen-full border border-zen-border text-zen-primary",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
-      "disabled:cursor-not-allowed disabled:opacity-50",
-      "data-[state=checked]:border-zen-primary",
+      "zen-aspect-square zen-rounded-zen-full zen-border zen-border-zen-border zen-text-zen-primary",
+      "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+      "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
+      "data-[state=checked]:zen-border-zen-primary",
       ITEM_SIZES[size],
       className,
     )}
     {...props}
   >
-    <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-      <span className="block h-2 w-2 rounded-zen-full bg-zen-primary" />
+    <RadioGroupPrimitive.Indicator className="zen-flex zen-items-center zen-justify-center">
+      <span className="zen-block zen-h-2 zen-w-2 zen-rounded-zen-full zen-bg-zen-primary" />
     </RadioGroupPrimitive.Indicator>
   </RadioGroupPrimitive.Item>
 ));

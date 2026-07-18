@@ -19,11 +19,11 @@ import { cn } from "../../lib/cn";
 export type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 const SIZES: Record<AvatarSize, string> = {
-  xs: "h-6 w-6 text-xs",
-  sm: "h-8 w-8 text-xs",
-  md: "h-10 w-10 text-sm",
-  lg: "h-12 w-12 text-base",
-  xl: "h-16 w-16 text-lg",
+  xs: "zen-h-6 zen-w-6 zen-text-xs",
+  sm: "zen-h-8 zen-w-8 zen-text-xs",
+  md: "zen-h-10 zen-w-10 zen-text-sm",
+  lg: "zen-h-12 zen-w-12 zen-text-base",
+  xl: "zen-h-16 zen-w-16 zen-text-lg",
 };
 
 export interface AvatarProps
@@ -38,7 +38,7 @@ const Avatar = React.forwardRef<
   <AvatarPrimitive.Root
     ref={ref}
     className={cn(
-      "relative inline-flex shrink-0 overflow-hidden rounded-zen-full",
+      "zen-relative zen-inline-flex zen-shrink-0 zen-overflow-hidden zen-rounded-zen-full",
       SIZES[size],
       className,
     )}
@@ -53,7 +53,7 @@ const AvatarImage = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Image
     ref={ref}
-    className={cn("aspect-square h-full w-full object-cover", className)}
+    className={cn("zen-aspect-square zen-h-full zen-w-full zen-object-cover", className)}
     {...props}
   />
 ));
@@ -66,7 +66,7 @@ const AvatarFallback = React.forwardRef<
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center bg-zen-muted text-zen-muted-fg font-medium",
+      "zen-flex zen-h-full zen-w-full zen-items-center zen-justify-center zen-bg-zen-muted zen-text-zen-muted-fg zen-font-medium",
       className,
     )}
     {...props}
@@ -85,9 +85,9 @@ export interface AvatarGroupProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const SPACING: Record<NonNullable<AvatarGroupProps["spacing"]>, string> = {
-  tight: "-ml-3",
-  default: "-ml-2",
-  loose: "-ml-1",
+  tight: "-zen-ml-3",
+  default: "-zen-ml-2",
+  loose: "-zen-ml-1",
 };
 
 const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
@@ -102,14 +102,14 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex items-center", className)}
+        className={cn("zen-flex zen-items-center", className)}
         {...props}
       >
         {visible.map((child, idx) => (
           <div
             key={idx}
             className={cn(
-              "ring-2 ring-zen-background rounded-zen-full",
+              "zen-ring-2 zen-ring-zen-background zen-rounded-zen-full",
               idx > 0 && SPACING[spacing],
             )}
           >
@@ -117,7 +117,7 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
           </div>
         ))}
         {overflow > 0 ? (
-          <div className={cn("ring-2 ring-zen-background rounded-zen-full", SPACING[spacing])}>
+          <div className={cn("zen-ring-2 zen-ring-zen-background zen-rounded-zen-full", SPACING[spacing])}>
             <Avatar size={size}>
               <AvatarFallback>+{overflow}</AvatarFallback>
             </Avatar>

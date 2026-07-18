@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-core",
-  "version": "0.0.0",
+  "version": "7.2.0",
   "private": true,
   "type": "module",
   "description": "Framework-agnostic core for @algorisys/zen-ui-* bindings: design tokens, UnoCSS preset, cn helper, theme primitives.",
@@ -10,7 +10,16 @@
     "./theme": "./src/theme.ts",
     "./uno-preset": "./src/uno-preset.ts",
     "./tokens.css": "./styles/tokens.css",
-    "./preflight.css": "./styles/preflight.css"
+    "./preflight.css": "./styles/preflight.css",
+    "./icons": "./src/icons.ts",
+    "./mask": "./src/mask.ts",
+    "./color": "./src/color.ts",
+    "./date-range": "./src/date-range.ts",
+    "./chart": "./src/chart.ts",
+    "./pivot": "./src/pivot.ts",
+    "./virtual-window": "./src/virtual-window.ts",
+    "./variants": "./src/variants.ts",
+    "./release-notes": "./src/release-notes.ts"
   },
   "files": [
     "src",
@@ -18,6 +27,7 @@
   ],
   "dependencies": {
     "clsx": "^2.1.1",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "class-variance-authority": "^0.7.1"
   }
 }

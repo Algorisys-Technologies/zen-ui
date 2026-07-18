@@ -83,7 +83,7 @@ const NewLoadingDemo: React.FC = () => (
   <span>Fetching results…</span>
 </div>`}
       >
-        <div aria-busy="true" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "1.4rem" }}>
+        <div aria-busy="true" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "0.875rem" }}>
           <Loading label="" />
           <span>Fetching results…</span>
         </div>

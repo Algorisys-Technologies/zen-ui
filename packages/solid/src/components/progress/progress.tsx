@@ -1,4 +1,4 @@
-import { splitProps } from "solid-js";
+import { type JSX, splitProps } from "solid-js";
 import { Progress as KProgress } from "@kobalte/core/progress";
 import { cn } from "../../lib/cn";
 
@@ -22,7 +22,22 @@ export type ProgressColor =
   | "warning"
   | "error";
 
-export type ProgressProps = {
+// Kobalte's Progress root renders a <div>. `children` is omitted (not
+// re-added): this component always renders its own fixed Track/Fill and
+// never forwards user children, so accepting the prop would silently drop
+// whatever was passed instead of rendering it. The generic ARIA range
+// attributes (`aria-valuenow`/`-max`/`-min`/`-text`) are also omitted:
+// Kobalte computes and types them as `number` from value/minValue/maxValue,
+// narrower than the generic `number | string` on JSX.HTMLAttributes.
+export type ProgressProps = Omit<
+  JSX.HTMLAttributes<HTMLDivElement>,
+  | "class"
+  | "children"
+  | "aria-valuenow"
+  | "aria-valuemax"
+  | "aria-valuemin"
+  | "aria-valuetext"
+> & {
   value?: number;
   minValue?: number;
   maxValue?: number;
@@ -34,21 +49,21 @@ export type ProgressProps = {
 };
 
 const TRACK_HEIGHT: Record<ProgressSize, string> = {
-  sm: "h-1",
-  md: "h-2",
-  lg: "h-3",
+  sm: "zen-h-1",
+  md: "zen-h-2",
+  lg: "zen-h-3",
 };
 const FILL_BG: Record<ProgressColor, string> = {
-  primary: "bg-zen-primary",
-  neutral: "bg-zen-neutral",
-  info: "bg-zen-info",
-  success: "bg-zen-success",
-  warning: "bg-zen-warning",
-  error: "bg-zen-error",
+  primary: "zen-bg-zen-primary",
+  neutral: "zen-bg-zen-neutral",
+  info: "zen-bg-zen-info",
+  success: "zen-bg-zen-success",
+  warning: "zen-bg-zen-warning",
+  error: "zen-bg-zen-error",
 };
 
 export const Progress = (props: ProgressProps) => {
-  const [local] = splitProps(props, [
+  const [local, rest] = splitProps(props, [
     "class",
     "size",
     "color",
@@ -59,20 +74,21 @@ export const Progress = (props: ProgressProps) => {
   ]);
   return (
     <KProgress
+      {...rest}
       value={local.value}
       minValue={local.minValue}
       maxValue={local.maxValue}
       indeterminate={local.indeterminate}
       class={cn(
-        "relative w-full overflow-hidden rounded-zen-full bg-zen-muted",
+        "zen-relative zen-w-full zen-overflow-hidden zen-rounded-zen-full zen-bg-zen-muted",
         TRACK_HEIGHT[local.size ?? "md"],
         local.class,
       )}
     >
-      <KProgress.Track class="h-full w-full">
+      <KProgress.Track class="zen-h-full zen-w-full">
         <KProgress.Fill
           class={cn(
-            "h-full w-[var(--kb-progress-fill-width)] transition-[width]",
+            "zen-h-full zen-w-[var(--kb-progress-fill-width)] zen-transition-[width]",
             FILL_BG[local.color ?? "primary"],
           )}
         />

@@ -68,7 +68,7 @@ const NewDialogDemo: React.FC = () => {
                   Update your profile information.
                 </DialogDescription>
               </DialogHeader>
-              <p style={{ fontSize: "1.4rem" }}>
+              <p style={{ fontSize: "0.875rem" }}>
                 Body content lives here. Esc, click-outside, and the X
                 button all dismiss.
               </p>
@@ -119,7 +119,7 @@ const NewDialogDemo: React.FC = () => {
                 </DialogDescription>
               </DialogHeader>
               <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <span style={{ fontSize: "1.3rem", fontWeight: 500 }}>Name</span>
+                <span style={{ fontSize: "0.8125rem", fontWeight: 500 }}>Name</span>
                 <Input value={name} onChange={(e) => setName(e.target.value)} />
               </label>
               <DialogFooter>
@@ -183,7 +183,7 @@ const NewDialogDemo: React.FC = () => {
               </AlertDialogContent>
             </AlertDialog>
             {confirmed ? (
-              <span style={{ fontSize: "1.3rem", color: "var(--zen-color-success)" }}>
+              <span style={{ fontSize: "0.8125rem", color: "var(--zen-color-success)" }}>
                 Action confirmed: {confirmed}
               </span>
             ) : null}

@@ -32,24 +32,24 @@ import { cn } from "../../lib/cn";
  */
 
 const bannerVariants = cva(
-  ["w-full flex items-center gap-3 px-4 py-3 text-sm border-y"].join(" "),
+  ["zen-w-full zen-flex zen-items-center zen-gap-3 zen-px-4 zen-py-3 zen-text-sm zen-border-y"].join(" "),
   {
     variants: {
       color: {
         neutral:
-          "bg-zen-muted text-zen-foreground border-zen-border",
+          "zen-bg-zen-muted zen-text-zen-foreground zen-border-zen-border",
         primary:
-          "bg-zen-primary-soft text-zen-primary-soft-fg border-zen-primary-soft",
-        info: "bg-zen-info-soft text-zen-info-soft-fg border-zen-info-soft",
+          "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-border-zen-primary-soft",
+        info: "zen-bg-zen-info-soft zen-text-zen-info-soft-fg zen-border-zen-info-soft",
         success:
-          "bg-zen-success-soft text-zen-success-soft-fg border-zen-success-soft",
+          "zen-bg-zen-success-soft zen-text-zen-success-soft-fg zen-border-zen-success-soft",
         warning:
-          "bg-zen-warning-soft text-zen-warning-soft-fg border-zen-warning-soft",
+          "zen-bg-zen-warning-soft zen-text-zen-warning-soft-fg zen-border-zen-warning-soft",
         destructive:
-          "bg-zen-error-soft text-zen-error-soft-fg border-zen-error-soft",
+          "zen-bg-zen-error-soft zen-text-zen-error-soft-fg zen-border-zen-error-soft",
       },
       sticky: {
-        true: "sticky top-0 z-30",
+        true: "zen-sticky zen-top-0 zen-z-30",
         false: "",
       },
     },
@@ -75,7 +75,7 @@ export const Banner = React.forwardRef<HTMLDivElement, BannerProps>(
     >
       {/* Inner row: centers content within a max-width on wide screens
        *  so the banner doesn't span 1600 px of edge-to-edge text. */}
-      <div className="flex items-center gap-3 w-full max-w-[100rem] mx-auto">
+      <div className="zen-flex zen-items-center zen-gap-3 zen-w-full zen-max-w-[100rem] zen-mx-auto">
         {children}
       </div>
     </div>
@@ -90,7 +90,7 @@ export const BannerIcon = React.forwardRef<
   <span
     ref={ref}
     aria-hidden
-    className={cn("flex-shrink-0 inline-flex items-center", className)}
+    className={cn("zen-flex-shrink-0 zen-inline-flex zen-items-center", className)}
     {...props}
   />
 ));
@@ -103,7 +103,7 @@ export const BannerContent = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex-1 min-w-0 inline-flex flex-wrap items-baseline gap-x-2",
+      "zen-flex-1 zen-min-w-0 zen-inline-flex zen-flex-wrap zen-items-baseline zen-gap-x-2",
       className,
     )}
     {...props}
@@ -117,7 +117,7 @@ export const BannerTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <span
     ref={ref}
-    className={cn("font-semibold", className)}
+    className={cn("zen-font-semibold", className)}
     {...props}
   />
 ));
@@ -127,7 +127,7 @@ export const BannerDescription = React.forwardRef<
   HTMLSpanElement,
   React.HTMLAttributes<HTMLSpanElement>
 >(({ className, ...props }, ref) => (
-  <span ref={ref} className={cn("opacity-90", className)} {...props} />
+  <span ref={ref} className={cn("zen-opacity-90", className)} {...props} />
 ));
 BannerDescription.displayName = "BannerDescription";
 
@@ -137,7 +137,7 @@ export const BannerActions = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex-shrink-0 flex items-center gap-2", className)}
+    className={cn("zen-flex-shrink-0 zen-flex zen-items-center zen-gap-2", className)}
     {...props}
   />
 ));
@@ -153,10 +153,10 @@ export const BannerClose = React.forwardRef<HTMLButtonElement, BannerCloseProps>
       type="button"
       aria-label="Dismiss banner"
       className={cn(
-        "flex-shrink-0 inline-flex items-center justify-center",
-        "h-6 w-6 rounded-zen-sm bg-transparent border-0 cursor-pointer",
-        "text-current opacity-70 hover:opacity-100 hover:bg-black/10",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
+        "zen-flex-shrink-0 zen-inline-flex zen-items-center zen-justify-center",
+        "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
+        "zen-text-current zen-opacity-70 hover:zen-opacity-100 hover:zen-bg-black/10",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
         className,
       )}
       {...props}

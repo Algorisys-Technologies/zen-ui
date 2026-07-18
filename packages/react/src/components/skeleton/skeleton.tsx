@@ -16,7 +16,7 @@ const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("animate-pulse rounded-zen-md bg-zen-muted", className)}
+      className={cn("zen-animate-pulse zen-rounded-zen-md zen-bg-zen-muted", className)}
       {...props}
     />
   ),

@@ -47,6 +47,11 @@ const fakeSearch = (q: string): Promise<ComboboxOption[]> =>
   );
 
 const NewMultiComboboxDemo: React.FC = () => {
+  const [tags, setTags] = useState<ComboboxOption[]>([
+    { value: "bug", label: "bug" },
+    { value: "docs", label: "docs" },
+  ]);
+  const [picked, setPicked] = useState<string[]>([]);
   const [roles, setRoles] = useState<string[]>(["engineer", "designer"]);
   const [countries, setCountries] = useState<string[]>([]);
   const [users, setUsers] = useState<string[]>([]);
@@ -60,6 +65,50 @@ const NewMultiComboboxDemo: React.FC = () => {
         an option in the popover toggles it instead of closing. Same
         sync / async option-loading story.
       </p>
+
+      <section className="demo-section">
+        <h2>0. Creatable</h2>
+        <CodeExample
+          title="Create a tag and keep going"
+          description="Same contract as Combobox, one difference that follows from the selection model: returning the new option APPENDS it to the selection rather than replacing it, and the popover stays open — creating one tag usually means creating another. Adding the option to your list is still yours."
+          code={`const [tags, setTags] = useState([{ value: "bug", label: "bug" }, …]);
+const [picked, setPicked] = useState<string[]>([]);
+
+<MultiCombobox
+  options={tags}
+  value={picked}
+  onValueChange={setPicked}
+  creatable
+  onCreate={(label) => {
+    const opt = { value: label.toLowerCase(), label };
+    setTags((prev) => [...prev, opt]);   // adding is always yours
+    return opt;                           // returning it appends to the selection
+  }}
+/>`}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <MultiCombobox
+              options={tags}
+              value={picked}
+              onValueChange={setPicked}
+              creatable
+              onCreate={(label) => {
+                const opt = { value: label.toLowerCase(), label };
+                setTags((prev) => [...prev, opt]);
+                return opt;
+              }}
+              placeholder="Pick or create tags"
+              searchPlaceholder="Type a tag…"
+              width={280}
+            />
+            <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
+              selected → <code>{picked.join(", ") || "none"}</code>
+              {"  ·  "}
+              all tags → <code>{tags.map((t) => t.label).join(", ")}</code>
+            </p>
+          </div>
+        </CodeExample>
+      </section>
 
       <section className="demo-section">
         <h2>1. Synchronous — pick multiple roles</h2>
@@ -82,7 +131,7 @@ const NewMultiComboboxDemo: React.FC = () => {
               placeholder="Pick roles"
               width={320}
             />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               Picked: <code>{JSON.stringify(roles)}</code>
             </p>
           </div>
@@ -110,7 +159,7 @@ const NewMultiComboboxDemo: React.FC = () => {
               maxDisplayed={2}
               width={320}
             />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               {countries.length === 0
                 ? "Pick a few countries to see the +N overflow"
                 : `Picked: ${countries.join(", ")}`}
@@ -143,7 +192,7 @@ const NewMultiComboboxDemo: React.FC = () => {
               debounceMs={300}
               width={360}
             />
-            <p className="text-xs text-zen-muted-fg m-0">
+            <p className="zen-text-xs zen-text-zen-muted-fg zen-m-0">
               Picked {users.length} user(s). Try typing then clearing
               the query — chips keep their labels even when the
               underlying option list rotates.

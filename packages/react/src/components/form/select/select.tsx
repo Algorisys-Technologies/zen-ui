@@ -34,11 +34,11 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between gap-2 rounded-zen-md border border-zen-border bg-zen-background px-3 py-2 text-sm",
-      "placeholder:text-zen-muted-fg",
-      "focus:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring focus-visible:ring-offset-2",
-      "disabled:cursor-not-allowed disabled:opacity-50",
-      "[&>span]:line-clamp-1",
+      "zen-flex zen-h-10 zen-w-full zen-items-center zen-justify-between zen-gap-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2 zen-text-sm",
+      "placeholder:zen-text-zen-muted-fg",
+      "focus:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+      "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
+      "[&>span]:zen-line-clamp-1",
       className,
     )}
     {...props}
@@ -57,7 +57,7 @@ const SelectScrollUpButton = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.ScrollUpButton
     ref={ref}
-    className={cn("flex cursor-default items-center justify-center py-1", className)}
+    className={cn("zen-flex zen-cursor-default zen-items-center zen-justify-center zen-py-1", className)}
     {...props}
   >
     <ChevronUpIcon />
@@ -71,7 +71,7 @@ const SelectScrollDownButton = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.ScrollDownButton
     ref={ref}
-    className={cn("flex cursor-default items-center justify-center py-1", className)}
+    className={cn("zen-flex zen-cursor-default zen-items-center zen-justify-center zen-py-1", className)}
     {...props}
   >
     <ChevronDownIcon />
@@ -88,9 +88,9 @@ const SelectContent = React.forwardRef<
       ref={ref}
       position={position}
       className={cn(
-        "relative z-50 max-h-96 min-w-32 overflow-hidden rounded-zen-md border border-zen-border bg-zen-background text-zen-foreground shadow-md",
+        "zen-relative zen-z-50 zen-max-h-96 zen-min-w-32 zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-shadow-md",
         position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          "data-[side=bottom]:zen-translate-y-1 data-[side=left]:-zen-translate-x-1 data-[side=right]:zen-translate-x-1 data-[side=top]:-zen-translate-y-1",
         className,
       )}
       {...props}
@@ -98,9 +98,9 @@ const SelectContent = React.forwardRef<
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
         className={cn(
-          "p-1",
+          "zen-p-1",
           position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
+            "zen-h-[var(--radix-select-trigger-height)] zen-w-full zen-min-w-[var(--radix-select-trigger-width)]",
         )}
       >
         {children}
@@ -117,7 +117,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("px-2 py-1.5 text-xs font-semibold text-zen-muted-fg", className)}
+    className={cn("zen-px-2 zen-py-1.5 zen-text-xs zen-font-semibold zen-text-zen-muted-fg", className)}
     {...props}
   />
 ));
@@ -130,14 +130,14 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-zen-sm py-1.5 pl-8 pr-2 text-sm outline-none",
-      "data-[highlighted]:bg-zen-muted",
-      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "zen-relative zen-flex zen-w-full zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+      "data-[highlighted]:zen-bg-zen-muted",
+      "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
       className,
     )}
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
       <SelectPrimitive.ItemIndicator>
         <CheckIcon />
       </SelectPrimitive.ItemIndicator>
@@ -153,7 +153,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-zen-border", className)}
+    className={cn("-zen-mx-1 zen-my-1 zen-h-px zen-bg-zen-border", className)}
     {...props}
   />
 ));

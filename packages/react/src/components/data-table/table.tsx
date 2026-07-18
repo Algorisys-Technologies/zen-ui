@@ -28,12 +28,12 @@ export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
 const Table = React.forwardRef<HTMLTableElement, TableProps>(
   ({ className, containerClassName, containerStyle, ...props }, ref) => (
     <div
-      className={cn("relative w-full overflow-auto", containerClassName)}
+      className={cn("zen-relative zen-w-full zen-overflow-auto", containerClassName)}
       style={containerStyle}
     >
       <table
         ref={ref}
-        className={cn("w-full caption-bottom text-sm border-collapse", className)}
+        className={cn("zen-w-full zen-caption-bottom zen-text-sm zen-border-collapse", className)}
         {...props}
       />
     </div>
@@ -47,7 +47,7 @@ const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn("[&_tr]:border-b [&_tr]:border-zen-border", className)}
+    className={cn("[&_tr]:zen-border-b [&_tr]:zen-border-zen-border", className)}
     {...props}
   />
 ));
@@ -59,7 +59,7 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn("[&_tr:last-child]:border-0", className)}
+    className={cn("[&_tr:last-child]:zen-border-0", className)}
     {...props}
   />
 ));
@@ -72,7 +72,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={cn(
-      "border-t border-zen-border bg-zen-muted/50 font-medium",
+      "zen-border-t zen-border-zen-border zen-bg-zen-muted/50 zen-font-medium",
       className,
     )}
     {...props}
@@ -87,14 +87,14 @@ const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      "border-b border-zen-border",
-      "transition-[background-color,box-shadow,outline-color] duration-100",
+      "zen-border-b zen-border-zen-border",
+      "zen-transition-[background-color,box-shadow,outline-color] zen-duration-100",
       // hover (Zen theme: subtle bg tint + sm drop shadow + slightly darker border tint)
-      "hover:bg-zen-muted/50 hover:shadow-zen-sm",
+      "hover:zen-bg-zen-muted/50 hover:zen-shadow-zen-sm",
       // selected (Zen theme: primary-soft bg + 1px primary inside outline + primary-tinted lg shadow)
-      "data-[state=selected]:bg-zen-primary-soft",
-      "data-[state=selected]:[box-shadow:0_4px_12px_0_var(--zen-color-primary-soft)]",
-      "data-[state=selected]:outline data-[state=selected]:outline-1 data-[state=selected]:-outline-offset-1 data-[state=selected]:outline-zen-primary",
+      "data-[state=selected]:zen-bg-zen-primary-soft",
+      "data-[state=selected]:zen-[box-shadow:0_4px_12px_0_var(--zen-color-primary-soft)]",
+      "data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1 data-[state=selected]:-zen-outline-offset-1 data-[state=selected]:zen-outline-zen-primary",
       className,
     )}
     {...props}
@@ -110,8 +110,8 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       // Zen theme header: 8px padding, Paragraph XSmall Medium, Neutral/200 (muted-fg)
-      "h-10 px-2 py-2 text-left align-middle font-medium text-xs",
-      "text-zen-muted-fg",
+      "zen-h-10 zen-px-2 zen-py-2 zen-text-left zen-align-middle zen-font-medium zen-text-xs",
+      "zen-text-zen-muted-fg",
       className,
     )}
     {...props}
@@ -127,7 +127,7 @@ const TableCell = React.forwardRef<
     ref={ref}
     className={cn(
       // Zen theme cell: 8px horizontal, 12px vertical
-      "px-2 py-3 align-middle text-sm text-zen-foreground",
+      "zen-px-2 zen-py-3 zen-align-middle zen-text-sm zen-text-zen-foreground",
       className,
     )}
     {...props}
@@ -141,7 +141,7 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn("mt-3 text-sm text-zen-muted-fg", className)}
+    className={cn("zen-mt-3 zen-text-sm zen-text-zen-muted-fg", className)}
     {...props}
   />
 ));

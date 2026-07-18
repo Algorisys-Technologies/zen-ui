@@ -184,7 +184,7 @@ export const QRScanner = (props: QRScannerProps) => {
   return (
     <div
       class={cn(
-        "relative overflow-hidden rounded-zen-md border border-zen-border bg-zen-muted",
+        "zen-relative zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-muted",
         props.class,
       )}
       style={{ "aspect-ratio": `${aspectRatio()} / 1` }}
@@ -195,8 +195,8 @@ export const QRScanner = (props: QRScannerProps) => {
         playsinline
         muted
         class={cn(
-          "absolute inset-0 h-full w-full object-cover",
-          !showSurface() && "invisible",
+          "zen-absolute zen-inset-0 zen-h-full zen-w-full zen-object-cover",
+          !showSurface() && "zen-invisible",
         )}
       />
 
@@ -205,13 +205,13 @@ export const QRScanner = (props: QRScannerProps) => {
       </Show>
 
       <Show when={!showSurface()}>
-        <div class="absolute inset-0 flex items-center justify-center p-4 text-center text-sm text-zen-muted-fg">
+        <div class="zen-absolute zen-inset-0 zen-flex zen-items-center zen-justify-center zen-p-4 zen-text-center zen-text-sm zen-text-zen-muted-fg">
           {props.fallback ?? <DefaultFallback status={status()} />}
         </div>
       </Show>
 
       <Show when={status() === "starting"}>
-        <div class="absolute inset-x-0 bottom-2 text-center text-xs text-white/80">
+        <div class="zen-absolute zen-inset-x-0 zen-bottom-2 zen-text-center zen-text-xs zen-text-white/80">
           Starting camera…
         </div>
       </Show>
@@ -223,8 +223,8 @@ const Viewfinder = () => (
   <svg
     viewBox="0 0 100 100"
     preserveAspectRatio="none"
-    class="pointer-events-none absolute inset-0 h-full w-full"
-    aria-hidden
+    class="zen-pointer-events-none zen-absolute zen-inset-0 zen-h-full zen-w-full"
+    aria-hidden="true"
   >
     <g
       stroke="white"

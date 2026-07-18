@@ -41,19 +41,19 @@ const NewTabsDemo: React.FC = () => {
                 <TabsTrigger value="notes">Notes</TabsTrigger>
               </TabsList>
               <TabsContent value="overview">
-                <p className="text-sm py-2">
+                <p className="zen-text-sm zen-py-2">
                   Summary of the customer record — recent purchases,
                   outstanding balance, lifetime value.
                 </p>
               </TabsContent>
               <TabsContent value="activity">
-                <p className="text-sm py-2">
+                <p className="zen-text-sm zen-py-2">
                   Timeline of every interaction — emails, calls, support
                   tickets.
                 </p>
               </TabsContent>
               <TabsContent value="notes">
-                <p className="text-sm py-2">
+                <p className="zen-text-sm zen-py-2">
                   Free-form internal notes only visible to the team.
                 </p>
               </TabsContent>
@@ -84,13 +84,13 @@ const NewTabsDemo: React.FC = () => {
                 <TabsTrigger variant="pills" value="calendar">Calendar</TabsTrigger>
               </TabsList>
               <TabsContent value="list">
-                <p className="text-sm py-2">Linear list view.</p>
+                <p className="zen-text-sm zen-py-2">Linear list view.</p>
               </TabsContent>
               <TabsContent value="board">
-                <p className="text-sm py-2">Kanban board view.</p>
+                <p className="zen-text-sm zen-py-2">Kanban board view.</p>
               </TabsContent>
               <TabsContent value="calendar">
-                <p className="text-sm py-2">Calendar view.</p>
+                <p className="zen-text-sm zen-py-2">Calendar view.</p>
               </TabsContent>
             </Tabs>
           </div>
@@ -118,22 +118,22 @@ const NewTabsDemo: React.FC = () => {
             <Tabs
               defaultValue="general"
               orientation="vertical"
-              className="flex gap-6"
+              className="zen-flex zen-gap-6"
             >
-              <TabsList orientation="vertical" className="min-w-[10rem]">
+              <TabsList orientation="vertical" className="zen-min-w-[10rem]">
                 <TabsTrigger value="general">General</TabsTrigger>
                 <TabsTrigger value="billing">Billing</TabsTrigger>
                 <TabsTrigger value="security">Security</TabsTrigger>
               </TabsList>
               <div style={{ flex: 1 }}>
                 <TabsContent value="general">
-                  <p className="text-sm">Organization name, default currency, time zone.</p>
+                  <p className="zen-text-sm">Organization name, default currency, time zone.</p>
                 </TabsContent>
                 <TabsContent value="billing">
-                  <p className="text-sm">Payment method, plan, invoice history.</p>
+                  <p className="zen-text-sm">Payment method, plan, invoice history.</p>
                 </TabsContent>
                 <TabsContent value="security">
-                  <p className="text-sm">2FA, sessions, API keys.</p>
+                  <p className="zen-text-sm">2FA, sessions, API keys.</p>
                 </TabsContent>
               </div>
             </Tabs>
@@ -154,31 +154,31 @@ const NewTabsDemo: React.FC = () => {
               <TabsList>
                 <TabsTrigger value="inbox">
                   Inbox{" "}
-                  <Badge variant="soft" color="info" className="ml-2">
+                  <Badge variant="soft" color="info" className="zen-ml-2">
                     12
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="archive">
                   Archive{" "}
-                  <Badge variant="soft" color="neutral" className="ml-2">
+                  <Badge variant="soft" color="neutral" className="zen-ml-2">
                     87
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="trash">
                   Trash{" "}
-                  <Badge variant="soft" color="error" className="ml-2">
+                  <Badge variant="soft" color="error" className="zen-ml-2">
                     3
                   </Badge>
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="inbox">
-                <p className="text-sm py-2">12 unread messages.</p>
+                <p className="zen-text-sm zen-py-2">12 unread messages.</p>
               </TabsContent>
               <TabsContent value="archive">
-                <p className="text-sm py-2">87 archived messages.</p>
+                <p className="zen-text-sm zen-py-2">87 archived messages.</p>
               </TabsContent>
               <TabsContent value="trash">
-                <p className="text-sm py-2">3 messages in trash.</p>
+                <p className="zen-text-sm zen-py-2">3 messages in trash.</p>
               </TabsContent>
             </Tabs>
           </div>
@@ -201,18 +201,18 @@ const NewTabsDemo: React.FC = () => {
                 <TabsTrigger value="notes">Notes</TabsTrigger>
               </TabsList>
               <TabsContent value="overview">
-                <p className="text-sm py-2">
+                <p className="zen-text-sm zen-py-2">
                   Current tab: <code>{tab}</code> (driven by external
                   React state).
                 </p>
               </TabsContent>
               <TabsContent value="activity">
-                <p className="text-sm py-2">
+                <p className="zen-text-sm zen-py-2">
                   Current tab: <code>{tab}</code>.
                 </p>
               </TabsContent>
               <TabsContent value="notes">
-                <p className="text-sm py-2">
+                <p className="zen-text-sm zen-py-2">
                   Current tab: <code>{tab}</code>.
                 </p>
               </TabsContent>
@@ -236,10 +236,10 @@ const NewTabsDemo: React.FC = () => {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="basic">
-                <p className="text-sm py-2">Available on the free plan.</p>
+                <p className="zen-text-sm zen-py-2">Available on the free plan.</p>
               </TabsContent>
               <TabsContent value="advanced">
-                <p className="text-sm py-2">Pro-only.</p>
+                <p className="zen-text-sm zen-py-2">Pro-only.</p>
               </TabsContent>
             </Tabs>
           </div>

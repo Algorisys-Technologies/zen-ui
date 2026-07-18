@@ -1,40 +1,102 @@
 import { For } from "solid-js";
+import { A } from "@solidjs/router";
+import { NAV } from "../nav";
 import { useTheme } from "../lib/theme";
+
+/**
+ * Landing page for the Solid demo. Deliberately mirrors the React demo's
+ * Welcome page (same structure, same utilities) so the two bindings read as one
+ * design system — and renders its catalogue from ../nav, the same list the
+ * sidebar uses, so they cannot drift.
+ */
+
+const SectionLabel = (props: { children: string }) => (
+  <h2 class="zen-mb-3 zen-mt-0 zen-text-xs zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">
+    {props.children}
+  </h2>
+);
 
 const Welcome = () => {
   const { themes } = useTheme();
-  return (
-    <div>
-      <h1 class="text-2xl font-semibold m-0">Zen UI — Solid binding</h1>
-      <p class="text-zen-muted-fg mt-2 max-w-xl">
-        SolidJS port of <code>@algorisys/zen-ui-react</code>. Components share
-        design tokens, the UnoCSS preset and theme primitives with the React
-        binding via <code>@algorisys/zen-ui-core</code>. Pick a component from
-        the sidebar to see its demo.
-      </p>
+  const groups = NAV.filter((g) => g.catalogue !== false);
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
 
-      <section class="mt-8">
-        <div class="text-xs uppercase tracking-wide text-zen-muted-fg mb-2">
-          Available themes
-        </div>
-        <div class="grid grid-cols-3 gap-3 max-w-3xl">
+  return (
+    <div class="zen-mx-auto zen-max-w-5xl zen-px-6 zen-py-10">
+      <header class="zen-mb-10">
+        <h1 class="zen-m-0 zen-text-3xl zen-font-bold zen-tracking-tight zen-text-zen-foreground">
+          Zen UI · Solid
+        </h1>
+        <p class="zen-mb-0 zen-mt-3 zen-max-w-2xl zen-text-sm zen-leading-relaxed zen-text-zen-muted-fg">
+          SolidJS port of <code>@algorisys/zen-ui-react</code>, built on Kobalte.
+          Components share design tokens, the UnoCSS preset and theme primitives
+          with the React binding via <code>@algorisys/zen-ui-core</code>, so both
+          render from the same <code>--zen-*</code> custom properties.
+        </p>
+      </header>
+
+      <section class="zen-mb-10">
+        <SectionLabel>Themes</SectionLabel>
+        <div class="zen-grid zen-grid-cols-1 zen-gap-3 sm:zen-grid-cols-3">
           <For each={themes}>
             {(t) => (
               <div
-                class="rounded-zen-md border border-zen-border p-3 shadow-zen-sm"
                 data-theme={t.name}
+                class="zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-p-3 zen-shadow-zen-sm"
               >
-                <div class="font-medium text-sm">{t.label}</div>
-                <div class="flex gap-2 my-2">
-                  <span class="w-5 h-5 rounded-zen-full" style={{ "background-color": t.preview[0] }} />
-                  <span class="w-5 h-5 rounded-zen-full" style={{ "background-color": t.preview[1] }} />
-                  <span class="w-5 h-5 rounded-zen-full" style={{ "background-color": t.preview[2] }} />
+                <div class="zen-text-sm zen-font-medium zen-text-zen-foreground">
+                  {t.label}
                 </div>
-                <div class="text-xs text-zen-muted-fg">{t.description}</div>
+                <div class="zen-my-2 zen-flex zen-gap-2">
+                  <For each={t.preview}>
+                    {(c) => (
+                      <span
+                        class="zen-h-5 zen-w-5 zen-rounded-zen-full zen-border zen-border-zen-border"
+                        style={{ "background-color": c }}
+                      />
+                    )}
+                  </For>
+                </div>
+                <div class="zen-text-xs zen-text-zen-muted-fg">
+                  {t.description}
+                </div>
               </div>
             )}
           </For>
         </div>
+      </section>
+
+      <section>
+        <SectionLabel>{`Components (${total})`}</SectionLabel>
+        <For each={groups}>
+          {(group) => (
+            <div class="zen-mb-8">
+              <h3 class="zen-mb-3 zen-mt-0 zen-text-sm zen-font-semibold zen-text-zen-foreground">
+                {group.group}
+                <span class="zen-ml-2 zen-font-normal zen-text-zen-muted-fg">
+                  {group.items.length}
+                </span>
+              </h3>
+              <div class="zen-grid zen-grid-cols-1 zen-gap-3 sm:zen-grid-cols-2 lg:zen-grid-cols-3">
+                <For each={group.items}>
+                  {(item) => (
+                    <A
+                      href={item.path}
+                      class="zen-block zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-p-4 zen-no-underline zen-transition-colors hover:zen-border-zen-primary focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2"
+                    >
+                      <div class="zen-text-sm zen-font-semibold zen-text-zen-foreground">
+                        {item.label}
+                      </div>
+                      <p class="zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg">
+                        {item.description}
+                      </p>
+                    </A>
+                  )}
+                </For>
+              </div>
+            </div>
+          )}
+        </For>
       </section>
     </div>
   );

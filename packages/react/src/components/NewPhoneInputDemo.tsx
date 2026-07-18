@@ -25,7 +25,7 @@ const NewPhoneInputDemo: React.FC = () => {
           <div style={{ width: 360 }}>
             <PhoneInput value={phone} onValueChange={setPhone} />
           </div>
-          <span style={{ marginLeft: 12, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: 12, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             {phone.country} {phone.number || "(empty)"}
           </span>
         </CodeExample>

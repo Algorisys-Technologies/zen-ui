@@ -182,9 +182,9 @@ function OpSelect<T extends string>({
       aria-label={ariaLabel}
       title={current.label}
       className={cn(
-        "h-7 rounded-zen-sm border border-zen-border bg-zen-background",
-        "px-1 text-xs cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+        "zen-h-7 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
+        "zen-px-1 zen-text-xs zen-cursor-pointer",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
       style={{ minWidth: 36 }}
     >
@@ -204,7 +204,7 @@ function TextFilter({ column }: { column: Column<unknown> }) {
   const setNext = (next: Partial<TextFilterValue>) =>
     column.setFilterValue({ op, value, ...next });
   return (
-    <div className="flex items-center gap-1">
+    <div className="zen-flex zen-items-center zen-gap-1">
       <OpSelect
         value={op}
         onChange={(o) => setNext({ op: o })}
@@ -216,7 +216,7 @@ function TextFilter({ column }: { column: Column<unknown> }) {
         onChange={(e) => setNext({ value: e.target.value })}
         placeholder="Filter…"
         aria-label={`Filter ${headerLabel(column)}`}
-        className="h-7 text-xs flex-1 min-w-0"
+        className="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
   );
@@ -227,7 +227,7 @@ function NumberFilter({ column }: { column: Column<unknown> }) {
   const op = raw?.op ?? "eq";
   const value = raw?.value ?? null;
   return (
-    <div className="flex items-center gap-1">
+    <div className="zen-flex zen-items-center zen-gap-1">
       <OpSelect
         value={op}
         onChange={(o) =>
@@ -246,7 +246,7 @@ function NumberFilter({ column }: { column: Column<unknown> }) {
         }
         placeholder="…"
         aria-label={`Filter ${headerLabel(column)}`}
-        className="h-7 text-xs flex-1 min-w-0"
+        className="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
   );
@@ -258,7 +258,7 @@ function NumberRangeFilter({ column }: { column: Column<unknown> }) {
     null,
   ];
   return (
-    <div className="flex items-center gap-1">
+    <div className="zen-flex zen-items-center zen-gap-1">
       <NumberField
         value={min ?? undefined}
         onValueChange={(v) =>
@@ -266,9 +266,9 @@ function NumberRangeFilter({ column }: { column: Column<unknown> }) {
         }
         placeholder="min"
         aria-label={`${headerLabel(column)} minimum`}
-        className="h-7 text-xs min-w-0 flex-1"
+        className="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
-      <span className="text-zen-muted-fg text-xs" aria-hidden>
+      <span className="zen-text-zen-muted-fg zen-text-xs" aria-hidden>
         –
       </span>
       <NumberField
@@ -278,7 +278,7 @@ function NumberRangeFilter({ column }: { column: Column<unknown> }) {
         }
         placeholder="max"
         aria-label={`${headerLabel(column)} maximum`}
-        className="h-7 text-xs min-w-0 flex-1"
+        className="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
     </div>
   );
@@ -301,7 +301,7 @@ function SelectFilter({
     >
       <SelectTrigger
         aria-label={`Filter ${headerLabel(column)}`}
-        className="h-7 text-xs"
+        className="zen-h-7 zen-text-xs"
       >
         <SelectValue placeholder="All" />
       </SelectTrigger>
@@ -334,9 +334,9 @@ function BooleanFilter({ column }: { column: Column<unknown> }) {
       }}
       aria-label={`Filter ${headerLabel(column)}`}
       className={cn(
-        "h-7 w-full rounded-zen-sm border border-zen-border bg-zen-background",
-        "px-2 text-xs cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+        "zen-h-7 zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
+        "zen-px-2 zen-text-xs zen-cursor-pointer",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
     >
       <option value="any">Any</option>

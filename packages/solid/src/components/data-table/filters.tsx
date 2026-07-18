@@ -151,9 +151,9 @@ function OpSelect<T extends string>(props: {
       onChange={(e) => props.onChange(e.currentTarget.value as T)}
       aria-label={props.ariaLabel}
       class={cn(
-        "h-7 rounded-zen-sm border border-zen-border bg-zen-background",
-        "px-1 text-xs cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+        "zen-h-7 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
+        "zen-px-1 zen-text-xs zen-cursor-pointer",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
       style={{ "min-width": "36px" }}
     >
@@ -171,7 +171,7 @@ function TextFilter(props: { column: Column<unknown, unknown> }) {
   const setNext = (next: Partial<TextFilterValue>) =>
     props.column.setFilterValue({ op: op(), value: value(), ...next });
   return (
-    <div class="flex items-center gap-1">
+    <div class="zen-flex zen-items-center zen-gap-1">
       <OpSelect
         value={op()}
         onChange={(o) => setNext({ op: o })}
@@ -183,7 +183,7 @@ function TextFilter(props: { column: Column<unknown, unknown> }) {
         onInput={(e) => setNext({ value: e.currentTarget.value })}
         placeholder="Filter…"
         aria-label={`Filter ${headerLabel(props.column)}`}
-        class="h-7 text-xs flex-1 min-w-0"
+        class="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
   );
@@ -194,7 +194,7 @@ function NumberFilter(props: { column: Column<unknown, unknown> }) {
   const op = () => raw()?.op ?? "eq";
   const value = () => raw()?.value ?? null;
   return (
-    <div class="flex items-center gap-1">
+    <div class="zen-flex zen-items-center zen-gap-1">
       <OpSelect
         value={op()}
         onChange={(o) =>
@@ -213,7 +213,7 @@ function NumberFilter(props: { column: Column<unknown, unknown> }) {
         }
         placeholder="…"
         aria-label={`Filter ${headerLabel(props.column)}`}
-        class="h-7 text-xs flex-1 min-w-0"
+        class="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
   );
@@ -223,7 +223,7 @@ function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
   const range = () =>
     (props.column.getFilterValue() as NumberRangeFilterValue | undefined) ?? [null, null];
   return (
-    <div class="flex items-center gap-1">
+    <div class="zen-flex zen-items-center zen-gap-1">
       <NumberField
         value={range()[0] ?? undefined}
         onValueChange={(v) =>
@@ -234,9 +234,9 @@ function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
         }
         placeholder="min"
         aria-label={`${headerLabel(props.column)} minimum`}
-        class="h-7 text-xs min-w-0 flex-1"
+        class="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
-      <span class="text-zen-muted-fg text-xs" aria-hidden>–</span>
+      <span class="zen-text-zen-muted-fg zen-text-xs" aria-hidden>–</span>
       <NumberField
         value={range()[1] ?? undefined}
         onValueChange={(v) =>
@@ -247,7 +247,7 @@ function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
         }
         placeholder="max"
         aria-label={`${headerLabel(props.column)} maximum`}
-        class="h-7 text-xs min-w-0 flex-1"
+        class="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
     </div>
   );
@@ -286,9 +286,9 @@ function BooleanFilter(props: { column: Column<unknown, unknown> }) {
       }}
       aria-label={`Filter ${headerLabel(props.column)}`}
       class={cn(
-        "h-7 w-full rounded-zen-sm border border-zen-border bg-zen-background",
-        "px-2 text-xs cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zen-ring",
+        "zen-h-7 zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
+        "zen-px-2 zen-text-xs zen-cursor-pointer",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
     >
       <option value="any">Any</option>

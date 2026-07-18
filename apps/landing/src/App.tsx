@@ -6,7 +6,18 @@ import {
   type ThemeName,
 } from "@algorisys/zen-ui-core/theme";
 
-type Status = "stable" | "alpha" | "planned";
+/**
+ * Demo links, resolved against the base this page is SERVED under.
+ *
+ * A bare "/builder/" is origin-absolute and only correct when the landing page
+ * sits at the origin root. On GitHub Pages it is served from /zen-ui/, where
+ * "/builder/" points at github.io/builder/ — off the deployment entirely. Vite
+ * bakes BASE_URL in at build time ("/" in dev, "/zen-ui/" on Pages) and it
+ * always ends in a slash, so this is correct in both without a special case.
+ */
+const demo = (app: string) => `${import.meta.env.BASE_URL}${app}/`;
+
+type Status = "stable" | "alpha" | "planned" | "experiment";
 
 interface Binding {
   name: string;
@@ -40,6 +51,33 @@ const SOLID_LOGO = (
   </svg>
 );
 
+/** No framework, so no framework's mark: the platform's own brackets. */
+const VANILLA_LOGO = (
+  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden>
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M8 4 3 12l5 8M16 4l5 8-5 8M13.5 3.5l-3 17"
+    />
+  </svg>
+);
+
+const WEB_COMPONENTS_LOGO = (
+  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden>
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 2 3 7v10l9 5 9-5V7l-9-5ZM9.5 9.5 7 12l2.5 2.5M14.5 9.5 17 12l-2.5 2.5"
+    />
+  </svg>
+);
+
 const VUE_LOGO = (
   <svg viewBox="0 0 261.76 226.69" width="44" height="44">
     <path
@@ -69,14 +107,14 @@ const BINDINGS: Binding[] = [
     package: "@algorisys/zen-ui-react",
     status: "stable",
     blurb:
-      "57 primitives on Radix UI, react-hook-form + Zod, TanStack Table + Virtual. Built first; treated as the reference binding.",
+      "79 primitives on Radix UI, react-hook-form + Zod, TanStack Table + Virtual. Built first; treated as the reference binding.",
     features: [
       "Radix-backed compound APIs",
       "DataTable with virtualization",
       "Inline editing + column DnD",
       "shadcn-style asChild via Slot",
     ],
-    demoHref: "/builder/",
+    demoHref: demo("builder"),
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/react",
     installCmd: "npm install @algorisys/zen-ui-react",
     accent: "var(--zen-color-info)",
@@ -87,18 +125,53 @@ const BINDINGS: Binding[] = [
     package: "@algorisys/zen-ui-solid",
     status: "alpha",
     blurb:
-      "57 primitives on Kobalte, @modular-forms/solid, @tanstack/solid-table + virtual, @thisbeyond/solid-dnd. Signal-native, byte-for-byte the same theme.",
+      "79 primitives on Kobalte, @modular-forms/solid, @tanstack/solid-table + virtual, @thisbeyond/solid-dnd. Signal-native, byte-for-byte the same theme.",
     features: [
       "Kobalte-backed compound APIs",
       "DataTable at React parity",
       "Polymorphic `as` (no Slot)",
       "Shares core tokens + UnoCSS preset",
     ],
-    demoHref: "/builder-solid/",
+    demoHref: demo("builder-solid"),
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/solid",
     installCmd: "npm install @algorisys/zen-ui-solid",
     accent: "var(--zen-color-success)",
     logo: SOLID_LOGO,
+  },
+  {
+    name: "Vanilla",
+    package: "@algorisys/zen-ui-vanilla",
+    status: "alpha",
+    blurb:
+      "79 primitives, no framework and no primitive library — props in, a DOM node out. A full third binding at parity with React and Solid, not on npm yet. Building it found four shipped bugs, including an animation layer that had never run in any binding.",
+    features: [
+      "Zero runtime dependencies",
+      "Factory API: Button({…}).el",
+      "Behaviour written by hand: focus trap, dismiss, roving focus",
+      "Not published — a research result, not a product",
+    ],
+    demoHref: demo("builder-vanilla"),
+    repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/vanilla",
+    accent: "var(--zen-color-accent-purple)",
+    logo: VANILLA_LOGO,
+  },
+  {
+    name: "Web Components",
+    package: "@algorisys/zen-ui-web-components",
+    status: "alpha",
+    blurb:
+      "The same components as native custom elements — <zen-button>, <zen-tabs>, <zen-data-table>. Light-DOM wrappers over the vanilla factories, so they render byte-for-byte the same and drop into any framework, or none.",
+    features: [
+      "150+ <zen-*> custom elements",
+      "Light DOM — the shared zen-* stylesheet just works",
+      "Attributes, JS properties, and JSON attrs for data",
+      "Handle methods + CustomEvents: open(), zen-value-change",
+    ],
+    demoHref: demo("builder-wc"),
+    repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/web-components",
+    installCmd: "npm install @algorisys/zen-ui-web-components",
+    accent: "var(--zen-color-primary)",
+    logo: WEB_COMPONENTS_LOGO,
   },
   {
     name: "Vue",
@@ -148,6 +221,14 @@ const StatusBadge = (props: { status: Status }) => {
       label: "Planned",
       class:
         "bg-zen-muted text-zen-muted-fg border border-zen-border",
+    },
+    // Distinct from "alpha" on purpose. Alpha means early but headed for release;
+    // this one is a question we ran, and the honest answer to "when can I install
+    // it" is "you cannot".
+    experiment: {
+      label: "Experiment",
+      class:
+        "bg-zen-primary-soft text-zen-primary-soft-fg border border-zen-primary-soft",
     },
   };
   return (
@@ -307,13 +388,13 @@ const App = () => (
         </p>
         <div class="flex items-center justify-center gap-3 mt-6">
           <a
-            href="/builder/"
+            href={demo("builder")}
             class="inline-flex items-center justify-center h-11 px-6 text-sm font-medium rounded-zen-md bg-zen-primary text-zen-primary-fg no-underline hover:opacity-90"
           >
             Try the React demo
           </a>
           <a
-            href="/builder-solid/"
+            href={demo("builder-solid")}
             class="inline-flex items-center justify-center h-11 px-6 text-sm font-medium rounded-zen-md border border-zen-border bg-zen-background text-zen-foreground no-underline hover:bg-zen-muted"
           >
             Try the Solid demo
@@ -365,7 +446,7 @@ const App = () => (
     <footer class="border-t border-zen-border mt-12">
       <div class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between text-xs text-zen-muted-fg">
         <span>Built by Algorisys Technologies. MIT-style internal use.</span>
-        <span>v0.1 · {new Date().getFullYear()}</span>
+        <span>v{__ZEN_VERSION__} · {new Date().getFullYear()}</span>
       </div>
     </footer>
   </div>

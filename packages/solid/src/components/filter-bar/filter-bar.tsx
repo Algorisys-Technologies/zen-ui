@@ -1,0 +1,191 @@
+import { type JSX, createSignal, For, Show } from "solid-js";
+import { cn } from "../../lib/cn";
+import { Button } from "../button/button";
+import { SelectDialog } from "../select-dialog/select-dialog";
+
+/**
+ * FilterBar — the structured filter area above a table. The gap analysis
+ * calls the List Report unbuildable without it.
+ *
+ * Fields are data, not children: Solid cannot read a child's props the way
+ * React.Children can, so a compound API could not build the "Adapt filters"
+ * list in both bindings from the same source. `render` keeps the control itself
+ * arbitrary.
+ *
+ *   <FilterBar
+ *     fields={[{ id: "supplier", label: "Supplier", render: () => <Input /> }]}
+ *     onGo={runQuery}
+ *   />
+ *
+ * "Adapt filters" is a SelectDialog over the field labels — picking which
+ * filters are visible is exactly a searchable multi-select, so it would be odd
+ * to build a second one.
+ *
+ * This bar collects and reveals; it does not filter. `onGo` is the caller's cue
+ * to run the query, because only the caller knows what the controls mean.
+ *
+ * Mirrors the React binding's API.
+ */
+
+/**
+ * The prefix goes before the bracket. An unprefixed `[prop:value]` matches
+ * nothing under ZEN_PREFIX and emits no CSS at all, which left the fields
+ * stacked full-width under a perfectly green build.
+ */
+const FIELD_GRID = "zen-[grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]";
+
+export interface FilterBarField {
+  id: string;
+  label: string;
+  /** The control for this filter. */
+  render: () => JSX.Element;
+  /** Kept off the bar until the user adds it via Adapt filters. */
+  hiddenByDefault?: boolean;
+}
+
+export interface FilterBarProps {
+  fields: FilterBarField[];
+  /** Run the query. Without it, the Go button is not rendered. */
+  onGo?: () => void;
+  /** Clear the controls. Without it, the Clear button is not rendered. */
+  onClear?: () => void;
+  /** Slot for a variant / saved-view control. */
+  variant?: JSX.Element;
+  /** Controlled visible field ids. Uncontrolled default: everything not `hiddenByDefault`. */
+  visibleIds?: string[];
+  onVisibleIdsChange?: (ids: string[]) => void;
+  /** The Adapt filters affordance. Default: true. */
+  adaptable?: boolean;
+  /** The collapse chevron. Default: true. */
+  collapsible?: boolean;
+  defaultExpanded?: boolean;
+  goLabel?: string;
+  clearLabel?: string;
+  adaptLabel?: string;
+  class?: string;
+}
+
+export const FilterBar = (props: FilterBarProps) => {
+  const [expanded, setExpanded] = createSignal(props.defaultExpanded ?? true);
+  const [adaptOpen, setAdaptOpen] = createSignal(false);
+  // Read once, on purpose: this is the uncontrolled default, and it mirrors
+  // React's lazy useState initializer. A caller who needs the visible set to
+  // follow a changing `fields` owns it via visibleIds.
+  const [internal, setInternal] = createSignal<string[]>(
+    // eslint-disable-next-line solid/reactivity
+    props.fields.filter((f) => !f.hiddenByDefault).map((f) => f.id),
+  );
+
+  const isControlled = () => props.visibleIds !== undefined;
+  const visible = () => (isControlled() ? (props.visibleIds as string[]) : internal());
+
+  const setVisible = (ids: string[]) => {
+    if (!isControlled()) setInternal(ids);
+    props.onVisibleIdsChange?.(ids);
+  };
+
+  // Field order is the caller's, not the order the user ticked them in Adapt.
+  const shown = () => props.fields.filter((f) => visible().includes(f.id));
+  const adaptLabel = () => props.adaptLabel ?? "Adapt filters";
+
+  return (
+    <div
+      class={cn(
+        "zen-flex zen-flex-col zen-gap-3 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-4 zen-py-3",
+        props.class,
+      )}
+    >
+      <div class="zen-flex zen-items-center zen-gap-2">
+        <Show when={props.collapsible ?? true}>
+          <button
+            type="button"
+            aria-expanded={expanded()}
+            aria-label={expanded() ? "Collapse filters" : "Expand filters"}
+            onClick={() => setExpanded((v) => !v)}
+            class="zen-inline-flex zen-h-7 zen-w-7 zen-shrink-0 zen-cursor-pointer zen-items-center zen-justify-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              class={cn("zen-transition-transform", expanded() && "zen-rotate-90")}
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </Show>
+        {props.variant}
+        <div class="zen-ml-auto zen-flex zen-items-center zen-gap-2">
+          <Show when={props.adaptable ?? true}>
+            <Button
+              type="button"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              onClick={() => setAdaptOpen(true)}
+            >
+              {adaptLabel()}
+            </Button>
+          </Show>
+          <Show when={props.onClear}>
+            <Button
+              type="button"
+              variant="outline"
+              color="neutral"
+              size="sm"
+              onClick={() => props.onClear?.()}
+            >
+              {props.clearLabel ?? "Clear"}
+            </Button>
+          </Show>
+          <Show when={props.onGo}>
+            <Button type="button" size="sm" onClick={() => props.onGo?.()}>
+              {props.goLabel ?? "Go"}
+            </Button>
+          </Show>
+        </div>
+      </div>
+
+      <Show when={expanded()}>
+        <Show
+          when={shown().length}
+          fallback={
+            <p class="zen-m-0 zen-py-2 zen-text-sm zen-text-zen-muted-fg">
+              No filters shown. Use {adaptLabel()} to add some.
+            </p>
+          }
+        >
+          <div class={cn("zen-grid zen-gap-3", FIELD_GRID)}>
+            <For each={shown()}>
+              {(f) => (
+                <label class="zen-flex zen-flex-col zen-gap-1">
+                  <span class="zen-text-xs zen-font-medium zen-text-zen-muted-fg">{f.label}</span>
+                  {f.render()}
+                </label>
+              )}
+            </For>
+          </div>
+        </Show>
+      </Show>
+
+      <Show when={props.adaptable ?? true}>
+        <SelectDialog
+          open={adaptOpen()}
+          onOpenChange={setAdaptOpen}
+          title={adaptLabel()}
+          description="Choose which filters appear on the bar."
+          items={props.fields.map((f) => ({ id: f.id, label: f.label }))}
+          multiple
+          selectedIds={visible()}
+          onConfirm={setVisible}
+        />
+      </Show>
+    </div>
+  );
+};

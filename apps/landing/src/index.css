@@ -21,10 +21,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-html {
-  font-size: 62.5%;
-}
-
 button {
   font-family: inherit;
 }

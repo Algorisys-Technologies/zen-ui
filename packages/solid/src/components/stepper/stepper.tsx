@@ -156,8 +156,8 @@ export const Stepper = (props: StepperProps) => {
     <StepperContext.Provider value={ctx}>
       <div
         class={cn(
-          "w-full",
-          orientationAccessor() === "vertical" ? "flex gap-6" : "flex flex-col gap-6",
+          "zen-w-full",
+          orientationAccessor() === "vertical" ? "zen-flex zen-gap-6" : "zen-flex zen-flex-col zen-gap-6",
           props.class,
         )}
       >
@@ -179,8 +179,8 @@ export const StepperList = (props: StepperListProps) => {
     <ol
       class={cn(
         horizontal()
-          ? "flex items-center gap-2 w-full"
-          : "flex flex-col gap-1 min-w-[14rem] shrink-0",
+          ? "zen-flex zen-items-center zen-gap-2 zen-w-full"
+          : "zen-flex zen-flex-col zen-gap-1 zen-min-w-[14rem] zen-shrink-0",
         props.class,
       )}
       aria-label="Steps"
@@ -198,10 +198,10 @@ export const StepperList = (props: StepperListProps) => {
           return (
             <li
               class={cn(
-                "flex",
+                "zen-flex",
                 horizontal()
-                  ? "items-center flex-1 min-w-0"
-                  : "flex-col items-stretch",
+                  ? "zen-items-center zen-flex-1 zen-min-w-0"
+                  : "zen-flex-col zen-items-stretch",
               )}
               aria-current={status() === "current" ? "step" : undefined}
             >
@@ -211,31 +211,31 @@ export const StepperList = (props: StepperListProps) => {
                 disabled={!clickable()}
                 aria-label={`${label}, step ${i() + 1} of ${ctx.steps().length}, ${status()}`}
                 class={cn(
-                  "flex items-start gap-2 text-left min-w-0",
-                  "bg-transparent border-0 p-1 rounded-zen-sm",
+                  "zen-flex zen-items-start zen-gap-2 zen-text-left zen-min-w-0",
+                  "zen-bg-transparent zen-border-0 zen-p-1 zen-rounded-zen-sm",
                   clickable()
-                    ? "cursor-pointer hover:bg-zen-muted/50"
-                    : "cursor-default",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zen-ring",
-                  "disabled:opacity-100",
+                    ? "zen-cursor-pointer hover:zen-bg-zen-muted/50"
+                    : "zen-cursor-default",
+                  "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+                  "disabled:zen-opacity-100",
                 )}
               >
                 <StepperIndicator status={status()} index={i()} />
-                <div class="flex flex-col min-w-0">
+                <div class="zen-flex zen-flex-col zen-min-w-0">
                   <span
                     class={cn(
-                      "text-sm font-medium truncate",
+                      "zen-text-sm zen-font-medium zen-truncate",
                       status() === "error"
-                        ? "text-zen-error"
+                        ? "zen-text-zen-error"
                         : status() === "pending"
-                          ? "text-zen-muted-fg"
-                          : "text-zen-foreground",
+                          ? "zen-text-zen-muted-fg"
+                          : "zen-text-zen-foreground",
                     )}
                   >
                     {label}
                   </span>
                   <Show when={step.description}>
-                    <span class="text-xs text-zen-muted-fg truncate">
+                    <span class="zen-text-xs zen-text-zen-muted-fg zen-truncate">
                       {step.description}
                     </span>
                   </Show>
@@ -243,12 +243,12 @@ export const StepperList = (props: StepperListProps) => {
               </button>
               <Show when={!isLast()}>
                 <div
-                  aria-hidden
+                  aria-hidden="true"
                   class={cn(
                     horizontal()
-                      ? "flex-1 h-px mx-2 min-w-[1rem]"
-                      : "ml-[1.05rem] w-px h-4 my-1",
-                    status() === "completed" ? "bg-zen-primary" : "bg-zen-border",
+                      ? "zen-flex-1 zen-h-px zen-mx-2 zen-min-w-[1rem]"
+                      : "zen-ml-[1.05rem] zen-w-px zen-h-4 zen-my-1",
+                    status() === "completed" ? "zen-bg-zen-primary" : "zen-bg-zen-border",
                   )}
                 />
               </Show>
@@ -262,21 +262,21 @@ export const StepperList = (props: StepperListProps) => {
 
 const StepperIndicator = (props: { status: StepStatus; index: number }) => {
   const styles: Record<StepStatus, string> = {
-    pending: "bg-zen-background border border-zen-border text-zen-muted-fg",
+    pending: "zen-bg-zen-background zen-border zen-border-zen-border zen-text-zen-muted-fg",
     current:
-      "bg-zen-primary text-zen-primary-fg ring-2 ring-zen-primary-soft ring-offset-1",
-    completed: "bg-zen-primary text-zen-primary-fg",
-    error: "bg-zen-error text-zen-error-fg",
+      "zen-bg-zen-primary zen-text-zen-primary-fg zen-ring-2 zen-ring-zen-primary-soft zen-ring-offset-1",
+    completed: "zen-bg-zen-primary zen-text-zen-primary-fg",
+    error: "zen-bg-zen-error zen-text-zen-error-fg",
   };
   return (
     <span
       class={cn(
-        "inline-flex items-center justify-center flex-shrink-0",
-        "h-7 w-7 rounded-zen-full",
-        "text-xs font-semibold",
+        "zen-inline-flex zen-items-center zen-justify-center zen-flex-shrink-0",
+        "zen-h-7 zen-w-7 zen-rounded-zen-full",
+        "zen-text-xs zen-font-semibold",
         styles[props.status],
       )}
-      aria-hidden
+      aria-hidden="true"
     >
       <Show
         when={props.status === "completed"}
@@ -318,7 +318,7 @@ export const StepperPanel = (props: StepperPanelProps) => {
         data-state={active() ? "active" : "inactive"}
         hidden={!active()}
         class={cn(
-          ctx.orientation() === "vertical" ? "flex-1 min-w-0" : "w-full",
+          ctx.orientation() === "vertical" ? "zen-flex-1 zen-min-w-0" : "zen-w-full",
           props.class,
         )}
       >
@@ -371,8 +371,8 @@ export const StepperNavigation = (props: StepperNavigationProps) => {
   return (
     <div
       class={cn(
-        "flex items-center gap-2 mt-6",
-        showBack() ? "justify-between" : "justify-end",
+        "zen-flex zen-items-center zen-gap-2 zen-mt-6",
+        showBack() ? "zen-justify-between" : "zen-justify-end",
         props.class,
       )}
     >

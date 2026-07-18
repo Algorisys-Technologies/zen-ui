@@ -76,8 +76,11 @@ export const PhoneInput = (rawProps: PhoneInputProps) => {
   );
 
   return (
-    <div class={cn("flex items-stretch gap-2", props.class)}>
-      <div style={{ width: "10rem" }}>
+    <div class={cn("zen-flex zen-items-stretch zen-gap-2", props.class)}>
+      {/* Explicit px, mirroring the React binding's `style={{ width: 120 }}`.
+          A layout constant, not a design-token value — and unaffected by any
+          rem-base convention. */}
+      <div style={{ width: "100px" }}>
         <Select
           options={options()}
           value={current().country}
@@ -87,7 +90,7 @@ export const PhoneInput = (rawProps: PhoneInputProps) => {
           disabled={props.disabled}
         />
       </div>
-      <div class="flex-1">
+      <div class="zen-flex-1">
         <Input
           type="tel"
           inputMode="tel"

@@ -81,7 +81,7 @@ const NewFileUploadDemo: React.FC = () => {
                 )
               }
             />
-            <div style={{ marginTop: 8, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+            <div style={{ marginTop: 8, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
               {many.length} file(s) selected
             </div>
           </div>

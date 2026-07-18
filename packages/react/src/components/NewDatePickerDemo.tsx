@@ -26,7 +26,7 @@ const NewDatePickerDemo: React.FC = () => {
 <DatePicker value={date} onValueChange={setDate} />`}
         >
           <DatePicker value={date} onValueChange={setDate} />
-          <span style={{ marginLeft: 12, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: 12, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             value: {date ? date.toLocaleDateString() : "(none)"}
           </span>
         </CodeExample>
@@ -93,7 +93,7 @@ const NewDatePickerDemo: React.FC = () => {
           <div style={{ border: "1px solid var(--zen-color-border)", borderRadius: 8 }}>
             <Calendar mode="range" selected={range} onSelect={setRange} numberOfMonths={2} />
           </div>
-          <div style={{ marginTop: 8, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <div style={{ marginTop: 8, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             range: {range?.from?.toLocaleDateString() || "—"} →{" "}
             {range?.to?.toLocaleDateString() || "—"}
           </div>

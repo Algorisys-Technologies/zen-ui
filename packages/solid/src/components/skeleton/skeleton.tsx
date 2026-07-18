@@ -17,6 +17,6 @@ export type SkeletonProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class"> & 
 export const Skeleton = (props: SkeletonProps) => {
   const [local, rest] = splitProps(props, ["class"]);
   return (
-    <div class={cn("animate-pulse rounded-zen-md bg-zen-muted", local.class)} {...rest} />
+    <div class={cn("zen-animate-pulse zen-rounded-zen-md zen-bg-zen-muted", local.class)} {...rest} />
   );
 };

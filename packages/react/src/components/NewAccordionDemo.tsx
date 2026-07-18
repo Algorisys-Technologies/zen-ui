@@ -101,7 +101,7 @@ const NewAccordionDemo: React.FC = () => {
             <Accordion type="single" collapsible defaultValue="basic">
               <AccordionItem value="basic">
                 <AccordionTrigger>
-                  <span className="inline-flex items-center gap-2">
+                  <span className="zen-inline-flex zen-items-center zen-gap-2">
                     Basic info{" "}
                     <Badge color="success" variant="soft">
                       Complete
@@ -114,7 +114,7 @@ const NewAccordionDemo: React.FC = () => {
               </AccordionItem>
               <AccordionItem value="address">
                 <AccordionTrigger>
-                  <span className="inline-flex items-center gap-2">
+                  <span className="zen-inline-flex zen-items-center zen-gap-2">
                     Address{" "}
                     <Badge color="warning" variant="soft">
                       2 missing
@@ -127,7 +127,7 @@ const NewAccordionDemo: React.FC = () => {
               </AccordionItem>
               <AccordionItem value="id">
                 <AccordionTrigger>
-                  <span className="inline-flex items-center gap-2">
+                  <span className="zen-inline-flex zen-items-center zen-gap-2">
                     Identity{" "}
                     <Badge color="error" variant="soft">
                       Rejected

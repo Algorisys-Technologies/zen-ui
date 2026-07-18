@@ -25,7 +25,7 @@ const NewSwitchDemo: React.FC = () => {
 <Switch checked={enabled} onCheckedChange={setEnabled} />`}
         >
           <Switch checked={enabled} onCheckedChange={setEnabled} />
-          <span style={{ marginLeft: "1.2rem", fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: "0.75rem", fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             {enabled ? "On" : "Off"}
           </span>
         </CodeExample>
@@ -65,7 +65,7 @@ const NewSwitchDemo: React.FC = () => {
   <span>Autosave drafts</span>
 </label>`}
         >
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "1.4rem" }}>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "0.875rem" }}>
             <Switch checked={autosave} onCheckedChange={setAutosave} />
             <span>Autosave drafts</span>
           </label>
@@ -97,9 +97,9 @@ const NewSwitchDemo: React.FC = () => {
   className="data-[state=checked]:bg-zen-error"
 />`}
         >
-          <Switch defaultChecked className="data-[state=checked]:bg-zen-success" />
-          <Switch defaultChecked className="data-[state=checked]:bg-zen-error" />
-          <Switch defaultChecked className="data-[state=checked]:bg-zen-warning" />
+          <Switch defaultChecked className="data-[state=checked]:zen-bg-zen-success" />
+          <Switch defaultChecked className="data-[state=checked]:zen-bg-zen-error" />
+          <Switch defaultChecked className="data-[state=checked]:zen-bg-zen-warning" />
         </CodeExample>
       </section>
 
@@ -126,22 +126,22 @@ const NewSwitchDemo: React.FC = () => {
               const fd = new FormData(e.currentTarget);
               alert(`notifications = ${fd.get("notifications") || "(unchecked)"}`);
             }}
-            style={{ display: "inline-flex", alignItems: "center", gap: "1.2rem" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.75rem" }}
           >
-            <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "1.4rem" }}>
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "0.875rem" }}>
               <Switch name="notifications" value="on" defaultChecked />
               <span>Email notifications</span>
             </label>
             <button
               type="submit"
               style={{
-                padding: "0.6rem 1.2rem",
+                padding: "0.375rem 0.75rem",
                 background: "var(--zen-color-primary)",
                 color: "white",
                 border: 0,
                 borderRadius: 6,
                 cursor: "pointer",
-                fontSize: "1.3rem",
+                fontSize: "0.8125rem",
               }}
             >
               Submit

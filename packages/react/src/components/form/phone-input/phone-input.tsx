@@ -76,7 +76,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     };
 
     return (
-      <div className={cn("flex items-stretch gap-2", className)}>
+      <div className={cn("zen-flex zen-items-stretch zen-gap-2", className)}>
         <div style={{ width: 120 }}>
           <Select
             value={current.country}

@@ -23,7 +23,7 @@ const NewNumberFieldDemo: React.FC = () => {
 <NumberField value={qty} onValueChange={setQty} min={0} max={10} />`}
         >
           <NumberField value={qty} onValueChange={setQty} min={0} max={10} />
-          <span style={{ marginLeft: 12, fontSize: "1.3rem", color: "var(--zen-color-muted-fg)" }}>
+          <span style={{ marginLeft: 12, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             qty: {qty ?? "(empty)"}
           </span>
         </CodeExample>

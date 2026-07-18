@@ -19,7 +19,7 @@ export type CalendarProps = DayPickerProps;
 const Calendar: React.FC<CalendarProps> = ({ className, ...props }) => (
   <DayPicker
     className={cn(
-      "zen-calendar p-3 [--rdp-accent-color:var(--zen-color-primary)] [--rdp-accent-background-color:var(--zen-color-primary-soft)]",
+      "zen-calendar zen-p-3 zen-[--rdp-accent-color:var(--zen-color-primary)] zen-[--rdp-accent-background-color:var(--zen-color-primary-soft)]",
       className,
     )}
     {...props}
@@ -73,8 +73,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
           color="neutral"
           disabled={typeof disabled === "boolean" ? disabled : undefined}
           className={cn(
-            "w-60 justify-between font-normal",
-            !date && "text-zen-muted-fg",
+            "zen-w-60 zen-justify-between zen-font-normal",
+            !date && "zen-text-zen-muted-fg",
             className,
           )}
           iconLeft={<CalendarIcon />}
@@ -82,7 +82,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           {date ? formatDate(date) : placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="zen-w-auto zen-p-0" align="start">
         <Calendar
           mode="single"
           selected={date}
