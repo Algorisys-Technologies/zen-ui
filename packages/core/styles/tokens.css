@@ -109,6 +109,63 @@
 }
 
 /* ===================================================================== *
+ * ZEN-UI — SAP Fiori (Quartz Light) palette                             *
+ *                                                                       *
+ * The enterprise Fiori look: SAP Blue #0A6ED1 as the interactive brand, *
+ * a light shell grey (#F5F6F7) behind white content, SAP semantic       *
+ * green/orange/red. Set data-theme="zen-ui" on <html>.                  *
+ * ===================================================================== */
+:root[data-theme="zen-ui"] {
+  --zen-color-primary: #0A6ED1;
+  --zen-color-primary-fg: #ffffff;
+  --zen-color-primary-soft: #EAF1FB;
+  --zen-color-primary-soft-fg: #0854A0;
+
+  --zen-color-neutral: #32363A;
+  --zen-color-neutral-fg: #ffffff;
+  --zen-color-neutral-soft: #F5F6F7;
+  --zen-color-neutral-soft-fg: #32363A;
+
+  --zen-color-info: #0A6ED1;
+  --zen-color-info-fg: #ffffff;
+  --zen-color-info-soft: #EAF1FB;
+  --zen-color-info-soft-fg: #0854A0;
+
+  --zen-color-success: #107E3E;
+  --zen-color-success-fg: #ffffff;
+  --zen-color-success-soft: #F1FDF6;
+  --zen-color-success-soft-fg: #0D6E36;
+
+  --zen-color-warning: #E9730C;
+  --zen-color-warning-fg: #ffffff;
+  --zen-color-warning-soft: #FEF7F1;
+  --zen-color-warning-soft-fg: #A85400;
+
+  --zen-color-error: #BB0000;
+  --zen-color-error-fg: #ffffff;
+  --zen-color-error-soft: #FFEBEB;
+  --zen-color-error-soft-fg: #BB0000;
+
+  --zen-color-background: #ffffff;
+  --zen-color-foreground: #32363A;
+  --zen-color-muted: #F5F6F7;
+  --zen-color-muted-fg: #6A6D70;
+  --zen-color-border: #E5E5E5;
+  --zen-color-ring: #0A6ED1;
+
+  --zen-status-online: #107E3E;
+  --zen-status-offline: #6A6D70;
+  --zen-status-away: #E9730C;
+  --zen-status-busy: #BB0000;
+
+  --zen-color-accent-orange: #E9730C;
+  --zen-color-accent-purple: #6134B5;
+  --zen-color-accent-light-blue: #91C8F6;
+  --zen-color-accent-magenta: #AA0808;
+  --zen-color-accent-cream: #F5F6F7;
+}
+
+/* ===================================================================== *
  * ZEN THEME — Algorisys Zen palette (cream / orange / magenta / purple) *
  *                                                                       *
  * Brand palette (from design spec):                                     *
