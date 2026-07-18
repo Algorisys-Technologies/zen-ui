@@ -19,6 +19,7 @@ const BLURBS = {
   react: "Radix-backed binding. The reference implementation of the API.",
   solid: "Kobalte-backed binding. Mirrors the React API one-for-one.",
   vanilla: "No framework, no primitive library. Props in, a DOM node out.",
+  "web-components": "Native custom elements over the same core. Works in any framework, or none.",
 };
 
 export const DEMOS = [

@@ -22,6 +22,7 @@ const BINDINGS = {
   react: { dir: "packages/react", base: "/builder", port: 4319 },
   solid: { dir: "packages/solid", base: "/builder-solid", port: 4320 },
   vanilla: { dir: "packages/vanilla", base: "/builder-vanilla", port: 4321 },
+  "web-components": { dir: "packages/web-components", base: "/builder-wc", port: 4322 },
 };
 
 const argv = process.argv.slice(2);

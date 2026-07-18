@@ -11,6 +11,46 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.2.0] - 2026-07-18
+
+### Added
+
+- **A fourth binding: `@algorisys/zen-ui-web-components`.** The same component set
+  as native custom elements — `<zen-button>`, `<zen-tabs>`, `<zen-data-table>`, and
+  ~150 more. They are a thin declarative layer over the vanilla factories: each
+  `<zen-*>` element wraps the matching factory and mounts its DOM in the LIGHT dom,
+  so the shared `zen-*` stylesheet and `--zen-*` tokens style them byte-for-byte
+  the same as the other bindings, and they drop into any framework (or none).
+  - One `defineZenElement(descriptor)` primitive drives every element:
+    `connectedCallback` builds the component, `attributeChangedCallback` →
+    `update()`, `disconnectedCallback` → `destroy()`. Attributes for HTML
+    authoring (with a `json` attr for data-driven components), JS properties for
+    objects/arrays/callbacks, handle methods (`open()`/`close()`/`focus()`)
+    forwarded onto the element, and value-change callbacks re-emitted as
+    `CustomEvent`s (`zen-value-change`, `zen-checked-change`, …).
+  - Creation is deferred/retried when a required data prop is set after the
+    element is appended, so `append(el); el.options = [...]` works.
+  - `index.ts` re-exports the vanilla binding's entire public surface, so the
+    package is at export parity with the other three (`check:parity` covers it).
+  - Files: `packages/web-components/`. Registered in the binding registry
+    (`scripts/bindings.mjs`), the dev hub, `deploy.sh`, and the landing page;
+    demo at `/builder-wc/`.
+
+### Fixed
+
+- **`bun run dev:all` no longer depends on `npx`.** `scripts/dev-all.mjs` spawned
+  `npx vite` per demo, which fails with `ENOENT` on any machine where `npx` is not
+  on `PATH` (a node install without npm, or a bun-only shell) — taking down every
+  demo, not just one. It now launches vite through the runtime already running the
+  script (`process.execPath`) and the locally installed vite CLI, which always
+  resolve.
+- **`bun run check:size` no longer depends on `npx`.** `scripts/check-bundle-size.mjs`
+  built each probe app via `execFileSync("npx", …)`, so on a bun-only shell every
+  case died with "Executable not found in $PATH: npx" and reported as "build
+  failed" — indistinguishable from a real size regression, and it took down
+  `check:dist` with it. Same fix as `dev-all.mjs`: `process.execPath` + the local
+  `vite` bin.
+
 ## [7.1.0] - 2026-07-16
 
 Additive. Components and foundations from the Carbon gap analysis

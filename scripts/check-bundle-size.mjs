@@ -34,6 +34,15 @@ import { join, resolve } from "node:path";
 const REPORT = process.argv.includes("--report");
 const ROOT = resolve(import.meta.dirname, "..");
 
+// Drive vite through the runtime already running this script + the locally
+// installed vite CLI, not `npx vite`. `npx` is not guaranteed on PATH (a node
+// install without npm, or a bun-only shell), and when it is missing every case
+// dies with "Executable not found in $PATH: npx" and reports as "build failed" —
+// which reads exactly like a size regression and is not one. process.execPath is
+// always present and vite is a workspace dependency, so this path always resolves.
+// Same fix as scripts/dev-all.mjs.
+const VITE_BIN = resolve(ROOT, "node_modules/vite/bin/vite.js");
+
 /** gzipped KB is what crosses the wire; that is the number worth budgeting. */
 const CASES = [
   {
@@ -145,7 +154,7 @@ export default defineConfig({
   );
 
   try {
-    execFileSync("npx", ["vite", "build", "--config", cfg], { cwd: ROOT, stdio: "pipe" });
+    execFileSync(process.execPath, [VITE_BIN, "build", "--config", cfg], { cwd: ROOT, stdio: "pipe" });
   } catch (e) {
     // Print stderr, not stdout — vite writes config-load failures to stderr and
     // a "build failed" with no reason is how this script wasted its first run.
