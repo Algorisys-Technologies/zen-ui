@@ -9,7 +9,7 @@
   // prefix match sent every Solid URL to the React server. Matching on the trailing
   // slash is what actually makes it safe; the ordering is belt and braces.
   // Generated from scripts/bindings.mjs, already sorted longest-first.
-  var APPS = ["builder-vanilla","builder-solid","builder"];
+  var APPS = ["builder-vanilla","builder-solid","builder-wc","builder"];
   var path = location.pathname;
   if (path.indexOf(BASE) !== 0) { location.replace(BASE); return; }
   var rest = path.slice(BASE.length);
