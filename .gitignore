@@ -66,6 +66,12 @@ dist-demo
 # `*.md` rule above would swallow it exactly the way it nearly swallowed the
 # release notes.
 !PORTING.md
+# The generated guide an LLM coding agent reads to consume zen-ui. One at the
+# repo root plus one per package (published in each package's `files`). Same
+# `*.md`-at-any-depth trap as release-notes: without these, the per-package
+# copies never ship and a consumer's agent finds nothing in node_modules.
+!AGENTS.md
+!packages/**/AGENTS.md
 *.txt
 components-list.txt
 components-list.csv

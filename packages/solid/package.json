@@ -21,7 +21,8 @@
     "./preflight": "./dist/preflight.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "AGENTS.md"
   ],
   "repository": {
     "type": "git",

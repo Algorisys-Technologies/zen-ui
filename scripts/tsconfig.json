@@ -15,6 +15,11 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    // gen-agent-guide.ts imports packages/react/src/nav.ts directly (the
+    // reference binding's catalogue is its single source of truth) rather than
+    // re-parsing it with a regex. With noEmit that is safe; the extension is
+    // required because bun resolves the .ts at runtime.
+    "allowImportingTsExtensions": true,
     // The checks share scripts/bindings.mjs — the binding registry — with the
     // node-only scripts (dev-all, deploy), which cannot import a .ts. So it is
     // .mjs, and these .ts checks need allowJs to read it.

@@ -267,6 +267,16 @@ sidebar and the landing-page catalogue. Adding a component means: add it to
 `nav.ts`, add its `<Route>`. Nothing else. (They were previously two hand-kept
 lists and drifted 16 entries apart.)
 
+`AGENTS.md` (repo root, plus one per package, published in each package's
+`files`) is the guide a consumer's LLM agent reads to pick the right component
+and binding. It is **generated from the React `nav.ts` `description` fields** by
+`scripts/gen-agent-guide.ts` — never hand-edit it. After changing `nav.ts`, run
+`bun run gen:agent-guide`; `bun run check:agent-guide` (part of `bun run check`)
+fails if the committed files are stale, so a new component cannot land in the
+catalogue without also landing in the agent guide. Per-binding *idiom* and the
+*divergences* section (Select, Toast, data-driven factories) are edited in the
+generator itself, not in the output.
+
 ## "Ship it" — the release procedure
 
 When the user says **"ship it"**, that is the whole instruction. It means: write
