@@ -13,7 +13,7 @@
  * (`zen:theme-change`) is dispatched so multiple listeners stay in sync.
  */
 
-export type ThemeName = "default" | "zen-ui" | "zen-theme" | "dark";
+export type ThemeName = "default" | "zen-theme" | "dark";
 
 export interface ThemeDescriptor {
   name: ThemeName;
@@ -28,12 +28,6 @@ export const THEMES: ThemeDescriptor[] = [
     label: "Default",
     description: "Algorisys brand palette — blue + red",
     preview: ["#1C43B9", "#CE1010", "#F5F5F5"],
-  },
-  {
-    name: "zen-ui",
-    label: "Zen UI",
-    description: "SAP Fiori (Quartz Light) — SAP blue on a light shell",
-    preview: ["#0A6ED1", "#107E3E", "#F5F6F7"],
   },
   {
     name: "zen-theme",
@@ -53,7 +47,7 @@ export const THEME_STORAGE_KEY = "zen-ui-theme";
 export const THEME_EVENT_NAME = "zen:theme-change";
 
 export const isThemeName = (v: unknown): v is ThemeName =>
-  v === "default" || v === "zen-ui" || v === "zen-theme" || v === "dark";
+  v === "default" || v === "zen-theme" || v === "dark";
 
 export function getInitialTheme(): ThemeName {
   if (typeof window === "undefined") return "default";
