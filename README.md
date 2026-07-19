@@ -501,6 +501,17 @@ bun run build:lib    # build packages/react/ to packages/react/dist/
 bun run lint
 ```
 
+> [!IMPORTANT]
+> **Use bun for all repo tooling** — `bun install`, `bun run <script>`, `bun
+> --filter <pkg> <script>`. The workspace is bun-only (`bun.lock`, root
+> `workspaces`); there is no `package-lock.json`, `pnpm-workspace.yaml` or
+> `yarn.lock`, and the scripts assume a bun shell. `npm`/`npx`/`pnpm`/`yarn`
+> here either fail (no lockfile, missing `npx` in a bun shell) or drift a second
+> dependency tree. The only `npm` commands that belong in this repo are the
+> **publishing** ones (`npm pack`, `npm publish`, `npm link`) in
+> [Distribution](#distribution--sharing-this-library-with-other-projects), which
+> talk to a registry rather than the workspace.
+
 ### One URL for every demo
 
 `bun run dev:all` is the one to reach for when comparing the bindings — it
