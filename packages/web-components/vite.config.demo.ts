@@ -28,6 +28,11 @@ export default defineConfig({
   },
   build: {
     copyPublicDir: true,
-    outDir: "dist",
+    // The demo must NOT build into dist/: that directory IS the published
+    // package (package.json main/files point at it), so a demo build there
+    // silently destroys the library artifacts and every consumer resolving
+    // @algorisys/zen-ui-* breaks until build:lib is run again. dist-demo is
+    // already gitignored.
+    outDir: "dist-demo",
   },
 });
