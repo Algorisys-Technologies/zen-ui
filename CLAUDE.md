@@ -1,13 +1,18 @@
 # zen-ui
 
-Bun workspace. A shadcn/Radix-style component library published as two framework
-bindings that share one design core.
+Bun workspace. A shadcn/Radix-style component library published as four
+framework bindings that share one design core. The canonical binding list —
+what every release, parity and packaging check drives from — is
+[scripts/bindings.mjs](scripts/bindings.mjs); React is the reference the others
+mirror.
 
 | Package | What it is |
 |---|---|
 | `packages/core` — `@algorisys/zen-ui-core` | Framework-agnostic: design tokens, UnoCSS theme + prefix, `cn()`, theme primitives. Private, consumed via workspace link. |
-| `packages/react` — `@algorisys/zen-ui-react` | React binding (Radix-backed) **+ the demo app** in the same `src/`. |
-| `packages/solid` — `@algorisys/zen-ui-solid` | Solid binding (Kobalte-backed) + its demo. Mirrors the React API. |
+| `packages/react` — `@algorisys/zen-ui-react` | React binding (Radix-backed) **+ the demo app** in the same `src/`. The reference implementation of the API. |
+| `packages/solid` — `@algorisys/zen-ui-solid` | Solid binding (Kobalte-backed) + its demo. Mirrors the React API. Ships a server (SSR) build alongside the DOM one. |
+| `packages/vanilla` — `@algorisys/zen-ui-vanilla` | No-framework binding + its demo. Data-driven factories rendering into the light DOM; data-driven families take `items` rather than compound children. |
+| `packages/web-components` — `@algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) — a declarative layer over the vanilla factories, re-exporting its surface verbatim. |
 | `apps/landing` | Marketing page. Ships CSS to nobody; depends on `core` only. |
 
 ## Development guidelines
@@ -285,11 +290,15 @@ part.
 
 ### 1. Decide the version
 
-All three packages carry **one** version and bump together, including the ones
-with no changes. They ship one API — two version numbers describing it would
-only diverge, and force every question to start by naming a binding.
-`apps/landing` is exempt: it is an unpublished page, its `0.0.0` is deliberate,
-and it *displays* core's version rather than owning one.
+All published packages carry **one** version and bump together, including the
+ones with no changes — that is `core` plus every binding in
+[scripts/bindings.mjs](scripts/bindings.mjs) (currently five: `core`, `react`,
+`solid`, `vanilla`, `web-components`; `check:release` drives the set from that
+registry, so bump whatever it lists, not a number hardcoded here). They ship one
+API — two version numbers describing it would only diverge, and force every
+question to start by naming a binding. `apps/landing` is exempt: it is an
+unpublished page, its `0.0.0` is deliberate, and it *displays* core's version
+rather than owning one.
 
 Pick it from what actually changed, not from how big the diff felt:
 
@@ -335,8 +344,8 @@ same version — it will not tell you the prose is stale.
 |---|---|---|
 | `release-notes/<v>.md` | users upgrading | the prose above |
 | `CHANGELOG.md` | maintainers | Keep a Changelog, the churn included |
-| `packages/{react,solid}/src/release-notes.ts` | the demo footer chip | one line per change, both bindings |
-| `packages/{core,react,solid}/package.json` | consumers | the number |
+| `packages/core/src/release-notes.ts` | the demo footer chip | one line per change; one copy in core, every binding re-exports it |
+| every published `package.json` | consumers | the number — `core` + each binding in [scripts/bindings.mjs](scripts/bindings.mjs) (five today) |
 
 `release-notes.ts` is capped at 10 entries but sorts breaking-first via
 `KIND_PRIORITY`, so a breaking change cannot fall off the end.
