@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "8.0.0",
+    date: "2026-07-19",
+    kind: "breaking",
+    title: "Padded, bordered controls stop overflowing their container",
+    detail:
+      "The opt-in /preflight stylesheet now sets box-sizing: border-box on every element, which every sizing utility in the library already assumed. Without it Input — w-full plus padding plus a border — rendered 26px wider than the box it was told to fill, so in a flex row the fields touched and the focus ring landed on top of the neighbour. If you already load Tailwind v3's preflight you had this rule and nothing changes; if you do not, it reaches your own markup too and a layout of yours may move.",
+  },
+  {
     version: "7.3.0",
     date: "2026-07-19",
     kind: "new",

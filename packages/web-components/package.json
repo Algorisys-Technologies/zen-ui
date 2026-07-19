@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-web-components",
-  "version": "7.3.0",
+  "version": "8.0.0",
   "type": "module",
   "sideEffects": [
     "**/*.css",

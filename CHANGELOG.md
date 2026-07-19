@@ -11,6 +11,24 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] - 2026-07-19
+
+### Changed
+
+- **BREAKING — `/preflight` now sets `box-sizing: border-box` on `*, ::before,
+  ::after`.** Every sizing utility in the library already assumed it. Without it
+  `w-full` measures the content box, so `Input` (`w-full` + `px-3` + `border`)
+  renders 26px wider than its container and overflows it; in a flex row that
+  swallows the gap, the controls touch, and the `ring-2 ring-offset-2` focus ring
+  — drawn outside the element — overlaps the neighbouring field. Reported as
+  overlapping filter inputs in a consuming app. Tailwind v3's preflight sets this
+  rule and `preflight.css` exists because the library depends on that reset being
+  present; it was the one load-bearing omission. Folded into the existing
+  `*, ::before, ::after` block rather than added as a second one, since it resets
+  the same universal selector. Major because the rule is universal and reaches a
+  consumer's own markup: apps not already loading Tailwind's preflight will see
+  layout move. Apps that do load it are unaffected — they had the rule already.
+
 ## [7.3.0] - 2026-07-19
 
 ### Added
