@@ -11,6 +11,26 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.3.0] - 2026-07-19
+
+### Added
+
+- **`@algorisys/zen-ui-solid` ships a server (SSR) build.** `build:lib` now runs a
+  second Vite build (`vite.config.lib.ssr.ts`) with `vite-plugin-solid`'s `ssr: true`
+  so `renderToString` has a runtime to call. Output goes to `dist/server/index.js`
+  (self-contained: `zen-ui-core` inlined, only `solid-js` + optional `leaflet`/`jodit`
+  external) and is exposed through a `node` export condition ordered ahead of `import`,
+  so a SolidStart/Vinxi server gets the SSR bundle while the browser keeps the DOM
+  build. `solid-js` stays external in both bundles, keeping a single Solid instance
+  across the server/client boundary for hydration. `check:package` validates the new
+  `dist/server/index.js` path on a clean dist.
+
+### Removed
+
+- **Dropped `pnpm-workspace.yaml`.** It arrived with the SSR change but this repo
+  installs with Bun (`bun.lock`, root `workspaces`) and no script uses pnpm; the file
+  was inert and only introduced a second, lockfile-less workspace convention.
+
 ## [7.2.0] - 2026-07-18
 
 ### Added

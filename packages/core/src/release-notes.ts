@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "7.3.0",
+    date: "2026-07-19",
+    kind: "new",
+    title: "The Solid binding now renders on the server",
+    detail:
+      "@algorisys/zen-ui-solid ships a server build alongside the browser one, so SolidStart (or any Vinxi/Node server) can renderToString a page that uses zen-ui components and the browser hydrates it. Node picks it up automatically through a node export condition; you do not change how you import or use anything. Both bundles keep solid-js external, so server and client share one Solid instance.",
+  },
+  {
     version: "7.2.0",
     date: "2026-07-18",
     kind: "new",
