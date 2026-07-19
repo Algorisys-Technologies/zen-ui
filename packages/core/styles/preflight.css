@@ -17,15 +17,24 @@
  */
 
 /* ----------------------------------------------------------------------- *
- * 1. Border reset
+ * 1. Box sizing + border reset
  *
- *    With this rule applied, `border` (a width-only utility) renders an
+ *    box-sizing: border-box is what every sizing utility in the library
+ *    assumes. Without it, `w-full` measures the CONTENT box, so a padded,
+ *    bordered control — Input is w-full + px-3 + border — renders 26px wider
+ *    than its container and overflows it. In a flex row that swallows the gap
+ *    and the controls collide; the focus ring then overlaps the next field.
+ *    Tailwind v3's preflight sets this, and this file exists precisely because
+ *    the library relies on that reset being present.
+ *
+ *    With the border rules applied, `border` (a width-only utility) renders an
  *    edge in the design-token grey instead of the element's current text
  *    color. Color and width can then be customised independently.
  * ----------------------------------------------------------------------- */
 *,
 ::before,
 ::after {
+  box-sizing: border-box;
   border-width: 0;
   border-style: solid;
   border-color: var(--zen-color-border);
