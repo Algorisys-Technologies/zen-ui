@@ -807,16 +807,54 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
       (ShellBar, FlexibleColumnLayout, Page) with no layout system underneath it.
       Carbon's numbers if a scale is wanted: 320/672/1056/1312/1584px at 4/8/16/16/16
       columns.
-- [ ] **The Layer model — needs an explicit yes or no, not more drift.**
-      Contextual token indirection: a component writes `$layer`, never `$layer-02`,
-      and nesting depth rebinds it. The gap doc called it the most valuable idea
-      Carbon has that zen-ui lacks, and argued for deciding "now, while the library
-      is 3.0.0" *because the retrofit cost scales with the component count*.
-      That window has closed — at 8.0.0 it is ~57 families × 3 implementations, and
-      a visual change is a major bump per CLAUDE.md.
-      **Writing down a "no" is a legitimate outcome and costs an hour.** What it
-      buys either way: stop re-discovering this item every time someone reads the
-      gap doc.
+- [x] **The Layer model — DECIDED: no. 2026-07-20.** Not deferred, not "revisit
+      next quarter" — declined, with the conditions for reopening written below so
+      it stops being re-discovered on every read of the gap doc.
+
+      **The reason is not cost, it is that zen-ui already solved this problem a
+      different way.** Carbon needs contextual surface tokens because Carbon
+      delineates containers *by surface*: its tiles are largely borderless, so a
+      card on a card is invisible unless the backgrounds differ, and `$layer` is
+      the machinery that makes them differ. zen-ui delineates *by border and
+      shadow*. Measured: `Card` is `zen-rounded-zen-md zen-border
+      zen-bg-zen-background` and `DialogContent` is `zen-rounded-zen-md zen-border
+      zen-border-zen-border zen-bg-zen-background zen-shadow-zen-lg` — so a Card
+      inside a Dialog *is* white-on-white, and the boundary still reads, because
+      the border draws it. The nesting problem the Layer model exists to solve is
+      already handled; adopting Layer would mean either running two delineation
+      strategies at once, or migrating off borders onto surfaces, which is a total
+      restyle of every container in the library.
+
+      Dark mode, where Carbon's monotonic ascent matters most, already does the
+      right thing on a smaller scale: `background` #0F172A → `muted` #1F2937 →
+      `border` #334155 ascends exactly as Carbon's g100 does, with two steps
+      instead of four and an explicit border on top.
+
+      Cost, for the record, since it is what the gap doc led with: ~60 component
+      files per binding use the flat surface tokens (React 60, Solid 63, vanilla
+      59 — ~180 files), and React alone has 152 occurrences (90 `zen-bg-zen-muted`
+      + 62 `zen-bg-zen-background`). Every one becomes a contextual token. Per
+      CLAUDE.md that is a major bump. **But cost is the second reason, not the
+      first** — a genuinely missing capability would be worth 180 files.
+
+      One implementation note that would matter if this is ever reopened: Carbon's
+      Layer is React context, and **vanilla has no context mechanism at all**
+      (imperative factories, zero `createContext`/Provider). A port would either
+      need explicit level props threaded by callers in vanilla — which defeats the
+      whole point, since the payoff is that authors never name a level — or a
+      CSS-only implementation using descendant selectors
+      (`[data-layer] [data-layer]`), which would cost one implementation in core
+      rather than three. **If reopened, cost the CSS-only version first**; the gap
+      doc's "~15 lines of React" framing does not survive contact with four
+      bindings.
+
+      **Reopen if any of these becomes true**, and not otherwise:
+      - a borderless / surface-delineated visual direction is adopted (this is the
+        real trigger — it makes Layer necessary rather than redundant);
+      - a consumer reports a nesting depth where borders genuinely stop reading,
+        with a screenshot rather than a hypothesis;
+      - a dense enterprise surface lands that nests 3+ containers deep with
+        borders suppressed for visual calm.
 - [ ] **Per-component a11y documentation** — Carbon ships an `accessibility.mdx`
       per component; zen-ui ships none. The gap doc's line is the one worth keeping:
       a11y as "a stated, tooled, per-component commitment rather than a best-effort".

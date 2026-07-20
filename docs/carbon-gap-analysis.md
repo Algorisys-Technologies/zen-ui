@@ -75,7 +75,7 @@ have shipped**. This table is the reconciliation — it is the part to read if y
 | 4 | Motion tokens | ✅ **Closed.** 2 durations + 4 easings vs Carbon's 6 + 6 — fewer steps, same mechanism. **`prefers-reduced-motion` shipped with them** (`tokens.css:409`), which was the payoff this doc argued for. |
 | 5 | `<Theme>` scoping | ❌ **Open.** `tokens.css` still declares `:root[data-theme="…"]` (lines 26, 125, 295) and `theme.ts:60` still sets the attribute on `documentElement`. Global-only. Cheapest open item in the doc. |
 | 6 | `Grid` / `Column` + breakpoints | ❌ **Open.** Zero breakpoint tokens in core; `Stack` is still the only layout primitive. |
-| 7 | The Layer model | ❌ **Open, and the framing has expired.** |
+| 7 | The Layer model | 🚫 **Declined 2026-07-20** — not deferred. zen-ui delineates containers by border + shadow where Carbon delineates by surface, so this solves a problem zen-ui already solved another way. Reasoning and reopen conditions in [todo.md](../todo.md). |
 | 8 | `Link` | ✅ Shipped, all bindings. |
 | 9 | `Search` | ✅ Shipped, all bindings (7.1.0). |
 | 10 | `ContentSwitcher` | ✅ Covered by `SegmentedButton` (+ `SegmentedButtonItem`), all bindings. Recorded as closed-by-equivalent, not built under Carbon's name. |
@@ -172,6 +172,24 @@ Three details worth stealing exactly:
 **zen-ui has no equivalent and no substitute.** `--zen-color-background` / `--zen-color-muted` are flat and absolute. Verified: zero occurrences of `Layer` in `packages/react/src`. This is not a missing component — it is a missing *capability*, and retrofitting it later means touching every component's surface tokens. It is worth deciding on **now**, while the library is 3.0.0, rather than at 5.0.0.
 
 Note the honest counter-argument: the layer model earns its keep in dense enterprise UIs with deep nesting. A library whose consumers build flatter pages may reasonably decide the indirection isn't worth the cognitive cost. That's a legitimate call — but it should be a *decision*, not an omission by default.
+
+> **Decided 2026-07-20: no.** It is now a decision rather than an omission, which is what this
+> paragraph asked for. The deciding argument was not cost but the section's opening premise —
+> "a card on the page body and a card nested inside another card must differ or the nesting boundary
+> disappears". That is true of Carbon, whose tiles are largely borderless, and false of zen-ui, which
+> draws every container boundary with a border and a shadow. Measured: `Card` is `zen-rounded-zen-md
+> zen-border zen-bg-zen-background`; `DialogContent` is the same plus `zen-shadow-zen-lg`. A Card
+> inside a Dialog is white-on-white and reads perfectly well.
+>
+> Two further findings that would change the estimate above if this is ever reopened. The React
+> implementation being "~15 lines" does not survive four bindings: **vanilla has no context
+> mechanism at all** (imperative factories, zero `createContext`), so a faithful port would force
+> callers to thread explicit levels — defeating the entire payoff, which is that authors never name
+> a level. A **CSS-only implementation** using descendant selectors (`[data-layer] [data-layer]`)
+> would cost one implementation in core rather than three, and is the version to cost first.
+>
+> Reopen conditions are recorded in [todo.md](../todo.md); the real one is a shift to a borderless,
+> surface-delineated visual direction, which would make this necessary rather than redundant.
 
 ### 2. The 2x Grid — zen-ui has no layout system at all
 
@@ -447,7 +465,7 @@ Ordered by value-to-effort, and deliberately short. ~~Everything here is portabl
 4. ✅ **Motion tokens.** Shipped, at 2 durations + 4 easings (Carbon has 6 + 6) — fewer steps, same mechanism. **`prefers-reduced-motion` shipped with them** (`tokens.css:409`), plus JS `matchMedia` checks in Carousel and ObjectPage across all four bindings for the scroll behaviour CSS cannot reach.
 5. ❌ **`<Theme>` scoping.** Still `:root[data-theme]`, still global-only. Small change, large payoff. **Now the cheapest open item in the document, and it no longer depends on #7 landing.**
 6. ❌ **`Grid` / `Column` + breakpoint tokens.** Untouched. zen-ui now ships a full app frame (`ShellBar`, `FlexibleColumnLayout`, `Page`) with no layout primitive under it, which is a stranger shape at 8.0.0 than it was at 3.0.0.
-7. ❌ **The Layer model** — **the window this item described has closed.** It argued for deciding "now, while the library is 3.0.0" precisely because the retrofit cost scales with the component count. Five releases later that count is ~57 families × 3 implementations, and a visual change is a major bump. This is no longer "decide cheaply"; it is "fund a migration or write down a no". Writing down the no is a legitimate outcome and costs an hour.
+7. 🚫 **The Layer model — declined 2026-07-20.** The window this item described closed, but that is the second reason. The first: **this section's premise does not hold for zen-ui.** It opens with "a card on the page body and a card nested inside another card must differ or the nesting boundary disappears" — true for Carbon, whose tiles are largely borderless, and false here. `Card` and `DialogContent` both carry `zen-border zen-border-zen-border`, so a Card in a Dialog is white-on-white *and the boundary still reads*, because the border draws it. Adopting Layer would mean running two delineation strategies at once or migrating off borders onto surfaces. Cost, for the record: ~180 component files across three implementations, 152 surface-token occurrences in React alone. Full reasoning and the conditions for reopening are in [todo.md](../todo.md).
 
 **Components — cheap, and each one is currently being hand-rolled:**
 
