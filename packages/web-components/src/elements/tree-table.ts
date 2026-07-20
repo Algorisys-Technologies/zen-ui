@@ -17,6 +17,8 @@ defineZenElement<TreeTableProps<Record<string, unknown>>>({
     "enable-row-selection": "boolean",
     "hierarchy-column-id": "string",
     "header-variant": "string",
+    "enable-pagination": "boolean",
+    "page-size": "number",
     "enable-virtualization": "boolean",
     "row-estimated-height": "number",
     "sticky-header": "boolean",
@@ -45,11 +47,13 @@ defineZenElement<TreeTableProps<Record<string, unknown>>>({
     "hasChildren",
     "loadChildren",
     "onLoadChildrenError",
+    "pageSizeOptions",
   ],
   events: {
     onExpandedChange: "zen-expanded-change",
     onRowSelectionChange: "zen-row-selection-change",
     onRowClick: "zen-row-click",
+    onPaginationChange: "zen-pagination-change",
   },
   childrenProp: false,
 });
