@@ -164,6 +164,7 @@ export const NAV: NavGroup[] = [
       { label: "TreeTable", path: "/tree-table", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/solid/src/components/NewTreeTableDemo.tsx" },
       { label: "Micro charts", path: "/micro-chart", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/solid/src/components/NewMicroChartDemo.tsx" },
       { label: "Timeline", path: "/timeline", description: "Ordered list of events with a rail, markers, timestamps and date groups", source: "packages/solid/src/components/NewTimelineDemo.tsx" },
+      { label: "UploadCollection", path: "/upload-collection", description: "The list of uploaded files \u2014 progress, rename, delete, retry; the result FileUpload has no view for", source: "packages/solid/src/components/NewUploadCollectionDemo.tsx" },
       { label: "Pivot", path: "/pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/solid/src/components/NewPivotDemo.tsx" },
       { label: "Combobox", path: "/combobox", description: "Sync options or async onSearch with debounced loading", source: "packages/solid/src/components/NewComboboxDemo.tsx" },
       { label: "MultiCombobox", path: "/multi-combobox", description: "Multi-select with chip trigger + overflow collapse", source: "packages/solid/src/components/NewMultiComboboxDemo.tsx" },

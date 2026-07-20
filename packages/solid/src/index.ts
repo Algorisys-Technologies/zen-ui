@@ -540,6 +540,8 @@ export type {
   DataTableManualPagination,
 } from "./components/data-table/data-table";
 export { TreeTable } from "./components/tree-table/tree-table";
+export { UploadCollection } from "./components/upload-collection/upload-collection";
+export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";
 export { Timeline } from "./components/timeline/timeline";
 export type { TimelineProps, TimelineItem, TimelineState } from "./components/timeline/timeline";
 export {

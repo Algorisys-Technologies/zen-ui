@@ -827,8 +827,46 @@ built — Tier 1 spent a day marked done while a row was missing.
                   `var(--zen-color-*)` directly; and delta DERIVES its colour
                   from direction rather than taking it, because a caller
                   painting a fall green would defeat the component.
-            - [ ] Timeline
-            - [ ] UploadCollection
+            - [x] **Timeline — DONE** (2026-07-21, all four bindings). An
+                  ordered list of events. Four decisions are load-bearing rather
+                  than stylistic: it is an `<ol>` because sequence is the whole
+                  subject; the group heading is NOT an `<li>`, so it cannot
+                  inflate the count a screen reader announces; the rail is
+                  hidden on the LAST item, because a line past the final event
+                  reads as "more below"; and markers are `aria-hidden`, since
+                  they only repeat the title. Grouping is a `group` STRING on
+                  the item, not a `groupBy` function — deriving it would mean
+                  guessing at the caller's timezone and their idea of "today".
+                  `density="compact"` DROPS the description rather than
+                  shrinking type. Vanilla deviates in one way, deliberately: the
+                  factory returns a wrapper `<div>`, because `el` is handed out
+                  once and swapping the root between an `<ol>` and the empty
+                  `<p>` on update() would leave the caller holding a detached
+                  node.
+            - [ ] **UploadCollection — Solid done** (2026-07-21). React, vanilla
+                  and web-components still to port; `check:parity` is red until
+                  they land. The list of uploaded files, paired with FileUpload
+                  rather than folded into it: the drop zone is a control the
+                  user operates, the list is state the transport writes. It does
+                  NOT own the upload — no `url`, no `method`, no retry policy;
+                  it takes `status` and `progress` per item, and `onRetry` hands
+                  the item back. Actions are presence-gated (no `onRemove`, no
+                  delete button). It is a `<ul>`, unlike Timeline: attachments
+                  have no meaningful sequence. One bug worth not re-deriving:
+                  Escape closing the rename editor unmounts the input, which
+                  fires BLUR, which commits — so cancelling SAVED the text it
+                  was discarding until a `cancelled` flag was added. Every
+                  binding wiring both handlers will hit it.
+            - [ ] **Progress renders `indeterminate` as a FULL bar** (found
+                  2026-07-21 building UploadCollection). Kobalte sets no
+                  `--kb-progress-fill-width` in that state, so the fill spans
+                  100% and a queued item reads as finished. The doc comment
+                  already says `data-progress="indeterminate"` is there to be
+                  targeted; nothing targets it. Not fixed with UploadCollection
+                  on scope grounds — it is a visual change to a shipped
+                  component, so it is a MAJOR bump and a four-binding change of
+                  its own. UploadCollection pulses the bar at the call site
+                  meanwhile.
             - [ ] PlanningCalendar
       - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
             DataTable, not dialogs around it.
