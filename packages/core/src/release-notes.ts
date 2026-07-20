@@ -33,6 +33,22 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.0.3",
+    date: "2026-07-20",
+    kind: "improved",
+    title: "Combobox stops rebuilding its option list on every render",
+    detail:
+      "Combobox and MultiCombobox derived their working list as `isAsync ? asyncResults : options ?? []`. Without `options` — the async case — that `?? []` produced a new empty array every render, so everything depending on the list redid itself each time whether or not anything had changed. No behaviour difference; fewer wasted recomputations in a component that re-renders on every keystroke.",
+  },
+  {
+    version: "9.0.3",
+    date: "2026-07-20",
+    kind: "improved",
+    title: "Six prop types are now type aliases rather than empty interfaces",
+    detail:
+      "SkeletonProps, SeparatorProps, TextareaProps, InputProps, AlertCloseProps and BannerCloseProps were `interface X extends Y {}` and are now `type X = Y`. Same name, same shape, same import. The one thing an alias cannot do is declaration merging — if you were augmenting one of these with `declare module`, that no longer applies.",
+  },
+  {
     version: "9.0.2",
     date: "2026-07-20",
     kind: "fixed",

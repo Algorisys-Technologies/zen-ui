@@ -11,6 +11,45 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.3] - 2026-07-20
+
+### Fixed
+
+- `Combobox` / `MultiCombobox`: `allOptions = isAsync ? asyncResults : options ?? []`
+  allocated a new array on every render when `options` was undefined, so every
+  hook depending on it re-ran each time. Memoised.
+- The TanStack `ColumnMeta` augmentation constrained `TData` to a bare
+  `unknown`; upstream constrains to `RowData`, so it now mirrors the declaration
+  it augments. React and Solid.
+
+### Changed
+
+- Six empty `interface X extends Y {}` prop types are now `type X = Y`:
+  `SkeletonProps`, `SeparatorProps`, `TextareaProps`, `InputProps`,
+  `AlertCloseProps`, `BannerCloseProps`. Same name, same shape; only declaration
+  merging is lost.
+
+### Added (demo only)
+
+- vanilla and web-components render the component catalogue from `nav.ts`, which
+  they previously did not — their landing pages were prose alone. All four demos
+  now share it, via a `catalogue()` in each binding's demo-helpers.
+- Every catalogue card carries a generated thumbnail. `bun run gen:previews`
+  screenshots the first `.example-preview` of each route against the DEV server;
+  `deploy.sh` regenerates before building. Gitignored, and the card's `<img>`
+  removes itself when a file is missing.
+
+### Lint
+
+- React **29 problems → 0**. Solid **8 errors / 46 warnings → 0 errors / 41**.
+  Two rules are scoped rather than obeyed, with the reasoning at the config:
+  `react-refresh/only-export-components` off for library source (Fast Refresh is
+  an app concern; the alternative was splitting 17 files so their `cva()`
+  variants live elsewhere), and `solid/no-destructure` around DataTable's column
+  factory (TanStack `ColumnDef` renderers destructure a plain cell context).
+- Solid's remaining 41 are `solid/reactivity` and `solid/components-return-once`
+  — real, behaviour-changing to fix, and deliberately not swept.
+
 ## [9.0.2] - 2026-07-20
 
 ### Fixed
