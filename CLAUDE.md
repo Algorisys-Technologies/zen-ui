@@ -152,6 +152,13 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
   `tsc --project tsconfig.lib.json --noEmit` reports clean on a demo containing a
   hard type error. For demo files use `--project tsconfig.app.json`, which `npm
   run build` (`tsc -b`) also covers.
+- **A solution-style `tsconfig.json` type-checks NOTHING.** `packages/vanilla`
+  and `packages/web-components` have `{"files": [], "references": [...]}` at
+  `tsconfig.json`, so `tsc --noEmit -p tsconfig.json` compiles an empty program
+  and exits 0 — on any code, including a file with errors. Measured: a brand-new
+  component came back clean twice before `--listFiles | grep -c <name>` showed
+  **0**. Use `-p tsconfig.app.json`, or `tsc -b`, and confirm the file is in the
+  program before believing the result.
 - **A syntax error in ONE file silently disables type-checking for the whole
   project** — tsc bails before the semantic pass, so every other file reports
   clean. If a run looks suspiciously green, check for parse errors first.

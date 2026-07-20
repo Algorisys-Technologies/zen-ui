@@ -789,14 +789,25 @@ built — Tier 1 spent a day marked done while a row was missing.
             all four bindings. Verified 2026-07-20. **Tier 3's dialogs are closed.**
       - [ ] _Deferred until saved views have a home_: VariantManagement, p13n
             dialog. Both are storage questions wearing a component costume.
-      - [ ] **TreeTable — wanted** (stated 2026-07-20). Hierarchical grid table.
-            Promoted out of the _Separate_ bucket below on request. Both halves
-            already exist — `Tree` and `DataTable` — so the open question is whether
-            this is expansion state threaded through DataTable's row model or a
-            distinct component. Decide that before building; it is the difference
-            between a prop and a family. Note `enableGrouping` is already hard-gated
-            against `enableVirtualization`, and hierarchy has the same shape, so
-            check that interaction first.
+      - [x] **TreeTable — DONE** (2026-07-21, all four bindings). The
+            prop-vs-family question resolved to **family**, on the interaction
+            the entry told us to check first: hierarchy and grouping claim the
+            same three slots in a TanStack table (`subRows`, the `expanded`
+            state, the chevron column), so DataTable cannot carry both, and
+            adding `getSubRows` there would have needed a fifth mutual-exclusion
+            gate to describe a combination nobody can use. The chevron lives
+            inside the first column rather than in a gutter, which is the part
+            that makes the hierarchy readable.
+            Deliberately NOT in v1, and each for a reason rather than an
+            oversight: virtualization (windowing a tree means windowing a
+            flatten that changes on every expand — worth doing, not worth
+            guessing at), pagination (a page boundary through a subtree orphans
+            it), and lazy/async children (needs a loading-state design per row).
+            One divergence worth knowing: the selection count keeps an ancestor
+            in the set after a descendant is unticked and renders it
+            indeterminate. That is TanStack's behaviour, so React is the
+            reference and the other three match it — but it means a parent can
+            be "selected" while not all of its subtree is.
       - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
             DataTable, not dialogs around it.
 - [ ] **Tier 4 — build the whole tier** (decided 2026-07-15, overriding the

@@ -58,6 +58,7 @@ description, then import the name from your binding's package.
 - **FAB** — Fixed-position Button wrapper + DropdownMenu for speed-dial
 - **Form (RHF + Zod)** — react-hook-form + Zod resolver; FormField / FormItem / FormLabel / FormMessage
 - **DataTable** — TanStack Table + Virtual; sorting, filtering, grouping, pinning, resizing, windowing
+- **TreeTable** — Hierarchical rows; chevron indents inside the first column, filter keeps ancestors
 - **Pivot** — Drag-and-drop pivot builder; fields into zones, 2D-windowed grid
 - **Lazy options** — VirtualizedItems — drop-in windowing for huge option lists inside Combobox / Select
 - **Combobox + Async** — cmdk-backed; sync `options` or async `onSearch` with debounced loading
