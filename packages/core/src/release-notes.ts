@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.4.0",
+    date: "2026-07-21",
+    kind: "new",
+    title: "TreeTable: lazy children, pagination and windowing",
+    detail:
+      "Three additions, all opt-in. `loadChildren` + `hasChildren` fetch a subtree the first time it is opened, for trees too big or too remote to send whole — hasChildren is what makes an unloaded row openable at all, since otherwise it is indistinguishable from a leaf; the chevron becomes a spinner during the fetch and results cache per row id. `enablePagination` pages the ROOT rows, so pageSize counts top-level rows and a page carries each root's whole subtree — paging the flattened list would cut through a subtree and strand its children on the next page. `enableVirtualization` (with maxBodyHeight) renders only the rows near the viewport: 1,240 open rows become 16-25 in the DOM, with aria-rowcount and aria-rowindex added since the DOM no longer holds every row. Expanding a node in vanilla and web-components also got much faster — it touches only the affected subtree now rather than rebuilding the table, 49ms to 3-8ms at 1,110 rows. All four bindings.",
+  },
+  {
     version: "9.3.0",
     date: "2026-07-21",
     kind: "new",
