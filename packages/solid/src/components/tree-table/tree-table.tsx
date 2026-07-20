@@ -6,10 +6,12 @@ import {
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   type ColumnDef,
   type ExpandedState,
   type Row,
+  type PaginationState,
   type RowSelectionState,
   type SortingState,
 } from "@tanstack/solid-table";
@@ -91,6 +93,19 @@ export interface TreeTableProps<TData, TValue = unknown> {
   sorting?: SortingState;
   onSortingChange?: (state: SortingState) => void;
 
+  /* pagination — pages the ROOT rows, never the flattened list */
+  /**
+   * Page the top-level rows. A page carries each root's WHOLE subtree, so
+   * `pageSize` counts roots rather than rendered rows and a page's row count
+   * varies with what is open. Paging the flattened list instead would cut
+   * through a subtree and strand its children on the next page.
+   */
+  enablePagination?: boolean;
+  /** Root rows per page. Default 10. */
+  pageSize?: number;
+  pageSizeOptions?: number[];
+  onPaginationChange?: (state: PaginationState) => void;
+
   /* filtering */
   enableGlobalFilter?: boolean;
   globalFilter?: string;
@@ -133,6 +148,10 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
   const [sortingInner, setSortingInner] = createSignal<SortingState>([]);
   const [selectionInner, setSelectionInner] = createSignal<RowSelectionState>({});
   const [globalFilterInner, setGlobalFilterInner] = createSignal("");
+  const [pagination, setPagination] = createSignal<PaginationState>({
+    pageIndex: 0,
+    pageSize: props.pageSize ?? 10,
+  });
 
   const expanded = () => props.expanded ?? expandedInner();
   const sorting = () => props.sorting ?? sortingInner();
@@ -271,6 +290,9 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
       get globalFilter() {
         return globalFilter();
       },
+      get pagination() {
+        return pagination();
+      },
     },
     get getSubRows() {
       const loaded = loadedKids();
@@ -323,6 +345,21 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
     },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
+    /*
+     * The whole reason pagination is coherent here. With this false, TanStack
+     * pages the ROOT rows and keeps every expanded descendant on the same page
+     * as its parent. Left at its default (true) it pages the flattened list,
+     * which puts half a subtree on page 2 under no parent at all.
+     */
+    paginateExpandedRows: false,
+    onPaginationChange: (updater) => {
+      const next = typeof updater === "function" ? updater(pagination()) : updater;
+      setPagination(next);
+      props.onPaginationChange?.(next);
+    },
+    get getPaginationRowModel() {
+      return props.enablePagination ? getPaginationRowModel() : undefined;
+    },
     get getSortedRowModel() {
       return (props.enableSorting ?? true) ? getSortedRowModel() : undefined;
     },
@@ -593,6 +630,48 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
           </Show>
         </TableBody>
       </Table>
+
+      <Show when={props.enablePagination}>
+        <div class="zen-flex zen-flex-wrap zen-items-center zen-justify-between zen-gap-2">
+          <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
+            {/* Roots, not rows: saying "rows" here would contradict what the
+                user can count on screen the moment anything is expanded. */}
+            Page {table.getState().pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}
+            {" · "}
+            {table.getPreFilteredRowModel().rows.filter((r) => r.depth === 0).length} top-level rows
+          </p>
+          <div class="zen-flex zen-items-center zen-gap-2">
+            <Show when={props.pageSizeOptions?.length}>
+              <select
+                class="zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm"
+                aria-label="Rows per page"
+                value={table.getState().pagination.pageSize}
+                onChange={(e) => table.setPageSize(Number(e.currentTarget.value))}
+              >
+                <For each={props.pageSizeOptions}>
+                  {(n) => <option value={n}>{n} per page</option>}
+                </For>
+              </select>
+            </Show>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.previousPage()}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!table.getCanNextPage()}
+              onClick={() => table.nextPage()}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </Show>
     </div>
   );
 
