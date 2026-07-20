@@ -50,6 +50,22 @@ export interface TreeTableProps<TData> extends BaseProps {
   /** Stable id per row. Defaults to `row.id`, else the materialised path. */
   getRowId?: (row: TData) => string;
 
+  /* lazy children — fetch a subtree the first time it is opened */
+  /**
+   * Which rows can be opened before their children exist. Without this a row
+   * with no children yet is indistinguishable from a leaf, so it gets no
+   * chevron and can never be opened to trigger the load.
+   */
+  hasChildren?: (row: TData) => boolean;
+  /**
+   * Fetch a row's children on its first expand. Cached against the row id, so
+   * this needs `getRowId` or an `id` on the row — an index-path key would move
+   * the moment anything above it is sorted or filtered.
+   */
+  loadChildren?: (row: TData) => Promise<TData[]>;
+  /** Called when `loadChildren` rejects. Without it the error is re-thrown. */
+  onLoadChildrenError?: (error: unknown, row: TData) => void;
+
   /** Ids open on first render, or `true` for all. */
   defaultExpanded?: string[] | true;
   onExpandedChange?: (ids: string[]) => void;
@@ -109,8 +125,44 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
   let current = { ...props };
   const disposer = new Disposer();
 
-  const kids = (row: TData): TData[] =>
-    (current.getSubRows ? current.getSubRows(row) : (row as { children?: TData[] }).children) ?? [];
+  const kids = (row: TData): TData[] => {
+    const key = lazyKey(row);
+    if (key !== undefined) {
+      const cached = loadedKids.get(key);
+      if (cached) return cached;
+    }
+    return (current.getSubRows ? current.getSubRows(row) : (row as { children?: TData[] }).children) ?? [];
+  };
+
+  const lazyKey = (row: TData): string | undefined =>
+    current.getRowId ? current.getRowId(row) : (row as { id?: string }).id;
+
+  /** Not yet loaded, but says it has children. */
+  const canLazyLoad = (row: TData) => {
+    if (!current.loadChildren || !current.hasChildren?.(row)) return false;
+    const key = lazyKey(row);
+    return key !== undefined && !loadedKids.has(key);
+  };
+
+  const loadFor = async (row: FlatRow<TData>) => {
+    const key = lazyKey(row.data);
+    if (key === undefined || !current.loadChildren) return;
+    if (loadingIds.has(key) || loadedKids.has(key)) return;
+    loadingIds.add(key);
+    render({ keepFocus: row.id });
+    try {
+      const fetched = await current.loadChildren(row.data);
+      loadedKids.set(key, fetched);
+    } catch (err) {
+      if (current.onLoadChildrenError) current.onLoadChildrenError(err, row.data);
+      else throw err;
+    } finally {
+      loadingIds.delete(key);
+      // Full render, not a splice: the row set changed underneath us and the
+      // spinner has to come back out on both the success and failure paths.
+      render({ keepFocus: row.id });
+    }
+  };
 
   const idOf = (row: TData, path: string): string =>
     current.getRowId ? current.getRowId(row) : ((row as { id?: string }).id ?? path);
@@ -124,6 +176,9 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
   let sortDesc = false;
   let query = "";
   let focusedId: string | null = null;
+  /** Lazy-loaded children, keyed by row id. */
+  const loadedKids = new Map<string, TData[]>();
+  const loadingIds = new Set<string>();
 
   /* Every id in the source tree, so expand-all and the subtree maths do not
    * have to re-walk from the caller's data each time. */
@@ -532,7 +587,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
       tr.setAttribute("aria-level", String(row.depth + 1));
       tr.setAttribute("aria-posinset", String(row.pos));
       tr.setAttribute("aria-setsize", String(row.setSize));
-      const canExpand = effectiveKids(row.data).length > 0;
+      const canExpand = effectiveKids(row.data).length > 0 || canLazyLoad(row.data);
       if (canExpand) tr.setAttribute("aria-expanded", String(expanded.has(row.id) || !!query));
       if (current.enableRowSelection) tr.setAttribute("aria-selected", String(state === "checked"));
       tr.tabIndex = activeId === row.id ? 0 : -1;
@@ -579,12 +634,28 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
             btn.setAttribute("aria-hidden", "true");
             btn.className =
               "zen-inline-flex zen-w-4 zen-shrink-0 zen-items-center zen-justify-center zen-border-0 zen-bg-transparent zen-p-0 zen-cursor-pointer zen-text-zen-muted-fg";
-            const icon = Icon({
-              name: "chevron-right",
-              size: 14,
-              class: cn("zen-transition-transform", (expanded.has(row.id) || !!query) && "zen-rotate-90"),
-            });
-            btn.append(icon.el);
+            const key = lazyKey(row.data);
+            const isLoading = key !== undefined && loadingIds.has(key);
+            if (isLoading) {
+              // A fetch has no length the caller can predict, so the chevron
+              // itself reports it rather than the row jumping to a placeholder.
+              btn.setAttribute("aria-busy", "true");
+              const spin = document.createElement("span");
+              spin.className =
+                "zen-inline-block zen-h-3 zen-w-3 zen-animate-spin zen-rounded-zen-full zen-border zen-border-zen-border zen-border-t-zen-primary";
+              btn.append(spin);
+            } else {
+              btn.append(
+                Icon({
+                  name: "chevron-right",
+                  size: 14,
+                  class: cn(
+                    "zen-transition-transform",
+                    (expanded.has(row.id) || !!query) && "zen-rotate-90",
+                  ),
+                }).el,
+              );
+            }
             btn.addEventListener("click", (e) => {
               e.stopPropagation();
               toggleExpanded(row);
@@ -647,6 +718,8 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
    */
   const toggleExpanded = (row: FlatRow<TData>, force?: boolean) => {
     const open = force ?? !expanded.has(row.id);
+    // A first open of an unloaded node fetches before it expands.
+    if (open && canLazyLoad(row.data)) void loadFor(row);
     if (open) expanded.add(row.id);
     else expanded.delete(row.id);
     current.onExpandedChange?.([...expanded]);
@@ -728,7 +801,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
 
   const onRowKeyDown = (e: KeyboardEvent, row: FlatRow<TData>) => {
     const step = arrowStep(e.key, e.currentTarget as Element);
-    const canExpand = effectiveKids(row.data).length > 0;
+    const canExpand = effectiveKids(row.data).length > 0 || canLazyLoad(row.data);
     const isOpen = expanded.has(row.id) || !!query;
     if (e.key === "ArrowDown") {
       e.preventDefault();
