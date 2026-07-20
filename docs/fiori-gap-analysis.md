@@ -160,9 +160,40 @@ zen-ui's `DataTable` already implements sorting, filtering, grouping, pagination
 | **Growing** (`growingScrollToLoad`) | "More" button / infinite scroll from the model | ⚠️ Virtualization ≠ growing; different concern |
 | **Sticky** (ColumnHeaders / HeaderToolbar / InfoToolbar / GroupHeaders) | Sticky table regions on scroll | ⚠️ Partial |
 
-## Tier 4 — Fiori-specific surface (record, don't build)
+## Tier 4 — Fiori-specific surface (triaged 2026-07-21)
 
 Listed for completeness. Most of this is inseparable from SAP's backend, annotations, or Launchpad.
+
+**Decision, 2026-07-21.** Tier 4 was carrying an unqualified "build it" that had gone
+stale, was priced when there were two bindings rather than four, and had never been
+started. It is now split rather than left as one undecidable item:
+
+**Dropped, on substance rather than cost.** The **smart controls** (`sap.ui.comp` —
+SmartTable, SmartField, SmartForm, SmartFilterBar, SmartVariantManagement, 9×
+SmartMicroChart, …) are metadata-driven against **OData V2 annotations**. Strip the
+annotations and a SmartTable *is* `DataTable`; there is no UI idea left to port. The
+note below that they are not formally deprecated is correct and beside the point —
+the blocker is the protocol dependency, not deprecation. The same reasoning drops
+**Launchpad tiles** (GenericTile/GridContainer/ProductSwitch — `StatCard` covers the
+part that is a UI idea), **SemanticPage** and its ~20 semantic buttons, **Analytical
+Card**, **T-Account** and **Calculation Builder**: they encode SAP's backend, not a
+component. Roughly 60% of this tier.
+
+Also not built, for narrower reasons: **PDFViewer** (the browser already does it),
+**UserMenu** / **UserSettingsDialog** (compose from `DropdownMenu` + `Avatar` today),
+**Search\*** (`Command` and `Combobox` cover it), **NotificationList** (`NotificationsInbox`
+✅), **BarcodeScannerDialog** (`QRScanner` ✅).
+
+**Accepted for build**, in this order — these are genuinely framework-agnostic and
+confirmed absent from all four bindings:
+
+| # | What | Why it earns a place | Size |
+|---|---|---|---|
+| 1 | **Micro charts** — line, bar, bullet, delta, radial | Inline trend marks that compose with what already exists: a `DataTable` cell, a `StatCard`. Fiori ships 9; build the ~5 that earn it. | small |
+| 2 | **Timeline** (+ Item, GroupItem) | Activity / audit feed. Common in anything with history; nothing in zen-ui composes to it. | small–medium |
+| 3 | **UploadCollection** | The list of uploaded files — progress, rename, delete, retry. `FileUpload` is the input; nothing shows the result. Completes an existing component rather than opening an area. | medium |
+| 4 | **PlanningCalendar** / SinglePlanningCalendar | Resource-by-time grid with appointments. The largest real gap in this tier and the largest build by a wide margin — a release of its own. | large |
+
 
 - **Tiles / Launchpad** — GenericTile, SlideTile, ActionTile, TileContent, NumericContent, FeedContent, NewsContent, ImageContent, GridContainer, GridList, ProductSwitch
 - **Micro charts** (9) — Area, Bullet, Column, Comparison, Delta, HarveyBall, Line, Radial, StackedBar; plus Interactive Bar/Line/Donut charts
