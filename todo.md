@@ -546,9 +546,18 @@ the 1–2-day builds where the depth investment shows up.
 
 ---
 
-## Zen-shaped work — queued (2026-07-15)
+## Zen-shaped work — queued (2026-07-15, reconciled 2026-07-20)
 
 Tracked against `docs/fiori-gap-analysis.md`. Tier numbering is that doc's.
+Carbon work is tracked in its own section below — it had no home here until
+2026-07-20, which is why three of its foundation items sat unnoticed for five
+releases.
+
+**Reconciled 2026-07-20 against 8.0.0**, checked against all four `index.ts`
+files. Six rows were reporting open for work that had shipped. **The cost basis
+also changed and nothing here was re-priced for it:** vanilla (7.0.0) and
+web-components (7.2.0) mean a component family now costs three real
+implementations rather than two, while `packages/core` work still costs one.
 
 **Done, both bindings**: icon set (48), Object atoms, Button family, Tree,
 Toolbar (overflow), Page, Bar, ShellBar, FlexibleColumnLayout, DynamicPage,
@@ -648,13 +657,18 @@ built — Tier 1 spent a day marked done while a row was missing.
   - [ ] **MessagePopover / MessageView** — aggregated form validation grouped by
         severity, click-to-navigate-to-field. No equivalent, and the gap doc
         flags it as high value for `Form`. **Best-value item in the tier.**
-  - [ ] **DynamicDateRange** — semantic relative dates ("Today", "Last 7 Days",
-        "This Quarter", "From…"). `DateRangePicker` only does absolute ranges.
-  - [ ] Typography layer — Link / Title / Label / Text / ExpandableText
-        (show-more/less). zen-ui has no typography primitives at all, so this is
-        wider than it looks.
+  - [x] **DynamicDateRange** — semantic relative dates ("Today", "Last 7 Days",
+        "This Quarter", "From…"). Shipped, all four bindings; 32 operators, engine
+        in `core/date-range`, and the value stores the PERIOD rather than the two
+        dates it resolves to, so a saved filter re-resolves. Verified 2026-07-20.
+  - [ ] Typography layer — ~~Link~~ / Title / Label / Text / ExpandableText
+        (show-more/less). **`Link` shipped, all four bindings.** The other four are
+        still absent (verified 2026-07-20 — `Label` exists only as `FormLabel`).
+        The *token* half closed separately: 17 `--zen-font-*` + 9 `--zen-line-*`
+        now ship, so this is no longer "no typography primitives at all".
   - [ ] ObjectAttribute, InfoLabel / GenericTag, QuickView / QuickViewCard.
-  - [ ] ColorPicker / ColorPalette, MaskInput, Carousel.
+  - [x] ColorPicker / ColorPalette, MaskInput, Carousel — all shipped, all four
+        bindings. Verified 2026-07-20.
   - [ ] _Upgrades to something that already exists, not new builds_: MessageBox
         (semantic presets over `AlertDialog`), IllustratedMessage (`EmptyState`
         + an illustration set), Panel (`Accordion` is partial), MenuButton
@@ -705,12 +719,22 @@ built — Tier 1 spent a day marked done while a row was missing.
             than duplicated; a Dialog cannot nest inside another Dialog's tab.
             Surfaced two Solid a11y bugs, both wider than ValueHelp — see
             Known-latent below.
-      - [ ] ViewSettingsDialog — sort / group / filter settings.
-      - [ ] FilterBar — filter fields + Go / Adapt Filters, variant slot.
+      - [x] ViewSettingsDialog — sort / group / filter settings. Shipped, all four
+            bindings. Verified 2026-07-20.
+      - [x] FilterBar — filter fields + Go / Adapt Filters, variant slot. Shipped,
+            all four bindings. Verified 2026-07-20. **Tier 3's dialogs are closed.**
       - [ ] _Deferred until saved views have a home_: VariantManagement, p13n
             dialog. Both are storage questions wearing a component costume.
-      - [ ] _Separate_: AnalyticalTable, TreeTable, spreadsheet export —
-            extensions of DataTable, not dialogs around it.
+      - [ ] **TreeTable — wanted** (stated 2026-07-20). Hierarchical grid table.
+            Promoted out of the _Separate_ bucket below on request. Both halves
+            already exist — `Tree` and `DataTable` — so the open question is whether
+            this is expansion state threaded through DataTable's row model or a
+            distinct component. Decide that before building; it is the difference
+            between a prop and a family. Note `enableGrouping` is already hard-gated
+            against `enableVirtualization`, and hierarchy has the same shape, so
+            check that interaction first.
+      - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
+            DataTable, not dialogs around it.
 - [ ] **Tier 4 — build the whole tier** (decided 2026-07-15, overriding the
       recommendation below): smart controls, micro charts, launchpad tiles,
       planning calendars, floorplans.
@@ -723,6 +747,80 @@ built — Tier 1 spent a day marked done while a row was missing.
       recommendation in view. Micro charts are the most defensible piece (small
       sparkline / bullet / radial charts are design-language); smart controls
       are the least (they assume annotations we do not have).
+
+      **Re-confirm before starting (flagged 2026-07-20).** Nothing has been built
+      against this decision in five releases, and it was taken when a component
+      cost two implementations. At three, this tier is 40+ families × 3 — the
+      largest block of declared-but-unstarted work in the repo. If it is still
+      wanted, the defensible cut is micro charts alone; if it is not, deleting
+      the row is worth more than leaving it as standing intent nobody is acting
+      on.
+
+## Carbon-shaped work — queued (2026-07-20)
+
+Tracked against `docs/carbon-gap-analysis.md`. **This section did not exist until
+2026-07-20**, which is the whole reason its foundation items went five releases
+without being looked at: the shortlist lived only in the gap doc, and the gap doc
+is not what anyone opens when picking up work.
+
+Its thirteen-item shortlist is **7 done, 6 open**. The seven closed without ever
+being tracked here — Link, Search, PasswordInput, SkipToContent, type tokens,
+motion tokens, and ContentSwitcher (closed by `SegmentedButton`, under Fiori's
+name). The six below are what is left.
+
+- [ ] **`<Theme>` subtree scoping** — `tokens.css` declares `:root[data-theme="…"]`
+      (lines 26, 125, 295) and `theme.ts:60` sets the attribute on
+      `documentElement`, so a theme is all-or-nothing. Re-declare as
+      `[data-theme="…"]` and ship a `<Theme name>` wrapper that sets it on a div.
+      Buys dark panels in light pages, which consumers cannot do at all today.
+      **Cheapest open item in either gap doc**, and mostly `packages/core` — so it
+      is one implementation plus a thin wrapper per binding, not three.
+- [ ] **`Grid` / `Column` + breakpoint tokens** — zero breakpoint tokens in core;
+      `Stack` is the only layout primitive. zen-ui now ships a full app frame
+      (ShellBar, FlexibleColumnLayout, Page) with no layout system underneath it.
+      Carbon's numbers if a scale is wanted: 320/672/1056/1312/1584px at 4/8/16/16/16
+      columns.
+- [ ] **The Layer model — needs an explicit yes or no, not more drift.**
+      Contextual token indirection: a component writes `$layer`, never `$layer-02`,
+      and nesting depth rebinds it. The gap doc called it the most valuable idea
+      Carbon has that zen-ui lacks, and argued for deciding "now, while the library
+      is 3.0.0" *because the retrofit cost scales with the component count*.
+      That window has closed — at 8.0.0 it is ~57 families × 3 implementations, and
+      a visual change is a major bump per CLAUDE.md.
+      **Writing down a "no" is a legitimate outcome and costs an hour.** What it
+      buys either way: stop re-discovering this item every time someone reads the
+      gap doc.
+- [ ] **`prefers-reduced-motion`** — the motion tokens landed without it, and it was
+      the concrete payoff the gap doc argued for. Now a media query that rebinds
+      `--zen-duration-*` to `0s`, rather than a sweep of twelve `zen-anim-*`
+      keyframes. Small, and `packages/core` only.
+- [ ] **Per-component a11y documentation** — Carbon ships an `accessibility.mdx`
+      per component; zen-ui ships none. The gap doc's line is the one worth keeping:
+      a11y as "a stated, tooled, per-component commitment rather than a best-effort".
+      The `id`-on-wrapper bug and `SkipToContent` both closed; this is the half that
+      survived.
+- [ ] **Small components, unranked** — `Toggletip` (the accessible middle between
+      Tooltip and Popover — content with interactive children must not live in a
+      hover tooltip), `Tag` (dismissible; `Badge` is display-only and `TagInput` is
+      an input, so neither covers it), `CopyButton`, `AspectRatio`, `CodeSnippet`,
+      `Tile`/`TileGroup`, `Heading`/`Section` (auto-levelling headings — a
+      structural a11y win; the gap doc's "nearly free if Layer lands" note is moot
+      now that Layer is not landing soon). Individually cheap, collectively not, at
+      three implementations each. Build on demand rather than as a batch.
+
+### Also open, from the foundations comparison
+
+- [ ] **RTL audit** — `❓ Unverified` in the Fiori doc since 2026-07-14, now spanning
+      four bindings. Duplicated at line ~174 of this file; both entries are the same
+      work. Cheapest thing in either doc to settle: `scripts/visual-check.mjs`
+      already boots each demo and drives every route from `nav.ts`, so this is a
+      `dir="rtl"` flag and a pass over the screenshots.
+- [ ] **Content density** (`cozy`/`compact`) — Fiori has a global density switch;
+      zen-ui is fixed-size. Token-level, so one implementation. No demand recorded
+      yet — do not build speculatively.
+- [ ] **Spacing scale ends** — `--zen-space-*` runs 0→64px in 11 steps. Carbon
+      reaches 160px for page rhythm and 2px for hairlines, and zen-ui has neither
+      end. Two tokens.
 
 ### Known-latent, found while porting
 

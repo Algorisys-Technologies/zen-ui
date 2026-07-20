@@ -5,6 +5,11 @@
 status column and the executive summary were refreshed against `index.ts` rather than left
 describing a library that no longer exists. Four rows had been reporting ❌ for components that
 already shipped.
+**Revised:** 2026-07-20 — again, against **8.0.0**. Tier 3's dialogs all closed (ViewSettingsDialog
+and FilterBar shipped), as did ColorPicker/ColorPalette and the typography layer's `Link`. The
+survey now covers **four** bindings, not two — vanilla landed in 7.0.0, web-components in 7.2.0 —
+which changes every effort estimate below; see [Cost basis](#cost-basis-changed-2026-07-20).
+Checked against all four `index.ts` files.
 **Reference:** [SAP Fiori Design System for Web](https://www.sap.com/design-system/fiori-design-web)
 
 ## How this was compiled
@@ -33,14 +38,30 @@ Roughly:
 - **Primitives / form controls** — ~90% covered. SegmentedButton, SplitButton, ToggleButton, Tree, Toolbar, MaskInput, ColorPicker, Carousel and DynamicDateRange have since been built; what remains is a typography layer and the illustration/icon sets, which are asset gaps rather than component gaps.
 - **App frame** (ShellBar, FlexibleColumnLayout, DynamicPage, ObjectPage) — was 0%, now **built in both bindings**, plus `Page`/`Bar` and a light `PageHeader` for screens that want a heading rather than a snapping header. This was the largest gap and the one that most defines a "Fiori-like" app; it is closed.
 - **Enterprise object atoms** (ObjectStatus/Number/Identifier/Marker) — was 0%, now **built in both bindings**. MessageStrip variants and QuickView remain.
-- **Table ecosystem beyond the grid itself** — was ~15%. `SelectDialog`, `ValueHelp`, `ViewSettingsDialog` and `FilterBar` are built; **VariantManagement, p13n and export remain**, which is where the persistence story lives.
-- **Tiles, micro charts, planning calendars, Smart controls** — **0% covered**, and mostly should stay that way (see the caveat below).
+- **Table ecosystem beyond the grid itself** — was ~15%. `SelectDialog`, `ValueHelp`, `ViewSettingsDialog` and `FilterBar` are built; **VariantManagement, p13n and export remain**, which is where the persistence story lives. *(2026-07-20: all four dialogs confirmed shipped in all bindings. **TreeTable is wanted** — see below — which moves it out of the "separate, extensions of DataTable" bucket it was parked in.)*
+- **Tiles, micro charts, planning calendars, Smart controls** — **0% covered**, and mostly should stay that way (see the caveat below). *(2026-07-20: still 0%. Note that [todo.md](../todo.md) records a decision to build this entire tier, overriding the caveat below — that decision is now five releases old, unstarted, and was taken when a component cost two implementations rather than three.)*
 
 An important scoping caveat: **most of what's listed below should not be built.** Fiori's tail (Smart controls, OData annotations, Analysis Path Framework, T-Account) is inseparable from SAP's backend. The value of this document is Tiers 1–2; Tiers 3–4 are recorded for completeness, not as a roadmap.
 
+### Cost basis changed (2026-07-20)
+
+This document and its 3.0.0-era estimates assumed **two** bindings. There are now four: React,
+Solid, vanilla (7.0.0) and web-components (7.2.0). Because web-components is a declarative layer
+over the vanilla factories and re-exports its surface verbatim, a new component family costs
+**three real implementations** plus three demos and three `nav.ts` entries — a 50% increase over
+what the recommendation section below priced.
+
+Work in `packages/core` (tokens, engines like `core/mask` and `core/date-range`) still costs one.
+The practical consequence: **the shortlist's ordering still holds, but the gap between its
+core-level and component-level items widened.** Nothing in Tier 4 was re-priced for this.
+
 ## What zen-ui has today
 
-Extracted from [packages/react/src/index.ts](packages/react/src/index.ts) (63 component families):
+Extracted from [packages/react/src/index.ts](packages/react/src/index.ts) (63 component families).
+**Stale as of 2026-07-20** — the list below is the 2.2.0 inventory and is kept as the survey's
+baseline, not as a current inventory. At 8.0.0 React exports 491 names across ~57 component
+directories, Solid 500, vanilla 462. Do not read this section as "what exists"; run the delta
+command in [CLAUDE.md](../CLAUDE.md) instead.
 
 **Form & input** — Input, Textarea, NumberField, Checkbox, RadioGroup, Switch, Select, Slider (incl. range), TagInput, InputOTP, PhoneInput, FileUpload, Combobox, MultiCombobox, DatePicker, DateRangePicker, DateTimePicker, TimePicker, Calendar, Listbox, Form (RHF + Zod), FormBuilder, Bound\* field wrappers
 
@@ -56,9 +77,12 @@ Extracted from [packages/react/src/index.ts](packages/react/src/index.ts) (63 co
 
 ---
 
-## Tier 1 — Structural gaps (define whether an app reads as "Fiori")
+## Tier 1 — Structural gaps (define whether an app reads as "Fiori") — CLOSED
 
-None of these exist in zen-ui in any form. They are the app frame.
+~~None of these exist in zen-ui in any form.~~ They are the app frame. **All nine rows shipped by
+2026-07-15 and are confirmed present in all four bindings at 8.0.0**, except `NavigationLayout`,
+which was deliberately not built — it owns no state and no behaviour, only a div (decision recorded
+in [todo.md](../todo.md)). The table is kept for the descriptions; treat every row as ✅.
 
 | Fiori component | What it is | Notes for zen-ui |
 |---|---|---|
@@ -105,11 +129,11 @@ These are small components that carry enormous weight in enterprise UIs.
 | **ToggleButton** | Button with pressed state | ✅ `ToggleButton` |
 | **MenuButton** | Button opening a menu | ⚠️ `DropdownMenu` composes to this |
 | **StepInput** | Numeric input with +/- steppers | ✅ `NumberField` |
-| **ColorPicker** / **ColorPalette** (+ Item, Popover) | HSL/RGB picker; predefined swatch grid | ❌ |
+| **ColorPicker** / **ColorPalette** (+ Item, Popover) | HSL/RGB picker; predefined swatch grid | ✅ `ColorPicker` + `ColorPalette`, all four bindings *(2026-07-20)* |
 | **MaskInput** | Fixed character mask input | ✅ `MaskInput` — engine shared via `core/mask` |
 | **DynamicDateRange** | **Semantic relative dates** — "Today", "Last 7 Days", "This Quarter", "From…" | ✅ `DynamicDateRange` — 32 operators; the value stores the PERIOD, not the dates, so a saved filter re-resolves. Engine in `core/date-range`. |
 | **Token** / **Tokenizer** | Chip collection | ⚠️ `TagInput` is close |
-| **Link**, **Title**, **Label**, **Text**, **ExpandableText** | Typography primitives; ExpandableText = show more/less | ❌ zen-ui has no typography layer |
+| **Link**, **Title**, **Label**, **Text**, **ExpandableText** | Typography primitives; ExpandableText = show more/less | ⚠️ **`Link` shipped, all bindings.** `Title` / `Label` / `Text` / `ExpandableText` still absent — verified 2026-07-20, zero exports in any binding (`Label` exists only as `FormLabel`). The *token* half is closed: 17 `--zen-font-*` + 9 `--zen-line-*` now ship. |
 | **Icon** | SVG icon from the SAP icon font (~1,000 icons) | ⚠️ `Icon` ships 48 hand-drawn glyphs and still no icon dependency. The set, not the component, is the gap. |
 | **Panel** | Collapsible titled container | ⚠️ `Accordion` partially |
 | **Carousel** | Swipeable rotating items | ✅ `Carousel` — CSS scroll-snap; every child is a slide, `perView` for a strip. No autoplay, by design. |
@@ -123,15 +147,15 @@ zen-ui's `DataTable` already implements sorting, filtering, grouping, pagination
 
 | Component | What it is | Gap |
 |---|---|---|
-| **FilterBar** / **SmartFilterBar** | Structured filter area above a table, with expand/collapse and "Adapt Filters" | ❌ The Fiori List Report is unbuildable without it |
+| **FilterBar** / **SmartFilterBar** | Structured filter area above a table, with expand/collapse and "Adapt Filters" | ✅ `FilterBar`, all four bindings *(2026-07-20)*. `SmartFilterBar` is annotation-driven — not built, not wanted. |
 | **VariantManagement** | **Save / load / share named personalization variants** (columns + filters + sort) | ❌ No persistence concept in zen-ui at all |
 | **p13n.Popup** (+ SelectionPanel, SortPanel, GroupPanel) | The personalization dialog surface | ❌ zen-ui has the *state*, not the *dialog* |
 | **table.columnmenu.Menu** (+ QuickSort, QuickGroup, QuickTotal, QuickResize, ActionItem) | Column-header quick-personalization popover | ❌ |
-| **ValueHelpDialog** (F4 help) | Rich lookup dialog: search + list + **condition builder** (ranges, exclusions) | ❌ Deeply SAP-specific but conceptually reusable |
-| **SelectDialog** / **TableSelectDialog** | Modal item picker with search + growing list | ❌ |
-| **ViewSettingsDialog** (+ Sort/Filter/Group items) | Sort / filter / group settings dialog | ❌ |
+| **ValueHelpDialog** (F4 help) | Rich lookup dialog: search + list + **condition builder** (ranges, exclusions) | ✅ `ValueHelp`, all four bindings |
+| **SelectDialog** / **TableSelectDialog** | Modal item picker with search + growing list | ✅ `SelectDialog`, all four bindings |
+| **ViewSettingsDialog** (+ Sort/Filter/Group items) | Sort / filter / group settings dialog | ✅ `ViewSettingsDialog`, all four bindings *(2026-07-20)* |
 | **AnalyticalTable** | Grid table with **aggregation and totals rows** | ❌ |
-| **TreeTable** | Hierarchical grid table | ❌ |
+| **TreeTable** | Hierarchical grid table | ❌ — **wanted** (stated 2026-07-20). Promoted out of the "separate / extensions of DataTable" bucket; `Tree` and `DataTable` both exist, so this is a composition question rather than a new primitive. |
 | **Export to Spreadsheet** (`sap.ui.export`) | Export table data to `.xlsx` | ❌ |
 | **Growing** (`growingScrollToLoad`) | "More" button / infinite scroll from the model | ⚠️ Virtualization ≠ growing; different concern |
 | **Sticky** (ColumnHeaders / HeaderToolbar / InfoToolbar / GroupHeaders) | Sticky table regions on scroll | ⚠️ Partial |
@@ -162,28 +186,41 @@ Beyond components, Fiori defines platform concerns zen-ui doesn't currently mode
 
 | Foundation | Fiori | zen-ui |
 |---|---|---|
-| **Icon set** | ~1,000-icon SAP icon font, semantic names | ❌ No icon dependency shipped |
-| **Content density** | `cozy` (touch) / `compact` (desktop) — a global density switch | ❌ Fixed sizing |
-| **Theming** | Horizon / Quartz, light + dark + HCB/HCW | ✅ Token-based (`--zen-*`), 3 themes — **architecturally comparable** |
-| **RTL** | Full right-to-left support | ❓ Unverified |
-| **Responsiveness** | Explicit phone/tablet/desktop adaptivity per control | ⚠️ Ad hoc |
-| **Accessibility** | Documented per control | ✅ Radix gives a strong baseline |
-| **i18n** | Per-control translation bundles | ❌ Strings hardcoded |
+| **Icon set** | ~1,000-icon SAP icon font, semantic names | ⚠️ 48 hand-drawn glyphs in `core/icons.ts`, still no icon dependency *(2026-07-20)* |
+| **Type scale** | Fixed 72/Horizon scale | ✅ **Closed 2026-07-20** — 17 `--zen-font-*` + 9 `--zen-line-*`. Row added; the original table omitted typography entirely. |
+| **Motion** | Defined durations + easings | 🟡 **Partly closed 2026-07-20** — 2 durations, 4 easings. No `prefers-reduced-motion`. Row added. |
+| **Layout / grid** | Responsive grid + breakpoints per control | ❌ **Open.** `Stack` only, zero breakpoint tokens. Row added — both this doc and the Carbon one flag it, and neither had a row for it here. |
+| **Content density** | `cozy` (touch) / `compact` (desktop) — a global density switch | ❌ Fixed sizing — unchanged at 8.0.0 |
+| **Theming** | Horizon / Quartz, light + dark + HCB/HCW | ✅ Token-based (`--zen-*`), 3 themes — **architecturally comparable**. ⚠️ but **global-only**: no subtree scoping, `theme.ts` sets the attribute on `documentElement`. |
+| **RTL** | Full right-to-left support | ❓ **Still unverified at 8.0.0** — open since 2026-07-14 and now spanning four bindings. The cheapest item in this table to settle: [scripts/visual-check.mjs](../scripts/visual-check.mjs) already drives every route. |
+| **Responsiveness** | Explicit phone/tablet/desktop adaptivity per control | ⚠️ Ad hoc — unchanged |
+| **Accessibility** | Documented per control | ⚠️ Radix gives a strong baseline, but **zen-ui ships no per-component a11y documentation** and two Solid a11y defects are open (see [todo.md](../todo.md) *Known-latent*). Downgraded from ✅ 2026-07-20. |
+| **i18n** | Per-control translation bundles | ❌ Strings hardcoded — unchanged |
 
 ## Recommendation
 
 If the goal is "zen-ui should feel viable for enterprise apps" rather than "zen-ui should clone Fiori", the ordered shortlist is:
 
-1. **An icon layer** — a prerequisite for almost everything below.
-2. **Toolbar with overflow** + **SegmentedButton**, **SplitButton**, **ToggleButton** — cheap, high frequency.
-3. **Object atoms** — ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker. Days of work, large perceived gain.
-4. **Tree** — a real absence, not a Fiori-specific one.
-5. **MessagePopover** — pairs with the existing `Form`; aggregated validation is genuinely useful.
-6. **DynamicDateRange** — semantic relative dates; useful far beyond Fiori.
-7. **App frame** — ShellBar + FlexibleColumnLayout + DynamicPage. Big, but this is what makes an app "look Fiori".
-8. **FilterBar + VariantManagement** — only if there's a persistence story to attach them to.
+1. ✅ **An icon layer** — a prerequisite for almost everything below. *(48 glyphs shipped; the set, not the component, remains thin.)*
+2. ✅ **Toolbar with overflow** + **SegmentedButton**, **SplitButton**, **ToggleButton** — cheap, high frequency.
+3. ✅ **Object atoms** — ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker. Days of work, large perceived gain.
+4. ✅ **Tree** — a real absence, not a Fiori-specific one.
+5. ❌ **MessagePopover** — pairs with the existing `Form`; aggregated validation is genuinely useful. **The only unbuilt item in this list, and the highest-value open component in the document.**
+6. ✅ **DynamicDateRange** — semantic relative dates; useful far beyond Fiori.
+7. ✅ **App frame** — ShellBar + FlexibleColumnLayout + DynamicPage. Big, but this is what makes an app "look Fiori".
+8. 🟡 **FilterBar + VariantManagement** — only if there's a persistence story to attach them to. `FilterBar` shipped; `VariantManagement` correctly still waiting on the persistence question, which remains unanswered.
+
+**Status 2026-07-20: seven of eight shipped in about five days of calendar time.** The one that did
+not is #5, and nothing has displaced it.
 
 Deliberately **not** recommended: Smart controls, micro charts, tiles, planning calendars, floorplans. They encode SAP's backend, not a design language.
+
+**This recommendation is contradicted by [todo.md](../todo.md)**, which records a decision to build
+all of Tier 4 — taken with this paragraph in view, and deliberately overriding it. Recorded here so
+the disagreement is visible from both ends rather than looking like an oversight. Nothing has been
+built against that decision in five releases, and the cost basis has since risen by 50%
+(see [Cost basis](#cost-basis-changed-2026-07-20)), so it is worth re-confirming rather than
+inheriting.
 
 ## References
 

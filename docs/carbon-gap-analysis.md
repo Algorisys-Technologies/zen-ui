@@ -2,6 +2,12 @@
 
 **Date:** 2026-07-15
 **zen-ui version reviewed:** `@algorisys/zen-ui-react` 3.0.0 (branch `dev`, commit `b7b82b6`)
+**Revised:** 2026-07-20 — re-checked against **8.0.0**, five releases later. Seven of the
+thirteen shortlist items had shipped without the doc noticing, and four claims below were
+simply false as written (type tokens, motion tokens, the icon count, the `id`-on-wrapper
+a11y bug). Status is checked against each binding's `index.ts` and
+`packages/core/styles/tokens.css`, not against memory. See
+[Status at 8.0.0](#status-at-800) for the summary; individual sections are corrected in place.
 **Reference:** [Carbon Design System](https://carbondesignsystem.com/) — `@carbon/react` 1.111.1, Carbon v11
 
 ## How this was compiled
@@ -37,16 +43,54 @@ Carbon and zen-ui are the same *kind* of thing — an open-source, token-driven,
 
 The headline: **zen-ui's component coverage is respectable; its foundations are where the real gap is.** Counting components understates the distance, because Carbon's most valuable ideas are not components.
 
-- **Component families** — ~70% covered. The missing ones are mostly small and cheap (Link, Search, PasswordInput, CodeSnippet, ContentSwitcher, Toggletip, Tag, Tile, CopyButton). That zen-ui has no **Link** component is the single most surprising absence in the inventory.
-- **The Layer model** — **0% covered**, and this is the deepest gap in the document. It is an architectural idea, not a component. Detail below.
-- **The 2x Grid** — **0% covered**. zen-ui has `Stack` and nothing else. There is no grid, no column, no breakpoint system.
-- **Type scale** — **0% covered**. zen-ui has **zero** `--zen-font-*` tokens. This directly undercuts a stated repo rule (see below).
-- **Motion tokens** — **0% covered**. Zero duration/easing tokens; twelve hand-written `zen-anim-*` keyframe classes instead.
-- **Icons** — 38 vs Carbon's **2,707**. Not a defect, but it bounds what zen-ui can be asked to render.
+- **Component families** — ~70% covered *(at 3.0.0)*. The missing ones are mostly small and cheap (Link, Search, PasswordInput, CodeSnippet, ContentSwitcher, Toggletip, Tag, Tile, CopyButton). That zen-ui has no **Link** component is the single most surprising absence in the inventory. **→ At 8.0.0, Link, Search, PasswordInput and SkipToContent have shipped in all bindings, and `SegmentedButton` covers ContentSwitcher. CodeSnippet, Toggletip, Tag, Tile, CopyButton, AspectRatio and Heading/Section remain.**
+- **The Layer model** — **0% covered**, and this is the deepest gap in the document. It is an architectural idea, not a component. Detail below. **→ Still 0% at 8.0.0. See the cost note in [Status at 8.0.0](#status-at-800) — the "decide now while the library is 3.0.0" framing has expired.**
+- **The 2x Grid** — **0% covered**. zen-ui has `Stack` and nothing else. There is no grid, no column, no breakpoint system. **→ Still 0% at 8.0.0.**
+- **Type scale** — ~~**0% covered**. zen-ui has **zero** `--zen-font-*` tokens.~~ **Closed.** 17 `--zen-font-*` and 9 `--zen-line-*` tokens now ship in `tokens.css`. The repo-rule contradiction described below is resolved.
+- **Motion tokens** — ~~**0% covered**.~~ **Mostly closed.** `--zen-duration-{fast,moderate}` and `--zen-ease-{standard,in,out,collapse}` now ship — 2 durations and 4 easings against Carbon's 6 and 6.
+- **Icons** — ~~38~~ **48** vs Carbon's **2,707**. Not a defect, but it bounds what zen-ui can be asked to render.
 - **Themes** — 3 vs 4, but on a **different axis entirely** (see the theming section — this is a conceptual mismatch, not a count).
 - **AI ecosystem, pictograms, Fluid form variants, `@carbon/ibm-products` tail** — 0% covered, and mostly **should stay that way**.
 
 As with the Fiori document: **most of what is listed below should not be built.** The value is concentrated in Tier 1 and Tier 2.
+
+## Status at 8.0.0
+
+Added 2026-07-20. The [recommended shortlist](#recommended-shortlist) had thirteen items; seven
+have shipped. This table is the reconciliation — it is the part to read if you are picking up work.
+
+| # | Item | Status at 8.0.0 |
+|---|---|---|
+| 1 | `id`-on-wrapper a11y bug | ✅ **Fixed.** And the doc's claim was over-broad: measured, only Solid was affected — React and vanilla put the `id` on a `<button>`, which *is* labelable. Solid now routes it to the native control. See [CLAUDE.md](../CLAUDE.md). |
+| 2 | `SkipToContent` | ✅ Shipped, all bindings (`components/skip-to-content/`). |
+| 3 | Type tokens | ✅ Shipped. 17 `--zen-font-*`, 9 `--zen-line-*`. |
+| 4 | Motion tokens | 🟡 Mostly. 2 durations + 4 easings vs Carbon's 6 + 6. No `prefers-reduced-motion` story yet — the tokens now give it somewhere to live, which was the point. |
+| 5 | `<Theme>` scoping | ❌ **Open.** `tokens.css` still declares `:root[data-theme="…"]` (lines 26, 125, 295) and `theme.ts:60` still sets the attribute on `documentElement`. Global-only. Cheapest open item in the doc. |
+| 6 | `Grid` / `Column` + breakpoints | ❌ **Open.** Zero breakpoint tokens in core; `Stack` is still the only layout primitive. |
+| 7 | The Layer model | ❌ **Open, and the framing has expired.** |
+| 8 | `Link` | ✅ Shipped, all bindings. |
+| 9 | `Search` | ✅ Shipped, all bindings (7.1.0). |
+| 10 | `ContentSwitcher` | ✅ Covered by `SegmentedButton` (+ `SegmentedButtonItem`), all bindings. Recorded as closed-by-equivalent, not built under Carbon's name. |
+| 11 | `Toggletip` | ❌ Open. |
+| 12 | `PasswordInput` / `CopyButton` / `AspectRatio` / `Tag` | 🟡 `PasswordInput` shipped, all bindings. The other three are open. |
+| 13 | `Heading` / `Section` | ❌ Open. |
+
+**The cost basis of every estimate above has changed, and it changes the recommendation.** This
+document was written when zen-ui had two bindings. It now has four: vanilla landed in 7.0.0 and
+web-components in 7.2.0. Because web-components is a declarative layer over the vanilla factories,
+a new component family costs **three real implementations** plus three demos and three nav entries
+— not two. Work in `packages/core` still costs one.
+
+That asymmetry did not exist when the shortlist was ordered, and it pushes the same way for every
+row: **core-level work got relatively cheaper, component-level work got 50% more expensive.**
+
+It also retires this document's central argument for the Layer model. The claim was that it is
+"worth deciding on **now**, while the library is 3.0.0, rather than at 5.0.0" — because retrofitting
+means touching every component's surface tokens. That deadline passed. At 8.0.0 the retrofit spans
+~57 component directories × 3 implementations, and per [CLAUDE.md](../CLAUDE.md) a visual change is
+a major bump. The honest reading is that the window the doc identified has closed, and the choice
+is now between a large deliberate migration and an explicit "no" — **not** the cheap early decision
+originally on offer.
 
 ## What zen-ui has today
 
@@ -59,8 +103,9 @@ Foundations, as they exist in `packages/core`:
 - **Radius** — `--zen-radius-{sm,md,lg,full}` = 4/6/8/9999px.
 - **Shadow** — `--zen-shadow-{xs,sm,md,lg,xl,2xl}`.
 - **Status** — `--zen-status-{online,away,busy,offline}`.
-- **Type** — none.
-- **Motion** — none.
+- **Type** — ~~none~~ *(corrected 2026-07-20)* `--zen-font-size-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl}`, `--zen-font-weight-{light,normal,medium,semibold,bold}`, `--zen-font-{sans,serif,mono}`, plus 9 `--zen-line-*`. A Tailwind-shaped scale, not a generated one.
+- **Motion** — ~~none~~ *(corrected 2026-07-20)* `--zen-duration-{fast,moderate}`, `--zen-ease-{standard,in,out,collapse}`.
+- **Breakpoints** — none. *(added 2026-07-20 — the original list omitted the row entirely, which read as "not applicable" rather than "missing".)*
 
 ## The framing: what each system is
 
@@ -157,7 +202,12 @@ zen-ui's spacing scale is also **4px-based** where Carbon's is 8px-derived-with-
 
 zen-ui's is fine and I'd not change it — Tailwind's scale is well-trodden. But note Carbon reaches **160px** and zen-ui stops at 64px, so page-level rhythm has no tokens at all; and Carbon's `spacing01` = 2px has no zen-ui equivalent for hairline adjustments. Worth adding both ends.
 
-### 3. The type scale — zero tokens, and this contradicts a stated repo rule
+### 3. The type scale — ~~zero tokens, and this contradicts a stated repo rule~~ CLOSED (2026-07-20)
+
+> **Status: closed.** Type tokens shipped between 3.0.0 and 8.0.0 — see [Status at 8.0.0](#status-at-800).
+> The section is kept because Carbon's *generated* scale and the productive/expressive split are
+> still ideas zen-ui has not taken, and because the contradiction it documents is the reason the
+> tokens exist. Read it as rationale, not as an open gap.
 
 Carbon's type scale is **generated, not authored** (`packages/type/src/scale.ts`):
 
@@ -172,11 +222,13 @@ export const getTypeSize = (step) => {
 
 23 steps. The increment grows every 4 steps, so the scale is near-linear at text sizes and accelerates into display sizes. Weights: **only three** (light 300, regular 400, semibold 600).
 
-**zen-ui has no type tokens whatsoever** — verified, zero matches for `--zen-font`/`--zen-text`. This matters more than it looks, because [CLAUDE.md](../CLAUDE.md) states:
+**zen-ui had no type tokens whatsoever** at 3.0.0 — verified then, zero matches for `--zen-font`/`--zen-text`. *(As of 8.0.0 there are 17 `--zen-font-*` and 9 `--zen-line-*`; the paragraph below records why they were added.)* This mattered more than it looked, because [CLAUDE.md](../CLAUDE.md) states:
 
 > **No raw `rem` literals in component source.** Use utilities or `--zen-*` tokens.
 
-There are no type tokens to use. The rule is therefore unfollowable for typography, and the escape hatch — UnoCSS's built-in `zen-text-sm` etc. — silently reintroduces Tailwind's scale as a *de facto* dependency that no `--zen-*` override can retheme. **A consumer cannot currently change zen-ui's type scale through the documented theming surface**, even though "override `--zen-*` custom properties; that is the whole public theming surface" is the stated contract. This is a live inconsistency in the token layer, not a hypothetical.
+There were no type tokens to use. The rule was therefore unfollowable for typography, and the escape hatch — UnoCSS's built-in `zen-text-sm` etc. — silently reintroduced Tailwind's scale as a *de facto* dependency that no `--zen-*` override could retheme. **A consumer could not change zen-ui's type scale through the documented theming surface**, even though "override `--zen-*` custom properties; that is the whole public theming surface" is the stated contract. That was a live inconsistency in the token layer, not a hypothetical — and it is the one that got fixed.
+
+**What is still not taken from Carbon here:** the scale is *authored*, not generated, and there is no productive/expressive (or compact/fluid) split. Neither is a defect; both are recorded so a future reader does not re-derive them as new findings.
 
 Carbon's **productive vs expressive** distinction is the other half, and it is genuinely good thinking:
 
@@ -190,7 +242,12 @@ Also worth stealing: `productiveHeading01` and `bodyShort01` differ **only in we
 
 `apps/landing` vs the component demos is exactly the productive/expressive split, incidentally — zen-ui already has the use case, just not the vocabulary.
 
-### 4. Motion tokens — none
+### 4. Motion tokens — ~~none~~ MOSTLY CLOSED (2026-07-20)
+
+> **Status: mostly closed.** `--zen-duration-{fast,moderate}` and
+> `--zen-ease-{standard,in,out,collapse}` now ship — 2 durations and 4 easings against Carbon's 6
+> and 6. **The `prefers-reduced-motion` story is still unwritten**, which was the concrete payoff
+> the section argued for; the tokens now give it somewhere to live.
 
 Carbon (`packages/motion/src/index.ts`):
 
@@ -208,7 +265,9 @@ easings = {
 
 The 3×2 easing matrix encodes a real rule: **entrance and exit are not symmetric**. Entrance decelerates from zero (`0, 0, …`); exit accelerates to one (`…, 1, 0.9`). Things arrive gently and leave briskly.
 
-zen-ui has **twelve hand-written `zen-anim-*` classes** (`fade-in/out`, `slide-in/out-{top,bottom,left,right}`, `accordion-up/down`) with durations and easings inlined per keyframe, and no tokens. Consequence: a consumer cannot retheme motion, cannot slow it down, and — notably — **there is no `prefers-reduced-motion` story**, because there is no central place to put one. Tokenising duration/easing is cheap and gives that for free.
+zen-ui had **twelve hand-written `zen-anim-*` classes** (`fade-in/out`, `slide-in/out-{top,bottom,left,right}`, `accordion-up/down`) with durations and easings inlined per keyframe, and no tokens. Consequence: a consumer could not retheme motion, could not slow it down, and — notably — **there was no `prefers-reduced-motion` story**, because there was no central place to put one. Tokenising duration/easing was cheap and gives that for free.
+
+*(2026-07-20: the tokens landed; the `prefers-reduced-motion` block did not. That is now a one-file job rather than a systemic one — the remaining work is a media query that rebinds the duration tokens to `0s`, not a sweep of twelve keyframes.)*
 
 ### 5. `<Theme>` — theme scoping is all-or-nothing
 
@@ -220,25 +279,25 @@ zen-ui's theming is `document.documentElement.setAttribute("data-theme", name)` 
 
 ## Tier 2 — Missing components (small, cheap, high value)
 
-All verified absent from `packages/react/src` (zero word-boundary matches), against a control group of known-present components.
+All verified absent from `packages/react/src` at 3.0.0 (zero word-boundary matches), against a control group of known-present components. **Status column added 2026-07-20, checked against all four bindings.**
 
-| Carbon | What it is | Why it matters for zen-ui |
-|---|---|---|
-| **Link** | Styled `<a>` with visited/hover/inline/disabled states, `size`, icon slot | **The most surprising gap in the inventory.** Every app has links; zen-ui makes each one bespoke. `Button asChild` is not a substitute — a link is not a button, and conflating them is an a11y problem. |
-| **Search** / **ExpandableSearch** | Dedicated search input: `role="searchbox"`, clear button, expand-on-focus | zen-ui carries a search-input placeholder prop in **seven** components (ShellBar, ValueHelp, SelectDialog, DataTable, select-list, Combobox, MultiCombobox) — the pattern is already reimplemented seven times. Highest-value extraction in this table. |
-| **PasswordInput** | Text input with show/hide toggle | Universally needed, trivially small. |
-| **CodeSnippet** | `inline` / `single` / `multi` variants, copy button, expand | zen-ui's own demos render code examples (~305 of them) — presumably hand-rolled. |
-| **ContentSwitcher** | Segmented control for switching content views | No zen-ui equivalent. Distinct from Tabs (Carbon is explicit about when to use which). Fiori's SegmentedButton gap is the same component — **two design systems now point at it**. |
-| **Toggletip** | Interactive, click-triggered tooltip that can hold focusable content | zen-ui has Tooltip (hover, non-interactive) and Popover (heavier). Toggletip is the accessible middle, and the distinction is a real a11y rule: content with interactive children must not live in a hover tooltip. |
-| **Tag** | Dismissible / filter / operational / selectable variants, `TagSet` overflow | zen-ui's `Badge` is display-only; `TagInput` is an input. The dismissible standalone Tag is neither. |
-| **Tile** | Clickable / Selectable / Expandable / Radio tiles, `TileGroup` | `Card` overlaps but is passive. `RadioTile`/`TileGroup` (card-shaped radio selection) has no equivalent — zen-ui has `SelectableCard`, which is the closest. |
-| **CopyButton** / **Copy** | Copy-to-clipboard with feedback animation | Tiny; pairs with CodeSnippet. |
-| **AspectRatio** | Ratio-locked container | Trivial, widely useful. |
-| **Heading** / **Section** | Auto-levelling headings via context — `<Section>` increments, `<Heading>` renders the right `<h1…h6>` | Genuinely clever and an **a11y win**: heading level becomes structural rather than hand-chosen, so a component can't emit an `<h3>` under an `<h1>`. Same context-increment shape as `<Layer>` — if you build one, the other is nearly free. |
-| **ContainedList** / **StructuredList** | List with contained styling / row-column list with selection | `Listbox` is interactive-select; these are display/structure. Moderate value. |
-| **IconIndicator** / **ShapeIndicator** / **BadgeIndicator** | Small status affordances | zen-ui has `--zen-status-*` tokens but **no component that renders them** — the tokens exist unused-in-public. |
-| **SkipToContent** | Keyboard skip-link to main content | **A11y gap.** zen-ui now has ShellBar + Sidebar + Page — a full app frame with no skip link. This is a WCAG bypass-blocks requirement and it's ~10 lines. |
-| **OrderedList** / **UnorderedList** / **ListItem** | Styled lists | Low value; the element reset is opt-in (`/preflight`), so consumers' `<ul>`s are unstyled by design. |
+| Carbon | What it is | Why it matters for zen-ui | 8.0.0 |
+|---|---|---|---|
+| **Link** | Styled `<a>` with visited/hover/inline/disabled states, `size`, icon slot | **The most surprising gap in the inventory.** Every app has links; zen-ui makes each one bespoke. `Button asChild` is not a substitute — a link is not a button, and conflating them is an a11y problem. | ✅ |
+| **Search** / **ExpandableSearch** | Dedicated search input: `role="searchbox"`, clear button, expand-on-focus | zen-ui carries a search-input placeholder prop in **seven** components (ShellBar, ValueHelp, SelectDialog, DataTable, select-list, Combobox, MultiCombobox) — the pattern is already reimplemented seven times. Highest-value extraction in this table. | ✅ 7.1.0 |
+| **PasswordInput** | Text input with show/hide toggle | Universally needed, trivially small. | ✅ |
+| **CodeSnippet** | `inline` / `single` / `multi` variants, copy button, expand | zen-ui's own demos render code examples (~305 of them) — presumably hand-rolled. | ❌ |
+| **ContentSwitcher** | Segmented control for switching content views | No zen-ui equivalent. Distinct from Tabs (Carbon is explicit about when to use which). Fiori's SegmentedButton gap is the same component — **two design systems now point at it**. | ✅ *as `SegmentedButton`* |
+| **Toggletip** | Interactive, click-triggered tooltip that can hold focusable content | zen-ui has Tooltip (hover, non-interactive) and Popover (heavier). Toggletip is the accessible middle, and the distinction is a real a11y rule: content with interactive children must not live in a hover tooltip. | ❌ |
+| **Tag** | Dismissible / filter / operational / selectable variants, `TagSet` overflow | zen-ui's `Badge` is display-only; `TagInput` is an input. The dismissible standalone Tag is neither. | ❌ |
+| **Tile** | Clickable / Selectable / Expandable / Radio tiles, `TileGroup` | `Card` overlaps but is passive. `RadioTile`/`TileGroup` (card-shaped radio selection) has no equivalent — zen-ui has `SelectableCard`, which is the closest. | ❌ |
+| **CopyButton** / **Copy** | Copy-to-clipboard with feedback animation | Tiny; pairs with CodeSnippet. | ❌ |
+| **AspectRatio** | Ratio-locked container | Trivial, widely useful. | ❌ |
+| **Heading** / **Section** | Auto-levelling headings via context — `<Section>` increments, `<Heading>` renders the right `<h1…h6>` | Genuinely clever and an **a11y win**: heading level becomes structural rather than hand-chosen, so a component can't emit an `<h3>` under an `<h1>`. Same context-increment shape as `<Layer>` — if you build one, the other is nearly free. | ❌ |
+| **ContainedList** / **StructuredList** | List with contained styling / row-column list with selection | `Listbox` is interactive-select; these are display/structure. Moderate value. | ❌ |
+| **IconIndicator** / **ShapeIndicator** / **BadgeIndicator** | Small status affordances | zen-ui has `--zen-status-*` tokens but **no component that renders them** — the tokens exist unused-in-public. | ❌ |
+| **SkipToContent** | Keyboard skip-link to main content | **A11y gap.** zen-ui now has ShellBar + Sidebar + Page — a full app frame with no skip link. This is a WCAG bypass-blocks requirement and it's ~10 lines. | ✅ |
+| **OrderedList** / **UnorderedList** / **ListItem** | Styled lists | Low value; the element reset is opt-in (`/preflight`), so consumers' `<ul>`s are unstyled by design. | ❌ *(and should stay so — see [What NOT to build](#what-not-to-build))* |
 
 ---
 
@@ -270,7 +329,7 @@ zen-ui's single primitive composes to most of these. `DataTableSkeleton` is the 
 
 Carbon's UIShell decomposes into `Header`, `HeaderName`, `HeaderNavigation`, `HeaderGlobalBar`, `HeaderGlobalAction`, `HeaderPanel`, `HeaderMenu`, `SideNav` (+ `SideNavItems`, `SideNavMenu`, `SideNavLink`, `SideNavDivider`, `SideNavFooter`, `SideNavSwitcher`), `Switcher`, `SkipToContent`, `Content`.
 
-zen-ui's `ShellBar` + `Sidebar` (with sub-items and collapsed flyout, per `ed7b2ff`) + `Page` cover the substance. Remaining deltas: **`SkipToContent`** (see Tier 2), `Switcher` (the IBM product-switcher — IBM-specific, skip), and `HeaderPanel` (a right-side slide-over — zen-ui has `Sheet`).
+zen-ui's `ShellBar` + `Sidebar` (with sub-items and collapsed flyout, per `ed7b2ff`) + `Page` cover the substance. Remaining deltas: ~~**`SkipToContent`** (see Tier 2),~~ *(shipped 2026-07-20)* `Switcher` (the IBM product-switcher — IBM-specific, skip), and `HeaderPanel` (a right-side slide-over — zen-ui has `Sheet`). **UIShell is now fully closed** apart from the deliberate `Switcher` skip.
 
 ### `@carbon/ibm-products` — the product-pattern tier
 
@@ -303,7 +362,15 @@ This is the comparison zen-ui comes off worst in, and it isn't close. [CLAUDE.md
 
 > Checkbox, RadioGroupItem and Select still land a caller's `id` on the wrapper rather than the native control, so `<label for>` will not associate.
 
-That's a known, documented, unfixed a11y defect in three core form controls, plus no skip link and no per-component a11y documentation. **Carbon's real lesson here is not a component — it's that a11y is a stated, tooled, per-component commitment rather than a best-effort.** If any single item in this document gets acted on, it should probably be this one, and it's already in [todo.md](../todo.md) territory rather than needing new architecture.
+That was a known, documented, unfixed a11y defect in three core form controls, plus no skip link and no per-component a11y documentation. **Carbon's real lesson here is not a component — it's that a11y is a stated, tooled, per-component commitment rather than a best-effort.** If any single item in this document gets acted on, it should probably be this one, and it's already in [todo.md](../todo.md) territory rather than needing new architecture.
+
+**Update 2026-07-20 — two of the three are closed, and the quoted claim was wrong when written.**
+
+- The `id` bug affected **Solid only**. React (Radix) and vanilla both land the `id` on a `<button role="checkbox|radio">`, and a `<button>` *is* a labelable element — so `<label for>` always worked there. CLAUDE.md has since been corrected. Solid now routes the caller's `id` to the native control (`Checkbox.Input`, `ItemInput`, and the Select `Trigger`), verified in a browser.
+- `SkipToContent` shipped in all bindings.
+- **Per-component a11y documentation is still absent**, and that was always the substantive half of this section. Carbon ships an `accessibility.mdx` per component; zen-ui ships none. That is the gap that survived.
+
+Two Solid-specific defects found later remain open and are tracked in [todo.md](../todo.md) under *Known-latent*: a `Select` inside a `Dialog` has its options hidden from the accessibility tree (Kobalte's modality sweep vs. its portalled listbox), and `<Select aria-label>` still lands on the wrapper rather than the trigger — the same class of bug as the `id` one, fixed for `id` but not for `aria-label`. Verified 2026-07-20: `form/select/select.tsx` routes `id` to `KSelect.Trigger` and nothing else.
 
 **Web components — the binding-parity precedent.** This is directly relevant to zen-ui's React/Solid contract. `@carbon/web-components` 2.58.1 (Lit 3) lives in the **same monorepo**, on the **same version train**, pinning the same `@carbon/styles` and `@carbon/icons`. Directory counts are React 126 vs wc 85, but **that diff overstates the gap and shouldn't be quoted** — React gives sub-components their own directories while wc declares them inside the parent, and several React entries (`ClassPrefix`, `IdPrefix`, `Portal`, `ErrorBoundary`, `Theme`, `LayoutDirection`, `Icons`, `Plex`) are React infra with no wc analogue by design.
 
@@ -353,28 +420,30 @@ Stated explicitly, because the tables above are long and most of their rows are 
 
 ## Recommended shortlist
 
-Ordered by value-to-effort, and deliberately short. Everything here is portable to both bindings.
+Ordered by value-to-effort, and deliberately short. ~~Everything here is portable to both bindings.~~
+*(2026-07-20: **four** bindings now — see the cost note in [Status at 8.0.0](#status-at-800). Each
+✅ below was verified against every binding's `index.ts`, not React's alone.)*
 
 **Fix first — these are defects, not gaps:**
 
-1. **The `id`-on-wrapper a11y bug** in Checkbox / RadioGroupItem / Select. Already known, already documented, still broken. Carbon's per-component a11y commitment is the standard to measure against.
-2. **`SkipToContent`** (~10 lines). zen-ui now ships a full app frame with no keyboard bypass.
+1. ✅ ~~**The `id`-on-wrapper a11y bug** in Checkbox / RadioGroupItem / Select.~~ **Fixed.** The claim was also over-broad: only Solid was affected. React and vanilla put the `id` on a `<button>`, which is a labelable element.
+2. ✅ ~~**`SkipToContent`** (~10 lines).~~ **Shipped**, all bindings.
 
-**Foundations — decide now, while the library is 3.0.0:**
+**Foundations — ~~decide now, while the library is 3.0.0~~ two of four landed; the two that did not are the ones with a deadline:**
 
-3. **Type tokens** (`--zen-font-size-*`, `--zen-line-height-*`, `--zen-font-weight-*`). Closes a live contradiction: CLAUDE.md forbids raw `rem` literals and mandates `--zen-*` tokens, but no type tokens exist, so the type scale is currently untunable through the documented theming surface.
-4. **Motion tokens** (`--zen-duration-*`, `--zen-ease-*`). Six durations and a 3×2 easing matrix. Retires the inlined timings in twelve `zen-anim-*` classes and gives `prefers-reduced-motion` somewhere to live.
-5. **`<Theme>` scoping.** Small change (`:root[data-theme]` → `[data-theme]`), large payoff, composes with #7.
-6. **`Grid` / `Column` + breakpoint tokens.** zen-ui has no layout system; every consumer is inventing one.
-7. **The Layer model** — the big one. Highest value, highest cost, and the only item here that gets *more* expensive with every component added. Worth an explicit yes/no rather than drift.
+3. ✅ **Type tokens.** Shipped — 17 `--zen-font-*`, 9 `--zen-line-*`. The CLAUDE.md contradiction is resolved.
+4. 🟡 **Motion tokens.** Shipped, at 2 durations + 4 easings (Carbon has 6 + 6). **`prefers-reduced-motion` is still unwritten** — that was the payoff, and it is now a media query rather than a sweep.
+5. ❌ **`<Theme>` scoping.** Still `:root[data-theme]`, still global-only. Small change, large payoff. **Now the cheapest open item in the document, and it no longer depends on #7 landing.**
+6. ❌ **`Grid` / `Column` + breakpoint tokens.** Untouched. zen-ui now ships a full app frame (`ShellBar`, `FlexibleColumnLayout`, `Page`) with no layout primitive under it, which is a stranger shape at 8.0.0 than it was at 3.0.0.
+7. ❌ **The Layer model** — **the window this item described has closed.** It argued for deciding "now, while the library is 3.0.0" precisely because the retrofit cost scales with the component count. Five releases later that count is ~57 families × 3 implementations, and a visual change is a major bump. This is no longer "decide cheaply"; it is "fund a migration or write down a no". Writing down the no is a legitimate outcome and costs an hour.
 
 **Components — cheap, and each one is currently being hand-rolled:**
 
-8. **`Link`** — the most surprising absence in the inventory.
-9. **`Search`** — already reimplemented seven times inside zen-ui itself (ShellBar, ValueHelp, SelectDialog, DataTable, select-list, Combobox, MultiCombobox). Extract it.
-10. **`ContentSwitcher`** — both Carbon *and* Fiori (SegmentedButton) flag this gap. Two systems agreeing is a strong signal.
-11. **`Toggletip`** — the accessible middle between Tooltip and Popover.
-12. **`PasswordInput`**, **`CopyButton`**, **`AspectRatio`**, **`Tag`** (dismissible) — small, obvious, unglamorous.
-13. **`Heading` / `Section`** — auto-levelling headings. Same context-increment mechanism as `<Layer>`; if #7 lands, this is nearly free, and it's a structural a11y win.
+8. ✅ **`Link`** — shipped, all bindings.
+9. ✅ **`Search`** — shipped in 7.1.0, all bindings.
+10. ✅ **`ContentSwitcher`** — closed by `SegmentedButton`. Both design systems pointed at it and it got built, under Fiori's name rather than Carbon's.
+11. ❌ **`Toggletip`** — still the accessible middle between Tooltip and Popover.
+12. 🟡 **`PasswordInput`** shipped; **`CopyButton`**, **`AspectRatio`**, **`Tag`** (dismissible) still open.
+13. ❌ **`Heading` / `Section`** — auto-levelling headings. The "nearly free if #7 lands" note is now moot: #7 is not landing soon, so price this on its own. It is still a structural a11y win and still small.
 
-The through-line: **zen-ui's component layer is in decent shape; its foundation layer is thin.** Carbon's most transferable ideas — contextual token indirection, a generated type scale, motion as tokens, a11y as a per-component contract — are all foundation, and foundation is the part that gets more expensive to retrofit the longer it waits.
+The through-line ~~**zen-ui's component layer is in decent shape; its foundation layer is thin**~~ has half-corrected itself: **the token layer filled in (type, motion), the structural layer did not (Layer, Grid, Theme scoping).** That is the harder half, and it is the half that got more expensive — the doc's own argument that "foundation is the part that gets more expensive to retrofit the longer it waits" is now evidence about this document rather than a prediction.
