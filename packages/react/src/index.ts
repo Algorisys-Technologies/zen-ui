@@ -567,6 +567,11 @@ export type { ThemeProps } from "./components/theme/theme";
 // DirectionProvider — tells the Radix primitives which way the page reads.
 // CSS flips on its own; the JS that decides submenu side and arrow-key meaning
 // does not, and Radix defaults to ltr regardless of document.dir.
+// MessagePopover — aggregated form validation, grouped by severity, with
+// click-to-navigate to the offending field.
+export { MessagePopover } from "./components/message-popover/message-popover";
+export type { Message, MessageType, MessagePopoverProps } from "./components/message-popover/message-popover";
+
 export { DirectionProvider } from "./components/direction/direction";
 export type { Direction, DirectionProviderProps } from "./components/direction/direction";
 

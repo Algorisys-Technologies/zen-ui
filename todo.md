@@ -706,9 +706,21 @@ built — Tier 1 spent a day marked done while a row was missing.
   - [x] _Already covered by existing components_: MessageStrip → `Alert` /
         `Banner`; StepInput → `NumberField`; BusyIndicator / BusyDialog →
         `Loading`.
-  - [ ] **MessagePopover / MessageView** — aggregated form validation grouped by
-        severity, click-to-navigate-to-field. No equivalent, and the gap doc
-        flags it as high value for `Form`. **Best-value item in the tier.**
+  - [x] **MessagePopover — built 2026-07-20, all four bindings.** Aggregated form
+        validation grouped by severity, click-to-navigate-to-field. The last
+        unbuilt item on the Fiori recommendation shortlist.
+        Severity reuses `ObjectState` minus "none" rather than inventing a fifth
+        scale, so a message reads the same as it does in Alert and ObjectStatus.
+        The trigger reports the WORST severity present, not just a total, and the
+        filter row appears only when more than one kind is present.
+        **The navigation needed a different mechanism per binding**, which is the
+        kind of thing the port-one-at-a-time rule exists to surface: React and
+        Solid restore focus to the trigger on close, so the field has to be
+        focused in `onCloseAutoFocus` with `preventDefault()` — a
+        `requestAnimationFrame` was measurably undone a tick later. Vanilla's
+        Popover restores focus synchronously in `doClose()`, so navigating right
+        after `close()` is enough. Verified in all three: clicking a message
+        lands `document.activeElement` on the field.
   - [x] **DynamicDateRange** — semantic relative dates ("Today", "Last 7 Days",
         "This Quarter", "From…"). Shipped, all four bindings; 32 operators, engine
         in `core/date-range`, and the value stores the PERIOD rather than the two
