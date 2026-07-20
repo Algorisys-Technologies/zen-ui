@@ -153,7 +153,13 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
     };
   }, [query, open, isAsync, onSearch, debounceMs]);
 
-  const allOptions = isAsync ? asyncResults : options ?? [];
+  // useMemo, not a bare expression: `options ?? []` allocates a NEW array on
+  // every render when `options` is undefined, so every hook depending on
+  // allOptions re-ran each time even when nothing had changed.
+  const allOptions = React.useMemo(
+    () => (isAsync ? asyncResults : options ?? []),
+    [isAsync, asyncResults, options],
+  );
 
   /* Cache the label for every option we've seen so chips keep their
    * human label even after the async result page rotates away from

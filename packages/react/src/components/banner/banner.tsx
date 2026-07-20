@@ -31,7 +31,7 @@ import { cn } from "../../lib/cn";
  * "Verify your email · Verify now", "Maintenance window at 22:00 UTC".
  */
 
-const bannerVariants = cva(
+export const bannerVariants = cva(
   ["zen-w-full zen-flex zen-items-center zen-gap-3 zen-px-4 zen-py-3 zen-text-sm zen-border-y"].join(" "),
   {
     variants: {
@@ -143,8 +143,7 @@ export const BannerActions = React.forwardRef<
 ));
 BannerActions.displayName = "BannerActions";
 
-export interface BannerCloseProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+export type BannerCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export const BannerClose = React.forwardRef<HTMLButtonElement, BannerCloseProps>(
   ({ className, ...props }, ref) => (
@@ -180,4 +179,3 @@ export const BannerClose = React.forwardRef<HTMLButtonElement, BannerCloseProps>
 );
 BannerClose.displayName = "BannerClose";
 
-export { bannerVariants };

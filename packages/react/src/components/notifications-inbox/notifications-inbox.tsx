@@ -150,6 +150,10 @@ const NotificationsInbox = React.forwardRef<
   ) => {
     /* Bucket the feed into day-groups once per render. `now` is captured
      * at render time so all relative-time calcs in this pass agree. */
+    // `notifications` is a deliberate dependency even though the factory does
+    // not read it: it is what makes `now` refresh when the feed changes, so the
+    // relative times ("2h ago") do not go stale while the panel stays mounted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const now = React.useMemo(() => new Date(), [notifications]);
     const groups = React.useMemo(
       () => groupByDay(notifications, now),

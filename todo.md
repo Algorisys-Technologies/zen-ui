@@ -615,13 +615,12 @@ built — Tier 1 spent a day marked done while a row was missing.
          top-left, so the component is captured at 1:1 and shown at 1:1 —
          cropped rather than shrunk, which is legible. That is what shipped.
 
-  - [ ] **vanilla and web-components have no catalogue to put previews in.**
-        Their Welcome pages are prose with two sections; only React and Solid
-        render the component grid from `nav.ts`. That is a demo-parity gap that
-        predates this work and is the reason `gen:previews` is wired for two
-        bindings in `deploy.sh` rather than four. Decide whether those two
-        should grow the same catalogue — if they do, the preview support is
-        already there and it is one component each.
+  - [x] **vanilla and web-components now have the same catalogue — done
+        2026-07-20.** ~~Their Welcome pages are prose with two sections~~ Both
+        now render the component grid from `nav.ts` under their existing prose,
+        via a shared `catalogue()` in each binding's `demo-helpers`. All four
+        demos are verified to render it with loaded thumbnails (83/83/81/81
+        cards). `deploy.sh` generates previews for all four.
 
 
 - [ ] **SKILLS.md (or similar) so coding agents can drive this library.**

@@ -124,3 +124,86 @@ export function DemoPage(spec: {
 
   return page;
 }
+
+/** One nav group as the catalogue renders it. Kept structural so both the
+ *  vanilla and web-components demos can share the shape without sharing a file. */
+type CatalogueGroup = {
+  title: string;
+  items: { to: string; label: string; description?: string }[];
+  catalogue?: boolean;
+};
+
+const previewSlug = (route: string) =>
+  route === "/" ? "_welcome" : route.replace(/^\//, "").replace(/\//g, "-");
+
+/**
+ * The component catalogue: every entry in nav.ts as a card with a generated
+ * thumbnail. Rendered from the SAME list the sidebar uses so the two cannot
+ * drift — the React landing page once kept its own copy and fell 16 components
+ * behind.
+ *
+ * The thumbnails come from `bun run gen:previews` and are gitignored, so a
+ * fresh clone has none until it runs that (or deploys, which regenerates them).
+ * On a missing file the <img> removes itself and the card is exactly the text
+ * card it used to be: a broken-image glyph in an 83-card grid would be far
+ * worse than no picture.
+ */
+export function catalogue(nav: CatalogueGroup[]): HTMLElement {
+  const groups = nav.filter((g) => g.catalogue !== false);
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
+
+  const section = document.createElement("section");
+  section.className = "demo-section";
+
+  const h2 = document.createElement("h2");
+  h2.textContent = `Components (${total})`;
+  section.append(h2);
+
+  for (const group of groups) {
+    const heading = document.createElement("h3");
+    heading.className = "zen-mb-3 zen-mt-6 zen-text-sm zen-font-semibold zen-text-zen-foreground";
+    heading.textContent = group.title;
+    const count = document.createElement("span");
+    count.className = "zen-ms-2 zen-font-normal zen-text-zen-muted-fg";
+    count.textContent = String(group.items.length);
+    heading.append(count);
+    section.append(heading);
+
+    const grid = document.createElement("div");
+    grid.className = "zen-grid zen-grid-cols-1 zen-gap-3 sm:zen-grid-cols-2 lg:zen-grid-cols-3";
+
+    for (const item of group.items) {
+      const card = document.createElement("a");
+      card.href = `${import.meta.env.BASE_URL.replace(/\/$/, "")}${item.to}`;
+      card.className =
+        "zen-block zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-no-underline zen-transition-colors hover:zen-border-zen-primary focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring";
+
+      const img = document.createElement("img");
+      img.src = `${import.meta.env.BASE_URL}previews/${previewSlug(item.to)}.jpg`;
+      img.alt = "";
+      img.setAttribute("aria-hidden", "true");
+      img.loading = "lazy";
+      img.className =
+        "zen-block zen-w-full zen-border-b zen-border-zen-border zen-bg-zen-background zen-object-cover zen-object-left-top";
+      img.style.aspectRatio = "2 / 1";
+      img.addEventListener("error", () => {
+        img.style.display = "none";
+      });
+
+      const body = document.createElement("div");
+      body.className = "zen-p-4";
+      const label = document.createElement("div");
+      label.className = "zen-text-sm zen-font-semibold zen-text-zen-foreground";
+      label.textContent = item.label;
+      const desc = document.createElement("p");
+      desc.className = "zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg";
+      desc.textContent = item.description ?? "";
+      body.append(label, desc);
+
+      card.append(img, body);
+      grid.append(card);
+    }
+    section.append(grid);
+  }
+  return section;
+}

@@ -1,4 +1,4 @@
-import type { Column, FilterFn } from "@tanstack/react-table";
+import type { Column, FilterFn, RowData } from "@tanstack/react-table";
 
 /** Pick the human-readable header label off a column, falling back to id when
  *  the header is a function / JSX node. Used to build accessible names like
@@ -57,7 +57,7 @@ export type NumberRangeFilterValue = [number | null, number | null];
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends unknown, TValue> {
+  interface ColumnMeta<TData extends RowData, TValue> {
     filterVariant?: FilterVariant;
     /** Options used by the `select` variant. */
     filterOptions?: { label: string; value: string }[];

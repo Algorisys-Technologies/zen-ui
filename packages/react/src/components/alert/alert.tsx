@@ -157,8 +157,7 @@ const AlertActions = React.forwardRef<
 AlertActions.displayName = "AlertActions";
 
 /* ----------------------------- Close button -------------------------- */
-export interface AlertCloseProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+export type AlertCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 const AlertClose = React.forwardRef<HTMLButtonElement, AlertCloseProps>(
   ({ className, ...props }, ref) => (

@@ -10,8 +10,7 @@ import { cn } from "../../lib/cn";
  * decorative={false} when the separation is meaningful for assistive tech.
  */
 
-export interface SeparatorProps
-  extends React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root> {}
+export type SeparatorProps = React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>;
 
 const Separator = React.forwardRef<
   React.ElementRef<typeof SeparatorPrimitive.Root>,

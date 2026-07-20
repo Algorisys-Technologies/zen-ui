@@ -155,14 +155,24 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
 - **A syntax error in ONE file silently disables type-checking for the whole
   project** — tsc bails before the semantic pass, so every other file reports
   clean. If a run looks suspiciously green, check for parse errors first.
-- **Lint baselines**: Solid **8 errors / 46 warnings**; React **29 problems**
-  (measured 2026-07-15). Measure before you claim a delta — a stated baseline
-  that is off by one turns "adds nothing" into "adds one". Solid's warnings were
-  47 until `VirtualizedItems` stopped freezing `props.overscan` at setup.
+- **Lint baselines**: React **0 problems**; Solid **0 errors / 41 warnings**
+  (measured 2026-07-20; was React 29 and Solid 8/46). Measure before you claim a
+  delta — a stated baseline that is off by one turns "adds nothing" into "adds
+  one". **React is now clean, so any React finding is yours.**
   Where `solid/reactivity` is genuinely wrong (a droppable id that is fixed for
   the component's life, a callback prop the rule reads as a tracked scope), the
   disable carries the reason. A disable without one is just a louder way of
   ignoring it.
+  Two rules are scoped rather than obeyed, each with the reasoning at the
+  config: `react-refresh/only-export-components` is off for library source
+  (Fast Refresh is an app concern; the alternative was splitting 17 files so
+  their `cva()` variants live elsewhere), and `solid/no-destructure` is disabled
+  around DataTable's column factory (TanStack `ColumnDef` renderers destructure
+  a plain cell CONTEXT, which the rule cannot tell from reactive props).
+  **Solid's remaining 41 are `solid/reactivity` and
+  `solid/components-return-once`.** They are real, they change runtime behaviour
+  to fix, and each needs its own reasoning and a browser check — they are not
+  sweepable and should not be swept.
 - **A CSS import that resolves to nothing still builds green.** A dependency's
   `exports` map can block a subpath (`ERR_PACKAGE_PATH_NOT_EXPORTED`) and Vite
   drops the import silently rather than erroring — the build passes and the

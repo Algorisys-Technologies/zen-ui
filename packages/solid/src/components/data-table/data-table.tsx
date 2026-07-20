@@ -339,7 +339,17 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
   const subRowActive = () => !!props.renderSubRow && !props.enableVirtualization;
   const expansionEnabled = () => subRowActive() || groupingActive();
 
-  /* augmented columns: drag handle + expand toggle + select checkbox prepended */
+  /* augmented columns: drag handle + expand toggle + select checkbox prepended
+   *
+   * eslint-disable solid/no-destructure -- these are TanStack ColumnDef
+   * renderers, not Solid components. `cell: ({ row }) => …` destructures
+   * TanStack's cell CONTEXT — a plain object it builds per render — and the rule
+   * cannot tell that from a component destructuring reactive props, because both
+   * are "an arrow function taking one destructured argument and returning JSX".
+   * Rewriting them as `(ctx) => … ctx.row …` would obscure the API to satisfy a
+   * false positive. Scoped to this factory, and re-enabled straight after.
+   */
+  /* eslint-disable solid/no-destructure */
   const augmentedColumns = createMemo<ColumnDef<TData, TValue>[]>(() => {
     const leading: ColumnDef<TData, TValue>[] = [];
 
@@ -421,6 +431,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
 
     return [...leading, ...withVariantFilters];
   });
+  /* eslint-enable solid/no-destructure */
 
   const table = createSolidTable<TData>({
     get data() {
@@ -608,19 +619,16 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
   onMount(() => {
     if (!props.enableVirtualization) return;
     if (props.enableRowOrdering) {
-      // eslint-disable-next-line no-console
       console.warn(
         "[DataTable] `enableRowOrdering` is not supported with `enableVirtualization`. Drag handle column hidden.",
       );
     }
     if (props.renderSubRow) {
-      // eslint-disable-next-line no-console
       console.warn(
         "[DataTable] `renderSubRow` is not supported with `enableVirtualization`. Sub-rows won't render.",
       );
     }
     if (props.enableGrouping) {
-      // eslint-disable-next-line no-console
       console.error(
         "[DataTable] `enableGrouping` is not supported with `enableVirtualization`. Disable virt to use grouping.",
       );

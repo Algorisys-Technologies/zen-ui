@@ -181,7 +181,13 @@ const Combobox: React.FC<ComboboxProps> = ({
   }, [query, open, isAsync, onSearch, debounceMs]);
 
   // Track the currently-selected option's label for the trigger
-  const allOptions = isAsync ? asyncResults : options ?? [];
+  // useMemo, not a bare expression: `options ?? []` allocates a NEW array on
+  // every render when `options` is undefined, so every hook depending on
+  // allOptions re-ran each time even when nothing had changed.
+  const allOptions = React.useMemo(
+    () => (isAsync ? asyncResults : options ?? []),
+    [isAsync, asyncResults, options],
+  );
   const selectedOption = React.useMemo(
     () => allOptions.find((o) => o.value === selected) ?? null,
     [allOptions, selected],

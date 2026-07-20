@@ -10,7 +10,7 @@ import { cn } from "../../lib/cn";
  *   <Skeleton className="h-12 w-12 rounded-zen-full" />
  */
 
-export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type SkeletonProps = React.HTMLAttributes<HTMLDivElement>;
 
 const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
   ({ className, ...props }, ref) => (

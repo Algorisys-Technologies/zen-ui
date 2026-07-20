@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { Cell } from "@tanstack/react-table";
+import type { Cell, RowData } from "@tanstack/react-table";
 import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
@@ -62,7 +62,7 @@ export interface EditingState {
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends unknown, TValue> {
+  interface ColumnMeta<TData extends RowData, TValue> {
     editable?: boolean | ((row: TData) => boolean);
     editVariant?: EditVariant;
     /** Options used by the `select` edit variant. */

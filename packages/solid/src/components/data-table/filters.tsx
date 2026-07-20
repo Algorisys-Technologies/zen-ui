@@ -1,5 +1,5 @@
 import { For, type JSX, Show } from "solid-js";
-import type { Column, FilterFn } from "@tanstack/solid-table";
+import type { Column, FilterFn, RowData } from "@tanstack/solid-table";
 import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
@@ -37,7 +37,7 @@ export type NumberRangeFilterValue = [number | null, number | null];
 
 declare module "@tanstack/solid-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends unknown, TValue> {
+  interface ColumnMeta<TData extends RowData, TValue> {
     filterVariant?: FilterVariant;
     /** Options used by the `select` variant. */
     filterOptions?: { label: string; value: string }[];

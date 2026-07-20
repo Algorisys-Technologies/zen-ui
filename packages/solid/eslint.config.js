@@ -26,5 +26,18 @@ export default tseslint.config(
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // An underscore prefix is the conventional "I must declare this but do
+      // not use it" marker, and Solid's APIs force it: <Show>'s render prop is
+      // typed to take the accessor whether or not you read it, and a generic
+      // sometimes exists only to satisfy a signature. Without this the only
+      // ways to silence it are a disable comment per site or deleting a
+      // parameter the type requires — the latter breaks the build, which is how
+      // this setting got added.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
+    },
   },
 );

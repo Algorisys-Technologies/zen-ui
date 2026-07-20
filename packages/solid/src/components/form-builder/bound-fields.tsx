@@ -217,7 +217,6 @@ export function BoundSelect<TFields extends FieldValues = FieldValues>(
             onChange={(v) => {
               // Kobalte Select doesn't drive modular-forms's hidden input;
               // push the value into the form store directly.
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               setValue(props.of as never, props.name as never, (v ?? "") as never);
             }}
             placeholder={props.placeholder}

@@ -31,7 +31,6 @@ type SignUpValues = {
 // modular-forms's FieldValues constraint is recursive — passing a
 // strictly-typed interface trips deep type-equality checks. Cast at the
 // createForm call site keeps the demo strictly typed below the boundary.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const NewFormDemo = () => {
   const [submitted, setSubmitted] = createSignal<SignUpValues | null>(null);
   // Capture the form store (first tuple element) — Bound* needs it to

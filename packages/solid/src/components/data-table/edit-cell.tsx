@@ -1,5 +1,5 @@
 import { type JSX, Show, createSignal, onMount } from "solid-js";
-import type { Cell } from "@tanstack/solid-table";
+import type { Cell, RowData } from "@tanstack/solid-table";
 import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
@@ -28,7 +28,7 @@ export interface EditingState {
 
 declare module "@tanstack/solid-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends unknown, TValue> {
+  interface ColumnMeta<TData extends RowData, TValue> {
     editable?: boolean | ((row: TData) => boolean);
     editVariant?: EditVariant;
     editOptions?: { label: string; value: string }[];

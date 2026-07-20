@@ -1,9 +1,9 @@
 import { NAV } from "../nav";
-import { DemoPage } from "./demo-helpers";
+import { DemoPage, catalogue } from "./demo-helpers";
 
 export default function Welcome(): HTMLElement {
   const count = NAV.filter((g) => g.components !== false).flatMap((g) => g.items).length;
-  return DemoPage({
+  const page = DemoPage({
     title: "Zen UI · Web Components",
     description: `${count} components, as native custom elements. A binding with no framework and no build step for the consumer — import once, write <zen-*> tags. Each element wraps the vanilla factory and mounts in the LIGHT dom, so the shared global zen-* / --zen-* stylesheet styles it exactly as in the React and Solid bindings.`,
     sections: [
@@ -35,4 +35,10 @@ save.loading = true;   // no re-render: a targeted DOM write`,
       },
     ],
   });
+
+  // The component catalogue, rendered from the SAME nav the sidebar uses so the
+  // two cannot drift. Appended rather than passed as a section because it is a
+  // grid, not a code example.
+  page.append(catalogue(NAV));
+  return page;
 }

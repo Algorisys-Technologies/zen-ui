@@ -1,9 +1,9 @@
 import { NAV } from "../nav";
-import { DemoPage } from "./demo-helpers";
+import { DemoPage, catalogue } from "./demo-helpers";
 
 export default function Welcome(): HTMLElement {
   const count = NAV.filter((g) => g.components !== false).flatMap((g) => g.items).length;
-  return DemoPage({
+  const page = DemoPage({
     title: "Zen UI · Vanilla",
     description: `${count} components, no framework. A binding with no render loop and no primitive library, built to test whether @algorisys/zen-ui-core is really framework-agnostic. It was not — see the accordion.`,
     sections: [
@@ -34,4 +34,11 @@ save.destroy();                   // releases listeners, portals, observers`,
       },
     ],
   });
+
+  // The component catalogue, rendered from the SAME nav the sidebar uses so the
+  // two cannot drift — the React binding's landing page once kept its own copy
+  // and fell 16 components behind. Appended rather than passed as a section
+  // because it is a grid, not a code example.
+  page.append(catalogue(NAV));
+  return page;
 }
