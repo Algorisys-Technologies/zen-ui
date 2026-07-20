@@ -97,6 +97,7 @@ import NewDataTableDemo from "./components/NewDataTableDemo";
 import NewTreeTableDemo from "./components/NewTreeTableDemo";
 import NewMicroChartDemo from "./components/NewMicroChartDemo";
 import NewTimelineDemo from "./components/NewTimelineDemo";
+import NewUploadCollectionDemo from "./components/NewUploadCollectionDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewAlertDemo from "./components/NewAlertDemo";
@@ -302,6 +303,7 @@ const App: React.FC = () => {
             <Route path="/tree-table" element={<NewTreeTableDemo />} />
             <Route path="/micro-chart" element={<NewMicroChartDemo />} />
             <Route path="/timeline" element={<NewTimelineDemo />} />
+            <Route path="/upload-collection" element={<NewUploadCollectionDemo />} />
             <Route path="/lazy-options" element={<NewLazyOptionsDemo />} />
             <Route path="/combobox" element={<NewComboboxDemo />} />
             <Route path="/alert" element={<NewAlertDemo />} />
