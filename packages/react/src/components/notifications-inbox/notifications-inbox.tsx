@@ -330,7 +330,7 @@ const Row: React.FC<{
   );
 
   const baseClass = cn(
-    "zen-flex zen-items-start zen-gap-3 zen-px-4 zen-py-2.5 zen-text-left zen-w-full",
+    "zen-flex zen-items-start zen-gap-3 zen-px-4 zen-py-2.5 zen-text-start zen-w-full",
     "zen-border-l-2",
     read ? "zen-border-transparent" : "zen-border-zen-primary zen-bg-zen-primary-soft/30",
     interactive &&

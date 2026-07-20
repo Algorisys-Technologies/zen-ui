@@ -96,7 +96,7 @@ export const TableHead = (
   return (
     <th
       class={cn(
-        "zen-h-10 zen-px-2 zen-py-2 zen-text-left zen-align-middle zen-font-medium zen-text-xs",
+        "zen-h-10 zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs",
         "zen-text-zen-muted-fg",
         local.class,
       )}

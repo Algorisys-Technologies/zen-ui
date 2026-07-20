@@ -901,7 +901,7 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
       utilities across 132 component files** — React 154/45, Solid 157/45,
       vanilla 167/42 — and **zero** logical utilities anywhere.
 
-  - [ ] **Defect 1 (library) — `TableHead` hardcodes `zen-text-left`.**
+  - [x] **Defect 1 — FIXED 2026-07-20.** ~~`TableHead` hardcodes `zen-text-left`.~~
         `data-table/table.tsx:113`. In RTL the header label stays left-aligned
         while its column data flows right, so headers visibly do not line up with
         their own columns. Affects `Table` AND `DataTable`. Fix is
@@ -920,15 +920,32 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
         `@radix-ui/react-direction` is already available. Needs a decision on
         surface: read `document.dir` automatically, or expose a `dir` prop on a
         provider the consumer renders. Kobalte has its own equivalent to check.
-  - [ ] **Defect 3 (demo only, not shipped) — code blocks render RTL.**
+  - [x] **Defect 3 — FIXED 2026-07-20.** ~~(demo only, not shipped) code blocks render RTL.~~
         `demo-helpers.tsx:62` renders `<pre className="example-code">` with no
         `dir="ltr"`, so every code sample reverses in RTL and is unreadable. Code
         is always LTR regardless of UI direction. Library ships no code blocks, so
         this is demo-side only — but it is in all four demos.
 
-      **Not fixed here.** This entry is the audit; the three items above are the
-      remediation and are deliberately separate, because Defect 2 needs an API
-      decision rather than a sweep.
+      **Defects 1 and 3 fixed 2026-07-20; Defect 2 remains** and is deliberately
+      separate, because it needs an API decision rather than a sweep.
+
+      On Defect 1's scope: the fix was a full `zen-text-left` -> `zen-text-start`
+      and `zen-text-right` -> `zen-text-end` replacement, but only after reading
+      all 69 sites. Every one was reading-direction alignment — button labels,
+      table headers, dialog headers, list items, numeric columns — and not one
+      was a deliberate physical left. 49 files across all four bindings plus
+      `core/src/variants.ts`, whose `multiline` button variant had
+      `zen-justify-start` (logical) sitting next to `zen-text-left` (physical) in
+      the same class string, so the flex alignment flipped in RTL and the text
+      alignment did not.
+
+  - [ ] **Still physical, deliberately out of scope of Defect 1**: `ml/mr`,
+        `pl/pr`, `left/right`, `border-l/r`, `rounded-l/r`. These need per-site
+        reasoning about whether the thing being offset actually flips —
+        `DialogHeader`'s `zen-pr-8` reserves room for a close button that DOES
+        move in RTL, so it wants `pe-8`; a decorative offset may not. Re-run
+        `node scripts/visual-check.mjs <binding> --dir rtl` and fix what the
+        screenshots actually show, rather than sweeping 400+ sites blind.
 - [ ] **Content density** (`cozy`/`compact`) — Fiori has a global density switch;
       zen-ui is fixed-size. Token-level, so one implementation. No demand recorded
       yet — do not build speculatively.

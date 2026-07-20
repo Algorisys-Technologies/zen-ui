@@ -76,7 +76,7 @@ export const WindowedVirtualList: React.FC<WindowedVirtualListProps> = ({
             aria-selected={isSelected(item)}
             onClick={() => onToggle(item)}
             className={cn(
-              "zen-flex zen-h-full zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-px-2 zen-text-left zen-text-sm zen-text-zen-foreground zen-transition-colors",
+              "zen-flex zen-h-full zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-px-2 zen-text-start zen-text-sm zen-text-zen-foreground zen-transition-colors",
               "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
             )}
           >

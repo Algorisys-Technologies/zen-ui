@@ -83,9 +83,12 @@ export const buttonVariants = cva(
       },
       // Let the label wrap across lines instead of forcing a single line.
       // Drops the fixed height + nowrap (keeps a min tap height) and
-      // left-aligns content — useful for long-text options / list buttons.
+      // start-aligns content — useful for long-text options / list buttons.
+      // `text-start`, not `text-left`, to match the `justify-start` beside it:
+      // the two sat inconsistent until the RTL audit, so the label alignment
+      // did not flip with the direction while the flex alignment did.
       multiline: {
-        true: "!zen-whitespace-normal !zen-h-auto zen-min-h-10 !zen-items-start !zen-justify-start zen-text-left zen-py-2",
+        true: "!zen-whitespace-normal !zen-h-auto zen-min-h-10 !zen-items-start !zen-justify-start zen-text-start zen-py-2",
         false: "",
       },
     },

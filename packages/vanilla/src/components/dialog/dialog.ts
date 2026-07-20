@@ -111,7 +111,7 @@ export function Dialog(props: DialogProps): DialogHandle {
 
     if (title || description) {
       const header = document.createElement("div");
-      header.className = "zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3 zen-pr-8";
+      header.className = "zen-flex zen-flex-col zen-gap-1 zen-text-start zen-mb-3 zen-pr-8";
       if (title) {
         const h2 = document.createElement("h2");
         h2.id = `${id}-title`;

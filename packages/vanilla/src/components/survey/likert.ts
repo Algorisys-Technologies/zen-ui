@@ -272,7 +272,7 @@ export function Likert(props: LikertProps): ZenComponent<LikertProps> {
         setSelected = (selected) => {
           button.className = cn(
             "zen-flex zen-items-center zen-gap-2 zen-px-2 zen-py-1.5 zen-rounded-zen-sm",
-            "zen-bg-transparent zen-border-0 zen-text-left zen-text-sm zen-cursor-pointer",
+            "zen-bg-transparent zen-border-0 zen-text-start zen-text-sm zen-cursor-pointer",
             "zen-transition-colors",
             interactive && "hover:zen-bg-zen-muted",
             selected && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
@@ -339,7 +339,7 @@ export function Likert(props: LikertProps): ZenComponent<LikertProps> {
       const lo = document.createElement("span");
       lo.textContent = current.minLabel ?? "";
       const hi = document.createElement("span");
-      hi.className = "zen-text-right";
+      hi.className = "zen-text-end";
       hi.textContent = current.maxLabel ?? "";
       caps.append(lo, hi);
       el.append(caps);

@@ -101,7 +101,7 @@ export const SelectListBody = ({
 };
 
 const ROW_CLASS =
-  "zen-flex zen-w-full zen-items-center zen-gap-3 zen-rounded-zen-sm zen-px-4 zen-py-2.5 zen-text-left";
+  "zen-flex zen-w-full zen-items-center zen-gap-3 zen-rounded-zen-sm zen-px-4 zen-py-2.5 zen-text-start";
 
 const RowBody = ({ item }: { item: SelectListItem }) => (
   <>

@@ -41,7 +41,7 @@ export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
     const interactive = Boolean(href || onClick);
     el.className = cn(
       cardVariants({ variant: "outlined", padding: "md" }),
-      "zen-block zen-w-full zen-text-left",
+      "zen-block zen-w-full zen-text-start",
       interactive &&
         "zen-cursor-pointer zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       className,

@@ -116,7 +116,7 @@ export const DialogHeader = (props: DialogHeaderProps) => {
   return (
     <div
       {...rest}
-      class={cn("zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3 zen-pr-8", local.class)}
+      class={cn("zen-flex zen-flex-col zen-gap-1 zen-text-start zen-mb-3 zen-pr-8", local.class)}
     >
       {local.children}
     </div>

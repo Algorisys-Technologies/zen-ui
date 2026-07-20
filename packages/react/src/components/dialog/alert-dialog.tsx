@@ -70,7 +70,7 @@ const AlertDialogHeader = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3", className)} {...props} />
+  <div className={cn("zen-flex zen-flex-col zen-gap-1 zen-text-start zen-mb-3", className)} {...props} />
 );
 AlertDialogHeader.displayName = "AlertDialogHeader";
 

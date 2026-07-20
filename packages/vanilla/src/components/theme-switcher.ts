@@ -95,7 +95,7 @@ export function ThemeSwitcher(): { el: HTMLElement; destroy(): void } {
     item.setAttribute("role", "menuitemradio");
     item.dataset.theme = t.name;
     item.className = cn(
-      "zen-flex zen-w-full zen-items-start zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-left",
+      "zen-flex zen-w-full zen-items-start zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-start",
       "zen-bg-transparent zen-border-0 zen-cursor-pointer",
       "hover:zen-bg-zen-muted focus-visible:zen-bg-zen-muted focus-visible:zen-outline-none",
     );

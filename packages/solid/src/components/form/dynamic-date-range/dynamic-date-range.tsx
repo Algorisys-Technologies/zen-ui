@@ -176,7 +176,7 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
                         onClick={() => pick(o.operator)}
                         class={cn(
                           "zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-rounded-zen-sm zen-border-0 zen-px-2 zen-py-1.5",
-                          "zen-text-left zen-text-sm zen-transition-colors",
+                          "zen-text-start zen-text-sm zen-transition-colors",
                           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
                           draftOp() === o.operator
                             ? "zen-bg-zen-primary zen-text-zen-primary-fg"

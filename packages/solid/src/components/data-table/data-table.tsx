@@ -1645,7 +1645,7 @@ function HeaderCell<TData, TValue>(props: {
           }, currently ${sortLabel()}`}
           class={cn(
             "zen-w-full zen-h-full zen-px-2 zen-py-2",
-            "zen-inline-flex zen-items-center zen-gap-1 zen-text-left zen-font-inherit zen-text-inherit",
+            "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
             "zen-bg-transparent zen-border-0 zen-cursor-pointer",
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
           )}

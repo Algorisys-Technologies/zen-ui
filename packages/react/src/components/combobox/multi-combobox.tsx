@@ -213,7 +213,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            "zen-justify-between zen-font-normal zen-text-left zen-min-h-10 zen-h-auto zen-py-1.5",
+            "zen-justify-between zen-font-normal zen-text-start zen-min-h-10 zen-h-auto zen-py-1.5",
             selected.length === 0 && "zen-text-zen-muted-fg",
             className,
           )}
@@ -326,7 +326,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
                 type="button"
                 onClick={() => update([])}
                 className={cn(
-                  "zen-w-full zen-text-left zen-text-xs zen-px-2 zen-py-1 zen-rounded-zen-sm",
+                  "zen-w-full zen-text-start zen-text-xs zen-px-2 zen-py-1 zen-rounded-zen-sm",
                   "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
                   "zen-bg-transparent zen-border-0 zen-cursor-pointer",
                   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

@@ -100,7 +100,7 @@ export interface SelectDialogHandle extends ZenComponent<SelectDialogProps> {
 const FULL_BLEED = "zen-flex zen-max-h-[85vh] zen-flex-col zen-overflow-hidden zen-p-0";
 
 const ROW_CLASS =
-  "zen-flex zen-w-full zen-items-center zen-gap-3 zen-rounded-zen-sm zen-px-4 zen-py-2.5 zen-text-left";
+  "zen-flex zen-w-full zen-items-center zen-gap-3 zen-rounded-zen-sm zen-px-4 zen-py-2.5 zen-text-start";
 
 /** Client-side filter over label + description. `external` hands it to the caller. */
 const filterItems = (

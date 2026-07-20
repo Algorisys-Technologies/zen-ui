@@ -107,7 +107,7 @@ export const SelectableCard = (props: SelectableCardProps) => {
       value={local.value}
       disabled={local.disabled}
       class={cn(
-        "zen-group zen-relative zen-w-full zen-text-left",
+        "zen-group zen-relative zen-w-full zen-text-start",
         "zen-rounded-zen-md zen-border-2 zen-border-zen-border zen-bg-zen-background",
         "zen-p-4 zen-cursor-pointer zen-transition-colors",
         // hover (only when not selected and not disabled)

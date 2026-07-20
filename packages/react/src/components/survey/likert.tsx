@@ -246,7 +246,7 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
                   onClick={() => interactive && update(opt.value)}
                   className={cn(
                     "zen-flex zen-items-center zen-gap-2 zen-px-2 zen-py-1.5 zen-rounded-zen-sm",
-                    "zen-bg-transparent zen-border-0 zen-text-left zen-text-sm zen-cursor-pointer",
+                    "zen-bg-transparent zen-border-0 zen-text-start zen-text-sm zen-cursor-pointer",
                     "zen-transition-colors",
                     interactive && "hover:zen-bg-zen-muted",
                     selected && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
@@ -324,7 +324,7 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
           // not themselves answerable.
           <div className="zen-flex zen-items-start zen-justify-between zen-gap-4 zen-text-xs zen-text-zen-muted-fg">
             <span>{minLabel}</span>
-            <span className="zen-text-right">{maxLabel}</span>
+            <span className="zen-text-end">{maxLabel}</span>
           </div>
         ) : null}
         {inputName && value !== undefined ? (

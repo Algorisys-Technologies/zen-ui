@@ -155,7 +155,7 @@ const TABLE_ROW_CLASS = cn(
   "data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1 data-[state=selected]:-zen-outline-offset-1 data-[state=selected]:zen-outline-zen-primary",
 );
 const TABLE_HEAD_CLASS =
-  "zen-h-10 zen-px-2 zen-py-2 zen-text-left zen-align-middle zen-font-medium zen-text-xs zen-text-zen-muted-fg";
+  "zen-h-10 zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs zen-text-zen-muted-fg";
 const TABLE_CELL_CLASS =
   "zen-px-2 zen-py-3 zen-align-middle zen-text-sm zen-text-zen-foreground";
 const VIRT_CELL_CLASS =
@@ -165,7 +165,7 @@ const VIRT_HEAD_CLASS =
 
 const SORT_BTN_CLASS = cn(
   "zen-w-full zen-h-full zen-px-2 zen-py-2",
-  "zen-inline-flex zen-items-center zen-gap-1 zen-text-left zen-font-inherit zen-text-inherit",
+  "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
   "zen-bg-transparent zen-border-0 zen-cursor-pointer",
   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
 );

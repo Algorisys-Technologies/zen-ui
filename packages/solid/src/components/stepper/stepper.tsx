@@ -211,7 +211,7 @@ export const StepperList = (props: StepperListProps) => {
                 disabled={!clickable()}
                 aria-label={`${label}, step ${i() + 1} of ${ctx.steps().length}, ${status()}`}
                 class={cn(
-                  "zen-flex zen-items-start zen-gap-2 zen-text-left zen-min-w-0",
+                  "zen-flex zen-items-start zen-gap-2 zen-text-start zen-min-w-0",
                   "zen-bg-transparent zen-border-0 zen-p-1 zen-rounded-zen-sm",
                   clickable()
                     ? "zen-cursor-pointer hover:zen-bg-zen-muted/50"

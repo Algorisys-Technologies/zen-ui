@@ -214,7 +214,7 @@ const buildRow = (
   body.append(meta);
 
   const baseClass = cn(
-    "zen-flex zen-items-start zen-gap-3 zen-px-4 zen-py-2.5 zen-text-left zen-w-full",
+    "zen-flex zen-items-start zen-gap-3 zen-px-4 zen-py-2.5 zen-text-start zen-w-full",
     "zen-border-l-2",
     n.read
       ? "zen-border-transparent"

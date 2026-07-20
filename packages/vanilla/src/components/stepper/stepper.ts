@@ -448,7 +448,7 @@ export function Stepper(props: StepperProps): StepperHandle {
         `${ref.step.label ?? ref.step.value}, step ${ref.index + 1} of ${current.steps.length}, ${status}`,
       );
       ref.button.className = cn(
-        "zen-flex zen-items-start zen-gap-2 zen-text-left zen-min-w-0",
+        "zen-flex zen-items-start zen-gap-2 zen-text-start zen-min-w-0",
         "zen-bg-transparent zen-border-0 zen-p-1 zen-rounded-zen-sm",
         clickable ? "zen-cursor-pointer hover:zen-bg-zen-muted/50" : "zen-cursor-default",
         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

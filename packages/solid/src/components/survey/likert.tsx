@@ -268,7 +268,7 @@ export const Likert = (props: LikertProps) => {
                   onClick={() => interactive() && update(opt.value)}
                   class={cn(
                     "zen-flex zen-items-center zen-gap-2 zen-px-2 zen-py-1.5 zen-rounded-zen-sm",
-                    "zen-bg-transparent zen-border-0 zen-text-left zen-text-sm zen-cursor-pointer",
+                    "zen-bg-transparent zen-border-0 zen-text-start zen-text-sm zen-cursor-pointer",
                     "zen-transition-colors",
                     interactive() && "hover:zen-bg-zen-muted",
                     selected() && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
@@ -305,7 +305,7 @@ export const Likert = (props: LikertProps) => {
             not themselves answerable. */}
         <div class="zen-flex zen-items-start zen-justify-between zen-gap-4 zen-text-xs zen-text-zen-muted-fg">
           <span>{props.minLabel}</span>
-          <span class="zen-text-right">{props.maxLabel}</span>
+          <span class="zen-text-end">{props.maxLabel}</span>
         </div>
       </Show>
       <Show when={props.name && value() !== undefined}>

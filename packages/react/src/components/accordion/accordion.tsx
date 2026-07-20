@@ -52,7 +52,7 @@ const AccordionTrigger = React.forwardRef<
       ref={ref}
       className={cn(
         "zen-flex zen-flex-1 zen-items-center zen-justify-between zen-gap-2",
-        "zen-py-3 zen-px-1 zen-text-sm zen-font-medium zen-text-left",
+        "zen-py-3 zen-px-1 zen-text-sm zen-font-medium zen-text-start",
         "zen-bg-transparent zen-border-0 zen-cursor-pointer",
         "zen-transition-colors hover:zen-text-zen-foreground",
         "zen-text-zen-foreground",

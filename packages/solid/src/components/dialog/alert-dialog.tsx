@@ -98,7 +98,7 @@ export type AlertDialogHeaderProps = Omit<
 export const AlertDialogHeader = (props: AlertDialogHeaderProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div {...rest} class={cn("zen-flex zen-flex-col zen-gap-1 zen-text-left zen-mb-3", local.class)}>
+    <div {...rest} class={cn("zen-flex zen-flex-col zen-gap-1 zen-text-start zen-mb-3", local.class)}>
       {local.children}
     </div>
   );

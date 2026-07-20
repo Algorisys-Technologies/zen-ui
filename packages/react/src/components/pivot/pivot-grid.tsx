@@ -152,7 +152,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                         scope="col"
                         className={cn(
                           STICKY_CORNER,
-                          "zen-px-2 zen-py-1 zen-text-left zen-align-bottom zen-text-sm zen-font-medium zen-capitalize zen-text-zen-muted-fg",
+                          "zen-px-2 zen-py-1 zen-text-start zen-align-bottom zen-text-sm zen-font-medium zen-capitalize zen-text-zen-muted-fg",
                         )}
                         style={{
                           ...stickyLeft(depth),
@@ -189,7 +189,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                       key={colIndex}
                       scope="col"
                       colSpan={span}
-                      className="zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-bg-zen-background zen-px-2 zen-py-1 zen-text-left zen-text-xs zen-font-medium zen-text-zen-foreground"
+                      className="zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground"
                       style={{
                         width: `${colWidth * span}px`,
                         minWidth: `${colWidth * span}px`,
@@ -242,7 +242,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                             rowSpan={header?.rowSpan || 1}
                             className={cn(
                               STICKY_ROW_LABEL,
-                              "zen-break-words zen-bg-zen-background zen-px-2 zen-py-1 zen-text-left zen-align-top zen-text-xs zen-font-medium zen-leading-tight zen-text-zen-foreground",
+                              "zen-break-words zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-align-top zen-text-xs zen-font-medium zen-leading-tight zen-text-zen-foreground",
                               rowIndex > 0 ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0",
                             )}
                             style={{
@@ -274,7 +274,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                       <td
                         key={colIndex}
                         className={cn(
-                          "zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-right zen-text-sm zen-tabular-nums",
+                          "zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums",
                           stripe(rowIndex),
                         )}
                         style={{ width: `${colWidth}px`, minWidth: `${colWidth}px`, maxWidth: `${colWidth}px` }}

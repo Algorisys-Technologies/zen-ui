@@ -106,8 +106,16 @@
 }
 
 /* Code block — always dark for readability, but uses theme-aware accent
- * for code-text colour so syntax stays legible across light + dark themes. */
+ * for code-text colour so syntax stays legible across light + dark themes.
+ *
+ * `direction: ltr` because code is left-to-right regardless of the UI's
+ * direction. Without it, `dir="rtl"` on <html> reorders every snippet through
+ * the BiDi algorithm and renders it unreadable — punctuation migrates to the
+ * wrong end of each line. Found by the RTL audit (`visual-check.mjs --dir rtl`);
+ * `text-align` is pinned for the same reason. */
 .example-code {
+  direction: ltr;
+  text-align: left;
   background-color: #1f2937;
   color: #f3f4f6;
   padding: 1rem;

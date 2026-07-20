@@ -154,7 +154,7 @@ const filterItems = (items: ValueHelpItem[], query: string, external?: boolean):
 let uid = 0;
 
 const ROW_CLASS =
-  "zen-flex zen-w-full zen-items-center zen-gap-3 zen-rounded-zen-sm zen-px-4 zen-py-2.5 zen-text-left";
+  "zen-flex zen-w-full zen-items-center zen-gap-3 zen-rounded-zen-sm zen-px-4 zen-py-2.5 zen-text-start";
 
 /** The label + description + info column shared by both row shapes. */
 const rowBody = (item: ValueHelpItem): Node[] => {

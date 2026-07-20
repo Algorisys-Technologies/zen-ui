@@ -4,8 +4,8 @@ import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
 
 const PIVOT_ROW_CLASS = "zen-border-b zen-border-zen-border/60 zen-bg-transparent even:zen-bg-transparent hover:zen-bg-transparent";
-const CORNER_HEADER_CLASS = "zen-px-2 zen-py-1 zen-text-left zen-text-sm zen-font-medium zen-text-zen-muted-fg zen-capitalize";
-const ROW_LABEL_CLASS = "zen-px-2 zen-py-1 zen-text-left zen-text-xs zen-font-medium zen-normal-case zen-tracking-normal zen-text-zen-foreground zen-break-words zen-leading-tight";
+const CORNER_HEADER_CLASS = "zen-px-2 zen-py-1 zen-text-start zen-text-sm zen-font-medium zen-text-zen-muted-fg zen-capitalize";
+const ROW_LABEL_CLASS = "zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-normal-case zen-tracking-normal zen-text-zen-foreground zen-break-words zen-leading-tight";
 
 const STICKY_HEAD = "zen-bg-zen-muted";
 const STICKY_CORNER = "zen-sticky zen-z-30 zen-box-border zen-border-r zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
@@ -262,7 +262,7 @@ export function PivotGrid(props: PivotGridProps) {
                         <th
                           role="columnheader"
                           scope="col"
-                          class="zen-sticky zen-z-10 zen-bg-zen-background zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-left zen-text-xs zen-font-medium zen-text-zen-foreground zen-truncate"
+                          class="zen-sticky zen-z-10 zen-bg-zen-background zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground zen-truncate"
                           colSpan={header()?.colSpan || 1}
                           style={{
                             width: `${virtualCol.size * (header()?.colSpan || 1)}px`,
@@ -384,7 +384,7 @@ export function PivotGrid(props: PivotGridProps) {
                         return (
                           <td
                             class={cn(
-                              "zen-border-r zen-border-b zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-right zen-text-sm zen-tabular-nums zen-truncate",
+                              "zen-border-r zen-border-b zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums zen-truncate",
                               rowStripeBg(rowIndex)
                             )}
                             style={{
