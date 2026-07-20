@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.3.0",
+    date: "2026-07-21",
+    kind: "new",
+    title: "TreeTable — a table whose rows nest",
+    detail:
+      "For data where the hierarchy is the point: a cost-centre rollup, an org chart, a bill of materials. The chevron sits INSIDE the first column and indents with depth, so the hierarchy reads down one column rather than across a gutter. Searching keeps a match's ancestors, so a hit three levels down arrives with its full path instead of orphaned. Selecting a parent selects its subtree, and a partly-selected parent shows indeterminate. Sorting reorders siblings without ever moving a child out from under its parent. It is a real treegrid — aria-level, aria-expanded, sibling positions, and roving row focus with direction-aware arrows. Turn on enableVirtualization (with maxBodyHeight) for trees you expand all of: 1,240 open rows render as 16-25. Separate from DataTable rather than a flag on it, because hierarchy and grouping cannot share one table's sub-rows. All four bindings.",
+  },
+  {
     version: "9.2.0",
     date: "2026-07-20",
     kind: "new",

@@ -11,6 +11,54 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.3.0] - 2026-07-21
+
+### Added
+
+- **`TreeTable`** in all four bindings — a table whose rows form a hierarchy.
+  Built on TanStack Table in React and Solid; hand-written in vanilla (no new
+  runtime deps), with `<zen-tree-table>` as the declarative layer.
+  - Chevron inside the first column, indented by `row.depth`; `indent` is
+    configurable and applied as `padding-inline-start`, so it flips under RTL.
+  - `getSubRows` (defaults to `row.children`), `expanded` / `defaultExpanded` /
+    `onExpandedChange`, `enableExpandAll`.
+  - `filterFromLeafRows` so a match retains its ancestors.
+  - `enableRowSelection` + `enableSubRowSelection` (default true) with
+    indeterminate parents derived from the subtree, not from the parent's own
+    row entry.
+  - Sorting scoped to siblings; number columns sort descending first, matching
+    TanStack's `sortDescFirst`.
+  - `role="treegrid"`, `aria-level` / `aria-expanded` / per-parent
+    `aria-posinset`+`aria-setsize`, roving row focus, direction-aware arrows via
+    `arrowStep` from core.
+  - `enableVirtualization` + `rowEstimatedHeight` (requires `maxBodyHeight`).
+    Spacer rows rather than an absolutely-positioned grid clone, to keep real
+    `<table>` markup and therefore the treegrid roles; adds `aria-rowcount` and
+    `aria-rowindex` when windowed.
+
+### Fixed
+
+- Solid: three lint warnings that had been miscounted as zero in `CLAUDE.md` —
+  two dead `eslint-disable` directives (`date-picker`), and one in `time-picker`
+  where `eslint-disable-next-line` sat on the outer line of a multi-line call
+  while the rule reported the inner one, so it silenced nothing.
+
+### Performance
+
+- vanilla `TreeTable` expand/collapse splices the affected subtree instead of
+  rebuilding `<tbody>`. At 1,110 visible rows a toggle went from ~49 ms to
+  3–8 ms; at 22,620 rows from ~924 ms to 88–138 ms.
+
+### Internal
+
+- `scripts/bindings.mjs`: `TreeTableColumn` and `TreeTableCellContext` recorded
+  as data-driven divergences alongside `DataTableColumn`.
+- `CLAUDE.md`: build order is now Solid → React → vanilla → web-components
+  (React remains the parity reference); notes that `check:parity` is red for the
+  duration of a port by construction; and a new verification trap — a
+  solution-style `tsconfig.json` (`{"files": [], "references": […]}`) compiles an
+  empty program and exits 0 on any code.
+
 ## [9.2.0] - 2026-07-20
 
 ### Added
