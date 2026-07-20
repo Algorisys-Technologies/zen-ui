@@ -819,6 +819,17 @@ built — Tier 1 spent a day marked done while a row was missing.
             order: micro charts (sparklines) → Timeline → UploadCollection →
             PlanningCalendar (a release of its own). Full reasoning and the
             narrower drops are in docs/fiori-gap-analysis.md.
+            - [x] **Micro charts — DONE** (2026-07-21, all four bindings). Line,
+                  bar, bullet, delta, radial. Two things worth not re-deriving:
+                  `zen-fill-*` / `zen-stroke-*` DO NOT GENERATE under this preset
+                  (the bullet track computed black, the radial ring `none` —
+                  invisible, and green on every static check), so tracks use
+                  `var(--zen-color-*)` directly; and delta DERIVES its colour
+                  from direction rather than taking it, because a caller
+                  painting a fall green would defeat the component.
+            - [ ] Timeline
+            - [ ] UploadCollection
+            - [ ] PlanningCalendar
       - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
             DataTable, not dialogs around it.
 - [ ] **Tier 4 — build the whole tier** (decided 2026-07-15, overriding the
