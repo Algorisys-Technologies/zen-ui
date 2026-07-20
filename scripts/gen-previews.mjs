@@ -153,14 +153,24 @@ for (const binding of which) {
   const unrendered = [];
   const failed = [];
   const fellBack = [];
+  // A hard ceiling per route. `networkidle` never settles on a page that keeps
+  // the network or the event loop busy, and vanilla's /skip-to-content wedged
+  // the whole run there — twice, holding the deploy indefinitely rather than
+  // failing it. No single route may cost more than this; on timeout the route
+  // is named and the loop moves on.
+  page.setDefaultTimeout(8000);
+  page.setDefaultNavigationTimeout(15000);
+
   for (const route of routes) {
-    await page.goto(`http://localhost:${cfg.port}${cfg.base}${route}`, { waitUntil: "networkidle" }).catch(() => {});
+    await page
+      .goto(`http://localhost:${cfg.port}${cfg.base}${route}`, { waitUntil: "domcontentloaded" })
+      .catch(() => {});
     // Wait for the demo to actually render. `networkidle` says the network went
     // quiet, not that the route mounted — and a fixed sleep is a race: the set
     // of routes that "had no rendered example" CHANGED between two runs, which
     // is what gave the race away.
-    await page.waitForSelector(".demo-page", { timeout: 10000 }).catch(() => {});
-    await page.waitForSelector(".example-preview", { timeout: 4000 }).catch(() => {});
+    await page.waitForSelector(".demo-page", { timeout: 6000 }).catch(() => {});
+    await page.waitForSelector(".example-preview", { timeout: 3000 }).catch(() => {});
     await sleep(250);
     // Fall back to the page itself when a demo renders no live example. Leaving
     // the file out instead means the card requests an image that 404s: the <img>
