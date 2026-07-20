@@ -1151,7 +1151,7 @@ function Chip(props: { label: string; onRemove: () => void }) {
       <span>{props.label}</span>
       <button
         type="button"
-        onClick={props.onRemove}
+        onClick={() => props.onRemove()}
         aria-label={`Remove ${props.label}`}
         class={cn(
           "zen-inline-flex zen-items-center zen-justify-center",
@@ -1313,7 +1313,7 @@ function PinButton(props: {
   return (
     <button
       type="button"
-      onClick={props.onClick}
+      onClick={(e) => props.onClick(e)}
       aria-label={
         props.active ? `Unpin ${props.label} from ${props.side}` : `Pin ${props.label} to ${props.side}`
       }
@@ -1645,7 +1645,7 @@ function HeaderCell<TData, TValue>(props: {
       >
         <button
           type="button"
-          onClick={header().column.getToggleSortingHandler()}
+          onClick={(e) => header().column.getToggleSortingHandler()?.(e)}
           aria-label={`Sort by ${
             typeof header().column.columnDef.header === "string"
               ? (header().column.columnDef.header as string)
@@ -1675,8 +1675,8 @@ function HeaderCell<TData, TValue>(props: {
         <button
           type="button"
           aria-label={`Resize ${header().column.id}`}
-          onMouseDown={header().getResizeHandler()}
-          onTouchStart={header().getResizeHandler()}
+          onMouseDown={(e) => header().getResizeHandler()(e)}
+          onTouchStart={(e) => header().getResizeHandler()(e)}
           onClick={(e) => e.stopPropagation()}
           class={cn(
             "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
@@ -2071,7 +2071,7 @@ function VirtHeaderCellInner<TData, TValue>(props: {
         >
           <button
             type="button"
-            onClick={props.header.column.getToggleSortingHandler()}
+            onClick={(e) => props.header.column.getToggleSortingHandler()?.(e)}
             class="zen-w-full zen-h-full zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1 zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-inherit zen-font-inherit focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset"
           >
             {flexRender(props.header.column.columnDef.header, props.header.getContext())}
@@ -2083,8 +2083,8 @@ function VirtHeaderCellInner<TData, TValue>(props: {
         <button
           type="button"
           aria-label={`Resize ${props.header.column.id}`}
-          onMouseDown={props.header.getResizeHandler()}
-          onTouchStart={props.header.getResizeHandler()}
+          onMouseDown={(e) => props.header.getResizeHandler()(e)}
+          onTouchStart={(e) => props.header.getResizeHandler()(e)}
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
           class={cn(

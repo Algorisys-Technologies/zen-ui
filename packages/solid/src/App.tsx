@@ -121,7 +121,7 @@ const RouteError = (props: { err: unknown; reset: () => void }) => (
         {props.err instanceof Error ? props.err.message : String(props.err)}
       </p>
       <button
-        onClick={props.reset}
+        onClick={() => props.reset()}
         style={{
           padding: "0.375rem 0.75rem",
           "border-radius": "0.25rem",

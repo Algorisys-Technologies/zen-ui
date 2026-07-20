@@ -152,7 +152,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
           <Show when={hasUnread() && props.onMarkAllRead}>
             <button
               type="button"
-              onClick={props.onMarkAllRead}
+              onClick={() => props.onMarkAllRead?.()}
               class={cn(
                 "zen-text-xs zen-font-medium zen-text-zen-primary",
                 "hover:zen-underline focus-visible:zen-outline-none focus-visible:zen-underline",
@@ -196,7 +196,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
           <div class="zen-border-t zen-border-zen-border">
             <button
               type="button"
-              onClick={props.onViewAll}
+              onClick={() => props.onViewAll?.()}
               class={cn(
                 "zen-block zen-w-full zen-px-4 zen-py-2.5 zen-text-center zen-text-sm zen-font-medium zen-text-zen-primary",
                 "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-bg-zen-muted",
