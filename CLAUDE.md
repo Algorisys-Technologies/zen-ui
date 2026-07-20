@@ -173,6 +173,23 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
 - **A failed command looks identical to a clean one** when you grep its output
   for error lines. `lint:solid` returned "0 issues" for a long time purely
   because ESLint aborted on a missing config. Assert the tool actually ran.
+- **`bun run build` builds REACT ONLY** — it is
+  `bun --filter @algorisys/zen-ui-react build`, despite the bare name. The other
+  three demos need `build:solid` / `build:vanilla` / `build:wc`. This bites
+  hardest right after `./deploy.sh`, which rebuilds every demo with the
+  `/zen-ui/` base: `bun run build` then restores React only, and the other three
+  keep a base that 404s every asset. They render a **blank page inside a working
+  shell** — no page errors, no console errors beyond the 404s — so
+  `visual-check` reports the route count and "no runtime errors" for a demo that
+  drew nothing. Measured 2026-07-20; it produced two false readings in one
+  session. After any `deploy.sh`, rebuild all four, and check
+  `grep -o 'src="[^"]*"' packages/*/dist-demo/index.html` before trusting a
+  browser check.
+- **A geometric or DOM assertion that finds nothing passes.** A check for
+  "no overlapping elements" reported clean across four bindings while it had
+  matched elements in only one. Always report the COUNT of things examined
+  alongside the count of failures — a pass with a zero denominator is not a
+  pass.
 
 Green output is not evidence. Prefer running the thing: `node
 scripts/visual-check.mjs <react|solid> [routes…]` boots the demo's preview
