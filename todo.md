@@ -1146,7 +1146,30 @@ text), 306 body rows, sorting still toggles none -> ascending, no page errors.
 component), `NewComboboxDemo:108` (async tracked scope, demo file). Each needs a
 read; none looked like a live defect on a first pass.
 
-### Suggested order
+### Outcome — all five categories closed 2026-07-20
+
+**41 warnings -> 0, and 11 of them were real.**
+
+- **B (10) fixed** — handlers bound once at setup. The TanStack ones were more
+  than lint: `onClick={header().column.getToggleSortingHandler()}` calls the
+  factory at render and binds the result, and TanStack rebuilds those handlers.
+- **C (8) proved false** — compiled the IIFE-in-JSX pattern; Solid hoists it into
+  the arrow it passes to `insert()`, the same shape it emits for `{props.x}`.
+- **D (1) fixed** — early return reading a signal became a `<Show>`. Exposed that
+  `innerContent` was built eagerly at setup, so the guard had been hiding a cost
+  rather than avoiding it.
+- **E (6)** — one real: `const F = props.Field` captured a component prop once;
+  now `<Dynamic component={props.Field}>`. The other five are imperative or
+  event contexts the rule misreads.
+- **A (15+) documented** — each disabled individually with the reason at the
+  site, not swept.
+
+**The finding that outlived the warnings:** the date picker seeds its visible
+month from `props.selected` ONCE, so setting `selected` to a date in another
+month does not move the view. Still true, still a UX decision to make — the
+comment at the site says so rather than pretending the linter was wrong.
+
+### Suggested order (as triaged, for the record)
 
 1. **B** — mechanical, safe, 10 warnings, real fragility removed.
 2. **C** — one experiment settles 8.

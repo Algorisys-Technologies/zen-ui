@@ -73,6 +73,11 @@ export const RichText = (props: RichTextProps) => {
       return;
     }
     editor.value = value();
+    // An imperative bridge to Jodit, not a tracked scope: this registers a DOM
+    // listener on a third-party editor. `props.onChange` is read INSIDE the
+    // callback, so it is current at fire time — which is the reactivity that
+    // matters here.
+    // eslint-disable-next-line solid/reactivity
     editor.events.on("blur", () => props.onChange?.(editor.value));
     setStatus("jodit");
   });

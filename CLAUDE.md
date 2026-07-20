@@ -155,24 +155,29 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
 - **A syntax error in ONE file silently disables type-checking for the whole
   project** — tsc bails before the semantic pass, so every other file reports
   clean. If a run looks suspiciously green, check for parse errors first.
-- **Lint baselines**: React **0 problems**; Solid **0 errors / 41 warnings**
-  (measured 2026-07-20; was React 29 and Solid 8/46). Measure before you claim a
-  delta — a stated baseline that is off by one turns "adds nothing" into "adds
-  one". **React is now clean, so any React finding is yours.**
-  Where `solid/reactivity` is genuinely wrong (a droppable id that is fixed for
-  the component's life, a callback prop the rule reads as a tracked scope), the
-  disable carries the reason. A disable without one is just a louder way of
-  ignoring it.
-  Two rules are scoped rather than obeyed, each with the reasoning at the
-  config: `react-refresh/only-export-components` is off for library source
-  (Fast Refresh is an app concern; the alternative was splitting 17 files so
-  their `cva()` variants live elsewhere), and `solid/no-destructure` is disabled
-  around DataTable's column factory (TanStack `ColumnDef` renderers destructure
-  a plain cell CONTEXT, which the rule cannot tell from reactive props).
-  **Solid's remaining 41 are `solid/reactivity` and
-  `solid/components-return-once`.** They are real, they change runtime behaviour
-  to fix, and each needs its own reasoning and a browser check — they are not
-  sweepable and should not be swept.
+- **Lint baselines**: **both bindings are clean — React 0 problems, Solid 0
+  problems** (measured 2026-07-20; was React 29 and Solid 8 errors / 46
+  warnings). **Any finding is therefore yours.** Measure before you claim a
+  delta; a stated baseline that is off by one turns "adds nothing" into "adds
+  one".
+  Getting Solid to zero was triage, not suppression, and the distinction is the
+  point: 11 warnings were real and fixed (handlers bound once at setup; an early
+  return reading a signal; a component prop captured in a const instead of
+  `<Dynamic>`), and the rest are disabled INDIVIDUALLY with the reason at the
+  site. A disable without one is just a louder way of ignoring it.
+  Two rules are scoped in config rather than obeyed:
+  `react-refresh/only-export-components` is off for library source (Fast Refresh
+  is an app concern; the alternative was splitting 17 files so their `cva()`
+  variants live elsewhere), and `solid/no-destructure` is off around DataTable's
+  column factory (TanStack `ColumnDef` renderers destructure a plain cell
+  CONTEXT, which the rule cannot tell from reactive props).
+  **Two things the triage settled that are worth not re-deriving.** An IIFE
+  returning JSX *is* reactive — Solid hoists its body into the arrow it passes to
+  `insert()`, verified by compiling the pattern with `babel-preset-solid` against
+  reactive and static controls. And an `eslint-disable-next-line` must be the
+  LAST line before the reported line: prose between the two makes the directive
+  unused AND leaves the warning firing, which reads as the fix not working.
+
 - **A CSS import that resolves to nothing still builds green.** A dependency's
   `exports` map can block a subpath (`ERR_PACKAGE_PATH_NOT_EXPORTED`) and Vite
   drops the import silently rather than erroring — the build passes and the

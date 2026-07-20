@@ -76,6 +76,15 @@ const monthMatrix = (anchor: Date): Date[][] => {
 };
 
 export const Calendar = (props: CalendarProps) => {
+  // Seeds which MONTH is on screen, once. `props.selected` itself is read
+  // reactively further down (isSelected / inRange / the day cells), so the
+  // selection renders correctly whatever the caller does.
+  //
+  // The consequence is deliberate but worth knowing: set `selected` to a date in
+  // another month and the view does NOT jump to it. Whether it should is a UX
+  // decision — recorded in todo.md — not something to change by silencing a
+  // linter.
+  /* eslint-disable solid/reactivity */
   const [viewMonth, setViewMonth] = createSignal<Date>(
     props.mode === "range"
       ? props.selected?.from ?? new Date()
@@ -83,6 +92,7 @@ export const Calendar = (props: CalendarProps) => {
         ? props.selected?.[0] ?? new Date()
         : props.selected ?? new Date(),
   );
+  /* eslint-enable solid/reactivity */
 
   const numberOfMonths = () =>
     props.mode === "range" ? (props as { numberOfMonths?: number }).numberOfMonths ?? 1 : 1;

@@ -51,7 +51,13 @@ export const DateRangePicker = (rawProps: DateRangePickerProps) => {
     isControlled() ? props.value : inner(),
   );
 
+  // Seeds the draft from the committed value, once. The createEffect directly
+  // below re-mirrors it whenever `committed` changes while the popover is
+  // closed, which is the reactivity the rule is asking for — it just cannot see
+  // across the two statements.
+  // eslint-disable-next-line solid/reactivity
   const [draft, setDraft] = createSignal<DateRange | undefined>(committed());
+  // eslint-disable-next-line solid/reactivity
   let rangeAtOpen = committed();
 
   // Keep the draft mirrored to the committed value while the popover is closed.
