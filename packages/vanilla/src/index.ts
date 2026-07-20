@@ -209,6 +209,8 @@ export {
   MicroDeltaChart,
   MicroRadialChart,
 } from "./components/micro-chart/micro-chart";
+export { Timeline } from "./components/timeline/timeline";
+export type { TimelineProps, TimelineItem, TimelineState } from "./components/timeline/timeline";
 export type {
   MicroChartColor,
   MicroChartBaseProps,
