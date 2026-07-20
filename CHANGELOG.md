@@ -11,6 +11,34 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.1.0] - 2026-07-20
+
+### Added
+
+- `Calendar` gains `month`, `onMonthChange` and `defaultMonth` in the **Solid**
+  and **vanilla** bindings (and therefore web-components). React already had
+  them: its `Calendar` is `react-day-picker` and forwards `DayPickerProps`.
+  `month` makes the visible month controlled — the escape hatch for "I want the
+  view to follow the selection", which no binding does on its own.
+
+### Notes
+
+- The bindings differ in where they OPEN, deliberately. react-day-picker
+  computes `month || defaultMonth || today` and never consults `selected`, so
+  React opens on today unless told otherwise; Solid and vanilla open on the
+  month of `selected`. The differing default stays — having no override at all
+  was the defect.
+
+### Fixed (tooling)
+
+- `gen-previews` recycles its page every 25 routes. **Diagnosed**: vanilla's
+  `/skip-to-content` was blamed and is innocent — fresh it renders in 56ms on
+  the preview server and 355ms on dev. A faithful replica stalled at exactly
+  route 78 of 82 against the **dev** server every time, while the identical
+  crawl against `vite preview` sailed past. The vite dev server degrades over a
+  long single-page crawl; the route was merely where the budget ran out. vanilla
+  now completes 82/82 with no ceiling line at all.
+
 ## [9.0.4] - 2026-07-20
 
 ### Fixed (Solid only)

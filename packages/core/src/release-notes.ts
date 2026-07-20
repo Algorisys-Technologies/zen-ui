@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.1.0",
+    date: "2026-07-20",
+    kind: "new",
+    title: "Calendar takes month, defaultMonth and onMonthChange",
+    detail:
+      "A calendar picks its month once and then leaves it alone, so setting `selected` to a date in another month does not move the view — the right default, but there was no way to override it in Solid or vanilla. `defaultMonth` opens on a month you choose; `month` + `onMonthChange` make the view controlled, which is how you make it follow a selection. React already had these: its Calendar is react-day-picker and forwards that library's props.",
+  },
+  {
     version: "9.0.4",
     date: "2026-07-20",
     kind: "fixed",

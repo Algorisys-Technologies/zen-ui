@@ -43,6 +43,19 @@ export interface CalendarProps {
   numberOfMonths?: number;
   /** Disable every day (boolean true) or specific days (predicate). */
   disabled?: boolean | ((d: Date) => boolean);
+  /**
+   * The month on screen, CONTROLLED. Pass it with `onMonthChange` to drive
+   * navigation yourself — and to make the view follow a `selected` that moves to
+   * another month, which it does not do on its own.
+   */
+  month?: Date;
+  /** Called with the new month when the user navigates. */
+  onMonthChange?: (month: Date) => void;
+  /**
+   * The month to open on, UNCONTROLLED. Read once. Defaults to the month of
+   * `selected`, then to today.
+   */
+  defaultMonth?: Date;
   class?: string;
 }
 
@@ -106,10 +119,20 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
 
   // The viewed month is UI state, not a prop: it survives update() so a caller
   // pushing a new `selected` does not yank the user back off the month they
-  // navigated to. Seeded once from the initial selection.
-  let viewMonth = initialView(current);
+  // navigated to. Seeded once from `defaultMonth`, else the initial selection.
+  //
+  // `month` overrides all of that and makes it controlled — the escape hatch for
+  // a caller who DOES want the view to follow the selection. Matches the Solid
+  // binding, and react-day-picker before it.
+  let uncontrolledMonth = initialView(current);
+  const viewMonth = (): Date => current.month ?? uncontrolledMonth;
+  const setViewMonth = (m: Date) => {
+    current.onMonthChange?.(m);
+    if (current.month === undefined) uncontrolledMonth = m;
+  };
 
   function initialView(p: CalendarProps): Date {
+    if (p.defaultMonth) return p.defaultMonth;
     if (p.mode === "range") return (p.selected as DateRange | undefined)?.from ?? new Date();
     if (p.mode === "multiple") return (p.selected as Date[] | undefined)?.[0] ?? new Date();
     return (p.selected as Date | undefined) ?? new Date();
@@ -174,7 +197,7 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
     b.setAttribute("aria-label", dir < 0 ? "Previous month" : "Next month");
     b.textContent = dir < 0 ? "‹" : "›";
     b.addEventListener("click", () => {
-      viewMonth = addMonths(viewMonth, dir);
+      setViewMonth(addMonths(viewMonth(), dir));
       render();
     });
     return b;
@@ -214,7 +237,7 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
   };
 
   const monthEl = (monthOffset: number): HTMLElement => {
-    const month = addMonths(viewMonth, monthOffset);
+    const month = addMonths(viewMonth(), monthOffset);
     const weeks = monthMatrix(month);
     const monthLabel = month.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
