@@ -303,6 +303,17 @@ function BooleanFilter(props: { column: Column<unknown, unknown> }) {
 export function FilterCell<TData>(props: { column: Column<TData, unknown> }) {
   return (
     <Show when={props.column.getCanFilter()}>
+      {/* eslint-disable solid/components-return-once --
+          Not a component body. Solid's compiler treats an IIFE returning JSX as
+          a DYNAMIC child and hoists it into the arrow it passes to insert():
+
+            _$insert(_el$, () => { switch (props.variant) { case "a": return … } })
+
+          which is byte-for-byte the shape it emits for a known-reactive
+          `{props.x}`. Verified by compiling this exact pattern with
+          babel-preset-solid against a reactive and a static control; the static
+          one produced no insert() call at all. So the switch DOES re-run, and
+          the rule's "early return breaks reactivity" does not apply here. */}
       {(() => {
         const meta = props.column.columnDef.meta as
           | {
@@ -325,6 +336,7 @@ export function FilterCell<TData>(props: { column: Column<TData, unknown> }) {
             return <TextFilter column={c} />;
         }
       })()}
+      {/* eslint-enable solid/components-return-once */}
     </Show>
   );
 }

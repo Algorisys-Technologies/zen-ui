@@ -194,6 +194,14 @@ export function EditableCell<TData>(props: EditableCellProps<TData>) {
           </div>
         }
       >
+        {/* eslint-disable solid/components-return-once --
+            Not a component body. Solid's compiler treats an IIFE returning JSX
+            as a DYNAMIC child and hoists it into the arrow it passes to
+            insert(), which is the same shape it emits for a reactive
+            `{props.x}` — verified by compiling this exact pattern with
+            babel-preset-solid against reactive and static controls. The switch
+            re-runs, so the rule's premise does not hold here. Same case as
+            filters.tsx. */}
         {(() => {
           const variant = meta()?.editVariant ?? "text";
           const value = props.cell.getValue();
@@ -212,6 +220,7 @@ export function EditableCell<TData>(props: EditableCellProps<TData>) {
               return <TextEditor {...editorProps} />;
           }
         })()}
+        {/* eslint-enable solid/components-return-once */}
       </Show>
     </Show>
   );

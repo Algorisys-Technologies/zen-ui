@@ -1111,22 +1111,33 @@ badge 2 -> empty; view-all fires with no page errors.
 inside JSX. The rule reads the `return`s as a component body and warns about
 early return.
 
-Whether this is a real freeze depends on something I did not verify: Solid's
-compiler wraps *dynamic* JSX expressions in a getter, and a call expression may
-or may not qualify. **Do not guess this one** — write a two-component test that
-flips `filterVariant` at runtime and watch whether the editor changes. It
-decides 8 warnings, and it is 20 minutes.
+**ANSWERED 2026-07-20: they are reactive. All 8 are false positives.**
+Compiled the exact pattern with `babel-preset-solid` against a reactive and a
+static control — compiling is definitive, because it is what actually runs:
 
-Mitigating: `filterVariant` is per-column config that does not change at
-runtime today, so even a freeze is currently unobservable.
+    IIFE returning JSX from a switch:  _$insert(_el$, () => { switch (…) … })
+    known-reactive `{props.variant}`:  _$insert(_el$, () => props.variant)
+    static literal `{"x"}`:            (no insert call at all)
 
-### D. Genuine structural — 1
+Solid hoists the IIFE body straight into the arrow it passes to `insert()` —
+byte-for-byte the shape it emits for a reactive expression. The static control
+producing no `insert()` is what proves the test discriminates rather than
+matching everything.
 
-`data-table:1634` — `if (header().isPlaceholder) return <TableHead />` is a real
-early return in a real component, reading a signal. Placeholder-ness is fixed
-for a header's life in TanStack, so it is not observably wrong, but it is the
-one site where the rule's literal complaint is literally correct.
-**Action:** `<Show when={...}>`.
+Both sites now carry a scoped disable with that evidence in it.
+
+### D. Genuine structural — 1 — FIXED 2026-07-20
+
+`data-table:1634` — `if (header().isPlaceholder) return <TableHead />` was a real
+early return in a real component, reading a signal. Now a `<Show>`.
+
+`innerContent` became a FUNCTION in the same change, and that was the part worth
+noticing: as a `const` it was built eagerly at setup, so moving the guard into
+JSX would have made every placeholder header construct DOM it never shows. The
+early return had been hiding that cost.
+
+Verified rendering rather than assumed: 25 tables, 156 header cells (151 with
+text), 306 body rows, sorting still toggles none -> ascending, no page errors.
 
 ### E. Individually unexamined — 6
 

@@ -1631,9 +1631,16 @@ function HeaderCell<TData, TValue>(props: {
   const sortLabel = () =>
     sorted() === "asc" ? "ascending" : sorted() === "desc" ? "descending" : "none";
 
-  if (header().isPlaceholder) return <TableHead />;
-
-  const innerContent = (
+  // A placeholder header (TanStack emits them for grouped column structures)
+  // renders an empty cell. This was an early `return`, which Solid runs once —
+  // correct in practice, because placeholder-ness is fixed for a header's life,
+  // but the one site in this file where the rule's complaint is literally right.
+  // It is a <Show> now, so nothing depends on that staying true.
+  //
+  // innerContent became a FUNCTION in the same change: as a const it was built
+  // eagerly at setup, and moving the guard into JSX would otherwise have made
+  // every placeholder header construct DOM it never shows.
+  const innerContent = () => (
     <>
       <Show
         when={canSort()}
@@ -1699,6 +1706,7 @@ function HeaderCell<TData, TValue>(props: {
   });
 
   return (
+    <Show when={!header().isPlaceholder} fallback={<TableHead />}>
     <Show
       when={props.enableColumnOrdering}
       fallback={
@@ -1718,7 +1726,7 @@ function HeaderCell<TData, TValue>(props: {
           )}
           style={headStyle()}
         >
-          {innerContent}
+          {innerContent()}
         </TableHead>
       }
     >
@@ -1728,8 +1736,9 @@ function HeaderCell<TData, TValue>(props: {
         canSort={canSort()}
         style={headStyle()}
       >
-        {innerContent}
+        {innerContent()}
       </SortableHeaderTh>
+    </Show>
     </Show>
   );
 }
