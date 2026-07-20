@@ -287,9 +287,15 @@ its demos):
     That is a structural difference between the two libraries, not a gap, and
     "export it" is not the fix. Measure with the script below before believing
     a number here, including this one.
-- **Code examples**: React 54/54 demos (~305 examples), Solid 55/57 (158). The
-  two demos without have no `DemoSection` to attach one to. The remaining gap is
-  section COUNT, not snippets — Solid's demos genuinely have fewer sections.
+- **Code examples** (measured 2026-07-20, `grep -c 'code:\|code={'`): React
+  450, vanilla 407, web-components 407, Solid 308. **Every demo in every binding
+  now has at least one**; the last two without were Solid's FAB and BoundFields,
+  which were 22- and 18-line stubs with no `DemoSection` at all — BoundFields
+  rendered the whole Form demo inside itself, second `<h1>` and all.
+  The remaining spread is section COUNT, not coverage: Solid's demos have fewer
+  sections than React's. Measure before quoting a number here — the previous
+  version of this line said "React 54/54, Solid 55/57" and had not counted
+  vanilla or web-components at all, which turned out to be ahead of Solid.
 - **`<label for>` association — fixed in Solid, was never broken in React or
   vanilla.** The old note here claimed all three bindings landed a caller's `id`
   on a wrapper. Measured, that was only true of **Solid**: Kobalte puts the
