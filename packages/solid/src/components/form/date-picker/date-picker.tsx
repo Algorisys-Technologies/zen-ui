@@ -36,6 +36,19 @@ export type CalendarProps =
 interface CommonCalendarProps {
   /** Disable specific dates (or all when boolean true). */
   disabled?: boolean | ((d: Date) => boolean);
+  /**
+   * The month on screen, CONTROLLED. Pass it with `onMonthChange` to drive
+   * navigation yourself — and to make the view follow a `selected` that moves to
+   * another month, which it does not do on its own.
+   */
+  month?: Date;
+  /** Called with the new month when the user navigates. */
+  onMonthChange?: (month: Date) => void;
+  /**
+   * The month to open on, UNCONTROLLED. Read once. Defaults to the month of
+   * `selected`, then to today.
+   */
+  defaultMonth?: Date;
   class?: string;
 }
 
@@ -76,23 +89,34 @@ const monthMatrix = (anchor: Date): Date[][] => {
 };
 
 export const Calendar = (props: CalendarProps) => {
-  // Seeds which MONTH is on screen, once. `props.selected` itself is read
-  // reactively further down (isSelected / inRange / the day cells), so the
-  // selection renders correctly whatever the caller does.
-  //
-  // The consequence is deliberate but worth knowing: set `selected` to a date in
-  // another month and the view does NOT jump to it. Whether it should is a UX
-  // decision — recorded in todo.md — not something to change by silencing a
-  // linter.
+  // Seeds which MONTH opens, once: `defaultMonth`, else the month of `selected`,
+  // else today. `props.selected` is read reactively further down (isSelected /
+  // inRange / the day cells), so the SELECTION renders correctly regardless —
+  // it is only the visible month that is seeded.
   /* eslint-disable solid/reactivity */
-  const [viewMonth, setViewMonth] = createSignal<Date>(
-    props.mode === "range"
-      ? props.selected?.from ?? new Date()
-      : props.mode === "multiple"
-        ? props.selected?.[0] ?? new Date()
-        : props.selected ?? new Date(),
-  );
+  const seedMonth = (): Date => {
+    if (props.defaultMonth) return props.defaultMonth;
+    if (props.mode === "range") return props.selected?.from ?? new Date();
+    if (props.mode === "multiple") return props.selected?.[0] ?? new Date();
+    return props.selected ?? new Date();
+  };
+  const [uncontrolledMonth, setUncontrolledMonth] = createSignal<Date>(seedMonth());
   /* eslint-enable solid/reactivity */
+
+  /**
+   * The month on screen. `month` makes it controlled — that is the escape hatch
+   * for "I want the view to follow the selection", which nothing does on its
+   * own: react-day-picker (the React binding) does not even seed from
+   * `selected`, it opens on today unless you pass `defaultMonth`.
+   *
+   * Solid seeding from `selected` is a deliberate divergence and the nicer
+   * default; what was missing was any way to override it.
+   */
+  const viewMonth = (): Date => props.month ?? uncontrolledMonth();
+  const setViewMonth = (m: Date) => {
+    props.onMonthChange?.(m);
+    if (props.month === undefined) setUncontrolledMonth(m);
+  };
 
   const numberOfMonths = () =>
     props.mode === "range" ? (props as { numberOfMonths?: number }).numberOfMonths ?? 1 : 1;

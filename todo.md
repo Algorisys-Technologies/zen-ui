@@ -1164,10 +1164,23 @@ read; none looked like a live defect on a first pass.
 - **A (15+) documented** — each disabled individually with the reason at the
   site, not swept.
 
-**The finding that outlived the warnings:** the date picker seeds its visible
-month from `props.selected` ONCE, so setting `selected` to a date in another
-month does not move the view. Still true, still a UX decision to make — the
-comment at the site says so rather than pretending the linter was wrong.
+**The finding that outlived the warnings — and it was not what I first said.**
+I recorded the date picker's month seeding as "a UX decision". Comparing against
+React showed the real defect was next to it:
+
+- React's Calendar IS react-day-picker, whose initial month is
+  `month || defaultMonth || today` — it never looks at `selected` at all. Pass
+  `selected` for March with no `defaultMonth` and React opens on TODAY.
+- Solid seeds from `selected`, which is the nicer default.
+- **Neither follows `selected` after mount, and that is correct** — you do not
+  want the view jumping while someone is navigating.
+- **But react-day-picker exposes `month` (controlled) and `defaultMonth`;
+  Solid's CalendarProps had neither.** A React consumer had an escape hatch, a
+  Solid consumer had none. That was the actual bug: an API gap, not a
+  reactivity one.
+
+Fixed 2026-07-20 — Solid's Calendar takes `month`, `onMonthChange` and
+`defaultMonth`. Verified navigation still works (July 2026 -> August 2026).
 
 ### Suggested order (as triaged, for the record)
 

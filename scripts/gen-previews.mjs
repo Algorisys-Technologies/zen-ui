@@ -144,10 +144,9 @@ for (const binding of which) {
   }
 
   const browser = await chromium.launch();
-  const page = await browser.newPage({
-    viewport: { width: VIEWPORT_WIDTH, height: 900 },
-    deviceScaleFactor: 2,
-  });
+  const newPage = () =>
+    browser.newPage({ viewport: { width: VIEWPORT_WIDTH, height: 900 }, deviceScaleFactor: 2 });
+  let page = await newPage();
 
   let written = 0;
   const unrendered = [];
@@ -174,7 +173,30 @@ for (const binding of which) {
   const withCeiling = (work, ms = 25000) =>
     Promise.race([work, sleep(ms).then(() => "TIMEOUT")]);
 
+  // Recycle the page every RECYCLE_EVERY routes.
+  //
+  // DIAGNOSED 2026-07-20, after two deploys were lost to it. vanilla's
+  // /skip-to-content was blamed and is innocent: fresh, it renders in 355ms on
+  // the dev server and 56ms on preview. What actually happens is that the vite
+  // DEV server degrades over a long single-page crawl — a faithful replica
+  // stalled at exactly the same place, route 78 of 82, having written 77 files,
+  // while the identical crawl against `vite preview` sailed past it. Neither
+  // the route nor its position is the cause; the accumulated dev session is.
+  //
+  // A fresh page resets that. It is cheaper than switching to the preview
+  // server, which would put us back to build -> generate -> build.
+  const RECYCLE_EVERY = 25;
+  let sinceRecycle = 0;
+
   for (const route of routes) {
+    if (sinceRecycle >= RECYCLE_EVERY) {
+      await page.close().catch(() => {});
+      page = await newPage();
+      page.setDefaultTimeout(8000);
+      page.setDefaultNavigationTimeout(15000);
+      sinceRecycle = 0;
+    }
+    sinceRecycle++;
     const outcome = await withCeiling(
       (async () => {
     await page
@@ -268,7 +290,7 @@ for (const binding of which) {
       })(),
     );
     if (outcome === "TIMEOUT") {
-      unrendered.push(`${route} (ceiling)`);
+      unrendered.push(`${route} (hit the per-route ceiling)`);
       // A FRESH page for the placeholder. Screenshotting the wedged one hangs
       // too — that is what wedged it — and the .catch() then swallowed the
       // failure, so the file was never written and the card 404'd anyway,
