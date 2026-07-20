@@ -580,9 +580,18 @@ untracked here. Tier 3 is 2 of 4 dialogs. Status below is checked against
 `index.ts` exports in both bindings, not against memory of what a session said it
 built — Tier 1 spent a day marked done while a row was missing.
 
-- [ ] **`Page` and `Bar` have no demo or nav entry.** Shipped in 9aab1eb as
-      exports only, so they violate the "add it to nav.ts, add its Route" rule
-      and are invisible in both demos. Everything else Zen-shaped has a demo.
+- [x] **`Page` and `Bar` demo — closed 2026-07-20, and the claim was
+      over-broad.** ~~Shipped in 9aab1eb as exports only, so they violate the
+      "add it to nav.ts, add its Route" rule and are invisible in both demos.~~
+      Measured before fixing: **vanilla and web-components already had a full
+      demo, nav entry AND route** (`components/PageDemo.ts`, `/page`). The gap
+      was React and Solid only. Both now have `NewPageDemo`, and all four share
+      the label "Page + Bar" and one description, so the demos match.
+      Three sections: only-the-content-scrolls (with the `h-full` vs
+      `min-h-full` reasoning that a real bug in this repo's own shell earned),
+      Bar's three slots and why the middle does not drift, and `flush`.
+      The lesson is the one this session kept re-learning: a tracked claim about
+      what is missing is worth re-measuring before acting on it.
 - [ ] **SKILLS.md (or similar) so coding agents can drive this library.**
       Requested 2026-07-15. Claude / Cursor / Antigravity currently have to
       infer the API from source. Wants: the `zen-` prefix rule and why variants

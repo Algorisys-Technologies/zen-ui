@@ -61,6 +61,7 @@ export const NAV: NavGroup[] = [
       { to: "/link", label: "Link", description: "Styled anchor; asChild for router links, external, disabled", source: "packages/react/src/components/NewLinkDemo.tsx" },
       { to: "/theme", label: "Theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/react/src/components/NewThemeDemo.tsx" },
       { to: "/direction", label: "DirectionProvider", description: "Right-to-left support \u2014 tells menus, tabs and sliders which way the page reads", source: "packages/react/src/components/NewDirectionDemo.tsx" },
+      { to: "/page", label: "Page + Bar", description: "The Page whole-screen container and the three-slot Bar row \u2014 the structural frame pieces", source: "packages/react/src/components/NewPageDemo.tsx" },
       { to: "/color-picker", label: "ColorPicker", description: "Swatch palette + the platform picker; hex in, hex out", source: "packages/react/src/components/NewColorPickerDemo.tsx" },
       { to: "/carousel", label: "Carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/react/src/components/NewCarouselDemo.tsx" },
       { to: "/dropdown-menu", label: "DropdownMenu", description: "Radix DropdownMenu \u2014 action menus, sub-menus, checkbox/radio items", source: "packages/react/src/components/NewDropdownMenuDemo.tsx" },

@@ -147,6 +147,7 @@ import NewPopoverDemo from "./components/NewPopoverDemo";
 import NewLinkDemo from "./components/NewLinkDemo";
 import NewThemeDemo from "./components/NewThemeDemo";
 import NewDirectionDemo from "./components/NewDirectionDemo";
+import NewPageDemo from "./components/NewPageDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
@@ -350,6 +351,7 @@ const App: React.FC = () => {
             <Route path="/link" element={<NewLinkDemo />} />
             <Route path="/theme" element={<NewThemeDemo />} />
             <Route path="/direction" element={<NewDirectionDemo />} />
+            <Route path="/page" element={<NewPageDemo />} />
             <Route path="/color-picker" element={<NewColorPickerDemo />} />
             <Route path="/carousel" element={<NewCarouselDemo />} />
             <Route path="/dynamic-date-range" element={<NewDynamicDateRangeDemo />} />

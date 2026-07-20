@@ -61,6 +61,7 @@ export const NAV: NavGroup[] = [
       { label: "Link", path: "/link", description: "Styled anchor; polymorphic via as, external, disabled", source: "packages/solid/src/components/NewLinkDemo.tsx" },
       { label: "Theme", path: "/theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/solid/src/components/NewThemeDemo.tsx" },
       { label: "DirectionProvider", path: "/direction", description: "Right-to-left support \u2014 tells menus, tabs and sliders which way the page reads", source: "packages/solid/src/components/NewDirectionDemo.tsx" },
+      { label: "Page + Bar", path: "/page", description: "The Page whole-screen container and the three-slot Bar row \u2014 the structural frame pieces", source: "packages/solid/src/components/NewPageDemo.tsx" },
       { label: "ColorPicker", path: "/color-picker", description: "Swatch palette + the platform picker; hex in, hex out", source: "packages/solid/src/components/NewColorPickerDemo.tsx" },
       { label: "Carousel", path: "/carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/solid/src/components/NewCarouselDemo.tsx" },
       { label: "Card", path: "/card", description: "Surface primitive + SelectableCard for goal pickers / plan selectors", source: "packages/solid/src/components/NewCardDemo.tsx" },
