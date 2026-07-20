@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-solid",
-  "version": "9.0.2",
+  "version": "9.0.3",
   "type": "module",
   "sideEffects": [
     "**/*.css"
