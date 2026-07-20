@@ -122,6 +122,11 @@ const Row = (props: {
   const busy = () => status() === "uploading" || status() === "pending";
 
   const commit = () => {
+    /* Closing the editor unmounts a FOCUSED input, so the removal fires blur and
+       calls this a second time. `editing()` is set false before Solid touches
+       the DOM, so it is already false on that second call — without this the
+       row commits twice and onRename fires twice with the same name. */
+    if (!editing()) return;
     if (cancelled) {
       cancelled = false;
       return;

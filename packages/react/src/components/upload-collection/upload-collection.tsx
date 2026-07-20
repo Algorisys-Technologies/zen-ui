@@ -135,9 +135,15 @@ const Row = ({ item, disabled, onRemove, onRetry, onRename }: RowProps) => {
       cancelled.current = false;
       return;
     }
-    /* Read the input rather than tracking every keystroke in state: the value is
+    /* Closing the editor unmounts a FOCUSED input, so the removal fires blur and
+       calls this a second time. React has nulled the ref by then — read it
+       explicitly and bail rather than leaning on `?.` yielding "", which is the
+       same protection by accident and reads as if it were about a missing ref.
+       Read the input rather than tracking every keystroke in state: the value is
        only needed once, and state per row re-renders the row on each key. */
-    const next = inputRef.current?.value.trim() ?? "";
+    const input = inputRef.current;
+    if (!input) return;
+    const next = input.value.trim();
     setEditing(false);
     if (next && next !== item.name) onRename?.(item, next);
   };

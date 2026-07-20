@@ -98,6 +98,7 @@ import DataTableDemo from "./components/DataTableDemo";
 import TreeTableDemo from "./components/TreeTableDemo";
 import MicroChartDemo from "./components/MicroChartDemo";
 import TimelineDemo from "./components/TimelineDemo";
+import UploadCollectionDemo from "./components/UploadCollectionDemo";
 import FormDemo from "./components/FormDemo";
 import PivotDemo from "./components/PivotDemo";
 
@@ -194,6 +195,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/tree-table": TreeTableDemo,
   "/micro-chart": MicroChartDemo,
   "/timeline": TimelineDemo,
+  "/upload-collection": UploadCollectionDemo,
   "/form": FormDemo,
   "/pivot": PivotDemo,
 };
