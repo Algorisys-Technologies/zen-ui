@@ -877,7 +877,36 @@ built — Tier 1 spent a day marked done while a row was missing.
                   it is a visual change to a shipped component, so a MAJOR bump
                   and a four-binding change of its own. UploadCollection avoids
                   it by drawing a bar only where there is a number.
-            - [ ] PlanningCalendar
+            - [x] **PlanningCalendar — DONE** (2026-07-21, all four bindings,
+                  released as 9.6.0). Rows are resources, columns are time,
+                  appointments are blocks on one shared axis. Three decisions are
+                  load-bearing: a month is ONE axis of 28-31 columns rather than
+                  a 6x7 page (wrapping it into weeks gives each resource six rows
+                  and destroys the cross-row comparison the component exists
+                  for — a month page is `Calendar`); it is READ-ONLY, because
+                  drag-to-move needs a conflict policy, an undo story and a
+                  permission model that belong to the caller; and below ~3% width
+                  a block drops its label, since a 90-minute meeting is 0.9% of a
+                  week and a label there is an empty pill that reads as a failed
+                  render, not a clipped one.
+                  The maths lives in `packages/core/src/planning.ts` and is
+                  pinned by `scripts/check-planning.ts` (60 assertions, wired
+                  into `bun run check`) — four renderers must not re-derive where
+                  09:30 is. The cases worth not re-deriving are all silent:
+                  Sunday belongs to the week that just ended (`getDay()` is 0, so
+                  `d - getDay() + 1` sends it FORWARD); 31 Jan + 1 month must
+                  anchor on the 1st or Date overflows it to 2 March; ranges are
+                  half-open at BOTH ends or a midnight-ending appointment draws a
+                  sliver on the next day too; touching is not overlapping;
+                  `nowPct` returns null outside the range rather than clamping.
+                  One web-components-only hazard: JSON HAS NO DATE TYPE, so the
+                  element revives ISO strings — without it every appointment is
+                  `Invalid Date`, every placement is null, and the grid renders
+                  an empty axis with no error anywhere.
+            - [ ] _Nothing left in the accepted Tier 4 list._ Micro charts,
+                  Timeline, UploadCollection and PlanningCalendar are all
+                  shipped; the rest of the tier was dropped on substance in the
+                  2026-07-21 triage.
       - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
             DataTable, not dialogs around it.
 - [ ] **Tier 4 — build the whole tier** (decided 2026-07-15, overriding the

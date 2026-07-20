@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.6.0",
+    date: "2026-07-21",
+    kind: "new",
+    title: "PlanningCalendar — who is busy, and when",
+    detail:
+      "One row per resource, one axis of time, appointments as blocks on it. This is the component for questions you answer by reading ACROSS rows — who is free on Thursday, which room is double-booked — so every resource shares one axis and the comparison is a vertical glance. A month is one axis of 31 columns rather than a 6x7 page: wrapping it into weeks would give every resource six separate rows and destroy exactly that comparison; for a month page with one date per cell, that is Calendar. Day, week and month views, with a toolbar you can hide or drive yourself. It shows the plan but does not edit it — no drag-to-move, no drag-to-create, no resize, because those need a conflict policy, an undo story and a permission model that belong to your app; onAppointmentClick hands you the appointment AND its row. Overlapping appointments stack into lanes so a double-booking is visible rather than hidden, while back-to-back ones share a lane; a block running past the edge is cut rather than squared off; a zero-length milestone still gets a clickable sliver; and the now line appears only when now is actually in view. Below about 3% of the width a block drops its label and becomes an occupancy mark, keeping its name and time in the tooltip and the accessible name — at 0.9% of a week a label is not clipped, it is an empty pill that reads as a failed render. Times are your own local Dates, unconverted. All four bindings.",
+  },
+  {
     version: "9.5.0",
     date: "2026-07-21",
     kind: "new",
