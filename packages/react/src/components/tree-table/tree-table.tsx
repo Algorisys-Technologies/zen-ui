@@ -4,11 +4,13 @@ import {
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
   type ExpandedState,
   type Row,
+  type PaginationState,
   type RowSelectionState,
   type SortingState,
 } from "@tanstack/react-table";
@@ -94,6 +96,19 @@ export interface TreeTableProps<TData, TValue = unknown> {
   sorting?: SortingState;
   onSortingChange?: (state: SortingState) => void;
 
+  /* pagination — pages the ROOT rows, never the flattened list */
+  /**
+   * Page the top-level rows. A page carries each root's WHOLE subtree, so
+   * `pageSize` counts roots rather than rendered rows and a page's row count
+   * varies with what is open. Paging the flattened list instead would cut
+   * through a subtree and strand its children on the next page.
+   */
+  enablePagination?: boolean;
+  /** Root rows per page. Default 10. */
+  pageSize?: number;
+  pageSizeOptions?: number[];
+  onPaginationChange?: (state: PaginationState) => void;
+
   /* filtering */
   enableGlobalFilter?: boolean;
   globalFilter?: string;
@@ -144,6 +159,10 @@ export function TreeTable<TData, TValue = unknown>({
   enableSorting = true,
   sorting,
   onSortingChange,
+  enablePagination,
+  pageSize = 10,
+  pageSizeOptions,
+  onPaginationChange,
   enableGlobalFilter,
   globalFilter,
   onGlobalFilterChange,
@@ -169,6 +188,10 @@ export function TreeTable<TData, TValue = unknown>({
   const [sortingInner, setSortingInner] = React.useState<SortingState>([]);
   const [selectionInner, setSelectionInner] = React.useState<RowSelectionState>({});
   const [globalFilterInner, setGlobalFilterInner] = React.useState("");
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize,
+  });
 
   const expandedState = expanded ?? expandedInner;
   const sortingState = sorting ?? sortingInner;
@@ -296,6 +319,7 @@ export function TreeTable<TData, TValue = unknown>({
       sorting: sortingState,
       rowSelection: selectionState,
       globalFilter: globalFilterState,
+      pagination,
     },
     getSubRows: resolvedGetSubRows,
     /* A row that says it has children is expandable before it has any. */
@@ -333,6 +357,19 @@ export function TreeTable<TData, TValue = unknown>({
     },
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
+    /*
+     * The whole reason pagination is coherent here. With this false, TanStack
+     * pages the ROOT rows and keeps every expanded descendant on the same page
+     * as its parent. Left at its default (true) it pages the flattened list,
+     * which puts half a subtree on page 2 under no parent at all.
+     */
+    paginateExpandedRows: false,
+    onPaginationChange: (updater) => {
+      const next = typeof updater === "function" ? updater(pagination) : updater;
+      setPagination(next);
+      onPaginationChange?.(next);
+    },
+    getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
     getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
     getFilteredRowModel: enableGlobalFilter ? getFilteredRowModel() : undefined,
   });
@@ -675,6 +712,51 @@ export function TreeTable<TData, TValue = unknown>({
           )}
         </TableBody>
       </Table>
+
+      {enablePagination && (
+        <div className="zen-flex zen-flex-wrap zen-items-center zen-justify-between zen-gap-2">
+          <p className="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
+            {/* Roots, not rows: saying "rows" here would contradict what the
+                user can count on screen the moment anything is expanded. */}
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {Math.max(1, table.getPageCount())}
+            {" · "}
+            {table.getPreFilteredRowModel().rows.filter((r) => r.depth === 0).length} top-level rows
+          </p>
+          <div className="zen-flex zen-items-center zen-gap-2">
+            {pageSizeOptions?.length ? (
+              <select
+                className="zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm"
+                aria-label="Rows per page"
+                value={table.getState().pagination.pageSize}
+                onChange={(e) => table.setPageSize(Number(e.target.value))}
+              >
+                {pageSizeOptions.map((n) => (
+                  <option key={n} value={n}>
+                    {n} per page
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.previousPage()}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!table.getCanNextPage()}
+              onClick={() => table.nextPage()}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
