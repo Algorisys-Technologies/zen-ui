@@ -95,3 +95,4 @@ dist-site/
 # regenerates them so the published site always has them, and the cards degrade
 # to text when a file is missing.
 packages/*/public/previews/
+apps/landing/public/previews/
