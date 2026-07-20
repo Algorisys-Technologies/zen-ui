@@ -75,11 +75,34 @@ const formatBytes = (bytes: number): string => {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 };
 
-/** The meta line under the name: size · when · who, skipping what is absent. */
-const metaOf = (item: UploadItem): string =>
-  [item.size !== undefined ? formatBytes(item.size) : undefined, item.uploadedAt, item.uploadedBy]
+/**
+ * The meta line under the name: state · size · when · who, skipping what is
+ * absent.
+ *
+ * A file that is uploading with no percentage says so in WORDS rather than
+ * drawing an indeterminate bar. Radix renders an indeterminate Progress as an
+ * empty track and Kobalte renders it as a full one — so the same component
+ * would read "nothing has happened" in React and "finished" in Solid, and the
+ * full one is actively wrong for a queued file. A bar is drawn only when there
+ * is a real number behind it.
+ */
+const metaOf = (item: UploadItem): string => {
+  const status = item.status ?? "complete";
+  const state =
+    status === "pending"
+      ? "Queued"
+      : status === "uploading" && item.progress === undefined
+        ? "Uploading…"
+        : undefined;
+  return [
+    state,
+    item.size !== undefined ? formatBytes(item.size) : undefined,
+    item.uploadedAt,
+    item.uploadedBy,
+  ]
     .filter(Boolean)
     .join(" · ");
+};
 
 const Row = (props: {
   item: UploadItem;
@@ -196,17 +219,10 @@ const Row = (props: {
           </span>
         </Show>
 
-        <Show when={busy()}>
-          {/* Pulsed when there is no number, because Progress renders an
-              indeterminate bar as a FULL one — a queued file reads as finished.
-              That is a bug in Progress and is tracked as its own item; pulsing
-              here is the honest reading of "working, duration unknown" without
-              restyling a shipped component from inside this one. */}
+        <Show when={busy() && props.item.progress !== undefined}>
           <Progress
             size="sm"
             value={props.item.progress}
-            indeterminate={props.item.progress === undefined}
-            class={props.item.progress === undefined ? "zen-animate-pulse" : undefined}
             aria-label={`Uploading ${props.item.name}`}
           />
         </Show>

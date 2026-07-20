@@ -135,10 +135,10 @@ const NewUploadCollectionDemo = () => (
     <DemoSection
       title="2. Status and progress"
       codeTitle="The component renders the upload; it does not run it"
-      codeDescription="There is no url prop, no method and no retry policy. You own the transport — fetch, XHR, a resumable chunked client — and write status and progress back onto the item. A component that owned the upload would have to guess at your endpoint, headers, auth refresh and chunk size, and every real app would end up fighting it. An uploading item with no progress number renders an indeterminate bar rather than a fake percentage."
+      codeDescription="There is no url prop, no method and no retry policy. You own the transport — fetch, XHR, a resumable chunked client — and write status and progress back onto the item. A component that owned the upload would have to guess at your endpoint, headers, auth refresh and chunk size, and every real app would end up fighting it. An uploading item with no percentage says so in words — Uploading… — rather than drawing a bar: Radix renders an indeterminate bar as an empty track and Kobalte renders it as a full one, so the same bar would read 'nothing has happened' in React and 'finished' in Solid. A bar is drawn only when there is a real number behind it."
       code={`{ id: "a", name: "drone-footage.mp4", status: "uploading", progress: 63 }
-{ id: "b", name: "scan-0042.tiff",   status: "uploading" }   // indeterminate
-{ id: "c", name: "queued.docx",      status: "pending" }
+{ id: "b", name: "scan-0042.tiff",   status: "uploading" }   // "Uploading…"
+{ id: "c", name: "queued.docx",      status: "pending" }     // "Queued"
 { id: "d", name: "manifest.csv",     status: "error",
   error: "Rejected by the server: column 'hs_code' is missing" }`}
     >
