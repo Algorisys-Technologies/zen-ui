@@ -90,6 +90,7 @@ export const NAV: NavGroup[] = [
       { to: "/form-new", label: "Form (RHF + Zod)", description: "react-hook-form + Zod resolver; FormField / FormItem / FormLabel / FormMessage", source: "packages/react/src/components/NewFormDemo.tsx" },
       { to: "/data-table", label: "DataTable", description: "TanStack Table + Virtual; sorting, filtering, grouping, pinning, resizing, windowing", source: "packages/react/src/components/NewDataTableDemo.tsx" },
       { to: "/tree-table", label: "TreeTable", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/react/src/components/NewTreeTableDemo.tsx" },
+      { to: "/micro-chart", label: "Micro charts", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/react/src/components/NewMicroChartDemo.tsx" },
       { to: "/pivot", label: "Pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/react/src/components/NewPivotDemo.tsx" },
       { to: "/lazy-options", label: "Lazy options", description: "VirtualizedItems \u2014 drop-in windowing for huge option lists inside Combobox / Select", source: "packages/react/src/components/NewLazyOptionsDemo.tsx" },
       { to: "/combobox", label: "Combobox + Async", description: "cmdk-backed; sync `options` or async `onSearch` with debounced loading", source: "packages/react/src/components/NewComboboxDemo.tsx" },

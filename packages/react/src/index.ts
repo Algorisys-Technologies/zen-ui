@@ -701,6 +701,21 @@ export type {
   DataTableManualPagination,
 } from "./components/data-table/data-table";
 export { TreeTable } from "./components/tree-table/tree-table";
+export {
+  MicroLineChart,
+  MicroBarChart,
+  MicroBulletChart,
+  MicroDeltaChart,
+  MicroRadialChart,
+} from "./components/micro-chart/micro-chart";
+export type {
+  MicroChartColor,
+  MicroLineChartProps,
+  MicroBarChartProps,
+  MicroBulletChartProps,
+  MicroDeltaChartProps,
+  MicroRadialChartProps,
+} from "./components/micro-chart/micro-chart";
 export type { TreeTableProps } from "./components/tree-table/tree-table";
 
 // Listbox helpers (windowed rendering for large option lists)
