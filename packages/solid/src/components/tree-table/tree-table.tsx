@@ -148,10 +148,22 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
   const [sortingInner, setSortingInner] = createSignal<SortingState>([]);
   const [selectionInner, setSelectionInner] = createSignal<RowSelectionState>({});
   const [globalFilterInner, setGlobalFilterInner] = createSignal("");
+  /*
+   * Seeds the page size ONCE, like `defaultExpanded` seeds expansion. A later
+   * change to `props.pageSize` is deliberately ignored — the user may have
+   * picked a different size from the control by then, and yanking it back would
+   * undo their choice. `table.setPageSize` is the way to change it after mount.
+   *
+   * eslint-disable solid/reactivity -- one-time seed, per the above. Block form
+   * because the rule reports the INNER line of this multi-line call, which a
+   * disable-next-line above it cannot reach.
+   */
+  /* eslint-disable solid/reactivity */
   const [pagination, setPagination] = createSignal<PaginationState>({
     pageIndex: 0,
     pageSize: props.pageSize ?? 10,
   });
+  /* eslint-enable solid/reactivity */
 
   const expanded = () => props.expanded ?? expandedInner();
   const sorting = () => props.sorting ?? sortingInner();

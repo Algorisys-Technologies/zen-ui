@@ -54,6 +54,7 @@ import NewOTPDemo from "./components/NewOTPDemo";
 import NewFileUploadDemo from "./components/NewFileUploadDemo";
 import NewDataTableDemo from "./components/NewDataTableDemo";
 import NewTreeTableDemo from "./components/NewTreeTableDemo";
+import NewMicroChartDemo from "./components/NewMicroChartDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -164,6 +165,7 @@ render(
       <Route path="/file-upload" component={NewFileUploadDemo} />
       <Route path="/data-table" component={NewDataTableDemo} />
       <Route path="/tree-table" component={NewTreeTableDemo} />
+      <Route path="/micro-chart" component={NewMicroChartDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />
