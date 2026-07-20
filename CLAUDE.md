@@ -451,10 +451,19 @@ node scripts/visual-check.mjs react && node scripts/visual-check.mjs solid
 
 git commit && git tag v<version>
 git checkout main && git merge --ff-only dev && git push origin main --tags
-git checkout dev
+git checkout dev && git push origin dev
 
 ./deploy.sh --publish
 ```
+
+**`git push origin dev` is not optional, and it is the step that gets
+forgotten.** This block used to end at `git checkout dev`, which pushes `main`
+and the tags and leaves the remote's `dev` exactly where it was. Nothing is lost
+— the commits are on `main` and under the tag — but the branch everyone treats
+as the tip is the one that silently falls behind, and it fails quietly: `git
+status` on your machine says nothing, because it compares against a remote you
+have not pushed to. Measured 2026-07-21: `origin/dev` was **22 commits** behind,
+across two releases, before anyone looked.
 
 `deploy.sh` rebuilds `packages/*/dist` with the `/zen-ui/` base — **it clobbers
 your local demo builds.** Rebuild after deploying, or the next `preview` serves
