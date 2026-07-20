@@ -33,6 +33,46 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.0.0",
+    date: "2026-07-20",
+    kind: "breaking",
+    title: "A `:root` override of a `--zen-*` token may start winning where it used to lose",
+    detail:
+      "Theme tokens moved from `:root[data-theme=\"x\"]` to `[data-theme=\"x\"]`, one specificity step lower, which is what lets a theme apply to a div rather than only the document. An override you wrote at `:root` used to lose to the theme block and silently do nothing; it now ties, so a later-loaded stylesheet of yours wins. If some of your overrides were dead, they are about to come alive.",
+  },
+  {
+    version: "9.0.0",
+    date: "2026-07-20",
+    kind: "breaking",
+    title: "Right-to-left pages behave differently, because they were wrong",
+    detail:
+      "Arrow keys now follow the reading direction: in Arabic or Hebrew, next is to the left. Sixty places treated ArrowRight as forward — the carousel, rating, NPS and Likert scales, OTP boxes, tree, colour palette, object-page anchors and slider. The carousel additionally did not move at all in RTL, because scroll position counts downwards into negative numbers there. If you built a workaround for any of this, the workaround is now the bug.",
+  },
+  {
+    version: "9.0.0",
+    date: "2026-07-20",
+    kind: "new",
+    title: "A theme can apply to part of a page",
+    detail:
+      "<Theme name=\"dark\"> themes one subtree — a dark panel in a light app, a live preview of another theme, a widget that keeps its palette whatever the host page does. It nests with no bookkeeping, and no JavaScript runs. Portalled overlays (Dialog, Popover, Sheet, Tooltip, DropdownMenu) still take the document theme.",
+  },
+  {
+    version: "9.0.0",
+    date: "2026-07-20",
+    kind: "new",
+    title: "DirectionProvider tells menus, tabs and sliders which way the page reads",
+    detail:
+      "The primitives underneath zen-ui keep direction in their own JavaScript and do not read `dir` off your page, so submenu side and arrow-key meaning were stuck left-to-right. Render <DirectionProvider> once near the root: with no props it follows <html dir> and keeps following it, so a runtime language switch works without a reload.",
+  },
+  {
+    version: "9.0.0",
+    date: "2026-07-20",
+    kind: "fixed",
+    title: "Table headers line up with their columns in a right-to-left page",
+    detail:
+      "Headers stayed left-aligned while their column data moved right. Sixty-nine places meant \"align the way this reads\" and said \"align left\".",
+  },
+  {
     version: "8.0.0",
     date: "2026-07-19",
     kind: "breaking",

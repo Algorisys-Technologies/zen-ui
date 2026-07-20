@@ -11,6 +11,73 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.0] - 2026-07-20
+
+### Added
+
+- `Theme` — scopes a theme to a subtree, in all four bindings
+  (`<zen-theme>` for web-components). `transparent` renders the wrapper as
+  `display: contents` for grid/flex children. Pure CSS; no JS runs.
+- `DirectionProvider` — feeds reading direction to Radix (React) and Kobalte
+  (Solid), which keep it in their own JS context and default to `ltr` regardless
+  of `document.dir`. Follows `<html dir>` live via `MutationObserver`. Solid's
+  additionally accepts `locale`: Kobalte derives direction FROM a locale rather
+  than accepting one, so the two cannot be set independently there. Vanilla and
+  web-components ship it as a `dir`-carrying wrapper (no primitive library to
+  inform, but the same caller-facing contract).
+- `core`: `directionOf(el)`, `arrowStep(key, el)`, `horizontalStep(key, dir)`,
+  `readDocumentDirection()`, `observeDocumentDirection()`.
+- `check:direction` — pure-logic contract for `horizontalStep`, incl. the rule
+  that vertical arrows never flip.
+- `scripts/visual-check.mjs --dir <ltr|rtl>`; RTL shots are suffixed `.rtl.png`
+  so they never clobber the LTR baseline. Flag values are now excluded by index
+  rather than by value, so a route named `dark` is no longer swallowed.
+- Demo + nav entry for `Theme` in all four bindings.
+
+### Changed
+
+- **BREAKING (visual).** Theme token blocks moved from `:root[data-theme="x"]`
+  to `[data-theme="x"]`. Specificity drops (0,2,0) → (0,1,0), so a consumer
+  override at `:root` now ties and wins on source order where it previously
+  lost. Overrides that were silently dead may start applying. The `:root` blocks
+  for fonts, motion and `prefers-reduced-motion` are deliberately NOT rescoped —
+  they are not per-theme, and source order is now load-bearing.
+- **BREAKING (behaviour, RTL only).** 59 sites across 3 bindings treated
+  `ArrowRight` as "forward"; they now resolve direction from the DOM via
+  `arrowStep`. Affects Carousel, Rating, NPS, Likert, OTP, Tree, ColorPalette,
+  ObjectPage anchors, and vanilla's hand-built DropdownMenu and Slider.
+- `TimePicker`'s segment row is pinned `dir="ltr"` — clock notation is LTR in
+  every locale, so it must not mirror. The one deliberate exception to the sweep.
+
+### Fixed
+
+- `zen-text-left`/`zen-text-right` → `zen-text-start`/`zen-text-end` across 49
+  files plus `core/src/variants.ts`. `TableHead` was the visible case: in RTL the
+  header stayed left while its column data flowed right. Identical in LTR, so
+  only the broken direction changes. `variants.ts` had `zen-justify-start`
+  (logical) beside `zen-text-left` (physical) in one class string.
+- Carousel did not move at all in RTL: `scrollLeft` counts from 0 at the start
+  DOWN through negative values there, so `scrollTo({left: +N})` scrolled the
+  wrong way and clamped at 0. Signed in all three bindings; `onScroll` takes
+  `Math.abs`. The arrow-key fix alone would not have caught this.
+- Demo code blocks (`.example-code`) are pinned `direction: ltr` — code is LTR
+  whatever the UI does. Demo-side only.
+- The Welcome page's three theme preview cards had been rendering the SAME theme
+  since they were written: they set `data-theme` on a `<div>`, which
+  `:root[data-theme]` cannot match. They now differ.
+
+### Docs
+
+- `docs/fiori-gap-analysis.md` and `docs/carbon-gap-analysis.md` reconciled
+  against 8.0.0 — four claims in the Carbon doc were false as written, and 7 of
+  its 13 shortlist items had shipped unnoticed. Both gained a "cost basis"
+  section: they were written at two bindings and there are now four.
+- The Layer model is **declined**, with reopen conditions, rather than left open.
+  zen-ui delineates containers by border and shadow where Carbon delineates by
+  surface, so it solves a problem already solved another way.
+- `todo.md` gained a Carbon section; its absence is why three foundation items
+  sat unlooked-at for five releases.
+
 ## [8.0.0] - 2026-07-19
 
 ### Changed
