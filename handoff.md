@@ -1,181 +1,189 @@
 # Handoff
 
-State at the end of the 2026-07-16 session. Written for whoever picks this up
+State at the end of the 2026-07-21 session. Written for whoever picks this up
 with no memory of it — including me.
+
+This file replaces the 2026-07-16 handoff, which was written at 6.0.0 and had
+gone entirely stale (its lint baselines, route counts and open questions were
+all superseded). Nothing in it is still live.
 
 ## Where things stand
 
-`main == dev == origin/main == origin/dev == f710023`, tagged **v6.0.0**, tree
-clean. The site at <https://algorisys-technologies.github.io/zen-ui/> serves
-6.0.0 — verified by fetching each deployed bundle and grepping the version out
-of it, not by trusting that the deploy said "Published". All three entry points
-(`/`, `/builder/`, `/builder-solid/`) return 200.
+`dev == origin/dev == d43b3e2`, tree clean, all four demo builds on their dev
+bases. Last release is **9.4.0** (`13a5b5f`, tagged `v9.4.0`; `main` and
+`gh-pages` both current; site deployed and verified by deploy's own checks).
 
-**Nothing is open.** All three of this file's decisions are settled below, and
-the work behind them is released.
+**There is unreleased work on top of 9.4.0** — six commits, all additive:
 
-Three releases shipped in the 2026-07-16 session: **4.0.0** (tree-shaking +
-types), **5.0.0** (pivot single-select), **6.0.0** (the Solid pivot workbench
-laid out like React's — breaking, because a visual change is). Each is described
-in `release-notes/`.
+| commit | what |
+|---|---|
+| `0902318` | Fiori Tier 4 triaged into dropped / accepted |
+| `b9ad1c1` `f5e672d` `7a83728` | Micro charts — **complete, all four bindings** |
+| `3579c35` `d43b3e2` | Timeline — **Solid and React only** |
 
-Gates, all green as of the last run:
+`bun run check` is **red right now, and that is expected**: `check:parity`
+reports Timeline as existing in two bindings of four. It goes green when the
+vanilla and web-components ports land. Do not "fix" it by deleting anything.
+
+## Pick up here
+
+**Port Timeline to vanilla, then web-components.** Build order is
+Solid → React → vanilla → web-components (CLAUDE.md, "Do ONE binding at a
+time"). Solid and React are done and are the thing to port FROM.
+
+1. `packages/vanilla/src/components/timeline/timeline.ts` — factory returning
+   `ZenComponent`, mirroring `packages/react/src/components/timeline/timeline.tsx`.
+   Data-driven: `items: TimelineItem[]`.
+2. Export from `packages/vanilla/src/index.ts`; demo at
+   `packages/vanilla/src/components/TimelineDemo.ts`; route in `main.ts`; entry
+   in `nav.ts`.
+3. `packages/web-components/src/elements/timeline.ts` — `<zen-timeline>` with
+   `items` as a **json attr + property** (it is an array whose entries carry
+   nodes). Register in `elements/index.ts`; re-export the names in `src/index.ts`.
+4. **`bun run build:lib:vanilla` before typechecking web-components** — wc
+   resolves vanilla through its `dist`, so a new export is invisible until the
+   lib rebuilds. This bit once already this session.
+5. `bun run gen:agent-guide`, then `bun run check` should be green again.
+
+Then, in order: **UploadCollection**, then **PlanningCalendar** (large enough to
+be its own release). Reasoning for the order is in
+`docs/fiori-gap-analysis.md`; the checklist is in `todo.md`.
+
+Suggested release shape: fold Timeline and UploadCollection into one **9.5.0**
+rather than cutting a release per component.
+
+## What Timeline is, so the port matches
+
+An ordered list of events — audit trail, order history, ticket comments.
+Data-driven, not compound. Props: `items`, `density` (`"default" | "compact"`),
+`emptyMessage`, plus `class` / `className`.
+
+`TimelineItem`: `id`, `title`, `description?`, `timestamp?` (display string),
+`dateTime?` (machine-readable), `icon?`, `state?`
+(`default | info | success | warning | error`), `group?`, `children?`.
+
+Four decisions the port must preserve — each is load-bearing, not styling:
+
+- **It is an `<ol>`.** A div stack tells a screen-reader user nothing about
+  sequence or length, and sequence is the whole subject of the component.
+- **The group heading is NOT an `<li>`.** It is not one of the events, and
+  putting it in the list inflates the count a screen reader announces.
+- **The rail is hidden on the LAST item.** A line running past the final event
+  reads as "more below", which is exactly wrong at the end.
+- **Markers are `aria-hidden`.** They repeat the title, and "image, check
+  circle" before every entry is noise.
+
+Grouping is a `group` **string on the item**, deliberately not a `groupBy`
+function: the caller already knows whether two events fall on the same day, and
+deriving it here means guessing at their timezone and their idea of "today".
+
+`density="compact"` **drops** the description and body rather than shrinking
+type. In a narrow sidebar a two-line description wraps to five and the sequence
+stops being scannable, which was the only reason the timeline was there.
+
+## Verification recipe
+
+Every bug found this session was green on tsc, eslint and the build. Drive it:
+
+```bash
+cd packages/<binding> && npx vite build --config vite.config.demo.ts
+setsid npx vite preview --config vite.config.demo.ts --port 5197 --strictPort &
+# then run the playwright probe FROM THE REPO ROOT — playwright resolves there
+```
+
+The Timeline probe asserted, per binding: 5 events; headings
+`TODAY / YESTERDAY / 18 JULY` **not** inside `<li>`; rail present on items 1–4
+and absent on 5; every marker `aria-hidden`; `time[datetime]` machine-readable;
+compact rendering 5 items and **zero** body `<p>`; the empty state rendering a
+message and **no `<ol>`**; and under RTL the rail moving to the right-hand side
+of the row. Reproduce those exact numbers in vanilla and web-components.
+
+**Report the COUNT of things examined, not just failures.** A geometric
+assertion that matches nothing passes.
+
+One known false alarm, so it is not re-investigated: React's demo page reports
+**6** `<ol>` where Solid reports 5. The extra is **Radix Toast's viewport**
+(fixed, zero items, outside `.demo-page`). Solid uses solid-toast, which renders
+no list. That is the Toast divergence already recorded in `scripts/bindings.mjs`.
+
+## Traps this session actually hit
+
+Each of these was green on tsc, eslint and the build:
+
+- **`zen-fill-*` / `zen-stroke-*` DO NOT GENERATE** under this preset. The micro
+  chart bullet track computed to black and the radial ring to `none` — invisible
+  rather than obviously broken. Use `var(--zen-color-*)` directly in SVG.
+- **React renames SVG attributes to camelCase**, and a missed rename renders as
+  nothing at all. Assert computed `strokeWidth` / `strokeDasharray` /
+  `textAnchor`, not the markup.
+- **`document.createElement("svg")` yields an HTMLUnknownElement.** It parses,
+  attaches, reports 0×0 and draws nothing, silently. Vanilla SVG must go through
+  `createElementNS`; assert `namespaceURI` in the probe.
+- **A solution-style `tsconfig.json`** (`{"files": [], "references": [...]}` — what
+  `packages/vanilla` and `packages/web-components` have at their root) compiles an
+  EMPTY program and exits 0 on any code. Use `-p tsconfig.app.json` and confirm
+  with `--listFiles | grep -c <name>`. It passed twice on a broken file.
+- **An absent boolean ATTRIBUTE resolves to `false`** in `defineZenElement`, so a
+  default-TRUE flag declared as an attr silently inverts for every HTML author.
+  Default-true booleans go in `props`. (`lib/define.ts:194` says so; I broke it
+  anyway.)
+- **Backticks inside `git commit -m "..."` are shell-interpreted** and silently
+  delete the identifiers that make a message useful. Use `-F -` with a quoted
+  heredoc.
+- **`eslint-disable-next-line` must be the LAST line before the reported line**,
+  and for a multi-line call the rule reports the INNER line — so a block
+  `/* eslint-disable */` is the only form that reaches it.
+
+## Standing rules (do not re-derive)
+
+- **npm publishing is OUT OF SCOPE.** Do not mention unpublished-to-registry
+  status. "Ship it" = release notes + version bump + tag + `main` sync +
+  `./deploy.sh --publish`. That is the whole of it.
+- **One binding at a time**, Solid → React → vanilla → web-components. React
+  remains the parity *reference* even though Solid is built first. This rule
+  caught four TreeTable bugs and three micro-chart bugs that existed only as
+  differences between bindings.
+- **Rebuild all four demos after `./deploy.sh`** — it leaves them on the
+  `/zen-ui/` base, which renders a blank page inside a working shell with no
+  console errors beyond 404s.
+
+## Current baselines (measured 2026-07-21)
 
 | command | state |
 |---|---|
-| `bun run check` | 343 checks |
-| `bun run check:dist` | Button 17 kB React / 16 kB Solid |
-| `bun run lint` / `lint:solid` | React 29 problems; Solid 8 errors / 46 warnings — **on baseline, not zero** |
-| `visual-check` both bindings | 79 routes each; 3 errors, all an offline avatar CDN (`i.pravatar.cc`) — pre-existing, not ours. **No blank pages** — `find .visual/<binding> -name '*.png' -size -10k` is the one-command check, since a blank render is ~5.3 kB against 70–120 kB for a real one |
+| `bun run lint` / `lint:solid` | **0 problems each.** Any finding is yours |
+| `bun run check:dist` | Button 17 kB gzip React / 16 kB Solid / 17 kB vanilla (budget 30); nine components 57 (budget 80) |
+| `visual-check react` / `solid` | 87 routes each; only failure is `i.pravatar.cc` DNS on `/avatar`, sandbox-only |
 
-`packages/*/dist` was rebuilt after `./deploy.sh --publish`, so both hold demo
-builds at the dev bases (`/builder/`, `/builder-solid/`) rather than deploy's
-`/zen-ui/`. That is the state `visual-check` and `preview` want. `check:dist`
-wants the opposite — run `build:lib` first, and run it last.
+The Solid lint baseline was recorded in CLAUDE.md as 0 when it was actually 3.
+It is genuinely 0 now. Measure before quoting a delta — including this table.
 
-## Settled — nothing here needs a decision
+## Decisions settled this session
 
-### 1. ~~Impeccable is installed GLOBALLY~~ — SETTLED, it is project-scoped now
+- **Fiori Tier 4 triaged** (`0902318`). ~60% dropped on substance rather than
+  cost: smart controls are metadata-driven against OData V2 annotations, and
+  without the annotations a SmartTable *is* `DataTable` — there is no UI idea
+  left to port. Same for Launchpad tiles, SemanticPage, Analytical Card,
+  T-Account, Calculation Builder. Accepted: micro charts ✅, Timeline (in
+  progress), UploadCollection, PlanningCalendar.
+- **TreeTable is a separate component from DataTable**, because hierarchy and
+  grouping claim the same `subRows` / `expanded` / chevron slots — one table
+  cannot hold both.
+- **TreeTable pagination pages the ROOTS** (TanStack's
+  `paginateExpandedRows: false`), so a page carries whole subtrees. Paging the
+  flattened list orphans children on the next page.
+- **Virtualization uses spacer rows, not a grid clone.** A treegrid is exactly
+  where abandoning real `<table>` markup would cost the row and cell roles.
+- **Delta micro chart derives its own colour** from direction; `color` overrides
+  it only for the case where up is bad (cost, churn, latency).
 
-Resolved 2026-07-16. It lives in `.claude/skills/impeccable`, is committed, and
-the five global copies (`~/.claude`, `~/.gemini`, `~/.opencode`, `~/.pi`,
-`~/.agents`) are gone. `/impeccable init` has still **not** been run, and
-`/impeccable audit` on `apps/landing` is still worth doing.
+## Open, needing a decision from Rajesh
 
-**Two corrections to what this file used to say**, because both were wrong and
-both would mislead:
-
-- **The global install wrote no hooks.** This file claimed hooks were installed
-  into `~/.claude` and `~/.agents` and "fire on every project". There was no
-  hook wiring anywhere — no `hooks` key in `~/.claude/settings.json`, no
-  `~/.claude/hooks/`. It was 102 inert skill files per directory. The alarm was
-  unfounded; do not re-raise it from this file's history.
-- **It was 102 files per directory, not 121/125.**
-
-Making "project-scoped" real took two edits the installer does not make, and
-neither is visible in its output:
-
-- **`.gitignore`'s `*.md` swallowed 33 of the 102 files**, including `SKILL.md`
-  and every `reference/<command>.md` — the ones that ARE the skill. A clone
-  would have got 63 .mjs scripts and nothing that made them mean anything.
-  Allowlisted at the bottom of `.gitignore`. Same trap as `release-notes/`.
-- **The installer writes its hook to `.claude/settings.local.json`**, which the
-  user's *global* gitignore (`~/.config/git/ignore`) excludes as the personal
-  file. Moved to `.claude/settings.json` — the shared one — or it would not have
-  travelled either.
-
-**The hook is now live for anyone who clones**: PostToolUse on
-`Edit|Write|MultiEdit`, 5s timeout, `.claude/skills/impeccable/scripts/hook.mjs`.
-It works (driven, not assumed) and reports one finding today: `overused-font` on
-`apps/landing`'s **Plus Jakarta Sans** — the off-the-shelf Google font carrying
-the brand. Unfixed; it is a design call, and a real one. (This is now the only
-surviving trace of slop.md, which flagged the same thing independently before it
-was removed — see item 2.)
-
-> `npx impeccable install --help` **is not a thing** — the flag is unparsed and
-> it runs the real installer. That is how the project install happened. It also
-> overwrote `.claude/settings.local.json`, whose prior contents are unrecoverable
-> (gitignored, never read first). The user waived it.
-
-### 2. ~~Do NOT delete slop.md yet~~ — SETTLED, it is gone
-
-Resolved 2026-07-16. **The premise was wrong, which is why the analysis below it
-was moot.** This file argued at length against a straight swap — "repo doctrine,
-not a generic guide", 1,599 lines that would lose their only home. The user then
-said they had added slop.md **only to test it** (one commit, `d6a82a6`,
-2026-07-15, of an external document from `pols.dev/slop.md`). It was never repo
-doctrine. It was an evaluation, and it concluded.
-
-Removed, along with the three things that referenced it: CLAUDE.md's
-Development-guidelines block and its Other-references line, and `.gitignore`'s
-`!slop.md` allowlist. Design review is now impeccable, which CLAUDE.md points at
-instead.
-
-**One rule was kept, because it outlived its source.** CLAUDE.md's carve-out —
-this repo's docs, comments and commit messages deliberately use em dashes, do
-not sweep them out — now hangs off impeccable, which has its own
-`em-dash-overuse` detector. Worth knowing that the detector **cannot reach this
-repo's prose**: it reads rendered UI body text only, so a 53-em-dash CLAUDE.md
-and an 11-em-dash `.tsx` both come back clean (measured, not assumed). If em
-dashes are ever "found" in this repo's writing, it is an agent generalising from
-the rule's existence, not the tool firing. That is exactly what the carve-out is
-for.
-
-**The lesson worth keeping**: this file spent three bullets defending a document
-on the assumption it was load-bearing, without checking `git log` — which showed
-a single commit, by the user, the day before. One command would have replaced the
-whole argument. Check what a thing IS before arguing about what it is worth.
-
-### 3. ~~Pivot workbench layout differs between bindings~~ — SETTLED, aligned
-
-Resolved 2026-07-16: the user ruled **align Solid to React's**, and it is done
-(`4382900`). Solid now renders the toolbar in its own bar and Values | Rows |
-Columns as three equal `sm:zen-grid-cols-3` columns. Its drag-and-drop survived —
-`scripts/check-pivot-ui.mjs` passes fully on both bindings.
-
-Aligning surfaced three divergences that were never about layout, all now closed:
-a hardcoded `en-IN` locale in Solid's row/col counts, Solid counting an *empty*
-filter selection as an active filter (it now uses core's `hasActiveFilters` /
-`isLayoutRenderable`, as React does), and a remove button on Available chips that
-moved a field into the zone it was already in.
-
-It also found one bug going the **other** way: React's alerts passed
-`<AlertIcon />` with no children, and AlertIcon is a pure slot — both warnings
-rendered an empty box where the icon belongs. React was fixed to match Solid, not
-the reverse.
-
-**This is a breaking change and is unreleased.** A visual change is breaking
-here; the next `ship it` is a major and needs a `release-notes/6.0.0.md` saying
-the Solid workbench reflows.
-
-## Traps that cost real time this session
-
-Every one of these produced a false pass or a wrong conclusion. They are in
-CLAUDE.md too; repeated here because they bite fastest.
-
-- **`.gitignore` has `*.md`, matching at ANY depth.** `release-notes/` and this
-  file both needed explicit allowlists. A new doc is silently untracked.
-- **`build` (demo) and `build:lib` write to the same `dist/` and clobber each
-  other.** `visual-check` needs the demo build; `check:dist` needs the lib
-  build. Run `check:dist` last. "dist is missing" means a demo build won.
-- **`deploy.sh` rebuilds `packages/*/dist` with the `/zen-ui/` base** — rebuild
-  the libs afterwards or `preview` serves broken asset URLs.
-- **Both of the above were live at the START of the 2026-07-16 session, and a
-  blank page is what they look like.** `visual-check` on `/pivot` screenshotted
-  pure white and reported a bare `404`, which reads exactly like "the change
-  broke the route". It was neither route nor change: Solid's `dist` held the
-  *library* build (`index100.js`, no `index.html`) because `check:dist` ran last,
-  and React's `dist` held a *demo* build still carrying deploy.sh's
-  `/zen-ui/builder/` asset URLs. **Diagnose with a control route** — if `/button`
-  is blank too, it is the build, not the work. Cheapest tell: a real screenshot
-  is 70–120 kB, a blank one is 5,289 bytes; and `grep -oE 'src="[^"]*"'
-  packages/*/dist/index.html` shows the base immediately.
-- **`rm -rf dist` before believing dist.** `emptyOutDir: false` kept a stale
-  `index.d.ts` alive for who knows how long, hiding the fact that consumers got
-  no types at all. A clean clone never had one.
-- **Relative paths in a vite config resolve against `process.cwd()`, not the
-  config file.** `bun --filter` enters the package dir so it works; `deploy.sh`
-  runs from the repo root so it throws. The one command that publishes was the
-  one that failed.
-- **`treeshake` belongs in `build.rollupOptions`, not `build`.** Vite silently
-  ignores it there — this produced two confident, wrong "it's not side effects"
-  conclusions.
-- **Vite lib+ES mode does not minify whitespace**, deliberately, to preserve
-  `@__PURE__` annotations. `dist/index.js` at ~1.1 MB is not a shipping size.
-  Measure with `check:size`, which builds real consumer apps.
-- **Scripts that spawn vite must write scratch configs INSIDE the repo** — from
-  `/tmp`, plugin imports are `ERR_MODULE_NOT_FOUND` and every case "fails" for
-  reasons unrelated to what is being tested.
-- **`vite preview` in `packages/*` needs `--config vite.config.demo.ts`** —
-  there is no default `vite.config.ts`, so without it the base is wrong and the
-  page renders blank.
-- **`h1.first()` matches the site header**, not the page title. `sr-only` is
-  1×1 clipped, not zero-size.
-- Roughly half of the apparent failures this session were my own harness. Verify
-  the harness before believing a finding.
-
-## The rule that keeps being right
-
-Green output is not evidence. Every significant bug this session — the 151 kB
-button, the missing types, the v0.1 footer, the pivot single-select — was green
-in every existing check and looked fine. Drive the thing.
+- **VariantManagement / p13n** — still blocked on a persistence story. Both are
+  storage questions wearing a component costume.
+- **DataTable's RTL column-resize grips** — left physical deliberately; they
+  share maths with column pinning and sticky offsets. Small, unblocked, just not
+  chosen yet.
+- **Solid demo section count** — 308 code snippets to React's 450. Coverage is
+  complete (every demo in every binding has at least one); the section count is
+  not.
