@@ -65,6 +65,22 @@ export interface TreeTableProps<TData, TValue = unknown> {
   getSubRows?: (row: TData) => TData[] | undefined;
   getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string;
 
+  /* lazy children — fetch a subtree the first time it is opened */
+  /**
+   * Which rows can be opened before their children exist. Without this a row
+   * with no children yet is indistinguishable from a leaf, so it gets no
+   * chevron and can never be opened to trigger the load.
+   */
+  hasChildren?: (row: TData) => boolean;
+  /**
+   * Fetch a row's children on its first expand. Requires `getRowId` (or an
+   * `id` on the row): the result is cached against that id, and an index-path
+   * key would move the moment anything above it is sorted or filtered.
+   */
+  loadChildren?: (row: TData) => Promise<TData[]>;
+  /** Called when `loadChildren` rejects. Without it the error is re-thrown. */
+  onLoadChildrenError?: (error: unknown, row: TData) => void;
+
   /* expansion */
   expanded?: ExpandedState;
   /** `true` expands everything on first render. */
@@ -118,6 +134,9 @@ export function TreeTable<TData, TValue = unknown>({
   columns,
   getSubRows,
   getRowId,
+  hasChildren,
+  loadChildren,
+  onLoadChildrenError,
   expanded,
   defaultExpanded,
   onExpandedChange,
@@ -206,8 +225,71 @@ export function TreeTable<TData, TValue = unknown>({
     return [select, ...columns];
   }, [columns, enableRowSelection]);
 
+  /* ---- lazy children ---- */
+  const [loadedKids, setLoadedKids] = React.useState<Record<string, TData[]>>({});
+  const [loadingIds, setLoadingIds] = React.useState<ReadonlySet<string>>(new Set());
+  const [lazyVersion, setLazyVersion] = React.useState(0);
+
+  const lazyKey = React.useCallback(
+    (row: TData): string | undefined => getRowId?.(row, 0) ?? (row as { id?: string }).id,
+    [getRowId],
+  );
+
+  /** Not yet loaded, but says it has children. */
+  const canLazyLoad = React.useCallback(
+    (row: TData) => {
+      if (!loadChildren || !hasChildren?.(row)) return false;
+      const key = lazyKey(row);
+      return key !== undefined && loadedKids[key] === undefined;
+    },
+    [loadChildren, hasChildren, lazyKey, loadedKids],
+  );
+
+  const loadFor = React.useCallback(
+    async (row: TData) => {
+      const key = lazyKey(row);
+      if (key === undefined || !loadChildren) return;
+      if (loadingIds.has(key) || loadedKids[key] !== undefined) return;
+      setLoadingIds((s) => new Set(s).add(key));
+      try {
+        const kids = await loadChildren(row);
+        setLoadedKids((m) => ({ ...m, [key]: kids }));
+        setLazyVersion((v) => v + 1);
+      } catch (err) {
+        if (onLoadChildrenError) onLoadChildrenError(err, row);
+        else throw err;
+      } finally {
+        setLoadingIds((s) => {
+          const next = new Set(s);
+          next.delete(key);
+          return next;
+        });
+      }
+    },
+    [lazyKey, loadChildren, loadingIds, loadedKids, onLoadChildrenError],
+  );
+
+  /*
+   * A fresh top-level identity is what makes TanStack rebuild the row model
+   * after a lazy load; returning `data` unchanged memoizes the old one and the
+   * fetched children never appear.
+   */
+  const tableData = React.useMemo(
+    () => (lazyVersion > 0 ? [...data] : data),
+    [data, lazyVersion],
+  );
+
+  const resolvedGetSubRows = React.useCallback(
+    (row: TData): TData[] | undefined => {
+      const key = lazyKey(row);
+      if (key !== undefined && loadedKids[key] !== undefined) return loadedKids[key];
+      return (getSubRows ?? defaultGetSubRows)(row);
+    },
+    [getSubRows, lazyKey, loadedKids],
+  );
+
   const table = useReactTable<TData>({
-    data,
+    data: tableData,
     columns: augmentedColumns as ColumnDef<TData, unknown>[],
     state: {
       expanded: expandedState,
@@ -215,7 +297,9 @@ export function TreeTable<TData, TValue = unknown>({
       rowSelection: selectionState,
       globalFilter: globalFilterState,
     },
-    getSubRows: getSubRows ?? defaultGetSubRows,
+    getSubRows: resolvedGetSubRows,
+    /* A row that says it has children is expandable before it has any. */
+    getRowCanExpand: (row) => row.subRows.length > 0 || canLazyLoad(row.original),
     getRowId,
     enableSorting,
     enableRowSelection: !!enableRowSelection,
@@ -278,6 +362,20 @@ export function TreeTable<TData, TValue = unknown>({
     }
     return info;
   }, [rows]);
+
+  const isRowLoading = (row: Row<TData>) => {
+    const key = lazyKey(row.original);
+    return key !== undefined && loadingIds.has(key);
+  };
+
+  /**
+   * One entry point for opening a row, so the chevron and the keyboard cannot
+   * drift: a first open of an unloaded node fetches before it expands.
+   */
+  const setRowExpanded = (row: Row<TData>, open: boolean) => {
+    if (open && canLazyLoad(row.original)) void loadFor(row.original);
+    row.toggleExpanded(open);
+  };
 
   /* ---- virtualization ---- */
   const tableRef = React.useRef<HTMLTableElement>(null);
@@ -351,12 +449,12 @@ export function TreeTable<TData, TValue = unknown>({
     } else if (step === 1) {
       // Forward: open a closed node, else descend into it.
       e.preventDefault();
-      if (row.getCanExpand() && !row.getIsExpanded()) row.toggleExpanded(true);
+      if (row.getCanExpand() && !row.getIsExpanded()) setRowExpanded(row, true);
       else if (row.getIsExpanded()) moveBy(row, 1);
     } else if (step === -1) {
       // Backward: close an open node, else climb to the parent.
       e.preventDefault();
-      if (row.getIsExpanded()) row.toggleExpanded(false);
+      if (row.getIsExpanded()) setRowExpanded(row, false);
       else if (row.parentId) focusRow(row.parentId);
     } else if (e.key === "Home") {
       e.preventDefault();
@@ -370,7 +468,7 @@ export function TreeTable<TData, TValue = unknown>({
         onRowClick(row);
       } else if (row.getCanExpand()) {
         e.preventDefault();
-        row.toggleExpanded();
+        setRowExpanded(row, !row.getIsExpanded());
       }
     }
   };
@@ -536,20 +634,28 @@ export function TreeTable<TData, TValue = unknown>({
                               // stop from the roving row focus.
                               tabIndex={-1}
                               aria-hidden="true"
+                              aria-busy={isRowLoading(row) || undefined}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                row.toggleExpanded();
+                                setRowExpanded(row, !row.getIsExpanded());
                               }}
                               className="zen-inline-flex zen-w-4 zen-shrink-0 zen-items-center zen-justify-center zen-border-0 zen-bg-transparent zen-p-0 zen-cursor-pointer zen-text-zen-muted-fg"
                             >
-                              <Icon
-                                name="chevron-right"
-                                size={14}
-                                className={cn(
-                                  "zen-transition-transform",
-                                  row.getIsExpanded() && "zen-rotate-90",
-                                )}
-                              />
+                              {isRowLoading(row) ? (
+                                /* A fetch has no length the caller can predict, so the
+                                   chevron itself reports it rather than the row jumping
+                                   to a placeholder that may be replaced in 40ms. */
+                                <span className="zen-inline-block zen-h-3 zen-w-3 zen-animate-spin zen-rounded-zen-full zen-border zen-border-zen-border zen-border-t-zen-primary" />
+                              ) : (
+                                <Icon
+                                  name="chevron-right"
+                                  size={14}
+                                  className={cn(
+                                    "zen-transition-transform",
+                                    row.getIsExpanded() && "zen-rotate-90",
+                                  )}
+                                />
+                              )}
                             </button>
                           ) : (
                             <span className="zen-inline-block zen-w-4 zen-shrink-0" />
