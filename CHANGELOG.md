@@ -11,6 +11,54 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.6.0] - 2026-07-21
+
+### Added
+
+- **`PlanningCalendar`** — resource-by-time grid. `rows` (each `{ id, title,
+  subtitle?, appointments }`), `view` / `defaultView` / `onViewChange`, `views`,
+  `date` / `defaultDate` / `onDateChange`, `onAppointmentClick`, `now`,
+  `hideToolbar`, `emptyMessage`. An appointment is `{ id, start, end, title,
+  subtitle?, state?, icon? }` with `Date`s in the caller's local time,
+  deliberately unconverted. Three views: day (hours), week (days, Monday first),
+  month (days). The month is ONE axis of 28–31 columns, not a 6×7 page —
+  wrapping it into weeks would give each resource six rows and destroy the
+  cross-row comparison the component exists for. Read-only by design: no
+  drag-to-move, drag-to-create or resize. Blocks are real `<button>`s;
+  `<zen-planning-calendar>` fires `zen-appointment-click` with detail
+  `[appointment, row]`.
+- **`@algorisys/zen-ui-core/planning`** — the layout maths behind it, exported in
+  its own right: `planningRange`, `planningColumns`, `planningRangeLabel`,
+  `shiftPlanningAnchor`, `placeAppointment`, `layoutLanes`, `nowPct`,
+  `formatTimeRange`, `startOfWeek`, `startOfMonth`. Framework-agnostic, so four
+  renderers cannot drift on where 09:30 is.
+- **`scripts/check-planning.ts`**, wired into `bun run check`. 60 assertions over
+  the cases that fail silently: Sunday belonging to the week that just ended
+  (`getDay()` is 0, so the naive `d - getDay() + 1` sends it forward a week);
+  31 January + 1 month landing in February rather than overflowing to 2 March;
+  ranges half-open at BOTH ends, so an appointment ending at midnight does not
+  draw a zero-width sliver on the next day; touching intervals sharing a lane;
+  lanes returned in INPUT order; a zero-length appointment keeping a clickable
+  width; `nowPct` returning null outside the range instead of clamping to an
+  edge.
+
+### Changed
+
+- `PlanningCalendar` added to every binding's `nav.ts`, demo routes and the
+  generated `AGENTS.md` catalogue.
+
+### Internal
+
+- Two findings from driving it in a browser rather than reading it: the toolbar
+  rendered over an empty resource list, where Previous / Today / Next and the
+  view switcher cannot change anything visible, and the root shrink-wrapped to a
+  ~490px week whose columns were too narrow to read. Both fixed before the
+  Solid binding was committed, so no port carried them.
+- The web-components element wraps the factory to revive ISO strings into
+  `Date`s. JSON has no date type; without it every appointment from a markup
+  `rows` attribute is `Invalid Date`, every placement returns null, and the grid
+  renders an empty axis with no error anywhere.
+
 ## [9.5.0] - 2026-07-21
 
 ### Added
