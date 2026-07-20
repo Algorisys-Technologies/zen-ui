@@ -111,7 +111,7 @@ export function Dialog(props: DialogProps): DialogHandle {
 
     if (title || description) {
       const header = document.createElement("div");
-      header.className = "zen-flex zen-flex-col zen-gap-1 zen-text-start zen-mb-3 zen-pr-8";
+      header.className = "zen-flex zen-flex-col zen-gap-1 zen-text-start zen-mb-3 zen-pe-8";
       if (title) {
         const h2 = document.createElement("h2");
         h2.id = `${id}-title`;
@@ -145,7 +145,7 @@ export function Dialog(props: DialogProps): DialogHandle {
       close.type = "button";
       close.setAttribute("aria-label", "Close");
       close.className = cn(
-        "zen-absolute zen-right-3 zen-top-3 zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center",
+        "zen-absolute zen-end-3 zen-top-3 zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center",
         "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg",
         "hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

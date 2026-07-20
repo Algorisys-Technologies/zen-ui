@@ -42,14 +42,14 @@ export const SelectSearchField = (props: {
       <Icon
         name="search"
         size={14}
-        class="zen-pointer-events-none zen-absolute zen-left-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg"
+        class="zen-pointer-events-none zen-absolute zen-start-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg"
       />
       <Input
         value={props.value}
         onInput={(e) => props.onValueChange(e.currentTarget.value)}
         placeholder={placeholder()}
         aria-label={placeholder()}
-        class="zen-pl-9"
+        class="zen-ps-9"
       />
     </div>
   );

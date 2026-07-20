@@ -1000,13 +1000,35 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
       the same class string, so the flex alignment flipped in RTL and the text
       alignment did not.
 
-  - [ ] **Still physical, deliberately out of scope of Defect 1**: `ml/mr`,
-        `pl/pr`, `left/right`, `border-l/r`, `rounded-l/r`. These need per-site
-        reasoning about whether the thing being offset actually flips —
-        `DialogHeader`'s `zen-pr-8` reserves room for a close button that DOES
-        move in RTL, so it wants `pe-8`; a decorative offset may not. Re-run
-        `node scripts/visual-check.mjs <binding> --dir rtl` and fix what the
-        screenshots actually show, rather than sweeping 400+ sites blind.
+  - [x] **Positioned affordances — done 2026-07-20, driven by measurement.**
+        ~~Still physical, deliberately out of scope of Defect 1~~ The ones that
+        sit ON something and must mirror with it are now logical: Dialog, Sheet
+        and Toast close buttons; Search and PasswordInput trailing buttons with
+        their input padding; the menu / select / combobox check indicator; the
+        SelectableCard tick; notification count badges; the ShellBar search icon;
+        the Rating fill overlay. 39 files across React, Solid and vanilla.
+        `DialogHeader`'s `zen-pr-8` moved to `pe-8` with the close button it
+        reserves room for — they have to flip together or the title lands under
+        the button.
+        Measured rather than eyeballed: the Dialog close sits 13px from the
+        physical right in LTR and 13px from the physical LEFT in RTL. Before,
+        it was 13px from the right in BOTH — it never mirrored at all.
+
+  - [ ] **Deliberately left physical, with reasons** — do not "finish" these
+        without re-reading why:
+        - **Measurement ghosts** (`toolbar`, `shellbar`: `absolute left-0 top-0
+          opacity-0`) — an offscreen scratch element used to measure overflow.
+          Its position is arbitrary; making it logical would be noise.
+        - **Centring** (`chart`: `left-1/2 -translate-x-1/2`) — direction-
+          agnostic by construction.
+        - **DataTable column-resize handles** (`absolute right-0`) — these
+          probably SHOULD be `end-0`, but they interact with column pinning,
+          sticky offsets and the virtualized path, all of which compute physical
+          offsets in JS. Changing the handle without those would put the grip on
+          the wrong edge of a pinned column. Needs its own pass with the pinning
+          demo driven in RTL.
+        - Remaining bare `ml/mr/pl/pr` in ordinary flow layout, which flexbox
+          already mirrors. Only the ones tied to a positioned sibling mattered.
 - [ ] **Content density** (`cozy`/`compact`) — Fiori has a global density switch;
       zen-ui is fixed-size. Token-level, so one implementation. No demand recorded
       yet — do not build speculatively.

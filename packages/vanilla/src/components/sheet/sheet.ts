@@ -199,7 +199,7 @@ export function Sheet(props: SheetProps): SheetHandle {
       close.type = "button";
       close.setAttribute("aria-label", "Close sheet");
       close.className = cn(
-        "zen-absolute zen-top-3 zen-right-3 zen-inline-flex zen-items-center zen-justify-center",
+        "zen-absolute zen-top-3 zen-end-3 zen-inline-flex zen-items-center zen-justify-center",
         "zen-h-7 zen-w-7 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
         "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

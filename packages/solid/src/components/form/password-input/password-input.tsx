@@ -30,7 +30,7 @@ export const PasswordInput = (props: PasswordInputProps) => {
         type={visible() ? "text" : "password"}
         disabled={local.disabled}
         class={cn(
-          "zen-flex zen-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-pl-3 zen-pr-10 zen-py-2 zen-text-sm",
+          "zen-flex zen-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-ps-3 zen-pe-10 zen-py-2 zen-text-sm",
           "placeholder:zen-text-zen-muted-fg",
           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
           "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
@@ -45,7 +45,7 @@ export const PasswordInput = (props: PasswordInputProps) => {
         aria-pressed={visible()}
         onClick={() => setVisible((v) => !v)}
         class={cn(
-          "zen-absolute zen-top-1/2 -zen-translate-y-1/2 zen-right-2",
+          "zen-absolute zen-top-1/2 -zen-translate-y-1/2 zen-end-2",
           "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
           "zen-text-zen-muted-fg hover:zen-text-zen-foreground",
           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

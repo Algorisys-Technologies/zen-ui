@@ -71,7 +71,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Close
         aria-label="Close"
         className={cn(
-          "zen-absolute zen-right-3 zen-top-3 zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center",
+          "zen-absolute zen-end-3 zen-top-3 zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center",
           "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg",
           "hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
@@ -89,7 +89,7 @@ const DialogHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("zen-flex zen-flex-col zen-gap-1 zen-text-start zen-mb-3 zen-pr-8", className)}
+    className={cn("zen-flex zen-flex-col zen-gap-1 zen-text-start zen-mb-3 zen-pe-8", className)}
     {...props}
   />
 );

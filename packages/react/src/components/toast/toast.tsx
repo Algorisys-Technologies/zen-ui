@@ -116,7 +116,7 @@ const ToastClose = React.forwardRef<
     toast-close=""
     aria-label="Close"
     className={cn(
-      "zen-absolute zen-right-2 zen-top-2 zen-inline-flex zen-h-6 zen-w-6 zen-items-center zen-justify-center",
+      "zen-absolute zen-end-2 zen-top-2 zen-inline-flex zen-h-6 zen-w-6 zen-items-center zen-justify-center",
       "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-opacity-70",
       "hover:zen-opacity-100 hover:zen-bg-current/10",
       "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

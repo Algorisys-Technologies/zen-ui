@@ -87,7 +87,7 @@ export const Select = (props: SelectProps) => {
             "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
           )}
         >
-          <KSelect.ItemIndicator class="zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
+          <KSelect.ItemIndicator class="zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
             <CheckIcon />
           </KSelect.ItemIndicator>
           <KSelect.ItemLabel>{itemProps.item.rawValue.label}</KSelect.ItemLabel>

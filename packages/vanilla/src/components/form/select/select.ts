@@ -228,7 +228,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
       );
       const tick = document.createElement("span");
       tick.className =
-        "zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center";
+        "zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center";
       tick.innerHTML = CHECK;
       tick.style.visibility = "hidden";
       const text = document.createElement("span");

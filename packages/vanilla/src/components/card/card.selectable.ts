@@ -213,7 +213,7 @@ export function SelectableCardGroup(
       /* Top-right check indicator — only visible when selected. */
       const indicator = document.createElement("span");
       indicator.className = cn(
-        "zen-absolute zen-top-2.5 zen-right-2.5",
+        "zen-absolute zen-top-2.5 zen-end-2.5",
         "zen-inline-flex zen-items-center zen-justify-center",
         "zen-h-5 zen-w-5 zen-rounded-zen-full",
         "zen-bg-zen-primary zen-text-zen-primary-fg",

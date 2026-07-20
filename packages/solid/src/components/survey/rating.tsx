@@ -185,7 +185,7 @@ const StarVisual = (props: { size: number; fill: number }): JSX.Element => (
     <StarIcon size={props.size} filled={false} />
     <Show when={props.fill > 0}>
       <span
-        class="zen-absolute zen-inset-y-0 zen-left-0 zen-overflow-hidden zen-text-zen-warning"
+        class="zen-absolute zen-inset-y-0 zen-start-0 zen-overflow-hidden zen-text-zen-warning"
         style={{ width: `${props.fill * 100}%` }}
       >
         <StarIcon size={props.size} filled />

@@ -30,9 +30,9 @@ export interface SearchProps
 }
 
 const sizes: Record<SearchSize, { field: string; pad: string; icon: string }> = {
-  sm: { field: "zen-h-9 zen-text-sm", pad: "zen-pl-9 zen-pr-9", icon: "zen-left-2.5" },
-  md: { field: "zen-h-10 zen-text-sm", pad: "zen-pl-10 zen-pr-10", icon: "zen-left-3" },
-  lg: { field: "zen-h-11 zen-text-base", pad: "zen-pl-11 zen-pr-11", icon: "zen-left-3.5" },
+  sm: { field: "zen-h-9 zen-text-sm", pad: "zen-ps-9 zen-pe-9", icon: "zen-left-2.5" },
+  md: { field: "zen-h-10 zen-text-sm", pad: "zen-ps-10 zen-pe-10", icon: "zen-left-3" },
+  lg: { field: "zen-h-11 zen-text-base", pad: "zen-ps-11 zen-pe-11", icon: "zen-left-3.5" },
 };
 
 export const Search = (props: SearchProps) => {
@@ -104,7 +104,7 @@ export const Search = (props: SearchProps) => {
           aria-label={local.clearLabel ?? "Clear search"}
           onClick={clear}
           class={cn(
-            "zen-absolute zen-top-1/2 -zen-translate-y-1/2 zen-right-2.5",
+            "zen-absolute zen-top-1/2 -zen-translate-y-1/2 zen-end-2.5",
             "zen-inline-flex zen-items-center zen-justify-center zen-h-5 zen-w-5 zen-rounded-zen-full",
             "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

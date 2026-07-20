@@ -294,7 +294,7 @@ export function NotificationsInbox(
       const badge = document.createElement("span");
       badge.setAttribute("aria-hidden", "true");
       badge.className = cn(
-        "zen-absolute -zen-top-0.5 -zen-right-0.5 zen-inline-flex zen-items-center zen-justify-center",
+        "zen-absolute -zen-top-0.5 -zen-end-0.5 zen-inline-flex zen-items-center zen-justify-center",
         "zen-min-w-[1.25rem] zen-h-5 zen-px-1 zen-rounded-zen-full",
         "zen-text-[0.65rem] zen-font-semibold zen-leading-none",
         "zen-bg-zen-error zen-text-zen-error-fg",

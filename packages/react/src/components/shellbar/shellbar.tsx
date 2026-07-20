@@ -274,7 +274,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
         <Icon
           name="search"
           size={14}
-          className="zen-pointer-events-none zen-absolute zen-left-2 zen-text-zen-muted-fg"
+          className="zen-pointer-events-none zen-absolute zen-start-2 zen-text-zen-muted-fg"
         />
         <Input
           id={searchId}
@@ -422,7 +422,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                   {notificationCount ? (
                     <span
                       aria-hidden="true"
-                      className="zen-pointer-events-none zen-absolute -zen-right-1 -zen-top-1 zen-flex zen-h-4 zen-min-w-4 zen-items-center zen-justify-center zen-rounded-zen-full zen-bg-zen-error zen-px-1 zen-text-xs zen-font-semibold zen-leading-none zen-text-zen-error-fg"
+                      className="zen-pointer-events-none zen-absolute -zen-end-1 -zen-top-1 zen-flex zen-h-4 zen-min-w-4 zen-items-center zen-justify-center zen-rounded-zen-full zen-bg-zen-error zen-px-1 zen-text-xs zen-font-semibold zen-leading-none zen-text-zen-error-fg"
                     >
                       {notificationCount > 99 ? "99+" : notificationCount}
                     </span>
@@ -500,7 +500,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                 <Icon
                   name="search"
                   size={14}
-                  className="zen-pointer-events-none zen-absolute zen-left-2 zen-text-zen-muted-fg"
+                  className="zen-pointer-events-none zen-absolute zen-start-2 zen-text-zen-muted-fg"
                 />
                 <Input
                   id={`${searchId}-collapsed`}

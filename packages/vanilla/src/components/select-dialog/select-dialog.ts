@@ -159,7 +159,7 @@ export function SelectDialog(props: SelectDialogProps): SelectDialogHandle {
     name: "search",
     size: 14,
     class:
-      "zen-pointer-events-none zen-absolute zen-left-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg",
+      "zen-pointer-events-none zen-absolute zen-start-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg",
   });
   const searchInput = Input({
     class: "zen-pl-9",

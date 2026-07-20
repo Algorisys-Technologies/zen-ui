@@ -306,7 +306,7 @@ export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
     Icon({
       name: "search",
       size: 14,
-      class: "zen-pointer-events-none zen-absolute zen-left-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg",
+      class: "zen-pointer-events-none zen-absolute zen-start-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg",
     }).el,
   );
   const searchInput = Input({

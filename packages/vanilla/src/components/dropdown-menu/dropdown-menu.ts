@@ -174,7 +174,7 @@ const LABEL_CLASS = "zen-px-2 zen-py-1.5 zen-text-xs zen-font-semibold zen-text-
 const SEPARATOR_CLASS = "-zen-mx-1 zen-my-1 zen-h-px zen-bg-zen-border";
 const SHORTCUT_CLASS = "zen-ml-auto zen-text-xs zen-tracking-widest zen-text-zen-muted-fg";
 const INDICATOR_CLASS =
-  "zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center";
+  "zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center";
 
 /* ------------------------------------------------------------------- icons (ours) */
 const CHECK_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;

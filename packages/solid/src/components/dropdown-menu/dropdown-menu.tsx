@@ -246,7 +246,7 @@ export const DropdownMenuCheckboxItem = (props: DropdownMenuCheckboxItemProps) =
         local.class,
       )}
     >
-      <span class="zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
+      <span class="zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
         <KDropdown.ItemIndicator>
           <CheckIcon />
         </KDropdown.ItemIndicator>
@@ -282,7 +282,7 @@ export const DropdownMenuRadioItem = (props: DropdownMenuRadioItemProps) => {
         local.class,
       )}
     >
-      <span class="zen-absolute zen-left-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
+      <span class="zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
         <KDropdown.ItemIndicator>
           <DotIcon />
         </KDropdown.ItemIndicator>

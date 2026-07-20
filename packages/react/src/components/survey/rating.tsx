@@ -217,7 +217,7 @@ const StarVisual: React.FC<{ size: number; fill: number }> = ({ size, fill }) =>
     <StarIcon size={size} filled={false} />
     {fill > 0 ? (
       <span
-        className="zen-absolute zen-inset-y-0 zen-left-0 zen-overflow-hidden zen-text-zen-warning"
+        className="zen-absolute zen-inset-y-0 zen-start-0 zen-overflow-hidden zen-text-zen-warning"
         style={{ width: `${fill * 100}%` }}
       >
         <StarIcon size={size} filled />

@@ -122,7 +122,7 @@ function starVisual(size: number): { wrap: HTMLSpanElement; litSpan: HTMLSpanEle
 
   const litSpan = document.createElement("span");
   litSpan.className =
-    "zen-absolute zen-inset-y-0 zen-left-0 zen-overflow-hidden zen-text-zen-warning";
+    "zen-absolute zen-inset-y-0 zen-start-0 zen-overflow-hidden zen-text-zen-warning";
   litSpan.style.width = "0%";
   litSpan.append(starSvg(size, true));
   wrap.append(litSpan);

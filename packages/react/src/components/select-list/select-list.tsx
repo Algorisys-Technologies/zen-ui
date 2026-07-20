@@ -42,14 +42,14 @@ export const SelectSearchField = ({
     <Icon
       name="search"
       size={14}
-      className="zen-pointer-events-none zen-absolute zen-left-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg"
+      className="zen-pointer-events-none zen-absolute zen-start-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg"
     />
     <Input
       value={value}
       onChange={(e) => onValueChange(e.target.value)}
       placeholder={placeholder}
       aria-label={placeholder}
-      className="zen-pl-9"
+      className="zen-ps-9"
     />
   </div>
 );

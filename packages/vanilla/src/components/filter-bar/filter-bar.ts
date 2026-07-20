@@ -278,7 +278,7 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
       name: "search",
       size: 14,
       class:
-        "zen-pointer-events-none zen-absolute zen-left-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg",
+        "zen-pointer-events-none zen-absolute zen-start-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg",
     });
     searchInput = Input({
       placeholder: "Search",

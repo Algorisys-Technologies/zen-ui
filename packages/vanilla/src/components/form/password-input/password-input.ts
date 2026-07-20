@@ -38,7 +38,7 @@ const EYE = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
 const EYE_OFF = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
 
 const FIELD_BASE =
-  "zen-flex zen-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-pl-3 zen-pr-10 zen-py-2 zen-text-sm placeholder:zen-text-zen-muted-fg focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2 disabled:zen-cursor-not-allowed disabled:zen-opacity-50";
+  "zen-flex zen-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-ps-3 zen-pe-10 zen-py-2 zen-text-sm placeholder:zen-text-zen-muted-fg focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2 disabled:zen-cursor-not-allowed disabled:zen-opacity-50";
 
 export function PasswordInput(props: PasswordInputProps): PasswordInputHandle {
   let current: PasswordInputProps = { ...props };
@@ -53,7 +53,7 @@ export function PasswordInput(props: PasswordInputProps): PasswordInputHandle {
 
   toggle.type = "button";
   toggle.className = cn(
-    "zen-absolute zen-top-1/2 -zen-translate-y-1/2 zen-right-2",
+    "zen-absolute zen-top-1/2 -zen-translate-y-1/2 zen-end-2",
     "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
     "zen-text-zen-muted-fg hover:zen-text-zen-foreground",
     "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
