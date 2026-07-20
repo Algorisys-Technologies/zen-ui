@@ -592,6 +592,28 @@ built — Tier 1 spent a day marked done while a row was missing.
       Bar's three slots and why the middle does not drift, and `flush`.
       The lesson is the one this session kept re-learning: a tracked claim about
       what is missing is worth re-measuring before acting on it.
+- [ ] **Preview image per component in the demo catalogue** (requested
+      2026-07-20). The landing/Welcome page of each demo lists every component
+      from `nav.ts` as a text card; it should show a thumbnail too, so the
+      catalogue can be scanned by eye rather than read. Must land in all four
+      demos per the parity rule — the catalogue renders from the same `nav.ts`
+      in each, so this is one field plus one card change per binding, not four
+      designs.
+
+      **The images should be generated, not drawn.**
+      `node scripts/visual-check.mjs <binding>` already screenshots all 85
+      routes from `nav.ts` into `.visual/<binding>/<route>.png` — that is the
+      catalogue, already rendered. A hand-curated set would be stale within a
+      release; a generated one is stale only if the generator stops running.
+      Worth deciding up front: full-page shots are the wrong crop for a card
+      (they are tall and mostly whitespace), so this probably wants
+      `visual-check` to take an optional element selector or a fixed viewport
+      crop per route, and a step that writes the thumbnails somewhere the demo
+      build can import. Check the weight: 85 images x 4 demos is real bytes on
+      a page that currently ships none, so they want to be small, lazy-loaded,
+      and almost certainly NOT in the published package — this is demo-side
+      only.
+
 - [ ] **SKILLS.md (or similar) so coding agents can drive this library.**
       Requested 2026-07-15. Claude / Cursor / Antigravity currently have to
       infer the API from source. Wants: the `zen-` prefix rule and why variants
