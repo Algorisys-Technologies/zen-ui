@@ -138,6 +138,31 @@ const BIG: CostCentre[] = Array.from({ length: 40 }, (_, a) => ({
   })),
 }));
 
+/** Roots only — the children arrive from `loadChildren` on first expand. */
+const LAZY_ROOTS: CostCentre[] = [
+  { id: "lz-eng", name: "Engineering", owner: "A. Okonkwo", headcount: 128, budget: 19_400_000 },
+  { id: "lz-gtm", name: "Go to market", owner: "C. Mwangi", headcount: 87, budget: 14_800_000 },
+  { id: "lz-ops", name: "Operations", owner: "B. Sørensen", headcount: 34, budget: 5_200_000 },
+];
+
+/** Stands in for a network call. */
+const fetchChildren = (row: CostCentre): Promise<CostCentre[]> =>
+  new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve(
+          Array.from({ length: 4 }, (_, i) => ({
+            id: `${row.id}-c${i}`,
+            name: `${row.name} team ${i + 1}`,
+            owner: "Loaded on demand",
+            headcount: 8 + i * 3,
+            budget: 400_000 + i * 90_000,
+          })),
+        ),
+      700,
+    ),
+  );
+
 const NewTreeTableDemo = () => {
   const [selection, setSelection] = createSignal<RowSelectionState>({});
   const selectedCount = () => Object.values(selection()).filter(Boolean).length;
@@ -255,7 +280,29 @@ const [expanded, setExpanded] = createSignal<ExpandedState>({});
       </DemoSection>
 
       <DemoSection
-        title="6. Virtualization — for a tree you expand all of"
+        title="6. Children fetched on first expand"
+        codeTitle="`loadChildren` + `hasChildren`"
+        codeDescription="For trees too big or too remote to send whole. `hasChildren` is what makes a row openable before it has any children — without it a not-yet-loaded node is indistinguishable from a leaf, gets no chevron, and can never be opened to trigger the load. The chevron becomes a spinner while the fetch is in flight and the row carries aria-busy. Results are cached against the row id, so re-collapsing and re-expanding does not re-fetch; it needs `getRowId` (or an `id` on the row) because an index-path key moves the moment anything above it is sorted or filtered."
+        code={`<TreeTable
+  data={roots}
+  columns={columns}
+  getRowId={(row) => row.id}
+  hasChildren={(row) => row.childCount > 0}
+  loadChildren={(row) => fetch(\`/api/nodes/\${row.id}/children\`).then((r) => r.json())}
+  onLoadChildrenError={(err) => toast.error(String(err))}
+/>`}
+      >
+        <TreeTable
+          data={LAZY_ROOTS}
+          columns={COLUMNS}
+          getRowId={(r) => r.id}
+          hasChildren={() => true}
+          loadChildren={fetchChildren}
+        />
+      </DemoSection>
+
+      <DemoSection
+        title="7. Virtualization — for a tree you expand all of"
         codeTitle="`enableVirtualization` needs `maxBodyHeight`"
         codeDescription="Only visible rows are ever in the DOM, so a large tree sitting collapsed costs nothing and needs none of this. The case that hurts is expanding all of a big one: measured, ~22,600 open rows put 162,000 nodes on the page and took about a second to mount. Turn this on and only the rows near the viewport render. It needs maxBodyHeight — without a bounded scroller there is no window, and it warns rather than silently doing nothing. Row heights are estimated then measured, so rowEstimatedHeight only affects the scrollbar before you reach a row."
         code={`<TreeTable
@@ -277,7 +324,7 @@ const [expanded, setExpanded] = createSignal<ExpandedState>({});
       </DemoSection>
 
       <DemoSection
-        title="7. Keyboard and screen readers"
+        title="8. Keyboard and screen readers"
         codeTitle="It is a treegrid, not a table with chevrons"
         codeDescription="The table carries role=treegrid and every row carries aria-level, aria-expanded and its position among its SIBLINGS — not its position on the page, which is what a flat row model would report and would tell a screen-reader user nothing about the shape. Focus roves across rows with one tab stop: Up/Down move, forward-arrow opens a closed node then descends, back-arrow closes an open one then climbs to the parent, Home/End jump to the ends. The arrows are direction-aware, so in RTL the roles of Left and Right swap."
         code={`// nothing to configure — tab into the table and use the arrows.
