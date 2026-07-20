@@ -11,6 +11,43 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.4] - 2026-07-20
+
+### Fixed (Solid only)
+
+- Callback props were bound once at setup, so replacing one after render had no
+  effect. A native event binding is not reactive in Solid.
+  `NotificationsInbox` onMarkAllRead / onViewAll, `DataTable` chip-remove and
+  pin-toggle, and the demo shell's reset.
+- `DataTable` called TanStack's `getToggleSortingHandler()` /
+  `getResizeHandler()` during render and bound the result. TanStack rebuilds
+  those when column or table state changes, so a bound one could go stale. The
+  lookup is deferred to event time.
+- `FormField` did `const F = props.Field` and rendered `<F>`, capturing the
+  component prop once. Now `<Dynamic component={props.Field}>`.
+- `DataTable`'s placeholder-header guard was an early `return` reading a signal;
+  now a `<Show>`. `innerContent` became a function in the same change — as a
+  const it was built eagerly at setup, so the guard had been hiding that cost
+  rather than avoiding it.
+
+### Lint
+
+- Solid **41 warnings → 0**; React already 0. **Both bindings are now clean, so
+  any finding is the reader's own.**
+- 11 of the 41 were real (above). The rest are disabled INDIVIDUALLY with the
+  reason at the site — seeding a signal from props, drag ids fixed for a row's
+  life, and imperative or event contexts the rule misreads.
+- Settled by compiling rather than guessing: an IIFE returning JSX **is**
+  reactive. Solid hoists its body into the arrow it passes to `insert()`, the
+  same shape it emits for `{props.x}`; a static control produced no `insert()`
+  call at all, which is what shows the test discriminates.
+
+### Known, and deliberate
+
+- `Calendar` / `DatePicker` seed the visible month from `selected` once, so
+  setting `selected` to a date in another month does not move the view. Recorded
+  as a UX decision in the source and in `todo.md`, not silenced.
+
 ## [9.0.3] - 2026-07-20
 
 ### Fixed

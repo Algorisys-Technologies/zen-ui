@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.0.4",
+    date: "2026-07-20",
+    kind: "fixed",
+    title: "Solid: callbacks you change after render now take effect",
+    detail:
+      "Several Solid components bound a callback prop once, at first render, and kept that function for ever — NotificationsInbox's onMarkAllRead and onViewAll, DataTable's filter-chip remove and column-pin toggle, and FormField's Field component. DataTable also asked TanStack for its sort and resize handlers once and bound the result, which could go stale against a rebuilt table; they are looked up at click and drag time now. React, vanilla and web-components were never affected.",
+  },
+  {
     version: "9.0.3",
     date: "2026-07-20",
     kind: "improved",
