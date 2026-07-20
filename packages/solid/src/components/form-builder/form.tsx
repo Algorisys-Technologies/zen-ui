@@ -1,4 +1,5 @@
 import { type JSX, Show, createUniqueId, splitProps, createContext, useContext } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import { cn } from "../../lib/cn";
 
 /**
@@ -106,9 +107,12 @@ export function FormField(props: FormFieldProps) {
   const itemId = createUniqueId();
   const descriptionId = `${itemId}-description`;
   const messageId = `${itemId}-message`;
-  const F = props.Field;
+  // <Dynamic component={props.Field}>, not `const F = props.Field`. Capturing it
+  // in a const reads the prop ONCE at setup, so a caller who swapped the Field
+  // component afterwards would keep rendering the old one. Dynamic reads it
+  // reactively, which is what the prop being a prop implies.
   return (
-    <F name={props.name}>
+    <Dynamic component={props.Field} name={props.name}>
       {(field: FieldStoreShape, fieldProps: FieldElementPropsShape) => {
         const ctx: FormFieldContextValue = {
           name: props.name,
@@ -123,7 +127,7 @@ export function FormField(props: FormFieldProps) {
           </FormFieldContext.Provider>
         );
       }}
-    </F>
+    </Dynamic>
   );
 }
 

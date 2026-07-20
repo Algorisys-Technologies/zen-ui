@@ -41,6 +41,11 @@ export interface UsePaginationRangeOptions {
 export function usePaginationRange(
   options: UsePaginationRangeOptions,
 ): Accessor<Array<number | typeof DOTS>> {
+  // The rule asks for the memo's result to be captured in a variable "for proper
+  // analysis". It is returned directly, which is the point of the hook; this is
+  // a limit of the analysis, not of the reactivity — everything inside IS a
+  // tracked scope.
+  // eslint-disable-next-line solid/reactivity
   return createMemo(() => {
     const page = access(options.page);
     const pageCount = access(options.pageCount);

@@ -105,6 +105,10 @@ const [picked, setPicked] = createSignal("");
 />`}
       >
         <Combobox
+          // onSearch is a CALLBACK PROP that Combobox awaits — the async is the
+          // whole point (this demo simulates a network round trip). It is not a
+          // tracked scope, which is what the rule assumes it is looking at.
+          // eslint-disable-next-line solid/reactivity
           onSearch={async (q) => {
             await new Promise((r) => setTimeout(r, 200));
             return FRAMEWORKS.filter((f) =>

@@ -285,6 +285,10 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "onGlobalFilterChange",
   ]);
 
+  // persistKey is a storage KEY, read once to load saved state. Re-reading it
+  // reactively would mean the table reloading someone else's persisted layout
+  // mid-session.
+  // eslint-disable-next-line solid/reactivity
   const persisted = loadPersisted(props.persistKey);
 
   /* internal state */
@@ -297,6 +301,9 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
   const [globalFilterInner, setGlobalFilterInner] = createSignal("");
   const [paginationInner, setPaginationInner] = createSignal<PaginationState>({
     pageIndex: 0,
+    // Seeds the INITIAL page size; the user owns it after that via the
+    // page-size selector.
+    // eslint-disable-next-line solid/reactivity
     pageSize: props.pageSize ?? 10,
   });
   const [columnOrder, setColumnOrder] = createSignal<ColumnOrderState>(
@@ -1559,6 +1566,9 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
 
 /* ------------------------------- Drag handle + sortable row -------------- */
 function DragHandle(props: { id: string }) {
+  // A drag id fixed for the row's life. CLAUDE.md names this exact case as one
+  // the rule gets wrong.
+  // eslint-disable-next-line solid/reactivity
   const sortable = createSortable(props.id);
   return (
     <button
@@ -1591,6 +1601,8 @@ function SortableRow(props: {
   class?: string;
   children: JSX.Element;
 }) {
+  // A drag id fixed for this row/header's life — see DragHandle above.
+  // eslint-disable-next-line solid/reactivity
   const sortable = createSortable(props.id);
   return (
     <TableRow
@@ -1750,6 +1762,8 @@ function SortableHeaderTh(props: {
   style: JSX.CSSProperties;
   children: JSX.Element;
 }) {
+  // A drag id fixed for this row/header's life — see DragHandle above.
+  // eslint-disable-next-line solid/reactivity
   const sortable = createSortable(props.id);
   const style = (): JSX.CSSProperties => ({
     ...props.style,
@@ -2152,6 +2166,8 @@ function VirtSortableHeaderCell<TData, TValue>(props: {
   enableColumnResizing?: boolean;
   branded?: boolean;
 }) {
+  // A drag id fixed for this row/header's life — see DragHandle above.
+  // eslint-disable-next-line solid/reactivity
   const sortable = createSortable(props.header.column.id);
   const canSort = () => props.header.column.getCanSort();
   const sorted = () => props.header.column.getIsSorted();

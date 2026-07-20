@@ -226,6 +226,11 @@ export const Command = (props: CommandProps) => {
   const selectFirstItem = () => selectByIndex(0);
 
   onMount(() => {
+    // A deliberate one-shot on mount: highlight the first item once the list has
+    // rendered. Not a tracked scope, and should not become one — re-running it
+    // would yank the highlight back to the top while the user is arrowing
+    // through. The rule cannot tell those apart.
+    // eslint-disable-next-line solid/reactivity
     queueMicrotask(() => {
       if (!value()) selectFirstItem();
     });

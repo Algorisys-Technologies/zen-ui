@@ -93,6 +93,9 @@ export const Stepper = (props: StepperProps) => {
   const linearAccessor = createMemo(() => props.linear ?? true);
 
   const [inner, setInner] = createSignal<string>(
+    // A DEFAULT value, read once. The controlled path is `value` below, which
+    // reads props reactively.
+    // eslint-disable-next-line solid/reactivity
     props.defaultValue ?? props.steps[0]?.value ?? "",
   );
   const value = createMemo(() => props.value ?? inner());

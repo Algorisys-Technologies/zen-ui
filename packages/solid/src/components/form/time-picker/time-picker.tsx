@@ -175,6 +175,10 @@ export const TimePicker = (rawProps: TimePickerProps) => {
             setHour(Math.min(23, num));
           }
         }}
+        // Inside an EVENT HANDLER, which is exactly where the rule says
+        // reactivity is fine — it just cannot see through the callback handed to
+        // handleArrow.
+        // eslint-disable-next-line solid/reactivity
         onKeyDown={(e) =>
           handleArrow(e, parts().h, (v) => {
             if (local.format === "12h" && v !== null) {
