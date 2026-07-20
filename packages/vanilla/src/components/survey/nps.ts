@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { applyProps, Disposer, type ZenComponent } from "../../lib/component";
 import { controllable } from "../../lib/state";
 
@@ -143,12 +144,10 @@ export function NPS(props: NPSProps = {}): ZenComponent<NPSProps> {
     if (current.disabled || current.readOnly) return;
     const value = state.get();
     if (value === undefined) return;
-    if (e.key === "ArrowRight") {
+    const step = arrowStep(e.key, e.currentTarget as Element);
+    if (step) {
       e.preventDefault();
-      state.set(Math.min(10, value + 1));
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      state.set(Math.max(0, value - 1));
+      state.set(Math.max(0, Math.min(10, value + step)));
     } else if (e.key === "Home") {
       e.preventDefault();
       state.set(0);

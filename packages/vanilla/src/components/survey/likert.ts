@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import {
   applyProps,
   Disposer,
@@ -118,12 +119,20 @@ export function Likert(props: LikertProps): ZenComponent<LikertProps> {
     const currentIndex = options.findIndex((o) => o.value === state.get());
     if (currentIndex < 0) return;
     const layout = layoutOf();
-    const forward = layout === "stacked" ? "ArrowDown" : "ArrowRight";
-    const back = layout === "stacked" ? "ArrowUp" : "ArrowLeft";
-    if (e.key === forward) {
+    // Stacked lays out vertically: up/down, and vertical never flips. Inline
+    // lays out in a flex row, which reverses in RTL.
+    const step =
+      layout === "stacked"
+        ? e.key === "ArrowDown"
+          ? 1
+          : e.key === "ArrowUp"
+            ? -1
+            : 0
+        : arrowStep(e.key, e.currentTarget as Element);
+    if (step === 1) {
       e.preventDefault();
       state.set(options[Math.min(options.length - 1, currentIndex + 1)].value);
-    } else if (e.key === back) {
+    } else if (step === -1) {
       e.preventDefault();
       state.set(options[Math.max(0, currentIndex - 1)].value);
     } else if (e.key === "Home") {

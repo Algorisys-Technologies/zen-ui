@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 
 /**
@@ -83,12 +84,10 @@ export const NPS = React.forwardRef<HTMLDivElement, NPSProps>(
     const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (!interactive) return;
       if (value === undefined) return;
-      if (e.key === "ArrowRight") {
+      const step = arrowStep(e.key, e.currentTarget);
+      if (step) {
         e.preventDefault();
-        update(Math.min(10, value + 1));
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        update(Math.max(0, value - 1));
+        update(Math.max(0, Math.min(10, value + step)));
       } else if (e.key === "Home") {
         e.preventDefault();
         update(0);

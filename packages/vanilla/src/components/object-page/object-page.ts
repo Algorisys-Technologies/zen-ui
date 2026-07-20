@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import {
   applyProps,
   Disposer,
@@ -315,10 +316,11 @@ export function ObjectPageLayout(
   const onAnchorKeyDown = (e: KeyboardEvent, index: number) => {
     const list = current.sections;
     const last = list.length - 1;
-    if (e.key === "ArrowRight") {
+    const step = arrowStep(e.key, e.currentTarget as Element);
+    if (step === 1) {
       e.preventDefault();
       focusAnchor(list[index === last ? 0 : index + 1].id);
-    } else if (e.key === "ArrowLeft") {
+    } else if (step === -1) {
       e.preventDefault();
       focusAnchor(list[index === 0 ? last : index - 1].id);
     } else if (e.key === "Home") {

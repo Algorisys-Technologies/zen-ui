@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import {
   applyProps,
   Disposer,
@@ -343,10 +344,12 @@ export function Rating(props: RatingProps = {}): ZenComponent<RatingProps> {
     const max = current.max ?? 5;
     const step = current.allowHalf ? 0.5 : 1;
     const value = state.get();
-    if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+    // Horizontal arrows follow reading direction; vertical ones never do.
+    const dirStep = arrowStep(e.key, e.currentTarget as Element);
+    if (dirStep === 1 || e.key === "ArrowUp") {
       e.preventDefault();
       commit(Math.min(max, value + step));
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+    } else if (dirStep === -1 || e.key === "ArrowDown") {
       e.preventDefault();
       commit(Math.max(0, value - step));
     } else if (e.key === "Home") {

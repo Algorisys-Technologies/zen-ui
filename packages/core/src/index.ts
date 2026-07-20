@@ -1,6 +1,7 @@
 export * from "./cn";
 export * from "./icons";
 export * from "./theme";
+export * from "./direction";
 export * from "./uno-preset";
 export * from "./variants";
 export * from "./release-notes";

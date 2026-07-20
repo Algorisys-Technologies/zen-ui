@@ -1,4 +1,5 @@
 import { type JSX, createMemo, createSignal, For, Show } from "solid-js";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 
 /**
@@ -72,10 +73,12 @@ export const Rating = (props: RatingProps) => {
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (!interactive()) return;
-    if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+    // Horizontal arrows follow reading direction; vertical ones never do.
+    const dirStep = arrowStep(e.key, e.currentTarget as Element);
+    if (dirStep === 1 || e.key === "ArrowUp") {
       e.preventDefault();
       update(Math.min(max(), value() + step()));
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+    } else if (dirStep === -1 || e.key === "ArrowDown") {
       e.preventDefault();
       update(Math.max(0, value() - step()));
     } else if (e.key === "Home") {

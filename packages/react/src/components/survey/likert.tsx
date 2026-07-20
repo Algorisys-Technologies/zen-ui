@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 
 /**
@@ -125,16 +126,21 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
     const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (!interactive) return;
       if (currentIndex < 0) return;
-      const forward = layout === "stacked" ? "ArrowDown" : "ArrowRight";
-      const back = layout === "stacked" ? "ArrowUp" : "ArrowLeft";
-      if (e.key === forward) {
+      // Stacked lays out vertically: up/down, and vertical never flips. Inline
+      // lays out in a flex row, which reverses in RTL — so the horizontal keys
+      // go through arrowStep rather than being compared to "ArrowRight".
+      const step =
+        layout === "stacked"
+          ? e.key === "ArrowDown"
+            ? 1
+            : e.key === "ArrowUp"
+              ? -1
+              : 0
+          : arrowStep(e.key, e.currentTarget);
+      if (step) {
         e.preventDefault();
-        const next = options[Math.min(options.length - 1, currentIndex + 1)];
-        update(next.value);
-      } else if (e.key === back) {
-        e.preventDefault();
-        const next = options[Math.max(0, currentIndex - 1)];
-        update(next.value);
+        const bounded = Math.max(0, Math.min(options.length - 1, currentIndex + step));
+        update(options[bounded].value);
       } else if (e.key === "Home") {
         e.preventDefault();
         update(options[0].value);

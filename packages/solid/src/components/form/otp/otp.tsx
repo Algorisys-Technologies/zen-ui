@@ -10,6 +10,7 @@ import {
   useContext,
 } from "solid-js";
 import { cn } from "../../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import "./otp.css";
 
 /**
@@ -301,12 +302,15 @@ export const InputOTPSlot = (rawProps: InputOTPSlotProps) => {
       }
       return;
     }
-    if (e.key === "ArrowLeft" && i > 0) {
+    // The boxes sit in a flex row, which reverses in RTL, so the PREVIOUS box
+    // is to the right there. Follow the reading direction, not the key name.
+    const step = arrowStep(e.key, e.currentTarget as Element);
+    if (step === -1 && i > 0) {
       e.preventDefault();
       ctx.focusInput(i - 1);
       return;
     }
-    if (e.key === "ArrowRight" && i < ctx.maxLength() - 1) {
+    if (step === 1 && i < ctx.maxLength() - 1) {
       e.preventDefault();
       ctx.focusInput(i + 1);
     }

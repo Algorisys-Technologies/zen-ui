@@ -909,8 +909,9 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
         (`text-align:start` resolves to `left`), so it is a zero-risk change that
         only affects the currently-broken direction. Same for the 21 other
         `zen-text-left` sites, reviewed individually. All three bindings.
-  - [ ] **Defect 2 (library, invisible to screenshots) — direction never reaches
-        Radix or Kobalte.** No binding renders a `DirectionProvider`, and grep
+  - [x] **Defect 2 — FIXED 2026-07-20, and it was bigger than this entry said.**
+        ~~(library, invisible to screenshots) direction never reaches
+        Radix or Kobalte.~~ No binding renders a `DirectionProvider`, and grep
         finds no `dir` passed to any primitive (the only `dir=` hits are
         Carousel's own prev/next prop). The primitives therefore default to `ltr`
         internally no matter what `document.dir` says, so submenu open direction,
@@ -920,6 +921,35 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
         `@radix-ui/react-direction` is already available. Needs a decision on
         surface: read `document.dir` automatically, or expose a `dir` prop on a
         provider the consumer renders. Kobalte has its own equivalent to check.
+
+        **What shipped, and what the entry above missed.** Feeding the primitives
+        was only half of it: zen-ui's OWN components decide what ArrowLeft means
+        too, and none of them consulted direction — **59 sites across 3 bindings**
+        (React 19/9 components, Solid 16/8, vanilla 24/11). `check:parity`
+        is what caught it, by refusing a `DirectionProvider` that existed in two
+        bindings only.
+
+        Two mechanisms, because there are two problems:
+        - `DirectionProvider` (per binding) for the primitives, which keep
+          direction in a JS context CSS cannot reach. Solid's additionally takes
+          a `locale` — a real divergence: Kobalte DERIVES direction from a locale
+          rather than accepting one, so it cannot be set independently.
+        - `directionOf(el)` / `arrowStep(key, el)` in **core** for zen-ui's own
+          components. Reading `getComputedStyle(el).direction` gives the
+          EFFECTIVE direction at that point in the tree, so it needs no provider,
+          cannot go stale, and is right inside an rtl subtree of an ltr page.
+          Pinned by `bun run check:direction`.
+
+        **TimePicker is the deliberate exception** — clock notation is LTR in
+        every locale, so its segment row is pinned `dir="ltr"` rather than
+        flipped, which also keeps ArrowRight meaning "next segment" correct.
+
+        **A second bug the sweep alone would have missed**, found by driving the
+        carousel rather than reading it: in RTL a scroll container's `scrollLeft`
+        runs from 0 at the start DOWN through negative values, so
+        `scrollTo({left: +N})` scrolled the wrong way and clamped at 0 — the
+        carousel did not move at all even with the keys fixed. Signed in all
+        three bindings, and `onScroll` now takes `Math.abs`.
   - [x] **Defect 3 — FIXED 2026-07-20.** ~~(demo only, not shipped) code blocks render RTL.~~
         `demo-helpers.tsx:62` renders `<pre className="example-code">` with no
         `dir="ltr"`, so every code sample reverses in RTL and is unreadable. Code

@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn";
+import { arrowStep, directionOf } from "@algorisys/zen-ui-core";
 import { applyProps, Disposer, toNodes, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
 import { Icon } from "../icon/icon";
 
@@ -77,7 +78,11 @@ export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
     // Respecting the OS setting rather than always animating: smooth scrolling is
     // exactly the vestibular trigger the setting exists for.
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    scroller.scrollTo({ left: target * (scroller.clientWidth / perView), behavior: reduce ? "auto" : "smooth" });
+    // In RTL a scroll container's scrollLeft runs from 0 at the START (the right
+    // edge) DOWN through negative values as you advance, so a positive `left`
+    // scrolls the wrong way and clamps at 0.
+    const sign = directionOf(scroller) === "rtl" ? -1 : 1;
+    scroller.scrollTo({ left: sign * target * (scroller.clientWidth / perView), behavior: reduce ? "auto" : "smooth" });
   };
 
   // The disabled look comes from the `disabled:` CSS variants on the button's
@@ -115,7 +120,8 @@ export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
     if (!scroller) return;
     const width = scroller.clientWidth / perViewOf();
     if (width > 0) {
-      const next = Math.round(scroller.scrollLeft / width);
+      // abs() for the same reason: scrollLeft is negative in RTL.
+      const next = Math.round(Math.abs(scroller.scrollLeft) / width);
       if (next !== index) {
         index = next;
         paint();
@@ -124,12 +130,12 @@ export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "ArrowRight") {
+    // arrowStep, not `key === "ArrowRight"`: in RTL the NEXT slide is to the
+    // left, and the scroller flips with it.
+    const step = arrowStep(e.key, e.currentTarget as Element);
+    if (step) {
       e.preventDefault();
-      goTo(index + 1);
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      goTo(index - 1);
+      goTo(index + step);
     } else if (e.key === "Home") {
       e.preventDefault();
       goTo(0);

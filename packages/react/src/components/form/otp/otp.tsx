@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../../lib/cn";
 import "./otp.css";
 
@@ -358,13 +359,16 @@ export const InputOTPSlot = React.forwardRef<
         return;
       }
 
-      if (e.key === "ArrowLeft" && index > 0) {
+      // The boxes sit in a flex row, which reverses in RTL, so the PREVIOUS box
+      // is to the right there. Follow the reading direction, not the key name.
+      const step = arrowStep(e.key, e.currentTarget);
+      if (step === -1 && index > 0) {
         e.preventDefault();
         focusInput(index - 1);
         return;
       }
 
-      if (e.key === "ArrowRight" && index < maxLength - 1) {
+      if (step === 1 && index < maxLength - 1) {
         e.preventDefault();
         focusInput(index + 1);
       }

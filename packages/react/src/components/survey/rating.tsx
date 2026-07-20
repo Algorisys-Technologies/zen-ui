@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 
 /**
@@ -88,10 +89,12 @@ export const Rating = React.forwardRef<HTMLDivElement, RatingProps>(
 
     const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (!interactive) return;
-      if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+      // Horizontal arrows follow reading direction; vertical ones never do.
+      const dirStep = arrowStep(e.key, e.currentTarget);
+      if (dirStep === 1 || e.key === "ArrowUp") {
         e.preventDefault();
         update(Math.min(max, value + step));
-      } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+      } else if (dirStep === -1 || e.key === "ArrowDown") {
         e.preventDefault();
         update(Math.max(0, value - step));
       } else if (e.key === "Home") {

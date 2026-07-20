@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 
 /**
@@ -59,12 +60,10 @@ export const NPS = (props: NPSProps) => {
     if (!interactive()) return;
     const v = value();
     if (v === undefined) return;
-    if (e.key === "ArrowRight") {
+    const step = arrowStep(e.key, e.currentTarget as Element);
+    if (step) {
       e.preventDefault();
-      update(Math.min(10, v + 1));
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      update(Math.max(0, v - 1));
+      update(Math.max(0, Math.min(10, v + step)));
     } else if (e.key === "Home") {
       e.preventDefault();
       update(0);

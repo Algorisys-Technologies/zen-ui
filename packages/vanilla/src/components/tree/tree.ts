@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn";
+import { directionOf } from "@algorisys/zen-ui-core";
 import {
   applyProps,
   Disposer,
@@ -145,6 +146,9 @@ export function Tree(props: TreeProps): ZenComponent<TreeProps> {
   const onKeyDown = (e: KeyboardEvent, row: FlatNode) => {
     const i = rows.findIndex((r) => r.node.id === row.node.id);
     const set = expandedSet();
+    const rtl = directionOf(e.currentTarget as Element) === "rtl";
+    const ARROW_FORWARD = rtl ? "ArrowLeft" : "ArrowRight";
+    const ARROW_BACK = rtl ? "ArrowRight" : "ArrowLeft";
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -154,13 +158,15 @@ export function Tree(props: TreeProps): ZenComponent<TreeProps> {
         e.preventDefault();
         if (rows[i - 1]) focusRow(rows[i - 1].node.id);
         break;
-      case "ArrowRight":
+      // "Into" is ArrowLeft in RTL — the standard tree behaviour there — so
+      // these two cases are matched by logical step, not by key name.
+      case ARROW_FORWARD:
         e.preventDefault();
         // Closed -> open; already open -> step into the first child.
         if (row.hasChildren && !set.has(row.node.id)) toggle(row.node.id, true);
         else if (row.hasChildren && rows[i + 1]) focusRow(rows[i + 1].node.id);
         break;
-      case "ArrowLeft":
+      case ARROW_BACK:
         e.preventDefault();
         // Open -> close; already closed -> step out to the parent.
         if (row.hasChildren && set.has(row.node.id)) toggle(row.node.id, false);

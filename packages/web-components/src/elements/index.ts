@@ -80,6 +80,7 @@ import "./skip-to-content";
 import "./slider";
 import "./stack";
 import "./theme";
+import "./direction";
 import "./stat-card";
 import "./stepper";
 import "./switch";
