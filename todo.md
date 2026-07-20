@@ -843,30 +843,40 @@ built — Tier 1 spent a day marked done while a row was missing.
                   once and swapping the root between an `<ol>` and the empty
                   `<p>` on update() would leave the caller holding a detached
                   node.
-            - [ ] **UploadCollection — Solid done** (2026-07-21). React, vanilla
-                  and web-components still to port; `check:parity` is red until
-                  they land. The list of uploaded files, paired with FileUpload
-                  rather than folded into it: the drop zone is a control the
-                  user operates, the list is state the transport writes. It does
-                  NOT own the upload — no `url`, no `method`, no retry policy;
-                  it takes `status` and `progress` per item, and `onRetry` hands
-                  the item back. Actions are presence-gated (no `onRemove`, no
-                  delete button). It is a `<ul>`, unlike Timeline: attachments
-                  have no meaningful sequence. One bug worth not re-deriving:
-                  Escape closing the rename editor unmounts the input, which
-                  fires BLUR, which commits — so cancelling SAVED the text it
-                  was discarding until a `cancelled` flag was added. Every
-                  binding wiring both handlers will hit it.
-            - [ ] **Progress renders `indeterminate` as a FULL bar** (found
+            - [x] **UploadCollection — DONE** (2026-07-21, all four bindings).
+                  The list of uploaded files, paired with FileUpload rather than
+                  folded into it: the drop zone is a control the user operates,
+                  the list is state the transport writes. It does NOT own the
+                  upload — no `url`, no `method`, no retry policy; it takes
+                  `status` and `progress` per item, and `onRetry` hands the item
+                  back. Actions are presence-gated (no `onRemove`, no delete
+                  button; in web-components, no `zen-remove` LISTENER). It is a
+                  `<ul>`, unlike Timeline: attachments have no meaningful
+                  sequence.
+                  Two things worth not re-deriving. Closing the rename editor
+                  removes a FOCUSED input, so the browser fires BLUR and
+                  re-enters the handler mid-call: cancelling SAVED the text it
+                  was discarding, and Enter committed TWICE (in vanilla it also
+                  threw NotFoundError from the second replaceWith). The guard
+                  must be set BEFORE the DOM is touched — `input.isConnected`
+                  reads TRUE at blur time, because the node is still a child,
+                  and was measured doing exactly the wrong thing. And one API
+                  divergence was reconciled AT the React port rather than after
+                  it: Radix renders an indeterminate Progress as an EMPTY track
+                  and Kobalte as a FULL one, so a bar is drawn only where there
+                  is a real number and the no-number states say "Uploading…" /
+                  "Queued" in words.
+            - [ ] **Progress renders `indeterminate` inconsistently** (found
                   2026-07-21 building UploadCollection). Kobalte sets no
-                  `--kb-progress-fill-width` in that state, so the fill spans
-                  100% and a queued item reads as finished. The doc comment
-                  already says `data-progress="indeterminate"` is there to be
-                  targeted; nothing targets it. Not fixed with UploadCollection
-                  on scope grounds — it is a visual change to a shipped
-                  component, so it is a MAJOR bump and a four-binding change of
-                  its own. UploadCollection pulses the bar at the call site
-                  meanwhile.
+                  `--kb-progress-fill-width` in that state, so Solid's fill spans
+                  100% and a queued item reads as FINISHED; React's Radix
+                  version renders translateX(-100%), an EMPTY track. Neither is
+                  an indeterminate animation, and the two disagree. The Solid doc
+                  comment already says `data-progress="indeterminate"` is there
+                  to be targeted; nothing targets it. Left alone deliberately —
+                  it is a visual change to a shipped component, so a MAJOR bump
+                  and a four-binding change of its own. UploadCollection avoids
+                  it by drawing a bar only where there is a number.
             - [ ] PlanningCalendar
       - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
             DataTable, not dialogs around it.

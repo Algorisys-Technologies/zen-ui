@@ -31,6 +31,7 @@ import "./data-table";
 import "./tree-table";
 import "./micro-chart";
 import "./timeline";
+import "./upload-collection";
 import "./date-picker";
 import "./date-range-picker";
 import "./date-time-picker";

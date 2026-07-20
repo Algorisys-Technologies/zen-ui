@@ -99,6 +99,7 @@ description, then import the name from your binding's package.
 - **TreeTable** — Hierarchical rows; chevron indents inside the first column, filter keeps ancestors
 - **Micro charts** — Sparkline-sized trend marks for a table cell or card — line, bar, bullet, delta, radial
 - **Timeline** — Ordered list of events with a rail, markers, timestamps and date groups
+- **UploadCollection** — The list of uploaded files — progress, rename, delete, retry; the result FileUpload has no view for
 - **Pivot** — Drag-and-drop pivot builder; fields into zones, 2D-windowed grid
 - **Lazy options** — VirtualizedItems — drop-in windowing for huge option lists inside Combobox / Select
 - **Combobox + Async** — cmdk-backed; sync `options` or async `onSearch` with debounced loading
