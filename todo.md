@@ -805,9 +805,12 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
         stacking problems portals exist to solve. Both APIs support either
         (Radix `container`, Solid `mount`). Deferred because there is no demand
         yet and it is most of the cost.
-  - [ ] **`Theme` has no demo or nav entry in any binding** — the same rule
-        violation already tracked for `Page` and `Bar` above. `bun run check`
-        passes without one, so nothing catches this automatically.
+  - [x] **`Theme` demo + nav entry — done 2026-07-20, all four bindings.**
+        Four sections: scoping, nesting, `transparent`, and an honest one on the
+        portal limitation. The concrete cost of the gap, while it existed: because
+        `AGENTS.md` is generated from React's `nav.ts`, `Theme` was invisible to
+        every consumer's coding agent, and `check:agent-guide` passed precisely
+        because the generator and `nav.ts` agreed it did not exist.
 - [ ] **`Grid` / `Column` + breakpoint tokens** — zero breakpoint tokens in core;
       `Stack` is the only layout primitive. zen-ui now ships a full app frame
       (ShellBar, FlexibleColumnLayout, Page) with no layout system underneath it.

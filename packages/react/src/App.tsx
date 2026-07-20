@@ -145,6 +145,7 @@ import NewCustomizingDemo from "./components/NewCustomizingDemo";
 import NewMaskInputDemo from "./components/NewMaskInputDemo";
 import NewPopoverDemo from "./components/NewPopoverDemo";
 import NewLinkDemo from "./components/NewLinkDemo";
+import NewThemeDemo from "./components/NewThemeDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
@@ -346,6 +347,7 @@ const App: React.FC = () => {
             <Route path="/mask-input" element={<NewMaskInputDemo />} />
             <Route path="/popover" element={<NewPopoverDemo />} />
             <Route path="/link" element={<NewLinkDemo />} />
+            <Route path="/theme" element={<NewThemeDemo />} />
             <Route path="/color-picker" element={<NewColorPickerDemo />} />
             <Route path="/carousel" element={<NewCarouselDemo />} />
             <Route path="/dynamic-date-range" element={<NewDynamicDateRangeDemo />} />

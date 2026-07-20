@@ -29,6 +29,7 @@ description, then import the name from your binding's package.
 - **Tooltip** — Radix Tooltip — positioning, dismissal, a11y
 - **Popover** — Anchored panel; asChild trigger, side/align, separate anchor
 - **Link** — Styled anchor; asChild for router links, external, disabled
+- **Theme** — Scopes a theme to a subtree — a dark panel inside a light page; nests, no JS
 - **ColorPicker** — Swatch palette + the platform picker; hex in, hex out
 - **Carousel** — Scroll-snap slide strip; every child is a slide, no autoplay
 - **DropdownMenu** — Radix DropdownMenu — action menus, sub-menus, checkbox/radio items
