@@ -11,6 +11,63 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.5.0] - 2026-07-21
+
+### Added
+
+- **`Timeline`** — ordered list of events with a rail, markers, timestamps and
+  date groups. `items`, `density` (`default | compact`), `emptyMessage`. An item
+  is `{ id, title, description?, timestamp?, dateTime?, icon?, state?, group?,
+  children? }`. Renders an `<ol>`; the group heading is deliberately NOT an
+  `<li>` (it would inflate the announced count); the rail is suppressed on the
+  last item; markers are `aria-hidden`. Grouping is a `group` STRING on the item
+  rather than a `groupBy` callback — deriving it would require guessing the
+  caller's timezone. `compact` drops the description and body rather than
+  scaling type. The rail uses logical insets (`start-*`), so it moves side under
+  RTL. All four bindings; `<zen-timeline>` takes `items` as a json attribute and
+  a property, no slot.
+- **`UploadCollection`** — the list of uploaded files: progress, rename, delete,
+  retry. `items`, `onRemove`, `onRetry`, `onRename`, `emptyMessage`, `disabled`.
+  An item is `{ id, name, size?, type?, status?, progress?, error?, url?,
+  uploadedAt?, uploadedBy?, thumbnail? }`, `status` defaulting to `complete`.
+  Renders a `<ul>` (attachments have no sequence, unlike Timeline). Transport is
+  the caller's: no url/method/retry policy, and `onRetry` hands the item back.
+  Actions are presence-gated on the handler — in web-components on the LISTENER,
+  which `defineZenElement`'s opt-in event wiring gives for free. `class` /
+  `className` reaches the empty state as well as the list, so removing the last
+  file does not resize the box. `<zen-upload-collection>` events:
+  `zen-remove` / `zen-retry` (detail: the item), `zen-rename` (detail:
+  `[item, name]`, since a CustomEvent carries one payload).
+
+### Fixed
+
+- **Rename editors committed on cancel, and twice on commit.** Closing the
+  inline editor removes a FOCUSED input, so the browser fires `blur` during the
+  removal and re-enters the handler mid-call. Escape's discard was undone by the
+  blur that followed it, and Enter committed twice — in vanilla the second
+  `replaceWith` also threw `NotFoundError`. Fixed in all four bindings by
+  setting the guard BEFORE the DOM is touched. Note `input.isConnected` does NOT
+  work: at blur time the node is still a child, so it reads `true`. (Shipped
+  only inside 9.5.0's new `UploadCollection`; no released component had it.)
+
+### Changed
+
+- `Timeline` and `UploadCollection` added to every binding's `nav.ts`, demo
+  routes and the generated `AGENTS.md` catalogue.
+
+### Internal
+
+- `tree-table.tsx` (Solid): the last `solid/reactivity` warning disabled at the
+  site with its reason. The rule fires on the callback `getSubRows` RETURNS; the
+  tracked scope is the getter, which TanStack reads inside its own memo, so the
+  callback is a snapshot by design and tracking it would recompute the row model
+  per row instead of per load. Solid lint is genuinely 0 again — CLAUDE.md had
+  claimed 0 while it was 1, and now says how it was measured.
+- Probe correction, not a code change: an assertion for "no `<ul>` when empty"
+  counted vanilla's `FileUpload` list, which stays in the DOM at `display:none`
+  rather than being removed. Counting VISIBLE lists (and reporting both numbers)
+  made all four bindings agree.
+
 ## [9.4.0] - 2026-07-21
 
 ### Added

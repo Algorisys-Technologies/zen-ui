@@ -162,11 +162,16 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
 - **A syntax error in ONE file silently disables type-checking for the whole
   project** — tsc bails before the semantic pass, so every other file reports
   clean. If a run looks suspiciously green, check for parse errors first.
-- **Lint baselines**: **both bindings are clean — React 0 problems, Solid 0
-  problems** (measured 2026-07-20; was React 29 and Solid 8 errors / 46
-  warnings). **Any finding is therefore yours.** Measure before you claim a
-  delta; a stated baseline that is off by one turns "adds nothing" into "adds
-  one".
+- **Lint baselines**: **all four bindings are clean — 0 problems each**
+  (measured 2026-07-21 over 215 React, 215 Solid, 203 vanilla and 194
+  web-components files; was React 29 and Solid 8 errors / 46 warnings). **Any
+  finding is therefore yours.** Measure before you claim a delta; a stated
+  baseline that is off by one turns "adds nothing" into "adds one" — this line
+  itself claimed 0 for Solid through a session in which it was really 1
+  (`tree-table.tsx`, a `solid/reactivity` false positive on the callback
+  `getSubRows` RETURNS; the getter is the tracked scope, so the callback is a
+  snapshot by design). It is disabled at the site with that reason now, which is
+  what makes the 0 true rather than asserted.
   Getting Solid to zero was triage, not suppression, and the distinction is the
   point: 11 warnings were real and fixed (handlers bound once at setup; an early
   return reading a signal; a component prop captured in a const instead of
@@ -297,9 +302,10 @@ The demos must match too — same routes, same sections, same code examples.
 Current state (was: 10 families missing from Solid, and code examples in 1/48 of
 its demos):
 
-- **Exports**: React 471 names, Solid 484 (measured 2026-07-15; the old "219 /
-  204" counted only single-line `export {` lines and undercounted both). Both
-  bindings ship 76 components. The real deltas:
+- **Exports**: React 521, Solid 530, vanilla 495, web-components 499 (measured
+  2026-07-21 by `check:parity`, which prints all four — read them from there
+  rather than from this line). Every binding ships the same components. The real
+  deltas:
   - **Toast** — a genuine API divergence, not a missing port: React wraps Radix
     Toast primitives, Solid uses solid-toast. Decide whether to converge the API
     before "porting" it.
@@ -440,7 +446,7 @@ same version — it will not tell you the prose is stale.
 ```bash
 bun run check          # pure-logic contracts, incl. check:release
 bun run check:dist     # builds both libs, then check:package + check:size
-bun run lint           # React 29 problems; Solid 8 errors / 46 warnings
+bun run lint           # and lint:solid / lint:vanilla / lint:wc — 0 problems each
 node scripts/visual-check.mjs react && node scripts/visual-check.mjs solid
 
 git commit && git tag v<version>

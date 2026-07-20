@@ -308,6 +308,14 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
     },
     get getSubRows() {
       const loaded = loadedKids();
+      /* The reactivity is in the GETTER, which is what TanStack reads from
+         inside its own memo — `loadedKids()` is tracked there, so a load hands
+         it a fresh closure. The returned function is a plain callback over that
+         snapshot and is meant to be; making it track would re-run row-model
+         computation per row rather than per load.
+         (Disable sits immediately above the reported line, as it must: prose in
+         between makes the directive unused AND leaves the warning firing.) */
+      // eslint-disable-next-line solid/reactivity
       return (row: TData) => {
         const key = lazyKey(row);
         if (key !== undefined && loaded[key] !== undefined) return loaded[key];

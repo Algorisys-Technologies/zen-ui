@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.5.0",
+    date: "2026-07-21",
+    kind: "new",
+    title: "Timeline and UploadCollection",
+    detail:
+      "Timeline is an ordered list of events — an order's history, an audit trail, a ticket's comments. Pass items rather than compound parts, because the shape is always a rail, a marker, a time and a body, and parts would only let you build one that is subtly wrong. Grouping is a string you set, not a function that derives it: you already know whether two events fall on the same day, and deriving it here would mean guessing at your timezone. density=\"compact\" DROPS the description rather than shrinking type, because in a narrow column a two-line description wraps to five and the sequence stops being scannable. UploadCollection is the list of files after they are picked — FileUpload was the input, and nothing showed the result. It renders the upload but does not run it: no url, no method, no retry policy, so you keep your own transport and write status and progress back onto the items. Every button is presence-gated — no onRemove, no delete button — because a control that sometimes does nothing costs a click to find out. Rename edits in place, committing on Enter or blur and discarding on Escape. A progress bar is drawn only where there is a real number behind it; without one the row says Uploading… or Queued. Both in all four bindings.",
+  },
+  {
     version: "9.4.0",
     date: "2026-07-21",
     kind: "new",
