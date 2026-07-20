@@ -245,6 +245,25 @@ bug, not a roadmap item. The same applies to props, variants and behaviour: if
 you change a component's API in one binding, change it in the other in the same
 change.
 
+### Do ONE binding at a time
+
+Parity is about where you finish, not how you get there. **Build and verify a
+feature completely in one binding before starting the next** — React first,
+since it is the reference the others mirror.
+
+Finish means: it works, you have driven it in a browser, and the checks pass.
+Only then port it.
+
+The failure mode this exists to prevent is editing all four at once and
+verifying none of them. It is seductive because the edits look identical, and
+that is exactly the trap: they are four different renderers, so "the same
+change" is a claim, not a fact. A four-binding sweep that turns out to be wrong
+is also four times the diff to unpick, and the mistake is usually in the one you
+looked at least.
+
+It costs a little more wall-clock and it buys a working reference to port FROM,
+which is the thing that makes the port mechanical instead of speculative.
+
 The demos must match too — same routes, same sections, same code examples.
 
 Current state (was: 10 families missing from Solid, and code examples in 1/48 of
