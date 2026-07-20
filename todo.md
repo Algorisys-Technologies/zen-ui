@@ -811,6 +811,14 @@ built — Tier 1 spent a day marked done while a row was missing.
             indeterminate. That is TanStack's behaviour, so React is the
             reference and the other three match it — but it means a parent can
             be "selected" while not all of its subtree is.
+      - [x] **Fiori Tier 4 — triaged 2026-07-21**, no longer one undecidable
+            item. Smart controls, Launchpad tiles, SemanticPage, Analytical Card,
+            T-Account and Calculation Builder are DROPPED on substance: they are
+            metadata-driven against OData V2 annotations, and without the
+            annotations a SmartTable is just DataTable. Accepted for build, in
+            order: micro charts (sparklines) → Timeline → UploadCollection →
+            PlanningCalendar (a release of its own). Full reasoning and the
+            narrower drops are in docs/fiori-gap-analysis.md.
       - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
             DataTable, not dialogs around it.
 - [ ] **Tier 4 — build the whole tier** (decided 2026-07-15, overriding the
