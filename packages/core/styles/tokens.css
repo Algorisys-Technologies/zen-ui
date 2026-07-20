@@ -1,12 +1,24 @@
 /**
  * Design tokens for @algorisys/zen-ui-react.
  *
- * Themes are layered with `:root[data-theme="<name>"]` selectors. The base
+ * Themes are layered with `[data-theme="<name>"]` selectors. The base
  * `:root` block is the "default" theme. Consumers can either:
  *   - keep `data-theme` unset / set to "default" → uses the Algorisys brand palette
- *   - set `data-theme="zen-theme"` on <html> → switches to the Algorisys Zen palette
- *   - set `data-theme="dark"` on <html> → switches to a dark variant
+ *   - set `data-theme="zen-theme"` on any element → the Algorisys Zen palette
+ *   - set `data-theme="dark"` on any element → a dark variant
  *   - override individual --zen-* vars at any ancestor for ad-hoc themes
+ *
+ * The theme selectors are deliberately NOT anchored to `:root`. `:root` matches
+ * only <html>, so `:root[data-theme="dark"]` on a <div> matches nothing and the
+ * div's tokens silently stay on the document theme — theming was all-or-nothing.
+ * Unanchored, custom properties inherit normally, so a theme applies to any
+ * subtree and the nearest themed ancestor wins. That is what `<Theme>` in each
+ * binding renders, and what makes a dark panel inside a light page possible.
+ *
+ * Specificity note: `[data-theme="x"]` is (0,1,0), the same as the bare `:root`
+ * blocks further down (fonts, motion). Source order therefore decides, and the
+ * theme blocks come FIRST so the non-themed blocks below win — which is correct,
+ * because fonts and motion are not per-theme concerns. Do not reorder them.
  *
  * The demo app's ThemeSwitcher (src/components/theme-switcher.tsx) toggles
  * the `data-theme` attribute on <html> and persists the choice in
@@ -23,7 +35,7 @@
  * DEFAULT — Algorisys brand                                             *
  * ===================================================================== */
 :root,
-:root[data-theme="default"] {
+[data-theme="default"] {
   --zen-color-primary: #1C43B9;
   --zen-color-primary-fg: #ffffff;
   --zen-color-primary-soft: #EEF2FB;
@@ -122,7 +134,7 @@
  *                                                                       *
  * Convention: -soft = step 20, -soft-fg = step 700, on white surface.   *
  * ===================================================================== */
-:root[data-theme="zen-theme"] {
+[data-theme="zen-theme"] {
   /* ---- Primary (purple) scale --------------------------------------- */
   --zen-color-primary-20: #F0E6F9;
   --zen-color-primary-50: #E2CDF2;
@@ -292,7 +304,7 @@
  * Shipped for free since it falls out of the same token mechanism. Set *
  * data-theme="dark" on <html> to enable.                                *
  * ===================================================================== */
-:root[data-theme="dark"] {
+[data-theme="dark"] {
   --zen-color-primary: #6B8FE8;
   --zen-color-primary-fg: #0B1228;
   --zen-color-primary-soft: #1C2A4F;

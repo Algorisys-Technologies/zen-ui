@@ -79,6 +79,7 @@ import "./skeleton";
 import "./skip-to-content";
 import "./slider";
 import "./stack";
+import "./theme";
 import "./stat-card";
 import "./stepper";
 import "./switch";

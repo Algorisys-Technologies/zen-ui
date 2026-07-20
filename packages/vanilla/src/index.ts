@@ -56,6 +56,8 @@ export type { SeparatorProps } from "./components/divider/divider";
 
 export { Stack } from "./components/stack/stack";
 export type { StackProps } from "./components/stack/stack";
+export { Theme } from "./components/theme/theme";
+export type { ThemeProps } from "./components/theme/theme";
 
 export { StatCard } from "./components/stat-card/stat-card";
 export type { StatCardProps, StatCardColor, StatCardTrend } from "./components/stat-card/stat-card";

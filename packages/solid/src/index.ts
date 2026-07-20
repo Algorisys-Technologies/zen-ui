@@ -628,6 +628,11 @@ export type {
 export { Stack } from "./components/stack/stack";
 export type { StackProps } from "./components/stack/stack";
 
+// Theme — scopes a theme to a subtree. The document-wide switch is applyTheme()
+// in core; this is the same mechanism narrowed to one element.
+export { Theme } from "./components/theme/theme";
+export type { ThemeProps } from "./components/theme/theme";
+
 export {
   Breadcrumb,
   BreadcrumbList,

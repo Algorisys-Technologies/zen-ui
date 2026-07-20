@@ -774,13 +774,34 @@ being tracked here — Link, Search, PasswordInput, SkipToContent, type tokens,
 motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
 `SegmentedButton`, under Fiori's name). The five below are what is left.
 
-- [ ] **`<Theme>` subtree scoping** — `tokens.css` declares `:root[data-theme="…"]`
-      (lines 26, 125, 295) and `theme.ts:60` sets the attribute on
-      `documentElement`, so a theme is all-or-nothing. Re-declare as
-      `[data-theme="…"]` and ship a `<Theme name>` wrapper that sets it on a div.
-      Buys dark panels in light pages, which consumers cannot do at all today.
-      **Cheapest open item in either gap doc**, and mostly `packages/core` — so it
-      is one implementation plus a thin wrapper per binding, not three.
+- [x] **`<Theme>` subtree scoping — Phase 1 done 2026-07-20.** The three theme
+      blocks in `tokens.css` are now unanchored `[data-theme="…"]`, and every
+      binding exports a `<Theme name>` wrapper (`transparent` renders it
+      `display: contents` so it adds no box). `applyTheme()` is unchanged; the
+      document-wide switch still works exactly as before.
+      Verified in a browser against the BUILT stylesheet, not the source: nesting
+      resolves to the nearest themed ancestor (dark panel containing a zen-theme
+      panel gives three distinct palettes), and the demo's Welcome "Themes" cards
+      now render differently from each other — they had been showing one theme
+      three times since they were written, because `:root[data-theme]` cannot
+      match a `<div>`. That was a live bug this change fixes.
+      **Do not re-anchor the `:root` blocks for fonts / motion / reduced-motion.**
+      They are deliberately not per-theme, and specificity now ties at (0,1,0), so
+      source order is load-bearing — comment in `tokens.css` explains it.
+  - [ ] **Phase 2 — portalled content escapes the scope.** A Dialog / Popover /
+        Sheet / Tooltip / DropdownMenu opened inside a `<Theme>` renders through a
+        portal into `<body>` and falls back to the document theme. Measured:
+        **6 components in React, 9 in Solid** (adds Combobox, MultiCombobox,
+        pivot-filter-menu), and vanilla has **37** `document.body.append` sites to
+        survey. The approach is decided: a context carries the theme NAME and the
+        portalled content re-applies `data-theme` at the portal root — NOT
+        portalling into the themed div, which would re-introduce the clipping and
+        stacking problems portals exist to solve. Both APIs support either
+        (Radix `container`, Solid `mount`). Deferred because there is no demand
+        yet and it is most of the cost.
+  - [ ] **`Theme` has no demo or nav entry in any binding** — the same rule
+        violation already tracked for `Page` and `Bar` above. `bun run check`
+        passes without one, so nothing catches this automatically.
 - [ ] **`Grid` / `Column` + breakpoint tokens** — zero breakpoint tokens in core;
       `Stack` is the only layout primitive. zen-ui now ships a full app frame
       (ShellBar, FlexibleColumnLayout, Page) with no layout system underneath it.
