@@ -264,6 +264,8 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
   scroller.append(table);
 
   let rows: FlatRow<TData>[] = [];
+  /** id -> its <tr>, so a single row can be spliced without touching the rest. */
+  const rowEls = new Map<string, HTMLTableRowElement>();
   let searchInput: InputHandle | null = null;
   let expandAllBtn: ReturnType<typeof Button> | null = null;
 
@@ -414,6 +416,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
 
   const renderBody = () => {
     tbody.replaceChildren();
+    rowEls.clear();
     tbody.className = "[&_tr:last-child]:zen-border-0";
 
     if (current.loading || rows.length === 0) {
@@ -427,9 +430,21 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
       return;
     }
 
-    const activeId = focusedId ?? rows[0]?.id;
-
     for (const row of rows) {
+      const tr = buildRowEl(row);
+      rowEls.set(row.id, tr);
+      tbody.append(tr);
+    }
+  };
+
+  /**
+   * Build one row's <tr>. Factored out of `renderBody` so an expand/collapse can
+   * splice individual rows in and out instead of rebuilding the whole body —
+   * see `toggleExpanded`.
+   */
+  const buildRowEl = (row: FlatRow<TData>): HTMLTableRowElement => {
+    const activeId = focusedId ?? rows[0]?.id;
+    {
       const tr = document.createElement("tr");
       const state = current.enableRowSelection ? subtreeState(row) : "unchecked";
       tr.className = cn(
@@ -517,23 +532,113 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
         tr.append(td);
       });
 
-      tbody.append(tr);
+      return tr;
     }
   };
 
+  /**
+   * The rows a node contributes below itself, given what is currently open.
+   * Mirrors `flatten`'s id scheme (`${parentId}.${index}`) so a spliced row and
+   * a fully-rendered one always agree.
+   */
+  const visibleSubtree = (row: FlatRow<TData>): FlatRow<TData>[] => {
+    const out: FlatRow<TData>[] = [];
+    const walk = (parent: FlatRow<TData>) => {
+      const ordered = sortSiblings(effectiveKids(parent.data));
+      ordered.forEach((child, i) => {
+        const id = idOf(child, `${parent.id}.${i}`);
+        const node: FlatRow<TData> = {
+          id,
+          data: child,
+          depth: parent.depth + 1,
+          parentId: parent.id,
+          children: [],
+          pos: i + 1,
+          setSize: ordered.length,
+        };
+        out.push(node);
+        if (effectiveKids(child).length && expanded.has(id)) walk(node);
+      });
+    };
+    walk(row);
+    return out;
+  };
+
+  /**
+   * Expand or collapse ONE row by splicing its subtree in or out.
+   *
+   * The obvious implementation re-runs `render()`, and that is what this did
+   * first: measured at 1,110 visible rows, a single chevron click cost ~49ms
+   * because it rebuilt every <tr> on the page to change one. The work of
+   * opening a node is proportional to the node, not to the table, so this walks
+   * only the affected range. React and Solid get this for free from their
+   * reconcilers; the vanilla binding has to say it.
+   */
   const toggleExpanded = (row: FlatRow<TData>, force?: boolean) => {
     const open = force ?? !expanded.has(row.id);
     if (open) expanded.add(row.id);
     else expanded.delete(row.id);
     current.onExpandedChange?.([...expanded]);
-    render({ keepFocus: row.id });
+
+    const tr = rowEls.get(row.id);
+    const idx = rows.findIndex((r) => r.id === row.id);
+    // An active search force-opens every match, so expansion is not the thing
+    // driving what is on screen — fall back to the whole-table path.
+    if (query || !tr || idx < 0) {
+      render({ keepFocus: row.id });
+      return;
+    }
+
+    // Everything after `row` that is deeper than it IS its rendered subtree:
+    // the flatten is depth-first, so descendants are contiguous.
+    let end = idx + 1;
+    while (end < rows.length && rows[end].depth > row.depth) end++;
+    for (const gone of rows.splice(idx + 1, end - idx - 1)) {
+      rowEls.get(gone.id)?.remove();
+      rowEls.delete(gone.id);
+    }
+
+    if (open) {
+      const added = visibleSubtree(row);
+      const frag = document.createDocumentFragment();
+      for (const r of added) {
+        const el = buildRowEl(r);
+        rowEls.set(r.id, el);
+        frag.append(el);
+      }
+      tr.after(frag);
+      rows.splice(idx + 1, 0, ...added);
+    }
+
+    tr.setAttribute("aria-expanded", String(open));
+    tr.querySelector("button[aria-hidden]")?.firstElementChild?.classList.toggle("zen-rotate-90", open);
+    syncExpandAllButton();
+  };
+
+  /**
+   * Keep the expand-all control's label honest without re-running
+   * `renderToolbar`, which would recreate the search Input and drop the
+   * caret mid-typing.
+   */
+  const syncExpandAllButton = () => {
+    if (!expandAllBtn) return;
+    const all = isAllExpanded();
+    expandAllBtn.el.setAttribute("aria-expanded", String(all));
+    expandAllBtn.el.replaceChildren(
+      Icon({ name: all ? "chevron-down" : "chevron-right", size: 14 }).el,
+      document.createTextNode(all ? "Collapse all" : "Expand all"),
+    );
   };
 
   const focusRow = (id: string | null | undefined) => {
     if (!id) return;
     focusedId = id;
-    const i = rows.findIndex((r) => r.id === id);
-    (tbody.children[i] as HTMLTableRowElement | undefined)?.focus();
+    const tr = rowEls.get(id);
+    if (!tr) return;
+    // Roving tabindex: exactly one row is tabbable at a time.
+    for (const el of rowEls.values()) el.tabIndex = -1;
+    tr.tabIndex = 0;
+    tr.focus();
   };
 
   const moveBy = (row: FlatRow<TData>, delta: number) => {

@@ -1,4 +1,5 @@
-import { For, Show, createMemo, createSignal, splitProps } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal, splitProps } from "solid-js";
+import { createVirtualizer } from "@tanstack/solid-virtual";
 import {
   createSolidTable,
   flexRender,
@@ -92,6 +93,13 @@ export interface TreeTableProps<TData, TValue = unknown> {
   hierarchyColumnId?: string;
   /** Pixels of indent per level. Default 20. */
   indent?: number;
+  /**
+   * Render only the rows near the viewport. Requires `maxBodyHeight` — the
+   * window needs a bounded scroller to be a window of anything.
+   */
+  enableVirtualization?: boolean;
+  /** Row height estimate used before a row is measured. Default 44. */
+  rowEstimatedHeight?: number;
   stickyHeader?: boolean;
   headerVariant?: "plain" | "underline" | "branded";
   maxBodyHeight?: number;
@@ -324,6 +332,40 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
     }
   };
 
+  /* ---- virtualization ---- */
+  let tableEl: HTMLTableElement | undefined;
+  /*
+   * Virtualizing a TREE means windowing the flattened visible rows, which is
+   * exactly what `rows()` already is — expanding a node changes the count and
+   * the virtualizer re-derives from it.
+   *
+   * Spacer rows rather than DataTable's absolutely-positioned `role="table"`
+   * grid clone. That clone exists there to survive column pinning and resizing,
+   * which this component does not have; and a treegrid is the one place the
+   * trade would actually cost something, because leaving real <table> markup
+   * would mean re-implementing every row/cell role by hand. Two <tr>s holding
+   * the off-screen height keep the semantics AND the sticky header intact.
+   */
+  const virtualizer = createVirtualizer({
+    get count() {
+      return rows().length;
+    },
+    getScrollElement: () => tableEl?.parentElement ?? null,
+    estimateSize: () => props.rowEstimatedHeight ?? 44,
+    overscan: 8,
+  });
+
+  const virtualEnabled = () => !!props.enableVirtualization && !!props.maxBodyHeight;
+  const virtualItems = () => virtualizer.getVirtualItems();
+  const renderedRows = () =>
+    virtualEnabled() ? virtualItems().map((v) => rows()[v.index]).filter(Boolean) : rows();
+  const padTop = () => virtualItems()[0]?.start ?? 0;
+  const padBottom = () => {
+    const items = virtualItems();
+    const last = items[items.length - 1];
+    return last ? virtualizer.getTotalSize() - last.end : 0;
+  };
+
   const headerVariantRowClass = () =>
     props.headerVariant === "branded"
       ? "zen-bg-zen-primary-soft [&>th]:zen-text-zen-primary-soft-fg [&>th]:zen-font-semibold"
@@ -340,6 +382,17 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
       : "";
 
   const showToolbar = () => props.enableGlobalFilter || (props.enableExpandAll ?? true);
+
+  // In an effect, not at setup: the flag can be toggled after mount, and a
+  // setup-time read would report the first value forever. Silently rendering
+  // every row would otherwise look like the flag simply did nothing.
+  createEffect(() => {
+    if (props.enableVirtualization && !props.maxBodyHeight) {
+      console.warn(
+        "[TreeTable] `enableVirtualization` needs `maxBodyHeight` — without a bounded scroller there is no window. Rendering all rows.",
+      );
+    }
+  });
 
   return (
     <div class={cn("zen-flex zen-w-full zen-flex-col zen-gap-3", local.class)}>
@@ -372,8 +425,12 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
       </Show>
 
       <Table
+        ref={(el: HTMLTableElement) => (tableEl = el)}
         role="treegrid"
         aria-busy={props.loading || undefined}
+        // With a window, the DOM no longer holds every row, so the total has to
+        // be stated rather than counted.
+        aria-rowcount={virtualEnabled() ? rows().length : undefined}
         containerClass={props.maxBodyHeight ? "zen-overflow-auto" : undefined}
         containerStyle={
           props.maxBodyHeight ? { "max-height": `${props.maxBodyHeight}px` } : undefined
@@ -445,12 +502,32 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
               </TableRow>
             }
           >
-            <For each={rows()}>
-              {(row) => {
+            <Show when={virtualEnabled() && padTop() > 0}>
+              <tr aria-hidden="true" style={{ height: `${padTop()}px` }} />
+            </Show>
+            <For each={renderedRows()}>
+              {(row) => renderRow(row)}
+            </For>
+            <Show when={virtualEnabled() && padBottom() > 0}>
+              <tr aria-hidden="true" style={{ height: `${padBottom()}px` }} />
+            </Show>
+          </Show>
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  function renderRow(row: Row<TData>) {
                 const info = () => siblingInfo().get(row.id);
                 return (
                   <TableRow
-                    ref={(el: HTMLTableRowElement) => rowRefs.set(row.id, el)}
+                    ref={(el: HTMLTableRowElement) => {
+                      rowRefs.set(row.id, el);
+                      // Let real heights replace the estimate; rows are in
+                      // normal flow, so this measures without a second pass.
+                      if (virtualEnabled()) virtualizer.measureElement(el);
+                    }}
+                    data-index={virtualEnabled() ? rows().findIndex((r) => r.id === row.id) : undefined}
                     data-state={row.getIsSelected() ? "selected" : undefined}
                     data-depth={row.depth}
                     class={cn(
@@ -461,6 +538,9 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                     // aria-level is 1-based; TanStack's depth is 0-based.
                     aria-level={row.depth + 1}
                     aria-expanded={row.getCanExpand() ? row.getIsExpanded() : undefined}
+                    aria-rowindex={
+                      virtualEnabled() ? rows().findIndex((r) => r.id === row.id) + 1 : undefined
+                    }
                     aria-posinset={info()?.pos}
                     aria-setsize={info()?.size}
                     aria-selected={props.enableRowSelection ? row.getIsSelected() : undefined}
@@ -518,11 +598,5 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                     </For>
                   </TableRow>
                 );
-              }}
-            </For>
-          </Show>
-        </TableBody>
-      </Table>
-    </div>
-  );
+  }
 }
