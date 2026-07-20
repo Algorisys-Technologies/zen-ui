@@ -110,6 +110,7 @@ export const NAV: NavGroup[] = [
       { to: "/qr-scanner", label: "QRScanner", description: "Camera-based QR / barcode scanner; native BarcodeDetector + custom-decoder escape hatch", source: "packages/web-components/src/components/QRScannerDemo.ts" },
       { to: "/data-table", label: "DataTable", description: "A headless data grid — columns, sorting, pagination, row selection, and row virtualization — hand-written with no table library", source: "packages/web-components/src/components/DataTableDemo.ts" },
       { to: "/tree-table", label: "TreeTable", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/web-components/src/components/TreeTableDemo.ts" },
+      { to: "/micro-chart", label: "Micro charts", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/web-components/src/components/MicroChartDemo.ts" },
       { to: "/form", label: "Form (RHF + Zod)", description: "createForm() controller + any zod-shaped schema; FormField wires a11y/errors (React's FormControl Slot, without a Slot), plus Bound* field wrappers", source: "packages/web-components/src/components/FormDemo.ts" },
       { to: "/pivot", label: "Pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/web-components/src/components/PivotDemo.ts" },
     ],
