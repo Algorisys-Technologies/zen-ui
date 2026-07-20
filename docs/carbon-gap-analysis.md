@@ -2,12 +2,20 @@
 
 **Date:** 2026-07-15
 **zen-ui version reviewed:** `@algorisys/zen-ui-react` 3.0.0 (branch `dev`, commit `b7b82b6`)
-**Revised:** 2026-07-20 — re-checked against **8.0.0**, five releases later. Seven of the
+**Revised:** 2026-07-20 — re-checked against **8.0.0**, five releases later. **Eight** of the
 thirteen shortlist items had shipped without the doc noticing, and four claims below were
 simply false as written (type tokens, motion tokens, the icon count, the `id`-on-wrapper
 a11y bug). Status is checked against each binding's `index.ts` and
 `packages/core/styles/tokens.css`, not against memory. See
 [Status at 8.0.0](#status-at-800) for the summary; individual sections are corrected in place.
+
+> **A note on how to check a claim in this file, learned the hard way.** The first pass of this
+> revision asserted that `prefers-reduced-motion` was still unimplemented. It has been implemented
+> since the motion tokens landed — `tokens.css:409`, plus `matchMedia` checks in Carousel and
+> ObjectPage in all four bindings. The mistake was grepping for the *tokens* (`--zen-duration-*`)
+> and inferring the *behaviour* from their presence, instead of grepping for
+> `prefers-reduced-motion` itself. That is the same error this revision was written to correct, one
+> level down. **Grep for the thing you are claiming is absent, by its own name.**
 **Reference:** [Carbon Design System](https://carbondesignsystem.com/) — `@carbon/react` 1.111.1, Carbon v11
 
 ## How this was compiled
@@ -47,7 +55,7 @@ The headline: **zen-ui's component coverage is respectable; its foundations are 
 - **The Layer model** — **0% covered**, and this is the deepest gap in the document. It is an architectural idea, not a component. Detail below. **→ Still 0% at 8.0.0. See the cost note in [Status at 8.0.0](#status-at-800) — the "decide now while the library is 3.0.0" framing has expired.**
 - **The 2x Grid** — **0% covered**. zen-ui has `Stack` and nothing else. There is no grid, no column, no breakpoint system. **→ Still 0% at 8.0.0.**
 - **Type scale** — ~~**0% covered**. zen-ui has **zero** `--zen-font-*` tokens.~~ **Closed.** 17 `--zen-font-*` and 9 `--zen-line-*` tokens now ship in `tokens.css`. The repo-rule contradiction described below is resolved.
-- **Motion tokens** — ~~**0% covered**.~~ **Mostly closed.** `--zen-duration-{fast,moderate}` and `--zen-ease-{standard,in,out,collapse}` now ship — 2 durations and 4 easings against Carbon's 6 and 6.
+- **Motion tokens** — ~~**0% covered**.~~ **Closed.** `--zen-duration-{fast,moderate}` and `--zen-ease-{standard,in,out,collapse}` now ship — 2 durations and 4 easings against Carbon's 6 and 6 — **and `prefers-reduced-motion` with them**.
 - **Icons** — ~~38~~ **48** vs Carbon's **2,707**. Not a defect, but it bounds what zen-ui can be asked to render.
 - **Themes** — 3 vs 4, but on a **different axis entirely** (see the theming section — this is a conceptual mismatch, not a count).
 - **AI ecosystem, pictograms, Fluid form variants, `@carbon/ibm-products` tail** — 0% covered, and mostly **should stay that way**.
@@ -56,15 +64,15 @@ As with the Fiori document: **most of what is listed below should not be built.*
 
 ## Status at 8.0.0
 
-Added 2026-07-20. The [recommended shortlist](#recommended-shortlist) had thirteen items; seven
-have shipped. This table is the reconciliation — it is the part to read if you are picking up work.
+Added 2026-07-20. The [recommended shortlist](#recommended-shortlist) had thirteen items; **eight
+have shipped**. This table is the reconciliation — it is the part to read if you are picking up work.
 
 | # | Item | Status at 8.0.0 |
 |---|---|---|
 | 1 | `id`-on-wrapper a11y bug | ✅ **Fixed.** And the doc's claim was over-broad: measured, only Solid was affected — React and vanilla put the `id` on a `<button>`, which *is* labelable. Solid now routes it to the native control. See [CLAUDE.md](../CLAUDE.md). |
 | 2 | `SkipToContent` | ✅ Shipped, all bindings (`components/skip-to-content/`). |
 | 3 | Type tokens | ✅ Shipped. 17 `--zen-font-*`, 9 `--zen-line-*`. |
-| 4 | Motion tokens | 🟡 Mostly. 2 durations + 4 easings vs Carbon's 6 + 6. No `prefers-reduced-motion` story yet — the tokens now give it somewhere to live, which was the point. |
+| 4 | Motion tokens | ✅ **Closed.** 2 durations + 4 easings vs Carbon's 6 + 6 — fewer steps, same mechanism. **`prefers-reduced-motion` shipped with them** (`tokens.css:409`), which was the payoff this doc argued for. |
 | 5 | `<Theme>` scoping | ❌ **Open.** `tokens.css` still declares `:root[data-theme="…"]` (lines 26, 125, 295) and `theme.ts:60` still sets the attribute on `documentElement`. Global-only. Cheapest open item in the doc. |
 | 6 | `Grid` / `Column` + breakpoints | ❌ **Open.** Zero breakpoint tokens in core; `Stack` is still the only layout primitive. |
 | 7 | The Layer model | ❌ **Open, and the framing has expired.** |
@@ -246,8 +254,12 @@ Also worth stealing: `productiveHeading01` and `bodyShort01` differ **only in we
 
 > **Status: mostly closed.** `--zen-duration-{fast,moderate}` and
 > `--zen-ease-{standard,in,out,collapse}` now ship — 2 durations and 4 easings against Carbon's 6
-> and 6. **The `prefers-reduced-motion` story is still unwritten**, which was the concrete payoff
-> the section argued for; the tokens now give it somewhere to live.
+> and 6 — fewer steps, same mechanism. **`prefers-reduced-motion` shipped with them**, which was
+> the concrete payoff this section argued for. `tokens.css:409` rebinds both duration tokens to
+> `0.01ms` under `@media (prefers-reduced-motion: reduce)` — near-zero rather than `0` so
+> `animationend` still fires and components that wait for it still unmount. Carousel and
+> ObjectPage additionally check `matchMedia` in JS, in all four bindings, for scroll behaviour
+> that CSS variables cannot reach.
 
 Carbon (`packages/motion/src/index.ts`):
 
@@ -267,7 +279,7 @@ The 3×2 easing matrix encodes a real rule: **entrance and exit are not symmetri
 
 zen-ui had **twelve hand-written `zen-anim-*` classes** (`fade-in/out`, `slide-in/out-{top,bottom,left,right}`, `accordion-up/down`) with durations and easings inlined per keyframe, and no tokens. Consequence: a consumer could not retheme motion, could not slow it down, and — notably — **there was no `prefers-reduced-motion` story**, because there was no central place to put one. Tokenising duration/easing was cheap and gives that for free.
 
-*(2026-07-20: the tokens landed; the `prefers-reduced-motion` block did not. That is now a one-file job rather than a systemic one — the remaining work is a media query that rebinds the duration tokens to `0s`, not a sweep of twelve keyframes.)*
+*(2026-07-20: both landed. The comment at `tokens.css:388` states the reason outright — the tokens exist so the library "is rethemeable and has one place to answer `prefers-reduced-motion`". This section's argument was taken up in full.)*
 
 ### 5. `<Theme>` — theme scoping is all-or-nothing
 
@@ -432,7 +444,7 @@ Ordered by value-to-effort, and deliberately short. ~~Everything here is portabl
 **Foundations — ~~decide now, while the library is 3.0.0~~ two of four landed; the two that did not are the ones with a deadline:**
 
 3. ✅ **Type tokens.** Shipped — 17 `--zen-font-*`, 9 `--zen-line-*`. The CLAUDE.md contradiction is resolved.
-4. 🟡 **Motion tokens.** Shipped, at 2 durations + 4 easings (Carbon has 6 + 6). **`prefers-reduced-motion` is still unwritten** — that was the payoff, and it is now a media query rather than a sweep.
+4. ✅ **Motion tokens.** Shipped, at 2 durations + 4 easings (Carbon has 6 + 6) — fewer steps, same mechanism. **`prefers-reduced-motion` shipped with them** (`tokens.css:409`), plus JS `matchMedia` checks in Carousel and ObjectPage across all four bindings for the scroll behaviour CSS cannot reach.
 5. ❌ **`<Theme>` scoping.** Still `:root[data-theme]`, still global-only. Small change, large payoff. **Now the cheapest open item in the document, and it no longer depends on #7 landing.**
 6. ❌ **`Grid` / `Column` + breakpoint tokens.** Untouched. zen-ui now ships a full app frame (`ShellBar`, `FlexibleColumnLayout`, `Page`) with no layout primitive under it, which is a stranger shape at 8.0.0 than it was at 3.0.0.
 7. ❌ **The Layer model** — **the window this item described has closed.** It argued for deciding "now, while the library is 3.0.0" precisely because the retrofit cost scales with the component count. Five releases later that count is ~57 families × 3 implementations, and a visual change is a major bump. This is no longer "decide cheaply"; it is "fund a migration or write down a no". Writing down the no is a legitimate outcome and costs an hour.

@@ -169,8 +169,14 @@ a global concern.
 
 ### A11y polish
 
-- [ ] **`prefers-reduced-motion`** — gate all CSS animations behind
-      `@media (prefers-reduced-motion: no-preference)`.
+- [x] **`prefers-reduced-motion`** — done, and better than this item asked for.
+      Rather than gating each animation, `tokens.css:409` rebinds `--zen-duration-*`
+      to `0.01ms` under `@media (prefers-reduced-motion: reduce)` — one rule, covers
+      every animation that uses the tokens, and stays inside the "only set `--zen-*`"
+      CSS rule. Near-zero rather than `0` so `animationend` still fires and
+      components waiting on it still unmount. Carousel and ObjectPage additionally
+      check `matchMedia` in JS, all four bindings, for scroll behaviour CSS cannot
+      reach. Verified 2026-07-20.
 - [ ] **RTL audit** — verify Radix's logical-property defaults render
       correctly in `dir="rtl"`.
 - [ ] **High-contrast / forced-colors** — make sure focus rings and
@@ -763,10 +769,10 @@ Tracked against `docs/carbon-gap-analysis.md`. **This section did not exist unti
 without being looked at: the shortlist lived only in the gap doc, and the gap doc
 is not what anyone opens when picking up work.
 
-Its thirteen-item shortlist is **7 done, 6 open**. The seven closed without ever
+Its thirteen-item shortlist is **8 done, 5 open**. The eight closed without ever
 being tracked here — Link, Search, PasswordInput, SkipToContent, type tokens,
-motion tokens, and ContentSwitcher (closed by `SegmentedButton`, under Fiori's
-name). The six below are what is left.
+motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
+`SegmentedButton`, under Fiori's name). The five below are what is left.
 
 - [ ] **`<Theme>` subtree scoping** — `tokens.css` declares `:root[data-theme="…"]`
       (lines 26, 125, 295) and `theme.ts:60` sets the attribute on
@@ -790,10 +796,6 @@ name). The six below are what is left.
       **Writing down a "no" is a legitimate outcome and costs an hour.** What it
       buys either way: stop re-discovering this item every time someone reads the
       gap doc.
-- [ ] **`prefers-reduced-motion`** — the motion tokens landed without it, and it was
-      the concrete payoff the gap doc argued for. Now a media query that rebinds
-      `--zen-duration-*` to `0s`, rather than a sweep of twelve `zen-anim-*`
-      keyframes. Small, and `packages/core` only.
 - [ ] **Per-component a11y documentation** — Carbon ships an `accessibility.mdx`
       per component; zen-ui ships none. The gap doc's line is the one worth keeping:
       a11y as "a stated, tooled, per-component commitment rather than a best-effort".
