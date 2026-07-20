@@ -113,6 +113,7 @@ export const NAV: NavGroup[] = [
       { to: "/micro-chart", label: "Micro charts", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/vanilla/src/components/MicroChartDemo.ts" },
       { to: "/timeline", label: "Timeline", description: "Ordered list of events with a rail, markers, timestamps and date groups", source: "packages/vanilla/src/components/TimelineDemo.ts" },
       { to: "/upload-collection", label: "UploadCollection", description: "The list of uploaded files \u2014 progress, rename, delete, retry; the result FileUpload has no view for", source: "packages/vanilla/src/components/UploadCollectionDemo.ts" },
+      { to: "/planning-calendar", label: "PlanningCalendar", description: "Resource-by-time grid \u2014 rows of people or rooms, appointments as blocks, day / week / month views", source: "packages/vanilla/src/components/PlanningCalendarDemo.ts" },
       { to: "/form", label: "Form (RHF + Zod)", description: "createForm() controller + any zod-shaped schema; FormField wires a11y/errors (React's FormControl Slot, without a Slot), plus Bound* field wrappers", source: "packages/vanilla/src/components/FormDemo.ts" },
       { to: "/pivot", label: "Pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/vanilla/src/components/PivotDemo.ts" },
     ],

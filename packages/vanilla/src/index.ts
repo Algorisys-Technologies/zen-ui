@@ -209,6 +209,8 @@ export {
   MicroDeltaChart,
   MicroRadialChart,
 } from "./components/micro-chart/micro-chart";
+export { PlanningCalendar } from "./components/planning-calendar/planning-calendar";
+export type { PlanningCalendarProps, PlanningRow, PlanningAppointment, PlanningAppointmentState } from "./components/planning-calendar/planning-calendar";
 export { UploadCollection } from "./components/upload-collection/upload-collection";
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";
 export { Timeline } from "./components/timeline/timeline";
