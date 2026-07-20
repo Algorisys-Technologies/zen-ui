@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.0.2",
+    date: "2026-07-20",
+    kind: "fixed",
+    title: "Buttons and icons positioned inside components now mirror in right-to-left pages",
+    detail:
+      "A dialog's close button sat 13px from the physical right whichever way the page read — everything around it flipped and it stayed put. Same for the magnifier in a search field, the show/hide button in a password field, the tick on a selectable card, notification count badges and the checkmark beside a selected menu item. They now sit at the start or end of the reading direction, and the padding reserving room for them moved with them — otherwise a mirrored close button leaves the title sliding underneath it. Identical output in a left-to-right page.",
+  },
+  {
     version: "9.0.1",
     date: "2026-07-20",
     kind: "fixed",

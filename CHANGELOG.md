@@ -11,6 +11,35 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.2] - 2026-07-20
+
+### Fixed
+
+- Positioned affordances were pinned to a physical side, so in RTL the layout
+  mirrored around them and they stayed put. Measured on the Dialog close: 13px
+  from the physical right in BOTH directions before; 13px from the right in LTR
+  and from the left in RTL after. 39 files across React, Solid and vanilla —
+  Dialog / Sheet / Toast close buttons; Search and PasswordInput trailing
+  buttons; the menu / select / combobox check indicator; the SelectableCard
+  tick; notification count badges; the ShellBar search icon; the Rating fill
+  overlay.
+- `DialogHeader`'s `zen-pr-8` → `zen-pe-8`, changed together with the close
+  button it reserves room for. Flipping one without the other puts the title
+  under the button.
+- Input padding (`zen-pl-*` / `zen-pr-*` → `zen-ps-*` / `zen-pe-*`) in Search,
+  PasswordInput and the shared select list, for the same reason.
+
+### Notes
+
+- Logical utilities were verified to GENERATE before use (`zen-start-*`,
+  `zen-end-*` and negatives all emit `inset-inline-*`) — a prefixed class that
+  silently emits nothing is a documented trap in this repo.
+- Deliberately left physical, with reasons recorded in `todo.md`: offscreen
+  measurement ghosts (arbitrary position), centring transforms
+  (direction-agnostic), and `DataTable`'s column-resize handles — those share
+  their maths with column pinning and sticky offsets computed physically in JS,
+  so moving the grip alone would put it on the wrong edge of a pinned column.
+
 ## [9.0.1] - 2026-07-20
 
 ### Fixed
