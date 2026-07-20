@@ -72,17 +72,26 @@ export const Bar = (props: BarProps) => {
       {...rest}
     >
       {/* Equal flex-1 on the outer slots keeps middle optically centred when
-          start and end differ in width. min-w-0 lets them truncate rather than
-          shove the middle off-centre. */}
-      <div class="zen-flex zen-min-w-0 zen-flex-1 zen-items-center zen-gap-2">
-        {local.startContent}
-      </div>
+          start and end differ in width.
+
+          The outer slots deliberately do NOT carry min-w-0. They used to, and it
+          caused an overlap: min-w-0 lets a flex item shrink BELOW its content,
+          but a Button inside does not shrink with it, so on a narrow bar the end
+          slot's box collapsed and its button overflowed leftwards — justify-end,
+          so it grew to the left — straight over a middle that was shrink-0 and
+          would not move. Content on top of content.
+
+          So the priority is inverted instead: the actions keep their size and
+          the TITLE yields, which is the right way round — a truncated heading is
+          readable, an unclickable button is not. */}
+      <div class="zen-flex zen-flex-1 zen-items-center zen-gap-2">{local.startContent}</div>
       <Show when={local.middleContent}>
-        <div class="zen-flex zen-min-w-0 zen-shrink-0 zen-items-center zen-gap-2">
+        {/* min-w-0 + overflow-hidden: the middle is the one that gives. */}
+        <div class="zen-flex zen-min-w-0 zen-items-center zen-gap-2 zen-overflow-hidden">
           {local.middleContent}
         </div>
       </Show>
-      <div class="zen-flex zen-min-w-0 zen-flex-1 zen-items-center zen-justify-end zen-gap-2">
+      <div class="zen-flex zen-flex-1 zen-items-center zen-justify-end zen-gap-2">
         {local.endContent}
       </div>
     </div>

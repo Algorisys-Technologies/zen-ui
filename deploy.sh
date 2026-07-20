@@ -83,9 +83,12 @@ eval "$(node --input-type=module -e '
 say "Building for base $BASE  (${APP_SLUGS[*]})"
 
 # --- build ------------------------------------------------------------------
-# NOTE: these are the DEMO builds, which write to packages/*/dist and clobber
-# whatever `build:lib` left there. Rebuild the library before inspecting
-# dist/style.css afterwards. (See CLAUDE.md.)
+# NOTE: these are the DEMO builds. Since ed0fcc9 they write to
+# packages/*/dist-demo, NOT dist — dist is the published library — so the
+# assemble step below must copy from dist-demo. It did not, and copied a stale
+# library build into the site instead; the verify step caught it because the
+# asset base was wrong, which is the whole reason that step exists.
+# apps/landing still builds to dist: it has no library to collide with.
 npx --yes vite build apps/landing      --base "$BASE"               --config apps/landing/vite.config.ts
 for i in "${!APP_DIRS[@]}"; do
   npx --yes vite build "${APP_DIRS[$i]}" --base "${BASE}${APP_SLUGS[$i]}/" --config "${APP_DIRS[$i]}/vite.config.demo.ts"
@@ -98,7 +101,7 @@ mkdir -p "$OUT"
 cp -R apps/landing/dist/.      "$OUT/"
 for i in "${!APP_DIRS[@]}"; do
   mkdir -p "$OUT/${APP_SLUGS[$i]}"
-  cp -R "${APP_DIRS[$i]}/dist/." "$OUT/${APP_SLUGS[$i]}/"
+  cp -R "${APP_DIRS[$i]}/dist-demo/." "$OUT/${APP_SLUGS[$i]}/"
 done
 
 # GitHub Pages runs Jekyll unless told not to, and Jekyll drops files and

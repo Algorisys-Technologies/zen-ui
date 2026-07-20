@@ -142,10 +142,20 @@ export function Bar(props: BarProps = {}): ZenComponent<BarProps> {
     const parts: Node[] = [];
 
     // Equal flex-1 on the outer slots is what keeps middle optically centred
-    // when start and end differ in width. min-w-0 lets them truncate rather
-    // than shove the middle off-centre.
+    // when start and end differ in width.
+    //
+    // The outer slots deliberately do NOT carry min-w-0. They used to, and it
+    // caused an overlap: min-w-0 lets a flex item shrink BELOW its content, but
+    // a Button inside does not shrink with it, so on a narrow bar the end slot's
+    // box collapsed and its button overflowed leftwards — justify-end, so it
+    // grew to the left — straight over a middle that was shrink-0 and would not
+    // move. Content on top of content.
+    //
+    // So the priority is inverted instead: the actions keep their size and the
+    // TITLE yields — a truncated heading is readable, an unclickable button is
+    // not.
     const start = document.createElement("div");
-    start.className = "zen-flex zen-min-w-0 zen-flex-1 zen-items-center zen-gap-2";
+    start.className = "zen-flex zen-flex-1 zen-items-center zen-gap-2";
     start.replaceChildren(...toNodes(current.startContent));
     parts.push(start);
 
@@ -155,13 +165,14 @@ export function Bar(props: BarProps = {}): ZenComponent<BarProps> {
       current.middleContent !== false
     ) {
       const middle = document.createElement("div");
-      middle.className = "zen-flex zen-min-w-0 zen-shrink-0 zen-items-center zen-gap-2";
+      // min-w-0 + overflow-hidden: the middle is the one that gives.
+      middle.className = "zen-flex zen-min-w-0 zen-items-center zen-gap-2 zen-overflow-hidden";
       middle.replaceChildren(...toNodes(current.middleContent));
       parts.push(middle);
     }
 
     const end = document.createElement("div");
-    end.className = "zen-flex zen-min-w-0 zen-flex-1 zen-items-center zen-justify-end zen-gap-2";
+    end.className = "zen-flex zen-flex-1 zen-items-center zen-justify-end zen-gap-2";
     end.replaceChildren(...toNodes(current.endContent));
     parts.push(end);
 

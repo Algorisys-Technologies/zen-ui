@@ -65,7 +65,10 @@ async function routesFor(binding) {
 
 for (const binding of which) {
   const cfg = BINDINGS[binding];
-  if (!existsSync(join(cfg.dir, "dist", "index.html"))) {
+  // dist-demo, not dist: the demo build moved there in ed0fcc9 so it would stop
+  // clobbering the published library. Checking the old path meant this guard
+  // fired on a correctly-built demo and passed on a missing one.
+  if (!existsSync(join(cfg.dir, "dist-demo", "index.html"))) {
     console.error(`${binding}: no demo build — run \`npm run build\` in ${cfg.dir} first`);
     process.exit(1);
   }
