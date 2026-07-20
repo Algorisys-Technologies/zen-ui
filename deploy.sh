@@ -89,6 +89,14 @@ say "Building for base $BASE  (${APP_SLUGS[*]})"
 # library build into the site instead; the verify step caught it because the
 # asset base was wrong, which is the whole reason that step exists.
 # apps/landing still builds to dist: it has no library to collide with.
+# Catalogue thumbnails are gitignored and generated, so the published site would
+# otherwise ship text-only cards. Generated BEFORE the builds because they land
+# in each demo's public/ and are copied at build time. Only for the demos that
+# actually have a catalogue — vanilla and web-components' Welcome pages are
+# prose, with no component grid to put a picture in.
+say "Generating catalogue previews"
+node scripts/gen-previews.mjs react solid || die "preview generation failed"
+
 npx --yes vite build apps/landing      --base "$BASE"               --config apps/landing/vite.config.ts
 for i in "${!APP_DIRS[@]}"; do
   npx --yes vite build "${APP_DIRS[$i]}" --base "${BASE}${APP_SLUGS[$i]}/" --config "${APP_DIRS[$i]}/vite.config.demo.ts"

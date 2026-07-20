@@ -592,27 +592,37 @@ built — Tier 1 spent a day marked done while a row was missing.
       Bar's three slots and why the middle does not drift, and `flush`.
       The lesson is the one this session kept re-learning: a tracked claim about
       what is missing is worth re-measuring before acting on it.
-- [ ] **Preview image per component in the demo catalogue** (requested
-      2026-07-20). The landing/Welcome page of each demo lists every component
-      from `nav.ts` as a text card; it should show a thumbnail too, so the
-      catalogue can be scanned by eye rather than read. Must land in all four
-      demos per the parity rule — the catalogue renders from the same `nav.ts`
-      in each, so this is one field plus one card change per binding, not four
-      designs.
+- [x] **Preview image per component in the demo catalogue — done 2026-07-20,
+      React and Solid.** `bun run gen:previews` boots each demo's DEV server
+      (not a build — that would need build → generate → build, since the images
+      land in `public/` and are copied at build time), screenshots the first
+      `.example-preview` on every catalogue route, and writes a card-sized JPEG.
+      `deploy.sh` regenerates before building, so the published site always has
+      them.
 
-      **The images should be generated, not drawn.**
-      `node scripts/visual-check.mjs <binding>` already screenshots all 85
-      routes from `nav.ts` into `.visual/<binding>/<route>.png` — that is the
-      catalogue, already rendered. A hand-curated set would be stale within a
-      release; a generated one is stale only if the generator stops running.
-      Worth deciding up front: full-page shots are the wrong crop for a card
-      (they are tall and mostly whitespace), so this probably wants
-      `visual-check` to take an optional element selector or a fixed viewport
-      crop per route, and a step that writes the thumbnails somewhere the demo
-      build can import. Check the weight: 85 images x 4 demos is real bytes on
-      a page that currently ships none, so they want to be small, lazy-loaded,
-      and almost certainly NOT in the published package — this is demo-side
-      only.
+      **Generated, gitignored, and survivable when absent.** ~850 kB per binding
+      that would be rewritten wholesale on every regeneration is not worth
+      committing; the card's `<img>` removes itself on error, so a fresh clone
+      shows exactly the cards it used to until someone runs the script.
+
+      Three attempts, because the first two looked plausible and were not:
+      1. shoot the full 1100px preview and let the card scale it down — a Button
+         became an illegible speck at 3.5x reduction;
+      2. shrink the capture VIEWPORT to card width instead — the demo shell went
+         to its mobile layout and the shot was of the nav drawer, not the
+         component;
+      3. keep the desktop viewport and clip a card-sized window at the preview's
+         top-left, so the component is captured at 1:1 and shown at 1:1 —
+         cropped rather than shrunk, which is legible. That is what shipped.
+
+  - [ ] **vanilla and web-components have no catalogue to put previews in.**
+        Their Welcome pages are prose with two sections; only React and Solid
+        render the component grid from `nav.ts`. That is a demo-parity gap that
+        predates this work and is the reason `gen:previews` is wired for two
+        bindings in `deploy.sh` rather than four. Decide whether those two
+        should grow the same catalogue — if they do, the preview support is
+        already there and it is one component each.
+
 
 - [ ] **SKILLS.md (or similar) so coding agents can drive this library.**
       Requested 2026-07-15. Claude / Cursor / Antigravity currently have to

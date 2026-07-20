@@ -22,6 +22,42 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </h2>
 );
 
+/**
+ * The generated thumbnail for a route, or nothing at all.
+ *
+ * The images come from `bun run gen:previews` and are gitignored, so a fresh
+ * clone has none until it runs that (or deploys, which regenerates them). The
+ * card therefore has to work without one: on a missing file the <img> removes
+ * itself and the card is exactly what it used to be. A broken-image glyph in an
+ * 85-card grid would be far worse than no picture.
+ *
+ * Sized by aspect-ratio rather than a fixed height so the row heights stay even
+ * whatever the shot happens to be, and `loading="lazy"` because a catalogue is
+ * mostly below the fold.
+ *
+ * The image is a card-sized CROP taken at 1:1 (see gen-previews.mjs), so
+ * `object-cover object-left-top` shows it at native scale rather than shrinking
+ * a whole page into a thumbnail. Two earlier attempts — scaling the full
+ * preview down, and shrinking the capture viewport — produced an illegible
+ * speck and a picture of the nav drawer respectively.
+ */
+const CardPreview = ({ route }: { route: string }) => {
+  const slug = route === "/" ? "_welcome" : route.replace(/^\//, "").replace(/\//g, "-");
+  return (
+    <img
+      src={`${import.meta.env.BASE_URL}previews/${slug}.jpg`}
+      alt=""
+      aria-hidden
+      loading="lazy"
+      className="zen-block zen-w-full zen-border-b zen-border-zen-border zen-bg-zen-background zen-object-cover zen-object-left-top"
+      style={{ aspectRatio: "2 / 1" }}
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
+  );
+};
+
 const Welcome = () => {
   const { themes } = useTheme();
   const groups = NAV.filter((g) => g.catalogue !== false);
@@ -85,14 +121,17 @@ const Welcome = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="zen-block zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-p-4 zen-no-underline zen-transition-colors hover:zen-border-zen-primary focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2"
+                  className="zen-group zen-block zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-no-underline zen-transition-colors hover:zen-border-zen-primary focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2"
                 >
-                  <div className="zen-text-sm zen-font-semibold zen-text-zen-foreground">
-                    {item.label}
+                  <CardPreview route={item.to} />
+                  <div className="zen-p-4">
+                    <div className="zen-text-sm zen-font-semibold zen-text-zen-foreground">
+                      {item.label}
+                    </div>
+                    <p className="zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg">
+                      {item.description}
+                    </p>
                   </div>
-                  <p className="zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg">
-                    {item.description}
-                  </p>
                 </Link>
               ))}
             </div>

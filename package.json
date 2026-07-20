@@ -15,6 +15,7 @@
     "check:types": "tsc --project scripts/tsconfig.json",
     "check:cn": "bun run scripts/check-cn.ts",
     "check:direction": "bun run scripts/check-direction.ts",
+    "gen:previews": "node scripts/gen-previews.mjs",
     "check:css-live": "bun run scripts/check-css-live.ts",
     "check:mask": "bun run scripts/check-mask.ts",
     "check:color": "bun run scripts/check-color.ts",
