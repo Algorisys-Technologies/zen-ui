@@ -65,6 +65,7 @@ export const NAV: NavGroup[] = [
       { to: "/avatar", label: "Avatar", description: "Radix Avatar — image + initials fallback + stacked group", source: "packages/vanilla/src/components/AvatarDemo.ts" },
       { to: "/link", label: "Link", description: "Styled anchor; real &lt;a&gt; always, external, inline, disabled", source: "packages/vanilla/src/components/LinkDemo.ts" },
       { to: "/theme", label: "Theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/vanilla/src/components/ThemeDemo.ts" },
+      { to: "/direction", label: "DirectionProvider", description: "Right-to-left support \u2014 tells menus, tabs and sliders which way the page reads", source: "packages/vanilla/src/components/DirectionDemo.ts" },
       { to: "/stack", label: "Stack", description: "Minimal flexbox layout primitive — a thin div laying children out in a row or column with configurable alignment, wrapping, gap and padding.", source: "packages/vanilla/src/components/StackDemo.ts" },
       { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/vanilla/src/components/StatCardDemo.ts" },
       { to: "/card", label: "Card", description: "Generic surface primitive with a compound Header / Content / Footer API and three variants (elevated · outlined · ghost)", source: "packages/vanilla/src/components/CardDemo.ts" },

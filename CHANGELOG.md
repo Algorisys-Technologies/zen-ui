@@ -32,7 +32,11 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `scripts/visual-check.mjs --dir <ltr|rtl>`; RTL shots are suffixed `.rtl.png`
   so they never clobber the LTR baseline. Flag values are now excluded by index
   rather than by value, so a route named `dark` is no longer swallowed.
-- Demo + nav entry for `Theme` in all four bindings.
+- Demo + nav entry for `Theme` and `DirectionProvider` in all four bindings.
+  The `DirectionProvider` page drives the point rather than describing it: the
+  same Carousel and Rating side by side in both directions, so the arrow keys
+  can be tried. Solid's has a third section for its `locale` prop, since that
+  divergence needs explaining where a reader will meet it.
 
 ### Changed
 

@@ -67,6 +67,7 @@ description, then import the name from your binding's package.
 - **Popover** — Anchored panel; asChild trigger, side/align, separate anchor
 - **Link** — Styled anchor; asChild for router links, external, disabled
 - **Theme** — Scopes a theme to a subtree — a dark panel inside a light page; nests, no JS
+- **DirectionProvider** — Right-to-left support — tells menus, tabs and sliders which way the page reads
 - **ColorPicker** — Swatch palette + the platform picker; hex in, hex out
 - **Carousel** — Scroll-snap slide strip; every child is a slide, no autoplay
 - **DropdownMenu** — Radix DropdownMenu — action menus, sub-menus, checkbox/radio items

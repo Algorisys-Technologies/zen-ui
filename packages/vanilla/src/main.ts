@@ -30,6 +30,7 @@ import SkeletonDemo from "./components/SkeletonDemo";
 import AvatarDemo from "./components/AvatarDemo";
 import LinkDemo from "./components/LinkDemo";
 import ThemeDemo from "./components/ThemeDemo";
+import DirectionDemo from "./components/DirectionDemo";
 import StackDemo from "./components/StackDemo";
 import StatCardDemo from "./components/StatCardDemo";
 import CardDemo from "./components/CardDemo";
@@ -121,6 +122,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/avatar": AvatarDemo,
   "/link": LinkDemo,
   "/theme": ThemeDemo,
+  "/direction": DirectionDemo,
   "/stack": StackDemo,
   "/stat-card": StatCardDemo,
   "/card": CardDemo,
