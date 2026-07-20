@@ -62,6 +62,22 @@ export interface TreeTableProps<TData, TValue = unknown> {
   getSubRows?: (row: TData) => TData[] | undefined;
   getRowId?: (originalRow: TData, index: number, parent?: Row<TData>) => string;
 
+  /* lazy children — fetch a subtree the first time it is opened */
+  /**
+   * Which rows can be opened before their children exist. Without this a row
+   * with no children yet is indistinguishable from a leaf, so it gets no
+   * chevron and can never be opened to trigger the load.
+   */
+  hasChildren?: (row: TData) => boolean;
+  /**
+   * Fetch a row's children on its first expand. Requires `getRowId` (or an
+   * `id` on the row): the result is cached against that id, and an index-path
+   * key would move the moment anything above it is sorted or filtered.
+   */
+  loadChildren?: (row: TData) => Promise<TData[]>;
+  /** Called when `loadChildren` rejects. Without it the error is re-thrown. */
+  onLoadChildrenError?: (error: unknown, row: TData) => void;
+
   /* expansion */
   expanded?: ExpandedState;
   /** `true` expands everything on first render. */
@@ -179,9 +195,65 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
   });
   /* eslint-enable solid/no-destructure */
 
+  /* ---- lazy children ---- */
+  const [loadedKids, setLoadedKids] = createSignal<Record<string, TData[]>>({});
+  const [loadingIds, setLoadingIds] = createSignal<ReadonlySet<string>>(new Set());
+  /* Bumped after every load so the table rebuilds its row model — see `data`. */
+  const [lazyVersion, setLazyVersion] = createSignal(0);
+
+  const lazyKey = (row: TData): string | undefined =>
+    props.getRowId?.(row, 0) ?? (row as { id?: string }).id;
+
+  const baseSubRows = (row: TData) => (props.getSubRows ?? defaultGetSubRows)(row);
+
+  /** Not yet loaded, but says it has children. */
+  const canLazyLoad = (row: TData) => {
+    if (!props.loadChildren || !props.hasChildren?.(row)) return false;
+    const key = lazyKey(row);
+    return key !== undefined && loadedKids()[key] === undefined;
+  };
+
+  const loadFor = async (row: TData) => {
+    const key = lazyKey(row);
+    if (key === undefined || !props.loadChildren) return;
+    if (loadingIds().has(key) || loadedKids()[key] !== undefined) return;
+    setLoadingIds((s) => new Set(s).add(key));
+    try {
+      const kids = await props.loadChildren(row);
+      setLoadedKids((m) => ({ ...m, [key]: kids }));
+      setLazyVersion((v) => v + 1);
+    } catch (err) {
+      if (props.onLoadChildrenError) props.onLoadChildrenError(err, row);
+      else throw err;
+    } finally {
+      setLoadingIds((s) => {
+        const next = new Set(s);
+        next.delete(key);
+        return next;
+      });
+    }
+  };
+
+  const isRowLoading = (row: Row<TData>) => {
+    const key = lazyKey(row.original);
+    return key !== undefined && loadingIds().has(key);
+  };
+
+  /**
+   * One entry point for opening a row, so the chevron and the keyboard cannot
+   * drift: a first open of an unloaded node fetches before it expands.
+   */
+  const setRowExpanded = (row: Row<TData>, open: boolean) => {
+    if (open && canLazyLoad(row.original)) void loadFor(row.original);
+    row.toggleExpanded(open);
+  };
+
   const table = createSolidTable<TData>({
     get data() {
-      return props.data;
+      // A fresh top-level identity is what makes TanStack rebuild the row model
+      // after a lazy load; returning props.data unchanged memoizes the old one
+      // and the fetched children never appear.
+      return lazyVersion() > 0 ? [...(props.data ?? [])] : props.data;
     },
     get columns() {
       return augmentedColumns() as ColumnDef<TData, unknown>[];
@@ -201,8 +273,15 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
       },
     },
     get getSubRows() {
-      return props.getSubRows ?? defaultGetSubRows;
+      const loaded = loadedKids();
+      return (row: TData) => {
+        const key = lazyKey(row);
+        if (key !== undefined && loaded[key] !== undefined) return loaded[key];
+        return baseSubRows(row);
+      };
     },
+    /* A row that says it has children is expandable before it has any. */
+    getRowCanExpand: (row) => row.subRows.length > 0 || canLazyLoad(row.original),
     get getRowId() {
       return props.getRowId;
     },
@@ -308,12 +387,12 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
     } else if (step === 1) {
       // Forward: open a closed node, else descend into it.
       e.preventDefault();
-      if (row.getCanExpand() && !row.getIsExpanded()) row.toggleExpanded(true);
+      if (row.getCanExpand() && !row.getIsExpanded()) setRowExpanded(row, true);
       else if (row.getIsExpanded()) moveBy(row, 1);
     } else if (step === -1) {
       // Backward: close an open node, else climb to the parent.
       e.preventDefault();
-      if (row.getIsExpanded()) row.toggleExpanded(false);
+      if (row.getIsExpanded()) setRowExpanded(row, false);
       else if (row.parentId) focusRow(row.parentId);
     } else if (e.key === "Home") {
       e.preventDefault();
@@ -327,7 +406,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
         props.onRowClick(row);
       } else if (row.getCanExpand()) {
         e.preventDefault();
-        row.toggleExpanded();
+        setRowExpanded(row, !row.getIsExpanded());
       }
     }
   };
@@ -573,21 +652,34 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                                   // pointer affordance and must not also steal a
                                   // tab stop from the roving row focus.
                                   tabIndex={-1}
+                                  aria-busy={isRowLoading(row) || undefined}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    row.toggleExpanded();
+                                    setRowExpanded(row, !row.getIsExpanded());
                                   }}
                                   aria-hidden="true"
                                   class="zen-inline-flex zen-w-4 zen-shrink-0 zen-items-center zen-justify-center zen-border-0 zen-bg-transparent zen-p-0 zen-cursor-pointer zen-text-zen-muted-fg"
                                 >
-                                  <Icon
-                                    name="chevron-right"
-                                    size={14}
-                                    class={cn(
-                                      "zen-transition-transform",
-                                      row.getIsExpanded() && "zen-rotate-90",
-                                    )}
-                                  />
+                                  <Show
+                                    when={isRowLoading(row)}
+                                    fallback={
+                                      <Icon
+                                        name="chevron-right"
+                                        size={14}
+                                        class={cn(
+                                          "zen-transition-transform",
+                                          row.getIsExpanded() && "zen-rotate-90",
+                                        )}
+                                      />
+                                    }
+                                  >
+                                    {/* A fetch has no length the caller can predict, so the
+                                        chevron itself reports it rather than the row jumping
+                                        to a placeholder that may be replaced in 40ms. */}
+                                    <span
+                                      class="zen-inline-block zen-h-3 zen-w-3 zen-animate-spin zen-rounded-zen-full zen-border zen-border-zen-border zen-border-t-zen-primary"
+                                    />
+                                  </Show>
                                 </button>
                               </Show>
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
