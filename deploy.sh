@@ -93,7 +93,19 @@ say "Building for base $BASE  (${APP_SLUGS[*]})"
 # otherwise ship text-only cards. Generated BEFORE the builds because they land
 # in each demo's public/ and are copied at build time.
 say "Generating catalogue previews"
-node scripts/gen-previews.mjs || die "preview generation failed"
+# One process PER BINDING, each under a hard timeout.
+#
+# Generating all four in a single process wedged reliably on vanilla's
+# /skip-to-content — a demo that moves focus on load, so the page never goes
+# quiet — even though that same binding completes in ~90s on its own. A wedge
+# there is worse than a failure: the deploy simply stops, with no output and no
+# exit, and looks like slowness for as long as you are willing to wait.
+#
+# Per-binding processes mean one bad route cannot cost the other three, and
+# `timeout` turns a wedge into a failed deploy, which is a thing you can see.
+for b in react solid vanilla web-components; do
+  timeout 300 node scripts/gen-previews.mjs "$b" || die "preview generation failed or timed out: $b"
+done
 
 npx --yes vite build apps/landing      --base "$BASE"               --config apps/landing/vite.config.ts
 for i in "${!APP_DIRS[@]}"; do
