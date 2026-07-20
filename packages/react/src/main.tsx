@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { DirectionProvider } from "./components/direction/direction";
 import "./index.css";
 // Design tokens (defines --zen-color-* / --zen-radius-* / --zen-shadow-* per
 // data-theme). MUST load before any UnoCSS utility (bg-zen-*, text-zen-*, …)
@@ -42,10 +43,15 @@ applyTheme(getInitialTheme());
 // is baked in at build time and always has a trailing slash; basename must not.
 const BASENAME = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+// DirectionProvider follows <html dir>, so the demo behaves correctly when
+// driven in RTL (`node scripts/visual-check.mjs react --dir rtl`) and the
+// primitives' direction-dependent JS is genuinely exercised rather than assumed.
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter basename={BASENAME}>
-      <App />
-    </BrowserRouter>
+    <DirectionProvider>
+      <BrowserRouter basename={BASENAME}>
+        <App />
+      </BrowserRouter>
+    </DirectionProvider>
   </StrictMode>
 );

@@ -564,6 +564,12 @@ export type { StackProps } from "./components/stack/stack";
 export { Theme } from "./components/theme/theme";
 export type { ThemeProps } from "./components/theme/theme";
 
+// DirectionProvider — tells the Radix primitives which way the page reads.
+// CSS flips on its own; the JS that decides submenu side and arrow-key meaning
+// does not, and Radix defaults to ltr regardless of document.dir.
+export { DirectionProvider } from "./components/direction/direction";
+export type { Direction, DirectionProviderProps } from "./components/direction/direction";
+
 // UI Components - Card (generic surface + SelectableCard for "pick one")
 export {
   Card,

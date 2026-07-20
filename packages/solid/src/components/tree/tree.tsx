@@ -1,4 +1,5 @@
 import { type JSX, For, Show, createMemo, createSignal, splitProps } from "solid-js";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Icon, type IconName } from "../icon/icon";
 
@@ -111,11 +112,12 @@ export const Tree = (props: TreeProps) => {
     } else if (key === "ArrowUp") {
       e.preventDefault();
       if (list[i - 1]) focus(list[i - 1].node.id);
-    } else if (key === "ArrowRight") {
+      // "Into" is ArrowLeft in RTL — the standard tree behaviour there.
+    } else if (arrowStep(key, e.currentTarget as Element) === 1) {
       e.preventDefault();
       if (row.hasChildren && !expandedSet().has(row.node.id)) toggle(row.node.id, true);
       else if (row.hasChildren && list[i + 1]) focus(list[i + 1].node.id);
-    } else if (key === "ArrowLeft") {
+    } else if (arrowStep(key, e.currentTarget as Element) === -1) {
       e.preventDefault();
       if (row.hasChildren && expandedSet().has(row.node.id)) toggle(row.node.id, false);
       else if (row.parentId) focus(row.parentId);

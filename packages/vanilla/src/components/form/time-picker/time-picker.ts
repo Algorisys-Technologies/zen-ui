@@ -293,6 +293,12 @@ export function TimePicker(props: TimePickerProps = {}): TimePickerHandle {
   el.setAttribute("role", "group");
 
   const inner = document.createElement("div");
+  // dir="ltr" deliberately, and NOT flipped for RTL. Clock notation is
+  // left-to-right in every locale — HH:MM:SS, hours first — so the segment row
+  // must not reverse with the page the way a carousel or a rating does. Pinning
+  // it also keeps ArrowRight meaning "next segment" correct, which is why this
+  // component is the one exception to the arrowStep sweep.
+  inner.setAttribute("dir", "ltr");
   inner.className = "zen-ml-2 zen-flex zen-items-center zen-gap-0.5 zen-text-zen-foreground";
 
   const hiddenInput = document.createElement("input");

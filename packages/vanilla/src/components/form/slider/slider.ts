@@ -1,4 +1,5 @@
 import { cn } from "../../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { applyProps, Disposer, type ZenComponent } from "../../../lib/component";
 import { controllable } from "../../../lib/state";
 
@@ -225,12 +226,15 @@ export function Slider(props: SliderProps): ZenComponent<SliderProps> {
     const big = step * 10;
     const values = [...state.get()];
     let v = values[idx];
-    switch (e.key) {
-      case "ArrowRight":
+    // Horizontal arrows follow reading direction — an RTL slider fills from the
+    // right, so ArrowLeft raises the value. Vertical arrows never flip.
+    const dirStep = arrowStep(e.key, e.currentTarget as Element);
+    switch (dirStep === 1 ? "__fwd" : dirStep === -1 ? "__back" : e.key) {
+      case "__fwd":
       case "ArrowUp":
         v += step;
         break;
-      case "ArrowLeft":
+      case "__back":
       case "ArrowDown":
         v -= step;
         break;

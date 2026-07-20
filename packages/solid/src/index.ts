@@ -633,6 +633,12 @@ export type { StackProps } from "./components/stack/stack";
 export { Theme } from "./components/theme/theme";
 export type { ThemeProps } from "./components/theme/theme";
 
+// DirectionProvider — tells the Kobalte primitives which way the page reads.
+// Takes an optional `locale` that React does not: Kobalte derives direction
+// FROM a locale rather than accepting one, so it cannot be set independently.
+export { DirectionProvider } from "./components/direction/direction";
+export type { Direction, DirectionProviderProps } from "./components/direction/direction";
+
 export {
   Breadcrumb,
   BreadcrumbList,

@@ -1,4 +1,5 @@
 import { type JSX, For, Show, createMemo, createSignal, splitProps } from "solid-js";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import {
   colorLabel,
   contrastingInk,
@@ -78,8 +79,10 @@ export const ColorPalette = (props: ColorPaletteProps) => {
       e.preventDefault();
       update(opts[Math.max(0, Math.min(last, n))].value);
     };
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") go(i < 0 ? 0 : i + 1);
-    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(i < 0 ? 0 : i - 1);
+    // Horizontal arrows follow reading direction; vertical ones never do.
+    const step = arrowStep(e.key, e.currentTarget as Element);
+    if (step === 1 || e.key === "ArrowDown") go(i < 0 ? 0 : i + 1);
+    else if (step === -1 || e.key === "ArrowUp") go(i < 0 ? 0 : i - 1);
     else if (e.key === "Home") go(0);
     else if (e.key === "End") go(last);
   };

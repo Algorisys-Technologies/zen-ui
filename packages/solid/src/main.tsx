@@ -93,6 +93,7 @@ import NewCustomizingDemo from "./components/NewCustomizingDemo";
 import NewMaskInputDemo from "./components/NewMaskInputDemo";
 import NewLinkDemo from "./components/NewLinkDemo";
 import NewThemeDemo from "./components/NewThemeDemo";
+import { DirectionProvider } from "./components/direction/direction";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
@@ -115,6 +116,8 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 render(
   () => (
+    // DirectionProvider follows <html dir> — see the React binding's note.
+    <DirectionProvider>
     <Router base={BASE} root={App}>
       <Route path="/" component={Welcome} />
       <Route path="/button" component={NewButtonDemo} />
@@ -205,6 +208,7 @@ render(
       <Route path="/pivot" component={NewPivotDemo} />
       <Route path="/list-report" component={NewListReportDemo} />
     </Router>
+    </DirectionProvider>
   ),
   root,
 );

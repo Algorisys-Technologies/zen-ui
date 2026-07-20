@@ -10,6 +10,7 @@ import {
   untrack,
 } from "solid-js";
 import { cn } from "../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 
 /**
  * ObjectPageLayout — Solid binding. Mirrors
@@ -298,10 +299,11 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
   const onAnchorKeyDown = (e: KeyboardEvent, index: number) => {
     const sections = local.sections;
     const last = sections.length - 1;
-    if (e.key === "ArrowRight") {
+    const step = arrowStep(e.key, e.currentTarget as Element);
+    if (step === 1) {
       e.preventDefault();
       focusAnchor(sections[index === last ? 0 : index + 1].id);
-    } else if (e.key === "ArrowLeft") {
+    } else if (step === -1) {
       e.preventDefault();
       focusAnchor(sections[index === 0 ? last : index - 1].id);
     } else if (e.key === "Home") {

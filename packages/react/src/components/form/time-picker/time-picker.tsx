@@ -295,7 +295,17 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
         )}
       >
         <ClockIcon />
-        <div className="zen-ml-2 zen-flex zen-items-center zen-gap-0.5 zen-text-zen-foreground">
+        {/* dir="ltr" deliberately, and NOT flipped for RTL. Clock notation is
+            left-to-right in every locale — HH:MM:SS, hours first — so the
+            segment row must not reverse with the page the way a carousel or a
+            rating does. Pinning it here also keeps ArrowRight meaning "next
+            segment" correct, which is why this component is the one exception
+            to the arrowStep sweep. `zen-ml-2` stays physical for the same
+            reason: it offsets inside a row that no longer flips. */}
+        <div
+          dir="ltr"
+          className="zen-ml-2 zen-flex zen-items-center zen-gap-0.5 zen-text-zen-foreground"
+        >
           <div
             ref={(el) => {
               segRefs.current.h = el;

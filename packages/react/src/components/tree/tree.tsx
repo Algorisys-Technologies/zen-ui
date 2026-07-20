@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Icon, type IconName } from "../icon/icon";
 
@@ -124,12 +125,13 @@ export const Tree = React.forwardRef<HTMLUListElement, TreeProps>(
       } else if (key === "ArrowUp") {
         e.preventDefault();
         if (rows[i - 1]) focus(rows[i - 1].node.id);
-      } else if (key === "ArrowRight") {
+      } else if (arrowStep(key, e.currentTarget as Element) === 1) {
         e.preventDefault();
         // Closed -> open; already open -> step into the first child.
+        // "Into" is ArrowLeft in RTL — the standard tree behaviour there.
         if (row.hasChildren && !expandedSet.has(row.node.id)) toggle(row.node.id, true);
         else if (row.hasChildren && rows[i + 1]) focus(rows[i + 1].node.id);
-      } else if (key === "ArrowLeft") {
+      } else if (arrowStep(key, e.currentTarget as Element) === -1) {
         e.preventDefault();
         // Open -> close; already closed -> step out to the parent.
         if (row.hasChildren && expandedSet.has(row.node.id)) toggle(row.node.id, false);

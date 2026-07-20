@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 
 /**
@@ -333,10 +334,11 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
 
     const onAnchorKeyDown = (e: React.KeyboardEvent, index: number) => {
       const last = sections.length - 1;
-      if (e.key === "ArrowRight") {
+      const step = arrowStep(e.key, e.currentTarget as Element);
+      if (step === 1) {
         e.preventDefault();
         focusAnchor(sections[index === last ? 0 : index + 1].id);
-      } else if (e.key === "ArrowLeft") {
+      } else if (step === -1) {
         e.preventDefault();
         focusAnchor(sections[index === 0 ? last : index - 1].id);
       } else if (e.key === "Home") {

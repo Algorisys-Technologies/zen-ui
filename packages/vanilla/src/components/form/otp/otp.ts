@@ -1,4 +1,5 @@
 import { cn } from "../../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { applyProps, Disposer, toNodes, type Child, type ZenComponent } from "../../../lib/component";
 import { controllable } from "../../../lib/state";
 import "./otp.css";
@@ -201,12 +202,15 @@ export function InputOTP(props: InputOTPProps): ZenComponent<InputOTPProps> {
         }
         return;
       }
-      if (e.key === "ArrowLeft" && index > 0) {
+      // The boxes sit in a flex row, which reverses in RTL, so the PREVIOUS box
+      // is to the right there. Follow the reading direction, not the key name.
+      const step = arrowStep(e.key, e.currentTarget as Element);
+      if (step === -1 && index > 0) {
         e.preventDefault();
         focusInput(index - 1);
         return;
       }
-      if (e.key === "ArrowRight" && index < max - 1) {
+      if (step === 1 && index < max - 1) {
         e.preventDefault();
         focusInput(index + 1);
       }

@@ -6,6 +6,7 @@ import {
   type ColorOption,
 } from "@algorisys/zen-ui-core/color";
 import { cn } from "../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { applyProps, Disposer, type ZenComponent } from "../../lib/component";
 import { controllable } from "../../lib/state";
 import { Button } from "../button/button";
@@ -118,8 +119,10 @@ export function ColorPalette(props: ColorPaletteProps): ZenComponent<ColorPalett
       e.preventDefault();
       commit(options[Math.max(0, Math.min(last, i))].value);
     };
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") go(index < 0 ? 0 : index + 1);
-    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(index < 0 ? 0 : index - 1);
+    // Horizontal arrows follow reading direction; vertical ones never do.
+    const step = arrowStep(e.key, e.currentTarget as Element);
+    if (step === 1 || e.key === "ArrowDown") go(index < 0 ? 0 : index + 1);
+    else if (step === -1 || e.key === "ArrowUp") go(index < 0 ? 0 : index - 1);
     else if (e.key === "Home") go(0);
     else if (e.key === "End") go(last);
   };

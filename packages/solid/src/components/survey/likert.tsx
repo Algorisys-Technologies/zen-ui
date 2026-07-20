@@ -1,4 +1,5 @@
 import { type JSX, createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 
 /**
@@ -97,14 +98,22 @@ export const Likert = (props: LikertProps) => {
     if (!interactive()) return;
     const idx = currentIndex();
     if (idx < 0) return;
-    const forward = layout() === "stacked" ? "ArrowDown" : "ArrowRight";
-    const back = layout() === "stacked" ? "ArrowUp" : "ArrowLeft";
+    // Stacked lays out vertically: up/down, and vertical never flips. Inline
+    // lays out in a flex row, which reverses in RTL.
+    const step =
+      layout() === "stacked"
+        ? e.key === "ArrowDown"
+          ? 1
+          : e.key === "ArrowUp"
+            ? -1
+            : 0
+        : arrowStep(e.key, e.currentTarget as Element);
     const opts = options();
-    if (e.key === forward) {
+    if (step === 1) {
       e.preventDefault();
       const next = opts[Math.min(opts.length - 1, idx + 1)];
       update(next.value);
-    } else if (e.key === back) {
+    } else if (step === -1) {
       e.preventDefault();
       const next = opts[Math.max(0, idx - 1)];
       update(next.value);

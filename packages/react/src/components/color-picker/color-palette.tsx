@@ -1,4 +1,5 @@
 import * as React from "react";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import {
   colorLabel,
   contrastingInk,
@@ -60,8 +61,10 @@ export const ColorPalette = React.forwardRef<HTMLDivElement, ColorPaletteProps>(
         e.preventDefault();
         update(options[Math.max(0, Math.min(last, i))].value);
       };
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") go(index < 0 ? 0 : index + 1);
-      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(index < 0 ? 0 : index - 1);
+      // Horizontal arrows follow reading direction; vertical ones never do.
+      const step = arrowStep(e.key, e.currentTarget as Element);
+      if (step === 1 || e.key === "ArrowDown") go(index < 0 ? 0 : index + 1);
+      else if (step === -1 || e.key === "ArrowUp") go(index < 0 ? 0 : index - 1);
       else if (e.key === "Home") go(0);
       else if (e.key === "End") go(last);
     };

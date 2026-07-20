@@ -1,4 +1,5 @@
 import { cn } from "../../lib/cn";
+import { arrowStep } from "@algorisys/zen-ui-core";
 import {
   Disposer,
   toNodes,
@@ -461,7 +462,8 @@ export function DropdownMenu(props: DropdownMenuProps): DropdownMenuHandle {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         activate();
-      } else if (sub && (e.key === "ArrowRight")) {
+        // Opening a submenu goes FORWARD, which is ArrowLeft in RTL.
+      } else if (sub && arrowStep(e.key, e.currentTarget as Element) === 1) {
         e.preventDefault();
         openSubFor(sub, item, true);
       }
@@ -565,8 +567,8 @@ export function DropdownMenu(props: DropdownMenuProps): DropdownMenuHandle {
         closeAll();
         return;
       }
-      // ArrowLeft collapses a submenu back to its parent trigger.
-      if (e.key === "ArrowLeft" && onCollapse) {
+      // Collapsing a submenu goes BACK, which is ArrowRight in RTL.
+      if (arrowStep(e.key, e.currentTarget as Element) === -1 && onCollapse) {
         e.preventDefault();
         onCollapse();
       }
