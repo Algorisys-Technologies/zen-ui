@@ -28,6 +28,7 @@ import "./checkbox";
 import "./color-picker";
 import "./combobox";
 import "./data-table";
+import "./tree-table";
 import "./date-picker";
 import "./date-range-picker";
 import "./date-time-picker";

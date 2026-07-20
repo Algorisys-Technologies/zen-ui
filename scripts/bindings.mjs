@@ -46,7 +46,8 @@ const DATA_DRIVEN_DIVERGENT = [
   "SortingColumn", "SortingState", "SplitButtonMenuItem", "StepperApi", "StepperHandle", "StepperList",
   "StepperNavigation", "StepperNavigationOptions", "StepperPanel", "TEXTAREA_CLASS", "TabSpec", "TabsContent",
   "TabsList", "TabsTrigger", "TextareaHandle", "TimePickerHandle", "ToastVariant", "TooltipContent",
-  "TooltipHandle", "TooltipPortal", "TooltipSide", "TooltipTrigger", "ValidationMode", "Validator",
+  "TooltipHandle", "TooltipPortal", "TooltipSide", "TooltipTrigger", "TreeTableCellContext",
+  "TreeTableColumn", "ValidationMode", "Validator",
   "ValueHelpItem", "ViewSettingsDialogHandle", "ZenComponent",
 ];
 

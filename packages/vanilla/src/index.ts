@@ -201,6 +201,12 @@ export type { ChartProps, ChartSeries } from "./components/chart/chart";
 export type { Slice } from "@algorisys/zen-ui-core/chart";
 export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
 export { DataTable } from "./components/data-table/data-table";
+export { TreeTable } from "./components/tree-table/tree-table";
+export type {
+  TreeTableProps,
+  TreeTableColumn,
+  TreeTableCellContext,
+} from "./components/tree-table/tree-table";
 export type { DataTableProps, DataTableColumn, DataTableCellContext, SortingColumn, SortingState, DataTableManualPagination } from "./components/data-table/data-table";
 export { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption } from "./components/data-table/table";
 export type { TableProps } from "./components/data-table/table";

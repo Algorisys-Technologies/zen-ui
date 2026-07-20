@@ -155,7 +155,7 @@ zen-ui's `DataTable` already implements sorting, filtering, grouping, pagination
 | **SelectDialog** / **TableSelectDialog** | Modal item picker with search + growing list | ✅ `SelectDialog`, all four bindings |
 | **ViewSettingsDialog** (+ Sort/Filter/Group items) | Sort / filter / group settings dialog | ✅ `ViewSettingsDialog`, all four bindings *(2026-07-20)* |
 | **AnalyticalTable** | Grid table with **aggregation and totals rows** | ❌ |
-| **TreeTable** | Hierarchical grid table | ❌ — **wanted** (stated 2026-07-20). Promoted out of the "separate / extensions of DataTable" bucket; `Tree` and `DataTable` both exist, so this is a composition question rather than a new primitive. |
+| **TreeTable** | Hierarchical grid table | ✅ — **shipped 2026-07-21**, all four bindings. Built as its own component, not a DataTable prop: hierarchy and grouping claim the same `subRows` / `expanded` / chevron slots, so one table cannot hold both. Chevron indents inside the first column; filter keeps ancestors; selection cascades. No virtualization or pagination in v1 — see todo.md for why. |
 | **Export to Spreadsheet** (`sap.ui.export`) | Export table data to `.xlsx` | ❌ |
 | **Growing** (`growingScrollToLoad`) | "More" button / infinite scroll from the model | ⚠️ Virtualization ≠ growing; different concern |
 | **Sticky** (ColumnHeaders / HeaderToolbar / InfoToolbar / GroupHeaders) | Sticky table regions on scroll | ⚠️ Partial |

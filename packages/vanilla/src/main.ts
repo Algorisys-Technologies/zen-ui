@@ -95,6 +95,7 @@ import QRScannerDemo from "./components/QRScannerDemo";
 import MapDemo from "./components/MapDemo";
 import ChartDemo from "./components/ChartDemo";
 import DataTableDemo from "./components/DataTableDemo";
+import TreeTableDemo from "./components/TreeTableDemo";
 import FormDemo from "./components/FormDemo";
 import PivotDemo from "./components/PivotDemo";
 
@@ -188,6 +189,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/map": MapDemo,
   "/chart": ChartDemo,
   "/data-table": DataTableDemo,
+  "/tree-table": TreeTableDemo,
   "/form": FormDemo,
   "/pivot": PivotDemo,
 };
