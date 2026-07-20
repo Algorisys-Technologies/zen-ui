@@ -40,6 +40,11 @@ defineZenElement<TreeTableProps<Record<string, unknown>>>({
     "defaultExpanded",
     "enableExpandAll",
     "enableSubRowSelection",
+    // Functions, so properties by necessity — there is no attribute form of
+    // "call this and await a Promise".
+    "hasChildren",
+    "loadChildren",
+    "onLoadChildrenError",
   ],
   events: {
     onExpandedChange: "zen-expanded-change",

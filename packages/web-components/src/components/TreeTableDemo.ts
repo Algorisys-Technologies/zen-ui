@@ -112,6 +112,32 @@ const BIG: CostCentre[] = Array.from({ length: 40 }, (_, a) => ({
   })),
 }));
 
+/** Roots only — the children arrive from `loadChildren` on first expand. */
+const LAZY_ROOTS: CostCentre[] = [
+  { id: "lz-eng", name: "Engineering", owner: "A. Okonkwo", headcount: 128, budget: 19_400_000 },
+  { id: "lz-gtm", name: "Go to market", owner: "C. Mwangi", headcount: 87, budget: 14_800_000 },
+  { id: "lz-ops", name: "Operations", owner: "B. Sørensen", headcount: 34, budget: 5_200_000 },
+];
+
+/** Stands in for a network call. */
+const fetchChildren = (row: CostCentre): Promise<CostCentre[]> =>
+  new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve(
+          Array.from({ length: 4 }, (_, i) => ({
+            id: `${row.id}-c${i}`,
+            name: `${row.name} team ${i + 1}`,
+            owner: "Loaded on demand",
+            headcount: 8 + i * 3,
+            budget: 400_000 + i * 90_000,
+          })),
+        ),
+      700,
+    ),
+  );
+
+
 /* -------------------------- helpers -------------------------------- */
 function el(tag: string, attrs: Record<string, string> = {}): HTMLElement {
   const n = document.createElement(tag);
@@ -224,7 +250,39 @@ export default function TreeTableDemo(): HTMLElement {
         render: () => tree({ "enable-sorting": "", "default-expanded": "true" }),
       },
       {
-        title: "6. Virtualization — for a tree you expand all of",
+        title: "6. Children fetched on first expand",
+        codeTitle: "`loadChildren` + `hasChildren` are properties",
+        codeDescription: "For trees too big or too remote to send whole. hasChildren is what makes a row openable before it has any children — without it a not-yet-loaded node is indistinguishable from a leaf, gets no chevron, and can never be opened to trigger the load. Both are functions, so they are set as JS properties rather than attributes. The chevron becomes a spinner while the fetch is in flight; results cache against the row id.",
+        code: `<zen-tree-table></zen-tree-table>
+
+<script>
+  const t = document.querySelector("zen-tree-table");
+  t.columns = columns;
+  t.data = roots;
+  t.getRowId = (row) => row.id;
+  t.hasChildren = (row) => row.childCount > 0;
+  t.loadChildren = (row) =>
+    fetch(\`/api/nodes/\${row.id}/children\`).then((r) => r.json());
+</script>`,
+        render: () => {
+          const t = el("zen-tree-table");
+          const w = t as unknown as {
+            columns: TreeTableColumn<CostCentre>[];
+            data: CostCentre[];
+            getRowId: (r: CostCentre) => string;
+            hasChildren: () => boolean;
+            loadChildren: (r: CostCentre) => Promise<CostCentre[]>;
+          };
+          w.columns = COLUMNS;
+          w.data = LAZY_ROOTS;
+          w.getRowId = (r) => r.id;
+          w.hasChildren = () => true;
+          w.loadChildren = fetchChildren;
+          return t;
+        },
+      },
+      {
+        title: "7. Virtualization — for a tree you expand all of",
         codeTitle: "`enable-virtualization` needs `max-body-height`",
         codeDescription: "Only visible rows are ever in the DOM, so a large tree sitting collapsed costs nothing and needs none of this. The case that hurts is expanding all of a big one: measured, ~22,600 open rows put 162,000 nodes on the page and took about a second to mount. Turn this on and only the rows near the viewport render. It needs maxBodyHeight — without a bounded scroller there is no window, and it warns rather than silently doing nothing. There is no virtualizer library in this binding, so the window maths is uniform-height: one real row is measured, then the rest is derived.",
         code: `<zen-tree-table enable-virtualization
@@ -243,7 +301,7 @@ export default function TreeTableDemo(): HTMLElement {
         },
       },
       {
-        title: "7. Keyboard and screen readers",
+        title: "8. Keyboard and screen readers",
         codeTitle: "It is a treegrid, not a table with chevrons",
         codeDescription:
           "The table carries role=treegrid and every row carries aria-level, aria-expanded and its position among its SIBLINGS — not its position on the page, which would tell a screen-reader user nothing about the shape. Focus roves across rows with one tab stop: Up/Down move, forward-arrow opens a closed node then descends, back-arrow closes an open one then climbs to the parent, Home/End jump to the ends. The arrows are direction-aware, so in RTL the roles of Left and Right swap.",
