@@ -1,181 +1,167 @@
 # Handoff
 
-State at the end of the 2026-07-21 session. Written for whoever picks this up
-with no memory of it — including me.
+State at the end of the 2026-07-21 session (second half). Written for whoever
+picks this up with no memory of it — including me.
 
-This file replaces the 2026-07-16 handoff, which was written at 6.0.0 and had
-gone entirely stale (its lint baselines, route counts and open questions were
-all superseded). Nothing in it is still live.
+This replaces the earlier 2026-07-21 handoff, which was written mid-Timeline and
+is now entirely superseded.
 
 ## Where things stand
 
-`dev == origin/dev == d43b3e2`, tree clean, all four demo builds on their dev
-bases. Last release is **9.4.0** (`13a5b5f`, tagged `v9.4.0`; `main` and
-`gh-pages` both current; site deployed and verified by deploy's own checks).
+**9.5.0 is released and deployed.** `dev == main == fe3d7d3`, tagged `v9.5.0`,
+tree clean, `gh-pages` published and verified by deploy's own checks. All four
+demo builds have been rebuilt onto their dev bases after the deploy, so
+`preview` serves working pages.
 
-**There is unreleased work on top of 9.4.0** — six commits, all additive:
+Everything in the previous handoff's "pick up here" list is done:
 
-| commit | what |
+| what | state |
 |---|---|
-| `0902318` | Fiori Tier 4 triaged into dropped / accepted |
-| `b9ad1c1` `f5e672d` `7a83728` | Micro charts — **complete, all four bindings** |
-| `3579c35` `d43b3e2` | Timeline — **Solid and React only** |
+| Micro charts | shipped 9.4.0-era work, all four bindings |
+| **Timeline** | **done, all four bindings** |
+| **UploadCollection** | **done, all four bindings** |
+| `bun run check` | **green** — parity included |
 
-`bun run check` is **red right now, and that is expected**: `check:parity`
-reports Timeline as existing in two bindings of four. It goes green when the
-vanilla and web-components ports land. Do not "fix" it by deleting anything.
+Gates as measured on `fe3d7d3`:
+
+| command | state |
+|---|---|
+| `bun run check` | exit 0 |
+| `lint` / `lint:solid` / `lint:vanilla` / `lint:wc` | **0 problems each** — 215 / 215 / 203 / 194 files linted |
+| `check:dist` | Button 17 kB gzip React / 16 Solid / 17 vanilla (budget 30); nine components 57 (budget 80) |
+| `visual-check react` / `solid` | 90 routes each; only failure is `i.pravatar.cc` DNS on `/avatar`, sandbox-only |
+
+**The Solid lint baseline was genuinely 1, not 0, for the whole previous
+session** — CLAUDE.md and the old handoff both claimed 0. It is 0 now, and
+CLAUDE.md records how it was measured. The warning was a `solid/reactivity`
+false positive on the callback `tree-table`'s `getSubRows` RETURNS; the getter is
+the tracked scope, so the callback is a snapshot by design.
 
 ## Pick up here
 
-**Port Timeline to vanilla, then web-components.** Build order is
-Solid → React → vanilla → web-components (CLAUDE.md, "Do ONE binding at a
-time"). Solid and React are done and are the thing to port FROM.
-
-1. `packages/vanilla/src/components/timeline/timeline.ts` — factory returning
-   `ZenComponent`, mirroring `packages/react/src/components/timeline/timeline.tsx`.
-   Data-driven: `items: TimelineItem[]`.
-2. Export from `packages/vanilla/src/index.ts`; demo at
-   `packages/vanilla/src/components/TimelineDemo.ts`; route in `main.ts`; entry
-   in `nav.ts`.
-3. `packages/web-components/src/elements/timeline.ts` — `<zen-timeline>` with
-   `items` as a **json attr + property** (it is an array whose entries carry
-   nodes). Register in `elements/index.ts`; re-export the names in `src/index.ts`.
-4. **`bun run build:lib:vanilla` before typechecking web-components** — wc
-   resolves vanilla through its `dist`, so a new export is invisible until the
-   lib rebuilds. This bit once already this session.
-5. `bun run gen:agent-guide`, then `bun run check` should be green again.
-
-Then, in order: **UploadCollection**, then **PlanningCalendar** (large enough to
-be its own release). Reasoning for the order is in
+**PlanningCalendar** — the last accepted item from the Fiori Tier 4 triage, and
+by a wide margin the largest. It is a release of its own. Reasoning is in
 `docs/fiori-gap-analysis.md`; the checklist is in `todo.md`.
 
-Suggested release shape: fold Timeline and UploadCollection into one **9.5.0**
-rather than cutting a release per component.
+Build order is unchanged: **Solid → React → vanilla → web-components**, one
+binding finished and driven in a browser before the next starts. That order paid
+for itself twice this session (see below).
 
-## What Timeline is, so the port matches
+One smaller item is queued and independent:
 
-An ordered list of events — audit trail, order history, ticket comments.
-Data-driven, not compound. Props: `items`, `density` (`"default" | "compact"`),
-`emptyMessage`, plus `class` / `className`.
+- **`Progress` renders `indeterminate` inconsistently and wrongly.** Kobalte
+  sets no `--kb-progress-fill-width`, so Solid's fill spans 100% and a queued
+  item reads as FINISHED; React's Radix version renders `translateX(-100%)`, an
+  EMPTY track. Neither animates. The Solid doc comment already says
+  `data-progress="indeterminate"` exists to be targeted; nothing targets it.
+  Deliberately not folded into UploadCollection: it is a visual change to a
+  shipped component, so a MAJOR bump and a four-binding change of its own.
 
-`TimelineItem`: `id`, `title`, `description?`, `timestamp?` (display string),
-`dateTime?` (machine-readable), `icon?`, `state?`
-(`default | info | success | warning | error`), `group?`, `children?`.
+## What shipped, so a change does not undo the reasoning
 
-Four decisions the port must preserve — each is load-bearing, not styling:
+### Timeline
 
-- **It is an `<ol>`.** A div stack tells a screen-reader user nothing about
-  sequence or length, and sequence is the whole subject of the component.
-- **The group heading is NOT an `<li>`.** It is not one of the events, and
-  putting it in the list inflates the count a screen reader announces.
-- **The rail is hidden on the LAST item.** A line running past the final event
-  reads as "more below", which is exactly wrong at the end.
-- **Markers are `aria-hidden`.** They repeat the title, and "image, check
-  circle" before every entry is noise.
+Ordered list of events. `items`, `density` (`default | compact`),
+`emptyMessage`. Four decisions are load-bearing rather than stylistic:
 
-Grouping is a `group` **string on the item**, deliberately not a `groupBy`
-function: the caller already knows whether two events fall on the same day, and
-deriving it here means guessing at their timezone and their idea of "today".
+- **It is an `<ol>`.** Sequence is the whole subject.
+- **The group heading is NOT an `<li>`.** It would inflate the announced count.
+- **The rail is hidden on the LAST item.** A line past the final event reads as
+  "more below".
+- **Markers are `aria-hidden`.** They repeat the title.
 
-`density="compact"` **drops** the description and body rather than shrinking
-type. In a narrow sidebar a two-line description wraps to five and the sequence
-stops being scannable, which was the only reason the timeline was there.
+Grouping is a `group` STRING on the item, not a `groupBy` function — deriving it
+means guessing at the caller's timezone. `compact` DROPS the description rather
+than shrinking type.
 
-## Verification recipe
+Vanilla deviates once, deliberately: the factory returns a wrapper `<div>`,
+because `el` is handed out once and swapping the root between an `<ol>` and the
+empty `<p>` on `update()` would leave the caller holding a detached node.
 
-Every bug found this session was green on tsc, eslint and the build. Drive it:
+### UploadCollection
 
-```bash
-cd packages/<binding> && npx vite build --config vite.config.demo.ts
-setsid npx vite preview --config vite.config.demo.ts --port 5197 --strictPort &
-# then run the playwright probe FROM THE REPO ROOT — playwright resolves there
-```
+The list of files after they are picked. `items`, `onRemove`, `onRetry`,
+`onRename`, `emptyMessage`, `disabled`.
 
-The Timeline probe asserted, per binding: 5 events; headings
-`TODAY / YESTERDAY / 18 JULY` **not** inside `<li>`; rail present on items 1–4
-and absent on 5; every marker `aria-hidden`; `time[datetime]` machine-readable;
-compact rendering 5 items and **zero** body `<p>`; the empty state rendering a
-message and **no `<ol>`**; and under RTL the rail moving to the right-hand side
-of the row. Reproduce those exact numbers in vanilla and web-components.
-
-**Report the COUNT of things examined, not just failures.** A geometric
-assertion that matches nothing passes.
-
-One known false alarm, so it is not re-investigated: React's demo page reports
-**6** `<ol>` where Solid reports 5. The extra is **Radix Toast's viewport**
-(fixed, zero items, outside `.demo-page`). Solid uses solid-toast, which renders
-no list. That is the Toast divergence already recorded in `scripts/bindings.mjs`.
+- **Paired with FileUpload, not folded into it.** The drop zone is a control the
+  user operates; the list is state the transport writes.
+- **It does not own the upload.** No `url`, no `method`, no retry policy;
+  `onRetry` hands the item back.
+- **Actions are presence-gated** — in web-components, on the LISTENER, which
+  `defineZenElement`'s opt-in event wiring gives for free.
+- **It is a `<ul>`**, unlike Timeline: attachments have no sequence.
+- `class` / `className` reaches the empty state as well as the list, so removing
+  the last file does not resize the box.
 
 ## Traps this session actually hit
 
-Each of these was green on tsc, eslint and the build:
+All of these were green on tsc, eslint and the build.
 
-- **`zen-fill-*` / `zen-stroke-*` DO NOT GENERATE** under this preset. The micro
-  chart bullet track computed to black and the radial ring to `none` — invisible
-  rather than obviously broken. Use `var(--zen-color-*)` directly in SVG.
-- **React renames SVG attributes to camelCase**, and a missed rename renders as
-  nothing at all. Assert computed `strokeWidth` / `strokeDasharray` /
-  `textAnchor`, not the markup.
-- **`document.createElement("svg")` yields an HTMLUnknownElement.** It parses,
-  attaches, reports 0×0 and draws nothing, silently. Vanilla SVG must go through
-  `createElementNS`; assert `namespaceURI` in the probe.
-- **A solution-style `tsconfig.json`** (`{"files": [], "references": [...]}` — what
-  `packages/vanilla` and `packages/web-components` have at their root) compiles an
-  EMPTY program and exits 0 on any code. Use `-p tsconfig.app.json` and confirm
-  with `--listFiles | grep -c <name>`. It passed twice on a broken file.
-- **An absent boolean ATTRIBUTE resolves to `false`** in `defineZenElement`, so a
-  default-TRUE flag declared as an attr silently inverts for every HTML author.
-  Default-true booleans go in `props`. (`lib/define.ts:194` says so; I broke it
-  anyway.)
-- **Backticks inside `git commit -m "..."` are shell-interpreted** and silently
-  delete the identifiers that make a message useful. Use `-F -` with a quoted
-  heredoc.
-- **`eslint-disable-next-line` must be the LAST line before the reported line**,
-  and for a multi-line call the rule reports the INNER line — so a block
-  `/* eslint-disable */` is the only form that reaches it.
+- **Closing an inline editor removes a FOCUSED input, so the browser fires
+  `blur` DURING the removal and re-enters the handler mid-call.** Two distinct
+  bugs from one fact: Escape's discard was undone by the following commit, and
+  Enter committed TWICE (in vanilla the second `replaceWith` also threw
+  `NotFoundError`). **The guard must be set BEFORE the DOM is touched.**
+  `input.isConnected` does NOT work — at blur time the node is still a child, so
+  it reads `true`; that was measured doing exactly the wrong thing. It must also
+  be per editing session, not per row: a stale `true` swallows the next edit.
+- **Radix and Kobalte disagree about `indeterminate` Progress** (empty track vs
+  full). Caught at the React port, which is what building Solid first is for —
+  the same divergence found at binding four would have been three rewrites.
+- **`showFileList` is a PROPERTY, not an attribute** on `<zen-file-upload>`,
+  because it defaults TRUE and an absent boolean attribute resolves to `false`
+  in `defineZenElement`. `setAttribute("show-file-list", "false")` is silently
+  ignored.
+- **A demo section whose handlers are no-ops demonstrates the opposite of its
+  own point.** UploadCollection's "actions are presence-gated" section was wired
+  with `() => {}` at first — controls that draw and do nothing, which is exactly
+  what the section argues against. Every such section is live now, retry
+  included.
+- **A probe assertion can be wrong about a binding rather than the binding being
+  wrong.** "No `<ul>` when empty" counted vanilla's `FileUpload` list, which
+  stays in the DOM at `display:none` rather than being removed. Counting VISIBLE
+  lists — and reporting both numbers — made all four agree.
+- **`cd packages/x && …` inside a chained command silently runs the rest
+  somewhere else** when the `cd` fails because the shell is already there. One
+  edit was written to the wrong package and a build ran in the wrong one. Use
+  absolute paths.
+
+## Verification recipe
+
+Both components were verified by driving the built demo, not by reading it:
+
+```bash
+cd packages/<binding> && npx vite build --config vite.config.demo.ts
+setsid npx vite preview --config vite.config.demo.ts --port 52xx --strictPort &
+# run the playwright probe FROM THE REPO ROOT — playwright resolves there
+```
+
+Counts, so a future run can tell a real regression from a changed demo:
+
+- **Timeline, 15 assertions x 4 bindings.** 5 events; headings
+  `Today / Yesterday / 18 July`, 0 of 3 inside an `<li>`; rails `[1,1,1,1,0]`;
+  5 of 5 markers `aria-hidden`; 5 machine-readable `<time>`; compact 5 items and
+  0 body `<p>`; empty state 0 `<ol>`; RTL rail 7px → 437px of a 445px row.
+- **UploadCollection, 18 assertions x 4 bindings.** 6 sections; 3 rows in a
+  `<ul>` and 0 `<ol>`; 2 links across 3 rows; 0 buttons where no handler was
+  passed; 1 progressbar across 5 lifecycle rows, `aria-valuenow ["63"]`;
+  `Uploading… · 9.0 MB` and `Queued · 86.0 KB` in words; rename committing
+  trimmed on Enter and discarding on Escape; empty → 2 rows → 1 after Remove;
+  2 thumbnails with `alt=""` and non-zero natural size; empty state 0 `<ul>`.
+
+**Report the COUNT of things examined, not just failures.** A geometric or DOM
+assertion that matches nothing passes.
 
 ## Standing rules (do not re-derive)
 
 - **npm publishing is OUT OF SCOPE.** Do not mention unpublished-to-registry
   status. "Ship it" = release notes + version bump + tag + `main` sync +
-  `./deploy.sh --publish`. That is the whole of it.
+  `./deploy.sh --publish`.
 - **One binding at a time**, Solid → React → vanilla → web-components. React
-  remains the parity *reference* even though Solid is built first. This rule
-  caught four TreeTable bugs and three micro-chart bugs that existed only as
-  differences between bindings.
+  remains the parity *reference* even though Solid is built first.
 - **Rebuild all four demos after `./deploy.sh`** — it leaves them on the
-  `/zen-ui/` base, which renders a blank page inside a working shell with no
-  console errors beyond 404s.
-
-## Current baselines (measured 2026-07-21)
-
-| command | state |
-|---|---|
-| `bun run lint` / `lint:solid` | **0 problems each.** Any finding is yours |
-| `bun run check:dist` | Button 17 kB gzip React / 16 kB Solid / 17 kB vanilla (budget 30); nine components 57 (budget 80) |
-| `visual-check react` / `solid` | 87 routes each; only failure is `i.pravatar.cc` DNS on `/avatar`, sandbox-only |
-
-The Solid lint baseline was recorded in CLAUDE.md as 0 when it was actually 3.
-It is genuinely 0 now. Measure before quoting a delta — including this table.
-
-## Decisions settled this session
-
-- **Fiori Tier 4 triaged** (`0902318`). ~60% dropped on substance rather than
-  cost: smart controls are metadata-driven against OData V2 annotations, and
-  without the annotations a SmartTable *is* `DataTable` — there is no UI idea
-  left to port. Same for Launchpad tiles, SemanticPage, Analytical Card,
-  T-Account, Calculation Builder. Accepted: micro charts ✅, Timeline (in
-  progress), UploadCollection, PlanningCalendar.
-- **TreeTable is a separate component from DataTable**, because hierarchy and
-  grouping claim the same `subRows` / `expanded` / chevron slots — one table
-  cannot hold both.
-- **TreeTable pagination pages the ROOTS** (TanStack's
-  `paginateExpandedRows: false`), so a page carries whole subtrees. Paging the
-  flattened list orphans children on the next page.
-- **Virtualization uses spacer rows, not a grid clone.** A treegrid is exactly
-  where abandoning real `<table>` markup would cost the row and cell roles.
-- **Delta micro chart derives its own colour** from direction; `color` overrides
-  it only for the case where up is bad (cost, churn, latency).
+  `/zen-ui/` base, which renders a blank page inside a working shell. Done for
+  this deploy already.
 
 ## Open, needing a decision from Rajesh
 
@@ -184,6 +170,6 @@ It is genuinely 0 now. Measure before quoting a delta — including this table.
 - **DataTable's RTL column-resize grips** — left physical deliberately; they
   share maths with column pinning and sticky offsets. Small, unblocked, just not
   chosen yet.
-- **Solid demo section count** — 308 code snippets to React's 450. Coverage is
-  complete (every demo in every binding has at least one); the section count is
-  not.
+- **Solid demo section count** — coverage is complete (every demo in every
+  binding has at least one code example); Solid's demos still have fewer
+  sections than React's.
