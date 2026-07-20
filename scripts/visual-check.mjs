@@ -9,6 +9,7 @@
  *   node scripts/visual-check.mjs react                 # all routes
  *   node scripts/visual-check.mjs solid bound-fields notifications-inbox
  *   node scripts/visual-check.mjs both --theme dark
+ *   node scripts/visual-check.mjs react --dir rtl        # right-to-left audit
  *
  * Shots land in .visual/<binding>/<route>.png. Pair routes across bindings to
  * eyeball parity.
@@ -29,7 +30,14 @@ const argv = process.argv.slice(2);
 const which = argv[0] === "both" ? Object.keys(BINDINGS) : [argv[0] ?? "react"];
 const themeIdx = argv.indexOf("--theme");
 const theme = themeIdx > -1 ? argv[themeIdx + 1] : "default";
-const routes = argv.slice(1).filter((a) => !a.startsWith("--") && a !== theme);
+const dirIdx = argv.indexOf("--dir");
+const dir = dirIdx > -1 ? argv[dirIdx + 1] : "ltr";
+// Flag VALUES are positional, so they have to be excluded by index rather than
+// by value — a route legitimately named "rtl" or "dark" would otherwise vanish.
+const flagValueIdx = new Set([themeIdx, themeIdx + 1, dirIdx, dirIdx + 1].filter((i) => i > 0));
+const routes = argv
+  .slice(1)
+  .filter((a, i) => !a.startsWith("--") && !flagValueIdx.has(i + 1));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -91,16 +99,25 @@ for (const binding of which) {
   for (const route of targets) {
     const url = `http://localhost:${cfg.port}${cfg.base}${route}`;
     await page.goto(url, { waitUntil: "networkidle" });
-    await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
+    await page.evaluate(
+      ([t, d]) => {
+        document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.setAttribute("dir", d);
+      },
+      [theme, dir],
+    );
     await sleep(250);
-    const name = route === "/" ? "_welcome" : route.replace(/^\//, "").replace(/\//g, "-");
+    const base = route === "/" ? "_welcome" : route.replace(/^\//, "").replace(/\//g, "-");
+    // RTL shots get their own suffix so they never clobber the LTR baseline —
+    // the whole point is comparing the two.
+    const name = dir === "ltr" ? base : `${base}.${dir}`;
     await page.screenshot({ path: join(outDir, `${name}.png`), fullPage: true });
   }
 
   await browser.close();
   server.kill();
 
-  console.log(`${binding}: ${targets.length} routes -> ${outDir}/`);
+  console.log(`${binding}: ${targets.length} routes (${dir}, ${theme}) -> ${outDir}/`);
   if (failures.length) {
     console.log(`  ${failures.length} runtime error(s):`);
     [...new Set(failures)].slice(0, 12).forEach((f) => console.log(`    ${f}`));

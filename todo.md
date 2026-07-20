@@ -177,8 +177,14 @@ a global concern.
       components waiting on it still unmount. Carousel and ObjectPage additionally
       check `matchMedia` in JS, all four bindings, for scroll behaviour CSS cannot
       reach. Verified 2026-07-20.
-- [ ] **RTL audit** — verify Radix's logical-property defaults render
-      correctly in `dir="rtl"`.
+- [x] **RTL audit** — ~~verify Radix's logical-property defaults render
+      correctly in `dir="rtl"`.~~ **Done 2026-07-20 — see the RTL audit entry in
+      the Carbon-shaped section below**, which is where the findings and the three
+      remediation items live. This entry had been duplicated there; resolved to
+      one place.
+      The answer to the question as phrased: **Radix's defaults never get the
+      chance to apply.** No binding renders a `DirectionProvider`, so the
+      primitives read `ltr` internally regardless of `document.dir`.
 - [ ] **High-contrast / forced-colors** — make sure focus rings and
       borders remain visible under Windows High Contrast and macOS
       Increase Contrast.
@@ -871,11 +877,55 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
 
 ### Also open, from the foundations comparison
 
-- [ ] **RTL audit** — `❓ Unverified` in the Fiori doc since 2026-07-14, now spanning
-      four bindings. Duplicated at line ~174 of this file; both entries are the same
-      work. Cheapest thing in either doc to settle: `scripts/visual-check.mjs`
-      already boots each demo and drives every route from `nav.ts`, so this is a
-      `dir="rtl"` flag and a pass over the screenshots.
+- [x] **RTL audit — DONE 2026-07-20. Verdict: mostly works; three defect classes.**
+      `scripts/visual-check.mjs` gained a `--dir` flag, so this is now re-runnable
+      rather than a one-off: `node scripts/visual-check.mjs react --dir rtl`.
+      RTL shots are suffixed `.rtl.png` so they never clobber the LTR baseline.
+
+      **The good news, which was not a given:** overall layout mirrors correctly.
+      Sidebar moves to the right, ShellBar contents mirror, DataTable column order
+      flips, prose right-aligns. Flexbox/grid plus `dir` on `<html>` do the work,
+      and no route logged a runtime error in RTL.
+
+      **Enabling fact, verified by generating CSS rather than assuming:** every
+      physical utility has a working logical counterpart under the `zen-` prefix —
+      `zen-ms/me/ps/pe`, `zen-start/end`, `zen-border-s/e`, `zen-rounded-s/e`,
+      `zen-text-start/end` all emit correct `*-inline-*` CSS. So remediation is
+      mechanical, not a redesign.
+
+      Scale of the review surface (NOT a defect count — many `left-0 right-0`
+      pairs are symmetric and correct as they stand): **478 physical-direction
+      utilities across 132 component files** — React 154/45, Solid 157/45,
+      vanilla 167/42 — and **zero** logical utilities anywhere.
+
+  - [ ] **Defect 1 (library) — `TableHead` hardcodes `zen-text-left`.**
+        `data-table/table.tsx:113`. In RTL the header label stays left-aligned
+        while its column data flows right, so headers visibly do not line up with
+        their own columns. Affects `Table` AND `DataTable`. Fix is
+        `zen-text-left` → `zen-text-start`, which is **identical in LTR**
+        (`text-align:start` resolves to `left`), so it is a zero-risk change that
+        only affects the currently-broken direction. Same for the 21 other
+        `zen-text-left` sites, reviewed individually. All three bindings.
+  - [ ] **Defect 2 (library, invisible to screenshots) — direction never reaches
+        Radix or Kobalte.** No binding renders a `DirectionProvider`, and grep
+        finds no `dir` passed to any primitive (the only `dir=` hits are
+        Carousel's own prev/next prop). The primitives therefore default to `ltr`
+        internally no matter what `document.dir` says, so submenu open direction,
+        arrow-key semantics in menus/tabs/sliders, and Slider fill direction do
+        not flip. **This is the most important finding and the one the screenshot
+        pass cannot see** — it is interaction behaviour, not layout.
+        `@radix-ui/react-direction` is already available. Needs a decision on
+        surface: read `document.dir` automatically, or expose a `dir` prop on a
+        provider the consumer renders. Kobalte has its own equivalent to check.
+  - [ ] **Defect 3 (demo only, not shipped) — code blocks render RTL.**
+        `demo-helpers.tsx:62` renders `<pre className="example-code">` with no
+        `dir="ltr"`, so every code sample reverses in RTL and is unreadable. Code
+        is always LTR regardless of UI direction. Library ships no code blocks, so
+        this is demo-side only — but it is in all four demos.
+
+      **Not fixed here.** This entry is the audit; the three items above are the
+      remediation and are deliberately separate, because Defect 2 needs an API
+      decision rather than a sweep.
 - [ ] **Content density** (`cozy`/`compact`) — Fiori has a global density switch;
       zen-ui is fixed-size. Token-level, so one implementation. No demand recorded
       yet — do not build speculatively.
