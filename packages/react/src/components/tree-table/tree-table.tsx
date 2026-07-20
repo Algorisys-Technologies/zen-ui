@@ -12,6 +12,7 @@ import {
   type RowSelectionState,
   type SortingState,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import {
   Table,
@@ -95,6 +96,13 @@ export interface TreeTableProps<TData, TValue = unknown> {
   hierarchyColumnId?: string;
   /** Pixels of indent per level. Default 20. */
   indent?: number;
+  /**
+   * Render only the rows near the viewport. Requires `maxBodyHeight` — the
+   * window needs a bounded scroller to be a window of anything.
+   */
+  enableVirtualization?: boolean;
+  /** Row height estimate used before a row is measured. Default 44. */
+  rowEstimatedHeight?: number;
   stickyHeader?: boolean;
   headerVariant?: "plain" | "underline" | "branded";
   maxBodyHeight?: number;
@@ -127,6 +135,8 @@ export function TreeTable<TData, TValue = unknown>({
   onRowSelectionChange,
   hierarchyColumnId,
   indent = 20,
+  enableVirtualization,
+  rowEstimatedHeight = 44,
   stickyHeader,
   headerVariant = "plain",
   maxBodyHeight,
@@ -269,6 +279,51 @@ export function TreeTable<TData, TValue = unknown>({
     return info;
   }, [rows]);
 
+  /* ---- virtualization ---- */
+  const tableRef = React.useRef<HTMLTableElement>(null);
+  /*
+   * Virtualizing a TREE means windowing the flattened visible rows, which is
+   * exactly what `rows` already is — expanding a node changes the count and the
+   * virtualizer re-derives from it.
+   *
+   * Spacer rows rather than DataTable's absolutely-positioned `role="table"`
+   * grid clone. That clone exists there to survive column pinning and resizing,
+   * which this component does not have; and a treegrid is the one place the
+   * trade would actually cost something, because leaving real <table> markup
+   * would mean re-implementing every row and cell role by hand. Two <tr>s
+   * holding the off-screen height keep the semantics AND the sticky header.
+   */
+  const virtualEnabled = !!enableVirtualization && !!maxBodyHeight;
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => tableRef.current?.parentElement ?? null,
+    estimateSize: () => rowEstimatedHeight,
+    overscan: 8,
+  });
+  const virtualItems = virtualizer.getVirtualItems();
+  const renderedRows = virtualEnabled
+    ? virtualItems.map((v) => rows[v.index]).filter(Boolean)
+    : rows;
+  const padTop = virtualEnabled ? (virtualItems[0]?.start ?? 0) : 0;
+  const padBottom = virtualEnabled
+    ? virtualizer.getTotalSize() - (virtualItems[virtualItems.length - 1]?.end ?? 0)
+    : 0;
+  /** Row index within the FULL set, for aria-rowindex. */
+  const indexOf = React.useMemo(() => {
+    const m = new Map<string, number>();
+    rows.forEach((r, i) => m.set(r.id, i + 1));
+    return m;
+  }, [rows]);
+
+  React.useEffect(() => {
+    // Silently rendering every row would look like the flag simply did nothing.
+    if (enableVirtualization && !maxBodyHeight) {
+      console.warn(
+        "[TreeTable] `enableVirtualization` needs `maxBodyHeight` — without a bounded scroller there is no window. Rendering all rows.",
+      );
+    }
+  }, [enableVirtualization, maxBodyHeight]);
+
   /* ---- roving focus, the WAI-ARIA treegrid row pattern ---- */
   const rowRefs = React.useRef(new Map<string, HTMLTableRowElement>());
   const [focusedId, setFocusedId] = React.useState<string | null>(null);
@@ -367,8 +422,12 @@ export function TreeTable<TData, TValue = unknown>({
       )}
 
       <Table
+        ref={tableRef}
         role="treegrid"
         aria-busy={loading || undefined}
+        // With a window, the DOM no longer holds every row, so the total has to
+        // be stated rather than counted.
+        aria-rowcount={virtualEnabled ? rows.length : undefined}
         containerClassName={maxBodyHeight ? "zen-overflow-auto" : undefined}
         containerStyle={maxBodyHeight ? { maxHeight: `${maxBodyHeight}px` } : undefined}
       >
@@ -424,15 +483,23 @@ export function TreeTable<TData, TValue = unknown>({
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((row) => {
+            <>
+              {padTop > 0 && <tr aria-hidden="true" style={{ height: padTop }} />}
+              {renderedRows.map((row) => {
               const info = siblingInfo.get(row.id);
               return (
                 <TableRow
                   key={row.id}
                   ref={(el) => {
-                    if (el) rowRefs.current.set(row.id, el);
-                    else rowRefs.current.delete(row.id);
+                    if (el) {
+                      rowRefs.current.set(row.id, el);
+                      // Let real heights replace the estimate; rows are in
+                      // normal flow, so this measures without a second pass.
+                      if (virtualEnabled) virtualizer.measureElement(el);
+                    } else rowRefs.current.delete(row.id);
                   }}
+                  data-index={virtualEnabled ? (indexOf.get(row.id) ?? 1) - 1 : undefined}
+                  aria-rowindex={virtualEnabled ? indexOf.get(row.id) : undefined}
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   data-depth={row.depth}
                   className={cn(
@@ -496,7 +563,9 @@ export function TreeTable<TData, TValue = unknown>({
                   ))}
                 </TableRow>
               );
-            })
+              })}
+              {padBottom > 0 && <tr aria-hidden="true" style={{ height: padBottom }} />}
+            </>
           )}
         </TableBody>
       </Table>

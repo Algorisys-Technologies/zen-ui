@@ -69,6 +69,13 @@ export interface TreeTableProps<TData> extends BaseProps {
   hierarchyColumnId?: string;
   /** Pixels of indent per level. Default 20. */
   indent?: number;
+  /**
+   * Render only the rows near the viewport. Requires `maxBodyHeight` — the
+   * window needs a bounded scroller to be a window of anything.
+   */
+  enableVirtualization?: boolean;
+  /** Row height estimate, used until a real row has been measured. Default 44. */
+  rowEstimatedHeight?: number;
   stickyHeader?: boolean;
   headerVariant?: "plain" | "underline" | "branded";
   maxBodyHeight?: number;
@@ -266,6 +273,24 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
   let rows: FlatRow<TData>[] = [];
   /** id -> its <tr>, so a single row can be spliced without touching the rest. */
   const rowEls = new Map<string, HTMLTableRowElement>();
+
+  /* ---- virtualization ----
+   * Spacer rows, not absolutely-positioned ones: a treegrid is exactly where
+   * abandoning real <table> markup would cost the row and cell roles that make
+   * the component worth having. Two <tr>s hold the off-screen height.
+   *
+   * React and Solid hand this to @tanstack/*-virtual. There is no virtualizer
+   * here (no new runtime deps, same constraint as the rest of this file), so
+   * the window maths is uniform-height: measure one real row, then derive.
+   */
+  const virtualEnabled = () => !!current.enableVirtualization && !!current.maxBodyHeight;
+  const OVERSCAN = 8;
+  let rowH = 0;
+  let winStart = -1;
+  let winEnd = -1;
+  const topSpacer = document.createElement("tr");
+  const botSpacer = document.createElement("tr");
+  for (const sp of [topSpacer, botSpacer]) sp.setAttribute("aria-hidden", "true");
   let searchInput: InputHandle | null = null;
   let expandAllBtn: ReturnType<typeof Button> | null = null;
 
@@ -430,10 +455,56 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
       return;
     }
 
+    if (virtualEnabled()) {
+      renderWindow(true);
+      return;
+    }
+
     for (const row of rows) {
       const tr = buildRowEl(row);
       rowEls.set(row.id, tr);
       tbody.append(tr);
+    }
+  };
+
+  /** Rebuild only the rows near the viewport, plus the two height spacers. */
+  const renderWindow = (force = false) => {
+    const est = current.rowEstimatedHeight ?? 44;
+    const h = rowH || est;
+    const viewport = current.maxBodyHeight ?? 0;
+    const top = scroller.scrollTop;
+    const start = Math.max(0, Math.floor(top / h) - OVERSCAN);
+    const end = Math.min(rows.length, Math.ceil((top + viewport) / h) + OVERSCAN);
+    if (!force && start === winStart && end === winEnd) return;
+    winStart = start;
+    winEnd = end;
+
+    tbody.replaceChildren();
+    rowEls.clear();
+    topSpacer.style.height = `${start * h}px`;
+    botSpacer.style.height = `${Math.max(0, rows.length - end) * h}px`;
+    tbody.append(topSpacer);
+    for (let i = start; i < end; i++) {
+      const row = rows[i];
+      const tr = buildRowEl(row);
+      // The DOM no longer holds every row, so each one states where it sits.
+      tr.setAttribute("aria-rowindex", String(i + 1));
+      rowEls.set(row.id, tr);
+      tbody.append(tr);
+    }
+    tbody.append(botSpacer);
+
+    // Measure once from a real row; the estimate only ever governs the
+    // scrollbar before the first row has been on screen.
+    if (!rowH) {
+      const first = rowEls.values().next().value;
+      const measured = first?.getBoundingClientRect().height ?? 0;
+      if (measured > 0 && Math.abs(measured - h) > 0.5) {
+        rowH = measured;
+        renderWindow(true);
+      } else if (measured > 0) {
+        rowH = measured;
+      }
     }
   };
 
@@ -580,6 +651,15 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     else expanded.delete(row.id);
     current.onExpandedChange?.([...expanded]);
 
+    if (virtualEnabled()) {
+      // Splicing is pointless here: the window is ~20 rows, so recomputing it
+      // costs less than reasoning about which spliced rows are on screen.
+      rows = flatten();
+      renderWindow(true);
+      syncExpandAllButton();
+      return;
+    }
+
     const tr = rowEls.get(row.id);
     const idx = rows.findIndex((r) => r.id === row.id);
     // An active search force-opens every match, so expansion is not the thing
@@ -683,12 +763,27 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
 
   function render(opts?: { keepFocus?: string }) {
     rows = flatten();
+    if (virtualEnabled()) table.setAttribute("aria-rowcount", String(rows.length));
+    else table.removeAttribute("aria-rowcount");
     renderToolbar();
     renderHead();
     renderBody();
     scroller.style.maxHeight = current.maxBodyHeight ? `${current.maxBodyHeight}px` : "";
     if (opts?.keepFocus === "search") searchInput?.el.querySelector("input")?.focus();
     else if (opts?.keepFocus) focusRow(opts.keepFocus);
+  }
+
+  const onScroll = () => {
+    if (virtualEnabled()) renderWindow();
+  };
+  scroller.addEventListener("scroll", onScroll, { passive: true });
+  disposer.add(() => scroller.removeEventListener("scroll", onScroll));
+
+  // Silently rendering every row would look like the flag simply did nothing.
+  if (current.enableVirtualization && !current.maxBodyHeight) {
+    console.warn(
+      "[TreeTable] `enableVirtualization` needs `maxBodyHeight` — without a bounded scroller there is no window. Rendering all rows.",
+    );
   }
 
   if (expandAllSeed) {
@@ -702,6 +797,11 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     el: root,
     update(next) {
       current = { ...current, ...next };
+      // New props can change row height or the row set; re-measure rather than
+      // trust a height measured against the old content.
+      rowH = 0;
+      winStart = -1;
+      winEnd = -1;
       root.className = cn("zen-flex zen-w-full zen-flex-col zen-gap-3", current.class);
       render();
     },

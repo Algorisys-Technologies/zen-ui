@@ -96,6 +96,22 @@ const DATA_SRC = `const data = [
 ];`;
 
 
+/** A deliberately large tree, for the virtualization section only. */
+const BIG: CostCentre[] = Array.from({ length: 40 }, (_, a) => ({
+  id: `d-${a}`,
+  name: `Division ${a + 1}`,
+  owner: "A. Owner",
+  headcount: 100 + a,
+  budget: 5_000_000 + a * 37_000,
+  children: Array.from({ length: 30 }, (_, b) => ({
+    id: `d-${a}-t-${b}`,
+    name: `Team ${a + 1}.${b + 1}`,
+    owner: "B. Owner",
+    headcount: 10 + b,
+    budget: 200_000 + b * 1_100,
+  })),
+}));
+
 /* -------------------------- helpers -------------------------------- */
 function el(tag: string, attrs: Record<string, string> = {}): HTMLElement {
   const n = document.createElement(tag);
@@ -208,7 +224,26 @@ export default function TreeTableDemo(): HTMLElement {
         render: () => tree({ "enable-sorting": "", "default-expanded": "true" }),
       },
       {
-        title: "6. Keyboard and screen readers",
+        title: "6. Virtualization — for a tree you expand all of",
+        codeTitle: "`enable-virtualization` needs `max-body-height`",
+        codeDescription: "Only visible rows are ever in the DOM, so a large tree sitting collapsed costs nothing and needs none of this. The case that hurts is expanding all of a big one: measured, ~22,600 open rows put 162,000 nodes on the page and took about a second to mount. Turn this on and only the rows near the viewport render. It needs maxBodyHeight — without a bounded scroller there is no window, and it warns rather than silently doing nothing. There is no virtualizer library in this binding, so the window maths is uniform-height: one real row is measured, then the rest is derived.",
+        code: `<zen-tree-table enable-virtualization
+                max-body-height="360"
+                row-estimated-height="44">
+</zen-tree-table>`,
+        render: () => {
+          const t = el("zen-tree-table", {
+            "enable-virtualization": "",
+            "max-body-height": "360",
+          });
+          (t as unknown as { columns: TreeTableColumn<CostCentre>[] }).columns = COLUMNS;
+          (t as unknown as { data: CostCentre[] }).data = BIG;
+          (t as unknown as { defaultExpanded: boolean }).defaultExpanded = true;
+          return t;
+        },
+      },
+      {
+        title: "7. Keyboard and screen readers",
         codeTitle: "It is a treegrid, not a table with chevrons",
         codeDescription:
           "The table carries role=treegrid and every row carries aria-level, aria-expanded and its position among its SIBLINGS — not its position on the page, which would tell a screen-reader user nothing about the shape. Focus roves across rows with one tab stop: Up/Down move, forward-arrow opens a closed node then descends, back-arrow closes an open one then climbs to the parent, Home/End jump to the ends. The arrows are direction-aware, so in RTL the roles of Left and Right swap.",
