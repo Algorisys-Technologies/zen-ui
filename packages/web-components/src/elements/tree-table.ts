@@ -17,6 +17,8 @@ defineZenElement<TreeTableProps<Record<string, unknown>>>({
     "enable-row-selection": "boolean",
     "hierarchy-column-id": "string",
     "header-variant": "string",
+    "enable-virtualization": "boolean",
+    "row-estimated-height": "number",
     "sticky-header": "boolean",
     "global-filter-placeholder": "string",
     "empty-message": "string",
