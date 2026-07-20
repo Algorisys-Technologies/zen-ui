@@ -53,6 +53,7 @@ import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
 import NewFileUploadDemo from "./components/NewFileUploadDemo";
 import NewDataTableDemo from "./components/NewDataTableDemo";
+import NewTreeTableDemo from "./components/NewTreeTableDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -162,6 +163,7 @@ render(
       <Route path="/otp" component={NewOTPDemo} />
       <Route path="/file-upload" component={NewFileUploadDemo} />
       <Route path="/data-table" component={NewDataTableDemo} />
+      <Route path="/tree-table" component={NewTreeTableDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

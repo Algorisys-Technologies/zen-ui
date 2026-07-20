@@ -93,7 +93,6 @@ export const Calendar = (props: CalendarProps) => {
   // else today. `props.selected` is read reactively further down (isSelected /
   // inRange / the day cells), so the SELECTION renders correctly regardless —
   // it is only the visible month that is seeded.
-  /* eslint-disable solid/reactivity */
   const seedMonth = (): Date => {
     if (props.defaultMonth) return props.defaultMonth;
     if (props.mode === "range") return props.selected?.from ?? new Date();
@@ -101,7 +100,6 @@ export const Calendar = (props: CalendarProps) => {
     return props.selected ?? new Date();
   };
   const [uncontrolledMonth, setUncontrolledMonth] = createSignal<Date>(seedMonth());
-  /* eslint-enable solid/reactivity */
 
   /**
    * The month on screen. `month` makes it controlled — that is the escape hatch
