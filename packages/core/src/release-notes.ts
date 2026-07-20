@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.0.1",
+    date: "2026-07-20",
+    kind: "fixed",
+    title: "Bar's title no longer sits on top of its buttons",
+    detail:
+      "On a narrow bar — a side panel, a split view, a phone — middleContent could be drawn straight over endContent, both readable and neither usable. When a bar now runs out of room the TITLE is the thing that gives and clips, and the start and end slots keep their size; previously the outer slots shrank, which is what caused it, because a button inside them does not shrink with them.",
+  },
+  {
     version: "9.0.0",
     date: "2026-07-20",
     kind: "breaking",

@@ -11,6 +11,34 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.1] - 2026-07-20
+
+### Fixed
+
+- `Bar`: `middleContent` could overlap `endContent` on a narrow bar. The outer
+  slots carried `min-w-0 flex-1`, which lets a flex item shrink below its
+  content while a `Button` inside does not shrink with it — so the end slot's box
+  collapsed and its button overflowed leftwards (`justify-end`) over a
+  `shrink-0` middle. The shrink priority is inverted: outer slots drop `min-w-0`
+  and never shrink below their content; the middle takes `min-w-0` +
+  `overflow-hidden` and is the one that gives. All four bindings; verified by
+  measuring adjacent slot rects in a browser (bars found 6/6/7/7, zero
+  overlapping pairs).
+- `deploy.sh` copied `packages/*/dist` into the site, but the demo build moved to
+  `dist-demo` in 8.0.0 (`ed0fcc9`) — so it assembled a stale library build. Its
+  own verify step caught it and refused to publish; `gh-pages` was never touched.
+- `scripts/visual-check.mjs` guarded on `dist/index.html` for the same reason, so
+  it errored on a correctly-built demo and passed on a missing one.
+
+### Docs
+
+- `CLAUDE.md` gains two verification traps that produced false passes while
+  fixing the above: `bun run build` builds **React only**, so after `deploy.sh`
+  the other three demos keep a `/zen-ui/` base and render blank pages that
+  `visual-check` reports as clean; and a geometric assertion that matches nothing
+  passes, so a check must report the count of things examined next to the count
+  of failures.
+
 ## [9.0.0] - 2026-07-20
 
 ### Added
