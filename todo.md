@@ -1096,6 +1096,15 @@ way other JSX props are.
 **Action:** `onClick={(e) => props.onSomething?.(e)}`. Mechanical, safe, and it
 is the fix the rule is asking for. Do these first — best ratio in the list.
 
+**DONE 2026-07-20. 41 warnings -> 30.** The TanStack cases turned out to be the
+interesting ones: `onClick={header().column.getToggleSortingHandler()}` CALLS the
+factory at render and binds its result, and TanStack rebuilds those handlers when
+column or table state changes — so deferring the lookup to event time is not just
+what the rule wanted, it is more correct.
+Verified in a browser, because this class of change breaks silently if it breaks:
+sorting toggles `aria-sort` none -> ascending; mark-all-read clears the unread
+badge 2 -> empty; view-all fires with no page errors.
+
 ### C. Needs a definitive answer — 8
 
 `filters` x5 and `edit-cell` x3 use `{(() => { switch (...) { return <X/> } })()}`
