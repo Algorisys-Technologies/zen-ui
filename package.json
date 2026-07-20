@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev:all": "node scripts/dev-all.mjs",
-    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide",
+    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide",
     "gen:agent-guide": "bun run scripts/gen-agent-guide.ts",
     "check:agent-guide": "bun run scripts/gen-agent-guide.ts --check",
     "check:types": "tsc --project scripts/tsconfig.json",
@@ -23,6 +23,7 @@
     "check:chart": "bun run scripts/check-chart.ts",
     "check:pivot": "bun run scripts/check-pivot.ts",
     "check:virtual-window": "bun run scripts/check-virtual-window.ts",
+    "check:planning": "bun run scripts/check-planning.ts",
     "check:nav": "bun run scripts/check-nav.ts",
     "check:parity": "bun run scripts/check-parity.ts",
     "check:release": "bun run scripts/check-release.ts",

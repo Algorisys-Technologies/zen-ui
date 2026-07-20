@@ -18,6 +18,7 @@
     "./chart": "./src/chart.ts",
     "./pivot": "./src/pivot.ts",
     "./virtual-window": "./src/virtual-window.ts",
+    "./planning": "./src/planning.ts",
     "./variants": "./src/variants.ts",
     "./release-notes": "./src/release-notes.ts"
   },
