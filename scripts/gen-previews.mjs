@@ -161,7 +161,22 @@ for (const binding of which) {
   page.setDefaultTimeout(8000);
   page.setDefaultNavigationTimeout(15000);
 
+  // A wall-clock ceiling on the WHOLE route, not just on individual Playwright
+  // calls. Per-call timeouts were not enough: vanilla's /skip-to-content still
+  // wedged the loop, and a hang is worse than a failure — the deploy stops with
+  // no output and no exit, and reads as slowness for as long as you will wait.
+  // It cost three deploy attempts before I stopped assuming it was slow.
+  //
+  // Racing a timer means nothing Playwright does can exceed the budget: if the
+  // work never settles, the race does, the route is named, and the loop moves
+  // on. The abandoned promise leaks until the browser closes, which is a fair
+  // price for a run that always terminates.
+  const withCeiling = (work, ms = 25000) =>
+    Promise.race([work, sleep(ms).then(() => "TIMEOUT")]);
+
   for (const route of routes) {
+    const outcome = await withCeiling(
+      (async () => {
     await page
       .goto(`http://localhost:${cfg.port}${cfg.base}${route}`, { waitUntil: "domcontentloaded" })
       .catch(() => {});
@@ -211,7 +226,7 @@ for (const binding of which) {
         })
         .catch((err) => failed.push(`${route}: ${String(err.message).split("\n")[0]}`));
       written++;
-      continue;
+      return "OK";
     }
     // Take the TOP of the preview at a fixed ratio rather than the whole thing:
     // a tall demo would otherwise produce a skyscraper that a card has to squash.
@@ -249,12 +264,51 @@ for (const binding of which) {
       // rather than swallowed, because a missing thumbnail is invisible.
       failed.push(`${route}: ${String(err.message).split("\n")[0]}`);
     }
+        return "OK";
+      })(),
+    );
+    if (outcome === "TIMEOUT") {
+      unrendered.push(`${route} (ceiling)`);
+      // A FRESH page for the placeholder. Screenshotting the wedged one hangs
+      // too — that is what wedged it — and the .catch() then swallowed the
+      // failure, so the file was never written and the card 404'd anyway,
+      // which is the exact thing this fallback exists to prevent.
+      const spare = await browser.newPage({ viewport: { width: CLIP_W, height: CLIP_H } });
+      await spare
+        .screenshot({ path: join(outDir, `${slug(route)}.jpg`), type: "jpeg", quality: QUALITY })
+        .catch((err) => failed.push(`${route}: placeholder failed: ${String(err.message).split("\n")[0]}`));
+      await spare.close().catch(() => {});
+      written++;
+    }
   }
+
+  // A hero per binding for the LANDING page's cards — a shot of the demo
+  // itself, which is what a card linking to it should show. One extra
+  // screenshot per binding, written to apps/landing/public so the landing build
+  // picks it up the same way each demo picks up its own.
+  const landingDir = join("apps", "landing", "public", "previews");
+  mkdirSync(landingDir, { recursive: true });
+  const heroSlug = cfg.base.replace(/^\//, "");
+  const hero = await browser.newPage({ viewport: { width: 1100, height: 720 }, deviceScaleFactor: 2 });
+  await hero
+    .goto(`http://localhost:${cfg.port}${cfg.base}/`, { waitUntil: "domcontentloaded" })
+    .catch(() => {});
+  await hero.waitForSelector(".demo-page", { timeout: 8000 }).catch(() => {});
+  await sleep(400);
+  await hero
+    .screenshot({
+      path: join(landingDir, `${heroSlug}.jpg`),
+      clip: { x: 0, y: 0, width: 1100, height: 620 },
+      type: "jpeg",
+      quality: QUALITY,
+    })
+    .catch((err) => failed.push(`hero ${heroSlug}: ${String(err.message).split("\n")[0]}`));
+  await hero.close().catch(() => {});
 
   await browser.close();
   await killGroup(server);
 
-  console.log(`${binding}: ${written}/${routes.length} previews -> ${outDir}`);
+  console.log(`${binding}: ${written}/${routes.length} previews -> ${outDir}  (+ landing hero)`);
   if (fellBack.length) {
     // Named, because a demo with no rendered example is worth knowing about even
     // though it now gets a picture.
