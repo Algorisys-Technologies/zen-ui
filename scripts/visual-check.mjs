@@ -92,8 +92,20 @@ for (const binding of which) {
 
   // Surface render-time crashes: a blank page still screenshots "fine".
   page.on("pageerror", (e) => failures.push(`${page.url()} :: ${e.message}`));
+  // Some demos break a resource ON PURPOSE — the Avatar fallback section is only
+  // demonstrating anything if its image genuinely fails. Reporting those as
+  // runtime errors is a false positive, and a harness that cries wolf is one
+  // people stop reading. The filename carries the intent so this stays honest:
+  // anything else that 404s is still a real failure.
+  // Chrome's message for a failed request is just "Failed to load resource: …
+  // 404" — the URL is in the message's LOCATION, not its text — so both have to
+  // be checked or the filter silently never matches.
+  const DELIBERATE = /deliberately-missing/;
   page.on("console", (m) => {
-    if (m.type() === "error") failures.push(`${page.url()} :: console: ${m.text().slice(0, 120)}`);
+    if (m.type() !== "error") return;
+    const text = m.text();
+    if (DELIBERATE.test(text) || DELIBERATE.test(m.location()?.url ?? "")) return;
+    failures.push(`${page.url()} :: console: ${text.slice(0, 120)}`);
   });
 
   for (const route of targets) {

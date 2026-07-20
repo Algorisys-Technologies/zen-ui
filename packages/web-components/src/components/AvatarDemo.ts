@@ -68,12 +68,12 @@ export default function AvatarDemo(): HTMLElement {
         code: `<zen-avatar><zen-avatar-fallback>AB</zen-avatar-fallback></zen-avatar>
 
 <zen-avatar>
-  <zen-avatar-image src="/broken.jpg"></zen-avatar-image>
+  <zen-avatar-image src="/deliberately-missing.jpg"></zen-avatar-image>
   <zen-avatar-fallback>CD</zen-avatar-fallback>
 </zen-avatar>`,
         render: () => [
           el("zen-avatar", {}, fallback("AB")),
-          el("zen-avatar", {}, [image("/broken-link.jpg"), fallback("CD")]),
+          el("zen-avatar", {}, [image("/deliberately-missing.jpg"), fallback("CD")]),
         ],
       },
       {

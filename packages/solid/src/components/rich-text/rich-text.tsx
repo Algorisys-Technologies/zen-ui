@@ -41,6 +41,14 @@ export const RichText = (props: RichTextProps) => {
   const editorConfig = createMemo(() => ({
     readonly: false,
     placeholder: props.placeholder ?? "",
+    // Jodit's beforeInitHook fetches `<basePath>config.js` when
+    // loadExternalConfig is on (its default), so every RichText mount fired a
+    // request for a file zen-ui does not ship and never will — a guaranteed 404
+    // in the console of any app using it. Nothing reads the response; turning it
+    // off removes a failed request per mount and nothing else. A caller who DOES
+    // host a jodit config can turn it back on through `config`, since theirs is
+    // spread after this.
+    loadExternalConfig: false,
     ...props.config,
   }));
 

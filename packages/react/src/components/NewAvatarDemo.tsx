@@ -40,7 +40,7 @@ const NewAvatarDemo: React.FC = () => (
 </Avatar>
 
 <Avatar>
-  <AvatarImage src="/broken.jpg" />
+  <AvatarImage src="/deliberately-missing.jpg" />
   <AvatarFallback>CD</AvatarFallback>
 </Avatar>`}
       >
@@ -48,7 +48,7 @@ const NewAvatarDemo: React.FC = () => (
           <AvatarFallback>AB</AvatarFallback>
         </Avatar>
         <Avatar>
-          <AvatarImage src="/broken-link.jpg" />
+          <AvatarImage src="/deliberately-missing.jpg" />
           <AvatarFallback>CD</AvatarFallback>
         </Avatar>
       </CodeExample>

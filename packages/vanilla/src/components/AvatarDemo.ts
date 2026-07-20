@@ -55,14 +55,14 @@ export default function AvatarDemo(): HTMLElement {
 
 Avatar({
   children: [
-    AvatarImage({ src: "/broken.jpg" }),
+    AvatarImage({ src: "/deliberately-missing.jpg" }),
     AvatarFallback({ children: "CD" }),
   ],
 });`,
         render: () => [
           Avatar({ children: AvatarFallback({ children: "AB" }) }).el,
           Avatar({
-            children: [AvatarImage({ src: "/broken-link.jpg" }), AvatarFallback({ children: "CD" })],
+            children: [AvatarImage({ src: "/deliberately-missing.jpg" }), AvatarFallback({ children: "CD" })],
           }).el,
         ],
       },
