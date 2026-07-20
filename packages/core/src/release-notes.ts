@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.2.0",
+    date: "2026-07-20",
+    kind: "new",
+    title: "MessagePopover — the validation summary a long form owes its user",
+    detail:
+      "A form with twenty fields and three errors makes people hunt. MessagePopover collects the messages into one button, counts them by severity, and takes the user to the field when they click one — give a message a targetId and activating it closes the popover, scrolls that element into view and FOCUSES it, because scrollIntoView alone leaves a keyboard user where they were. It renders messages you pass it rather than reading your form, so it works with react-hook-form, FormBuilder, modular-forms or a hand-rolled useState. All four bindings.",
+  },
+  {
     version: "9.1.0",
     date: "2026-07-20",
     kind: "new",

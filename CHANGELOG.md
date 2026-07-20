@@ -11,6 +11,32 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.2.0] - 2026-07-20
+
+### Added
+
+- **`MessagePopover`** — aggregated form validation grouped by severity, with
+  click-to-navigate to the offending field. All four bindings
+  (`<zen-message-popover>` for web-components, `messages` as a property). The
+  last unbuilt item on `docs/fiori-gap-analysis.md`'s recommendation shortlist.
+  - Severity reuses `ObjectState` minus `"none"` — the same four words `Alert`,
+    `Banner` and `ObjectStatus` use, rather than a fifth scale.
+  - The trigger shows the icon of the WORST severity present, not just a total.
+  - The severity filter appears only when more than one kind is present.
+  - `onMessageSelect` runs alongside the navigation, not instead of it.
+  - The navigation needed a DIFFERENT mechanism per binding: React and Solid
+    restore focus to the trigger on close, so the field is focused in
+    `onCloseAutoFocus` with `preventDefault()` — a `requestAnimationFrame` was
+    measurably undone a tick later. Vanilla's Popover restores focus
+    synchronously in `doClose()`, so navigating after `close()` is enough.
+
+### Changed (demo only)
+
+- Solid's `FAB` and `BoundFields` demos were 22- and 18-line stubs with no
+  sections; `BoundFields` rendered the entire Form demo inside itself, second
+  `<h1>` and all. Both are real pages now (4 and 3 sections). Every demo in
+  every binding now has at least one code example.
+
 ## [9.1.0] - 2026-07-20
 
 ### Added

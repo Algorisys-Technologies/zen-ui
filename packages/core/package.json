@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-core",
-  "version": "9.1.0",
+  "version": "9.2.0",
   "private": true,
   "type": "module",
   "description": "Framework-agnostic core for @algorisys/zen-ui-* bindings: design tokens, UnoCSS preset, cn helper, theme primitives.",

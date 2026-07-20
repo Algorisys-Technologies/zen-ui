@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-react",
-  "version": "9.1.0",
+  "version": "9.2.0",
   "type": "module",
   "sideEffects": [
     "**/*.css"
