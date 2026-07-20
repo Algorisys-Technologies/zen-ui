@@ -72,6 +72,18 @@ export interface TreeTableProps<TData> extends BaseProps {
   /** Show the expand-all / collapse-all control. Default true. */
   enableExpandAll?: boolean;
 
+  /**
+   * Page the top-level rows. A page carries each root's WHOLE subtree, so
+   * `pageSize` counts roots rather than rendered rows and a page's row count
+   * varies with what is open. Paging the flattened list instead would cut
+   * through a subtree and strand its children on the next page.
+   */
+  enablePagination?: boolean;
+  /** Root rows per page. Default 10. */
+  pageSize?: number;
+  pageSizeOptions?: number[];
+  onPaginationChange?: (state: { pageIndex: number; pageSize: number }) => void;
+
   enableSorting?: boolean;
   enableGlobalFilter?: boolean;
   globalFilterPlaceholder?: string;
@@ -176,6 +188,8 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
   let sortDesc = false;
   let query = "";
   let focusedId: string | null = null;
+  let pageIndex = 0;
+  let pageSize = current.pageSize ?? 10;
   /** Lazy-loaded children, keyed by row id. */
   const loadedKids = new Map<string, TData[]>();
   const loadingIds = new Set<string>();
@@ -248,6 +262,9 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     return [...rows].sort((a, b) => (sortDesc ? -cmp(a, b) : cmp(a, b)));
   };
 
+  /** Top-level row count, for the pagination label. */
+  let rootCount = 0;
+
   /** The visible rows, in render order. */
   const flatten = (): FlatRow<TData>[] => {
     const out: FlatRow<TData>[] = [];
@@ -271,7 +288,21 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
         if (ks.length && (expanded.has(id) || !!query)) walk(ks, depth + 1, id, `${id}.`);
       });
     };
-    walk(filterTree(current.data ?? []), 0, null, "");
+    let roots = filterTree(current.data ?? []);
+    if (current.enablePagination) {
+      // Slice the ROOTS, then descend. Slicing `out` afterwards would cut
+      // through a subtree and strand its children on the next page under no
+      // parent at all — the same reason React and Solid set TanStack's
+      // paginateExpandedRows to false.
+      rootCount = roots.length;
+      const pages = Math.max(1, Math.ceil(roots.length / pageSize));
+      if (pageIndex > pages - 1) pageIndex = pages - 1;
+      if (pageIndex < 0) pageIndex = 0;
+      roots = sortSiblings(roots).slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+    } else {
+      rootCount = roots.length;
+    }
+    walk(roots, 0, null, "");
     return out;
   };
 
@@ -313,6 +344,9 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
 
   const toolbar = document.createElement("div");
   toolbar.className = "zen-flex zen-flex-wrap zen-items-center zen-gap-2";
+
+  const pager = document.createElement("div");
+  pager.className = "zen-flex zen-flex-wrap zen-items-center zen-justify-between zen-gap-2";
 
   const scroller = document.createElement("div");
   scroller.className = "zen-relative zen-w-full zen-overflow-auto";
@@ -834,6 +868,67 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     }
   };
 
+  const pageCount = () => Math.max(1, Math.ceil(rootCount / pageSize));
+
+  const renderPager = () => {
+    pager.replaceChildren();
+    if (!current.enablePagination) {
+      pager.style.display = "none";
+      return;
+    }
+    pager.style.display = "";
+
+    const label = document.createElement("p");
+    label.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+    // Roots, not rows: saying "rows" would contradict what the user can count
+    // on screen the moment anything is expanded.
+    label.textContent = `Page ${pageIndex + 1} of ${pageCount()} · ${rootCount} top-level rows`;
+    pager.append(label);
+
+    const controls = document.createElement("div");
+    controls.className = "zen-flex zen-items-center zen-gap-2";
+
+    if (current.pageSizeOptions?.length) {
+      const sel = document.createElement("select");
+      sel.className =
+        "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm";
+      sel.setAttribute("aria-label", "Rows per page");
+      for (const n of current.pageSizeOptions) {
+        const o = document.createElement("option");
+        o.value = String(n);
+        o.textContent = `${n} per page`;
+        if (n === pageSize) o.selected = true;
+        sel.append(o);
+      }
+      sel.addEventListener("change", () => {
+        pageSize = Number(sel.value);
+        pageIndex = 0;
+        current.onPaginationChange?.({ pageIndex, pageSize });
+        render();
+      });
+      controls.append(sel);
+    }
+
+    const step = (delta: number, text: string, disabled: boolean) => {
+      const btn = Button({
+        variant: "outline",
+        size: "sm",
+        disabled,
+        children: text,
+        onClick: () => {
+          pageIndex += delta;
+          current.onPaginationChange?.({ pageIndex, pageSize });
+          render();
+        },
+      });
+      controls.append(btn.el);
+    };
+    step(-1, "Previous", pageIndex === 0);
+    step(1, "Next", pageIndex >= pageCount() - 1);
+
+    pager.append(controls);
+  };
+
   function render(opts?: { keepFocus?: string }) {
     rows = flatten();
     if (virtualEnabled()) table.setAttribute("aria-rowcount", String(rows.length));
@@ -841,6 +936,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     renderToolbar();
     renderHead();
     renderBody();
+    renderPager();
     scroller.style.maxHeight = current.maxBodyHeight ? `${current.maxBodyHeight}px` : "";
     if (opts?.keepFocus === "search") searchInput?.el.querySelector("input")?.focus();
     else if (opts?.keepFocus) focusRow(opts.keepFocus);
@@ -863,7 +959,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     for (const id of allIds()) expanded.add(id);
     expandAllSeed = false;
   }
-  root.append(toolbar, scroller);
+  root.append(toolbar, scroller, pager);
   render();
 
   return {

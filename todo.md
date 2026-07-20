@@ -798,11 +798,14 @@ built — Tier 1 spent a day marked done while a row was missing.
             gate to describe a combination nobody can use. The chevron lives
             inside the first column rather than in a gutter, which is the part
             that makes the hierarchy readable.
-            Deliberately NOT in v1, and each for a reason rather than an
-            oversight: virtualization (windowing a tree means windowing a
-            flatten that changes on every expand — worth doing, not worth
-            guessing at), pagination (a page boundary through a subtree orphans
-            it), and lazy/async children (needs a loading-state design per row).
+            Everything deferred from v1 has since landed, all four bindings:
+            virtualization (spacer rows, real <table> markup kept so the
+            treegrid roles survive), lazy children (`hasChildren` +
+            `loadChildren`, cached on row id), and pagination — which pages the
+            ROOTS via TanStack's `paginateExpandedRows: false`, so a page
+            carries each root's whole subtree and `pageSize` counts top-level
+            rows. Paging the flattened list was the version that orphans a
+            subtree, and is the one thing here deliberately not built.
             One divergence worth knowing: the selection count keeps an ancestor
             in the set after a descendant is unticked and renders it
             indeterminate. That is TanStack's behaviour, so React is the
