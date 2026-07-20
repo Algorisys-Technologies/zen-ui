@@ -1045,6 +1045,98 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
       reaches 160px for page rhythm and 2px for hairlines, and zen-ui has neither
       end. Two tokens.
 
+## Solid lint warnings — triaged 2026-07-20 (41 warnings, 0 errors)
+
+Triage only: every site was read, nothing was changed. The point was to turn
+"fix 41 warnings" into a costed list, because the count says nothing about how
+many are real — and it turns out most are not.
+
+**Headline: no warning here is a bug a consumer hits today.** The ones with real
+substance are event-handler bindings that would only break if a caller SWAPPED a
+handler function after mount, which nothing in the demos or the docs suggests
+anyone does. That is worth fixing, but it is fragility, not breakage — and it
+argues for doing this deliberately rather than urgently.
+
+### A. False positive / by design — 15
+
+Seeding a signal from props at setup, or reading a value that is fixed for the
+component's life. The rule flags every one of these; Solid idiom requires them.
+
+- `date-picker` x5 — seeds `viewMonth` from `props.selected`/`props.mode`.
+  `props.selected` IS read reactively elsewhere (lines 100, 105, 114, 121, 124),
+  so selection rendering updates fine.
+  **One real question falls out, and it is a UX question not a reactivity one:**
+  if a caller sets `selected` to a date in another month, the visible month does
+  not follow. Decide whether that is wanted before "fixing" anything here.
+- `date-range-picker` x2 — seeds `draft` from `committed()`; the `createEffect`
+  immediately below already mirrors it while the popover is closed.
+- `data-table` x2 — `persistKey` (a storage key) and `pageSize` (seeds initial
+  pagination, user-controlled thereafter).
+- `data-table` x4 — `createSortable(props.id)` and `props.header.column.id`. A
+  drag id fixed for the row's life. **CLAUDE.md already names this exact case**
+  as one where the rule is wrong; it just has no disable carrying the reason.
+- `stepper` x1 — seeds `inner`, and `createMemo(() => props.value ?? inner())`
+  handles the controlled case reactively.
+- `pagination` x1 — "a variable should be used to capture the result of this
+  function call": an analysis limitation inside a `createMemo`, not a defect.
+
+**Action:** add disables WITH REASONS, per CLAUDE.md. That converts 15 warnings
+into 15 documented decisions and makes the remaining count mean something.
+
+### B. Genuine, low impact — 10
+
+`onClick={props.onSomething}` binds the handler ONCE. Swap the function after
+mount and the old one stays bound. Native event bindings are not reactive the
+way other JSX props are.
+
+`data-table` onRemove/onClick and four header handlers (`getResizeHandler`,
+`getToggleSortingHandler`), `notifications-inbox` onMarkAllRead/onViewAll,
+`App.tsx` reset (demo).
+
+**Action:** `onClick={(e) => props.onSomething?.(e)}`. Mechanical, safe, and it
+is the fix the rule is asking for. Do these first — best ratio in the list.
+
+### C. Needs a definitive answer — 8
+
+`filters` x5 and `edit-cell` x3 use `{(() => { switch (...) { return <X/> } })()}`
+inside JSX. The rule reads the `return`s as a component body and warns about
+early return.
+
+Whether this is a real freeze depends on something I did not verify: Solid's
+compiler wraps *dynamic* JSX expressions in a getter, and a call expression may
+or may not qualify. **Do not guess this one** — write a two-component test that
+flips `filterVariant` at runtime and watch whether the editor changes. It
+decides 8 warnings, and it is 20 minutes.
+
+Mitigating: `filterVariant` is per-column config that does not change at
+runtime today, so even a freeze is currently unobservable.
+
+### D. Genuine structural — 1
+
+`data-table:1634` — `if (header().isPlaceholder) return <TableHead />` is a real
+early return in a real component, reading a signal. Placeholder-ness is fixed
+for a header's life in TanStack, so it is not observably wrong, but it is the
+one site where the rule's literal complaint is literally correct.
+**Action:** `<Show when={...}>`.
+
+### E. Individually unexamined — 6
+
+`command:229`, `rich-text:76`, `time-picker:179`, `form-builder/form:109`
+(`const F = props.Field` — captured once; the caller would have to swap the
+component), `NewComboboxDemo:108` (async tracked scope, demo file). Each needs a
+read; none looked like a live defect on a first pass.
+
+### Suggested order
+
+1. **B** — mechanical, safe, 10 warnings, real fragility removed.
+2. **C** — one experiment settles 8.
+3. **A** — reasoned disables, so the residual count means something.
+4. **D**, then **E**.
+
+Fixing B changes runtime behaviour, so per CLAUDE.md it wants its own commit,
+and arguably its own patch release: a handler that starts updating is a
+behaviour change a consumer can observe.
+
 ### Known-latent, found while porting
 
 - [ ] **Solid: a Select inside a Dialog has its options hidden from screen
