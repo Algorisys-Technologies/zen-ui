@@ -95,6 +95,7 @@ import NewLinkDemo from "./components/NewLinkDemo";
 import NewThemeDemo from "./components/NewThemeDemo";
 import NewDirectionDemo from "./components/NewDirectionDemo";
 import NewPageDemo from "./components/NewPageDemo";
+import NewMessagePopoverDemo from "./components/NewMessagePopoverDemo";
 import { DirectionProvider } from "./components/direction/direction";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
@@ -206,6 +207,7 @@ render(
       <Route path="/theme" component={NewThemeDemo} />
       <Route path="/direction" component={NewDirectionDemo} />
       <Route path="/page" component={NewPageDemo} />
+      <Route path="/message-popover" component={NewMessagePopoverDemo} />
       <Route path="/color-picker" component={NewColorPickerDemo} />
       <Route path="/carousel" component={NewCarouselDemo} />
       <Route path="/dynamic-date-range" component={NewDynamicDateRangeDemo} />

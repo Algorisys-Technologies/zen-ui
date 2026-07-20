@@ -81,6 +81,7 @@ import "./slider";
 import "./stack";
 import "./theme";
 import "./direction";
+import "./message-popover";
 import "./stat-card";
 import "./stepper";
 import "./switch";

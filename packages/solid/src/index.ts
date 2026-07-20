@@ -636,6 +636,11 @@ export type { ThemeProps } from "./components/theme/theme";
 // DirectionProvider — tells the Kobalte primitives which way the page reads.
 // Takes an optional `locale` that React does not: Kobalte derives direction
 // FROM a locale rather than accepting one, so it cannot be set independently.
+// MessagePopover — aggregated form validation, grouped by severity, with
+// click-to-navigate to the offending field.
+export { MessagePopover } from "./components/message-popover/message-popover";
+export type { Message, MessageType, MessagePopoverProps } from "./components/message-popover/message-popover";
+
 export { DirectionProvider } from "./components/direction/direction";
 export type { Direction, DirectionProviderProps } from "./components/direction/direction";
 

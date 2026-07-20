@@ -31,6 +31,7 @@ import AvatarDemo from "./components/AvatarDemo";
 import LinkDemo from "./components/LinkDemo";
 import ThemeDemo from "./components/ThemeDemo";
 import DirectionDemo from "./components/DirectionDemo";
+import MessagePopoverDemo from "./components/MessagePopoverDemo";
 import StackDemo from "./components/StackDemo";
 import StatCardDemo from "./components/StatCardDemo";
 import CardDemo from "./components/CardDemo";
@@ -123,6 +124,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/link": LinkDemo,
   "/theme": ThemeDemo,
   "/direction": DirectionDemo,
+  "/message-popover": MessagePopoverDemo,
   "/stack": StackDemo,
   "/stat-card": StatCardDemo,
   "/card": CardDemo,
