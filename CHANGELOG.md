@@ -11,6 +11,53 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.4.0] - 2026-07-21
+
+### Added
+
+- **`TreeTable` lazy children** — `hasChildren` marks a row openable before its
+  children exist (without it an unloaded node is indistinguishable from a leaf,
+  gets no chevron, and can never trigger its own load); `loadChildren` fetches on
+  first expand; `onLoadChildrenError` handles rejection (re-thrown if absent).
+  Results cache against the row id, so this requires `getRowId` or an `id` on the
+  row — an index-path key moves under sorting/filtering and the cache would miss.
+  The chevron becomes a spinner and the control carries `aria-busy` while in
+  flight. In React and Solid the table's `data` getter returns a fresh top-level
+  array identity after a load, because TanStack memoizes the row model on data
+  identity and would otherwise never surface the fetched children.
+- **`TreeTable` pagination** — `enablePagination`, `pageSize` (default 10),
+  `pageSizeOptions`, `onPaginationChange`. Pages the ROOT rows via TanStack's
+  `paginateExpandedRows: false`; vanilla slices the roots inside `flatten()`
+  before descending, which is the same guarantee by construction.
+- **`TreeTable` virtualization** — `enableVirtualization` + `rowEstimatedHeight`,
+  requires `maxBodyHeight` and warns otherwise. Spacer rows rather than an
+  absolutely-positioned grid clone, keeping real `<table>` markup and therefore
+  the treegrid roles; adds `aria-rowcount` / `aria-rowindex` when windowed.
+- `<zen-tree-table>`: `enable-pagination`, `page-size`, `enable-virtualization`,
+  `row-estimated-height` attributes; `hasChildren`, `loadChildren`,
+  `onLoadChildrenError`, `pageSizeOptions` properties; `zen-pagination-change`
+  event.
+
+### Performance
+
+- vanilla/web-components `TreeTable` expand/collapse splices the affected subtree
+  instead of rebuilding `<tbody>`: ~49 ms → 3–8 ms at 1,110 visible rows, and
+  ~924 ms → 88–138 ms at 22,620.
+
+### Fixed
+
+- Solid: three lint warnings miscounted as zero in `CLAUDE.md` — two dead
+  `eslint-disable` directives (`date-picker`), and one in `time-picker` where
+  `eslint-disable-next-line` sat on the outer line of a multi-line call while the
+  rule reported the inner one, silencing nothing.
+
+### Internal
+
+- `CLAUDE.md`: build order is Solid → React → vanilla → web-components (React
+  remains the parity reference); `check:parity` is red for the duration of a port
+  by construction; and a solution-style `tsconfig.json` (`{"files": []}`) compiles
+  an empty program and exits 0 on any code.
+
 ## [9.3.0] - 2026-07-21
 
 ### Added
