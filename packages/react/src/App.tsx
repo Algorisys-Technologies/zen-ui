@@ -94,6 +94,7 @@ import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
 import NewFABDemo from "./components/NewFABDemo";
 import NewFormDemo from "./components/NewFormDemo";
 import NewDataTableDemo from "./components/NewDataTableDemo";
+import NewTreeTableDemo from "./components/NewTreeTableDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewAlertDemo from "./components/NewAlertDemo";
@@ -296,6 +297,7 @@ const App: React.FC = () => {
             <Route path="/fab-new" element={<NewFABDemo />} />
             <Route path="/form-new" element={<NewFormDemo />} />
             <Route path="/data-table" element={<NewDataTableDemo />} />
+            <Route path="/tree-table" element={<NewTreeTableDemo />} />
             <Route path="/lazy-options" element={<NewLazyOptionsDemo />} />
             <Route path="/combobox" element={<NewComboboxDemo />} />
             <Route path="/alert" element={<NewAlertDemo />} />

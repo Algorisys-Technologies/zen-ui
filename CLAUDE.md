@@ -248,11 +248,32 @@ change.
 ### Do ONE binding at a time
 
 Parity is about where you finish, not how you get there. **Build and verify a
-feature completely in one binding before starting the next** — React first,
-since it is the reference the others mirror.
+feature completely in one binding before starting the next.**
+
+**Build order is Solid → React → vanilla → web-components.** Solid is the most
+constrained renderer — fine-grained reactivity means a prop read outside a
+tracked scope silently freezes, and Kobalte's primitives are the ones that most
+often lack an escape hatch React's Radix equivalents have. Those constraints are
+discovered, not predicted. Hitting them first shapes an API that survives the
+port; hitting them fourth means redesigning something already shipped three
+times.
 
 Finish means: it works, you have driven it in a browser, and the checks pass.
 Only then port it.
+
+**`check:parity` is red for the whole port, by construction.** A component that
+exists in one binding and not the others is exactly what it reports, so it will
+fail from the first binding until the last. That is the rule working, not a
+break — but it means `bun run check` cannot be your green light mid-port, and a
+commit landed in that window should say so. Get it green before shipping.
+
+**This is the build order, not the authority order.** React is still the parity
+REFERENCE — `scripts/bindings.mjs` says so and `check-parity.ts` drives from it,
+so where two bindings disagree about what an API *should be*, React's shape
+wins. Building Solid first is about finding the constraints early; it does not
+promote Solid to the arbiter. If Solid's implementation pushes toward an API
+React would not naturally have, that is the moment to reconcile — before the
+React port, not after.
 
 The failure mode this exists to prevent is editing all four at once and
 verifying none of them. It is seductive because the edits look identical, and
