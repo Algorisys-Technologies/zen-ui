@@ -92,6 +92,7 @@ import NewStatCardDemo from "./components/NewStatCardDemo";
 import NewCustomizingDemo from "./components/NewCustomizingDemo";
 import NewMaskInputDemo from "./components/NewMaskInputDemo";
 import NewLinkDemo from "./components/NewLinkDemo";
+import NewThemeDemo from "./components/NewThemeDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
@@ -197,6 +198,7 @@ render(
       <Route path="/customizing" component={NewCustomizingDemo} />
       <Route path="/mask-input" component={NewMaskInputDemo} />
       <Route path="/link" component={NewLinkDemo} />
+      <Route path="/theme" component={NewThemeDemo} />
       <Route path="/color-picker" component={NewColorPickerDemo} />
       <Route path="/carousel" component={NewCarouselDemo} />
       <Route path="/dynamic-date-range" component={NewDynamicDateRangeDemo} />
