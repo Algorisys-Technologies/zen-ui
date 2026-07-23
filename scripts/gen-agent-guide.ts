@@ -186,7 +186,14 @@ a full app frame (ShellBar, Sidebar, FlexibleColumnLayout, DynamicPage).
    date-range picker out of two inputs when \`DateRangePicker\` exists, and do
    not reach for raw shadcn/Radix alongside it.
 
-3. **Verify the setup rules below** — the failure they prevent is silent:
+3. **Read the component's API file before writing props.** Each family has
+   [references/api/](references/api/)\`<family>.md\` — the real props with
+   types and docs, extracted from the React source by the TypeScript compiler.
+   [references/api/index.md](references/api/index.md) maps every export to its
+   file. Do not guess prop names or variant values; guessed props fail
+   silently as unknown attributes.
+
+4. **Verify the setup rules below** — the failure they prevent is silent:
    the build passes and the page renders wrong.
 
 ## Setup rules (every binding)
@@ -254,6 +261,11 @@ document.body.append(btn.el);
 - [references/catalogue.md](references/catalogue.md) — the full component
   catalogue: every family, grouped, with a one-line "what it is for". Read it
   whenever choosing a component.
+- [references/api/](references/api/) — one file per family with the real
+  props (names, types, variant unions, JSDoc), generated from the React
+  source types. \`index.md\` there maps every export to its file. Read the
+  file for a component BEFORE using it; the props you remember from shadcn
+  or Radix are not always the props here.
 - Each installed package also ships \`AGENTS.md\` at its root (in
   \`node_modules/@algorisys/zen-ui-<binding>/AGENTS.md\`) with the same
   catalogue plus that binding's idiom.

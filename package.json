@@ -9,9 +9,11 @@
   ],
   "scripts": {
     "dev:all": "node scripts/dev-all.mjs",
-    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide",
+    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide && bun run check:skill-api",
     "gen:agent-guide": "bun run scripts/gen-agent-guide.ts",
     "check:agent-guide": "bun run scripts/gen-agent-guide.ts --check",
+    "gen:skill-api": "bun run scripts/gen-skill-api.ts",
+    "check:skill-api": "bun run scripts/gen-skill-api.ts --check",
     "check:types": "tsc --project scripts/tsconfig.json",
     "check:cn": "bun run scripts/check-cn.ts",
     "check:direction": "bun run scripts/check-direction.ts",
