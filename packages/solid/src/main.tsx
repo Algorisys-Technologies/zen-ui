@@ -106,6 +106,8 @@ import NewColorPickerDemo from "./components/NewColorPickerDemo";
 import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
 import NewPivotDemo from "./components/NewPivotDemo";
+import NewMediaTimelineDemo from "./components/NewMediaTimelineDemo";
+import NewWaveformDemo from "./components/NewWaveformDemo";
 import NewListReportDemo from "./components/NewListReportDemo";
 
 applyTheme(getInitialTheme());
@@ -222,6 +224,8 @@ render(
       <Route path="/carousel" component={NewCarouselDemo} />
       <Route path="/dynamic-date-range" component={NewDynamicDateRangeDemo} />
       <Route path="/pivot" component={NewPivotDemo} />
+      <Route path="/media-timeline" component={NewMediaTimelineDemo} />
+      <Route path="/waveform" component={NewWaveformDemo} />
       <Route path="/list-report" component={NewListReportDemo} />
     </Router>
     </DirectionProvider>

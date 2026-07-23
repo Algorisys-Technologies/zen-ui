@@ -12,3 +12,4 @@ export * from "./chart";
 export * from "./pivot";
 export * from "./virtual-window";
 export * from "./planning";
+export * from "./media";

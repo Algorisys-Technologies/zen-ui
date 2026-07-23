@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-core",
-  "version": "9.8.0",
+  "version": "9.9.0",
   "private": true,
   "type": "module",
   "description": "Framework-agnostic core for @algorisys/zen-ui-* bindings: design tokens, UnoCSS preset, cn helper, theme primitives.",
@@ -19,6 +19,7 @@
     "./pivot": "./src/pivot.ts",
     "./virtual-window": "./src/virtual-window.ts",
     "./planning": "./src/planning.ts",
+    "./media": "./src/media.ts",
     "./variants": "./src/variants.ts",
     "./release-notes": "./src/release-notes.ts"
   },

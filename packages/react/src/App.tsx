@@ -159,6 +159,8 @@ import NewCarouselDemo from "./components/NewCarouselDemo";
 import NewDynamicDateRangeDemo from "./components/NewDynamicDateRangeDemo";
 import NewListReportDemo from "./components/NewListReportDemo";
 import NewPivotDemo from "./components/NewPivotDemo";
+import NewMediaTimelineDemo from "./components/NewMediaTimelineDemo";
+import NewWaveformDemo from "./components/NewWaveformDemo";
 import ReleaseNotes from "./components/ReleaseNotes";
 import { Toaster } from "./components/toast/toaster";
 import { Search } from "./components/form/search/search";
@@ -404,6 +406,8 @@ const App: React.FC = () => {
             <Route path="/dynamic-date-range" element={<NewDynamicDateRangeDemo />} />
             <Route path="/list-report" element={<NewListReportDemo />} />
             <Route path="/pivot" element={<NewPivotDemo />} />
+            <Route path="/media-timeline" element={<NewMediaTimelineDemo />} />
+            <Route path="/waveform" element={<NewWaveformDemo />} />
           </Routes>
         </main>
       </div>
