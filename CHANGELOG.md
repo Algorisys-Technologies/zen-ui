@@ -11,6 +11,53 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.9.0] - 2026-07-23
+
+### Added
+
+- **`MediaTimeline` + `Waveform` — the media family, all four bindings.**
+  Consumer-driven (StudioX's editor surface; contract in
+  [IMPLEMENT-media-components.md](IMPLEMENT-media-components.md)).
+  `MediaTimeline` is a filmstrip trim track: controlled `ranges` with
+  edge-drag handles (neighbour clamps with a min-duration gap), hover
+  timestamp bubble, click-to-seek, live drag tooltip, playhead, consumer
+  thumbnails, controlled `zoom`, and the Input/Change/Commit callback grammar
+  that separates live edits from history. `Waveform` is an audio lane: a
+  `peaks: number[]` envelope as one SVG path, with an optional clip window —
+  body-drag to place (`offset`), edge-drag to trim (`start`/`end` in audio
+  time; left edge keeps the tail fixed). Semantics are generic — a range is
+  just a range; `rangeClass`/`clipClass` replace the default tint. All drag
+  math lives in `packages/core/src/media.ts`, pinned by `scripts/check-media.ts`
+  (`check:media`, part of `bun run check`), so all four renderers clamp
+  identically by construction. Handles are focusable `role="slider"`s with
+  arrow-key nudge. Build order was Solid → React → vanilla → web-components,
+  each verified with the same 13-assertion Playwright interaction drive before
+  the next port. The vanilla port is factory + handle
+  (`MediaTimeline({ … }).update({ ranges })`), split render/paint so a drag
+  never rebuilds the element holding pointer capture; web-components wraps it
+  as `<zen-media-timeline>` / `<zen-waveform>` with the drag grammar as
+  CustomEvents (`zen-ranges-input`, `zen-clip-commit`, …) and the remove
+  affordance presence-gated on a `zen-range-remove` listener.
+  Files: `packages/core/src/media.ts`, `scripts/check-media.ts`,
+  `packages/{react,solid}/src/components/{media-timeline,waveform}/`,
+  `packages/vanilla/src/components/{media-timeline,waveform}/`,
+  `packages/web-components/src/elements/{media-timeline,waveform}.ts`, demos +
+  nav + routes in all four demo apps.
+
+### Fixed
+
+- **A plain click on an element inside the media track could be silently
+  swallowed in React.** The track's pointerup handler wrote state
+  unconditionally; the resulting commit between pointerup and mouseup re-set
+  the remove button's Icon innerHTML, detaching the node the mousedown had
+  targeted, and the browser then suppressed the click. All bindings now bail
+  out of pointerup when no drag is in flight.
+- **Solid's Avatar demo used `https://broken.invalid/x.png` for its
+  intentionally-broken image** where React and vanilla use
+  `/deliberately-missing.jpg` — the filename visual-check's filter recognizes
+  as deliberate. The divergence made every full Solid visual pass report one
+  false runtime error. Aligned with the reference demos.
+
 ## [9.8.0] - 2026-07-23
 
 ### Added

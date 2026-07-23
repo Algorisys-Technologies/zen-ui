@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.9.0",
+    date: "2026-07-23",
+    kind: "new",
+    title: "MediaTimeline + Waveform — media editing, in all four bindings",
+    detail:
+      "MediaTimeline is a filmstrip trim track: draggable ranges with neighbour clamps, a playhead, hover timestamps, click-to-seek and zoom. Waveform is an audio lane: feed it a peaks array (number[] 0..1 you decode once) and get the envelope, plus an optional clip window you drag to place and edge-trim — the left edge trims in place so the tail stays put. Both are controlled-only, like DataTable: the app owns ranges, clip, zoom and playhead. The drag grammar is split for undo — onRangesInput/onClipInput per pointer move, onRangesCommit/onClipCommit once on release. A range is just a range: rangeClass decides whether it reads as cut or keep. Same duration + same zoom = lanes align to the pixel, which is the whole mechanism for stacking them into an editor. The clamp math is one contract-tested core module, so a handle stops in the same place in React, Solid, vanilla and <zen-media-timeline>.",
+  },
+  {
     version: "9.8.0",
     date: "2026-07-23",
     kind: "new",
