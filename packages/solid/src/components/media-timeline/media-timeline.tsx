@@ -2,9 +2,11 @@ import { type JSX, For, Index, Show, createSignal, splitProps } from "solid-js";
 import {
   MIN_MEDIA_RANGE,
   type MediaRange,
+  type MediaRangeMode,
   clampBadgePct,
   dragRangeEdge,
   formatMediaTime,
+  moveRange,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
@@ -45,9 +47,23 @@ import { Icon } from "../icon/icon";
 export type MediaTimelineProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class"> & {
   /** Total media length, seconds. The track maps [0, duration] to its width. */
   duration: number;
-  /** Sorted, non-overlapping spans. The app owns the array (controlled). */
+  /**
+   * The spans. In `"partition"` mode: sorted, non-overlapping. In
+   * `"independent"` mode: free — overlap allowed, z-order is array order.
+   * The app owns the array either way (controlled).
+   */
   ranges: MediaRange[];
-  /** Which range is highlighted; the remove affordance renders on it. */
+  /**
+   * How the ranges relate: `"partition"` (a trim track — edge drags clamp
+   * against neighbours) or `"independent"` (an overlay-element lane — spans
+   * move and overlap freely, bars carry labels/colors). Default "partition".
+   */
+  rangeMode?: MediaRangeMode;
+  /**
+   * Which range is highlighted; the remove affordance renders on it. `-1` (the
+   * DOM's own selectedIndex convention) or omitted = none. In independent
+   * mode, clicking empty track emits `onActiveIndexChange(-1)` — deselect.
+   */
   activeIndex?: number;
   onActiveIndexChange?: (index: number) => void;
   /** Committed edits — keyboard nudges land here. */
@@ -75,8 +91,22 @@ export type MediaTimelineProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class
   /**
    * Colour treatment for a range. Replaces the default primary tint + ring —
    * the positioning stays. This is the "a range is just a range" hook.
+   * Precedence: rangeClass > rangeColor > default.
    */
   rangeClass?: (index: number, active: boolean) => string;
+  /**
+   * A CSS color per range (any color — StudioX feeds hex from a palette,
+   * which class tokens cannot express). The component derives the fill
+   * (color-mix, 40% active / 25% not) and an inset ring (full color, 2px
+   * active / 1px not), and paints the edge handles with it. `rangeClass`
+   * wins if both are provided.
+   */
+  rangeColor?: (index: number, active: boolean) => string;
+  /**
+   * Rendered inside the bar — element text, a clip name. Truncated, and
+   * pointer-events: none so the body-drag surface stays whole.
+   */
+  rangeLabel?: (index: number) => JSX.Element;
   /** Names the timeline for a screen reader. */
   label?: string;
   class?: string;
@@ -86,6 +116,7 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
   const [local, rest] = splitProps(props, [
     "duration",
     "ranges",
+    "rangeMode",
     "activeIndex",
     "onActiveIndexChange",
     "onRangesChange",
@@ -100,19 +131,24 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
     "minRangeDuration",
     "formatTime",
     "rangeClass",
+    "rangeColor",
+    "rangeLabel",
     "label",
     "class",
   ]);
 
   let trackRef: HTMLDivElement | undefined;
-  const [dragging, setDragging] = createSignal<{ index: number; edge: "start" | "end" } | null>(
-    null,
-  );
+  const [dragging, setDragging] = createSignal<{
+    index: number;
+    edge: "start" | "end" | "move";
+  } | null>(null);
   const [dragTip, setDragTip] = createSignal<{ pct: number; text: string } | null>(null);
   const [hoverTime, setHoverTime] = createSignal<number | null>(null);
 
   const fmt = (s: number) => (local.formatTime ?? formatMediaTime)(s);
   const minDur = () => local.minRangeDuration ?? MIN_MEDIA_RANGE;
+  const mode = () => local.rangeMode ?? "partition";
+  const independent = () => mode() === "independent";
   const toPct = (time: number) => (time / local.duration) * 100;
   const toTime = (clientX: number) => {
     if (!trackRef) return 0;
@@ -126,6 +162,9 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
   let draggedRanges: MediaRange[] | null = null;
   // A drag ends with a click on the track; without this it would also seek.
   let suppressClick = false;
+  // Lane-time distance from the grab point to the range's start, so a body
+  // drag holds the bar where it was grabbed instead of snapping start there.
+  let grabDelta = 0;
 
   const emitInput = (ranges: MediaRange[]) =>
     (local.onRangesInput ?? local.onRangesChange)?.(ranges);
@@ -139,6 +178,21 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
     local.onActiveIndexChange?.(index);
   };
 
+  // Body-drag is independent-mode-only: moving a partition range through its
+  // neighbours has no defined meaning, so a partition body stays a click
+  // target and nothing more.
+  const onBodyDown = (index: number, e: PointerEvent) => {
+    if (!independent()) return;
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    grabDelta = toTime(e.clientX) - local.ranges[index].start;
+    setDragging({ index, edge: "move" });
+    draggedRanges = null;
+    setHoverTime(null);
+    local.onActiveIndexChange?.(index);
+  };
+
   const onTrackPointerMove = (e: PointerEvent) => {
     const d = dragging();
     if (!d) {
@@ -146,6 +200,22 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
       return;
     }
     e.preventDefault();
+    if (d.edge === "move") {
+      const { ranges, start } = moveRange(
+        local.ranges,
+        d.index,
+        toTime(e.clientX) - grabDelta,
+        local.duration,
+      );
+      draggedRanges = ranges;
+      const r = ranges[d.index];
+      setDragTip({
+        pct: clampBadgePct(toPct(start)),
+        text: `${fmt(start)} · ${(r.end - r.start).toFixed(1)}s`,
+      });
+      emitInput(ranges);
+      return;
+    }
     const { ranges, edgeTime } = dragRangeEdge(
       local.ranges,
       d.index,
@@ -153,6 +223,7 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
       toTime(e.clientX),
       local.duration,
       minDur(),
+      mode(),
     );
     draggedRanges = ranges;
     const r = ranges[d.index];
@@ -184,6 +255,9 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
       suppressClick = false;
       return;
     }
+    // An overlay lane's empty track is the deselect surface (bars stop their
+    // clicks), and the click still seeks — StudioX's grammar.
+    if (independent()) local.onActiveIndexChange?.(-1);
     local.onSeek?.(toTime(e.clientX));
   };
 
@@ -200,6 +274,20 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
       from + dir * (e.shiftKey ? 1 : minDur()),
       local.duration,
       minDur(),
+      mode(),
+    );
+    local.onRangesChange?.(ranges);
+  };
+
+  const onBodyKeyDown = (index: number, e: KeyboardEvent) => {
+    const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!dir) return;
+    e.preventDefault();
+    const { ranges } = moveRange(
+      local.ranges,
+      index,
+      local.ranges[index].start + dir * (e.shiftKey ? 1 : minDur()),
+      local.duration,
     );
     local.onRangesChange?.(ranges);
   };
@@ -224,12 +312,22 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
           // Time axes read left-to-right even in RTL locales — every editor's.
           dir="ltr"
           class={cn(
-            "zen-relative zen-h-14 zen-select-none zen-overflow-hidden zen-rounded-zen-md",
+            // Overlay lanes are shorter than filmstrip tracks — the height is
+            // a per-mode default because the caller's `class` lands on the
+            // ROOT, where a height utility could not reach this element.
+            independent() ? "zen-h-10" : "zen-h-14",
+            "zen-relative zen-select-none zen-overflow-hidden zen-rounded-zen-md",
             "zen-border zen-border-zen-border zen-bg-zen-muted zen-cursor-crosshair",
           )}
           style={{ width: `${(local.zoom ?? 1) * 100}%`, "min-width": "100%" }}
           onClick={onTrackClick}
           onDblClick={(e) => local.onTrackDblClick?.(toTime(e.clientX))}
+          // A drag's own ending click targets the captured handle and is
+          // stopped by the range's click handler, so it never reaches the
+          // track — without this reset the armed suppressClick would swallow
+          // the NEXT genuine track click instead. A press that bubbles here
+          // is exactly a press whose click the track may receive.
+          onPointerDown={() => (suppressClick = false)}
           onPointerMove={onTrackPointerMove}
           onPointerUp={onTrackPointerUp}
           onPointerLeave={() => setHoverTime(null)}
@@ -282,21 +380,63 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
             {(range, i) => {
               const active = () => i === local.activeIndex;
               const custom = () => local.rangeClass?.(i, active());
+              // Precedence: rangeClass > rangeColor > default primary tint.
+              const color = () => (custom() ? undefined : local.rangeColor?.(i, active()));
+              const moving = () => {
+                const d = dragging();
+                return d !== null && d.edge === "move" && d.index === i;
+              };
               return (
                 <div
+                  role={independent() ? "slider" : undefined}
+                  tabIndex={independent() ? 0 : undefined}
+                  aria-orientation={independent() ? "horizontal" : undefined}
+                  aria-label={independent() ? `Range ${i + 1} position` : undefined}
+                  aria-valuemin={independent() ? 0 : undefined}
+                  aria-valuemax={
+                    independent() ? local.duration - (range().end - range().start) : undefined
+                  }
+                  aria-valuenow={independent() ? range().start : undefined}
+                  aria-valuetext={independent() ? fmt(range().start) : undefined}
                   class={cn(
-                    "zen-absolute zen-top-0 zen-h-full",
-                    custom() ?? (active() ? "zen-ring-2 zen-ring-zen-primary" : "zen-ring-1 zen-ring-zen-primary"),
+                    "zen-absolute",
+                    independent()
+                      ? cn(
+                          "zen-top-1 zen-bottom-1 zen-rounded-zen-sm zen-overflow-hidden",
+                          moving() ? "zen-cursor-grabbing" : "zen-cursor-grab",
+                          // Outline, not ring: the colour treatment owns the
+                          // bar's box-shadow inline, and an inline style would
+                          // silently beat a focus ring built from box-shadow.
+                          "focus-visible:zen-outline focus-visible:zen-outline-2 focus-visible:zen-outline-zen-ring",
+                        )
+                      : "zen-top-0 zen-h-full",
+                    custom() ??
+                      (color()
+                        ? ""
+                        : active()
+                          ? "zen-ring-2 zen-ring-zen-primary"
+                          : "zen-ring-1 zen-ring-zen-primary"),
                   )}
                   style={{
                     left: `${toPct(range().start)}%`,
                     width: `${toPct(range().end - range().start)}%`,
-                    ...(custom() ? {} : { background: tint(active() ? 40 : 20) }),
+                    // A sliver of a span must stay visible and grabbable.
+                    ...(independent() ? { "min-width": "4px" } : {}),
+                    ...(custom()
+                      ? {}
+                      : color()
+                        ? {
+                            background: `color-mix(in srgb, ${color()} ${active() ? 40 : 25}%, transparent)`,
+                            "box-shadow": `inset 0 0 0 ${active() ? 2 : 1}px ${color()}`,
+                          }
+                        : { background: tint(active() ? 40 : 20) }),
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
                     local.onActiveIndexChange?.(i);
                   }}
+                  onPointerDown={(e) => onBodyDown(i, e)}
+                  onKeyDown={(e) => independent() && onBodyKeyDown(i, e)}
                 >
                   <For each={["start", "end"] as const}>
                     {(edge) => (
@@ -315,11 +455,17 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
                           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
                           edge === "start" ? "zen-left-0" : "zen-right-0",
                         )}
+                        style={color() ? { background: color()! } : undefined}
                         onPointerDown={(e) => onHandleDown(i, edge, e)}
                         onKeyDown={(e) => onHandleKeyDown(i, edge, e)}
                       />
                     )}
                   </For>
+                  <Show when={local.rangeLabel}>
+                    <span class="zen-pointer-events-none zen-absolute zen-inset-0 zen-flex zen-items-center zen-px-3 zen-text-xs zen-text-zen-foreground">
+                      <span class="zen-truncate">{local.rangeLabel!(i)}</span>
+                    </span>
+                  </Show>
                   <Show when={active() && local.onRangeRemove}>
                     <button
                       type="button"
@@ -331,6 +477,10 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
                         "zen-text-zen-muted-fg hover:zen-border-zen-error hover:zen-bg-zen-error hover:zen-text-zen-error-fg",
                         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
                       )}
+                      // Stop the pointerdown too: in independent mode the bar
+                      // body starts a drag on pointerdown, and a drag started
+                      // under this button would eat its own click.
+                      onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         local.onRangeRemove?.(i);

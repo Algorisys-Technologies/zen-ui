@@ -38,6 +38,8 @@ type MediaTimelineEl = HTMLElement & {
   ranges: MediaRange[];
   thumbnails?: string[];
   rangeClass?: (index: number, active: boolean) => string;
+  rangeColor?: (index: number, active: boolean) => string;
+  rangeLabel?: (index: number) => string;
 };
 
 const detail = <T,>(e: Event): T => (e as CustomEvent).detail as T;
@@ -206,6 +208,62 @@ el.addEventListener("zen-track-dblclick", (e) => addCutAround(e.detail));`,
             const sorted = [...cuts, next].sort((a, b) => a.start - b.start);
             setCuts(sorted, sorted.indexOf(next));
           });
+          paintInfo();
+          return column(el, info);
+        },
+      },
+      {
+        title: "4. Overlay elements (independent mode)",
+        codeTitle: 'range-mode="independent" — free spans that move and overlap',
+        codeDescription:
+          "No neighbour clamps: spans overlap freely and z-order is array order. Drag a bar's body to move it (length preserved), its edges to trim. rangeLabel (a JS property) puts the element's text in the bar; rangeColor takes any CSS colour and derives the fill, ring and handles from it. Clicking empty track deselects (zen-active-index-change fires -1, the DOM selectedIndex convention) and seeks. The bar body is focusable too — arrows move it.",
+        code: `<zen-media-timeline duration="30" range-mode="independent"
+  active-index="-1"></zen-media-timeline>
+
+el.ranges = els;
+el.rangeLabel = (i) => LABELS[i];
+el.rangeColor = (i) => COLORS[i % COLORS.length];
+el.addEventListener("zen-ranges-input", (e) => (el.ranges = e.detail));
+el.addEventListener("zen-active-index-change", (e) =>
+  el.setAttribute("active-index", e.detail)); // -1 on empty-track click`,
+        render: () => {
+          const COLORS = ["#e879f9", "#38bdf8", "#fbbf24", "#4ade80"];
+          const LABELS = ["Title card", "Lower third", "Credits", "Watermark"];
+          let els: MediaRange[] = [
+            { start: 2, end: 14 },
+            { start: 10, end: 22 },
+            { start: 18, end: 27 },
+          ];
+          let active = -1;
+          const info = readout();
+          const paintInfo = () => {
+            info.textContent = `elements: ${fmtRanges(els)} · selected: ${active === -1 ? "none" : LABELS[active % LABELS.length]}`;
+          };
+          const el = document.createElement("zen-media-timeline") as MediaTimelineEl;
+          el.setAttribute("duration", "30");
+          el.setAttribute("range-mode", "independent");
+          el.setAttribute("active-index", "-1");
+          el.setAttribute("min-range-duration", "0.5");
+          el.rangeLabel = (i) => LABELS[i % LABELS.length];
+          el.rangeColor = (i) => COLORS[i % COLORS.length];
+          const setEls = (next: MediaRange[], nextActive = active) => {
+            els = next;
+            active = Math.min(nextActive, next.length - 1);
+            el.ranges = els;
+            el.setAttribute("active-index", String(active));
+            paintInfo();
+          };
+          el.ranges = els;
+          el.addEventListener("zen-ranges-input", (e) => setEls(detail<MediaRange[]>(e)));
+          el.addEventListener("zen-ranges-change", (e) => setEls(detail<MediaRange[]>(e)));
+          el.addEventListener("zen-active-index-change", (e) => {
+            active = detail<number>(e);
+            el.setAttribute("active-index", String(active));
+            paintInfo();
+          });
+          el.addEventListener("zen-range-remove", (e) =>
+            setEls(els.filter((_, k) => k !== detail<number>(e)), -1),
+          );
           paintInfo();
           return column(el, info);
         },

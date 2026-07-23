@@ -1,12 +1,21 @@
 import {
   MIN_MEDIA_RANGE,
   type MediaRange,
+  type MediaRangeMode,
   clampBadgePct,
   dragRangeEdge,
   formatMediaTime,
+  moveRange,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
-import { applyProps, Disposer, type BaseProps, type ZenComponent } from "../../lib/component";
+import {
+  applyProps,
+  Disposer,
+  toNodes,
+  type BaseProps,
+  type Child,
+  type ZenComponent,
+} from "../../lib/component";
 import { Icon } from "../icon/icon";
 
 /**
@@ -38,9 +47,23 @@ import { Icon } from "../icon/icon";
 export interface MediaTimelineProps extends BaseProps {
   /** Total media length, seconds. The track maps [0, duration] to its width. */
   duration: number;
-  /** Sorted, non-overlapping spans. The app owns the array (controlled). */
+  /**
+   * The spans. In `"partition"` mode: sorted, non-overlapping. In
+   * `"independent"` mode: free — overlap allowed, z-order is array order.
+   * The app owns the array either way (controlled).
+   */
   ranges: MediaRange[];
-  /** Which range is highlighted; the remove affordance renders on it. */
+  /**
+   * How the ranges relate: `"partition"` (a trim track — edge drags clamp
+   * against neighbours) or `"independent"` (an overlay-element lane — spans
+   * move and overlap freely, bars carry labels/colors). Default "partition".
+   */
+  rangeMode?: MediaRangeMode;
+  /**
+   * Which range is highlighted; the remove affordance renders on it. `-1` (the
+   * DOM's own selectedIndex convention) or omitted = none. In independent
+   * mode, clicking empty track emits `onActiveIndexChange(-1)` — deselect.
+   */
   activeIndex?: number;
   onActiveIndexChange?: (index: number) => void;
   /** Committed edits — keyboard nudges land here. */
@@ -68,8 +91,21 @@ export interface MediaTimelineProps extends BaseProps {
   /**
    * Colour treatment for a range. Replaces the default primary tint + ring —
    * the positioning stays. This is the "a range is just a range" hook.
+   * Precedence: rangeClass > rangeColor > default.
    */
   rangeClass?: (index: number, active: boolean) => string;
+  /**
+   * A CSS color per range (any color — class tokens cannot express arbitrary
+   * hex). The component derives the fill (color-mix, 40% active / 25% not)
+   * and an inset ring (full color, 2px active / 1px not), and paints the edge
+   * handles with it. `rangeClass` wins if both are provided.
+   */
+  rangeColor?: (index: number, active: boolean) => string;
+  /**
+   * Rendered inside the bar — element text, a clip name. Truncated, and
+   * pointer-events: none so the body-drag surface stays whole.
+   */
+  rangeLabel?: (index: number) => Child;
   /** Names the timeline for a screen reader. */
   label?: string;
 }
@@ -97,6 +133,9 @@ interface Row {
   root: HTMLDivElement;
   handles: Record<"start" | "end", HTMLDivElement>;
   removeBtn: HTMLButtonElement | null;
+  labelInner: HTMLSpanElement | null;
+  /** Last label value rendered, so paint() can skip identical content. */
+  lastLabel: Child | undefined;
 }
 
 export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTimelineProps> {
@@ -105,12 +144,17 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
   const rowCleanups = new Disposer();
   let removeProps: (() => void) | undefined;
 
-  let dragging: { index: number; edge: "start" | "end" } | null = null;
+  let dragging: { index: number; edge: "start" | "end" | "move" } | null = null;
   let draggedRanges: MediaRange[] | null = null;
   let suppressClick = false;
+  // Lane-time distance from the grab point to the range's start, so a body
+  // drag holds the bar where it was grabbed instead of snapping start there.
+  let grabDelta = 0;
 
   const fmt = (s: number) => (current.formatTime ?? formatMediaTime)(s);
   const minDur = () => current.minRangeDuration ?? MIN_MEDIA_RANGE;
+  const mode = () => current.rangeMode ?? "partition";
+  const independent = () => mode() === "independent";
   const toPct = (time: number) => (time / current.duration) * 100;
   const toTime = (clientX: number) => {
     const rect = track.getBoundingClientRect();
@@ -124,10 +168,8 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
   // Time axes read left-to-right even in RTL locales — every editor's.
   track.setAttribute("dir", "ltr");
   track.setAttribute("role", "group");
-  track.className = cn(
-    "zen-relative zen-h-14 zen-select-none zen-overflow-hidden zen-rounded-zen-md",
-    "zen-border zen-border-zen-border zen-bg-zen-muted zen-cursor-crosshair",
-  );
+  // className is painted (not fixed here): the height is a per-mode default —
+  // overlay lanes are shorter than filmstrip tracks.
   scroll.append(track);
   el.append(scroll);
 
@@ -160,6 +202,21 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
       return;
     }
     e.preventDefault();
+    if (dragging.edge === "move") {
+      const { ranges, start } = moveRange(
+        current.ranges,
+        dragging.index,
+        toTime(e.clientX) - grabDelta,
+        current.duration,
+      );
+      draggedRanges = ranges;
+      const r = ranges[dragging.index];
+      dragBadge.textContent = `${fmt(start)} · ${(r.end - r.start).toFixed(1)}s`;
+      dragBadge.style.left = `${clampBadgePct(toPct(start))}%`;
+      dragBadge.style.display = "";
+      emitInput(ranges);
+      return;
+    }
     const { ranges, edgeTime } = dragRangeEdge(
       current.ranges,
       dragging.index,
@@ -167,6 +224,7 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
       toTime(e.clientX),
       current.duration,
       minDur(),
+      mode(),
     );
     draggedRanges = ranges;
     const r = ranges[dragging.index];
@@ -188,6 +246,8 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
     dragging = null;
     draggedRanges = null;
     dragBadge.style.display = "none";
+    // The grabbing cursor follows the drag state, which paint() owns.
+    paint();
   };
 
   const onClick = (e: MouseEvent) => {
@@ -195,6 +255,9 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
       suppressClick = false;
       return;
     }
+    // An overlay lane's empty track is the deselect surface (bars stop their
+    // clicks), and the click still seeks — StudioX's grammar.
+    if (independent()) current.onActiveIndexChange?.(-1);
     current.onSeek?.(toTime(e.clientX));
   };
 
@@ -202,13 +265,21 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
   const onPointerLeave = () => {
     hoverBadge.style.display = "none";
   };
+  // A drag's own ending click targets the captured handle and is stopped by
+  // the row's click handler, so it never reaches the track — without this
+  // reset the armed suppressClick would swallow the NEXT genuine track click.
+  const onTrackPointerDown = () => {
+    suppressClick = false;
+  };
 
+  track.addEventListener("pointerdown", onTrackPointerDown);
   track.addEventListener("pointermove", onPointerMove);
   track.addEventListener("pointerup", onPointerUp);
   track.addEventListener("click", onClick);
   track.addEventListener("dblclick", onDblClick);
   track.addEventListener("pointerleave", onPointerLeave);
   disposer.add(() => {
+    track.removeEventListener("pointerdown", onTrackPointerDown);
     track.removeEventListener("pointermove", onPointerMove);
     track.removeEventListener("pointerup", onPointerUp);
     track.removeEventListener("click", onClick);
@@ -224,6 +295,41 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
     };
     root.addEventListener("click", rowClick);
     rowCleanups.add(() => root.removeEventListener("click", rowClick));
+
+    // Body-drag is independent-mode-only: moving a partition range through
+    // its neighbours has no defined meaning, so a partition body stays a
+    // click target and nothing more.
+    const bodyDown = (e: PointerEvent) => {
+      if (!independent()) return;
+      e.preventDefault();
+      e.stopPropagation();
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      grabDelta = toTime(e.clientX) - current.ranges[index].start;
+      dragging = { index, edge: "move" };
+      draggedRanges = null;
+      hoverBadge.style.display = "none";
+      current.onActiveIndexChange?.(index);
+      paint();
+    };
+    const bodyKey = (e: KeyboardEvent) => {
+      if (!independent()) return;
+      const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!dir) return;
+      e.preventDefault();
+      const { ranges } = moveRange(
+        current.ranges,
+        index,
+        current.ranges[index].start + dir * (e.shiftKey ? 1 : minDur()),
+        current.duration,
+      );
+      current.onRangesChange?.(ranges);
+    };
+    root.addEventListener("pointerdown", bodyDown);
+    root.addEventListener("keydown", bodyKey);
+    rowCleanups.add(() => {
+      root.removeEventListener("pointerdown", bodyDown);
+      root.removeEventListener("keydown", bodyKey);
+    });
 
     const handles = {} as Row["handles"];
     for (const edge of ["start", "end"] as const) {
@@ -268,6 +374,17 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
       root.append(h);
     }
 
+    let labelInner: HTMLSpanElement | null = null;
+    if (current.rangeLabel) {
+      const wrap = document.createElement("span");
+      wrap.className =
+        "zen-pointer-events-none zen-absolute zen-inset-0 zen-flex zen-items-center zen-px-3 zen-text-xs zen-text-zen-foreground";
+      labelInner = document.createElement("span");
+      labelInner.className = "zen-truncate";
+      wrap.append(labelInner);
+      root.append(wrap);
+    }
+
     let removeBtn: HTMLButtonElement | null = null;
     if (current.onRangeRemove) {
       removeBtn = document.createElement("button");
@@ -285,13 +402,21 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
         e.stopPropagation();
         current.onRangeRemove?.(index);
       };
+      // Stop the pointerdown too: in independent mode the bar body starts a
+      // drag on pointerdown, and a drag started under this button would eat
+      // its own click.
+      const removeDown = (e: PointerEvent) => e.stopPropagation();
       removeBtn.addEventListener("click", remove);
-      rowCleanups.add(() => removeBtn?.removeEventListener("click", remove));
+      removeBtn.addEventListener("pointerdown", removeDown);
+      rowCleanups.add(() => {
+        removeBtn?.removeEventListener("click", remove);
+        removeBtn?.removeEventListener("pointerdown", removeDown);
+      });
       root.append(removeBtn);
     }
 
     track.append(root);
-    return { root, handles, removeBtn };
+    return { root, handles, removeBtn, labelInner, lastLabel: undefined };
   };
 
   /** Rebuild the range rows. Only on COUNT change — never mid-drag. */
@@ -330,6 +455,13 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
     removeProps = applyProps(el, pickRest());
 
     track.setAttribute("aria-label", current.label ?? "Media timeline");
+    track.className = cn(
+      // Overlay lanes are shorter than filmstrip tracks — a per-mode default,
+      // because the caller's `class` lands on the ROOT element.
+      independent() ? "zen-h-10" : "zen-h-14",
+      "zen-relative zen-select-none zen-overflow-hidden zen-rounded-zen-md",
+      "zen-border zen-border-zen-border zen-bg-zen-muted zen-cursor-crosshair",
+    );
     track.style.width = `${(current.zoom ?? 1) * 100}%`;
     track.style.minWidth = "100%";
 
@@ -345,30 +477,82 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
       if (!range) return;
       const active = i === current.activeIndex;
       const custom = current.rangeClass?.(i, active);
+      // Precedence: rangeClass > rangeColor > default primary tint.
+      const color = custom ? undefined : current.rangeColor?.(i, active);
+      const moving = dragging !== null && dragging.edge === "move" && dragging.index === i;
       row.root.className = cn(
-        "zen-absolute zen-top-0 zen-h-full",
-        custom ?? (active ? "zen-ring-2 zen-ring-zen-primary" : "zen-ring-1 zen-ring-zen-primary"),
+        "zen-absolute",
+        independent()
+          ? cn(
+              "zen-top-1 zen-bottom-1 zen-rounded-zen-sm zen-overflow-hidden",
+              moving ? "zen-cursor-grabbing" : "zen-cursor-grab",
+              // Outline, not ring: the colour treatment owns the bar's
+              // box-shadow inline, and an inline style would silently beat a
+              // focus ring built from box-shadow.
+              "focus-visible:zen-outline focus-visible:zen-outline-2 focus-visible:zen-outline-zen-ring",
+            )
+          : "zen-top-0 zen-h-full",
+        custom ??
+          (color
+            ? ""
+            : active
+              ? "zen-ring-2 zen-ring-zen-primary"
+              : "zen-ring-1 zen-ring-zen-primary"),
       );
       row.root.style.left = `${toPct(range.start)}%`;
       row.root.style.width = `${toPct(range.end - range.start)}%`;
-      row.root.style.background = custom ? "" : tint(active ? 40 : 20);
+      // A sliver of a span must stay visible and grabbable.
+      row.root.style.minWidth = independent() ? "4px" : "";
+      row.root.style.background = custom ? "" : color ? colorTint(color, active ? 40 : 25) : tint(active ? 40 : 20);
+      row.root.style.boxShadow = !custom && color ? `inset 0 0 0 ${active ? 2 : 1}px ${color}` : "";
+      if (independent()) {
+        row.root.setAttribute("role", "slider");
+        row.root.tabIndex = 0;
+        row.root.setAttribute("aria-orientation", "horizontal");
+        row.root.setAttribute("aria-label", `Range ${i + 1} position`);
+        row.root.setAttribute("aria-valuemin", "0");
+        row.root.setAttribute("aria-valuemax", String(current.duration - (range.end - range.start)));
+        row.root.setAttribute("aria-valuenow", String(range.start));
+        row.root.setAttribute("aria-valuetext", fmt(range.start));
+      } else {
+        row.root.removeAttribute("role");
+        row.root.removeAttribute("tabindex");
+        row.root.removeAttribute("aria-orientation");
+        row.root.removeAttribute("aria-label");
+        row.root.removeAttribute("aria-valuemin");
+        row.root.removeAttribute("aria-valuemax");
+        row.root.removeAttribute("aria-valuenow");
+        row.root.removeAttribute("aria-valuetext");
+      }
       for (const edge of ["start", "end"] as const) {
         const h = row.handles[edge];
         h.setAttribute("aria-valuemin", "0");
         h.setAttribute("aria-valuemax", String(current.duration));
         h.setAttribute("aria-valuenow", String(range[edge]));
         h.setAttribute("aria-valuetext", fmt(range[edge]));
+        h.style.background = color ?? "";
+      }
+      if (row.labelInner && current.rangeLabel) {
+        const value = current.rangeLabel(i);
+        if (value !== row.lastLabel) {
+          row.lastLabel = value;
+          row.labelInner.replaceChildren(...toNodes(value));
+        }
       }
       if (row.removeBtn) row.removeBtn.style.display = active ? "" : "none";
     });
   };
 
+  /** color-mix fill for an arbitrary caller colour — see rangeColor. */
+  const colorTint = (c: string, pct: number) =>
+    `color-mix(in srgb, ${c} ${pct}%, transparent)`;
+
   /** BaseProps passthrough (id, style, data-*, aria-*) minus everything this factory owns. */
   const OWN_KEYS = new Set([
-    "duration", "ranges", "activeIndex", "onActiveIndexChange", "onRangesChange",
+    "duration", "ranges", "rangeMode", "activeIndex", "onActiveIndexChange", "onRangesChange",
     "onRangesInput", "onRangesCommit", "onRangeRemove", "onSeek", "onTrackDblClick",
     "thumbnails", "currentTime", "zoom", "minRangeDuration", "formatTime",
-    "rangeClass", "label", "class",
+    "rangeClass", "rangeColor", "rangeLabel", "label", "class",
   ]);
   const pickRest = (): Record<string, unknown> =>
     Object.fromEntries(
@@ -385,11 +569,13 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
     el,
     update(next) {
       current = { ...current, ...next };
-      // Rows carry index-bound listeners and the remove affordance, so a count
-      // change or a presence change rebuilds them; a value change never does.
+      // Rows carry index-bound listeners, the remove affordance and the label
+      // span, so a count change or a presence change rebuilds them; a value
+      // change never does.
       if (
         (next.ranges && next.ranges.length !== rows.length) ||
-        "onRangeRemove" in next
+        "onRangeRemove" in next ||
+        "rangeLabel" in next
       ) {
         renderRanges();
       }

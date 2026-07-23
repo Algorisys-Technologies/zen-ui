@@ -207,6 +207,64 @@ Slider({
           return column(tl.el, info);
         },
       },
+      {
+        title: "4. Overlay elements (independent mode)",
+        codeTitle: 'rangeMode: "independent" — free spans that move and overlap',
+        codeDescription:
+          "No neighbour clamps: spans overlap freely and z-order is array order. Drag a bar's body to move it (length preserved), its edges to trim. rangeLabel puts the element's text in the bar; rangeColor takes any CSS colour and derives the fill, ring and handles from it (rangeClass wins if both are given). Clicking empty track deselects (activeIndex -1, the DOM selectedIndex convention) and seeks. The bar body is focusable too — arrows move it.",
+        code: `const tl = MediaTimeline({
+  duration: 30,
+  rangeMode: "independent",
+  ranges: els,
+  activeIndex: -1,                    // -1 = nothing selected
+  onActiveIndexChange: (i) => tl.update({ activeIndex: i }),
+  onRangesInput: (r) => tl.update({ ranges: r }),
+  onRangesChange: (r) => tl.update({ ranges: r }),
+  onRangeRemove: (i) => setEls(els.filter((_, k) => k !== i)),
+  rangeLabel: (i) => LABELS[i],
+  rangeColor: (i) => COLORS[i % COLORS.length],
+  minRangeDuration: 0.5,
+});`,
+        render: () => {
+          const COLORS = ["#e879f9", "#38bdf8", "#fbbf24", "#4ade80"];
+          const LABELS = ["Title card", "Lower third", "Credits", "Watermark"];
+          let els: MediaRange[] = [
+            { start: 2, end: 14 },
+            { start: 10, end: 22 },
+            { start: 18, end: 27 },
+          ];
+          let active = -1;
+          const info = readout();
+          const paintInfo = () => {
+            info.textContent = `elements: ${fmtRanges(els)} · selected: ${active === -1 ? "none" : LABELS[active % LABELS.length]}`;
+          };
+          const setEls = (next: MediaRange[], nextActive = active) => {
+            els = next;
+            active = Math.min(nextActive, next.length - 1);
+            tl.update({ ranges: els, activeIndex: active });
+            paintInfo();
+          };
+          const tl = MediaTimeline({
+            duration: 30,
+            rangeMode: "independent",
+            ranges: els,
+            activeIndex: active,
+            onActiveIndexChange: (i) => {
+              active = i;
+              tl.update({ activeIndex: i });
+              paintInfo();
+            },
+            onRangesInput: (r) => setEls(r),
+            onRangesChange: (r) => setEls(r),
+            onRangeRemove: (i) => setEls(els.filter((_, k) => k !== i), -1),
+            rangeLabel: (i) => LABELS[i % LABELS.length],
+            rangeColor: (i) => COLORS[i % COLORS.length],
+            minRangeDuration: 0.5,
+          });
+          paintInfo();
+          return column(tl.el, info);
+        },
+      },
     ],
   });
 }

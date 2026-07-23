@@ -162,7 +162,7 @@ export type { MediaTimelineProps } from "./components/media-timeline/media-timel
 export { Waveform } from "./components/waveform/waveform";
 export type { WaveformProps } from "./components/waveform/waveform";
 export { formatMediaTime, MIN_MEDIA_RANGE } from "@algorisys/zen-ui-core/media";
-export type { MediaRange, WaveformClip } from "@algorisys/zen-ui-core/media";
+export type { MediaRange, MediaRangeMode, WaveformClip } from "@algorisys/zen-ui-core/media";
 
 export { Link, linkVariants } from "./components/link/link";
 export type { LinkProps } from "./components/link/link";

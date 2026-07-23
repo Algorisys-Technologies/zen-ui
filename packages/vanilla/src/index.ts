@@ -146,7 +146,7 @@ export type { MediaTimelineProps } from "./components/media-timeline/media-timel
 export { Waveform } from "./components/waveform/waveform";
 export type { WaveformProps } from "./components/waveform/waveform";
 export { formatMediaTime, MIN_MEDIA_RANGE } from "@algorisys/zen-ui-core/media";
-export type { MediaRange, WaveformClip } from "@algorisys/zen-ui-core/media";
+export type { MediaRange, MediaRangeMode, WaveformClip } from "@algorisys/zen-ui-core/media";
 export { DropdownMenu } from "./components/dropdown-menu/dropdown-menu";
 export type { DropdownMenuProps, DropdownMenuHandle, DropdownMenuItemSpec, DropdownMenuActionItem, DropdownMenuLabelItem, DropdownMenuSeparatorItem, DropdownMenuCheckboxItemSpec, DropdownMenuRadioGroupSpec, DropdownMenuRadioOption, DropdownMenuSubSpec, DropdownMenuSide, DropdownMenuAlign } from "./components/dropdown-menu/dropdown-menu";
 export { FileUpload } from "./components/file-upload/file-upload";

@@ -14,13 +14,15 @@ defineZenElement<MediaTimelineProps>({
   attrs: {
     duration: "number",
     ranges: "json",
+    // "partition" (default) or "independent" — overlay-element lanes.
+    "range-mode": "string",
     "active-index": "number",
     "current-time": "number",
     zoom: "number",
     "min-range-duration": "number",
     label: "string",
   },
-  props: ["ranges", "thumbnails", "formatTime", "rangeClass"],
+  props: ["ranges", "thumbnails", "formatTime", "rangeClass", "rangeColor", "rangeLabel"],
   events: {
     onRangesChange: "zen-ranges-change",
     onRangesInput: "zen-ranges-input",

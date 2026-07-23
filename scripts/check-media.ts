@@ -19,6 +19,7 @@ import {
   dragRangeEdge,
   formatMediaTime,
   moveClip,
+  moveRange,
   waveformPath,
   type MediaRange,
   type WaveformClip,
@@ -83,6 +84,60 @@ t(
   true,
   "untouched neighbours keep identity (fine-grained renderers)",
 );
+
+console.log("\ndragRangeEdge independent mode — free spans, no neighbour clamps");
+// Overlay-element lanes (StudioX elements-timeline): ranges are independent
+// spans that may overlap freely. Only [0, duration] and the range's own
+// minimum span clamp an edge.
+t(
+  dragRangeEdge(ranges, 1, "start", 15, 100, 0.1, "independent").ranges[1],
+  { start: 15, end: 40 },
+  "a start may cross the previous range (overlap allowed)",
+);
+t(
+  dragRangeEdge(ranges, 1, "end", 70, 100, 0.1, "independent").ranges[1],
+  { start: 30, end: 70 },
+  "an end may cross the next range",
+);
+t(
+  dragRangeEdge(ranges, 1, "start", -5, 100, 0.1, "independent").edgeTime,
+  0,
+  "still floors at 0",
+);
+t(
+  dragRangeEdge(ranges, 1, "end", 150, 100, 0.1, "independent").edgeTime,
+  100,
+  "still caps at duration",
+);
+t(
+  dragRangeEdge(ranges, 1, "start", 39.99, 100, 0.1, "independent").edgeTime,
+  39.9,
+  "own minimum span still holds",
+);
+t(
+  dragRangeEdge(ranges, 1, "start", 15, 100, 0.1).ranges[1].start,
+  20.1,
+  "mode defaults to partition — existing callers unchanged",
+);
+
+console.log("\nmoveRange — body drag preserves length, clamps to the lane");
+t(
+  moveRange(ranges, 1, 50, 100),
+  { ranges: [ranges[0], { start: 50, end: 60 }, ranges[2]], start: 50 },
+  "free move keeps the span's length",
+);
+t(moveRange(ranges, 1, -5, 100).ranges[1], { start: 0, end: 10 }, "floors at 0");
+t(
+  moveRange(ranges, 1, 95, 100).ranges[1],
+  { start: 90, end: 100 },
+  "caps at duration minus length",
+);
+t(
+  moveRange(ranges, 1, 50, 100).ranges[0] === ranges[0],
+  true,
+  "untouched ranges keep identity",
+);
+t(JSON.stringify(ranges) === frozen, true, "moveRange does not mutate its input");
 
 console.log("\ndragClipEdge — left edge moves offset+start together, right edge fixed");
 const clip: WaveformClip = { offset: 10, start: 2, end: 8 };

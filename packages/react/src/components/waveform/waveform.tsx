@@ -231,6 +231,9 @@ export const Waveform = React.forwardRef<HTMLDivElement, WaveformProps>(
             )}
             style={{ width: `${zoom * 100}%`, minWidth: "100%" }}
             onClick={onLaneClick}
+            // See MediaTimeline: a fresh track press clears stale click
+            // suppression; drag presses are stopped at the clip, never here.
+            onPointerDown={() => (suppressClick.current = false)}
             onPointerMove={onLanePointerMove}
             onPointerUp={onLanePointerUp}
             onPointerLeave={() => setHoverTime(null)}

@@ -2,9 +2,11 @@ import * as React from "react";
 import {
   MIN_MEDIA_RANGE,
   type MediaRange,
+  type MediaRangeMode,
   clampBadgePct,
   dragRangeEdge,
   formatMediaTime,
+  moveRange,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
@@ -44,9 +46,23 @@ import { Icon } from "../icon/icon";
 export interface MediaTimelineProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Total media length, seconds. The track maps [0, duration] to its width. */
   duration: number;
-  /** Sorted, non-overlapping spans. The app owns the array (controlled). */
+  /**
+   * The spans. In `"partition"` mode: sorted, non-overlapping. In
+   * `"independent"` mode: free — overlap allowed, z-order is array order.
+   * The app owns the array either way (controlled).
+   */
   ranges: MediaRange[];
-  /** Which range is highlighted; the remove affordance renders on it. */
+  /**
+   * How the ranges relate: `"partition"` (a trim track — edge drags clamp
+   * against neighbours) or `"independent"` (an overlay-element lane — spans
+   * move and overlap freely, bars carry labels/colors). Default "partition".
+   */
+  rangeMode?: MediaRangeMode;
+  /**
+   * Which range is highlighted; the remove affordance renders on it. `-1` (the
+   * DOM's own selectedIndex convention) or omitted = none. In independent
+   * mode, clicking empty track emits `onActiveIndexChange(-1)` — deselect.
+   */
   activeIndex?: number;
   onActiveIndexChange?: (index: number) => void;
   /** Committed edits — keyboard nudges land here. */
@@ -74,8 +90,22 @@ export interface MediaTimelineProps extends React.HTMLAttributes<HTMLDivElement>
   /**
    * Colour treatment for a range. Replaces the default primary tint + ring —
    * the positioning stays. This is the "a range is just a range" hook.
+   * Precedence: rangeClass > rangeColor > default.
    */
   rangeClass?: (index: number, active: boolean) => string;
+  /**
+   * A CSS color per range (any color — StudioX feeds hex from a palette,
+   * which class tokens cannot express). The component derives the fill
+   * (color-mix, 40% active / 25% not) and an inset ring (full color, 2px
+   * active / 1px not), and paints the edge handles with it. `rangeClass`
+   * wins if both are provided.
+   */
+  rangeColor?: (index: number, active: boolean) => string;
+  /**
+   * Rendered inside the bar — element text, a clip name. Truncated, and
+   * pointer-events: none so the body-drag surface stays whole.
+   */
+  rangeLabel?: (index: number) => React.ReactNode;
   /** Names the timeline for a screen reader. */
   label?: string;
   className?: string;
@@ -96,6 +126,7 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
     {
       duration,
       ranges,
+      rangeMode = "partition",
       activeIndex,
       onActiveIndexChange,
       onRangesChange,
@@ -110,16 +141,20 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
       minRangeDuration = MIN_MEDIA_RANGE,
       formatTime = formatMediaTime,
       rangeClass,
+      rangeColor,
+      rangeLabel,
       label = "Media timeline",
       className,
       ...props
     },
     ref,
   ) => {
+    const independent = rangeMode === "independent";
     const trackRef = React.useRef<HTMLDivElement | null>(null);
-    const [dragging, setDragging] = React.useState<{ index: number; edge: "start" | "end" } | null>(
-      null,
-    );
+    const [dragging, setDragging] = React.useState<{
+      index: number;
+      edge: "start" | "end" | "move";
+    } | null>(null);
     const [dragTip, setDragTip] = React.useState<{ pct: number; text: string } | null>(null);
     const [hoverTime, setHoverTime] = React.useState<number | null>(null);
 
@@ -129,6 +164,9 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
     const draggedRanges = React.useRef<MediaRange[] | null>(null);
     // A drag ends with a click on the track; without this it would also seek.
     const suppressClick = React.useRef(false);
+    // Lane-time distance from the grab point to the range's start, so a body
+    // drag holds the bar where it was grabbed instead of snapping start there.
+    const grabDelta = React.useRef(0);
 
     const toPct = (time: number) => (time / duration) * 100;
     const toTime = (clientX: number) => {
@@ -150,12 +188,43 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
       onActiveIndexChange?.(index);
     };
 
+    // Body-drag is independent-mode-only: moving a partition range through
+    // its neighbours has no defined meaning, so a partition body stays a
+    // click target and nothing more.
+    const onBodyDown = (index: number, e: React.PointerEvent) => {
+      if (!independent) return;
+      e.preventDefault();
+      e.stopPropagation();
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      grabDelta.current = toTime(e.clientX) - ranges[index].start;
+      setDragging({ index, edge: "move" });
+      setHoverTime(null);
+      draggedRanges.current = null;
+      onActiveIndexChange?.(index);
+    };
+
     const onTrackPointerMove = (e: React.PointerEvent) => {
       if (!dragging) {
         setHoverTime(toTime(e.clientX));
         return;
       }
       e.preventDefault();
+      if (dragging.edge === "move") {
+        const { ranges: next, start } = moveRange(
+          ranges,
+          dragging.index,
+          toTime(e.clientX) - grabDelta.current,
+          duration,
+        );
+        draggedRanges.current = next;
+        const r = next[dragging.index];
+        setDragTip({
+          pct: clampBadgePct(toPct(start)),
+          text: `${formatTime(start)} · ${(r.end - r.start).toFixed(1)}s`,
+        });
+        emitInput(next);
+        return;
+      }
       const { ranges: next, edgeTime } = dragRangeEdge(
         ranges,
         dragging.index,
@@ -163,6 +232,7 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
         toTime(e.clientX),
         duration,
         minRangeDuration,
+        rangeMode,
       );
       draggedRanges.current = next;
       const r = next[dragging.index];
@@ -195,6 +265,9 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
         suppressClick.current = false;
         return;
       }
+      // An overlay lane's empty track is the deselect surface (bars stop
+      // their clicks), and the click still seeks — StudioX's grammar.
+      if (independent) onActiveIndexChange?.(-1);
       onSeek?.(toTime(e.clientX));
     };
 
@@ -211,6 +284,20 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
         from + dir * (e.shiftKey ? 1 : minRangeDuration),
         duration,
         minRangeDuration,
+        rangeMode,
+      );
+      onRangesChange?.(next);
+    };
+
+    const onBodyKeyDown = (index: number, e: React.KeyboardEvent) => {
+      const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!dir) return;
+      e.preventDefault();
+      const { ranges: next } = moveRange(
+        ranges,
+        index,
+        ranges[index].start + dir * (e.shiftKey ? 1 : minRangeDuration),
+        duration,
       );
       onRangesChange?.(next);
     };
@@ -225,12 +312,21 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
             // Time axes read left-to-right even in RTL locales — every editor's.
             dir="ltr"
             className={cn(
-              "zen-relative zen-h-14 zen-select-none zen-overflow-hidden zen-rounded-zen-md",
+              // Overlay lanes are shorter than filmstrip tracks — the height
+              // is a per-mode default because the caller's `className` lands
+              // on the ROOT, where a height utility could not reach this.
+              independent ? "zen-h-10" : "zen-h-14",
+              "zen-relative zen-select-none zen-overflow-hidden zen-rounded-zen-md",
               "zen-border zen-border-zen-border zen-bg-zen-muted zen-cursor-crosshair",
             )}
             style={{ width: `${zoom * 100}%`, minWidth: "100%" }}
             onClick={onTrackClick}
             onDoubleClick={(e) => onTrackDblClick?.(toTime(e.clientX))}
+            // A drag's own ending click targets the captured handle and is
+            // stopped by the range's click handler, so it never reaches the
+            // track — without this reset the armed suppressClick would
+            // swallow the NEXT genuine track click instead.
+            onPointerDown={() => (suppressClick.current = false)}
             onPointerMove={onTrackPointerMove}
             onPointerUp={onTrackPointerUp}
             onPointerLeave={() => setHoverTime(null)}
@@ -275,22 +371,59 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
             {ranges.map((range, i) => {
               const active = i === activeIndex;
               const custom = rangeClass?.(i, active);
+              // Precedence: rangeClass > rangeColor > default primary tint.
+              const color = custom ? undefined : rangeColor?.(i, active);
+              const moving = dragging?.edge === "move" && dragging.index === i;
               return (
                 <div
                   key={i}
+                  role={independent ? "slider" : undefined}
+                  tabIndex={independent ? 0 : undefined}
+                  aria-orientation={independent ? "horizontal" : undefined}
+                  aria-label={independent ? `Range ${i + 1} position` : undefined}
+                  aria-valuemin={independent ? 0 : undefined}
+                  aria-valuemax={independent ? duration - (range.end - range.start) : undefined}
+                  aria-valuenow={independent ? range.start : undefined}
+                  aria-valuetext={independent ? formatTime(range.start) : undefined}
                   className={cn(
-                    "zen-absolute zen-top-0 zen-h-full",
-                    custom ?? (active ? "zen-ring-2 zen-ring-zen-primary" : "zen-ring-1 zen-ring-zen-primary"),
+                    "zen-absolute",
+                    independent
+                      ? cn(
+                          "zen-top-1 zen-bottom-1 zen-rounded-zen-sm zen-overflow-hidden",
+                          moving ? "zen-cursor-grabbing" : "zen-cursor-grab",
+                          // Outline, not ring: the colour treatment owns the
+                          // bar's box-shadow inline, and an inline style would
+                          // silently beat a focus ring built from box-shadow.
+                          "focus-visible:zen-outline focus-visible:zen-outline-2 focus-visible:zen-outline-zen-ring",
+                        )
+                      : "zen-top-0 zen-h-full",
+                    custom ??
+                      (color
+                        ? ""
+                        : active
+                          ? "zen-ring-2 zen-ring-zen-primary"
+                          : "zen-ring-1 zen-ring-zen-primary"),
                   )}
                   style={{
                     left: `${toPct(range.start)}%`,
                     width: `${toPct(range.end - range.start)}%`,
-                    ...(custom ? {} : { background: tint(active ? 40 : 20) }),
+                    // A sliver of a span must stay visible and grabbable.
+                    ...(independent ? { minWidth: "4px" } : {}),
+                    ...(custom
+                      ? {}
+                      : color
+                        ? {
+                            background: `color-mix(in srgb, ${color} ${active ? 40 : 25}%, transparent)`,
+                            boxShadow: `inset 0 0 0 ${active ? 2 : 1}px ${color}`,
+                          }
+                        : { background: tint(active ? 40 : 20) }),
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onActiveIndexChange?.(i);
                   }}
+                  onPointerDown={(e) => onBodyDown(i, e)}
+                  onKeyDown={(e) => independent && onBodyKeyDown(i, e)}
                 >
                   {(["start", "end"] as const).map((edge) => (
                     <div
@@ -309,10 +442,16 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
                         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
                         edge === "start" ? "zen-left-0" : "zen-right-0",
                       )}
+                      style={color ? { background: color } : undefined}
                       onPointerDown={(e) => onHandleDown(i, edge, e)}
                       onKeyDown={(e) => onHandleKeyDown(i, edge, e)}
                     />
                   ))}
+                  {rangeLabel ? (
+                    <span className="zen-pointer-events-none zen-absolute zen-inset-0 zen-flex zen-items-center zen-px-3 zen-text-xs zen-text-zen-foreground">
+                      <span className="zen-truncate">{rangeLabel(i)}</span>
+                    </span>
+                  ) : null}
                   {active && onRangeRemove ? (
                     <button
                       type="button"
@@ -324,6 +463,10 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
                         "zen-text-zen-muted-fg hover:zen-border-zen-error hover:zen-bg-zen-error hover:zen-text-zen-error-fg",
                         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
                       )}
+                      // Stop the pointerdown too: in independent mode the bar
+                      // body starts a drag on pointerdown, and a drag started
+                      // under this button would eat its own click.
+                      onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         onRangeRemove(i);

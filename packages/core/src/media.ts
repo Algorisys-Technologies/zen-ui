@@ -45,16 +45,28 @@ export const formatMediaTime = (seconds: number): string => {
 };
 
 /**
- * Drag one edge of `ranges[index]` to `time`, clamped against the neighbours
- * and the range's own minimum span. Returns the new array (input untouched)
- * plus the clamped edge time, which is what the drag tooltip and live-seek
- * want.
+ * How a timeline's ranges relate to each other.
  *
- * Neighbour clamps keep a `minDuration` GAP (start stops at prev.end + min,
- * not prev.end): two touching ranges would stack their edge handles on one
- * pixel column, and the gap is what keeps both grabbable. Assumes `ranges` is
- * sorted by start and non-overlapping — the caller owns the array and the
- * invariant, as in every controlled component here.
+ * - `"partition"` — sorted, non-overlapping spans (a trim track): edge drags
+ *   clamp against the neighbours.
+ * - `"independent"` — free spans (an overlay-element lane): ranges may
+ *   overlap, there is no neighbour relationship, and z-order is array order.
+ */
+export type MediaRangeMode = "partition" | "independent";
+
+/**
+ * Drag one edge of `ranges[index]` to `time`, clamped by the range's own
+ * minimum span, the lane, and — in `"partition"` mode — the neighbours.
+ * Returns the new array (input untouched) plus the clamped edge time, which
+ * is what the drag tooltip and live-seek want.
+ *
+ * Partition neighbour clamps keep a `minDuration` GAP (start stops at
+ * prev.end + min, not prev.end): two touching ranges would stack their edge
+ * handles on one pixel column, and the gap is what keeps both grabbable.
+ * Partition mode assumes `ranges` is sorted by start and non-overlapping —
+ * the caller owns the array and the invariant, as in every controlled
+ * component here. Independent mode assumes nothing: only [0, duration] and
+ * the span's own minimum apply.
  */
 export const dragRangeEdge = (
   ranges: readonly MediaRange[],
@@ -63,6 +75,7 @@ export const dragRangeEdge = (
   time: number,
   duration: number,
   minDuration: number = MIN_MEDIA_RANGE,
+  mode: MediaRangeMode = "partition",
 ): { ranges: MediaRange[]; edgeTime: number } => {
   // Only the dragged range gets a new object — untouched neighbours keep their
   // identity, so a fine-grained renderer re-renders one row, not the list.
@@ -70,8 +83,10 @@ export const dragRangeEdge = (
   const range = next[index];
   if (!range) return { ranges: next, edgeTime: time };
 
-  const floor = index > 0 ? next[index - 1].end + minDuration : 0;
-  const ceil = index < next.length - 1 ? next[index + 1].start - minDuration : duration;
+  const partition = mode === "partition";
+  const floor = partition && index > 0 ? next[index - 1].end + minDuration : 0;
+  const ceil =
+    partition && index < next.length - 1 ? next[index + 1].start - minDuration : duration;
 
   let edgeTime: number;
   if (edge === "start") {
@@ -82,6 +97,29 @@ export const dragRangeEdge = (
     next[index] = { start: range.start, end: edgeTime };
   }
   return { ranges: next, edgeTime };
+};
+
+/**
+ * Move a whole range to `newStart`, length preserved, clamped to the lane.
+ * The body-drag counterpart of `dragRangeEdge` — independent-mode lanes move
+ * their spans; a partition has no defined meaning for moving a range through
+ * its neighbours, so the components only offer this in independent mode.
+ * Returns the new array (input untouched, other ranges keep identity) plus
+ * the clamped start for the drag tooltip.
+ */
+export const moveRange = (
+  ranges: readonly MediaRange[],
+  index: number,
+  newStart: number,
+  duration: number,
+): { ranges: MediaRange[]; start: number } => {
+  const next = ranges.slice();
+  const range = next[index];
+  if (!range) return { ranges: next, start: newStart };
+  const length = range.end - range.start;
+  const start = Math.max(0, Math.min(newStart, duration - length));
+  next[index] = { start, end: start + length };
+  return { ranges: next, start };
 };
 
 /**

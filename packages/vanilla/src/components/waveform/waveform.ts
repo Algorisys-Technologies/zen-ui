@@ -212,11 +212,18 @@ export function Waveform(props: WaveformProps): ZenComponent<WaveformProps> {
     hoverBadge.style.display = "none";
   };
 
+  // See MediaTimeline: a fresh lane press clears stale click suppression;
+  // drag presses are stopped at the clip and never bubble here.
+  const onLanePointerDown = () => {
+    suppressClick = false;
+  };
+  lane.addEventListener("pointerdown", onLanePointerDown);
   lane.addEventListener("pointermove", onPointerMove);
   lane.addEventListener("pointerup", onPointerUp);
   lane.addEventListener("click", onClick);
   lane.addEventListener("pointerleave", onPointerLeave);
   disposer.add(() => {
+    lane.removeEventListener("pointerdown", onLanePointerDown);
     lane.removeEventListener("pointermove", onPointerMove);
     lane.removeEventListener("pointerup", onPointerUp);
     lane.removeEventListener("click", onClick);

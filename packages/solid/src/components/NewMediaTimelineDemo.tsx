@@ -31,6 +31,15 @@ const NewMediaTimelineDemo = () => {
   const [cuts, setCuts] = createSignal<MediaRange[]>([{ start: 10, end: 25 }]);
   const [cutActive, setCutActive] = createSignal(0);
 
+  const ELEMENT_COLORS = ["#e879f9", "#38bdf8", "#fbbf24", "#4ade80"];
+  const ELEMENT_LABELS = ["Title card", "Lower third", "Credits", "Watermark"];
+  const [els, setEls] = createSignal<MediaRange[]>([
+    { start: 2, end: 14 },
+    { start: 10, end: 22 },
+    { start: 18, end: 27 },
+  ]);
+  const [elActive, setElActive] = createSignal(-1);
+
   const addCut = (t: number) => {
     const half = 2.5;
     const next: MediaRange = { start: Math.max(0, t - half), end: Math.min(120, t + half) };
@@ -165,6 +174,48 @@ const NewMediaTimelineDemo = () => {
           />
           <div class="zen-text-xs zen-font-mono zen-text-zen-muted-fg">
             Double-click the track to add a cut · cuts: {fmtRanges(cuts())}
+          </div>
+        </div>
+      </DemoSection>
+
+      <DemoSection
+        title="Overlay elements (independent mode)"
+        codeTitle="rangeMode=&quot;independent&quot; — free spans that move and overlap"
+        codeDescription="No neighbour clamps: spans overlap freely and z-order is array order. Drag a bar's body to move it (length preserved), its edges to trim. rangeLabel puts the element's text in the bar; rangeColor takes any CSS colour and derives the fill, ring and handles from it (rangeClass wins if both are given). Clicking empty track deselects (activeIndex -1, the DOM selectedIndex convention) and seeks. The bar body is focusable too — arrows move it."
+        code={`<MediaTimeline
+  duration={30}
+  rangeMode="independent"
+  ranges={els()}
+  activeIndex={elActive()}          // -1 = nothing selected
+  onActiveIndexChange={setElActive} // empty-track click emits -1
+  onRangesInput={setEls}
+  onRangesChange={setEls}
+  onRangeRemove={(i) => setEls(els().filter((_, k) => k !== i))}
+  rangeLabel={(i) => LABELS[i]}
+  rangeColor={(i) => COLORS[i % COLORS.length]}
+  minRangeDuration={0.5}
+/>`}
+      >
+        <div class="zen-flex zen-w-full zen-flex-col zen-gap-2">
+          <MediaTimeline
+            duration={30}
+            rangeMode="independent"
+            ranges={els()}
+            activeIndex={elActive()}
+            onActiveIndexChange={setElActive}
+            onRangesInput={setEls}
+            onRangesChange={setEls}
+            onRangeRemove={(i) => {
+              setEls(els().filter((_, k) => k !== i));
+              setElActive(-1);
+            }}
+            rangeLabel={(i) => ELEMENT_LABELS[i % ELEMENT_LABELS.length]}
+            rangeColor={(i) => ELEMENT_COLORS[i % ELEMENT_COLORS.length]}
+            minRangeDuration={0.5}
+          />
+          <div class="zen-text-xs zen-font-mono zen-text-zen-muted-fg">
+            elements: {fmtRanges(els())} · selected:{" "}
+            {elActive() === -1 ? "none" : ELEMENT_LABELS[elActive() % ELEMENT_LABELS.length]}
           </div>
         </div>
       </DemoSection>

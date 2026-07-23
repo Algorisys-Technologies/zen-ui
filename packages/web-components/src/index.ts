@@ -67,7 +67,7 @@ export type {
   BreadcrumbEllipsisProps, BreadcrumbLinkProps, BreadcrumbProps, BreadcrumbSeparatorProps,
   ButtonProps, CalendarMode, CalendarProps, CalendarSelected, CameraHandle, CameraProps,
   CardProps, CarouselProps, ChartProps, ChartSeries, CheckboxHandle, CheckboxProps, CheckboxSize,
-  MediaRange, MediaTimelineProps, WaveformClip, WaveformProps,
+  MediaRange, MediaRangeMode, MediaTimelineProps, WaveformClip, WaveformProps,
   CheckedState, Child, ColorOption, ColorPaletteProps, ColorPickerProps, ComboboxOption,
   ComboboxProps, DataTableCellContext, DataTableColumn, DataTableManualPagination,
   DataTableProps, DatePickerProps, DateRange, DateRangeOperator, DateRangePickerProps,

@@ -14,8 +14,9 @@ SKILL.md.
 ### MediaTimeline
 
 - `duration: number` — Total media length, seconds. The track maps [0, duration] to its width.
-- `ranges: MediaRange[]` — Sorted, non-overlapping spans. The app owns the array (controlled).
-- `activeIndex?: number | undefined` — Which range is highlighted; the remove affordance renders on it.
+- `ranges: MediaRange[]` — The spans. In `"partition"` mode: sorted, non-overlapping. In `"independent"` mode: free — overlap allowed, z-order is array order. The app owns the array either way (controlled).
+- `rangeMode?: MediaRangeMode | undefined` — How the ranges relate: `"partition"` (a trim track — edge drags clamp against neighbours) or `"independent"` (an overlay-element lane — spans move and overlap freely, bars carry labels/colors). Default "partition".
+- `activeIndex?: number | undefined` — Which range is highlighted; the remove affordance renders on it. `-1` (the DOM's own selectedIndex convention) or omitted = none. In independent mode, clicking empty track emits `onActiveIndexChange(-1)` — deselect.
 - `onActiveIndexChange?: ((index: number) => void) | undefined`
 - `onRangesChange?: ((ranges: MediaRange[]) => void) | undefined` — Committed edits — keyboard nudges land here.
 - `onRangesInput?: ((ranges: MediaRange[]) => void) | undefined` — Per-pointermove during a drag, no history. Falls back to onRangesChange.
@@ -28,7 +29,9 @@ SKILL.md.
 - `zoom?: number | undefined` — Track width multiplier, >= 1; the track scrolls horizontally when > 1.
 - `minRangeDuration?: number | undefined` — Smallest span a drag can shrink a range to. Default 0.1s.
 - `formatTime?: ((seconds: number) => string) | undefined` — Timestamp formatter for tooltips. Default formatMediaTime (HH:MM:SS.cc).
-- `rangeClass?: ((index: number, active: boolean) => string) | undefined` — Colour treatment for a range. Replaces the default primary tint + ring — the positioning stays. This is the "a range is just a range" hook.
+- `rangeClass?: ((index: number, active: boolean) => string) | undefined` — Colour treatment for a range. Replaces the default primary tint + ring — the positioning stays. This is the "a range is just a range" hook. Precedence: rangeClass > rangeColor > default.
+- `rangeColor?: ((index: number, active: boolean) => string) | undefined` — A CSS color per range (any color — StudioX feeds hex from a palette, which class tokens cannot express). The component derives the fill (color-mix, 40% active / 25% not) and an inset ring (full color, 2px active / 1px not), and paints the edge handles with it. `rangeClass` wins if both are provided.
+- `rangeLabel?: ((index: number) => React.ReactNode) | undefined` — Rendered inside the bar — element text, a clip name. Truncated, and pointer-events: none so the body-drag surface stays whole.
 - `label?: string | undefined` — Names the timeline for a screen reader.
 - `className?: string | undefined`
 - …plus the underlying element's standard props (279 inherited).
