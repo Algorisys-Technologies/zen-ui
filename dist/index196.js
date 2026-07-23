@@ -1,0 +1,22 @@
+import { createControllableBooleanSignal as n } from "./index174.js";
+import { access as t } from "./index178.js";
+function g(e = {}) {
+  const [a, c] = n({
+    value: () => t(e.isSelected),
+    defaultValue: () => !!t(e.defaultIsSelected),
+    onChange: (l) => e.onSelectedChange?.(l)
+  });
+  return {
+    isSelected: a,
+    setIsSelected: (l) => {
+      !t(e.isReadOnly) && !t(e.isDisabled) && c(l);
+    },
+    toggle: () => {
+      !t(e.isReadOnly) && !t(e.isDisabled) && c(!a());
+    }
+  };
+}
+export {
+  g as createToggleState
+};
+//# sourceMappingURL=index196.js.map

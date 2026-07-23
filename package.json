@@ -1,0 +1,49 @@
+{
+  "name": "@algorisys/zen-ui-solid",
+  "version": "9.6.0",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "node": "./dist/server/index.js",
+      "import": "./dist/index.js"
+    },
+    "./styles": {
+      "import": "./dist/style.css",
+      "types": "./dist/styles.d.ts",
+      "default": "./dist/style.css"
+    },
+    "./preflight": "./dist/preflight.css"
+  },
+  "files": [
+    "dist",
+    "AGENTS.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/algorisys/zen-ui.git"
+  },
+  "homepage": "https://github.com/algorisys/zen-ui",
+  "peerDependencies": {
+    "solid-js": "^1.9.0"
+  },
+  "dependencies": {
+    "@kobalte/core": "^0.13.7",
+    "@modular-forms/solid": "^0.25.0",
+    "@solidjs/router": "^0.15.0",
+    "@tanstack/solid-table": "^8.21.3",
+    "@tanstack/solid-virtual": "^3.13.0",
+    "@thisbeyond/solid-dnd": "^0.7.5",
+    "class-variance-authority": "^0.7.1",
+    "date-fns": "^2.30.0",
+    "solid-toast": "^0.5.0",
+    "uuid": "^9.0.0",
+    "zod": "^4.4.3"
+  }
+}
