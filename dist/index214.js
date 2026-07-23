@@ -1,9 +1,17 @@
-import { untrack as e } from "solid-js";
-import { getFieldStore as r } from "./index215.js";
-function c(o, t) {
-  e(() => r(o, t)?.elements.get()[0]?.focus());
+import { untrack as u } from "solid-js";
+import { getFieldArrayStore as c } from "./index209.js";
+import { getFieldStore as a } from "./index205.js";
+function j(e, i, { shouldActive: n = !0 }) {
+  const t = Object.entries(i).reduce((r, [o, p]) => ([
+    a(e, o),
+    c(e, o)
+  ].every((s) => !s || n && !u(s.active.get)) && r.push(p), r), []).join(" ");
+  t && e.internal.response.set({
+    status: "error",
+    message: t
+  });
 }
 export {
-  c as focus
+  j as setErrorResponse
 };
 //# sourceMappingURL=index214.js.map

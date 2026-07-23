@@ -1,375 +1,234 @@
-import { createComponent as h, mergeProps as K, memo as P } from "solid-js/web";
-import { TabsKeyboardDelegate as V } from "./index189.js";
-import { createSelectableItem as q, createSelectableCollection as H, createListState as j } from "./index165.js";
-import { createDomCollection as A, createDomCollectionItem as N } from "./index190.js";
-import { useLocale as $ } from "./index144.js";
-import { createControllableSignal as X } from "./index174.js";
-import { Polymorphic as M } from "./index175.js";
-import { __export as Y } from "./index159.js";
-import { mergeDefaultProps as L, composeEventHandlers as p, isWebKit as B, focusWithoutScrolling as G, getFocusableTreeWalker as J } from "./index160.js";
-import { createUniqueId as Q, splitProps as w, createSignal as S, createEffect as I, on as T, createContext as Z, onMount as ee, onCleanup as te, Show as oe, createMemo as F, mergeProps as ne, useContext as re } from "solid-js";
-import ae from "./index177.js";
-import { createResizeObserver as ie } from "./index191.js";
-import { mergeRefs as x } from "./index161.js";
-import { access as k } from "./index178.js";
-import { combineStyle as se } from "./index179.js";
-var le = {};
-Y(le, {
-  Content: () => _,
-  Indicator: () => E,
-  List: () => W,
-  Root: () => z,
-  Tabs: () => ue,
-  Trigger: () => R,
-  useTabsContext: () => D
+import { createComponent as i, mergeProps as f, memo as K } from "solid-js/web";
+import { createToggleState as N } from "./index195.js";
+import { FORM_CONTROL_FIELD_PROP_NAMES as $, createFormControlField as A } from "./index201.js";
+import { FormControlLabel as H } from "./index155.js";
+import { createFormResetListener as j } from "./index156.js";
+import { FormControlErrorMessage as G } from "./index157.js";
+import { FORM_CONTROL_PROP_NAMES as U, createFormControl as z, FormControlContext as J, useFormControlContext as v, FormControlDescription as Q } from "./index158.js";
+import { Polymorphic as p } from "./index161.js";
+import { __export as V } from "./index162.js";
+import { mergeDefaultProps as C, createGenerateId as W, callHandler as h, isFunction as X, EventKey as Y, visuallyHiddenStyles as Z } from "./index163.js";
+import { createUniqueId as ee, splitProps as S, createSignal as F, createMemo as te, createContext as oe, children as re, useContext as ne } from "solid-js";
+import { access as R } from "./index165.js";
+import { mergeRefs as I } from "./index166.js";
+import { combineStyle as ce } from "./index167.js";
+var ie = {};
+V(ie, {
+  Control: () => D,
+  Description: () => O,
+  ErrorMessage: () => _,
+  Input: () => L,
+  Label: () => E,
+  Root: () => M,
+  Switch: () => ae,
+  Thumb: () => B,
+  useSwitchContext: () => m
 });
-var O = Z();
-function D() {
-  const l = re(O);
-  if (l === void 0)
-    throw new Error("[kobalte]: `useTabsContext` must be used within a `Tabs` component");
-  return l;
+var P = oe();
+function m() {
+  const o = ne(P);
+  if (o === void 0)
+    throw new Error("[kobalte]: `useSwitchContext` must be used within a `Switch` component");
+  return o;
 }
-function _(l) {
-  const [o, n] = S(), r = D(), [e, m] = w(l, ["ref", "id", "value", "forceMount"]), [f, u] = S(0), s = () => e.id ?? r.generateContentId(e.value), i = () => r.listState().selectedKey() === e.value, {
-    present: t
-  } = ae({
-    show: () => e.forceMount || i(),
-    element: () => o() ?? null
-  });
-  return I(T([() => o(), () => t()], ([d, a]) => {
-    if (d == null || !a)
-      return;
-    const c = () => {
-      const b = J(d, {
-        tabbable: !0
-      });
-      u(b.nextNode() ? void 0 : 0);
-    };
-    c();
-    const v = new MutationObserver(c);
-    v.observe(d, {
-      subtree: !0,
-      childList: !0,
-      attributes: !0,
-      attributeFilter: ["tabindex", "disabled"]
-    }), te(() => {
-      v.disconnect();
-    });
-  })), I(T([() => e.value, s], ([d, a]) => {
-    r.contentIdsMap().set(d, a);
-  })), h(oe, {
-    get when() {
-      return t();
-    },
-    get children() {
-      return h(M, K({
-        as: "div",
-        ref(d) {
-          var a = x(n, e.ref);
-          typeof a == "function" && a(d);
-        },
-        get id() {
-          return s();
-        },
-        role: "tabpanel",
-        get tabIndex() {
-          return f();
-        },
-        get "aria-labelledby"() {
-          return r.triggerIdsMap().get(e.value);
-        },
-        get "data-orientation"() {
-          return r.orientation();
-        },
-        get "data-selected"() {
-          return i() ? "" : void 0;
-        }
-      }, m));
-    }
-  });
-}
-function E(l) {
-  const o = D(), [n, r] = w(l, ["style"]), [e, m] = S({
-    width: void 0,
-    height: void 0
-  }), {
-    direction: f
-  } = $(), u = () => {
-    const a = o.selectedTab();
-    if (a == null)
-      return;
-    const c = {
-      transform: void 0,
-      width: void 0,
-      height: void 0
-    }, v = f() === "rtl" ? -1 * (a.offsetParent?.offsetWidth - a.offsetWidth - a.offsetLeft) : a.offsetLeft;
-    c.transform = o.orientation() === "vertical" ? `translateY(${a.offsetTop}px)` : `translateX(${v}px)`, o.orientation() === "horizontal" ? c.width = `${a.offsetWidth}px` : c.height = `${a.offsetHeight}px`, m(c);
-  };
-  ee(() => {
-    queueMicrotask(() => {
-      u();
-    });
-  }), I(T([o.selectedTab, o.orientation, f], () => {
-    u();
-  }, {
-    defer: !0
-  }));
-  const [s, i] = S(!1);
-  let t = null, d = null;
-  return ie(o.selectedTab, (a, c) => {
-    if (d !== c) {
-      d = c;
-      return;
-    }
-    i(!0), t && clearTimeout(t), t = setTimeout(() => {
-      t = null, i(!1);
-    }, 1), u();
-  }), h(M, K({
+function D(o) {
+  const t = v(), e = m(), a = C({
+    id: e.generateId("control")
+  }, o), [r, d] = S(a, ["onClick", "onKeyDown"]);
+  return i(p, f({
     as: "div",
-    role: "presentation",
-    get style() {
-      return se(e(), n.style);
+    onClick: (u) => {
+      h(u, r.onClick), e.toggle(), e.inputRef()?.focus();
     },
-    get "data-orientation"() {
-      return o.orientation();
-    },
-    get "data-resizing"() {
-      return s();
+    onKeyDown: (u) => {
+      h(u, r.onKeyDown), u.key === Y.Space && (e.toggle(), e.inputRef()?.focus());
     }
-  }, r));
+  }, () => t.dataset(), () => e.dataset(), d));
 }
-function W(l) {
-  let o;
-  const n = D(), [r, e] = w(l, ["ref", "onKeyDown", "onMouseDown", "onFocusIn", "onFocusOut"]), {
-    direction: m
-  } = $(), f = new V(() => n.listState().collection(), m, n.orientation), u = H({
-    selectionManager: () => n.listState().selectionManager(),
-    keyboardDelegate: () => f,
-    selectOnFocus: () => n.activationMode() === "automatic",
-    shouldFocusWrap: !1,
-    // handled by the keyboard delegate
-    disallowEmptySelection: !0
-  }, () => o);
-  return I(() => {
-    if (o == null)
-      return;
-    const s = o.querySelector(`[data-key="${n.listState().selectedKey()}"]`);
-    s != null && n.setSelectedTab(s);
-  }), h(M, K({
-    as: "div",
-    ref(s) {
-      var i = x((t) => o = t, r.ref);
-      typeof i == "function" && i(s);
-    },
-    role: "tablist",
-    get "aria-orientation"() {
-      return n.orientation();
-    },
-    get "data-orientation"() {
-      return n.orientation();
-    },
-    get onKeyDown() {
-      return p([r.onKeyDown, u.onKeyDown]);
-    },
-    get onMouseDown() {
-      return p([r.onMouseDown, u.onMouseDown]);
-    },
-    get onFocusIn() {
-      return p([r.onFocusIn, u.onFocusIn]);
-    },
-    get onFocusOut() {
-      return p([r.onFocusOut, u.onFocusOut]);
-    }
-  }, e));
+function O(o) {
+  const t = m();
+  return i(Q, f(() => t.dataset(), o));
 }
-function ce(l) {
-  const [o, n] = X({
-    value: () => k(l.selectedKey),
-    defaultValue: () => k(l.defaultSelectedKey),
-    onChange: (i) => l.onSelectionChange?.(i)
-  }), r = F(() => {
-    const i = o();
-    return i != null ? [i] : [];
-  }), [, e] = w(l, ["onSelectionChange"]), m = ne(e, {
-    selectionMode: "single",
-    disallowEmptySelection: !0,
-    allowDuplicateSelectionEvents: !0,
-    selectedKeys: r,
-    onSelectionChange: (i) => {
-      const t = i.values().next().value;
-      t === o() && l.onSelectionChange?.(t), n(t);
-    }
-  }), {
-    collection: f,
-    selectionManager: u
-  } = j(m), s = F(() => {
-    const i = o();
-    return i != null ? f().getItem(i) : void 0;
-  });
-  return {
-    collection: f,
-    selectionManager: u,
-    selectedKey: o,
-    setSelectedKey: n,
-    selectedItem: s
-  };
+function _(o) {
+  const t = m();
+  return i(G, f(() => t.dataset(), o));
 }
-function z(l) {
-  const o = `tabs-${Q()}`, n = L({
-    id: o,
-    orientation: "horizontal",
-    activationMode: "automatic"
-  }, l), [r, e] = w(n, ["value", "defaultValue", "onChange", "orientation", "activationMode", "disabled"]), [m, f] = S([]), [u, s] = S(), {
-    DomCollectionProvider: i
-  } = A({
-    items: m,
-    onItemsChange: f
-  }), t = ce({
-    selectedKey: () => r.value,
-    defaultSelectedKey: () => r.defaultValue,
-    onSelectionChange: (b) => r.onChange?.(String(b)),
-    dataSource: m
-  });
-  let d = t.selectedKey();
-  I(T([() => t.selectionManager(), () => t.collection(), () => t.selectedKey()], ([b, y, U]) => {
-    let g = U;
-    if (b.isEmpty() || g == null || !y.getItem(g)) {
-      g = y.getFirstKey();
-      let C = g != null ? y.getItem(g) : void 0;
-      for (; C?.disabled && C.key !== y.getLastKey(); )
-        g = y.getKeyAfter(C.key), C = g != null ? y.getItem(g) : void 0;
-      C?.disabled && g === y.getLastKey() && (g = y.getFirstKey()), g != null && b.setSelectedKeys([g]);
-    }
-    (b.focusedKey() == null || !b.isFocused() && g !== d) && b.setFocusedKey(g), d = g;
-  }));
-  const a = /* @__PURE__ */ new Map(), c = /* @__PURE__ */ new Map(), v = {
-    isDisabled: () => r.disabled ?? !1,
-    orientation: () => r.orientation,
-    activationMode: () => r.activationMode,
-    triggerIdsMap: () => a,
-    contentIdsMap: () => c,
-    listState: () => t,
-    selectedTab: u,
-    setSelectedTab: s,
-    generateTriggerId: (b) => `${e.id}-trigger-${b}`,
-    generateContentId: (b) => `${e.id}-content-${b}`
-  };
-  return h(i, {
-    get children() {
-      return h(O.Provider, {
-        value: v,
-        get children() {
-          return h(M, K({
-            as: "div",
-            get "data-orientation"() {
-              return v.orientation();
-            }
-          }, e));
-        }
-      });
-    }
-  });
-}
-function R(l) {
-  let o;
-  const n = D(), r = L({
-    type: "button"
-  }, l), [e, m] = w(r, ["ref", "id", "value", "disabled", "onPointerDown", "onPointerUp", "onClick", "onKeyDown", "onMouseDown", "onFocus"]), f = () => e.id ?? n.generateTriggerId(e.value), u = () => n.listState().selectionManager().focusedKey() === e.value, s = () => e.disabled || n.isDisabled(), i = () => n.contentIdsMap().get(e.value);
-  N({
-    getItem: () => ({
-      ref: () => o,
-      type: "item",
-      key: e.value,
-      textValue: "",
-      // not applicable here
-      disabled: s()
-    })
-  });
-  const t = q({
-    key: () => e.value,
-    selectionManager: () => n.listState().selectionManager(),
-    disabled: s
-  }, () => o), d = (a) => {
-    B() && G(a.currentTarget);
-  };
-  return I(T([() => e.value, f], ([a, c]) => {
-    n.triggerIdsMap().set(a, c);
-  })), h(M, K({
-    as: "button",
-    ref(a) {
-      var c = x((v) => o = v, e.ref);
-      typeof c == "function" && c(a);
+function L(o) {
+  const t = v(), e = m(), a = C({
+    id: e.generateId("input")
+  }, o), [r, d, g] = S(a, ["ref", "style", "onChange", "onFocus", "onBlur"], $), {
+    fieldProps: l
+  } = A(d);
+  return i(p, f({
+    as: "input",
+    ref(n) {
+      var c = I(e.setInputRef, r.ref);
+      typeof c == "function" && c(n);
     },
+    type: "checkbox",
+    role: "switch",
     get id() {
-      return f();
+      return l.id();
     },
-    role: "tab",
-    get tabIndex() {
-      return P(() => !s())() ? t.tabIndex() : void 0;
+    get name() {
+      return t.name();
+    },
+    get value() {
+      return e.value();
+    },
+    get checked() {
+      return e.checked();
+    },
+    get required() {
+      return t.isRequired();
     },
     get disabled() {
-      return s();
+      return t.isDisabled();
     },
-    get "aria-selected"() {
-      return t.isSelected();
+    get readonly() {
+      return t.isReadOnly();
+    },
+    get style() {
+      return ce({
+        ...Z
+      }, r.style);
+    },
+    get "aria-checked"() {
+      return e.checked();
+    },
+    get "aria-label"() {
+      return l.ariaLabel();
+    },
+    get "aria-labelledby"() {
+      return l.ariaLabelledBy();
+    },
+    get "aria-describedby"() {
+      return l.ariaDescribedBy();
+    },
+    get "aria-invalid"() {
+      return t.validationState() === "invalid" || void 0;
+    },
+    get "aria-required"() {
+      return t.isRequired() || void 0;
     },
     get "aria-disabled"() {
-      return s() || void 0;
+      return t.isDisabled() || void 0;
     },
-    get "aria-controls"() {
-      return P(() => !!t.isSelected())() ? i() : void 0;
+    get "aria-readonly"() {
+      return t.isReadOnly() || void 0;
     },
-    get "data-key"() {
-      return t.dataKey();
+    onChange: (n) => {
+      h(n, r.onChange), n.stopPropagation();
+      const c = n.target;
+      e.setIsChecked(c.checked), c.checked = e.checked();
     },
-    get "data-orientation"() {
-      return n.orientation();
+    onFocus: (n) => {
+      h(n, r.onFocus), e.setIsFocused(!0);
     },
-    get "data-selected"() {
-      return t.isSelected() ? "" : void 0;
-    },
-    get "data-highlighted"() {
-      return u() ? "" : void 0;
-    },
-    get "data-disabled"() {
-      return s() ? "" : void 0;
-    },
-    get onPointerDown() {
-      return p([e.onPointerDown, t.onPointerDown]);
-    },
-    get onPointerUp() {
-      return p([e.onPointerUp, t.onPointerUp]);
-    },
-    get onClick() {
-      return p([e.onClick, t.onClick, d]);
-    },
-    get onKeyDown() {
-      return p([e.onKeyDown, t.onKeyDown]);
-    },
-    get onMouseDown() {
-      return p([e.onMouseDown, t.onMouseDown]);
-    },
-    get onFocus() {
-      return p([e.onFocus, t.onFocus]);
+    onBlur: (n) => {
+      h(n, r.onBlur), e.setIsFocused(!1);
     }
-  }, m));
+  }, () => t.dataset(), () => e.dataset(), g));
 }
-var ue = Object.assign(z, {
-  Content: _,
-  Indicator: E,
-  List: W,
-  Trigger: R
+function E(o) {
+  const t = m();
+  return i(H, f(() => t.dataset(), o));
+}
+function M(o) {
+  let t;
+  const e = `switch-${ee()}`, a = C({
+    value: "on",
+    id: e
+  }, o), [r, d, g] = S(a, ["ref", "children", "value", "checked", "defaultChecked", "onChange", "onPointerDown"], U), [l, u] = F(), [b, w] = F(!1), {
+    formControlContext: n
+  } = z(d), c = N({
+    isSelected: () => r.checked,
+    defaultIsSelected: () => r.defaultChecked,
+    onSelectedChange: (s) => r.onChange?.(s),
+    isDisabled: () => n.isDisabled(),
+    isReadOnly: () => n.isReadOnly()
+  });
+  j(() => t, () => c.setIsSelected(r.defaultChecked ?? !1));
+  const T = (s) => {
+    h(s, r.onPointerDown), b() && s.preventDefault();
+  }, y = te(() => ({
+    "data-checked": c.isSelected() ? "" : void 0
+  })), x = {
+    value: () => r.value,
+    dataset: y,
+    checked: () => c.isSelected(),
+    inputRef: l,
+    generateId: W(() => R(d.id)),
+    toggle: () => c.toggle(),
+    setIsChecked: (s) => c.setIsSelected(s),
+    setIsFocused: w,
+    setInputRef: u
+  };
+  return i(J.Provider, {
+    value: n,
+    get children() {
+      return i(P.Provider, {
+        value: x,
+        get children() {
+          return i(p, f({
+            as: "div",
+            ref(s) {
+              var k = I((q) => t = q, r.ref);
+              typeof k == "function" && k(s);
+            },
+            role: "group",
+            get id() {
+              return R(d.id);
+            },
+            onPointerDown: T
+          }, () => n.dataset(), y, g, {
+            get children() {
+              return i(se, {
+                state: x,
+                get children() {
+                  return r.children;
+                }
+              });
+            }
+          }));
+        }
+      });
+    }
+  });
+}
+function se(o) {
+  const t = re(() => {
+    const e = o.children;
+    return X(e) ? e(o.state) : e;
+  });
+  return K(t);
+}
+function B(o) {
+  const t = v(), e = m(), a = C({
+    id: e.generateId("thumb")
+  }, o);
+  return i(p, f({
+    as: "div"
+  }, () => t.dataset(), () => e.dataset(), a));
+}
+var ae = Object.assign(M, {
+  Control: D,
+  Description: O,
+  ErrorMessage: _,
+  Input: L,
+  Label: E,
+  Thumb: B
 });
 export {
-  ue as Tabs,
-  _ as TabsContent,
-  E as TabsIndicator,
-  W as TabsList,
-  z as TabsRoot,
-  R as TabsTrigger,
-  ce as createSingleSelectListState,
-  le as tabs_exports,
-  D as useTabsContext
+  ae as Switch,
+  D as SwitchControl,
+  O as SwitchDescription,
+  _ as SwitchErrorMessage,
+  L as SwitchInput,
+  E as SwitchLabel,
+  M as SwitchRoot,
+  B as SwitchThumb,
+  ie as switch_exports,
+  m as useSwitchContext
 };
 //# sourceMappingURL=index123.js.map

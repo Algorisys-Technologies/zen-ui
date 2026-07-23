@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-solid",
-  "version": "9.6.0",
+  "version": "9.9.0",
   "type": "module",
   "sideEffects": [
     "**/*.css"
@@ -23,7 +23,8 @@
   },
   "files": [
     "dist",
-    "AGENTS.md"
+    "AGENTS.md",
+    "skills"
   ],
   "repository": {
     "type": "git",

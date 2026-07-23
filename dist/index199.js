@@ -1,119 +1,92 @@
-import { createSignal as f, onCleanup as P } from "solid-js";
-import { pivotFilterWindowCoversRange as V, VIRTUAL_SCROLL_FETCH_DEBOUNCE_MS as U, prunePivotFilterWindows as N, pivotFilterMissingWindowStarts as q, pickNearestWindowStart as x } from "./index193.js";
-const B = 300;
-function G(a) {
-  const [h, C] = f(!1), [b, c] = f(!1), [m, v] = f([]), [L, E] = f(0), [S, w] = f(null);
-  let r, u, s = null, d = 0;
-  const l = /* @__PURE__ */ new Set(), _ = () => a.isActive?.() ?? !0;
-  function g() {
-    v([]), E(0), w(null), l.clear(), s = null;
-  }
-  function R(e, n) {
-    v((t) => {
-      const i = N(
-        t,
-        e,
-        n,
-        a.pageSize
-      );
-      return i.length === t.length && i.every(
-        (o, W) => o.startIndex === t[W]?.startIndex
-      ) ? t : i;
-    });
-  }
-  function p() {
-    u && clearTimeout(u), u = setTimeout(() => {
-      u = void 0, A();
-    }, U);
-  }
-  function M(e) {
-    const { startIndex: n, page: t, previousTotal: i } = e, o = t.total ?? t.values.length;
-    return t.values.length === 0 && n > 0 ? Math.min(o > 0 ? o : i, n) : n === 0 || o > 0 ? o : i;
-  }
-  async function T(e, n = !1) {
-    const t = ++d;
-    l.add(e), n ? (C(!0), w(null)) : c(!0);
-    try {
-      const i = a.getSearch(), o = await a.loadPage(e, a.pageSize, i);
-      if (t !== d)
-        return;
-      v((F) => [...F.filter(
-        (O) => O.startIndex !== e
-      ), { startIndex: e, values: o.values }]);
-      const W = M;
-      E(
-        (F) => W({ startIndex: e, page: o, previousTotal: F })
-      ), s && R(s.min, s.max);
-    } catch (i) {
-      if (t !== d)
-        return;
-      if (n) {
-        g();
-        const o = i instanceof Error ? i.message : "Failed to load options.";
-        w(o);
+import { template as S, use as M, spread as w, mergeProps as z, insert as v, createComponent as a, effect as h, style as O, setAttribute as q } from "solid-js/web";
+import { isSameSelection as I } from "./index186.js";
+import { useFormControlContext as K } from "./index158.js";
+import { callHandler as R, visuallyHiddenStyles as F } from "./index163.js";
+import { splitProps as H, createSignal as V, createEffect as D, on as L, Show as p, For as b } from "solid-js";
+import { mergeRefs as P } from "./index166.js";
+var T = /* @__PURE__ */ S("<option>"), _ = /* @__PURE__ */ S("<div aria-hidden=true><input type=text style=font-size:16px><select tabindex=-1><option>");
+function N(y) {
+  let o;
+  const [t, C] = H(y, ["ref", "onChange", "collection", "selectionManager", "isOpen", "isMultiple", "isVirtualized", "focusTrigger"]), l = K(), [x, s] = V(!1), c = (i) => {
+    const r = t.collection.getItem(i);
+    return a(p, {
+      get when() {
+        return r?.type === "item";
+      },
+      get children() {
+        var n = T();
+        return n.value = i, v(n, () => r?.textValue), h(() => n.selected = t.selectionManager.isSelected(i)), n;
       }
-    } finally {
-      l.delete(e);
-      const i = t === d, o = l.size === 0;
-      (i || o) && (n && i && C(!1), o && (c(!1), p()));
-    }
-  }
-  function y(e) {
-    r && clearTimeout(r), r = setTimeout(() => {
-      r = void 0, g(), T(0, !0);
-    }, B);
-  }
-  function z() {
-    g(), T(0, !0);
-  }
-  function A() {
-    const e = s;
-    if (!e || !_() || h() || S() || l.size > 0) {
-      l.size === 0 && c(!1);
-      return;
-    }
-    const n = q(
-      m(),
-      e.min,
-      e.max,
-      a.pageSize
-    );
-    if (n.length === 0) {
-      R(e.min, e.max), l.size === 0 && c(!1);
-      return;
-    }
-    const t = x(
-      n,
-      Math.floor((e.min + e.max) / 2),
-      a.pageSize
-    );
-    l.has(t) || T(t);
-  }
-  function D(e, n) {
-    const t = s && s.min === e && s.max === n;
-    s = { min: e, max: n }, !t && (!h() && !S() && !V(
-      m(),
-      e,
-      n,
-      a.pageSize
-    ) && c(!0), p());
-  }
-  return P(() => {
-    r && clearTimeout(r), u && clearTimeout(u);
-  }), {
-    loading: h,
-    loadingWindow: b,
-    optionsWindows: m,
-    totalCount: L,
-    loadError: S,
-    handleVisibleRange: D,
-    scheduleFetch: y,
-    openPanelFetch: z,
-    resetListState: g,
-    reload: z
+    });
   };
+  return D(L(() => t.selectionManager.selectedKeys(), (i, r) => {
+    r && I(i, r) || (s(!0), o?.dispatchEvent(new Event("input", {
+      bubbles: !0,
+      cancelable: !0
+    })), o?.dispatchEvent(new Event("change", {
+      bubbles: !0,
+      cancelable: !0
+    })));
+  }, {
+    defer: !0
+  })), (() => {
+    var i = _(), r = i.firstChild, n = r.nextSibling;
+    n.firstChild, r.addEventListener("focus", () => t.focusTrigger()), n.addEventListener("change", (e) => {
+      R(e, t.onChange), x() || t.selectionManager.setSelectedKeys(/* @__PURE__ */ new Set([e.target.value])), s(!1);
+    });
+    var u = P((e) => o = e, t.ref);
+    return typeof u == "function" && M(u, n), w(n, z({
+      get multiple() {
+        return t.isMultiple;
+      },
+      get name() {
+        return l.name();
+      },
+      get required() {
+        return l.isRequired();
+      },
+      get disabled() {
+        return l.isDisabled();
+      },
+      get size() {
+        return t.collection.getSize();
+      },
+      get value() {
+        return t.selectionManager.firstSelectedKey() ?? "";
+      }
+    }, C), !1, !0), v(n, a(p, {
+      get when() {
+        return t.isVirtualized;
+      },
+      get fallback() {
+        return a(b, {
+          get each() {
+            return [...t.collection.getKeys()];
+          },
+          children: c
+        });
+      },
+      get children() {
+        return a(b, {
+          get each() {
+            return [...t.selectionManager.selectedKeys()];
+          },
+          children: c
+        });
+      }
+    }), null), h((e) => {
+      var E = F, d = t.selectionManager.isFocused() || t.isOpen ? -1 : 0, g = l.isRequired(), f = l.isDisabled(), m = l.isReadOnly();
+      return e.e = O(i, E, e.e), d !== e.t && q(r, "tabindex", e.t = d), g !== e.a && (r.required = e.a = g), f !== e.o && (r.disabled = e.o = f), m !== e.i && (r.readOnly = e.i = m), e;
+    }, {
+      e: void 0,
+      t: void 0,
+      a: void 0,
+      o: void 0,
+      i: void 0
+    }), i;
+  })();
 }
 export {
-  G as useWindowedOptionPages
+  N as HiddenSelectBase
 };
 //# sourceMappingURL=index199.js.map

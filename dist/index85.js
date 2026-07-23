@@ -1,149 +1,428 @@
-import { template as v, spread as j, mergeProps as F, insert as x, createComponent as M, effect as c, className as H, setAttribute as E, delegateEvents as B } from "solid-js/web";
-import { mergeProps as I, splitProps as U, createSignal as Y, createMemo as S, Show as P } from "solid-js";
-import { cn as D } from "./index103.js";
-var q = /* @__PURE__ */ v("<span class=zen-text-zen-muted-fg>:"), G = /* @__PURE__ */ v('<input type=text inputmode=numeric pattern=[0-9]* maxlength=2 class="zen-h-9 zen-w-10 zen-inline-flex zen-items-center zen-justify-center zen-text-sm zen-tabular-nums zen-bg-transparent zen-border zen-border-zen-border zen-rounded-zen-sm zen-text-center focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"aria-label=Seconds>'), J = /* @__PURE__ */ v("<button type=button>"), K = /* @__PURE__ */ v("<input type=hidden>"), L = /* @__PURE__ */ v('<div><input type=text inputmode=numeric pattern=[0-9]* maxlength=2 class="zen-h-9 zen-w-10 zen-inline-flex zen-items-center zen-justify-center zen-text-sm zen-tabular-nums zen-bg-transparent zen-border zen-border-zen-border zen-rounded-zen-sm zen-text-center focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"aria-label=Hours><span class=zen-text-zen-muted-fg>:</span><input type=text inputmode=numeric pattern=[0-9]* maxlength=2 class="zen-h-9 zen-w-10 zen-inline-flex zen-items-center zen-justify-center zen-text-sm zen-tabular-nums zen-bg-transparent zen-border zen-border-zen-border zen-rounded-zen-sm zen-text-center focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"aria-label=Minutes>');
-const d = (l) => l.toString().padStart(2, "0"), k = {
-  h: null,
-  m: null,
-  s: null
-}, Q = (l, m) => {
-  if (!l) return k;
-  const n = /^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/.exec(l.trim());
-  if (!n) return k;
-  const f = Number(n[1]), z = Number(n[2]), g = n[3] !== void 0 ? Number(n[3]) : 0;
-  return f < 0 || f > 23 || z < 0 || z > 59 || g < 0 || g > 59 ? k : {
-    h: f,
-    m: z,
-    s: m ? g : 0
-  };
-}, R = (l, m) => {
-  if (!(l.h === null || l.m === null))
-    return m ? `${d(l.h)}:${d(l.m)}:${d(l.s ?? 0)}` : `${d(l.h)}:${d(l.m)}`;
-}, C = (l) => l === null ? null : l % 12 || 12, W = (l) => l === null || l < 12 ? "AM" : "PM", O = (l, m) => {
-  const n = l % 12;
-  return m === "PM" ? n + 12 : n;
-}, ne = (l) => {
-  const m = I({
-    format: "24h",
-    showSeconds: !1,
-    minuteStep: 1
-  }, l), [n, f] = U(m, ["value", "defaultValue", "onValueChange", "format", "showSeconds", "minuteStep", "disabled", "readOnly", "name", "id", "class", "aria-label"]), z = () => n.value !== void 0, [g, V] = Y(n.defaultValue), A = S(() => z() ? n.value : g()), i = S(() => Q(A(), !!n.showSeconds)), $ = (r) => {
-    const s = R(r, !!n.showSeconds);
-    z() || V(s), n.onValueChange?.(s);
-  }, b = (r) => {
-    const s = r === null ? null : Math.max(0, Math.min(23, r));
-    $({
-      ...i(),
-      h: s
-    });
-  }, y = (r) => {
-    const s = r === null ? null : Math.max(0, Math.min(59, r));
-    $({
-      ...i(),
-      m: s
-    });
-  }, N = (r) => {
-    const s = r === null ? null : Math.max(0, Math.min(59, r));
-    $({
-      ...i(),
-      s
-    });
-  }, p = S(() => W(i().h)), _ = () => {
-    const r = i();
-    if (r.h === null) return;
-    const s = p() === "AM" ? "PM" : "AM";
-    b(O(C(r.h) ?? 12, s));
-  }, w = (r, s, h, a, e = 1) => {
-    n.readOnly || n.disabled || (r.key === "ArrowUp" ? (r.preventDefault(), h(s === null ? 0 : (s + e) % (a + 1))) : r.key === "ArrowDown" ? (r.preventDefault(), h(s === null ? a : (s - e + a + 1) % (a + 1))) : r.key === "Backspace" && h(null));
-  };
-  return (() => {
-    var r = L(), s = r.firstChild, h = s.nextSibling, a = h.nextSibling;
-    return j(r, F(f, {
+import { createComponent as t, mergeProps as z, template as i, insert as a, effect as o, setAttribute as b, memo as v, className as h } from "solid-js/web";
+import { splitProps as $, Show as d, For as f } from "solid-js";
+import { Checkbox as x } from "./index49.js";
+import { Input as _, Textarea as C } from "./index64.js";
+import { RadioGroup as q, RadioGroupItem as w } from "./index50.js";
+import { Select as F } from "./index61.js";
+import { Slider as B } from "./index55.js";
+import { Switch as S } from "./index48.js";
+import { setValue as c } from "./index146.js";
+import { cn as s } from "./index106.js";
+var V = /* @__PURE__ */ i('<span aria-hidden class="zen-ml-0.5 zen-text-zen-error">*'), k = /* @__PURE__ */ i("<label>"), y = /* @__PURE__ */ i('<p class="zen-text-xs zen-text-zen-muted-fg">'), L = /* @__PURE__ */ i('<p class="zen-text-xs zen-font-medium zen-text-zen-error"role=alert>'), R = /* @__PURE__ */ i("<div>"), G = /* @__PURE__ */ i("<span class=zen-text-sm>"), I = /* @__PURE__ */ i('<div class="zen-flex zen-items-center zen-gap-2">'), P = /* @__PURE__ */ i('<span class="zen-ml-0.5 zen-text-zen-error">*'), T = /* @__PURE__ */ i('<label class="zen-text-sm zen-font-medium zen-cursor-pointer">'), j = /* @__PURE__ */ i('<span class="zen-text-sm zen-font-medium">'), A = /* @__PURE__ */ i('<p class="zen-m-0 zen-text-xs zen-text-zen-muted-fg">'), M = /* @__PURE__ */ i('<p class="zen-m-0 zen-text-xs zen-font-medium zen-text-zen-error"role=alert>'), N = /* @__PURE__ */ i("<div><div>");
+const m = (e) => (() => {
+  var r = R();
+  return a(r, t(d, {
+    get when() {
+      return e.label;
+    },
+    get children() {
+      var n = k();
+      return a(n, () => e.label, null), a(n, t(d, {
+        get when() {
+          return e.required;
+        },
+        get children() {
+          return V();
+        }
+      }), null), o((l) => {
+        var u = e.id, g = s("zen-text-sm zen-font-medium zen-leading-none", e.error ? "zen-text-zen-error" : "zen-text-zen-foreground");
+        return u !== l.e && b(n, "for", l.e = u), g !== l.t && h(n, l.t = g), l;
+      }, {
+        e: void 0,
+        t: void 0
+      }), n;
+    }
+  }), null), a(r, () => e.children, null), a(r, t(d, {
+    get when() {
+      return v(() => !!e.description)() && !e.error;
+    },
+    get children() {
+      var n = y();
+      return a(n, () => e.description), n;
+    }
+  }), null), a(r, t(d, {
+    get when() {
+      return e.error;
+    },
+    get children() {
+      var n = L();
+      return a(n, () => e.error), n;
+    }
+  }), null), o(() => h(r, s("zen-flex zen-flex-col zen-gap-1.5", e.class))), r;
+})();
+function Y(e) {
+  const [r, n] = $(e, ["of", "Field", "name", "label", "description", "required", "fieldClass"]);
+  return t(r.Field, {
+    get name() {
+      return r.name;
+    },
+    children: (l, u) => {
+      const g = `${r.name}-${l.name}`;
+      return t(m, {
+        id: g,
+        get label() {
+          return r.label;
+        },
+        get description() {
+          return r.description;
+        },
+        get error() {
+          return l.error;
+        },
+        get required() {
+          return r.required;
+        },
+        get class() {
+          return r.fieldClass;
+        },
+        get children() {
+          return t(_, z({
+            id: g,
+            get value() {
+              return l.value;
+            }
+          }, u, {
+            get "aria-invalid"() {
+              return !!l.error || void 0;
+            }
+          }, n));
+        }
+      });
+    }
+  });
+}
+function Z(e) {
+  const [r, n] = $(e, ["of", "Field", "name", "label", "description", "required", "fieldClass"]);
+  return t(r.Field, {
+    get name() {
+      return r.name;
+    },
+    children: (l, u) => {
+      const g = `${r.name}-${l.name}`;
+      return t(m, {
+        id: g,
+        get label() {
+          return r.label;
+        },
+        get description() {
+          return r.description;
+        },
+        get error() {
+          return l.error;
+        },
+        get required() {
+          return r.required;
+        },
+        get class() {
+          return r.fieldClass;
+        },
+        get children() {
+          return t(C, z({
+            id: g,
+            get value() {
+              return l.value;
+            }
+          }, u, {
+            get "aria-invalid"() {
+              return !!l.error || void 0;
+            }
+          }, n));
+        }
+      });
+    }
+  });
+}
+function p(e) {
+  return t(e.Field, {
+    get name() {
+      return e.name;
+    },
+    children: (r) => t(m, {
       get id() {
-        return n.id;
+        return `${e.name}-${r.name}`;
+      },
+      get label() {
+        return e.label;
+      },
+      get description() {
+        return e.description;
+      },
+      get error() {
+        return r.error;
+      },
+      get required() {
+        return e.required;
       },
       get class() {
-        return D("zen-inline-flex zen-items-center zen-gap-1", n.class);
-      },
-      role: "group",
-      get "aria-label"() {
-        return n["aria-label"] ?? "Time";
-      }
-    }), !1, !0), s.$$keydown = (e) => w(e, i().h, (t) => {
-      n.format === "12h" && t !== null ? b(O((t - 1 + 12) % 12 + 1, p())) : b(t === null ? null : t % 24);
-    }, 23), s.$$input = (e) => {
-      const t = e.currentTarget.value.replace(/\D/g, "");
-      if (t === "") {
-        b(null);
-        return;
-      }
-      const o = Number(t);
-      if (n.format === "12h") {
-        const u = Math.max(1, Math.min(12, o));
-        b(O(u, p()));
-      } else
-        b(Math.min(23, o));
-    }, a.$$keydown = (e) => w(e, i().m, y, 59, n.minuteStep), a.$$input = (e) => {
-      const t = e.currentTarget.value.replace(/\D/g, "");
-      if (t === "") {
-        y(null);
-        return;
-      }
-      y(Math.min(59, Number(t)));
-    }, x(r, M(P, {
-      get when() {
-        return n.showSeconds;
+        return e.fieldClass;
       },
       get children() {
-        return [q(), (() => {
-          var e = G();
-          return e.$$keydown = (t) => w(t, i().s, N, 59), e.$$input = (t) => {
-            const o = t.currentTarget.value.replace(/\D/g, "");
-            N(o === "" ? null : Math.min(59, Number(o)));
-          }, c((t) => {
-            var o = n.disabled, u = n.readOnly;
-            return o !== t.e && (e.disabled = t.e = o), u !== t.t && (e.readOnly = t.t = u), t;
-          }, {
-            e: void 0,
-            t: void 0
-          }), c(() => e.value = i().s === null ? "" : d(i().s)), e;
-        })()];
+        return t(F, {
+          get options() {
+            return e.options;
+          },
+          get value() {
+            return r.value ?? void 0;
+          },
+          onChange: (n) => {
+            c(e.of, e.name, n ?? "");
+          },
+          get placeholder() {
+            return e.placeholder;
+          },
+          get disabled() {
+            return e.disabled;
+          },
+          get errorMessage() {
+            return r.error;
+          }
+        });
       }
-    }), null), x(r, M(P, {
-      get when() {
-        return n.format === "12h";
+    })
+  });
+}
+function ee(e) {
+  return t(e.Field, {
+    get name() {
+      return e.name;
+    },
+    type: "boolean",
+    children: (r) => t(m, {
+      get id() {
+        return `${e.name}-${r.name}`;
+      },
+      get label() {
+        return e.label;
+      },
+      get description() {
+        return e.description;
+      },
+      get error() {
+        return r.error;
+      },
+      get required() {
+        return e.required;
+      },
+      get class() {
+        return e.fieldClass;
       },
       get children() {
-        var e = J();
-        return e.$$click = _, x(e, p), c((t) => {
-          var o = n.disabled || n.readOnly, u = D("zen-h-9 zen-px-2 zen-text-xs zen-font-medium zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-transparent zen-cursor-pointer", "hover:zen-bg-zen-muted", "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring");
-          return o !== t.e && (e.disabled = t.e = o), u !== t.t && H(e, t.t = u), t;
-        }, {
-          e: void 0,
-          t: void 0
-        }), e;
+        var n = I();
+        return a(n, t(x, {
+          get checked() {
+            return r.value ?? !1;
+          },
+          onChange: (l) => {
+            c(e.of, e.name, l);
+          },
+          get disabled() {
+            return e.disabled;
+          },
+          get name() {
+            return e.name;
+          }
+        }), null), a(n, t(d, {
+          get when() {
+            return e.inlineLabel;
+          },
+          get children() {
+            var l = G();
+            return a(l, () => e.inlineLabel), l;
+          }
+        }), null), n;
       }
-    }), null), x(r, M(P, {
-      get when() {
-        return n.name;
+    })
+  });
+}
+function re(e) {
+  return t(e.Field, {
+    get name() {
+      return e.name;
+    },
+    type: "boolean",
+    children: (r) => (
+      // Settings-row layout, mirroring the React binding: label + description
+      // on the left, Switch pushed right. It previously used Frame (label
+      // stacked above, switch below-left) like a checkbox, which is not what
+      // a switch means and did not match React.
+      (() => {
+        var n = N(), l = n.firstChild;
+        return a(l, t(d, {
+          get when() {
+            return e.label;
+          },
+          get children() {
+            var u = T();
+            return a(u, () => e.label, null), a(u, t(d, {
+              get when() {
+                return e.required;
+              },
+              get children() {
+                return P();
+              }
+            }), null), o(() => b(u, "for", `${e.name}-${r.name}`)), u;
+          }
+        }), null), a(l, t(d, {
+          get when() {
+            return v(() => !!e.inlineLabel)() && !e.label;
+          },
+          get children() {
+            var u = j();
+            return a(u, () => e.inlineLabel), u;
+          }
+        }), null), a(l, t(d, {
+          get when() {
+            return e.description;
+          },
+          get children() {
+            var u = A();
+            return a(u, () => e.description), u;
+          }
+        }), null), a(l, t(d, {
+          get when() {
+            return r.error;
+          },
+          get children() {
+            var u = M();
+            return a(u, () => r.error), u;
+          }
+        }), null), a(n, t(S, {
+          get id() {
+            return `${e.name}-${r.name}`;
+          },
+          get checked() {
+            return r.value ?? !1;
+          },
+          onChange: (u) => {
+            c(e.of, e.name, u);
+          },
+          get disabled() {
+            return e.disabled;
+          },
+          get name() {
+            return e.name;
+          }
+        }), null), o(() => h(n, s("zen-flex zen-items-center zen-justify-between zen-gap-3", e.fieldClass))), n;
+      })()
+    )
+  });
+}
+function ne(e) {
+  return t(e.Field, {
+    get name() {
+      return e.name;
+    },
+    children: (r) => t(m, {
+      get id() {
+        return `${e.name}-${r.name}`;
+      },
+      get label() {
+        return e.label;
+      },
+      get description() {
+        return e.description;
+      },
+      get error() {
+        return r.error;
+      },
+      get required() {
+        return e.required;
+      },
+      get class() {
+        return e.fieldClass;
       },
       get children() {
-        var e = K();
-        return c(() => E(e, "name", n.name)), c(() => e.value = A() ?? ""), e;
+        return t(q, {
+          get value() {
+            return r.value ?? "";
+          },
+          onChange: (n) => {
+            c(e.of, e.name, n);
+          },
+          get orientation() {
+            return e.orientation;
+          },
+          get disabled() {
+            return e.disabled;
+          },
+          get children() {
+            return t(f, {
+              get each() {
+                return e.options;
+              },
+              children: (n) => t(w, {
+                get value() {
+                  return n.value;
+                },
+                get children() {
+                  return n.label;
+                }
+              })
+            });
+          }
+        });
       }
-    }), null), c((e) => {
-      var t = n.disabled, o = n.readOnly, u = n.disabled, T = n.readOnly;
-      return t !== e.e && (s.disabled = e.e = t), o !== e.t && (s.readOnly = e.t = o), u !== e.a && (a.disabled = e.a = u), T !== e.o && (a.readOnly = e.o = T), e;
-    }, {
-      e: void 0,
-      t: void 0,
-      a: void 0,
-      o: void 0
-    }), c(() => s.value = i().h === null ? "" : n.format === "12h" ? d(C(i().h)) : d(i().h)), c(() => a.value = i().m === null ? "" : d(i().m)), r;
-  })();
-};
-B(["input", "keydown", "click"]);
+    })
+  });
+}
+function te(e) {
+  return t(e.Field, {
+    get name() {
+      return e.name;
+    },
+    type: "number",
+    children: (r) => t(m, {
+      get id() {
+        return `${e.name}-${r.name}`;
+      },
+      get label() {
+        return e.label;
+      },
+      get description() {
+        return e.description;
+      },
+      get error() {
+        return r.error;
+      },
+      get required() {
+        return e.required;
+      },
+      get class() {
+        return e.fieldClass;
+      },
+      get children() {
+        return t(B, {
+          get value() {
+            return [r.value ?? 0];
+          },
+          onChange: (n) => {
+            const l = n[0] ?? 0;
+            c(e.of, e.name, l);
+          },
+          get minValue() {
+            return e.minValue;
+          },
+          get maxValue() {
+            return e.maxValue;
+          },
+          get step() {
+            return e.step;
+          },
+          get disabled() {
+            return e.disabled;
+          }
+        });
+      }
+    })
+  });
+}
 export {
-  ne as TimePicker
+  ee as BoundCheckbox,
+  Y as BoundInput,
+  ne as BoundRadioGroup,
+  p as BoundSelect,
+  te as BoundSlider,
+  re as BoundSwitch,
+  Z as BoundTextarea
 };
 //# sourceMappingURL=index85.js.map

@@ -1,59 +1,93 @@
-var r = class {
-  collection;
-  direction;
-  orientation;
-  constructor(t, e, i) {
-    this.collection = t, this.direction = e, this.orientation = i;
+import { isString as r, isNumber as S } from "./index163.js";
+import { createMemo as x } from "solid-js";
+import { access as c } from "./index165.js";
+function s(t) {
+  let l = t.startIndex ?? 0;
+  const o = t.startLevel ?? 0, i = [], f = (e) => {
+    if (e == null)
+      return "";
+    const n = t.getKey ?? "key", u = r(n) ? e[n] : n(e);
+    return u != null ? String(u) : "";
+  }, h = (e) => {
+    if (e == null)
+      return "";
+    const n = t.getTextValue ?? "textValue", u = r(n) ? e[n] : n(e);
+    return u != null ? String(u) : "";
+  }, g = (e) => {
+    if (e == null)
+      return !1;
+    const n = t.getDisabled ?? "disabled";
+    return (r(n) ? e[n] : n(e)) ?? !1;
+  }, d = (e) => {
+    if (e != null)
+      return r(t.getSectionChildren) ? e[t.getSectionChildren] : t.getSectionChildren?.(e);
+  };
+  for (const e of t.dataSource) {
+    if (r(e) || S(e)) {
+      i.push({
+        type: "item",
+        rawValue: e,
+        key: String(e),
+        textValue: String(e),
+        disabled: g(e),
+        level: o,
+        index: l
+      }), l++;
+      continue;
+    }
+    if (d(e) != null) {
+      i.push({
+        type: "section",
+        rawValue: e,
+        key: "",
+        // not applicable here
+        textValue: "",
+        // not applicable here
+        disabled: !1,
+        // not applicable here
+        level: o,
+        index: l
+      }), l++;
+      const n = d(e) ?? [];
+      if (n.length > 0) {
+        const u = s({
+          dataSource: n,
+          getKey: t.getKey,
+          getTextValue: t.getTextValue,
+          getDisabled: t.getDisabled,
+          getSectionChildren: t.getSectionChildren,
+          startIndex: l,
+          startLevel: o + 1
+        });
+        i.push(...u), l += u.length;
+      }
+    } else
+      i.push({
+        type: "item",
+        rawValue: e,
+        key: f(e),
+        textValue: h(e),
+        disabled: g(e),
+        level: o,
+        index: l
+      }), l++;
   }
-  flipDirection() {
-    return this.direction() === "rtl" && this.orientation() === "horizontal";
-  }
-  getKeyLeftOf(t) {
-    if (this.flipDirection())
-      return this.getNextKey(t);
-    if (this.orientation() === "horizontal")
-      return this.getPreviousKey(t);
-  }
-  getKeyRightOf(t) {
-    if (this.flipDirection())
-      return this.getPreviousKey(t);
-    if (this.orientation() === "horizontal")
-      return this.getNextKey(t);
-  }
-  getKeyAbove(t) {
-    if (this.orientation() === "vertical")
-      return this.getPreviousKey(t);
-  }
-  getKeyBelow(t) {
-    if (this.orientation() === "vertical")
-      return this.getNextKey(t);
-  }
-  getFirstKey() {
-    let t = this.collection().getFirstKey();
-    return t == null ? void 0 : (this.collection().getItem(t)?.disabled && (t = this.getNextKey(t)), t);
-  }
-  getLastKey() {
-    let t = this.collection().getLastKey();
-    return t == null ? void 0 : (this.collection().getItem(t)?.disabled && (t = this.getPreviousKey(t)), t);
-  }
-  getNextKey(t) {
-    let e = t, i;
-    do
-      if (e = this.collection().getKeyAfter(e) ?? this.collection().getFirstKey(), e == null || (i = this.collection().getItem(e), i == null))
-        return;
-    while (i.disabled);
-    return e;
-  }
-  getPreviousKey(t) {
-    let e = t, i;
-    do
-      if (e = this.collection().getKeyBefore(e) ?? this.collection().getLastKey(), e == null || (i = this.collection().getItem(e), i == null))
-        return;
-    while (i.disabled);
-    return e;
-  }
-};
+  return i;
+}
+function b(t, l = []) {
+  return x(() => {
+    const o = s({
+      dataSource: c(t.dataSource),
+      getKey: c(t.getKey),
+      getTextValue: c(t.getTextValue),
+      getDisabled: c(t.getDisabled),
+      getSectionChildren: c(t.getSectionChildren)
+    });
+    for (let i = 0; i < l.length; i++) l[i]();
+    return t.factory(o);
+  });
+}
 export {
-  r as TabsKeyboardDelegate
+  b as createCollection
 };
 //# sourceMappingURL=index189.js.map

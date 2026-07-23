@@ -1,5 +1,7 @@
-const s = (e) => typeof e == "function", t = (e, o) => s(e) ? e(o) : e;
+function n(e, t) {
+  return e.internal.fields[t];
+}
 export {
-  t as resolveValue
+  n as getFieldStore
 };
 //# sourceMappingURL=index205.js.map

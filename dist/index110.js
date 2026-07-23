@@ -1,194 +1,376 @@
-import { template as c, insert as a, createComponent as t, memo as z, effect as f, className as $, setAttribute as M, delegateEvents as A } from "solid-js/web";
-import { createMemo as d, Show as u, For as D, untrack as K } from "solid-js";
-import { Badge as T } from "./index28.js";
-import { Icon as v } from "./index21.js";
-import { fieldLabel as y, zoneLabel as _, PIVOT_ZONES as L, defaultAggregationForField as N } from "./index71.js";
-import { DropdownMenu as P, DropdownMenuTrigger as O, DropdownMenuContent as R, DropdownMenuGroup as I, DropdownMenuLabel as U, DropdownMenuItem as k, DropdownMenuSeparator as Z } from "./index57.js";
-import { PivotFilterMenu as E } from "./index111.js";
-import { cn as h } from "./index103.js";
-var V = /* @__PURE__ */ c('<div class="zen-flex zen-shrink-0">'), j = /* @__PURE__ */ c("<span><span class=zen-font-medium>"), G = /* @__PURE__ */ c('<button type=button class="zen-ml-1 zen-rounded-sm hover:zen-bg-zen-muted zen-p-1 zen-text-zen-muted-fg focus:zen-outline-none"title="Remove field">'), B = /* @__PURE__ */ c("<div>"), X = /* @__PURE__ */ c("<span class=zen-font-normal>: "), q = /* @__PURE__ */ c("<span class=zen-font-normal>: All (except <!>)"), H = /* @__PURE__ */ c('<div class="zen-inline-block zen-shrink-0 zen-text-xs"><select class="zen-h-6 zen-min-w-14 zen-rounded-sm zen-px-1.5 zen-py-0 zen-text-xs zen-uppercase zen-bg-transparent zen-border-transparent hover:zen-bg-zen-muted focus:zen-ring-0"><option value=sum>SUM</option><option value=count>COUNT</option><option value=avg>AVG</option><option value=min>MIN</option><option value=max>MAX');
-function re(e) {
-  const g = d(() => y(e.fields, e.fieldKey)), w = d(() => e.fields.find((s) => s.key === e.fieldKey)), b = d(() => w()?.type === "measure"), x = d(() => e.hasActiveFilter ?? (e.selection && (e.selection.kind === "include" ? e.selection.values.length > 0 : !0))), C = d(() => e.selection?.kind === "include" && e.selection.values.length > 0 ? e.selection : void 0), S = d(() => e.selection?.kind === "all" && e.selection.exclude.length > 0 ? e.selection : void 0);
+import { template as h, insert as d, createComponent as e, memo as G, effect as H, className as J, use as Q, spread as U, mergeProps as X, delegateEvents as Y } from "solid-js/web";
+import { createSignal as D, Show as b, For as y, untrack as M, createEffect as I, onCleanup as ee } from "solid-js";
+import { DragDropProvider as te, DragDropSensors as ne, SortableProvider as x, mostIntersecting as E, useDragDropContext as re, createSortable as le } from "./index140.js";
+import { Button as ie } from "./index5.js";
+import { Alert as F, AlertIcon as R, AlertContent as Z, AlertTitle as K, AlertDescription as P } from "./index39.js";
+import { Icon as T } from "./index21.js";
+import { PivotDropZone as C } from "./index112.js";
+import { PivotFieldChip as oe } from "./index113.js";
+import { createEmptyLayout as V, hasActiveFilters as ae, availableFields as se, isLayoutRenderable as ue, fieldLabel as ce, moveFieldToZone as de, describeMove as ge, updateValueAggregation as fe } from "./index74.js";
+import { cn as O } from "./index106.js";
+var me = /* @__PURE__ */ h("<div>"), he = /* @__PURE__ */ h('<button type=button class="-zen-m-1 zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-1 zen-text-sm zen-text-zen-muted-fg hover:zen-text-zen-foreground">Clear filters'), ze = /* @__PURE__ */ h('<div class="zen-flex zen-items-center zen-justify-between zen-gap-2"><span class="zen-text-xs zen-text-zen-muted-fg"> rows &middot; <!> cols</span><div class="zen-flex zen-items-center zen-gap-2">'), ve = /* @__PURE__ */ h('<div class="zen-grid zen-grid-cols-1 zen-gap-2 sm:zen-grid-cols-3">'), be = /* @__PURE__ */ h('<div class="zen-flex zen-w-full zen-flex-col zen-gap-2 zen-bg-zen-background zen-p-2">'), we = /* @__PURE__ */ h('<div><div aria-live=polite aria-atomic=true class=zen-sr-only></div><div class="zen-relative zen-min-h-0 zen-min-w-0 zen-flex-1 zen-bg-zen-background zen-p-2">'), ye = /* @__PURE__ */ h('<div class="zen-flex zen-flex-col zen-gap-2">');
+const xe = (n, t, c) => {
+  const g = t.filter((z) => z.data?.sortable && z.id !== n.id), m = E(n, g, c);
+  if (m) return m;
+  const f = t.filter((z) => !z.data?.sortable);
+  return E(n, f, c);
+}, $ = (n) => {
+  const t = le(n.fieldKey, {
+    zone: n.zone,
+    sortable: !0
+  });
   return (() => {
-    var s = B();
-    return a(s, t(T, {
-      variant: "outline",
-      get class() {
-        return h("zen-cursor-grab zen-select-none active:zen-cursor-grabbing zen-bg-zen-background zen-shadow-sm zen-max-w-full zen-h-7", (e.zone === "rows" || e.zone === "values") && "zen-w-full", x() ? "zen-text-zen-primary zen-border-zen-primary/30" : "zen-text-zen-foreground", e.disabled && "zen-opacity-50 zen-cursor-not-allowed");
+    var c = me(), g = t.ref;
+    return typeof g == "function" ? Q(g, c) : t.ref = c, U(c, X(() => t.dragActivators, {
+      get "data-pivot-chip"() {
+        return ce(n.fields, n.fieldKey);
       },
+      get class() {
+        return O("zen-max-w-full zen-touch-none", n.zone === "rows" || n.zone === "values" ? "zen-flex zen-w-full" : "zen-inline-flex", t.isActiveDraggable && "zen-opacity-50 zen-z-50 zen-relative");
+      },
+      get style() {
+        return {
+          transform: t.transform ? `translate3d(${t.transform.x}px, ${t.transform.y}px, 0)` : void 0
+        };
+      }
+    }), !1, !0), d(c, e(oe, n)), c;
+  })();
+}, Ce = (n) => {
+  const t = re();
+  if (!t) return null;
+  const [c, {
+    dragEnd: g
+  }] = t;
+  return I(() => {
+    if (!c.active.draggable) return;
+    const m = (f) => {
+      f.key === "Escape" && (f.preventDefault(), n.onCancel(), g());
+    };
+    window.addEventListener("keydown", m, !0), ee(() => window.removeEventListener("keydown", m, !0));
+  }), null;
+};
+function Fe(n) {
+  const [t, c] = D(n.initialLayout || V()), [g, m] = D(n.initialLayout || V()), f = () => se(t(), n.fields), [z, S] = D(""), v = (l, u, i) => {
+    c((a) => de(a, l, u, {
+      index: i
+    })), S(ge(M(() => n.fields), l, u, i));
+  };
+  let p = !1;
+  const q = (l) => {
+    const {
+      draggable: u,
+      droppable: i
+    } = l;
+    if (p) {
+      p = !1, S("Move cancelled.");
+      return;
+    }
+    if (!i) return;
+    const a = u.id, o = i.data?.zone ?? i.id, r = i.data?.zone ? i.id : void 0, s = r && r !== a ? B(M(t), r, o) : void 0;
+    v(a, o, s);
+  }, B = (l, u, i) => {
+    const a = i === "rows" ? l.rows.indexOf(u) : i === "columns" ? l.columns.indexOf(u) : i === "values" ? l.values.findIndex((o) => o.id === u) : -1;
+    return a === -1 ? void 0 : a;
+  }, j = () => {
+    const l = {
+      ...t()
+    };
+    m(l), n.onLayoutApply?.(l);
+  }, N = (l, u) => {
+    c((i) => fe(i, l, u));
+  }, _ = (l) => v(l, "available"), w = (l, u) => {
+    c((i) => {
+      const a = {
+        ...i.filters
+      };
+      return u ? a[l] = u : delete a[l], {
+        ...i,
+        filters: a
+      };
+    });
+  };
+  return (() => {
+    var l = we(), u = l.firstChild, i = u.nextSibling;
+    return d(u, z), d(l, e(te, {
+      onDragEnd: q,
+      collisionDetector: xe,
       get children() {
-        return [t(u, {
-          get when() {
-            return e.onMoveToZone;
-          },
-          get fallback() {
-            return t(v, {
-              name: "more-vertical",
-              class: "zen-h-3 zen-w-3 zen-text-zen-muted-fg/50 zen-shrink-0"
-            });
-          },
+        return [e(Ce, {
+          onCancel: () => p = !0
+        }), e(ne, {
           get children() {
-            var n = V();
-            return n.$$pointerdown = (r) => r.stopPropagation(), a(n, t(P, {
+            var a = be();
+            return d(a, e(b, {
+              get when() {
+                return n.showBuilder !== !1;
+              },
               get children() {
-                return [t(O, {
-                  class: "zen-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-p-0 zen-text-zen-muted-fg hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-                  get "aria-label"() {
-                    return `Move ${g()}`;
-                  },
-                  get disabled() {
-                    return e.disabled;
+                return [(() => {
+                  var o = ze(), r = o.firstChild, s = r.firstChild, k = s.nextSibling;
+                  k.nextSibling;
+                  var L = r.nextSibling;
+                  return d(r, () => (n.totalRows ?? 0).toLocaleString(), s), d(r, () => (n.totalCols ?? 0).toLocaleString(), k), d(L, e(b, {
+                    get when() {
+                      return ae(t().filters);
+                    },
+                    get children() {
+                      var A = he();
+                      return A.$$click = () => {
+                        n.onClearFilters ? n.onClearFilters() : c((W) => ({
+                          ...W,
+                          filters: {}
+                        }));
+                      }, A;
+                    }
+                  }), null), d(L, e(ie, {
+                    size: "sm",
+                    onClick: j,
+                    children: "View Data"
+                  }), null), o;
+                })(), e(C, {
+                  id: "available",
+                  title: "Available Fields",
+                  horizontal: !0,
+                  get isEmpty() {
+                    return f().length === 0;
                   },
                   get children() {
-                    return t(v, {
-                      name: "more-vertical",
-                      class: "zen-h-3 zen-w-3"
-                    });
-                  }
-                }), t(R, {
-                  get children() {
-                    return [t(I, {
-                      get children() {
-                        return [t(U, {
-                          get children() {
-                            return ["Move ", z(() => g()), " to"];
-                          }
-                        }), t(D, {
-                          get each() {
-                            return L.filter((r) => r !== "available" && r !== e.zone);
-                          },
-                          children: (r) => t(k, {
-                            onSelect: () => e.onMoveToZone?.(r),
-                            get children() {
-                              return _(r);
-                            }
-                          })
-                        })];
-                      }
-                    }), t(u, {
-                      get when() {
-                        return e.zone !== "available";
+                    return e(x, {
+                      get ids() {
+                        return f().map((o) => o.key);
                       },
                       get children() {
-                        return [t(Z, {}), t(k, {
-                          onSelect: () => e.onMoveToZone?.("available"),
-                          children: "Remove from layout"
-                        })];
+                        return e(y, {
+                          get each() {
+                            return f();
+                          },
+                          children: (o) => e($, {
+                            get fieldKey() {
+                              return o.key;
+                            },
+                            onMoveToZone: (r) => v(o.key, r),
+                            get fields() {
+                              return n.fields;
+                            },
+                            zone: "available",
+                            get selection() {
+                              return t().filters?.[o.key];
+                            },
+                            get filters() {
+                              return t().filters;
+                            },
+                            get loadMembers() {
+                              return n.loadMembers;
+                            },
+                            onSelectionChange: (r) => w(o.key, r),
+                            singleSelect: !0
+                          })
+                        });
                       }
-                    })];
+                    });
                   }
-                })];
+                }), (() => {
+                  var o = ve();
+                  return d(o, e(C, {
+                    id: "values",
+                    title: "Values",
+                    get isEmpty() {
+                      return t().values.length === 0;
+                    },
+                    get children() {
+                      return e(x, {
+                        get ids() {
+                          return t().values.map((r) => r.id);
+                        },
+                        get children() {
+                          return e(y, {
+                            get each() {
+                              return t().values;
+                            },
+                            children: (r) => e($, {
+                              get fieldKey() {
+                                return r.id;
+                              },
+                              onMoveToZone: (s) => v(r.id, s),
+                              get fields() {
+                                return n.fields;
+                              },
+                              zone: "values",
+                              get aggregation() {
+                                return r.aggregation;
+                              },
+                              onAggregationChange: (s) => N(r.id, s),
+                              onRemove: () => _(r.id),
+                              get selection() {
+                                return t().filters?.[r.id];
+                              },
+                              get filters() {
+                                return t().filters;
+                              },
+                              get loadMembers() {
+                                return n.loadMembers;
+                              },
+                              onSelectionChange: (s) => w(r.id, s)
+                            })
+                          });
+                        }
+                      });
+                    }
+                  }), null), d(o, e(C, {
+                    id: "rows",
+                    title: "Rows",
+                    get isEmpty() {
+                      return t().rows.length === 0;
+                    },
+                    get children() {
+                      return e(x, {
+                        get ids() {
+                          return t().rows;
+                        },
+                        get children() {
+                          return e(y, {
+                            get each() {
+                              return t().rows;
+                            },
+                            children: (r) => e($, {
+                              fieldKey: r,
+                              onMoveToZone: (s) => v(r, s),
+                              get fields() {
+                                return n.fields;
+                              },
+                              zone: "rows",
+                              onRemove: () => _(r),
+                              get selection() {
+                                return t().filters?.[r];
+                              },
+                              get filters() {
+                                return t().filters;
+                              },
+                              get loadMembers() {
+                                return n.loadMembers;
+                              },
+                              onSelectionChange: (s) => w(r, s)
+                            })
+                          });
+                        }
+                      });
+                    }
+                  }), null), d(o, e(C, {
+                    id: "columns",
+                    title: "Columns",
+                    get isEmpty() {
+                      return t().columns.length === 0;
+                    },
+                    get children() {
+                      return e(x, {
+                        get ids() {
+                          return t().columns;
+                        },
+                        get children() {
+                          return e(y, {
+                            get each() {
+                              return t().columns;
+                            },
+                            children: (r) => e($, {
+                              fieldKey: r,
+                              onMoveToZone: (s) => v(r, s),
+                              get fields() {
+                                return n.fields;
+                              },
+                              zone: "columns",
+                              onRemove: () => _(r),
+                              get selection() {
+                                return t().filters?.[r];
+                              },
+                              get filters() {
+                                return t().filters;
+                              },
+                              get loadMembers() {
+                                return n.loadMembers;
+                              },
+                              onSelectionChange: (s) => w(r, s)
+                            })
+                          });
+                        }
+                      });
+                    }
+                  }), null), o;
+                })()];
               }
-            })), n;
-          }
-        }), t(v, {
-          get name() {
-            return e.zone === "values" ? "plus" : "file";
-          },
-          class: "zen-h-3 zen-w-3 zen-text-zen-muted-fg zen-shrink-0"
-        }), (() => {
-          var n = j(), r = n.firstChild;
-          return a(r, g), a(n, t(u, {
-            get when() {
-              return C();
-            },
-            children: (l) => (() => {
-              var i = X();
-              return i.firstChild, a(i, (() => {
-                var o = z(() => l().values.length === 1);
-                return () => o() ? z(() => !!b())() ? Number(l().values[0]).toLocaleString("en-US", {
-                  maximumFractionDigits: 2
-                }) : l().values[0] : `${l().values.length} selected`;
-              })(), null), i;
-            })()
-          }), null), a(n, t(u, {
-            get when() {
-              return S();
-            },
-            children: (l) => (() => {
-              var i = q(), o = i.firstChild, m = o.nextSibling;
-              return m.nextSibling, a(i, () => l().exclude.length, m), i;
-            })()
-          }), null), f(() => $(n, h("zen-truncate zen-flex-1 zen-min-w-0", x() && "zen-italic"))), n;
-        })(), t(u, {
-          get when() {
-            return z(() => !!(e.zone === "values" && b() && e.onAggregationChange))() && w();
-          },
-          children: (n) => (() => {
-            var r = H(), l = r.firstChild;
-            return r.$$pointerdown = (i) => i.stopPropagation(), l.addEventListener("change", (i) => e.onAggregationChange?.(i.currentTarget.value)), f(() => M(l, "aria-label", `Aggregation for ${y(e.fields, e.fieldKey)}`)), f(() => l.value = e.aggregation ?? N(n())), r;
-          })()
-        }), t(u, {
-          get when() {
-            return z(() => !!(e.zone !== "values" && e.loadMembers))() && e.onSelectionChange;
-          },
-          get children() {
-            return t(E, {
-              get columnKey() {
-                return e.fieldKey;
-              },
-              get label() {
-                return g();
-              },
-              selection: () => e.selection,
-              onChange: (n) => e.onSelectionChange?.(n),
-              loadOptions: async (n, r, l) => {
-                const i = K(() => {
-                  if (!e.filters) return;
-                  const o = {};
-                  for (const [m, F] of Object.entries(e.filters))
-                    m !== e.fieldKey && (o[m] = F);
-                  return o;
-                });
-                return e.loadMembers({
-                  fieldKey: n,
-                  search: r.trim() ? r.trim() : void 0,
-                  offset: l?.offset,
-                  limit: l?.limit,
-                  filters: i
-                }).then((o) => ({
-                  values: o.values,
-                  hasMore: o.hasMore,
-                  total: o.total ?? o.values.length
-                }));
-              },
-              formatValue: (n) => b() ? Number(n).toLocaleString("en-US", {
-                maximumFractionDigits: 2
-              }) : n,
-              get triggerClass() {
-                return h("zen-flex zen-shrink-0 zen-items-center zen-justify-center zen-rounded-sm zen-p-1 zen-transition-colors", x() ? "zen-text-zen-primary hover:zen-bg-zen-muted hover:zen-text-zen-primary-fg" : "zen-text-zen-muted-fg hover:zen-bg-zen-muted hover:zen-text-zen-foreground");
-              },
-              get triggerChildren() {
-                return t(v, {
-                  name: "chevron-down",
-                  class: "zen-h-3.5 zen-w-3.5"
-                });
-              },
-              get singleSelect() {
-                return e.singleSelect;
-              }
-            });
-          }
-        }), t(u, {
-          get when() {
-            return z(() => e.zone !== "available")() && e.onRemove;
-          },
-          get children() {
-            var n = G();
-            return n.$$click = (r) => {
-              r.stopPropagation(), e.onRemove?.();
-            }, a(n, t(v, {
-              name: "x",
-              class: "zen-h-3.5 zen-w-3.5"
-            })), f(() => M(n, "aria-label", `Remove ${g()} from ${_(e.zone ?? "available")}`)), n;
+            })), a;
           }
         })];
       }
-    })), f(() => $(s, h("zen-group zen-relative zen-flex zen-items-center zen-gap-1 zen-max-w-full"))), s;
+    }), i), d(i, e(b, {
+      get when() {
+        return ue(g());
+      },
+      get fallback() {
+        return (() => {
+          var a = ye();
+          return d(a, e(b, {
+            get when() {
+              return g().values.length === 0;
+            },
+            get children() {
+              return e(F, {
+                color: "warning",
+                get children() {
+                  return [e(R, {
+                    get children() {
+                      return e(T, {
+                        name: "info"
+                      });
+                    }
+                  }), e(Z, {
+                    get children() {
+                      return [e(K, {
+                        children: "Value field required"
+                      }), e(P, {
+                        children: "Drop at least one field into Values to calculate data."
+                      })];
+                    }
+                  })];
+                }
+              });
+            }
+          }), null), d(a, e(b, {
+            get when() {
+              return G(() => g().rows.length === 0)() && g().columns.length === 0;
+            },
+            get children() {
+              return e(F, {
+                color: "warning",
+                get children() {
+                  return [e(R, {
+                    get children() {
+                      return e(T, {
+                        name: "info"
+                      });
+                    }
+                  }), e(Z, {
+                    get children() {
+                      return [e(K, {
+                        children: "Dimension required"
+                      }), e(P, {
+                        children: "Drop at least one field into Rows or Columns."
+                      })];
+                    }
+                  })];
+                }
+              });
+            }
+          }), null), a;
+        })();
+      },
+      get children() {
+        return n.children;
+      }
+    })), H(() => J(l, O("zen-flex zen-h-full zen-w-full zen-min-w-0 zen-flex-col zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border", n.class))), l;
   })();
 }
-A(["pointerdown", "click"]);
+Y(["click"]);
 export {
-  re as PivotFieldChip
+  Fe as PivotWorkbench
 };
 //# sourceMappingURL=index110.js.map

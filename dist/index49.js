@@ -1,126 +1,80 @@
-import { createComponent as t, mergeProps as a } from "solid-js/web";
-import { splitProps as i } from "solid-js";
-import { Tabs as o } from "./index123.js";
-import { cva as l } from "./index115.js";
-import { cn as s } from "./index103.js";
-const p = (n) => {
-  const [e, r] = i(n, ["value", "defaultValue", "onChange", "orientation", "activationMode", "disabled", "class", "children"]);
-  return t(o, a(r, {
-    get value() {
-      return e.value;
+import { createComponent as n, mergeProps as d, memo as t, template as a } from "solid-js/web";
+import { splitProps as s, Show as c } from "solid-js";
+import { Checkbox as r } from "./index124.js";
+import { cn as i } from "./index106.js";
+var u = /* @__PURE__ */ a('<svg viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=3 stroke-linecap=round stroke-linejoin=round width=100% height=100%><polyline points="20 6 9 17 4 12">'), z = /* @__PURE__ */ a('<svg viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=3 stroke-linecap=round width=100% height=100%><line x1=6 y1=12 x2=18 y2=12>');
+const g = {
+  sm: "zen-h-3.5 zen-w-3.5",
+  md: "zen-h-4 zen-w-4",
+  lg: "zen-h-5 zen-w-5"
+}, x = (o) => {
+  const [e, l] = s(o, ["class", "size", "checked", "defaultChecked", "indeterminate", "onChange", "disabled", "required", "name", "value", "label", "id"]);
+  return n(r, d(l, {
+    get checked() {
+      return e.checked;
     },
-    get defaultValue() {
-      return e.defaultValue;
+    get defaultChecked() {
+      return e.defaultChecked;
+    },
+    get indeterminate() {
+      return e.indeterminate;
     },
     get onChange() {
       return e.onChange;
     },
-    get orientation() {
-      return e.orientation;
-    },
-    get activationMode() {
-      return e.activationMode;
-    },
     get disabled() {
       return e.disabled;
     },
-    get class() {
-      return e.class;
+    get required() {
+      return e.required;
     },
-    get children() {
-      return e.children;
-    }
-  }));
-}, d = l("zen-inline-flex zen-items-stretch", {
-  variants: {
-    variant: {
-      underline: "zen-border-b zen-border-zen-border zen-w-full zen-gap-1",
-      pills: "zen-rounded-zen-md zen-bg-zen-muted zen-p-1 zen-gap-1"
+    get name() {
+      return e.name;
     },
-    orientation: {
-      // flex-wrap so a horizontal tab list with many tabs wraps to multiple
-      // rows instead of overflowing/clipping its container.
-      horizontal: "zen-flex-row zen-flex-wrap",
-      vertical: "zen-flex-col zen-items-start"
-    }
-  },
-  compoundVariants: [{
-    variant: "underline",
-    orientation: "vertical",
-    class: "zen-border-b-0 zen-border-r zen-border-zen-border"
-  }, {
-    variant: "pills",
-    orientation: "vertical",
-    class: "zen-items-stretch"
-  }],
-  defaultVariants: {
-    variant: "underline",
-    orientation: "horizontal"
-  }
-}), f = (n) => {
-  const [e, r] = i(n, ["variant", "orientation", "class", "children"]);
-  return t(o.List, a(r, {
-    get "data-variant"() {
-      return e.variant ?? "underline";
-    },
-    get class() {
-      return s(d({
-        variant: e.variant,
-        orientation: e.orientation
-      }), e.class);
-    },
-    get children() {
-      return e.children;
-    }
-  }));
-}, z = l(["zen-inline-flex zen-items-center zen-justify-center zen-whitespace-nowrap", "zen-text-sm zen-font-medium", "zen-border-0 zen-bg-transparent zen-cursor-pointer", "zen-transition-colors", "disabled:zen-opacity-50 disabled:zen-cursor-not-allowed", "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset"].join(" "), {
-  variants: {
-    variant: {
-      underline: ["zen-px-3 zen-py-2 -zen-mb-px zen-text-zen-muted-fg", "zen-border-b-2 zen-border-transparent", "hover:zen-text-zen-foreground", "data-[selected]:zen-text-zen-primary data-[selected]:zen-border-zen-primary"].join(" "),
-      pills: ["zen-px-3 zen-py-1.5 zen-rounded-zen-sm zen-text-zen-muted-fg", "hover:zen-text-zen-foreground", "data-[selected]:zen-bg-zen-background data-[selected]:zen-text-zen-foreground data-[selected]:zen-shadow-zen-xs"].join(" ")
-    }
-  },
-  defaultVariants: {
-    variant: "underline"
-  }
-}), m = (n) => {
-  const [e, r] = i(n, ["variant", "value", "disabled", "class", "children"]);
-  return t(o.Trigger, a(r, {
-    get value() {
-      return e.value;
-    },
-    get disabled() {
-      return e.disabled;
-    },
-    get class() {
-      return s(z({
-        variant: e.variant
-      }), e.class);
-    },
-    get children() {
-      return e.children;
-    }
-  }));
-}, h = (n) => {
-  const [e, r] = i(n, ["value", "class", "children"]);
-  return t(o.Content, a(r, {
     get value() {
       return e.value;
     },
     get class() {
-      return s("zen-mt-3 focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring zen-rounded-zen-sm", e.class);
+      return i("zen-inline-flex zen-items-center zen-gap-2", e.class);
     },
     get children() {
-      return e.children;
+      return [n(r.Input, {
+        get id() {
+          return e.id;
+        },
+        class: "zen-sr-only"
+      }), n(r.Control, {
+        get class() {
+          return i("zen-peer zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background", "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2", "data-[disabled]:zen-cursor-not-allowed data-[disabled]:zen-opacity-50", "data-[checked]:zen-bg-zen-primary data-[checked]:zen-border-zen-primary data-[checked]:zen-text-zen-primary-fg", "data-[indeterminate]:zen-bg-zen-primary data-[indeterminate]:zen-border-zen-primary data-[indeterminate]:zen-text-zen-primary-fg", g[e.size ?? "md"]);
+        },
+        get children() {
+          return n(r.Indicator, {
+            class: "zen-flex zen-items-center zen-justify-center zen-text-current zen-h-full zen-w-full",
+            get children() {
+              return n(c, {
+                get when() {
+                  return e.indeterminate;
+                },
+                get fallback() {
+                  return n(m, {});
+                },
+                get children() {
+                  return n(h, {});
+                }
+              });
+            }
+          });
+        }
+      }), t(() => t(() => !!e.label)() ? n(r.Label, {
+        class: "zen-text-sm",
+        get children() {
+          return e.label;
+        }
+      }) : null)];
     }
   }));
-};
+}, m = () => u(), h = () => z();
 export {
-  p as Tabs,
-  h as TabsContent,
-  f as TabsList,
-  m as TabsTrigger,
-  d as tabsListVariants,
-  z as tabsTriggerVariants
+  x as Checkbox
 };
 //# sourceMappingURL=index49.js.map

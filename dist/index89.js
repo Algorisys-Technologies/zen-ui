@@ -1,47 +1,109 @@
-import { template as m, spread as g, mergeProps as u, insert as y } from "solid-js/web";
-import { mergeProps as z, splitProps as j } from "solid-js";
-import { cn as w } from "./index103.js";
-var $ = /* @__PURE__ */ m("<div>");
-const b = {
-  start: "zen-items-start",
-  center: "zen-items-center",
-  end: "zen-items-end",
-  stretch: "zen-items-stretch"
-}, h = {
-  start: "zen-justify-start",
-  center: "zen-justify-center",
-  end: "zen-justify-end",
-  between: "zen-justify-between"
-}, a = (n) => n === void 0 ? void 0 : typeof n == "number" ? `${n}px` : n, k = (n) => {
-  const c = z({
-    direction: "column",
-    wrap: !1
-  }, n), [e, p] = j(c, ["class", "direction", "align", "justify", "wrap", "gap", "padding", "style", "children"]), l = () => {
-    const t = {}, s = a(e.gap), i = a(e.padding);
-    s !== void 0 && (t.gap = s), i !== void 0 && (t.padding = i);
-    const r = e.style;
-    if (typeof r == "string") {
-      const o = Object.entries(t).map(([d, f]) => `${d}:${f}`).join(";");
-      return o ? `${o};${r}` : r;
+import { createComponent as a, template as g, memo as b, insert as x } from "solid-js/web";
+import { splitProps as z, createSignal as S, createMemo as v } from "solid-js";
+import { Button as w } from "./index5.js";
+import { Popover as y, PopoverTrigger as T, PopoverContent as D } from "./index56.js";
+import { Calendar as C } from "./index86.js";
+import { TimePicker as $ } from "./index88.js";
+import { cn as k } from "./index106.js";
+var P = /* @__PURE__ */ g('<div class="zen-flex zen-items-center zen-justify-between zen-gap-3 zen-border-t zen-border-zen-border zen-px-3 zen-py-2.5"><label class="zen-text-xs zen-text-zen-muted-fg">Time'), H = /* @__PURE__ */ g('<svg width=14 height=14 viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round aria-hidden><rect x=3 y=4 width=18 height=18 rx=2></rect><line x1=16 y1=2 x2=16 y2=6></line><line x1=8 y1=2 x2=8 y2=6></line><line x1=3 y1=10 x2=21 y2=10>');
+const d = (t) => t.toString().padStart(2, "0"), V = (t, e) => {
+  if (!t) return;
+  const r = `${d(t.getHours())}:${d(t.getMinutes())}`;
+  return e ? `${r}:${d(t.getSeconds())}` : r;
+}, L = (t, e) => {
+  if (!e) {
+    const u = new Date(t);
+    return u.setHours(0, 0, 0, 0), u;
+  }
+  const r = /^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/.exec(e);
+  if (!r) return t;
+  const l = new Date(t);
+  return l.setHours(Number(r[1]), Number(r[2]), r[3] ? Number(r[3]) : 0, 0), l;
+}, M = (t) => t.toLocaleDateString(), j = (t, e) => t.toLocaleTimeString([], {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: e === "12h"
+}), G = (t) => {
+  const [e] = z(t, ["value", "defaultValue", "onValueChange", "placeholder", "disabled", "class", "format", "showSeconds", "minuteStep", "formatDate", "formatTime"]), r = () => e.value !== void 0, [l, u] = S(e.defaultValue), o = v(() => r() ? e.value : l()), c = (n) => {
+    r() || u(n), e.onValueChange?.(n);
+  }, f = (n) => {
+    if (!n) {
+      c(void 0);
+      return;
     }
-    return r ? {
-      ...t,
-      ...r
-    } : Object.keys(t).length > 0 ? t : void 0;
+    if (!o()) {
+      const m = new Date(n);
+      m.setHours(0, 0, 0, 0), c(m);
+      return;
+    }
+    const i = new Date(n), s = o();
+    i.setHours(s.getHours(), s.getMinutes(), s.getSeconds(), s.getMilliseconds()), c(i);
+  }, p = (n) => {
+    const i = o() ?? /* @__PURE__ */ new Date();
+    c(L(i, n));
+  }, h = () => {
+    const n = o();
+    if (!n) return e.placeholder ?? "Pick date & time";
+    const i = e.formatDate ?? M, s = e.formatTime ?? j;
+    return `${i(n)} ${s(n, e.format ?? "24h")}`;
   };
-  return (() => {
-    var t = $();
-    return g(t, u({
-      get class() {
-        return w("zen-flex", e.direction === "column" ? "zen-flex-col" : "zen-flex-row", e.wrap && "zen-flex-wrap", e.align && b[e.align], e.justify && h[e.justify], e.class);
-      },
-      get style() {
-        return l();
-      }
-    }, p), !1, !0), y(t, () => e.children), t;
-  })();
-};
+  return a(y, {
+    get children() {
+      return [a(T, {
+        as: w,
+        variant: "outline",
+        color: "neutral",
+        get disabled() {
+          return e.disabled === !0;
+        },
+        get iconLeft() {
+          return a(N, {});
+        },
+        get class() {
+          return k("zen-w-72 zen-justify-between zen-font-normal", !o() && "zen-text-zen-muted-fg", e.class);
+        },
+        get children() {
+          return h();
+        }
+      }), a(D, {
+        class: "zen-w-auto zen-p-0",
+        get children() {
+          return [a(C, {
+            mode: "single",
+            get selected() {
+              return o();
+            },
+            onSelect: f,
+            get disabled() {
+              return b(() => typeof e.disabled == "function")() ? e.disabled : void 0;
+            }
+          }), (() => {
+            var n = P();
+            return n.firstChild, x(n, a($, {
+              get value() {
+                return V(o(), !!e.showSeconds);
+              },
+              onValueChange: p,
+              get format() {
+                return e.format ?? "24h";
+              },
+              get showSeconds() {
+                return e.showSeconds;
+              },
+              get minuteStep() {
+                return e.minuteStep ?? 1;
+              },
+              get disabled() {
+                return e.disabled === !0;
+              }
+            }), null), n;
+          })()];
+        }
+      })];
+    }
+  });
+}, N = () => H();
 export {
-  k as Stack
+  G as DateTimePicker
 };
 //# sourceMappingURL=index89.js.map

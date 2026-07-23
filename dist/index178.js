@@ -1,53 +1,67 @@
-import { onCleanup as e, getOwner as a, DEV as u } from "solid-js";
-import { isServer as y } from "solid-js/web";
-import { isServer as V } from "solid-js/web";
-const g = !y, h = g && !!u, N = (() => {
-}), p = (o) => o != null, A = (o) => o.filter(p);
-function C(o) {
-  return (...n) => {
-    for (const i of o)
-      i && i(...n);
-  };
+import { getDocument as s } from "./index163.js";
+var E = "data-kb-top-layer", c, r = !1, t = [];
+function o(n) {
+  return t.findIndex((e) => e.node === n);
 }
-const D = (o) => typeof o == "function" && !o.length ? o() : o, E = (o) => Array.isArray(o) ? o : o ? [o] : [];
-function k(o, ...n) {
-  return typeof o == "function" ? o(...n) : o;
+function l(n) {
+  return t[o(n)];
 }
-const x = h ? (o) => a() ? e(o) : o : e;
-function L(o, n, i, c) {
-  const l = o.length, f = n.length;
-  let t = 0;
-  if (!f) {
-    for (; t < l; t++)
-      i(o[t]);
-    return;
+function y(n) {
+  return t[t.length - 1].node === n;
+}
+function a() {
+  return t.filter((n) => n.isPointerBlocking);
+}
+function d() {
+  return [...a()].slice(-1)[0];
+}
+function i() {
+  return a().length > 0;
+}
+function u(n) {
+  const e = o(d()?.node);
+  return o(n) < e;
+}
+function f(n) {
+  t.push(n);
+}
+function v(n) {
+  const e = o(n);
+  e < 0 || t.splice(e, 1);
+}
+function g() {
+  for (const {
+    node: n
+  } of t)
+    n.style.pointerEvents = u(n) ? "none" : "auto";
+}
+function p(n) {
+  if (i() && !r) {
+    const e = s(n);
+    c = document.body.style.pointerEvents, e.body.style.pointerEvents = "none", r = !0;
   }
-  if (!l) {
-    for (; t < f; t++)
-      c(n[t]);
-    return;
-  }
-  for (; t < f && n[t] === o[t]; t++)
-    ;
-  let s, r;
-  n = n.slice(t), o = o.slice(t);
-  for (s of n)
-    o.includes(s) || c(s);
-  for (r of o)
-    n.includes(r) || i(r);
 }
+function B(n) {
+  if (i())
+    return;
+  const e = s(n);
+  e.body.style.pointerEvents = c, e.body.style.length === 0 && e.body.removeAttribute("style"), r = !1;
+}
+var b = {
+  layers: t,
+  isTopMostLayer: y,
+  hasPointerBlockingLayer: i,
+  isBelowPointerBlockingLayer: u,
+  addLayer: f,
+  removeLayer: v,
+  indexOf: o,
+  find: l,
+  assignPointerEventToLayers: g,
+  disableBodyPointerEvents: p,
+  restoreBodyPointerEvents: B
+};
 export {
-  D as access,
-  k as accessWith,
-  E as asArray,
-  C as chain,
-  A as filterNonNullable,
-  L as handleDiffArray,
-  g as isClient,
-  h as isDev,
-  p as isNonNullable,
-  V as isServer,
-  N as noop,
-  x as tryOnCleanup
+  E as DATA_TOP_LAYER_ATTR,
+  b as layerStack
 };
 //# sourceMappingURL=index178.js.map

@@ -1,160 +1,65 @@
-import { template as i, spread as o, mergeProps as s, insert as c } from "solid-js/web";
-import { mergeProps as f, splitProps as l } from "solid-js";
-import { cva as g } from "./index115.js";
-import { cn as a } from "./index103.js";
-var u = /* @__PURE__ */ i("<div>"), b = /* @__PURE__ */ i("<span aria-hidden=true>"), d = /* @__PURE__ */ i("<p>"), p = /* @__PURE__ */ i('<button type=button aria-label=Dismiss><svg width=14 height=14 viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round aria-hidden=true><line x1=18 y1=6 x2=6 y2=18></line><line x1=6 y1=6 x2=18 y2=18>');
-const v = g("zen-relative zen-w-full zen-rounded-zen-md zen-p-3 zen-flex zen-items-start zen-gap-2", {
+import { template as l, spread as c, mergeProps as p, insert as t, createComponent as z } from "solid-js/web";
+import { mergeProps as m, splitProps as u, Show as d } from "solid-js";
+import { cva as g } from "./index118.js";
+import { cn as h } from "./index106.js";
+var x = /* @__PURE__ */ l("<span style=position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0>"), w = /* @__PURE__ */ l('<span style=display:inline-flex;align-items:center;gap:6px><svg viewBox="0 0 24 24"fill=none><circle class=zen-opacity-25 cx=12 cy=12 r=10 stroke=currentColor stroke-width=4></circle><path class=zen-opacity-75 fill=currentColor d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">');
+const f = g("zen-animate-spin", {
   variants: {
-    color: {
-      neutral: "",
-      primary: "",
-      info: "",
-      success: "",
-      warning: "",
-      destructive: ""
+    size: {
+      sm: "zen-h-3 zen-w-3",
+      md: "zen-h-4 zen-w-4",
+      lg: "zen-h-6 zen-w-6",
+      xl: "zen-h-10 zen-w-10"
     },
-    variant: {
-      soft: "",
-      outline: "zen-bg-zen-background"
+    color: {
+      primary: "zen-text-zen-primary",
+      neutral: "zen-text-zen-foreground",
+      info: "zen-text-zen-info",
+      success: "zen-text-zen-success",
+      warning: "zen-text-zen-warning",
+      error: "zen-text-zen-error",
+      current: "zen-text-current"
     }
   },
-  compoundVariants: [{
-    variant: "soft",
-    color: "neutral",
-    class: "zen-bg-zen-muted zen-text-zen-foreground zen-border zen-border-zen-border"
-  }, {
-    variant: "soft",
-    color: "primary",
-    class: "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-border zen-border-zen-primary-soft"
-  }, {
-    variant: "soft",
-    color: "info",
-    class: "zen-bg-zen-info-soft zen-text-zen-info-soft-fg zen-border zen-border-zen-info-soft"
-  }, {
-    variant: "soft",
-    color: "success",
-    class: "zen-bg-zen-success-soft zen-text-zen-success-soft-fg zen-border zen-border-zen-success-soft"
-  }, {
-    variant: "soft",
-    color: "warning",
-    class: "zen-bg-zen-warning-soft zen-text-zen-warning-soft-fg zen-border zen-border-zen-warning-soft"
-  }, {
-    variant: "soft",
-    color: "destructive",
-    class: "zen-bg-zen-error-soft zen-text-zen-error-soft-fg zen-border zen-border-zen-error-soft"
-  }, {
-    variant: "outline",
-    color: "neutral",
-    class: "zen-border zen-border-zen-border zen-text-zen-foreground"
-  }, {
-    variant: "outline",
-    color: "primary",
-    class: "zen-border zen-border-zen-primary zen-text-zen-foreground"
-  }, {
-    variant: "outline",
-    color: "info",
-    class: "zen-border zen-border-zen-info zen-text-zen-foreground"
-  }, {
-    variant: "outline",
-    color: "success",
-    class: "zen-border zen-border-zen-success zen-text-zen-foreground"
-  }, {
-    variant: "outline",
-    color: "warning",
-    class: "zen-border zen-border-zen-warning zen-text-zen-foreground"
-  }, {
-    variant: "outline",
-    color: "destructive",
-    class: "zen-border zen-border-zen-error zen-text-zen-foreground"
-  }],
   defaultVariants: {
-    variant: "soft",
-    color: "info"
+    size: "md",
+    color: "primary"
   }
-}), w = (t) => {
-  const r = f({
-    role: "alert"
-  }, t), [n, e] = l(r, ["class", "color", "variant", "children"]);
+}), _ = (o) => {
+  const a = m({
+    label: "Loading"
+  }, o), [e, i] = u(a, ["class", "size", "color", "label"]);
   return (() => {
-    var z = u();
-    return o(z, s({
+    var r = w(), s = r.firstChild;
+    return c(s, p({
+      get role() {
+        return e.label ? "status" : "presentation";
+      },
+      get "aria-label"() {
+        return e.label || void 0;
+      },
+      get "aria-hidden"() {
+        return e.label ? void 0 : !0;
+      },
       get class() {
-        return a(v({
-          color: n.color,
-          variant: n.variant
-        }), n.class);
+        return h(f({
+          size: e.size,
+          color: e.color
+        }), e.class);
       }
-    }, e), !1, !0), c(z, () => n.children), z;
-  })();
-}, $ = (t) => {
-  const [r, n] = l(t, ["class", "children"]);
-  return (() => {
-    var e = b();
-    return o(e, s({
-      get class() {
-        return a("zen-shrink-0 zen-inline-flex zen-items-center zen-justify-center zen-mt-0.5", r.class);
+    }, i), !0, !0), t(r, z(d, {
+      get when() {
+        return e.label;
+      },
+      get children() {
+        var n = x();
+        return t(n, () => e.label), n;
       }
-    }, n), !1, !0), c(e, () => r.children), e;
-  })();
-}, _ = (t) => {
-  const [r, n] = l(t, ["class", "children"]);
-  return (() => {
-    var e = u();
-    return o(e, s({
-      get class() {
-        return a("zen-min-w-0 zen-flex-1 zen-flex zen-flex-col zen-gap-1", r.class);
-      }
-    }, n), !1, !0), c(e, () => r.children), e;
-  })();
-}, k = (t) => {
-  const [r, n] = l(t, ["class", "children"]);
-  return (() => {
-    var e = d();
-    return o(e, s({
-      get class() {
-        return a("zen-font-semibold zen-leading-tight zen-text-sm", r.class);
-      }
-    }, n), !1, !0), c(e, () => r.children), e;
-  })();
-}, A = (t) => {
-  const [r, n] = l(t, ["class", "children"]);
-  return (() => {
-    var e = d();
-    return o(e, s({
-      get class() {
-        return a("zen-text-sm zen-opacity-90 zen-leading-snug", r.class);
-      }
-    }, n), !1, !0), c(e, () => r.children), e;
-  })();
-}, P = (t) => {
-  const [r, n] = l(t, ["class", "children"]);
-  return (() => {
-    var e = u();
-    return o(e, s({
-      get class() {
-        return a("zen-ml-auto zen-shrink-0 zen-flex zen-items-center zen-gap-4 zen-self-center", r.class);
-      }
-    }, n), !1, !0), c(e, () => r.children), e;
-  })();
-}, j = (t) => {
-  const [r, n] = l(t, ["class"]);
-  return (() => {
-    var e = p();
-    return o(e, s({
-      get class() {
-        return a("zen-shrink-0 zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm", "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-current zen-opacity-70", "hover:zen-opacity-100 hover:zen-bg-current/10", "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring", r.class);
-      }
-    }, n), !1, !0), e;
+    }), null), r;
   })();
 };
 export {
-  w as Alert,
-  P as AlertActions,
-  j as AlertClose,
-  _ as AlertContent,
-  A as AlertDescription,
-  $ as AlertIcon,
-  k as AlertTitle,
-  v as alertVariants
+  _ as Loading,
+  f as spinnerVariants
 };
 //# sourceMappingURL=index36.js.map

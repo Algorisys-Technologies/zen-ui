@@ -1,7 +1,6 @@
-function n(t, r) {
-  return (typeof t != "string" && !Array.isArray(t) ? t : r) || {};
-}
+import "solid-js";
+var c = (o) => typeof o == "function" ? o() : o;
 export {
-  n as getOptions
+  c as access
 };
 //# sourceMappingURL=index218.js.map

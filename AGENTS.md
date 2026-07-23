@@ -17,6 +17,10 @@ import "@algorisys/zen-ui-solid/styles";
 <Button variant="solid" color="primary">Save</Button>;
 ```
 
+> This package also ships the same guidance as a Claude Code **skill** that
+> loads itself whenever an agent builds UI here. Install it once per project:
+> `cp -r node_modules/@algorisys/zen-ui-solid/skills/zen-ui .claude/skills/`
+
 ## How to choose a component
 
 Each entry is the component's name and what it is *for*. Match the task to the
@@ -64,6 +68,8 @@ description, then import the name from your binding's package.
 - **UploadCollection** — The list of uploaded files — progress, rename, delete, retry; the result FileUpload has no view for
 - **PlanningCalendar** — Resource-by-time grid — rows of people or rooms, appointments as blocks, day / week / month views
 - **Pivot** — Drag-and-drop pivot builder; fields into zones, 2D-windowed grid
+- **MediaTimeline** — Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state
+- **Waveform** — Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align
 - **Lazy options** — VirtualizedItems — drop-in windowing for huge option lists inside Combobox / Select
 - **Combobox + Async** — cmdk-backed; sync `options` or async `onSearch` with debounced loading
 - **Alert** — Inline semantic callout; compound Icon / Title / Description / Actions API

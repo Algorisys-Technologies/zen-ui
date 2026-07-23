@@ -1,7 +1,13 @@
-function t(r, e) {
-  return r.internal.fieldArrays[e];
-}
+var r = (t, n) => {
+  if (t.contains(n)) return !0;
+  let e = n;
+  for (; e; ) {
+    if (e === t) return !0;
+    e = e._$host ?? e.parentElement;
+  }
+  return !1;
+};
 export {
-  t as getFieldArrayStore
+  r as contains
 };
 //# sourceMappingURL=index219.js.map

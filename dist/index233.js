@@ -1,16 +1,33 @@
-import { template as m, effect as s, setAttribute as n } from "solid-js/web";
-var d = /* @__PURE__ */ m('<svg viewBox="0 0 32 32"width=1.25rem height=1.25rem style=overflow:visible><path fill=none stroke-width=4 stroke-miterlimit=10 d=M16,6c3,0,5.7,1.3,7.5,3.4c1.5,1.8,2.5,4,2.5,6.6c0,5.5-4.5,10-10,10S6,21.6,6,16S10.5,6,16,6z></path><path fill=none stroke-width=4 stroke-linecap=round stroke-miterlimit=10 d=M16,6c3,0,5.7,1.3,7.5,3.4c0.6,0.7,1.1,1.4,1.5,2.2><animateTransform attributeName=transform type=rotate from="0 16 16"to="360 16 16"dur=0.75s repeatCount=indefinite>');
-const v = (e) => (() => {
-  var r = d(), i = r.firstChild, l = i.nextSibling;
-  return s((t) => {
-    var o = e.primary || "#E5E7EB", a = e.secondary || "#4b5563";
-    return o !== t.e && n(i, "stroke", t.e = o), a !== t.t && n(l, "stroke", t.t = a), t;
-  }, {
-    e: void 0,
-    t: void 0
-  }), r;
-})();
+import { template as s, spread as r, effect as n, setAttribute as c } from "solid-js/web";
+import { genSVGCubicBezier as u } from "./index234.js";
+var f = /* @__PURE__ */ s('<svg><circle cx=16 cy=16 r=0><animate attributeName=opacity values="0; 1; 1"></animate><animate attributeName=r values="0; 17.5; 16"></svg>', !1, !0, !1), m = /* @__PURE__ */ s('<svg><circle cx=16 cy=16 r=12 opacity=0><animate attributeName=opacity values="1; 0"></animate><animate attributeName=r values="12; 26"></svg>', !1, !0, !1);
+const b = (i) => {
+  const t = {
+    dur: "0.35s",
+    begin: "100ms",
+    fill: "freeze",
+    calcMode: "spline",
+    keyTimes: "0; 0.6; 1",
+    keySplines: "0.25 0.71 0.4 0.88; .59 .22 .87 .63"
+  };
+  return (() => {
+    var e = f(), l = e.firstChild, a = l.nextSibling;
+    return r(l, t, !0, !1), r(a, t, !0, !1), n(() => c(e, "fill", i.fill)), e;
+  })();
+}, v = (i) => {
+  const t = {
+    dur: "1s",
+    begin: i.begin || "320ms",
+    fill: "freeze",
+    ...u("0.0 0.0 0.2 1")
+  };
+  return (() => {
+    var e = m(), l = e.firstChild, a = l.nextSibling;
+    return r(l, t, !0, !1), r(a, t, !0, !1), n(() => c(e, "fill", i.fill)), e;
+  })();
+};
 export {
-  v as Loader
+  b as MainCircle,
+  v as SecondaryCircle
 };
 //# sourceMappingURL=index233.js.map

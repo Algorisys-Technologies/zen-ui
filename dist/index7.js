@@ -1,6 +1,6 @@
 import { template as o, spread as u, mergeProps as h, insert as r, createComponent as z, effect as g, className as p } from "solid-js/web";
 import { splitProps as m, Show as a } from "solid-js";
-import { cn as i } from "./index103.js";
+import { cn as i } from "./index106.js";
 var f = /* @__PURE__ */ o("<div class=zen-shrink-0>"), b = /* @__PURE__ */ o("<div><div>"), v = /* @__PURE__ */ o('<div class="zen-flex zen-min-w-0 zen-items-center zen-gap-2 zen-overflow-hidden">'), _ = /* @__PURE__ */ o('<div><div class="zen-flex zen-flex-1 zen-items-center zen-gap-2"></div><div class="zen-flex zen-flex-1 zen-items-center zen-justify-end zen-gap-2">');
 const k = (s) => {
   const [e, d] = m(s, ["header", "footer", "flush", "class", "children"]);

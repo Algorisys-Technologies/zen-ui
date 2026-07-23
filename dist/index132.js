@@ -1,38 +1,35 @@
-import { template as m, insert as s, createComponent as n, effect as l, style as c, className as f } from "solid-js/web";
-import { createEffect as a, onCleanup as v, For as u } from "solid-js";
-import { mergeContainerOptions as d } from "./index204.js";
-import { createTimers as C, store as p } from "./index201.js";
-import { ToastContainer as h } from "./index227.js";
-import { defaultContainerStyle as y } from "./index203.js";
-var T = /* @__PURE__ */ m("<div><style>.sldt-active{z-index:9999;}.sldt-active>*{pointer-events:auto;}");
-const F = (r) => (a(() => {
-  d(r);
-}), a(() => {
-  const e = C();
-  v(() => {
-    e && e.forEach((t) => t && clearTimeout(t));
-  });
-}), (() => {
-  var e = T();
-  return e.firstChild, s(e, n(u, {
-    get each() {
-      return p.toasts;
-    },
-    children: (t) => n(h, {
-      toast: t
-    })
-  }), null), l((t) => {
-    var i = {
-      ...y,
-      ...r.containerStyle
-    }, o = r.containerClassName;
-    return t.e = c(e, i, t.e), o !== t.t && f(e, t.t = o), t;
-  }, {
-    e: void 0,
-    t: void 0
-  }), e;
-})());
+import { createComponent as D, mergeProps as p } from "solid-js/web";
+import { DialogContent as s, DialogTrigger as o, DialogTitle as t, DialogRoot as r, DialogPortal as e, DialogOverlay as l, DialogDescription as i, DialogCloseButton as a } from "./index131.js";
+import { __export as m } from "./index162.js";
+var C = {};
+m(C, {
+  AlertDialog: () => c,
+  CloseButton: () => a,
+  Content: () => g,
+  Description: () => i,
+  Overlay: () => l,
+  Portal: () => e,
+  Root: () => r,
+  Title: () => t,
+  Trigger: () => o
+});
+function g(n) {
+  return D(s, p({
+    role: "alertdialog"
+  }, n));
+}
+var c = Object.assign(r, {
+  CloseButton: a,
+  Content: g,
+  Description: i,
+  Overlay: l,
+  Portal: e,
+  Title: t,
+  Trigger: o
+});
 export {
-  F as Toaster
+  c as AlertDialog,
+  g as AlertDialogContent,
+  C as alert_dialog_exports
 };
 //# sourceMappingURL=index132.js.map

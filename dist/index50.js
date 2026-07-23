@@ -1,11 +1,11 @@
-import { createComponent as t, mergeProps as l, memo as d, template as a, insert as u, effect as z, className as g } from "solid-js/web";
-import { splitProps as s } from "solid-js";
-import { Accordion as o } from "./index124.js";
-import { cn as i } from "./index103.js";
-var p = /* @__PURE__ */ a('<svg class="zen-acc-chevron zen-transition-transform zen-duration-200 zen-text-zen-muted-fg zen-flex-shrink-0"width=16 height=16 viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round aria-hidden=true><polyline points="6 9 12 15 18 9">'), m = /* @__PURE__ */ a("<div>");
-const x = (n) => {
-  const [e, r] = s(n, ["value", "defaultValue", "onChange", "multiple", "collapsible", "class", "children"]);
-  return t(o, l(r, {
+import { createComponent as n, mergeProps as d, memo as s, template as z, effect as c, className as g } from "solid-js/web";
+import { splitProps as u } from "solid-js";
+import { RadioGroup as r } from "./index120.js";
+import { cn as t } from "./index106.js";
+var m = /* @__PURE__ */ z("<span>");
+const w = (a) => {
+  const [e, l] = u(a, ["class", "value", "defaultValue", "onChange", "name", "disabled", "required", "orientation", "children"]);
+  return n(r, d(l, {
     get value() {
       return e.value;
     },
@@ -15,22 +15,36 @@ const x = (n) => {
     get onChange() {
       return e.onChange;
     },
-    get multiple() {
-      return e.multiple;
+    get name() {
+      return e.name;
     },
-    get collapsible() {
-      return e.collapsible;
+    get disabled() {
+      return e.disabled;
+    },
+    get required() {
+      return e.required;
+    },
+    get orientation() {
+      return e.orientation;
     },
     get class() {
-      return e.class;
+      return t(e.orientation === "horizontal" ? "zen-flex zen-gap-3" : "zen-grid zen-gap-2", e.class);
     },
     get children() {
       return e.children;
     }
   }));
-}, C = (n) => {
-  const [e, r] = s(n, ["value", "disabled", "class", "children"]);
-  return t(o.Item, l(r, {
+}, p = {
+  sm: "zen-h-3.5 zen-w-3.5",
+  md: "zen-h-4 zen-w-4",
+  lg: "zen-h-5 zen-w-5"
+}, b = {
+  sm: "zen-h-1.5 zen-w-1.5",
+  md: "zen-h-2 zen-w-2",
+  lg: "zen-h-2.5 zen-w-2.5"
+}, x = (a) => {
+  const [e, l] = u(a, ["class", "value", "disabled", "size", "children", "id"]), i = () => e.size ?? "md";
+  return n(r.Item, d(l, {
     get value() {
       return e.value;
     },
@@ -38,54 +52,36 @@ const x = (n) => {
       return e.disabled;
     },
     get class() {
-      return i("zen-border-b zen-border-zen-border last:zen-border-b-0", e.class);
+      return t("zen-inline-flex zen-items-center zen-gap-2", e.class);
     },
     get children() {
-      return e.children;
-    }
-  }));
-}, k = (n) => {
-  const [e, r] = s(n, ["class", "children"]);
-  return t(o.Header, {
-    class: "zen-flex",
-    get children() {
-      return t(o.Trigger, l(r, {
+      return [n(r.ItemInput, {
+        get id() {
+          return e.id;
+        }
+      }), n(r.ItemControl, {
         get class() {
-          return i(
-            "zen-flex zen-flex-1 zen-items-center zen-justify-between zen-gap-2",
-            "zen-py-3 zen-px-1 zen-text-sm zen-font-medium zen-text-start",
-            "zen-bg-transparent zen-border-0 zen-cursor-pointer",
-            "zen-transition-colors hover:zen-text-zen-foreground",
-            "zen-text-zen-foreground",
-            "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset zen-rounded-zen-sm",
-            // Rotate the trailing chevron when expanded.
-            "[&[data-expanded]>svg.zen-acc-chevron]:zen-rotate-180",
-            e.class
-          );
+          return t("zen-aspect-square zen-rounded-zen-full zen-border zen-border-zen-border zen-text-zen-primary zen-bg-zen-background", "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2", "data-[disabled]:zen-cursor-not-allowed data-[disabled]:zen-opacity-50", "data-[checked]:zen-border-zen-primary", "zen-flex zen-items-center zen-justify-center", p[i()]);
         },
         get children() {
-          return [d(() => e.children), p()];
+          return n(r.ItemIndicator, {
+            get children() {
+              var o = m();
+              return c(() => g(o, t("zen-block zen-rounded-zen-full zen-bg-zen-primary", b[i()]))), o;
+            }
+          });
         }
-      }));
-    }
-  });
-}, w = (n) => {
-  const [e, r] = s(n, ["class", "children"]);
-  return t(o.Content, l(r, {
-    style: {
-      "--zen-collapsible-content-height": "var(--kb-accordion-content-height)"
-    },
-    class: "zen-overflow-hidden zen-text-sm data-[closed]:zen-anim-accordion-up data-[expanded]:zen-anim-accordion-down",
-    get children() {
-      var c = m();
-      return u(c, () => e.children), z(() => g(c, i("zen-pb-3 zen-px-1 zen-pt-0 zen-text-zen-foreground", e.class))), c;
+      }), s(() => s(() => !!e.children)() ? n(r.ItemLabel, {
+        class: "zen-text-sm",
+        get children() {
+          return e.children;
+        }
+      }) : null)];
     }
   }));
 };
 export {
-  x as Accordion,
-  w as AccordionContent,
-  C as AccordionItem,
-  k as AccordionTrigger
+  w as RadioGroup,
+  x as RadioGroupItem
 };
 //# sourceMappingURL=index50.js.map

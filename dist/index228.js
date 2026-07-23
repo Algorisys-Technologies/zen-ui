@@ -1,90 +1,47 @@
-import { template as g, insert as o, createComponent as i, effect as c, style as n, mergeProps as m, spread as $, className as w, use as _ } from "solid-js/web";
-import { createEffect as b, Switch as T, Match as f } from "solid-js";
-import { iconContainer as d, toastBarBase as C, messageContainer as x } from "./index231.js";
-import { Loader as B } from "./index233.js";
-import { Success as z } from "./index229.js";
-import { Error as E } from "./index232.js";
-import { getToastYDirection as N } from "./index204.js";
-import { resolveValue as P } from "./index205.js";
-var u = /* @__PURE__ */ g("<div>"), S = /* @__PURE__ */ g("<div><div>");
-const A = (e) => {
-  let s;
-  return b(() => {
-    if (!s) return;
-    const r = N(e.toast, e.position);
-    e.toast.visible ? s.animate([{
-      transform: `translate3d(0,${r * -200}%,0) scale(.6)`,
-      opacity: 0.5
-    }, {
-      transform: "translate3d(0,0,0) scale(1)",
-      opacity: 1
-    }], {
-      duration: 350,
-      fill: "forwards",
-      easing: "cubic-bezier(.21,1.02,.73,1)"
-    }) : s.animate([{
-      transform: "translate3d(0,0,-1px) scale(1)",
-      opacity: 1
-    }, {
-      transform: `translate3d(0,${r * -150}%,-1px) scale(.4)`,
-      opacity: 0
-    }], {
-      duration: 400,
-      fill: "forwards",
-      easing: "cubic-bezier(.06,.71,.55,1)"
-    });
-  }), (() => {
-    var r = S(), l = r.firstChild, v = s;
-    return typeof v == "function" ? _(v, r) : s = r, o(r, i(T, {
-      get children() {
-        return [i(f, {
-          get when() {
-            return e.toast.icon;
-          },
-          get children() {
-            var t = u();
-            return o(t, () => e.toast.icon), c((a) => n(t, d, a)), t;
-          }
-        }), i(f, {
-          get when() {
-            return e.toast.type === "loading";
-          },
-          get children() {
-            var t = u();
-            return o(t, i(B, m(() => e.toast.iconTheme))), c((a) => n(t, d, a)), t;
-          }
-        }), i(f, {
-          get when() {
-            return e.toast.type === "success";
-          },
-          get children() {
-            var t = u();
-            return o(t, i(z, m(() => e.toast.iconTheme))), c((a) => n(t, d, a)), t;
-          }
-        }), i(f, {
-          get when() {
-            return e.toast.type === "error";
-          },
-          get children() {
-            var t = u();
-            return o(t, i(E, m(() => e.toast.iconTheme))), c((a) => n(t, d, a)), t;
-          }
-        })];
-      }
-    }), l), $(l, m(() => e.toast.ariaProps), !1, !0), o(l, () => P(e.toast.message, e.toast)), c((t) => {
-      var a = e.toast.className, h = {
-        ...C,
-        ...e.toast.style
-      }, y = x;
-      return a !== t.e && w(r, t.e = a), t.t = n(r, h, t.t), t.a = n(l, y, t.a), t;
-    }, {
-      e: void 0,
-      t: void 0,
-      a: void 0
-    }), r;
-  })();
-};
+import { setDefaultOpts as l, defaultOpts as g } from "./index136.js";
+import { store as p, dispatch as u } from "./index225.js";
+import { defaultToasterOptions as f } from "./index227.js";
+import { ActionType as d } from "./index226.js";
+const O = /* @__PURE__ */ (() => {
+  let t = 0;
+  return () => String(++t);
+})(), S = (t) => {
+  l((e) => ({
+    containerClassName: t.containerClassName ?? e.containerClassName,
+    containerStyle: t.containerStyle ?? e.containerStyle,
+    gutter: t.gutter ?? e.gutter,
+    position: t.position ?? e.position,
+    toastOptions: {
+      ...t.toastOptions
+    }
+  }));
+}, b = (t, e) => {
+  const s = t.includes("top") ? { top: 0, "margin-top": `${e}px` } : { bottom: 0, "margin-bottom": `${e}px` }, i = t.includes("center") ? { "justify-content": "center" } : t.includes("right") ? { "justify-content": "flex-end" } : {};
+  return {
+    left: 0,
+    right: 0,
+    display: "flex",
+    position: "absolute",
+    transition: "all 230ms cubic-bezier(.21,1.02,.73,1)",
+    ...s,
+    ...i
+  };
+}, C = (t, e) => {
+  const n = t.getBoundingClientRect();
+  n.height !== e.height && u({
+    type: d.UPDATE_TOAST,
+    toast: { id: e.id, height: n.height }
+  });
+}, A = (t, e) => {
+  const { toasts: n } = p, s = g().gutter || f.gutter || 8, i = n.filter((o) => (o.position || e) === e && o.height), c = i.findIndex((o) => o.id === t.id), a = i.filter((o, r) => r < c && o.visible).length;
+  return i.slice(0, a).reduce((o, r) => o + s + (r.height || 0), 0);
+}, D = (t, e) => (t.position || e).includes("top") ? 1 : -1;
 export {
-  A as ToastBar
+  O as generateID,
+  b as getToastWrapperStyles,
+  D as getToastYDirection,
+  A as getWrapperYAxisOffset,
+  S as mergeContainerOptions,
+  C as updateToastHeight
 };
 //# sourceMappingURL=index228.js.map

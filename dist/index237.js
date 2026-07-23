@@ -1,10 +1,10 @@
-import { untrack as i } from "solid-js";
-import { removeInvalidNames as m } from "./index236.js";
-function o(e, r = !0) {
-  const t = [...i(e.internal.fieldNames.get)];
-  return r && m(e, t), t;
+function r(e) {
+  return [
+    ...Object.values(e.internal.fields),
+    ...Object.values(e.internal.fieldArrays)
+  ];
 }
 export {
-  o as getFieldNames
+  r as getFieldAndArrayStores
 };
 //# sourceMappingURL=index237.js.map

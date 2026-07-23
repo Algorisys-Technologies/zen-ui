@@ -1,36 +1,26 @@
-import { clsx as O } from "./index145.js";
-const m = (e) => typeof e == "boolean" ? `${e}` : e === 0 ? "0" : e, y = O, j = (e, l) => (n) => {
-  var s;
-  if (l?.variants == null) return y(e, n?.class, n?.className);
-  const { variants: r, defaultVariants: d } = l, V = Object.keys(r).map((t) => {
-    const a = n?.[t], u = d?.[t];
-    if (a === null) return null;
-    const i = m(a) || m(u);
-    return r[t][i];
-  }), v = n && Object.entries(n).reduce((t, a) => {
-    let [u, i] = a;
-    return i === void 0 || (t[u] = i), t;
-  }, {}), N = l == null || (s = l.compoundVariants) === null || s === void 0 ? void 0 : s.reduce((t, a) => {
-    let { class: u, className: i, ...f } = a;
-    return Object.entries(f).every((C) => {
-      let [c, o] = C;
-      return Array.isArray(o) ? o.includes({
-        ...d,
-        ...v
-      }[c]) : {
-        ...d,
-        ...v
-      }[c] === o;
-    }) ? [
-      ...t,
-      u,
-      i
-    ] : t;
-  }, []);
-  return y(e, V, N, n?.class, n?.className);
-};
+function e() {
+  return typeof document > "u" ? "ltr" : document.documentElement.getAttribute("dir") === "rtl" ? "rtl" : "ltr";
+}
+function u(t) {
+  if (typeof document > "u") return () => {
+  };
+  const r = new MutationObserver(() => t(e()));
+  return r.observe(document.documentElement, { attributes: !0, attributeFilter: ["dir"] }), () => r.disconnect();
+}
+function n(t) {
+  return !t || typeof window > "u" ? "ltr" : window.getComputedStyle(t).direction === "rtl" ? "rtl" : "ltr";
+}
+function o(t, r) {
+  return t !== "ArrowLeft" && t !== "ArrowRight" ? 0 : t === (r === "rtl" ? "ArrowLeft" : "ArrowRight") ? 1 : -1;
+}
+function d(t, r) {
+  return o(t, n(r));
+}
 export {
-  j as cva,
-  y as cx
+  d as arrowStep,
+  n as directionOf,
+  o as horizontalStep,
+  u as observeDocumentDirection,
+  e as readDocumentDirection
 };
 //# sourceMappingURL=index115.js.map

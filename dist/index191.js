@@ -1,31 +1,59 @@
-import { filterNonNullable as d, asArray as m, access as l, handleDiffArray as g, noop as b } from "./index178.js";
-import { createEffect as w, onCleanup as M } from "solid-js";
-import { isServer as v } from "solid-js/web";
-function R(o, n) {
-  if (v)
-    return { observe: b, unobserve: b };
-  const e = new ResizeObserver(o);
-  return M(e.disconnect.bind(e)), {
-    observe: (t) => e.observe(t, n),
-    unobserve: e.unobserve.bind(e)
-  };
-}
-function k(o, n, e) {
-  if (v)
-    return;
-  const t = /* @__PURE__ */ new WeakMap(), { observe: h, unobserve: p } = R((s) => {
-    for (const r of s) {
-      const { contentRect: i, target: a } = r, f = Math.round(i.width), u = Math.round(i.height), c = t.get(a);
-      (!c || c.width !== f || c.height !== u) && (n(i, a, r), t.set(a, { width: f, height: u }));
-    }
-  }, e);
-  w((s) => {
-    const r = d(m(l(o)));
-    return g(r, s, h, p), r;
-  }, []);
-}
+var r = class {
+  collection;
+  direction;
+  orientation;
+  constructor(t, e, i) {
+    this.collection = t, this.direction = e, this.orientation = i;
+  }
+  flipDirection() {
+    return this.direction() === "rtl" && this.orientation() === "horizontal";
+  }
+  getKeyLeftOf(t) {
+    if (this.flipDirection())
+      return this.getNextKey(t);
+    if (this.orientation() === "horizontal")
+      return this.getPreviousKey(t);
+  }
+  getKeyRightOf(t) {
+    if (this.flipDirection())
+      return this.getPreviousKey(t);
+    if (this.orientation() === "horizontal")
+      return this.getNextKey(t);
+  }
+  getKeyAbove(t) {
+    if (this.orientation() === "vertical")
+      return this.getPreviousKey(t);
+  }
+  getKeyBelow(t) {
+    if (this.orientation() === "vertical")
+      return this.getNextKey(t);
+  }
+  getFirstKey() {
+    let t = this.collection().getFirstKey();
+    return t == null ? void 0 : (this.collection().getItem(t)?.disabled && (t = this.getNextKey(t)), t);
+  }
+  getLastKey() {
+    let t = this.collection().getLastKey();
+    return t == null ? void 0 : (this.collection().getItem(t)?.disabled && (t = this.getPreviousKey(t)), t);
+  }
+  getNextKey(t) {
+    let e = t, i;
+    do
+      if (e = this.collection().getKeyAfter(e) ?? this.collection().getFirstKey(), e == null || (i = this.collection().getItem(e), i == null))
+        return;
+    while (i.disabled);
+    return e;
+  }
+  getPreviousKey(t) {
+    let e = t, i;
+    do
+      if (e = this.collection().getKeyBefore(e) ?? this.collection().getLastKey(), e == null || (i = this.collection().getItem(e), i == null))
+        return;
+    while (i.disabled);
+    return e;
+  }
+};
 export {
-  k as createResizeObserver,
-  R as makeResizeObserver
+  r as TabsKeyboardDelegate
 };
 //# sourceMappingURL=index191.js.map

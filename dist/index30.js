@@ -1,141 +1,110 @@
-import { createComponent as l, template as a, use as f, spread as d, mergeProps as z, insert as o, effect as m, className as v, memo as k, delegateEvents as y } from "solid-js/web";
-import { splitProps as C, Switch as T, Match as h, Show as g } from "solid-js";
-import { cardVariants as E } from "./index29.js";
-import { Icon as N } from "./index21.js";
-import { Skeleton as R } from "./index32.js";
-import { cn as p } from "./index103.js";
-var S = /* @__PURE__ */ a('<span class="zen-text-2xl zen-font-semibold zen-leading-none zen-text-zen-foreground">'), B = /* @__PURE__ */ a("<span aria-hidden=true>"), D = /* @__PURE__ */ a('<div class="zen-flex zen-items-start zen-justify-between zen-gap-3"><div class="zen-flex zen-min-w-0 zen-flex-col zen-gap-1.5"><span class="zen-truncate zen-text-sm zen-text-zen-muted-fg">'), L = /* @__PURE__ */ a("<span>"), O = /* @__PURE__ */ a("<a>"), I = /* @__PURE__ */ a("<button type=button>"), P = /* @__PURE__ */ a("<div>");
-const _ = {
-  primary: "zen-text-zen-primary",
-  neutral: "zen-text-zen-muted-fg",
-  info: "zen-text-zen-info",
-  success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
-  error: "zen-text-zen-error"
-}, j = {
-  up: "success",
-  down: "error",
-  flat: "neutral"
-}, A = {
-  up: "arrow-up",
-  down: "arrow-down",
-  flat: "arrow-right"
-}, F = {
-  up: "Trending up",
-  down: "Trending down",
-  flat: "Flat"
-}, J = (w) => {
-  const [e, s] = C(w, ["label", "value", "icon", "color", "trend", "onClick", "href", "loading", "class", "ref"]), $ = () => !!(e.href || e.onClick), x = () => e.color ?? "neutral", c = () => p(
-    // The surface is Card's, not a copy of it.
-    E({
-      variant: "outlined",
-      padding: "md"
-    }),
-    "zen-block zen-w-full zen-text-start",
-    $() && "zen-cursor-pointer zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-    e.class
-  ), u = () => (() => {
-    var n = D(), r = n.firstChild, b = r.firstChild;
-    return o(b, () => e.label), o(r, l(g, {
-      get when() {
-        return !e.loading;
-      },
-      get fallback() {
-        return l(R, {
-          class: "zen-h-7 zen-w-24"
-        });
-      },
-      get children() {
-        var t = S();
-        return o(t, () => e.value), t;
-      }
-    }), null), o(r, l(g, {
-      get when() {
-        return k(() => !!e.trend)() && !e.loading;
-      },
-      get children() {
-        return (() => {
-          const t = e.trend;
-          return (() => {
-            var i = L();
-            return o(i, l(N, {
-              get name() {
-                return A[t.direction];
-              },
-              size: 13,
-              get title() {
-                return F[t.direction];
-              }
-            }), null), o(i, () => t.value, null), m(() => v(i, p("zen-inline-flex zen-items-center zen-gap-1 zen-text-xs", _[t.color ?? j[t.direction]]))), i;
-          })();
-        })();
-      }
-    }), null), o(n, l(g, {
-      get when() {
-        return e.icon;
-      },
-      get children() {
-        var t = B();
-        return o(t, () => e.icon), m(() => v(t, p("zen-shrink-0", _[x()]))), t;
-      }
-    }), null), n;
-  })();
-  return l(T, {
+import { createComponent as n, Dynamic as u, mergeProps as l, memo as t, template as o, spread as c, insert as m } from "solid-js/web";
+import { mergeProps as f, splitProps as p, Show as a } from "solid-js";
+import { cva as g } from "./index118.js";
+import { Icon as h } from "./index21.js";
+import { cn as x } from "./index106.js";
+var b = /* @__PURE__ */ o("<span class=zen-sr-only>(opens in a new tab)"), v = /* @__PURE__ */ o("<span aria-disabled=true>");
+const k = g(["zen-rounded-zen-sm zen-transition-colors", "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2"].join(" "), {
+  variants: {
+    size: {
+      sm: "zen-text-xs",
+      md: "zen-text-sm",
+      lg: "zen-text-base"
+    },
+    /**
+     * A link in running prose is underlined and takes the sentence's colour
+     * and size — colour alone is not an accessible way to say "link" when
+     * the link sits inside text.
+     */
+    inline: {
+      true: "zen-text-inherit zen-underline zen-underline-offset-2 hover:zen-text-zen-primary",
+      false: "zen-text-zen-primary zen-no-underline hover:zen-underline hover:zen-underline-offset-2"
+    },
+    disabled: {
+      true: "zen-cursor-not-allowed zen-text-zen-muted-fg zen-no-underline hover:zen-no-underline",
+      false: "zen-cursor-pointer"
+    }
+  },
+  compoundVariants: [
+    // `inline` inherits the surrounding type, so a size would fight it.
+    {
+      inline: !0,
+      size: ["sm", "md", "lg"],
+      class: "zen-text-inherit"
+    }
+  ],
+  defaultVariants: {
+    size: "md",
+    inline: !1,
+    disabled: !1
+  }
+}), V = (z) => {
+  const d = f({
+    as: "a"
+  }, z), [e, i] = p(d, ["as", "size", "inline", "external", "disabled", "class", "children", "href", "target", "rel"]), s = () => x(k({
+    size: e.size,
+    inline: e.inline,
+    disabled: e.disabled
+  }), "zen-inline-flex zen-items-center zen-gap-1", e.class);
+  return n(a, {
+    get when() {
+      return !e.disabled;
+    },
     get fallback() {
-      return (() => {
-        var n = P(), r = e.ref;
-        return typeof r == "function" ? f(r, n) : e.ref = n, d(n, z({
-          get class() {
-            return c();
-          },
-          get "aria-busy"() {
-            return e.loading || void 0;
-          }
-        }, s), !1, !0), o(n, l(u, {})), n;
-      })();
+      return (
+        // The rest is typed for an anchor and this branch is a span, so every
+        // event handler mismatches. The cast is at the one boundary where the
+        // element genuinely changes — a disabled Link is not a link — rather
+        // than weakening the props type for the case that matters.
+        (() => {
+          var r = v();
+          return c(r, l({
+            get class() {
+              return s();
+            }
+          }, i), !1, !0), m(r, () => e.children), r;
+        })()
+      );
     },
     get children() {
-      return [l(h, {
-        get when() {
+      return n(u, l({
+        get component() {
+          return e.as;
+        },
+        get href() {
           return e.href;
         },
-        get children() {
-          var n = O(), r = e.ref;
-          return typeof r == "function" ? f(r, n) : e.ref = n, d(n, z({
-            get href() {
-              return e.href;
-            },
-            get class() {
-              return c();
-            },
-            get "aria-busy"() {
-              return e.loading || void 0;
-            }
-          }, s), !1, !0), o(n, l(u, {})), n;
-        }
-      }), l(h, {
-        get when() {
-          return e.onClick;
+        get target() {
+          return t(() => !!e.external)() ? e.target ?? "_blank" : e.target;
         },
-        get children() {
-          var n = I();
-          n.$$click = () => e.onClick?.();
-          var r = e.ref;
-          return typeof r == "function" ? f(r, n) : e.ref = n, d(n, z({
-            get class() {
-              return c();
-            },
-            get "aria-busy"() {
-              return e.loading || void 0;
-            }
-          }, s), !1, !0), o(n, l(u, {})), n;
+        get rel() {
+          return t(() => !!e.external)() ? e.rel ?? "noopener noreferrer" : e.rel;
+        },
+        get class() {
+          return s();
         }
-      })];
+      }, i, {
+        get children() {
+          return [t(() => e.children), n(a, {
+            get when() {
+              return e.external;
+            },
+            get children() {
+              return [n(h, {
+                name: "external-link",
+                size: 12,
+                "aria-hidden": "true",
+                class: "zen-shrink-0"
+              }), b()];
+            }
+          })];
+        }
+      }));
     }
   });
 };
-y(["click"]);
 export {
-  J as StatCard
+  V as Link,
+  k as linkVariants
 };
 //# sourceMappingURL=index30.js.map

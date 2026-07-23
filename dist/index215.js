@@ -1,7 +1,8 @@
-function n(e, t) {
-  return e.internal.fields[t];
+let e = 0;
+function t() {
+  return e++;
 }
 export {
-  n as getFieldStore
+  t as getUniqueId
 };
 //# sourceMappingURL=index215.js.map

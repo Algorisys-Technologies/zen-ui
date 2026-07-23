@@ -1,9 +1,7 @@
-import { untrack as o } from "solid-js";
-import { getFieldAndArrayStores as i } from "./index234.js";
-function a(t, e) {
-  o(() => t.internal.dirty.set(e || i(t).some((r) => r.active.get() && r.dirty.get())));
+function n(e, t) {
+  return +t.replace(`${e}.`, "").split(".")[0];
 }
 export {
-  a as updateFormDirty
+  n as getPathIndex
 };
 //# sourceMappingURL=index241.js.map

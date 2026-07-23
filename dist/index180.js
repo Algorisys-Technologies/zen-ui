@@ -1,65 +1,63 @@
-import { createMemo as I, onCleanup as v, $TRACK as x, untrack as A, createRoot as m, createSignal as g } from "solid-js";
-import { isServer as w } from "solid-js/web";
-const k = /* @__PURE__ */ Symbol("fallback");
-function y(c) {
-  for (const f of c)
-    f.dispose();
-}
-function K(c, f, i, d = {}) {
-  if (w) {
-    const t = c();
-    let l = [];
-    if (t && t.length)
-      for (let o = 0, u = t.length; o < u; o++)
-        l.push(i(() => t[o], () => o));
-    else d.fallback && (l = [d.fallback()]);
-    return () => l;
-  }
-  const n = /* @__PURE__ */ new Map();
-  return v(() => y(n.values())), () => {
-    const t = c() || [];
-    return t[x], A(() => {
-      if (!t.length)
-        return y(n.values()), n.clear(), d.fallback ? [m((s) => (n.set(k, { dispose: s }), d.fallback()))] : [];
-      const l = new Array(t.length), o = n.get(k);
-      if (!n.size || o) {
-        o?.dispose(), n.delete(k);
-        for (let e = 0; e < t.length; e++) {
-          const s = t[e], a = f(s, e);
-          b(l, s, e, a);
+import { DATA_TOP_LAYER_ATTR as p } from "./index178.js";
+import { getDocument as L, noop as g, composeEventHandlers as v, isCtrlKey as I, contains as m } from "./index163.js";
+import { createEffect as _, onCleanup as h } from "solid-js";
+import { isServer as C } from "solid-js/web";
+import { access as P } from "./index165.js";
+var O = "interactOutside.pointerDownOutside", w = "interactOutside.focusOutside";
+function S(o, s) {
+  let u, a = g;
+  const n = () => L(s()), D = (e) => o.onPointerDownOutside?.(e), T = (e) => o.onFocusOutside?.(e), d = (e) => o.onInteractOutside?.(e), l = (e) => {
+    const t = e.target;
+    return !(t instanceof Element) || t.closest(`[${p}]`) || !m(n(), t) || m(s(), t) ? !1 : !o.shouldExcludeElement?.(t);
+  }, E = (e) => {
+    function t() {
+      const r = s(), i = e.target;
+      if (!r || !i || !l(e))
+        return;
+      const c = v([D, d]);
+      i.addEventListener(O, c, {
+        once: !0
+      });
+      const b = new CustomEvent(O, {
+        bubbles: !1,
+        cancelable: !0,
+        detail: {
+          originalEvent: e,
+          isContextMenu: e.button === 2 || I(e) && e.button === 0
         }
-        return l;
-      }
-      const u = new Set(n.keys());
-      for (let e = 0; e < t.length; e++) {
-        const s = t[e], a = f(s, e);
-        u.delete(a);
-        const r = n.get(a);
-        r ? (l[e] = r.mapped, r.setIndex?.(e), r.setItem(() => s)) : b(l, s, e, a);
-      }
-      for (const e of u)
-        n.get(e)?.dispose(), n.delete(e);
-      return l;
+      });
+      i.dispatchEvent(b);
+    }
+    e.pointerType === "touch" ? (n().removeEventListener("click", t), a = t, n().addEventListener("click", t, {
+      once: !0
+    })) : t();
+  }, f = (e) => {
+    const t = s(), r = e.target;
+    if (!t || !r || !l(e))
+      return;
+    const i = v([T, d]);
+    r.addEventListener(w, i, {
+      once: !0
     });
+    const c = new CustomEvent(w, {
+      bubbles: !1,
+      cancelable: !0,
+      detail: {
+        originalEvent: e,
+        isContextMenu: !1
+      }
+    });
+    r.dispatchEvent(c);
   };
-  function b(t, l, o, u) {
-    m((e) => {
-      const [s, a] = g(l), r = { setItem: a, dispose: e };
-      if (i.length > 1) {
-        const [h, p] = g(o);
-        r.setIndex = p, r.mapped = i(s, h);
-      } else
-        r.mapped = i(s);
-      n.set(u, r), t[o] = r.mapped;
-    });
-  }
-}
-function R(c) {
-  const { by: f } = c;
-  return I(K(() => c.each, typeof f == "function" ? f : (i) => i[f], c.children, "fallback" in c ? { fallback: () => c.fallback } : void 0));
+  _(() => {
+    C || P(o.isDisabled) || (u = window.setTimeout(() => {
+      n().addEventListener("pointerdown", E, !0);
+    }, 0), n().addEventListener("focusin", f, !0), h(() => {
+      window.clearTimeout(u), n().removeEventListener("click", a), n().removeEventListener("pointerdown", E, !0), n().removeEventListener("focusin", f, !0);
+    }));
+  });
 }
 export {
-  R as Key,
-  K as keyArray
+  S as createInteractOutside
 };
 //# sourceMappingURL=index180.js.map

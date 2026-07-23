@@ -1,234 +1,312 @@
-import { createComponent as i, mergeProps as f, memo as K } from "solid-js/web";
-import { createToggleState as N } from "./index196.js";
-import { FORM_CONTROL_FIELD_PROP_NAMES as $, createFormControlField as A } from "./index171.js";
-import { FormControlLabel as H } from "./index156.js";
-import { createFormResetListener as j } from "./index172.js";
-import { FormControlErrorMessage as G } from "./index157.js";
-import { FORM_CONTROL_PROP_NAMES as U, createFormControl as z, FormControlContext as J, useFormControlContext as v, FormControlDescription as Q } from "./index158.js";
-import { Polymorphic as p } from "./index175.js";
-import { __export as V } from "./index159.js";
-import { mergeDefaultProps as C, createGenerateId as W, callHandler as h, isFunction as X, EventKey as Y, visuallyHiddenStyles as Z } from "./index160.js";
-import { createUniqueId as ee, splitProps as S, createSignal as F, createMemo as te, createContext as oe, children as re, useContext as ne } from "solid-js";
-import { access as R } from "./index178.js";
-import { mergeRefs as I } from "./index161.js";
-import { combineStyle as ce } from "./index179.js";
-var ie = {};
-V(ie, {
-  Control: () => D,
-  Description: () => O,
-  ErrorMessage: () => _,
-  Input: () => L,
-  Label: () => E,
-  Root: () => M,
-  Switch: () => ae,
-  Thumb: () => B,
-  useSwitchContext: () => m
+import { createComponent as u, mergeProps as m } from "solid-js/web";
+import { FormControlLabel as te } from "./index155.js";
+import { createFormResetListener as re } from "./index156.js";
+import { FormControlErrorMessage as O } from "./index157.js";
+import { FormControlDescription as q, FORM_CONTROL_PROP_NAMES as oe, createFormControl as ne, FormControlContext as ae, useFormControlContext as $ } from "./index158.js";
+import { createRegisterId as F } from "./index159.js";
+import { createControllableSignal as ie } from "./index160.js";
+import { Polymorphic as I } from "./index161.js";
+import { __export as se } from "./index162.js";
+import { mergeDefaultProps as v, createGenerateId as le, callHandler as D, EventKey as de, visuallyHiddenStyles as ue } from "./index163.js";
+import { createUniqueId as K, splitProps as G, createContext as A, createEffect as w, onCleanup as L, createSignal as g, on as ce, Show as pe, createMemo as S, useContext as j } from "solid-js";
+import fe from "./index164.js";
+import { access as M } from "./index165.js";
+import { mergeRefs as E } from "./index166.js";
+import { combineStyle as me } from "./index167.js";
+var be = {};
+se(be, {
+  Description: () => q,
+  ErrorMessage: () => O,
+  Item: () => T,
+  ItemControl: () => U,
+  ItemDescription: () => z,
+  ItemIndicator: () => J,
+  ItemInput: () => Q,
+  ItemLabel: () => W,
+  Label: () => X,
+  RadioGroup: () => ge,
+  Root: () => Y,
+  useRadioGroupContext: () => V
 });
-var P = oe();
-function m() {
-  const o = ne(P);
-  if (o === void 0)
-    throw new Error("[kobalte]: `useSwitchContext` must be used within a `Switch` component");
-  return o;
+var H = A();
+function V() {
+  const r = j(H);
+  if (r === void 0)
+    throw new Error("[kobalte]: `useRadioGroupContext` must be used within a `RadioGroup` component");
+  return r;
 }
-function D(o) {
-  const t = v(), e = m(), a = C({
-    id: e.generateId("control")
-  }, o), [r, d] = S(a, ["onClick", "onKeyDown"]);
-  return i(p, f({
-    as: "div",
-    onClick: (u) => {
-      h(u, r.onClick), e.toggle(), e.inputRef()?.focus();
-    },
-    onKeyDown: (u) => {
-      h(u, r.onKeyDown), u.key === Y.Space && (e.toggle(), e.inputRef()?.focus());
+var N = A();
+function P() {
+  const r = j(N);
+  if (r === void 0)
+    throw new Error("[kobalte]: `useRadioGroupItemContext` must be used within a `RadioGroup.Item` component");
+  return r;
+}
+function T(r) {
+  const e = $(), n = V(), t = `${e.generateId("item")}-${K()}`, i = v({
+    id: t
+  }, r), [o, l] = G(i, ["value", "disabled", "onPointerDown"]), [d, f] = g(), [a, C] = g(), [y, x] = g(), [R, s] = g(), [c, p] = g(!1), h = S(() => n.isDefaultValue(o.value)), b = S(() => n.isSelectedValue(o.value)), B = S(() => o.disabled || e.isDisabled() || !1), Z = (_) => {
+    D(_, o.onPointerDown), c() && _.preventDefault();
+  }, k = S(() => ({
+    ...e.dataset(),
+    "data-disabled": B() ? "" : void 0,
+    "data-checked": b() ? "" : void 0
+  })), ee = {
+    value: () => o.value,
+    dataset: k,
+    isDefault: h,
+    isSelected: b,
+    isDisabled: B,
+    inputId: d,
+    labelId: a,
+    descriptionId: y,
+    inputRef: R,
+    select: () => n.setSelectedValue(o.value),
+    generateId: le(() => l.id),
+    registerInput: F(f),
+    registerLabel: F(C),
+    registerDescription: F(x),
+    setIsFocused: p,
+    setInputRef: s
+  };
+  return u(N.Provider, {
+    value: ee,
+    get children() {
+      return u(I, m({
+        as: "div",
+        role: "group",
+        onPointerDown: Z
+      }, k, l));
     }
-  }, () => t.dataset(), () => e.dataset(), d));
+  });
 }
-function O(o) {
-  const t = m();
-  return i(Q, f(() => t.dataset(), o));
+function U(r) {
+  const e = P(), n = v({
+    id: e.generateId("control")
+  }, r), [t, i] = G(n, ["onClick", "onKeyDown"]);
+  return u(I, m({
+    as: "div",
+    onClick: (d) => {
+      D(d, t.onClick), e.select(), e.inputRef()?.focus();
+    },
+    onKeyDown: (d) => {
+      D(d, t.onKeyDown), d.key === de.Space && (e.select(), e.inputRef()?.focus());
+    }
+  }, () => e.dataset(), i));
 }
-function _(o) {
-  const t = m();
-  return i(G, f(() => t.dataset(), o));
+function z(r) {
+  const e = P(), n = v({
+    id: e.generateId("description")
+  }, r);
+  return w(() => L(e.registerDescription(n.id))), u(I, m({
+    as: "div"
+  }, () => e.dataset(), n));
 }
-function L(o) {
-  const t = v(), e = m(), a = C({
-    id: e.generateId("input")
-  }, o), [r, d, g] = S(a, ["ref", "style", "onChange", "onFocus", "onBlur"], $), {
-    fieldProps: l
-  } = A(d);
-  return i(p, f({
+function J(r) {
+  const e = P(), n = v({
+    id: e.generateId("indicator")
+  }, r), [t, i] = G(n, ["ref", "forceMount"]), [o, l] = g(), {
+    present: d
+  } = fe({
+    show: () => t.forceMount || e.isSelected(),
+    element: () => o() ?? null
+  });
+  return u(pe, {
+    get when() {
+      return d();
+    },
+    get children() {
+      return u(I, m({
+        as: "div",
+        ref(f) {
+          var a = E(l, t.ref);
+          typeof a == "function" && a(f);
+        }
+      }, () => e.dataset(), i));
+    }
+  });
+}
+function Q(r) {
+  const e = $(), n = V(), t = P(), i = v({
+    id: t.generateId("input")
+  }, r), [o, l] = G(i, ["ref", "style", "aria-labelledby", "aria-describedby", "onChange", "onFocus", "onBlur"]), d = () => [
+    o["aria-labelledby"],
+    t.labelId(),
+    // If there is both an aria-label and aria-labelledby, add the input itself has an aria-labelledby
+    o["aria-labelledby"] != null && l["aria-label"] != null ? l.id : void 0
+  ].filter(Boolean).join(" ") || void 0, f = () => [o["aria-describedby"], t.descriptionId(), n.ariaDescribedBy()].filter(Boolean).join(" ") || void 0, [a, C] = g(!1), y = (s) => {
+    if (D(s, o.onChange), s.stopPropagation(), !a()) {
+      n.setSelectedValue(t.value());
+      const c = s.target;
+      c.checked = t.isSelected();
+    }
+    C(!1);
+  }, x = (s) => {
+    D(s, o.onFocus), t.setIsFocused(!0);
+  }, R = (s) => {
+    D(s, o.onBlur), t.setIsFocused(!1);
+  };
+  return w(ce([() => t.isSelected(), () => t.value()], (s) => {
+    if (!s[0] && s[1] === t.value()) return;
+    C(!0);
+    const c = t.inputRef();
+    c?.dispatchEvent(new Event("input", {
+      bubbles: !0,
+      cancelable: !0
+    })), c?.dispatchEvent(new Event("change", {
+      bubbles: !0,
+      cancelable: !0
+    }));
+  }, {
+    defer: !0
+  })), w(() => L(t.registerInput(l.id))), u(I, m({
     as: "input",
-    ref(n) {
-      var c = I(e.setInputRef, r.ref);
-      typeof c == "function" && c(n);
+    ref(s) {
+      var c = E(t.setInputRef, o.ref);
+      typeof c == "function" && c(s);
     },
-    type: "checkbox",
-    role: "switch",
-    get id() {
-      return l.id();
-    },
+    type: "radio",
     get name() {
-      return t.name();
+      return e.name();
     },
     get value() {
-      return e.value();
+      return t.value();
     },
     get checked() {
-      return e.checked();
+      return t.isSelected();
     },
     get required() {
-      return t.isRequired();
+      return e.isRequired();
     },
     get disabled() {
       return t.isDisabled();
     },
     get readonly() {
-      return t.isReadOnly();
+      return e.isReadOnly();
     },
     get style() {
-      return ce({
-        ...Z
-      }, r.style);
-    },
-    get "aria-checked"() {
-      return e.checked();
-    },
-    get "aria-label"() {
-      return l.ariaLabel();
+      return me({
+        ...ue
+      }, o.style);
     },
     get "aria-labelledby"() {
-      return l.ariaLabelledBy();
+      return d();
     },
     get "aria-describedby"() {
-      return l.ariaDescribedBy();
+      return f();
     },
-    get "aria-invalid"() {
-      return t.validationState() === "invalid" || void 0;
-    },
-    get "aria-required"() {
-      return t.isRequired() || void 0;
-    },
-    get "aria-disabled"() {
-      return t.isDisabled() || void 0;
-    },
-    get "aria-readonly"() {
-      return t.isReadOnly() || void 0;
-    },
-    onChange: (n) => {
-      h(n, r.onChange), n.stopPropagation();
-      const c = n.target;
-      e.setIsChecked(c.checked), c.checked = e.checked();
-    },
-    onFocus: (n) => {
-      h(n, r.onFocus), e.setIsFocused(!0);
-    },
-    onBlur: (n) => {
-      h(n, r.onBlur), e.setIsFocused(!1);
+    onChange: y,
+    onFocus: x,
+    onBlur: R
+  }, () => t.dataset(), l));
+}
+function W(r) {
+  const e = P(), n = v({
+    id: e.generateId("label")
+  }, r);
+  return w(() => L(e.registerLabel(n.id))), u(I, m({
+    as: "label",
+    get for() {
+      return e.inputId();
     }
-  }, () => t.dataset(), () => e.dataset(), g));
+  }, () => e.dataset(), n));
 }
-function E(o) {
-  const t = m();
-  return i(H, f(() => t.dataset(), o));
+function X(r) {
+  return u(te, m({
+    as: "span"
+  }, r));
 }
-function M(o) {
-  let t;
-  const e = `switch-${ee()}`, a = C({
-    value: "on",
-    id: e
-  }, o), [r, d, g] = S(a, ["ref", "children", "value", "checked", "defaultChecked", "onChange", "onPointerDown"], U), [l, u] = F(), [b, w] = F(!1), {
-    formControlContext: n
-  } = z(d), c = N({
-    isSelected: () => r.checked,
-    defaultIsSelected: () => r.defaultChecked,
-    onSelectedChange: (s) => r.onChange?.(s),
-    isDisabled: () => n.isDisabled(),
-    isReadOnly: () => n.isReadOnly()
-  });
-  j(() => t, () => c.setIsSelected(r.defaultChecked ?? !1));
-  const T = (s) => {
-    h(s, r.onPointerDown), b() && s.preventDefault();
-  }, y = te(() => ({
-    "data-checked": c.isSelected() ? "" : void 0
-  })), x = {
-    value: () => r.value,
-    dataset: y,
-    checked: () => c.isSelected(),
-    inputRef: l,
-    generateId: W(() => R(d.id)),
-    toggle: () => c.toggle(),
-    setIsChecked: (s) => c.setIsSelected(s),
-    setIsFocused: w,
-    setInputRef: u
+function Y(r) {
+  let e;
+  const n = `radiogroup-${K()}`, t = v({
+    id: n,
+    orientation: "vertical"
+  }, r), [i, o, l] = G(t, ["ref", "value", "defaultValue", "onChange", "orientation", "aria-labelledby", "aria-describedby"], oe), [d, f] = ie({
+    value: () => i.value,
+    defaultValue: () => i.defaultValue,
+    onChange: (p) => i.onChange?.(p)
+  }), {
+    formControlContext: a
+  } = ne(o);
+  re(() => e, () => f(i.defaultValue ?? ""));
+  const C = () => a.getAriaLabelledBy(M(o.id), l["aria-label"], i["aria-labelledby"]), y = () => a.getAriaDescribedBy(i["aria-describedby"]), x = (p) => p === r.defaultValue, R = (p) => p === d(), c = {
+    ariaDescribedBy: y,
+    isDefaultValue: x,
+    isSelectedValue: R,
+    setSelectedValue: (p) => {
+      if (!(a.isReadOnly() || a.isDisabled()) && (f(p), e))
+        for (const h of e.querySelectorAll("[type='radio']")) {
+          const b = h;
+          b.checked = R(b.value);
+        }
+    }
   };
-  return i(J.Provider, {
-    value: n,
+  return u(ae.Provider, {
+    value: a,
     get children() {
-      return i(P.Provider, {
-        value: x,
+      return u(H.Provider, {
+        value: c,
         get children() {
-          return i(p, f({
+          return u(I, m({
             as: "div",
-            ref(s) {
-              var k = I((q) => t = q, r.ref);
-              typeof k == "function" && k(s);
+            ref(p) {
+              var h = E((b) => e = b, i.ref);
+              typeof h == "function" && h(p);
             },
-            role: "group",
+            role: "radiogroup",
             get id() {
-              return R(d.id);
+              return M(o.id);
             },
-            onPointerDown: T
-          }, () => n.dataset(), y, g, {
-            get children() {
-              return i(se, {
-                state: x,
-                get children() {
-                  return r.children;
-                }
-              });
+            get "aria-invalid"() {
+              return a.validationState() === "invalid" || void 0;
+            },
+            get "aria-required"() {
+              return a.isRequired() || void 0;
+            },
+            get "aria-disabled"() {
+              return a.isDisabled() || void 0;
+            },
+            get "aria-readonly"() {
+              return a.isReadOnly() || void 0;
+            },
+            get "aria-orientation"() {
+              return i.orientation;
+            },
+            get "aria-labelledby"() {
+              return C();
+            },
+            get "aria-describedby"() {
+              return y();
             }
-          }));
+          }, () => a.dataset(), l));
         }
       });
     }
   });
 }
-function se(o) {
-  const t = re(() => {
-    const e = o.children;
-    return X(e) ? e(o.state) : e;
-  });
-  return K(t);
-}
-function B(o) {
-  const t = v(), e = m(), a = C({
-    id: e.generateId("thumb")
-  }, o);
-  return i(p, f({
-    as: "div"
-  }, () => t.dataset(), () => e.dataset(), a));
-}
-var ae = Object.assign(M, {
-  Control: D,
-  Description: O,
-  ErrorMessage: _,
-  Input: L,
-  Label: E,
-  Thumb: B
+var ge = Object.assign(Y, {
+  Description: q,
+  ErrorMessage: O,
+  Item: T,
+  ItemControl: U,
+  ItemDescription: z,
+  ItemIndicator: J,
+  ItemInput: Q,
+  ItemLabel: W,
+  Label: X
 });
 export {
-  ae as Switch,
-  D as SwitchControl,
-  O as SwitchDescription,
-  _ as SwitchErrorMessage,
-  L as SwitchInput,
-  E as SwitchLabel,
-  M as SwitchRoot,
-  B as SwitchThumb,
-  ie as switch_exports,
-  m as useSwitchContext
+  ge as RadioGroup,
+  T as RadioGroupItem,
+  U as RadioGroupItemControl,
+  z as RadioGroupItemDescription,
+  J as RadioGroupItemIndicator,
+  Q as RadioGroupItemInput,
+  W as RadioGroupItemLabel,
+  X as RadioGroupLabel,
+  Y as RadioGroupRoot,
+  be as radio_group_exports,
+  V as useRadioGroupContext,
+  P as useRadioGroupItemContext
 };
 //# sourceMappingURL=index120.js.map

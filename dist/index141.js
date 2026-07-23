@@ -1,107 +1,284 @@
-const S = (e) => new Date(e.getFullYear(), e.getMonth(), e.getDate(), 0, 0, 0, 0), u = (e, n) => new Date(e.getFullYear(), e.getMonth(), e.getDate() + n, 0, 0, 0, 0), T = (e, n) => e.getFullYear() === n.getFullYear() && e.getMonth() === n.getMonth() && e.getDate() === n.getDate(), y = (e) => String(e).padStart(2, "0"), D = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-function w(e) {
-  const n = e.getDay(), t = n === 0 ? 6 : n - 1;
-  return u(e, -t);
-}
-function F(e) {
-  return new Date(e.getFullYear(), e.getMonth(), 1, 0, 0, 0, 0);
-}
-function Y(e, n) {
-  if (e === "day") {
-    const a = S(n);
-    return { start: a, end: u(a, 1) };
+import { createComponent as a, template as v, insert as i, effect as m, setAttribute as b, className as f } from "solid-js/web";
+import { Show as F, For as x } from "solid-js";
+import { Input as y } from "./index64.js";
+import { NumberField as g } from "./index68.js";
+import { Select as V } from "./index61.js";
+import { cn as z } from "./index106.js";
+var _ = /* @__PURE__ */ v("<select style=min-width:36px>"), w = /* @__PURE__ */ v("<option>"), d = /* @__PURE__ */ v('<div class="zen-flex zen-items-center zen-gap-1">'), N = /* @__PURE__ */ v('<div class="zen-flex zen-items-center zen-gap-1"><span class="zen-text-zen-muted-fg zen-text-xs"aria-hidden>–'), $ = /* @__PURE__ */ v("<select><option value=any>Any</option><option value=true>Yes</option><option value=false>No");
+const c = (e) => e == null || typeof e == "string" && e.length === 0, C = (e, t, n) => {
+  const l = n, r = typeof l == "object" && l ? l.op : "contains", u = String(typeof l == "object" && l ? l.value : l ?? "").toLowerCase().trim();
+  if (!u) return !0;
+  const o = String(e.getValue(t) ?? "").toLowerCase();
+  switch (r) {
+    case "equals":
+      return o === u;
+    case "starts":
+      return o.startsWith(u);
+    case "ends":
+      return o.endsWith(u);
+    default:
+      return o.includes(u);
   }
-  if (e === "week") {
-    const a = w(n);
-    return { start: a, end: u(a, 7) };
+}, p = (e, t, n) => {
+  const l = n;
+  if (!l || c(l.value)) return !0;
+  const r = Number(e.getValue(t));
+  if (Number.isNaN(r)) return !1;
+  const u = l.value;
+  switch (l.op) {
+    case "eq":
+      return r === u;
+    case "ne":
+      return r !== u;
+    case "gt":
+      return r > u;
+    case "lt":
+      return r < u;
+    case "gte":
+      return r >= u;
+    case "lte":
+      return r <= u;
+    default:
+      return !0;
   }
-  const t = F(n);
-  return { start: t, end: new Date(t.getFullYear(), t.getMonth() + 1, 1, 0, 0, 0, 0) };
+}, S = (e, t, n) => {
+  const [l, r] = n ?? [null, null];
+  if (c(l) && c(r)) return !0;
+  const u = Number(e.getValue(t));
+  return !(Number.isNaN(u) || !c(l) && u < l || !c(r) && u > r);
+}, q = (e, t, n) => n == null || n === "" ? !0 : String(e.getValue(t)) === String(n), L = (e, t, n) => n == null || n === "any" ? !0 : !!e.getValue(t) === (n === !0 || n === "true"), M = {
+  text: C,
+  number: p,
+  numberRange: S,
+  select: q,
+  boolean: L
+}, E = [{
+  value: "contains",
+  label: "Contains",
+  symbol: "≈"
+}, {
+  value: "equals",
+  label: "Equals",
+  symbol: "="
+}, {
+  value: "starts",
+  label: "Starts with",
+  symbol: "a…"
+}, {
+  value: "ends",
+  label: "Ends with",
+  symbol: "…a"
+}], T = [{
+  value: "eq",
+  label: "Equals",
+  symbol: "="
+}, {
+  value: "ne",
+  label: "Not equal",
+  symbol: "≠"
+}, {
+  value: "gt",
+  label: "Greater than",
+  symbol: ">"
+}, {
+  value: "lt",
+  label: "Less than",
+  symbol: "<"
+}, {
+  value: "gte",
+  label: "Greater or equal",
+  symbol: "≥"
+}, {
+  value: "lte",
+  label: "Less or equal",
+  symbol: "≤"
+}], s = (e) => {
+  const t = e.columnDef.header;
+  return typeof t == "string" ? t : e.id;
+};
+function h(e) {
+  return (() => {
+    var t = _();
+    return t.addEventListener("change", (n) => e.onChange(n.currentTarget.value)), i(t, a(x, {
+      get each() {
+        return e.options;
+      },
+      children: (n) => (() => {
+        var l = w();
+        return i(l, () => n.symbol), m(() => l.value = n.value), l;
+      })()
+    })), m((n) => {
+      var l = e.ariaLabel, r = z("zen-h-7 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background", "zen-px-1 zen-text-xs zen-cursor-pointer", "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring");
+      return l !== n.e && b(t, "aria-label", n.e = l), r !== n.t && f(t, n.t = r), n;
+    }, {
+      e: void 0,
+      t: void 0
+    }), m(() => t.value = e.value), t;
+  })();
 }
-function k(e, n, t) {
-  if (e === "day") return u(n, t);
-  if (e === "week") return u(w(n), t * 7);
-  const a = F(n);
-  return new Date(a.getFullYear(), a.getMonth() + t, 1, 0, 0, 0, 0);
+function R(e) {
+  const t = () => e.column.getFilterValue(), n = () => t()?.op ?? "contains", l = () => t()?.value ?? "", r = (u) => e.column.setFilterValue({
+    op: n(),
+    value: l(),
+    ...u
+  });
+  return (() => {
+    var u = d();
+    return i(u, a(h, {
+      get value() {
+        return n();
+      },
+      onChange: (o) => r({
+        op: o
+      }),
+      options: E,
+      get ariaLabel() {
+        return `${s(e.column)} filter operator`;
+      }
+    }), null), i(u, a(y, {
+      get value() {
+        return l();
+      },
+      onInput: (o) => r({
+        value: o.currentTarget.value
+      }),
+      placeholder: "Filter…",
+      get "aria-label"() {
+        return `Filter ${s(e.column)}`;
+      },
+      class: "zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
+    }), null), u;
+  })();
 }
-function p(e, n, t = {}) {
-  const a = t.now ?? /* @__PURE__ */ new Date(), r = t.nonWorkingDays ?? [0, 6], o = [];
-  if (e === "day") {
-    const s = t.hourStep && t.hourStep > 0 ? t.hourStep : 1, c = t.dayStartHour ?? 0, f = t.dayEndHour ?? 24, [$, M] = t.workingHours ?? [9, 18], i = S(n);
-    for (let g = c; g < f; g += s) {
-      const m = new Date(i.getTime() + g * 36e5), h = new Date(Math.min(i.getTime() + (g + s) * 36e5, i.getTime() + f * 36e5));
-      o.push({
-        start: m,
-        end: h,
-        label: `${y(g)}:00`,
-        sublabel: "",
-        nonWorking: g < $ || g >= M,
-        // Every column of a day view is "today" or none of them is, so the flag
-        // would paint the whole row. It marks the column containing `now`, which
-        // is the only reading that says anything.
-        today: T(m, a) && a.getTime() >= m.getTime() && a.getTime() < h.getTime()
-      });
+function B(e) {
+  const t = () => e.column.getFilterValue(), n = () => t()?.op ?? "eq", l = () => t()?.value ?? null;
+  return (() => {
+    var r = d();
+    return i(r, a(h, {
+      get value() {
+        return n();
+      },
+      onChange: (u) => e.column.setFilterValue({
+        op: u,
+        value: l()
+      }),
+      options: T,
+      get ariaLabel() {
+        return `${s(e.column)} filter operator`;
+      }
+    }), null), i(r, a(g, {
+      get value() {
+        return l() ?? void 0;
+      },
+      onValueChange: (u) => e.column.setFilterValue({
+        op: n(),
+        value: u ?? null
+      }),
+      placeholder: "…",
+      get "aria-label"() {
+        return `Filter ${s(e.column)}`;
+      },
+      class: "zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
+    }), null), r;
+  })();
+}
+function O(e) {
+  const t = () => e.column.getFilterValue() ?? [null, null];
+  return (() => {
+    var n = N(), l = n.firstChild;
+    return i(n, a(g, {
+      get value() {
+        return t()[0] ?? void 0;
+      },
+      onValueChange: (r) => e.column.setFilterValue([r ?? null, t()[1]]),
+      placeholder: "min",
+      get "aria-label"() {
+        return `${s(e.column)} minimum`;
+      },
+      class: "zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
+    }), l), i(n, a(g, {
+      get value() {
+        return t()[1] ?? void 0;
+      },
+      onValueChange: (r) => e.column.setFilterValue([t()[0], r ?? null]),
+      placeholder: "max",
+      get "aria-label"() {
+        return `${s(e.column)} maximum`;
+      },
+      class: "zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
+    }), null), n;
+  })();
+}
+function A(e) {
+  const t = () => e.column.getFilterValue() ?? "";
+  return a(V, {
+    get options() {
+      return [{
+        value: "__all__",
+        label: "All"
+      }, ...e.options];
+    },
+    get value() {
+      return t() || "__all__";
+    },
+    onChange: (n) => e.column.setFilterValue(n === "__all__" ? void 0 : n)
+  });
+}
+function j(e) {
+  const t = () => e.column.getFilterValue(), n = () => t() === !0 || t() === "true" ? "true" : t() === !1 || t() === "false" ? "false" : "any";
+  return (() => {
+    var l = $();
+    return l.addEventListener("change", (r) => {
+      const u = r.currentTarget.value;
+      e.column.setFilterValue(u === "any" ? void 0 : u === "true");
+    }), m((r) => {
+      var u = `Filter ${s(e.column)}`, o = z("zen-h-7 zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background", "zen-px-2 zen-text-xs zen-cursor-pointer", "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring");
+      return u !== r.e && b(l, "aria-label", r.e = u), o !== r.t && f(l, r.t = o), r;
+    }, {
+      e: void 0,
+      t: void 0
+    }), m(() => l.value = n()), l;
+  })();
+}
+function U(e) {
+  return a(F, {
+    get when() {
+      return e.column.getCanFilter();
+    },
+    get children() {
+      return (() => {
+        const t = e.column.columnDef.meta, n = e.column;
+        switch (t?.filterVariant) {
+          case "number":
+            return a(B, {
+              column: n
+            });
+          case "numberRange":
+            return a(O, {
+              column: n
+            });
+          case "select":
+            return a(A, {
+              column: n,
+              get options() {
+                return t.filterOptions ?? [];
+              }
+            });
+          case "boolean":
+            return a(j, {
+              column: n
+            });
+          default:
+            return a(R, {
+              column: n
+            });
+        }
+      })();
     }
-    return o;
-  }
-  const { start: l, end: d } = Y(e, n);
-  for (let s = l; s.getTime() < d.getTime(); s = u(s, 1)) {
-    const c = u(s, 1);
-    o.push({
-      start: s,
-      end: c,
-      label: e === "week" ? `${D[s.getDay()]} ${s.getDate()}` : String(s.getDate()),
-      sublabel: e === "month" ? D[s.getDay()] : "",
-      nonWorking: r.includes(s.getDay()),
-      today: T(s, a)
-    });
-  }
-  return o;
-}
-function b(e, n) {
-  const { start: t, end: a } = Y(e, n), r = (o) => o.toLocaleString(void 0, { month: "long" });
-  if (e === "day")
-    return `${D[t.getDay()]} ${t.getDate()} ${r(t)} ${t.getFullYear()}`;
-  if (e === "week") {
-    const o = new Date(a.getTime() - 864e5);
-    return `${t.getFullYear() === o.getFullYear() ? t.getMonth() === o.getMonth() ? `${t.getDate()}` : `${t.getDate()} ${r(t)}` : `${t.getDate()} ${r(t)} ${t.getFullYear()}`} – ${o.getDate()} ${r(o)} ${o.getFullYear()}`;
-  }
-  return `${r(t)} ${t.getFullYear()}`;
-}
-function H(e, n, t = 0.5) {
-  const a = n.start.getTime(), r = n.end.getTime(), o = r - a;
-  if (o <= 0) return null;
-  const l = e.start.getTime(), d = e.end.getTime(), s = Math.min(l, d), c = Math.max(l, d);
-  if (c <= a || s >= r) return null;
-  const f = s < a, $ = c > r, M = Math.max(s, a), i = Math.min(c, r), g = (M - a) / o * 100, m = (i - M) / o * 100, h = Math.min(Math.max(m, t), 100 - g);
-  return { startPct: g, widthPct: h, clippedStart: f, clippedEnd: $ };
-}
-function _(e) {
-  const n = e.map((r, o) => ({ index: o, start: Math.min(r.start.getTime(), r.end.getTime()), end: Math.max(r.start.getTime(), r.end.getTime()) })).sort((r, o) => r.start - o.start || r.end - o.end), t = [], a = new Array(e.length).fill(0);
-  for (const r of n) {
-    let o = t.findIndex((l) => l <= r.start);
-    o === -1 ? (o = t.length, t.push(r.end)) : t[o] = r.end, a[r.index] = o;
-  }
-  return { lanes: a, laneCount: t.length };
-}
-function O(e, n = /* @__PURE__ */ new Date()) {
-  const t = e.start.getTime(), a = e.end.getTime(), r = n.getTime();
-  return r < t || r >= a ? null : (r - t) / (a - t) * 100;
-}
-function R(e, n) {
-  const t = (a) => `${y(a.getHours())}:${y(a.getMinutes())}`;
-  return T(e, n) ? `${t(e)} – ${t(n)}` : `${e.getDate()} ${D[e.getDay()]} ${t(e)} – ${n.getDate()} ${D[n.getDay()]} ${t(n)}`;
+  });
 }
 export {
-  R as formatTimeRange,
-  _ as layoutLanes,
-  O as nowPct,
-  H as placeAppointment,
-  p as planningColumns,
-  Y as planningRange,
-  b as planningRangeLabel,
-  k as shiftPlanningAnchor,
-  F as startOfMonth,
-  w as startOfWeek
+  U as FilterCell,
+  M as filterFnByVariant
 };
 //# sourceMappingURL=index141.js.map

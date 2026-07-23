@@ -1,80 +1,99 @@
-import { createComponent as n, mergeProps as d, memo as t, template as a } from "solid-js/web";
-import { splitProps as s, Show as c } from "solid-js";
-import { Checkbox as r } from "./index121.js";
-import { cn as i } from "./index103.js";
-var u = /* @__PURE__ */ a('<svg viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=3 stroke-linecap=round stroke-linejoin=round width=100% height=100%><polyline points="20 6 9 17 4 12">'), z = /* @__PURE__ */ a('<svg viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=3 stroke-linecap=round width=100% height=100%><line x1=6 y1=12 x2=18 y2=12>');
-const g = {
-  sm: "zen-h-3.5 zen-w-3.5",
-  md: "zen-h-4 zen-w-4",
-  lg: "zen-h-5 zen-w-5"
-}, x = (o) => {
-  const [e, l] = s(o, ["class", "size", "checked", "defaultChecked", "indeterminate", "onChange", "disabled", "required", "name", "value", "label", "id"]);
-  return n(r, d(l, {
-    get checked() {
-      return e.checked;
-    },
-    get defaultChecked() {
-      return e.defaultChecked;
-    },
-    get indeterminate() {
-      return e.indeterminate;
-    },
-    get onChange() {
-      return e.onChange;
-    },
-    get disabled() {
-      return e.disabled;
-    },
-    get required() {
-      return e.required;
-    },
-    get name() {
-      return e.name;
-    },
-    get value() {
-      return e.value;
+import { createComponent as l, mergeProps as z, template as y, spread as k, insert as o, effect as x, className as p, memo as A } from "solid-js/web";
+import { splitProps as u, children as I, createMemo as m, For as S, Show as _ } from "solid-js";
+import { Image as g } from "./index121.js";
+import { cn as s } from "./index106.js";
+var d = /* @__PURE__ */ y("<div>");
+const $ = {
+  xs: "zen-h-6 zen-w-6 zen-text-xs",
+  sm: "zen-h-8 zen-w-8 zen-text-xs",
+  md: "zen-h-10 zen-w-10 zen-text-sm",
+  lg: "zen-h-12 zen-w-12 zen-text-base",
+  xl: "zen-h-16 zen-w-16 zen-text-lg"
+}, D = (r) => {
+  const [e, t] = u(r, ["class", "size", "children", "fallbackDelay"]);
+  return l(g, z(t, {
+    get fallbackDelay() {
+      return e.fallbackDelay;
     },
     get class() {
-      return i("zen-inline-flex zen-items-center zen-gap-2", e.class);
+      return s("zen-relative zen-inline-flex zen-shrink-0 zen-overflow-hidden zen-rounded-zen-full", $[e.size ?? "md"], e.class);
     },
     get children() {
-      return [n(r.Input, {
-        get id() {
-          return e.id;
-        },
-        class: "zen-sr-only"
-      }), n(r.Control, {
-        get class() {
-          return i("zen-peer zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background", "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2", "data-[disabled]:zen-cursor-not-allowed data-[disabled]:zen-opacity-50", "data-[checked]:zen-bg-zen-primary data-[checked]:zen-border-zen-primary data-[checked]:zen-text-zen-primary-fg", "data-[indeterminate]:zen-bg-zen-primary data-[indeterminate]:zen-border-zen-primary data-[indeterminate]:zen-text-zen-primary-fg", g[e.size ?? "md"]);
-        },
-        get children() {
-          return n(r.Indicator, {
-            class: "zen-flex zen-items-center zen-justify-center zen-text-current zen-h-full zen-w-full",
-            get children() {
-              return n(c, {
-                get when() {
-                  return e.indeterminate;
-                },
-                get fallback() {
-                  return n(m, {});
-                },
-                get children() {
-                  return n(h, {});
-                }
-              });
-            }
-          });
-        }
-      }), t(() => t(() => !!e.label)() ? n(r.Label, {
-        class: "zen-text-sm",
-        get children() {
-          return e.label;
-        }
-      }) : null)];
+      return e.children;
     }
   }));
-}, m = () => u(), h = () => z();
+}, q = (r) => {
+  const [e, t] = u(r, ["class", "src", "alt"]);
+  return l(g.Img, z(t, {
+    get src() {
+      return e.src;
+    },
+    get alt() {
+      return e.alt;
+    },
+    get class() {
+      return s("zen-aspect-square zen-h-full zen-w-full zen-object-cover", e.class);
+    }
+  }));
+}, F = (r) => {
+  const [e, t] = u(r, ["class", "children"]);
+  return l(g.Fallback, z(t, {
+    get class() {
+      return s("zen-flex zen-h-full zen-w-full zen-items-center zen-justify-center zen-bg-zen-muted zen-text-zen-muted-fg zen-font-medium", e.class);
+    },
+    get children() {
+      return e.children;
+    }
+  }));
+}, P = {
+  tight: "-zen-ml-3",
+  default: "-zen-ml-2",
+  loose: "-zen-ml-1"
+}, E = (r) => {
+  const [e, t] = u(r, ["class", "max", "spacing", "size", "children"]), v = I(() => e.children), c = m(() => {
+    const n = v();
+    return Array.isArray(n) ? n : n == null ? [] : [n];
+  }), b = m(() => typeof e.max == "number" ? c().slice(0, e.max) : c()), f = m(() => typeof e.max == "number" && c().length > e.max ? c().length - e.max : 0), h = () => P[e.spacing ?? "default"];
+  return (() => {
+    var n = d();
+    return k(n, z(t, {
+      get class() {
+        return s("zen-flex zen-items-center", e.class);
+      }
+    }), !1, !0), o(n, l(S, {
+      get each() {
+        return b();
+      },
+      children: (a, w) => (() => {
+        var i = d();
+        return o(i, a), x(() => p(i, s("zen-ring-2 zen-ring-zen-background zen-rounded-zen-full", w() > 0 && h()))), i;
+      })()
+    }), null), o(n, l(_, {
+      get when() {
+        return f() > 0;
+      },
+      get children() {
+        var a = d();
+        return o(a, l(D, {
+          get size() {
+            return e.size ?? "md";
+          },
+          get children() {
+            return l(F, {
+              get children() {
+                return ["+", A(() => f())];
+              }
+            });
+          }
+        })), x(() => p(a, s("zen-ring-2 zen-ring-zen-background zen-rounded-zen-full", h()))), a;
+      }
+    }), null), n;
+  })();
+};
 export {
-  x as Checkbox
+  D as Avatar,
+  F as AvatarFallback,
+  E as AvatarGroup,
+  q as AvatarImage
 };
 //# sourceMappingURL=index46.js.map

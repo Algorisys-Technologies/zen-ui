@@ -1,119 +1,38 @@
-import { createSelectableCollection as n } from "./index165.js";
-import { createCollator as r } from "./index144.js";
-import { createMemo as a } from "solid-js";
-import { access as i } from "./index178.js";
-var u = class {
-  collection;
-  ref;
-  collator;
-  constructor(e, t, l) {
-    this.collection = e, this.ref = t, this.collator = l;
-  }
-  getKeyBelow(e) {
-    let t = this.collection().getKeyAfter(e);
-    for (; t != null; ) {
-      const l = this.collection().getItem(t);
-      if (l && l.type === "item" && !l.disabled)
-        return t;
-      t = this.collection().getKeyAfter(t);
-    }
-  }
-  getKeyAbove(e) {
-    let t = this.collection().getKeyBefore(e);
-    for (; t != null; ) {
-      const l = this.collection().getItem(t);
-      if (l && l.type === "item" && !l.disabled)
-        return t;
-      t = this.collection().getKeyBefore(t);
-    }
-  }
-  getFirstKey() {
-    let e = this.collection().getFirstKey();
-    for (; e != null; ) {
-      const t = this.collection().getItem(e);
-      if (t && t.type === "item" && !t.disabled)
-        return e;
-      e = this.collection().getKeyAfter(e);
-    }
-  }
-  getLastKey() {
-    let e = this.collection().getLastKey();
-    for (; e != null; ) {
-      const t = this.collection().getItem(e);
-      if (t && t.type === "item" && !t.disabled)
-        return e;
-      e = this.collection().getKeyBefore(e);
-    }
-  }
-  getItem(e) {
-    return this.ref?.()?.querySelector(`[data-key="${e}"]`) ?? null;
-  }
-  // TODO: not working correctly
-  getKeyPageAbove(e) {
-    const t = this.ref?.();
-    let l = this.getItem(e);
-    if (!t || !l)
-      return;
-    const s = Math.max(0, l.offsetTop + l.offsetHeight - t.offsetHeight);
-    let o = e;
-    for (; o && l && l.offsetTop > s; )
-      o = this.getKeyAbove(o), l = o != null ? this.getItem(o) : null;
-    return o;
-  }
-  // TODO: not working correctly
-  getKeyPageBelow(e) {
-    const t = this.ref?.();
-    let l = this.getItem(e);
-    if (!t || !l)
-      return;
-    const s = Math.min(t.scrollHeight, l.offsetTop - l.offsetHeight + t.offsetHeight);
-    let o = e;
-    for (; o && l && l.offsetTop < s; )
-      o = this.getKeyBelow(o), l = o != null ? this.getItem(o) : null;
-    return o;
-  }
-  getKeyForSearch(e, t) {
-    const l = this.collator?.();
-    if (!l)
-      return;
-    let s = t != null ? this.getKeyBelow(t) : this.getFirstKey();
-    for (; s != null; ) {
-      const o = this.collection().getItem(s);
-      if (o) {
-        const c = o.textValue.slice(0, e.length);
-        if (o.textValue && l.compare(c, e) === 0)
-          return s;
-      }
-      s = this.getKeyBelow(s);
-    }
-  }
-};
-function m(e, t, l) {
-  const s = r({
-    usage: "search",
-    sensitivity: "base"
-  }), o = a(() => {
-    const c = i(e.keyboardDelegate);
-    return c || new u(e.collection, t, s);
-  });
-  return n({
-    selectionManager: () => i(e.selectionManager),
-    keyboardDelegate: o,
-    autoFocus: () => i(e.autoFocus),
-    deferAutoFocus: () => i(e.deferAutoFocus),
-    shouldFocusWrap: () => i(e.shouldFocusWrap),
-    disallowEmptySelection: () => i(e.disallowEmptySelection),
-    selectOnFocus: () => i(e.selectOnFocus),
-    disallowTypeAhead: () => i(e.disallowTypeAhead),
-    shouldUseVirtualFocus: () => i(e.shouldUseVirtualFocus),
-    allowsTabNavigation: () => i(e.allowsTabNavigation),
-    isVirtualized: () => i(e.isVirtualized),
-    scrollToKey: (c) => i(e.scrollToKey)?.(c),
-    orientation: () => i(e.orientation)
-  }, t, l);
-}
+import { access as o } from "./index218.js";
+import { createMemo as h, createSignal as v, createEffect as l, untrack as g, onCleanup as A } from "solid-js";
+var E = (r) => {
+  const c = h(() => {
+    const e = o(r.element);
+    if (e)
+      return getComputedStyle(e);
+  }), m = () => c()?.animationName ?? "none", [s, i] = v(o(r.show) ? "present" : "hidden");
+  let d = "none";
+  return l((e) => {
+    const n = o(r.show);
+    return g(() => {
+      if (e === n) return n;
+      const a = d, t = m();
+      n ? i("present") : t === "none" || c()?.display === "none" ? i("hidden") : i(e === !0 && a !== t ? "hiding" : "hidden");
+    }), n;
+  }), l(() => {
+    const e = o(r.element);
+    if (!e) return;
+    const n = (t) => {
+      t.target === e && (d = m());
+    }, a = (t) => {
+      const f = m().includes(t.animationName);
+      t.target === e && f && s() === "hiding" && i("hidden");
+    };
+    e.addEventListener("animationstart", n), e.addEventListener("animationcancel", a), e.addEventListener("animationend", a), A(() => {
+      e.removeEventListener("animationstart", n), e.removeEventListener("animationcancel", a), e.removeEventListener("animationend", a);
+    });
+  }), {
+    present: () => s() === "present" || s() === "hiding",
+    state: s,
+    setState: i
+  };
+}, N = E, S = N;
 export {
-  u as ListKeyboardDelegate,
-  m as createSelectableList
+  S as default
 };
 //# sourceMappingURL=index164.js.map

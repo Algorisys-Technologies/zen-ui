@@ -1,6 +1,21 @@
-import "solid-js";
-var c = (o) => typeof o == "function" ? o() : o;
+import { getFilteredNames as m } from "./index207.js";
+import { getOptions as y } from "./index208.js";
+import { getFieldArrayStore as N } from "./index209.js";
+import { getFieldStore as A } from "./index205.js";
+function D(r, e, u) {
+  const [p, c] = m(r, e), { shouldActive: n = !0, shouldTouched: a = !1, shouldDirty: g = !1, shouldValid: h = !1 } = y(e, u);
+  return typeof e != "string" && !Array.isArray(e) ? r.internal.fieldNames.get() : c.forEach((i) => N(r, i).items.get()), p.reduce((i, o) => {
+    const t = A(r, o);
+    return (!n || t.active.get()) && (!a || t.touched.get()) && (!g || t.dirty.get()) && (!h || !t.error.get()) && (typeof e == "string" ? o.replace(`${e}.`, "") : o).split(".").reduce((s, l, d, f) => s[l] = d === f.length - 1 ? (
+      // If it is last key, add value
+      t.value.get()
+    ) : (
+      // Otherwise return object or array
+      typeof s[l] == "object" && s[l] || (isNaN(+f[d + 1]) ? {} : [])
+    ), i), i;
+  }, typeof e == "string" ? [] : {});
+}
 export {
-  c as access
+  D as getValues
 };
 //# sourceMappingURL=index206.js.map

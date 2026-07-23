@@ -1,428 +1,142 @@
-import { createComponent as t, mergeProps as z, template as i, insert as a, effect as o, setAttribute as b, memo as v, className as h } from "solid-js/web";
-import { splitProps as $, Show as d, For as f } from "solid-js";
-import { Checkbox as x } from "./index46.js";
-import { Input as _, Textarea as C } from "./index61.js";
-import { RadioGroup as q, RadioGroupItem as w } from "./index47.js";
-import { Select as F } from "./index58.js";
-import { Slider as B } from "./index52.js";
-import { Switch as S } from "./index45.js";
-import { setValue as c } from "./index143.js";
-import { cn as s } from "./index103.js";
-var V = /* @__PURE__ */ i('<span aria-hidden class="zen-ml-0.5 zen-text-zen-error">*'), k = /* @__PURE__ */ i("<label>"), y = /* @__PURE__ */ i('<p class="zen-text-xs zen-text-zen-muted-fg">'), L = /* @__PURE__ */ i('<p class="zen-text-xs zen-font-medium zen-text-zen-error"role=alert>'), R = /* @__PURE__ */ i("<div>"), G = /* @__PURE__ */ i("<span class=zen-text-sm>"), I = /* @__PURE__ */ i('<div class="zen-flex zen-items-center zen-gap-2">'), P = /* @__PURE__ */ i('<span class="zen-ml-0.5 zen-text-zen-error">*'), T = /* @__PURE__ */ i('<label class="zen-text-sm zen-font-medium zen-cursor-pointer">'), j = /* @__PURE__ */ i('<span class="zen-text-sm zen-font-medium">'), A = /* @__PURE__ */ i('<p class="zen-m-0 zen-text-xs zen-text-zen-muted-fg">'), M = /* @__PURE__ */ i('<p class="zen-m-0 zen-text-xs zen-font-medium zen-text-zen-error"role=alert>'), N = /* @__PURE__ */ i("<div><div>");
-const m = (e) => (() => {
-  var r = R();
-  return a(r, t(d, {
-    get when() {
-      return e.label;
-    },
-    get children() {
-      var n = k();
-      return a(n, () => e.label, null), a(n, t(d, {
-        get when() {
-          return e.required;
-        },
-        get children() {
-          return V();
-        }
-      }), null), o((l) => {
-        var u = e.id, g = s("zen-text-sm zen-font-medium zen-leading-none", e.error ? "zen-text-zen-error" : "zen-text-zen-foreground");
-        return u !== l.e && b(n, "for", l.e = u), g !== l.t && h(n, l.t = g), l;
-      }, {
-        e: void 0,
-        t: void 0
-      }), n;
-    }
-  }), null), a(r, () => e.children, null), a(r, t(d, {
-    get when() {
-      return v(() => !!e.description)() && !e.error;
-    },
-    get children() {
-      var n = y();
-      return a(n, () => e.description), n;
-    }
-  }), null), a(r, t(d, {
-    get when() {
-      return e.error;
-    },
-    get children() {
-      var n = L();
-      return a(n, () => e.error), n;
-    }
-  }), null), o(() => h(r, s("zen-flex zen-flex-col zen-gap-1.5", e.class))), r;
-})();
-function Y(e) {
-  const [r, n] = $(e, ["of", "Field", "name", "label", "description", "required", "fieldClass"]);
-  return t(r.Field, {
-    get name() {
-      return r.name;
-    },
-    children: (l, u) => {
-      const g = `${r.name}-${l.name}`;
-      return t(m, {
-        id: g,
-        get label() {
-          return r.label;
-        },
-        get description() {
-          return r.description;
-        },
-        get error() {
-          return l.error;
-        },
-        get required() {
-          return r.required;
-        },
-        get class() {
-          return r.fieldClass;
-        },
-        get children() {
-          return t(_, z({
-            id: g,
-            get value() {
-              return l.value;
-            }
-          }, u, {
-            get "aria-invalid"() {
-              return !!l.error || void 0;
-            }
-          }, n));
-        }
-      });
-    }
+import { createComponent as t, template as c, insert as M, memo as O } from "solid-js/web";
+import { splitProps as A, createSignal as i, createMemo as a, createEffect as j, Show as C } from "solid-js";
+import { Combobox as r } from "./index145.js";
+import { cn as m } from "./index106.js";
+var B = /* @__PURE__ */ c('<div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">Loading…'), N = /* @__PURE__ */ c('<div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">'), P = /* @__PURE__ */ c('<svg width=16 height=16 viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round aria-hidden><polyline points="6 9 12 15 18 9">'), D = /* @__PURE__ */ c('<svg width=14 height=14 viewBox="0 0 24 24"fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><polyline points="20 6 9 17 4 12">');
+const y = "__zen_create__", J = (k) => {
+  const [e] = A(k, ["options", "onSearch", "value", "defaultValue", "onValueChange", "placeholder", "searchPlaceholder", "emptyMessage", "debounceMs", "creatable", "onCreate", "createLabel", "width", "disabled", "class"]), u = () => typeof e.onSearch == "function", [L, V] = i([]), [f, b] = i(!1);
+  let d, z = 0;
+  const [_, w] = i(""), h = a(() => u() ? L() : e.options ?? []), s = () => _().trim(), I = a(() => !!(e.creatable && e.onCreate) && s().length > 0 && !h().some((n) => n.label.trim().toLowerCase() === s().toLowerCase())), g = a(() => I() ? [...h(), {
+    value: y,
+    label: `${e.createLabel ?? "Create"} “${s()}”`
+  }] : h()), v = (n) => {
+    if (!e.onSearch) return;
+    const o = ++z;
+    b(!0), e.onSearch(n).then((l) => {
+      o === z && V(l);
+    }).finally(() => {
+      o === z && b(!1);
+    });
+  }, S = (n) => {
+    w(n), u() && (d && clearTimeout(d), d = setTimeout(() => v(n), e.debounceMs ?? 250));
+  };
+  j(() => {
+    u() && v("");
   });
-}
-function Z(e) {
-  const [r, n] = $(e, ["of", "Field", "name", "label", "description", "required", "fieldClass"]);
-  return t(r.Field, {
-    get name() {
-      return r.name;
-    },
-    children: (l, u) => {
-      const g = `${r.name}-${l.name}`;
-      return t(m, {
-        id: g,
-        get label() {
-          return r.label;
-        },
-        get description() {
-          return r.description;
-        },
-        get error() {
-          return l.error;
-        },
-        get required() {
-          return r.required;
-        },
-        get class() {
-          return r.fieldClass;
-        },
-        get children() {
-          return t(C, z({
-            id: g,
-            get value() {
-              return l.value;
-            }
-          }, u, {
-            get "aria-invalid"() {
-              return !!l.error || void 0;
-            }
-          }, n));
-        }
-      });
-    }
+  const p = () => e.value !== void 0, [$, x] = i(e.defaultValue ?? ""), T = a(() => p() ? e.value : $()), E = a(() => {
+    const n = T();
+    return g().find((o) => o.value === n) ?? null;
   });
-}
-function p(e) {
-  return t(e.Field, {
-    get name() {
-      return e.name;
+  return t(r, {
+    get options() {
+      return g();
     },
-    children: (r) => t(m, {
-      get id() {
-        return `${e.name}-${r.name}`;
-      },
-      get label() {
-        return e.label;
-      },
-      get description() {
-        return e.description;
-      },
-      get error() {
-        return r.error;
-      },
-      get required() {
-        return e.required;
-      },
-      get class() {
-        return e.fieldClass;
-      },
-      get children() {
-        return t(F, {
-          get options() {
-            return e.options;
-          },
-          get value() {
-            return r.value ?? void 0;
-          },
-          onChange: (n) => {
-            c(e.of, e.name, n ?? "");
-          },
-          get placeholder() {
-            return e.placeholder;
-          },
-          get disabled() {
-            return e.disabled;
-          },
-          get errorMessage() {
-            return r.error;
-          }
-        });
+    optionValue: "value",
+    optionTextValue: "label",
+    optionLabel: "label",
+    optionDisabled: "disabled",
+    get value() {
+      return E();
+    },
+    onChange: (n) => {
+      if (n?.value === y) {
+        const l = e.onCreate?.(s());
+        w(""), l && (p() || x(l.value), e.onValueChange?.(l.value, l));
+        return;
       }
-    })
-  });
-}
-function ee(e) {
-  return t(e.Field, {
-    get name() {
-      return e.name;
+      const o = n?.value ?? "";
+      p() || x(o), e.onValueChange?.(o, n);
     },
-    type: "boolean",
-    children: (r) => t(m, {
-      get id() {
-        return `${e.name}-${r.name}`;
-      },
-      get label() {
-        return e.label;
-      },
-      get description() {
-        return e.description;
-      },
-      get error() {
-        return r.error;
-      },
-      get required() {
-        return e.required;
+    onInputChange: S,
+    get disabled() {
+      return e.disabled;
+    },
+    get placeholder() {
+      return e.placeholder ?? "Select…";
+    },
+    itemComponent: (n) => t(r.Item, {
+      get item() {
+        return n.item;
       },
       get class() {
-        return e.fieldClass;
+        return m("zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none", "data-[highlighted]:zen-bg-zen-muted", "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50");
       },
       get children() {
-        var n = I();
-        return a(n, t(x, {
-          get checked() {
-            return r.value ?? !1;
-          },
-          onChange: (l) => {
-            c(e.of, e.name, l);
-          },
-          get disabled() {
-            return e.disabled;
-          },
-          get name() {
-            return e.name;
-          }
-        }), null), a(n, t(d, {
-          get when() {
-            return e.inlineLabel;
-          },
+        return [t(r.ItemIndicator, {
+          class: "zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center",
           get children() {
-            var l = G();
-            return a(l, () => e.inlineLabel), l;
+            return t(R, {});
           }
-        }), null), n;
+        }), t(r.ItemLabel, {
+          get children() {
+            return n.item.rawValue.label;
+          }
+        })];
       }
-    })
-  });
-}
-function re(e) {
-  return t(e.Field, {
-    get name() {
-      return e.name;
+    }),
+    get class() {
+      return e.class;
     },
-    type: "boolean",
-    children: (r) => (
-      // Settings-row layout, mirroring the React binding: label + description
-      // on the left, Switch pushed right. It previously used Frame (label
-      // stacked above, switch below-left) like a checkbox, which is not what
-      // a switch means and did not match React.
-      (() => {
-        var n = N(), l = n.firstChild;
-        return a(l, t(d, {
-          get when() {
-            return e.label;
-          },
-          get children() {
-            var u = T();
-            return a(u, () => e.label, null), a(u, t(d, {
-              get when() {
-                return e.required;
-              },
-              get children() {
-                return P();
-              }
-            }), null), o(() => b(u, "for", `${e.name}-${r.name}`)), u;
-          }
-        }), null), a(l, t(d, {
-          get when() {
-            return v(() => !!e.inlineLabel)() && !e.label;
-          },
-          get children() {
-            var u = j();
-            return a(u, () => e.inlineLabel), u;
-          }
-        }), null), a(l, t(d, {
-          get when() {
-            return e.description;
-          },
-          get children() {
-            var u = A();
-            return a(u, () => e.description), u;
-          }
-        }), null), a(l, t(d, {
-          get when() {
-            return r.error;
-          },
-          get children() {
-            var u = M();
-            return a(u, () => r.error), u;
-          }
-        }), null), a(n, t(S, {
-          get id() {
-            return `${e.name}-${r.name}`;
-          },
-          get checked() {
-            return r.value ?? !1;
-          },
-          onChange: (u) => {
-            c(e.of, e.name, u);
-          },
-          get disabled() {
-            return e.disabled;
-          },
-          get name() {
-            return e.name;
-          }
-        }), null), o(() => h(n, s("zen-flex zen-items-center zen-justify-between zen-gap-3", e.fieldClass))), n;
-      })()
-    )
-  });
-}
-function ne(e) {
-  return t(e.Field, {
-    get name() {
-      return e.name;
-    },
-    children: (r) => t(m, {
-      get id() {
-        return `${e.name}-${r.name}`;
-      },
-      get label() {
-        return e.label;
-      },
-      get description() {
-        return e.description;
-      },
-      get error() {
-        return r.error;
-      },
-      get required() {
-        return e.required;
-      },
-      get class() {
-        return e.fieldClass;
-      },
-      get children() {
-        return t(q, {
-          get value() {
-            return r.value ?? "";
-          },
-          onChange: (n) => {
-            c(e.of, e.name, n);
-          },
-          get orientation() {
-            return e.orientation;
-          },
-          get disabled() {
-            return e.disabled;
-          },
-          get children() {
-            return t(f, {
-              get each() {
-                return e.options;
-              },
-              children: (n) => t(w, {
-                get value() {
-                  return n.value;
+    get children() {
+      return [t(r.Control, {
+        get class() {
+          return m("zen-inline-flex zen-items-center zen-gap-2 zen-h-10 zen-px-3", "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background", "focus-within:zen-outline-none focus-within:zen-ring-2 focus-within:zen-ring-zen-ring focus-within:zen-ring-offset-2");
+        },
+        get style() {
+          return {
+            width: typeof e.width == "number" ? `${e.width}px` : e.width ?? "240px"
+          };
+        },
+        get children() {
+          return [t(r.Input, {
+            class: "zen-flex-1 zen-min-w-0 zen-bg-transparent zen-border-0 zen-outline-none zen-text-sm placeholder:zen-text-zen-muted-fg",
+            get placeholder() {
+              return e.searchPlaceholder ?? "Search…";
+            }
+          }), t(r.Trigger, {
+            class: "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg",
+            get children() {
+              return t(r.Icon, {
+                get children() {
+                  return t(Q, {});
+                }
+              });
+            }
+          })];
+        }
+      }), t(r.Portal, {
+        get children() {
+          return t(r.Content, {
+            get class() {
+              return m("zen-z-50 zen-min-w-44 zen-overflow-hidden zen-rounded-zen-md zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md");
+            },
+            get children() {
+              return [t(C, {
+                get when() {
+                  return f();
                 },
                 get children() {
-                  return n.label;
+                  return B();
                 }
-              })
-            });
-          }
-        });
-      }
-    })
+              }), t(r.Listbox, {
+                class: "zen-max-h-72 zen-overflow-y-auto"
+              }), t(C, {
+                get when() {
+                  return O(() => g().length === 0)() && !f();
+                },
+                get children() {
+                  var n = N();
+                  return M(n, () => e.emptyMessage ?? "No results."), n;
+                }
+              })];
+            }
+          });
+        }
+      })];
+    }
   });
-}
-function te(e) {
-  return t(e.Field, {
-    get name() {
-      return e.name;
-    },
-    type: "number",
-    children: (r) => t(m, {
-      get id() {
-        return `${e.name}-${r.name}`;
-      },
-      get label() {
-        return e.label;
-      },
-      get description() {
-        return e.description;
-      },
-      get error() {
-        return r.error;
-      },
-      get required() {
-        return e.required;
-      },
-      get class() {
-        return e.fieldClass;
-      },
-      get children() {
-        return t(B, {
-          get value() {
-            return [r.value ?? 0];
-          },
-          onChange: (n) => {
-            const l = n[0] ?? 0;
-            c(e.of, e.name, l);
-          },
-          get minValue() {
-            return e.minValue;
-          },
-          get maxValue() {
-            return e.maxValue;
-          },
-          get step() {
-            return e.step;
-          },
-          get disabled() {
-            return e.disabled;
-          }
-        });
-      }
-    })
-  });
-}
+}, Q = () => P(), R = () => D();
 export {
-  ee as BoundCheckbox,
-  Y as BoundInput,
-  ne as BoundRadioGroup,
-  p as BoundSelect,
-  te as BoundSlider,
-  re as BoundSwitch,
-  Z as BoundTextarea
+  J as Combobox
 };
 //# sourceMappingURL=index82.js.map

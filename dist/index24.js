@@ -3,10 +3,10 @@ import { createSignal as T, createMemo as y, untrack as j, createEffect as oe, S
 import { DATE_RANGE_OPERATORS as Q, resolveDateRange as P, formatDateRangeValue as le, toISODate as _, parseISODate as A, operatorMeta as U } from "./index25.js";
 import { Button as L } from "./index5.js";
 import { Icon as ae } from "./index21.js";
-import { Input as ie } from "./index61.js";
-import { Popover as se, PopoverTrigger as ce, PopoverContent as ue } from "./index53.js";
-import { Calendar as Y } from "./index83.js";
-import { cn as M } from "./index103.js";
+import { Input as ie } from "./index64.js";
+import { Popover as se, PopoverTrigger as ce, PopoverContent as ue } from "./index56.js";
+import { Calendar as Y } from "./index86.js";
+import { cn as M } from "./index106.js";
 var ze = /* @__PURE__ */ f("<span>"), de = /* @__PURE__ */ f('<span class="zen-text-xs zen-text-zen-muted-fg">(<!>)'), me = /* @__PURE__ */ f('<p class="zen-m-0 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg">Pick a period on the left.'), fe = /* @__PURE__ */ f('<div aria-live=polite class="zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs zen-text-zen-muted-fg">'), ge = /* @__PURE__ */ f('<div class="zen-flex zen-max-w-[34rem] zen-flex-col zen-gap-0 sm:zen-flex-row"><div role=listbox aria-label=Period class="zen-max-h-72 zen-w-48 zen-shrink-0 zen-overflow-y-auto zen-border-b zen-border-zen-border zen-p-1 sm:zen-border-b-0 sm:zen-border-r"></div><div class="zen-flex zen-min-w-[16rem] zen-flex-col zen-gap-3 zen-p-3"><div class="zen-flex zen-justify-end zen-gap-2">'), pe = /* @__PURE__ */ f('<div><div class="zen-px-2 zen-pb-1 zen-pt-2 zen-text-xs zen-font-medium zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">'), ve = /* @__PURE__ */ f("<button type=button role=option>"), xe = /* @__PURE__ */ f('<div class="zen-flex zen-flex-col zen-gap-2"><label class="zen-flex zen-items-center zen-gap-2 zen-text-sm"><span class=zen-text-zen-muted-fg></span><span class=zen-text-zen-muted-fg>s</span></label><label class="zen-flex zen-cursor-pointer zen-items-center zen-gap-2 zen-text-sm zen-text-zen-muted-fg"><input type=checkbox>Include the current ');
 const he = ["Day", "Week", "Month", "Quarter", "Year", "Rolling", "Fixed"], Ee = (n) => {
   const [g, S] = T(!1), [H, J] = T(n.defaultValue), V = () => n.value !== void 0, z = () => V() ? n.value : H(), k = () => n.weekStartsOn ?? 0, O = () => n.formatDate ?? ((e) => e.toLocaleDateString()), E = () => n.now ?? /* @__PURE__ */ new Date(), K = y(() => n.operators ? Q.filter((e) => n.operators.includes(e.operator)) : Q), X = y(() => {

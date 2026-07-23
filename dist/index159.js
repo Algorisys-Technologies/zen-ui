@@ -1,10 +1,7 @@
-var o = Object.defineProperty, p = (t, e) => {
-  for (var r in e) o(t, r, {
-    get: e[r],
-    enumerable: !0
-  });
-};
+function n(r) {
+  return (e) => (r(e), () => r(void 0));
+}
 export {
-  p as __export
+  n as createRegisterId
 };
 //# sourceMappingURL=index159.js.map

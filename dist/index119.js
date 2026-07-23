@@ -1,113 +1,31 @@
-import { createComponent as a, mergeProps as n } from "solid-js/web";
-import { Meter as s } from "./index197.js";
-import { createNumberFormatter as y } from "./index144.js";
-import { createRegisterId as w } from "./index173.js";
-import { __export as R } from "./index159.js";
-import { createUniqueId as T, splitProps as m, createSignal as _, createMemo as E, createContext as M, createEffect as S, onCleanup as W, useContext as $ } from "solid-js";
-import { mergeDefaultProps as p, createGenerateId as j, clamp as q } from "./index160.js";
-import { combineStyle as D } from "./index179.js";
-var G = {};
-R(G, {
-  Fill: () => b,
-  Label: () => x,
-  Progress: () => N,
-  Root: () => P,
-  Track: () => V,
-  ValueLabel: () => v,
-  useProgressContext: () => l
-});
-var f = M();
-function l() {
-  const t = $(f);
-  if (t === void 0)
-    throw new Error("[kobalte]: `useProgressContext` must be used within a `Progress.Root` component");
-  return t;
-}
-function b(t) {
-  const r = l(), [o, e] = m(t, ["style"]);
-  return a(s.Fill, n({
-    get style() {
-      return D({
-        "--kb-progress-fill-width": r.progressFillWidth()
-      }, o.style);
-    }
-  }, () => r.dataset(), e));
-}
-function x(t) {
-  const r = l(), o = p({
-    id: r.generateId("label")
-  }, t), [e, u] = m(o, ["id"]);
-  return S(() => W(r.registerLabelId(e.id))), a(s.Label, n({
-    get id() {
-      return e.id;
-    }
-  }, () => r.dataset(), u));
-}
-function P(t) {
-  const r = `progress-${T()}`, o = p({
-    id: r,
-    value: 0,
-    minValue: 0,
-    maxValue: 100
-  }, t), [e, u] = m(o, ["value", "minValue", "maxValue", "indeterminate", "getValueLabel"]), [L, I] = _(), h = y(() => ({
-    style: "percent"
-  })), c = () => q(e.value, e.minValue, e.maxValue), i = () => (c() - e.minValue) / (e.maxValue - e.minValue), C = () => {
-    if (!e.indeterminate)
-      return e.getValueLabel ? e.getValueLabel({
-        value: c(),
-        min: e.minValue,
-        max: e.maxValue
-      }) : h().format(i());
-  }, F = () => e.indeterminate ? void 0 : `${i() * 100}%`, d = E(() => {
-    let g;
-    return e.indeterminate || (g = i() === 1 ? "complete" : "loading"), {
-      "data-progress": g,
-      "data-indeterminate": e.indeterminate ? "" : void 0
-    };
-  }), k = {
-    dataset: d,
-    value: c,
-    valuePercent: i,
-    valueLabel: C,
-    labelId: L,
-    progressFillWidth: F,
-    generateId: j(() => u.id),
-    registerLabelId: w(I)
+const l = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i, s = (t) => {
+  const n = l.exec(t.trim());
+  if (!n) return null;
+  const o = n[1].toLowerCase();
+  return `#${o.length === 3 ? [...o].map((e) => e + e).join("") : o}`;
+}, c = (t) => {
+  const n = s(t);
+  if (!n) return null;
+  const o = Number.parseInt(n.slice(1), 16);
+  return { r: o >> 16 & 255, g: o >> 8 & 255, b: o & 255 };
+}, u = (t) => {
+  const n = c(t);
+  if (!n) return 0;
+  const o = (r) => {
+    const e = r / 255;
+    return e <= 0.03928 ? e / 12.92 : ((e + 0.055) / 1.055) ** 2.4;
   };
-  return a(f.Provider, {
-    value: k,
-    get children() {
-      return a(s, n({
-        role: "progressbar",
-        get indeterminate() {
-          return e.indeterminate || !1;
-        }
-      }, d, o));
-    }
-  });
-}
-function V(t) {
-  const r = l();
-  return a(s.Track, n(() => r.dataset(), t));
-}
-function v(t) {
-  const r = l();
-  return a(s.ValueLabel, n(() => r.dataset(), t));
-}
-var N = Object.assign(P, {
-  Fill: b,
-  Label: x,
-  Track: V,
-  ValueLabel: v
-});
+  return 0.2126 * o(n.r) + 0.7152 * o(n.g) + 0.0722 * o(n.b);
+}, f = (t) => u(t) > 0.179 ? "#000000" : "#ffffff", a = (t) => typeof t == "string" ? { value: t } : t, i = (t) => {
+  const n = a(t);
+  return n.label ?? s(n.value) ?? n.value;
+};
 export {
-  N as Progress,
-  b as ProgressFill,
-  x as ProgressLabel,
-  P as ProgressRoot,
-  V as ProgressTrack,
-  v as ProgressValueLabel,
-  G as progress_exports,
-  l as useProgressContext
+  i as colorLabel,
+  f as contrastingInk,
+  c as hexToRgb,
+  u as luminance,
+  s as normalizeHex,
+  a as toColorOption
 };
 //# sourceMappingURL=index119.js.map

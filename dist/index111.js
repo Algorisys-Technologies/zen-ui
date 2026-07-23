@@ -1,387 +1,383 @@
-import { createComponent as l, template as v, insert as u, effect as b, className as _, setAttribute as x, Portal as ie, memo as $, setStyleProperty as J, use as D, delegateEvents as le } from "solid-js/web";
-import { createSignal as V, createEffect as Q, onCleanup as oe, Show as c } from "solid-js";
-import { PivotFilterVirtualList as ae } from "./index148.js";
-import { Loading as se } from "./index33.js";
-import { isFilterActive as ce } from "./index71.js";
-import { usePivotFilterOptions as ue } from "./index149.js";
-import { Icon as f } from "./index21.js";
-import { cn as P } from "./index103.js";
-var de = /* @__PURE__ */ v("<button type=button aria-haspopup=dialog>"), ze = /* @__PURE__ */ v('<div class="zen-flex zen-flex-col zen-border-b zen-border-zen-border zen-p-1"><button type=button><span>Sort ascending</span></button><button type=button><span>Sort descending'), fe = /* @__PURE__ */ v('<div class="zen-border-b zen-border-zen-border zen-p-1"><button type=button class="zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-start zen-text-sm zen-font-medium zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50"><span aria-hidden=true></span><span>Select all'), ge = /* @__PURE__ */ v('<div role=listbox aria-busy=true class="zen-max-h-64 zen-overflow-y-auto zen-p-1"><div class="zen-flex zen-flex-col zen-items-center zen-justify-center zen-gap-2 zen-px-2 zen-py-6">'), he = /* @__PURE__ */ v('<div class="zen-flex zen-flex-col zen-items-start zen-gap-1 zen-px-2 zen-py-3"role=alert><p class="zen-m-0 zen-text-sm zen-text-zen-error">Could not load values.</p><button type=button class="zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-0 zen-text-xs zen-text-zen-primary hover:zen-underline">Try again'), me = /* @__PURE__ */ v('<div role=listbox class="zen-max-h-64 zen-overflow-y-auto zen-p-1"><p class="zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-fg">No matching values'), ve = /* @__PURE__ */ v('<div class="zen-border-t zen-border-zen-border zen-p-1"><button type=button class="zen-w-full zen-cursor-pointer zen-rounded-md zen-px-2 zen-py-1.5 zen-text-start zen-text-sm zen-text-zen-muted-fg zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50">Clear filter'), be = /* @__PURE__ */ v('<div role=dialog class="zen-fixed zen-z-50 zen-flex zen-w-72 zen-flex-col zen-rounded-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-shadow-md"><div class="zen-border-b zen-border-zen-border zen-px-3 zen-py-2"><input type=text class="zen-h-7 zen-w-full zen-border-0 zen-bg-transparent zen-text-sm zen-text-zen-foreground zen-outline-none placeholder:zen-font-normal placeholder:zen-text-zen-muted-fg">');
-const xe = 288, L = 8, O = 4;
-function U() {
-  if (typeof document > "u")
-    return 0;
-  const n = document.querySelector("header");
-  return n instanceof HTMLElement ? n.getBoundingClientRect().bottom : 0;
+import { template as v, insert as c, createComponent as s, effect as u, setAttribute as b, className as f, style as S, setStyleProperty as y, use as le } from "solid-js/web";
+import { createSignal as q, createEffect as J, createMemo as V, untrack as de, For as D, Show as g, Index as Q, onCleanup as ze } from "solid-js";
+import { createVirtualizer as se } from "./index139.js";
+import { cn as w } from "./index106.js";
+var U = /* @__PURE__ */ v('<tr class="zen-border-0 hover:zen-bg-transparent"><td class="zen-border-0 zen-p-0"aria-hidden=true>'), ce = /* @__PURE__ */ v('<div class="zen-flex zen-flex-col zen-gap-2 zen-w-full zen-h-full zen-min-h-0 zen-min-w-0"><div class="zen-flex-1 zen-min-h-0 zen-min-w-0 zen-w-full zen-overflow-auto zen-overscroll-contain zen-rounded-none zen-border-l zen-border-t zen-border-zen-border zen-bg-zen-background"role=region tabindex=0><table class="zen-w-max zen-min-w-full zen-shrink-0 zen-border-separate zen-border-spacing-0 zen-text-zen-foreground"style=border-collapse:separate><thead class=zen-bg-zen-muted></thead><tbody>'), X = /* @__PURE__ */ v('<th class="zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0"aria-hidden=true>'), Z = /* @__PURE__ */ v('<tr class="zen-border-b zen-border-zen-border/60 zen-bg-transparent even:zen-bg-transparent hover:zen-bg-transparent">'), he = /* @__PURE__ */ v('<span class="zen-block zen-mt-auto">'), ue = /* @__PURE__ */ v("<th role=columnheader scope=col>"), ge = /* @__PURE__ */ v('<th role=columnheader scope=col class="zen-sticky zen-z-10 zen-bg-zen-background zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground zen-truncate">'), O = /* @__PURE__ */ v("<div>"), ee = /* @__PURE__ */ v("<td aria-hidden=true>"), me = /* @__PURE__ */ v("<span class=zen-block>"), ve = /* @__PURE__ */ v("<th role=rowheader scope=row>"), xe = /* @__PURE__ */ v("<td>");
+const be = "zen-px-2 zen-py-1 zen-text-start zen-text-sm zen-font-medium zen-text-zen-muted-fg zen-capitalize", fe = "zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-normal-case zen-tracking-normal zen-text-zen-foreground zen-break-words zen-leading-tight", we = "zen-sticky zen-z-30 zen-box-border zen-border-r zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]", $e = "zen-sticky zen-z-20 zen-border-r zen-border-zen-border zen-shadow-[1px_0_0_0_var(--zen-border)]";
+function P(d) {
+  return d % 2 === 1 ? "zen-bg-zen-muted" : "zen-bg-zen-background";
 }
-function we(n) {
-  const g = U();
-  return !(g > 0 && n.bottom <= g || n.top >= window.innerHeight);
-}
-const Le = (n) => {
-  const [g, w] = V(!1), [E, T] = V(""), [B, F] = V({
-    top: 0,
-    left: 0
-  });
-  let d, C, A;
-  const {
-    loading: p,
-    loadingWindow: H,
-    optionsWindows: N,
-    totalCount: y,
-    handleVisibleRange: Y,
-    scheduleFetch: Z,
-    openPanelFetch: W,
-    loadError: M
-  } = ue({
-    // Getters, not values. Read plainly, these capture whatever columnKey and
-    // loadOptions were at setup — so a chip reused for a different field would
-    // keep fetching the old one's members. Reading through props is the whole
-    // contract of a Solid props object.
-    get columnKey() {
-      return n.columnKey;
-    },
-    isOpen: g,
-    getOptionSearch: E,
-    get loadOptions() {
-      return n.loadOptions;
-    }
-  }), k = () => ce(n.selection()), ee = (e) => n.formatValue ? n.formatValue(e) : e;
-  function I(e) {
-    n.onSort?.(n.sortDirection === e ? null : e), w(!1);
-  }
-  function j(e) {
-    const r = window.innerWidth - xe - L;
-    return Math.min(Math.max(e, L), r);
-  }
-  function K() {
-    if (!d)
-      return;
-    const e = d.getBoundingClientRect(), r = U() + L;
-    let i = e.bottom + O;
-    const s = C?.offsetHeight ?? 0;
-    s > 0 && i + s > window.innerHeight - L && (i = Math.max(r, e.top - O - s)), F({
-      top: i,
-      left: j(e.left)
-    });
-  }
-  function ne() {
-    if (!d)
-      return;
-    const e = d.getBoundingClientRect();
-    F({
-      top: e.bottom + O,
-      left: j(e.left)
-    });
-    const r = n.selection(), i = r?.kind === "all" ? r.optionSearch ?? "" : "";
-    T(i), w(!0), W();
-  }
-  function te(e) {
-    if (n.singleSelect) {
-      const a = n.selection(), t = a?.kind === "include" ? a.values : [];
-      t.length === 1 && t[0] === e ? n.onChange(null) : n.onChange({
-        kind: "include",
-        values: [e]
-      });
-      return;
-    }
-    const r = n.selection();
-    if (!r || r.kind === "all") {
-      const a = r?.kind === "all" ? r.exclude : [], t = a.includes(e) ? a.filter((o) => o !== e) : [...a, e];
-      if (t.length === 0 && (!r || r.kind !== "all" || !r.optionSearch)) {
-        n.onChange(null);
-        return;
-      }
-      n.onChange({
-        kind: "all",
-        ...r?.kind === "all" && r.optionSearch ? {
-          optionSearch: r.optionSearch
-        } : {},
-        exclude: t
-      });
-      return;
-    }
-    const i = r.kind === "include" ? r.values : [], s = i.includes(e) ? i.filter((a) => a !== e) : [...i, e];
-    n.onChange({
-      kind: "include",
-      values: s
-    });
-  }
-  const R = () => {
-    const e = n.selection();
-    return e ? e.kind === "all" && e.exclude.length === 0 : !0;
-  }, X = () => {
-    const e = n.selection();
-    return e ? e.kind === "include" ? e.values.length > 0 : e.exclude.length > 0 : !1;
+function T(d) {
+  return {
+    width: `${d}px`,
+    "min-width": `${d}px`
   };
-  function re() {
-    const e = n.selection(), r = E().trim();
-    if (!e || e.kind === "all" && (e.optionSearch ?? "") === r && e.exclude.length === 0) {
-      n.onChange({
-        kind: "include",
-        values: []
-      });
-      return;
-    }
-    r ? n.onChange({
-      kind: "all",
-      optionSearch: r,
-      exclude: []
-    }) : n.onChange(null);
+}
+const B = "zen-rounded-sm zen-bg-zen-muted-fg/25 motion-safe:zen-animate-pulse";
+function Le(d) {
+  const C = () => d.rowHeight || 25, L = () => d.colWidth || 200, x = () => d.rowHeaderWidth || 160, W = () => ({
+    height: `${C()}px`,
+    "min-height": `${C()}px`,
+    "max-height": `${C()}px`
+  });
+  function N(o) {
+    return {
+      left: `${o * x()}px`
+    };
   }
-  return Q(() => {
-    g() && (k(), p(), H(), y(), N(), K());
-  }), Q(() => {
-    if (!g())
-      return;
-    A?.focus();
-    const e = (s) => {
-      const a = s.target;
-      d?.contains(a) || C?.contains(a) || w(!1);
-    }, r = (s) => {
-      s.key === "Escape" && (w(!1), d?.focus());
-    }, i = () => {
-      if (!d)
-        return;
-      const s = d.getBoundingClientRect();
-      if (!we(s)) {
-        w(!1);
-        return;
-      }
-      K();
+  function A(o) {
+    return {
+      top: `${o * C()}px`
     };
-    document.addEventListener("pointerdown", e), document.addEventListener("keydown", r), window.addEventListener("scroll", i, !0), window.addEventListener("resize", i), oe(() => {
-      document.removeEventListener("pointerdown", e), document.removeEventListener("keydown", r), window.removeEventListener("scroll", i, !0), window.removeEventListener("resize", i);
-    });
-  }), [(() => {
-    var e = de();
-    e.$$click = (i) => {
-      i.stopPropagation(), g() ? w(!1) : ne();
+  }
+  let $;
+  const k = se({
+    get count() {
+      return d.totalRows;
+    },
+    getScrollElement: () => $,
+    estimateSize: () => C(),
+    overscan: 8
+  }), [te, ne] = q(0), [re, ae] = q(1024), oe = () => {
+    $ && ne($.scrollLeft);
+  };
+  J(() => {
+    if ($) {
+      const o = new ResizeObserver((h) => {
+        ae(h[0].contentRect.width);
+      });
+      o.observe($), ze(() => o.disconnect());
+    }
+  });
+  const K = () => d.rowHeaderDepth * x(), m = V(() => {
+    const o = d.totalCols, h = K();
+    if (o <= 0) return {
+      minIndex: 0,
+      maxIndex: -1,
+      items: [],
+      paddingLeft: 0,
+      paddingRight: 0
     };
-    var r = d;
-    return typeof r == "function" ? D(r, e) : d = e, u(e, l(c, {
-      get when() {
-        return n.triggerChildren;
+    const H = Math.max(0, te()), _ = Math.max(0, Math.floor((H - h) / L()) - 4), M = Math.min(o - 1, Math.ceil((H + re() - h) / L()) + 4), R = Math.max(_, M), i = [];
+    for (let l = _; l <= R; l++)
+      i.push({
+        index: l,
+        size: L()
+      });
+    return {
+      minIndex: _,
+      maxIndex: R,
+      items: i,
+      paddingLeft: _ * L(),
+      paddingRight: Math.max(0, (o - R - 1) * L())
+    };
+  });
+  J(() => {
+    const o = k.getVirtualItems(), h = m();
+    o.length !== 0 && de(() => d.onVisibleRangeChange?.({
+      rowStart: o[0].index,
+      rowEnd: o[o.length - 1].index,
+      colStart: h.minIndex,
+      colEnd: h.maxIndex
+    }));
+  });
+  const Y = () => {
+    const o = k.getVirtualItems();
+    return o.length > 0 ? o[0].start : 0;
+  }, F = () => {
+    const o = k.getVirtualItems();
+    if (o.length === 0) return Math.max(0, k.getTotalSize());
+    const h = o[o.length - 1];
+    return Math.max(0, k.getTotalSize() - h.end);
+  }, ie = () => K() + d.totalCols * L(), G = () => d.rowHeaderDepth + Math.max(m().items.length, 1) + 2, j = () => Array.from({
+    length: Math.max(d.colHeaderDepth, 1)
+  }, (o, h) => h);
+  return (() => {
+    var o = ce(), h = o.firstChild, H = h.firstChild, _ = H.firstChild, M = _.nextSibling;
+    h.addEventListener("scroll", oe);
+    var R = $;
+    return typeof R == "function" ? le(R, h) : $ = h, c(_, s(D, {
+      get each() {
+        return j();
       },
-      get fallback() {
-        return [l(f, {
-          name: "chevron-down",
-          class: "zen-size-3.5",
-          "aria-hidden": "true"
-        }), l(c, {
+      children: (i) => (() => {
+        var l = Z();
+        return c(l, s(g, {
           get when() {
-            return k();
+            return d.rowHeaderDepth > 0;
           },
           get children() {
-            return l(f, {
-              name: "filter",
-              class: "zen-size-3.5",
-              "aria-hidden": "true"
+            return s(Q, {
+              get each() {
+                return Array.from({
+                  length: d.rowHeaderDepth
+                });
+              },
+              children: (r, e) => {
+                const a = V(() => d.layout.rows[e]?.replace(/_/g, " ") || "");
+                return (() => {
+                  var t = ue();
+                  return c(t, s(g, {
+                    get when() {
+                      return i === j().length - 1;
+                    },
+                    get children() {
+                      var n = he();
+                      return c(n, a), u(() => b(n, "title", a())), n;
+                    }
+                  })), u((n) => {
+                    var z = w(we, be, "zen-align-bottom"), p = {
+                      // Index hands back a NUMBER, where For hands back
+                      // an accessor. Calling it would throw.
+                      ...N(e),
+                      ...A(i),
+                      ...W(),
+                      width: `${x()}px`,
+                      "min-width": `${x()}px`,
+                      "max-width": `${x()}px`
+                    };
+                    return z !== n.e && f(t, n.e = z), n.t = S(t, p, n.t), n;
+                  }, {
+                    e: void 0,
+                    t: void 0
+                  }), t;
+                })();
+              }
             });
           }
-        }), l(c, {
+        }), null), c(l, s(g, {
           get when() {
-            return n.sortDirection === "asc";
+            return m().paddingLeft > 0;
           },
           get children() {
-            return l(f, {
-              name: "arrow-up",
-              class: "zen-size-3",
-              "aria-hidden": "true"
+            var r = X();
+            return u((e) => S(r, {
+              ...A(i),
+              ...W(),
+              ...T(m().paddingLeft)
+            }, e)), r;
+          }
+        }), null), c(l, s(D, {
+          get each() {
+            return m().items;
+          },
+          children: (r) => {
+            const e = V(() => d.getColHeader(i, r.index));
+            return s(g, {
+              get when() {
+                return e()?.isVisible !== !1;
+              },
+              get children() {
+                var a = ge();
+                return c(a, s(g, {
+                  get when() {
+                    return !e()?.isLoading;
+                  },
+                  get fallback() {
+                    return (() => {
+                      var t = O();
+                      return u(() => f(t, w("zen-h-3 zen-w-full", B))), t;
+                    })();
+                  },
+                  get children() {
+                    return e()?.value || "";
+                  }
+                })), u((t) => {
+                  var n = e()?.colSpan || 1, z = {
+                    width: `${r.size * (e()?.colSpan || 1)}px`,
+                    "min-width": `${r.size * (e()?.colSpan || 1)}px`,
+                    "max-width": `${r.size * (e()?.colSpan || 1)}px`,
+                    ...W(),
+                    ...A(i)
+                  };
+                  return n !== t.e && b(a, "colspan", t.e = n), t.t = S(a, z, t.t), t;
+                }, {
+                  e: void 0,
+                  t: void 0
+                }), a;
+              }
             });
           }
-        }), l(c, {
+        }), null), c(l, s(g, {
           get when() {
-            return n.sortDirection === "desc";
+            return m().paddingRight > 0;
           },
           get children() {
-            return l(f, {
-              name: "arrow-down",
-              class: "zen-size-3",
-              "aria-hidden": "true"
-            });
+            var r = X();
+            return u((e) => S(r, {
+              ...A(i),
+              ...W(),
+              ...T(m().paddingRight)
+            }, e)), r;
           }
-        })];
+        }), null), l;
+      })()
+    })), c(M, s(g, {
+      get when() {
+        return Y() > 0;
       },
       get children() {
-        return n.triggerChildren;
+        var i = U(), l = i.firstChild;
+        return u((r) => {
+          var e = Math.max(G(), 1), a = `${Y()}px`;
+          return e !== r.e && b(l, "colspan", r.e = e), a !== r.t && y(l, "height", r.t = a), r;
+        }, {
+          e: void 0,
+          t: void 0
+        }), i;
       }
-    })), b((i) => {
-      var s = n.triggerClass ?? P("zen-inline-flex zen-min-h-11 zen-min-w-11 zen-cursor-pointer zen-items-center zen-justify-center zen-gap-1 zen-rounded-sm zen-p-2 zen-text-zen-muted-fg zen-transition-colors hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50", (k() || n.sortDirection) && "zen-text-zen-primary"), a = `Sort or filter ${n.label}`, t = g();
-      return s !== i.e && _(e, i.e = s), a !== i.t && x(e, "aria-label", i.t = a), t !== i.a && x(e, "aria-expanded", i.a = t), i;
-    }, {
-      e: void 0,
-      t: void 0,
-      a: void 0
-    }), e;
-  })(), l(c, {
-    get when() {
-      return g();
-    },
-    get children() {
-      return l(ie, {
-        get children() {
-          var e = be(), r = e.firstChild, i = r.firstChild, s = C;
-          typeof s == "function" ? D(s, e) : C = e, u(e, l(c, {
+    }), null), c(M, s(D, {
+      get each() {
+        return k.getVirtualItems();
+      },
+      children: (i) => {
+        const l = i.index;
+        return (() => {
+          var r = Z();
+          return c(r, s(g, {
             get when() {
-              return n.onSort;
+              return d.rowHeaderDepth > 0;
             },
             get children() {
-              var t = ze(), o = t.firstChild, z = o.firstChild, h = o.nextSibling, S = h.firstChild;
-              return o.$$click = () => {
-                I("asc");
-              }, u(o, l(f, {
-                name: "arrow-up",
-                class: "zen-size-3.5",
-                "aria-hidden": "true"
-              }), z), u(o, l(c, {
-                get when() {
-                  return n.sortDirection === "asc";
+              return s(Q, {
+                get each() {
+                  return Array.from({
+                    length: d.rowHeaderDepth
+                  });
                 },
-                get children() {
-                  return l(f, {
-                    name: "check",
-                    class: "zen-ml-auto zen-size-3.5",
-                    "aria-hidden": "true"
+                children: (e, a) => {
+                  const t = V(() => d.getRowHeader(l, a));
+                  return s(g, {
+                    get when() {
+                      return t()?.isVisible !== !1;
+                    },
+                    get children() {
+                      var n = ve();
+                      return c(n, s(g, {
+                        get when() {
+                          return !t()?.isLoading;
+                        },
+                        get fallback() {
+                          return (() => {
+                            var z = O();
+                            return u(() => f(z, w("zen-h-3 zen-w-1/2", B))), z;
+                          })();
+                        },
+                        get children() {
+                          var z = me();
+                          return c(z, () => t()?.value || ""), u(() => b(z, "title", t()?.value)), z;
+                        }
+                      })), u((z) => {
+                        var p = w($e, fe, "zen-bg-zen-background zen-align-top", l > 0 && t()?.isVisible !== !1 ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0"), E = t()?.rowSpan || 1, I = {
+                          ...N(a),
+                          width: `${x()}px`,
+                          "min-width": `${x()}px`,
+                          "max-width": `${x()}px`
+                        };
+                        return p !== z.e && f(n, z.e = p), E !== z.t && b(n, "rowspan", z.t = E), z.a = S(n, I, z.a), z;
+                      }, {
+                        e: void 0,
+                        t: void 0,
+                        a: void 0
+                      }), n;
+                    }
                   });
                 }
-              }), null), h.$$click = () => {
-                I("desc");
-              }, u(h, l(f, {
-                name: "arrow-down",
-                class: "zen-size-3.5",
-                "aria-hidden": "true"
-              }), S), u(h, l(c, {
-                get when() {
-                  return n.sortDirection === "desc";
-                },
-                get children() {
-                  return l(f, {
-                    name: "check",
-                    class: "zen-ml-auto zen-size-3.5",
-                    "aria-hidden": "true"
-                  });
-                }
-              }), null), b((m) => {
-                var G = P("zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-start zen-text-sm zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50", n.sortDirection === "asc" && "zen-font-medium zen-text-zen-primary"), q = P("zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-px-2 zen-py-1.5 zen-text-start zen-text-sm zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50", n.sortDirection === "desc" && "zen-font-medium zen-text-zen-primary");
-                return G !== m.e && _(o, m.e = G), q !== m.t && _(h, m.t = q), m;
+              });
+            }
+          }), null), c(r, s(g, {
+            get when() {
+              return m().paddingLeft > 0;
+            },
+            get children() {
+              var e = ee();
+              return u((a) => {
+                var t = w("zen-border-0 zen-p-0", P(l)), n = T(m().paddingLeft);
+                return t !== a.e && f(e, a.e = t), a.t = S(e, n, a.t), a;
               }, {
                 e: void 0,
                 t: void 0
-              }), t;
+              }), e;
             }
-          }), r), i.$$input = (t) => {
-            T(t.currentTarget.value), Z(t.currentTarget.value);
-          };
-          var a = A;
-          return typeof a == "function" ? D(a, i) : A = i, u(e, l(c, {
+          }), null), c(r, s(D, {
+            get each() {
+              return m().items;
+            },
+            children: (e) => {
+              const a = V(() => d.getCell(l, e.index));
+              return (() => {
+                var t = xe();
+                return c(t, s(g, {
+                  get when() {
+                    return !a()?.isLoading;
+                  },
+                  get fallback() {
+                    return (() => {
+                      var n = O();
+                      return u(() => f(n, w("zen-ml-auto zen-h-3 zen-w-10", B))), n;
+                    })();
+                  },
+                  get children() {
+                    return a()?.value ?? "-";
+                  }
+                })), u((n) => {
+                  var z = w("zen-border-r zen-border-b zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums zen-truncate", P(l)), p = `${e.size}px`, E = `${e.size}px`, I = `${e.size}px`;
+                  return z !== n.e && f(t, n.e = z), p !== n.t && y(t, "width", n.t = p), E !== n.a && y(t, "min-width", n.a = E), I !== n.o && y(t, "max-width", n.o = I), n;
+                }, {
+                  e: void 0,
+                  t: void 0,
+                  a: void 0,
+                  o: void 0
+                }), t;
+              })();
+            }
+          }), null), c(r, s(g, {
             get when() {
-              return $(() => y() > 0)() && !n.singleSelect;
+              return m().paddingRight > 0;
             },
             get children() {
-              var t = fe(), o = t.firstChild, z = o.firstChild;
-              return o.$$click = re, u(z, l(c, {
-                get when() {
-                  return R();
-                },
-                get children() {
-                  return l(f, {
-                    name: "check",
-                    class: "zen-size-3"
-                  });
-                }
-              }), null), u(z, l(c, {
-                get when() {
-                  return $(() => !R())() && X();
-                },
-                get children() {
-                  return l(f, {
-                    name: "minus",
-                    class: "zen-size-3"
-                  });
-                }
-              }), null), b(() => _(z, P("zen-flex zen-size-4 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-sm zen-border zen-border-zen-border zen-text-zen-primary-fg", (R() || X()) && "zen-border-zen-primary zen-bg-zen-primary"))), t;
+              var e = ee();
+              return u((a) => {
+                var t = w("zen-border-0 zen-p-0", P(l)), n = T(m().paddingRight);
+                return t !== a.e && f(e, a.e = t), a.t = S(e, n, a.t), a;
+              }, {
+                e: void 0,
+                t: void 0
+              }), e;
             }
-          }), null), u(e, l(c, {
-            get when() {
-              return $(() => !!p())() && y() === 0;
-            },
-            get children() {
-              var t = ge(), o = t.firstChild;
-              return u(o, l(se, {
-                size: "sm",
-                label: "Loading values…"
-              })), b(() => x(t, "aria-label", `${n.label} values`)), t;
-            }
-          }), null), u(e, l(c, {
-            get when() {
-              return $(() => !p())() && M();
-            },
-            get children() {
-              var t = he(), o = t.firstChild, z = o.nextSibling;
-              return z.$$click = () => W(), t;
-            }
-          }), null), u(e, l(c, {
-            get when() {
-              return $(() => !p() && !M())() && y() === 0;
-            },
-            get children() {
-              var t = me();
-              return b(() => x(t, "aria-label", `${n.label} values`)), t;
-            }
-          }), null), u(e, l(c, {
-            get when() {
-              return $(() => y() > 0)() ? y() : !1;
-            },
-            keyed: !0,
-            children: (t) => l(ae, {
-              get label() {
-                return n.label;
-              },
-              totalCount: t,
-              get optionsWindows() {
-                return N();
-              },
-              get loadingWindow() {
-                return H();
-              },
-              get selection() {
-                return n.selection;
-              },
-              formatValue: ee,
-              onToggleValue: te,
-              onVisibleRange: Y,
-              get singleSelect() {
-                return n.singleSelect;
-              }
-            })
-          }), null), u(e, l(c, {
-            get when() {
-              return k();
-            },
-            get children() {
-              var t = ve(), o = t.firstChild;
-              return o.$$click = () => {
-                n.onChange(null);
-              }, t;
-            }
-          }), null), b((t) => {
-            var o = `${n.label} filter`, z = `${B().top}px`, h = `${B().left}px`, S = `Search ${n.label.toLowerCase()}…`, m = `Search ${n.label.toLowerCase()} values`;
-            return o !== t.e && x(e, "aria-label", t.e = o), z !== t.t && J(e, "top", t.t = z), h !== t.a && J(e, "left", t.a = h), S !== t.o && x(i, "placeholder", t.o = S), m !== t.i && x(i, "aria-label", t.i = m), t;
+          }), null), u((e) => {
+            var a = `${i.size}px`, t = i.index;
+            return a !== e.e && y(r, "height", e.e = a), t !== e.t && b(r, "data-index", e.t = t), e;
           }, {
             e: void 0,
-            t: void 0,
-            a: void 0,
-            o: void 0,
-            i: void 0
-          }), b(() => i.value = E()), e;
-        }
-      });
-    }
-  })];
-};
-le(["click", "input"]);
+            t: void 0
+          }), r;
+        })();
+      }
+    }), null), c(M, s(g, {
+      get when() {
+        return F() > 0;
+      },
+      get children() {
+        var i = U(), l = i.firstChild;
+        return u((r) => {
+          var e = Math.max(G(), 1), a = `${F()}px`;
+          return e !== r.e && b(l, "colspan", r.e = e), a !== r.t && y(l, "height", r.t = a), r;
+        }, {
+          e: void 0,
+          t: void 0
+        }), i;
+      }
+    }), null), u((i) => {
+      var l = d.label ?? "Pivot grid", r = `${ie()}px`;
+      return l !== i.e && b(h, "aria-label", i.e = l), r !== i.t && y(H, "width", i.t = r), i;
+    }, {
+      e: void 0,
+      t: void 0
+    }), o;
+  })();
+}
 export {
-  Le as PivotFilterMenu
+  Le as PivotGrid
 };
 //# sourceMappingURL=index111.js.map

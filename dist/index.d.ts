@@ -49,6 +49,12 @@ export type { DateRangeValue, DateRangeOperator, ResolvedRange, OperatorMeta, } 
 export { resolveDateRange, formatDateRangeValue, DATE_RANGE_OPERATORS, parseISODate, toISODate, } from "@algorisys/zen-ui-core/date-range";
 export { Carousel } from "./components/carousel/carousel";
 export type { CarouselProps } from "./components/carousel/carousel";
+export { MediaTimeline } from "./components/media-timeline/media-timeline";
+export type { MediaTimelineProps } from "./components/media-timeline/media-timeline";
+export { Waveform } from "./components/waveform/waveform";
+export type { WaveformProps } from "./components/waveform/waveform";
+export { formatMediaTime, MIN_MEDIA_RANGE } from "@algorisys/zen-ui-core/media";
+export type { MediaRange, WaveformClip } from "@algorisys/zen-ui-core/media";
 export { Link, linkVariants } from "./components/link/link";
 export type { LinkProps } from "./components/link/link";
 export { Badge, badgeVariants } from "./components/badge/badge";

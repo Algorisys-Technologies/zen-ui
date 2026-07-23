@@ -1,53 +1,129 @@
-import { untrack as l, batch as y } from "solid-js";
-import { focus as A } from "./index214.js";
-import { getValues as E } from "./index216.js";
-import { setErrorResponse as F } from "./index224.js";
-import { getFilteredNames as b } from "./index217.js";
-import { getOptions as h } from "./index218.js";
-import { getUniqueId as k } from "./index225.js";
-import { getFieldStore as w } from "./index215.js";
-import { getFieldArrayStore as N } from "./index219.js";
-import { updateFormInvalid as P } from "./index226.js";
-async function B(t, o, v) {
-  const [p, u] = b(t, o), { shouldActive: s = !0, shouldFocus: m = !0 } = h(o, v), f = k();
-  t.internal.validators.add(f), t.internal.validating.set(!0);
-  const n = t.internal.validate ? await t.internal.validate(l(() => E(t, { shouldActive: s }))) : {};
-  let d = typeof o != "string" && !Array.isArray(o) ? !Object.keys(n).length : !0;
-  const [g] = await Promise.all([
-    // Validate each field in list
-    Promise.all(p.map(async (r) => {
-      const e = w(t, r);
-      if (!s || l(e.active.get)) {
-        let i;
-        for (const c of e.validate)
-          if (i = await c(l(e.value.get)), i)
-            break;
-        const a = i || n[r] || "";
-        return a && (d = !1), e.error.set(a), a ? r : null;
-      }
-    })),
-    // Validate each field array in list
-    Promise.all(u.map(async (r) => {
-      const e = N(t, r);
-      if (!s || l(e.active.get)) {
-        let i = "";
-        for (const c of e.validate)
-          if (i = await c(l(e.items.get)), i)
-            break;
-        const a = i || n[r] || "";
-        a && (d = !1), e.error.set(a);
-      }
-    }))
-  ]);
-  return y(() => {
-    if (F(t, n, { shouldActive: s }), m) {
-      const r = g.find((e) => e);
-      r && A(t, r);
-    }
-    P(t, !d), t.internal.validators.delete(f), t.internal.validators.size || t.internal.validating.set(!1);
-  }), d;
+const S = ["top", "right", "bottom", "left"], m = Math.min, h = Math.max, w = Math.round, C = Math.floor, j = (t) => ({
+  x: t,
+  y: t
+}), p = {
+  left: "right",
+  right: "left",
+  bottom: "top",
+  top: "bottom"
+};
+function L(t, n, e) {
+  return h(t, m(n, e));
+}
+function E(t, n) {
+  return typeof t == "function" ? t(n) : t;
+}
+function g(t) {
+  return t.split("-")[0];
+}
+function a(t) {
+  return t.split("-")[1];
+}
+function x(t) {
+  return t === "x" ? "y" : "x";
+}
+function b(t) {
+  return t === "y" ? "height" : "width";
+}
+function d(t) {
+  const n = t[0];
+  return n === "t" || n === "b" ? "y" : "x";
+}
+function A(t) {
+  return x(d(t));
+}
+function R(t, n, e) {
+  e === void 0 && (e = !1);
+  const r = a(t), i = A(t), o = b(i);
+  let c = i === "x" ? r === (e ? "end" : "start") ? "right" : "left" : r === "start" ? "bottom" : "top";
+  return n.reference[o] > n.floating[o] && (c = f(c)), [c, f(c)];
+}
+function T(t) {
+  const n = f(t);
+  return [s(t), n, s(n)];
+}
+function s(t) {
+  return t.includes("start") ? t.replace("start", "end") : t.replace("end", "start");
+}
+const u = ["left", "right"], l = ["right", "left"], P = ["top", "bottom"], y = ["bottom", "top"];
+function O(t, n, e) {
+  switch (t) {
+    case "top":
+    case "bottom":
+      return e ? n ? l : u : n ? u : l;
+    case "left":
+    case "right":
+      return n ? P : y;
+    default:
+      return [];
+  }
+}
+function k(t, n, e, r) {
+  const i = a(t);
+  let o = O(g(t), e === "start", r);
+  return i && (o = o.map((c) => c + "-" + i), n && (o = o.concat(o.map(s)))), o;
+}
+function f(t) {
+  const n = g(t);
+  return p[n] + t.slice(n.length);
+}
+function M(t) {
+  return {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    ...t
+  };
+}
+function q(t) {
+  return typeof t != "number" ? M(t) : {
+    top: t,
+    right: t,
+    bottom: t,
+    left: t
+  };
+}
+function z(t) {
+  const {
+    x: n,
+    y: e,
+    width: r,
+    height: i
+  } = t;
+  return {
+    width: r,
+    height: i,
+    top: e,
+    left: n,
+    right: n + r,
+    bottom: e + i,
+    x: n,
+    y: e
+  };
 }
 export {
-  B as validate
+  L as clamp,
+  j as createCoords,
+  E as evaluate,
+  M as expandPaddingObject,
+  C as floor,
+  a as getAlignment,
+  A as getAlignmentAxis,
+  R as getAlignmentSides,
+  b as getAxisLength,
+  T as getExpandedPlacements,
+  s as getOppositeAlignmentPlacement,
+  x as getOppositeAxis,
+  k as getOppositeAxisPlacements,
+  f as getOppositePlacement,
+  q as getPaddingObject,
+  g as getSide,
+  d as getSideAxis,
+  h as max,
+  m as min,
+  z as rectToClientRect,
+  w as round,
+  S as sides
 };
 //# sourceMappingURL=index223.js.map

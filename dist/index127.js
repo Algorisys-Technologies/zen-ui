@@ -1,260 +1,231 @@
-import { createComponent as s, mergeProps as u, memo as k, Portal as X } from "solid-js/web";
-import { PopperArrow as F, Popper as _ } from "./index154.js";
-import { createFocusScope as Y } from "./index166.js";
-import { createHideOutside as Z } from "./index167.js";
-import { DismissableLayer as ee } from "./index168.js";
-import { createDisclosureState as te } from "./index170.js";
-import { ButtonRoot as E } from "./index155.js";
-import { createRegisterId as R } from "./index173.js";
-import { Polymorphic as w } from "./index175.js";
-import { __export as oe } from "./index159.js";
-import { mergeDefaultProps as h, createGenerateId as ne, callHandler as x, contains as re, focusWithoutScrolling as y } from "./index160.js";
-import { createUniqueId as ie, splitProps as p, createSignal as g, createMemo as se, createContext as ae, createEffect as b, onCleanup as A, Show as $, useContext as ce } from "solid-js";
-import le from "./index176.js";
-import de from "./index177.js";
-import { mergeRefs as M } from "./index161.js";
-import { combineStyle as ue } from "./index179.js";
-var pe = {};
-oe(pe, {
-  Anchor: () => L,
-  Arrow: () => F,
-  CloseButton: () => N,
-  Content: () => H,
-  Description: () => U,
-  Popover: () => fe,
-  Portal: () => j,
-  Root: () => q,
-  Title: () => G,
-  Trigger: () => V,
-  usePopoverContext: () => d
+import { createComponent as d, mergeProps as f } from "solid-js/web";
+import { createSelectableList as L } from "./index185.js";
+import { createListState as V, createSelectableItem as j } from "./index186.js";
+import { useCollapsibleContext as x, CollapsibleTrigger as q, CollapsibleRoot as G, CollapsibleContent as N } from "./index187.js";
+import { createDomCollection as z, createDomCollectionItem as B } from "./index188.js";
+import { createRegisterId as h } from "./index159.js";
+import { Polymorphic as D } from "./index161.js";
+import { __export as J } from "./index162.js";
+import { mergeDefaultProps as I, createGenerateId as P, composeEventHandlers as l, callHandler as v } from "./index163.js";
+import { createUniqueId as A, splitProps as b, createSignal as w, createContext as M, createEffect as S, onCleanup as F, useContext as k } from "solid-js";
+import { mergeRefs as K } from "./index166.js";
+import { combineStyle as Q } from "./index167.js";
+var X = {};
+J(X, {
+  Accordion: () => Y,
+  Content: () => O,
+  Header: () => R,
+  Item: () => H,
+  Root: () => _,
+  Trigger: () => $,
+  useAccordionContext: () => y
 });
-var B = ae();
-function d() {
-  const r = ce(B);
-  if (r === void 0)
-    throw new Error("[kobalte]: `usePopoverContext` must be used within a `Popover` component");
-  return r;
+var E = M();
+function T() {
+  const o = k(E);
+  if (o === void 0)
+    throw new Error("[kobalte]: `useAccordionItemContext` must be used within a `Accordion.Item` component");
+  return o;
 }
-function L(r) {
-  const t = d(), [e, o] = p(r, ["ref"]);
-  return s(w, u({
-    as: "div",
-    ref(i) {
-      var c = M(t.setDefaultAnchorRef, e.ref);
-      typeof c == "function" && c(i);
-    }
-  }, () => t.dataset(), o));
-}
-function N(r) {
-  const t = d(), [e, o] = p(r, ["aria-label", "onClick"]);
-  return s(E, u({
-    get "aria-label"() {
-      return e["aria-label"] || t.translations().dismiss;
+function O(o) {
+  const t = T(), u = t.generateId("content"), c = I({
+    id: u
+  }, o), [e, s] = b(c, ["id", "style"]);
+  return S(() => F(t.registerContentId(e.id))), d(N, f({
+    role: "region",
+    get "aria-labelledby"() {
+      return t.triggerId();
     },
-    onClick: (c) => {
-      x(c, e.onClick), t.close();
+    get style() {
+      return Q({
+        "--kb-accordion-content-height": "var(--kb-collapsible-content-height)",
+        "--kb-accordion-content-width": "var(--kb-collapsible-content-width)"
+      }, e.style);
     }
+  }, s));
+}
+function R(o) {
+  const t = x();
+  return d(D, f({
+    as: "h3"
   }, () => t.dataset(), o));
 }
-function H(r) {
-  let t;
-  const e = d(), o = h({
-    id: e.generateId("content")
-  }, r), [i, c] = p(o, ["ref", "style", "onOpenAutoFocus", "onCloseAutoFocus", "onPointerDownOutside", "onFocusOutside", "onInteractOutside"]);
-  let a = !1, l = !1, m = !1;
-  const v = (n) => {
-    i.onCloseAutoFocus?.(n), e.isModal() ? (n.preventDefault(), a || y(e.triggerRef())) : (n.defaultPrevented || (l || y(e.triggerRef()), n.preventDefault()), l = !1, m = !1);
-  }, C = (n) => {
-    i.onPointerDownOutside?.(n), e.isModal() && (a = n.detail.isContextMenu);
-  }, I = (n) => {
-    i.onFocusOutside?.(n), e.isOpen() && e.isModal() && n.preventDefault();
-  }, D = (n) => {
-    i.onInteractOutside?.(n), !e.isModal() && (n.defaultPrevented || (l = !0, n.detail.originalEvent.type === "pointerdown" && (m = !0)), re(e.triggerRef(), n.target) && n.preventDefault(), n.detail.originalEvent.type === "focusin" && m && n.preventDefault());
+var U = M();
+function y() {
+  const o = k(U);
+  if (o === void 0)
+    throw new Error("[kobalte]: `useAccordionContext` must be used within a `Accordion.Root` component");
+  return o;
+}
+function H(o) {
+  const t = y(), u = `${t.generateId("item")}-${A()}`, c = I({
+    id: u
+  }, o), [e, s] = b(c, ["value", "disabled"]), [m, r] = w(), [p, n] = w(), g = () => t.listState().selectionManager(), i = () => g().isSelected(e.value), a = {
+    value: () => e.value,
+    triggerId: m,
+    contentId: p,
+    generateId: P(() => s.id),
+    registerTriggerId: h(r),
+    registerContentId: h(n)
   };
-  return Z({
-    isDisabled: () => !(e.isOpen() && e.isModal()),
-    targets: () => t ? [t] : []
-  }), le({
-    element: () => t ?? null,
-    enabled: () => e.contentPresent() && e.preventScroll()
-  }), Y({
-    trapFocus: () => e.isOpen() && e.isModal(),
-    onMountAutoFocus: i.onOpenAutoFocus,
-    onUnmountAutoFocus: v
-  }, () => t), b(() => A(e.registerContentId(c.id))), s($, {
-    get when() {
-      return e.contentPresent();
-    },
+  return d(E.Provider, {
+    value: a,
     get children() {
-      return s(_.Positioner, {
+      return d(G, f({
+        get open() {
+          return i();
+        },
+        get disabled() {
+          return e.disabled;
+        }
+      }, s));
+    }
+  });
+}
+function _(o) {
+  let t;
+  const u = `accordion-${A()}`, c = I({
+    id: u,
+    multiple: !1,
+    collapsible: !1,
+    shouldFocusWrap: !0
+  }, o), [e, s] = b(c, [
+    "id",
+    "ref",
+    "value",
+    "defaultValue",
+    "onChange",
+    "multiple",
+    "collapsible",
+    "shouldFocusWrap",
+    "onKeyDown",
+    "onMouseDown",
+    "onFocusIn",
+    // TODO: remove next breaking
+    "onFocusOut"
+  ]), [m, r] = w([]), {
+    DomCollectionProvider: p
+  } = z({
+    items: m,
+    onItemsChange: r
+  }), n = V({
+    selectedKeys: () => e.value,
+    defaultSelectedKeys: () => e.defaultValue,
+    onSelectionChange: (a) => e.onChange?.(Array.from(a)),
+    disallowEmptySelection: () => !e.multiple && !e.collapsible,
+    selectionMode: () => e.multiple ? "multiple" : "single",
+    dataSource: m
+  });
+  n.selectionManager().setFocusedKey("item-1");
+  const g = L({
+    selectionManager: () => n.selectionManager(),
+    collection: () => n.collection(),
+    disallowEmptySelection: () => n.selectionManager().disallowEmptySelection(),
+    shouldFocusWrap: () => e.shouldFocusWrap,
+    disallowTypeAhead: !0,
+    allowsTabNavigation: !0
+  }, () => t), i = {
+    listState: () => n,
+    generateId: P(() => e.id)
+  };
+  return d(p, {
+    get children() {
+      return d(U.Provider, {
+        value: i,
         get children() {
-          return s(ee, u({
-            ref(n) {
-              var P = M((O) => {
-                e.setContentRef(O), t = O;
-              }, i.ref);
-              typeof P == "function" && P(n);
+          return d(D, f({
+            as: "div",
+            get id() {
+              return e.id;
             },
-            role: "dialog",
-            tabIndex: -1,
-            get disableOutsidePointerEvents() {
-              return k(() => !!e.isOpen())() && e.isModal();
+            ref(a) {
+              var C = K((W) => t = W, e.ref);
+              typeof C == "function" && C(a);
             },
-            get excludedElements() {
-              return [e.triggerRef];
+            get onKeyDown() {
+              return l([e.onKeyDown, g.onKeyDown]);
             },
-            get style() {
-              return ue({
-                "--kb-popover-content-transform-origin": "var(--kb-popper-content-transform-origin)",
-                position: "relative"
-              }, i.style);
+            get onMouseDown() {
+              return l([e.onMouseDown, g.onMouseDown]);
             },
-            get "aria-labelledby"() {
-              return e.titleId();
+            get onFocusIn() {
+              return l([
+                e.onFocusIn
+                // TODO: remove next breaking
+              ]);
             },
-            get "aria-describedby"() {
-              return e.descriptionId();
-            },
-            onPointerDownOutside: C,
-            onFocusOutside: I,
-            onInteractOutside: D,
-            get onDismiss() {
-              return e.close;
+            get onFocusOut() {
+              return l([e.onFocusOut, g.onFocusOut]);
             }
-          }, () => e.dataset(), c));
+          }, s));
         }
       });
     }
   });
 }
-function U(r) {
-  const t = d(), e = h({
-    id: t.generateId("description")
-  }, r), [o, i] = p(e, ["id"]);
-  return b(() => A(t.registerDescriptionId(o.id))), s(w, u({
-    as: "p",
-    get id() {
-      return o.id;
-    }
-  }, () => t.dataset(), i));
-}
-function j(r) {
-  const t = d();
-  return s($, {
-    get when() {
-      return t.contentPresent();
-    },
-    get children() {
-      return s(X, r);
-    }
+function $(o) {
+  let t;
+  const u = y(), c = T(), e = x(), s = c.generateId("trigger"), m = I({
+    id: s
+  }, o), [r, p] = b(m, ["ref", "onPointerDown", "onPointerUp", "onClick", "onKeyDown", "onMouseDown", "onFocus"]);
+  B({
+    getItem: () => ({
+      ref: () => t,
+      type: "item",
+      key: c.value(),
+      textValue: "",
+      // not applicable here
+      disabled: e.disabled()
+    })
   });
-}
-var S = {
-  // `aria-label` of Popover.CloseButton.
-  dismiss: "Dismiss"
-};
-function q(r) {
-  const t = `popover-${ie()}`, e = h({
-    id: t,
-    modal: !1,
-    translations: S
-  }, r), [o, i] = p(e, ["translations", "id", "open", "defaultOpen", "onOpenChange", "modal", "preventScroll", "forceMount", "anchorRef"]), [c, a] = g(), [l, m] = g(), [v, C] = g(), [I, D] = g(), [n, P] = g(), [O, W] = g(), f = te({
-    open: () => o.open,
-    defaultOpen: () => o.defaultOpen,
-    onOpenChange: (Q) => o.onOpenChange?.(Q)
-  }), z = () => o.anchorRef?.() ?? c() ?? l(), {
-    present: J
-  } = de({
-    show: () => o.forceMount || f.isOpen(),
-    element: () => v() ?? null
-  }), K = se(() => ({
-    "data-expanded": f.isOpen() ? "" : void 0,
-    "data-closed": f.isOpen() ? void 0 : ""
-  })), T = {
-    translations: () => o.translations ?? S,
-    dataset: K,
-    isOpen: f.isOpen,
-    isModal: () => o.modal ?? !1,
-    preventScroll: () => o.preventScroll ?? T.isModal(),
-    contentPresent: J,
-    triggerRef: l,
-    contentId: I,
-    titleId: n,
-    descriptionId: O,
-    setDefaultAnchorRef: a,
-    setTriggerRef: m,
-    setContentRef: C,
-    close: f.close,
-    toggle: f.toggle,
-    generateId: ne(() => o.id),
-    registerContentId: R(D),
-    registerTitleId: R(P),
-    registerDescriptionId: R(W)
+  const n = j({
+    key: () => c.value(),
+    selectionManager: () => u.listState().selectionManager(),
+    disabled: () => e.disabled(),
+    shouldSelectOnPressUp: !0
+  }, () => t), g = (i) => {
+    ["Enter", " "].includes(i.key) && i.preventDefault(), v(i, r.onKeyDown), v(i, n.onKeyDown);
   };
-  return s(B.Provider, {
-    value: T,
-    get children() {
-      return s(_, u({
-        anchorRef: z,
-        contentRef: v
-      }, i));
+  return S(() => F(c.registerTriggerId(p.id))), d(q, f({
+    ref(i) {
+      var a = K((C) => t = C, r.ref);
+      typeof a == "function" && a(i);
+    },
+    get "data-key"() {
+      return n.dataKey();
+    },
+    get onPointerDown() {
+      return l([r.onPointerDown, n.onPointerDown]);
+    },
+    get onPointerUp() {
+      return l([r.onPointerUp, n.onPointerUp]);
+    },
+    get onClick() {
+      return l([r.onClick, n.onClick]);
+    },
+    onKeyDown: g,
+    get onMouseDown() {
+      return l([r.onMouseDown, n.onMouseDown]);
+    },
+    get onFocus() {
+      return l([r.onFocus, n.onFocus]);
     }
-  });
+  }, p));
 }
-function G(r) {
-  const t = d(), e = h({
-    id: t.generateId("title")
-  }, r), [o, i] = p(e, ["id"]);
-  return b(() => A(t.registerTitleId(o.id))), s(w, u({
-    as: "h2",
-    get id() {
-      return o.id;
-    }
-  }, () => t.dataset(), i));
-}
-function V(r) {
-  const t = d(), [e, o] = p(r, ["ref", "onClick", "onPointerDown"]);
-  return s(E, u({
-    ref(a) {
-      var l = M(t.setTriggerRef, e.ref);
-      typeof l == "function" && l(a);
-    },
-    "aria-haspopup": "dialog",
-    get "aria-expanded"() {
-      return t.isOpen();
-    },
-    get "aria-controls"() {
-      return k(() => !!t.isOpen())() ? t.contentId() : void 0;
-    },
-    onPointerDown: (a) => {
-      x(a, e.onPointerDown), a.preventDefault();
-    },
-    onClick: (a) => {
-      x(a, e.onClick), t.toggle();
-    }
-  }, () => t.dataset(), o));
-}
-var fe = Object.assign(q, {
-  Anchor: L,
-  Arrow: F,
-  CloseButton: N,
-  Content: H,
-  Description: U,
-  Portal: j,
-  Title: G,
-  Trigger: V
+var Y = Object.assign(_, {
+  Content: O,
+  Header: R,
+  Item: H,
+  Trigger: $
 });
 export {
-  fe as Popover,
-  L as PopoverAnchor,
-  N as PopoverCloseButton,
-  H as PopoverContent,
-  U as PopoverDescription,
-  j as PopoverPortal,
-  q as PopoverRoot,
-  G as PopoverTitle,
-  V as PopoverTrigger,
-  pe as popover_exports,
-  d as usePopoverContext
+  Y as Accordion,
+  O as AccordionContent,
+  R as AccordionHeader,
+  H as AccordionItem,
+  _ as AccordionRoot,
+  $ as AccordionTrigger,
+  X as accordion_exports,
+  y as useAccordionContext
 };
 //# sourceMappingURL=index127.js.map

@@ -1,64 +1,75 @@
-import { createRoot as m, createSignal as f, untrack as T } from "solid-js";
-import { defaultToastOptions as c, defaultTimeouts as O, defaultToasterOptions as S } from "./index203.js";
-import { store as y, dispatch as u } from "./index201.js";
-import { generateID as g } from "./index204.js";
-import { resolveValue as l } from "./index205.js";
-import { ActionType as d } from "./index202.js";
-const [a, I] = f(S), A = (t, s = "blank", o) => ({
-  ...c,
-  ...a().toastOptions,
-  ...o,
-  type: s,
-  message: t,
-  pauseDuration: 0,
-  createdAt: Date.now(),
-  visible: !0,
-  id: o.id || g(),
-  paused: !1,
-  style: {
-    ...c.style,
-    ...a().toastOptions?.style,
-    ...o.style
-  },
-  duration: o.duration || a().toastOptions?.duration || O[s],
-  position: o.position || a().toastOptions?.position || a().position || c.position
-}), i = (t) => (s, o = {}) => m(() => {
-  const n = y.toasts.find((p) => p.id === o.id), r = A(s, t, { ...n, duration: void 0, ...o });
-  return u({ type: d.UPSERT_TOAST, toast: r }), r.id;
-}), e = (t, s) => i("blank")(t, s);
-T(() => e);
-e.error = i("error");
-e.success = i("success");
-e.loading = i("loading");
-e.custom = i("custom");
-e.dismiss = (t) => {
-  u({
-    type: d.DISMISS_TOAST,
-    toastId: t
-  });
-};
-e.promise = (t, s, o) => {
-  const n = e.loading(s.loading, { ...o });
-  return t.then((r) => (e.success(l(s.success, r), {
-    id: n,
-    ...o
-  }), r)).catch((r) => {
-    e.error(l(s.error, r), {
-      id: n,
-      ...o
-    });
-  }), t;
-};
-e.remove = (t) => {
-  u({
-    type: d.REMOVE_TOAST,
-    toastId: t
-  });
-};
+import { createComponent as i, mergeProps as A } from "solid-js/web";
+import { MenuTrigger as a, MenuSubTrigger as p, MenuSubContent as s, MenuSub as m, MenuRadioItem as c, MenuRadioGroup as I, MenuPortal as d, MenuItemLabel as l, MenuItemIndicator as M, MenuItemDescription as b, MenuItem as g, MenuIcon as C, MenuGroupLabel as f, MenuGroup as S, MenuCheckboxItem as R, MenuRoot as h, useMenuRootContext as L, useMenuContext as O, MenuContent as T } from "./index193.js";
+import { SeparatorRoot as x } from "./index194.js";
+import { PopperArrow as w } from "./index169.js";
+import { __export as F } from "./index162.js";
+import { mergeDefaultProps as _, focusWithoutScrolling as k } from "./index163.js";
+import { createUniqueId as v, splitProps as j } from "solid-js";
+var q = {};
+F(q, {
+  Arrow: () => w,
+  CheckboxItem: () => R,
+  Content: () => D,
+  DropdownMenu: () => U,
+  Group: () => S,
+  GroupLabel: () => f,
+  Icon: () => C,
+  Item: () => g,
+  ItemDescription: () => b,
+  ItemIndicator: () => M,
+  ItemLabel: () => l,
+  Portal: () => d,
+  RadioGroup: () => I,
+  RadioItem: () => c,
+  Root: () => G,
+  Separator: () => x,
+  Sub: () => m,
+  SubContent: () => s,
+  SubTrigger: () => p,
+  Trigger: () => a
+});
+function D(e) {
+  const t = L(), r = O(), [u, P] = j(e, ["onCloseAutoFocus", "onInteractOutside"]);
+  let n = !1;
+  return i(T, A({
+    onCloseAutoFocus: (o) => {
+      u.onCloseAutoFocus?.(o), n || k(r.triggerRef()), n = !1, o.preventDefault();
+    },
+    onInteractOutside: (o) => {
+      u.onInteractOutside?.(o), (!t.isModal() || o.detail.isContextMenu) && (n = !0);
+    }
+  }, P));
+}
+function G(e) {
+  const t = `dropdownmenu-${v()}`, r = _({
+    id: t
+  }, e);
+  return i(h, r);
+}
+var U = Object.assign(G, {
+  Arrow: w,
+  CheckboxItem: R,
+  Content: D,
+  Group: S,
+  GroupLabel: f,
+  Icon: C,
+  Item: g,
+  ItemDescription: b,
+  ItemIndicator: M,
+  ItemLabel: l,
+  Portal: d,
+  RadioGroup: I,
+  RadioItem: c,
+  Separator: x,
+  Sub: m,
+  SubContent: s,
+  SubTrigger: p,
+  Trigger: a
+});
 export {
-  A as createToast,
-  a as defaultOpts,
-  I as setDefaultOpts,
-  e as toast
+  U as DropdownMenu,
+  D as DropdownMenuContent,
+  G as DropdownMenuRoot,
+  q as dropdown_menu_exports
 };
 //# sourceMappingURL=index133.js.map

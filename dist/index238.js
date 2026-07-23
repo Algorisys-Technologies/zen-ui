@@ -1,7 +1,10 @@
-function n(e, t) {
-  return +t.replace(`${e}.`, "").split(".")[0];
+import { untrack as a } from "solid-js";
+import { removeInvalidNames as i } from "./index239.js";
+function o(r, t = !0) {
+  const e = [...a(r.internal.fieldArrayNames.get)];
+  return t && i(r, e), e;
 }
 export {
-  n as getPathIndex
+  o as getFieldArrayNames
 };
 //# sourceMappingURL=index238.js.map

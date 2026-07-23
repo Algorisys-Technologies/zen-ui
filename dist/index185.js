@@ -1,67 +1,119 @@
-import { getDocument as s } from "./index160.js";
-var E = "data-kb-top-layer", c, r = !1, t = [];
-function o(n) {
-  return t.findIndex((e) => e.node === n);
-}
-function l(n) {
-  return t[o(n)];
-}
-function y(n) {
-  return t[t.length - 1].node === n;
-}
-function a() {
-  return t.filter((n) => n.isPointerBlocking);
-}
-function d() {
-  return [...a()].slice(-1)[0];
-}
-function i() {
-  return a().length > 0;
-}
-function u(n) {
-  const e = o(d()?.node);
-  return o(n) < e;
-}
-function f(n) {
-  t.push(n);
-}
-function v(n) {
-  const e = o(n);
-  e < 0 || t.splice(e, 1);
-}
-function g() {
-  for (const {
-    node: n
-  } of t)
-    n.style.pointerEvents = u(n) ? "none" : "auto";
-}
-function p(n) {
-  if (i() && !r) {
-    const e = s(n);
-    c = document.body.style.pointerEvents, e.body.style.pointerEvents = "none", r = !0;
+import { createSelectableCollection as n } from "./index186.js";
+import { createCollator as r } from "./index147.js";
+import { createMemo as a } from "solid-js";
+import { access as i } from "./index165.js";
+var u = class {
+  collection;
+  ref;
+  collator;
+  constructor(e, t, l) {
+    this.collection = e, this.ref = t, this.collator = l;
   }
-}
-function B(n) {
-  if (i())
-    return;
-  const e = s(n);
-  e.body.style.pointerEvents = c, e.body.style.length === 0 && e.body.removeAttribute("style"), r = !1;
-}
-var b = {
-  layers: t,
-  isTopMostLayer: y,
-  hasPointerBlockingLayer: i,
-  isBelowPointerBlockingLayer: u,
-  addLayer: f,
-  removeLayer: v,
-  indexOf: o,
-  find: l,
-  assignPointerEventToLayers: g,
-  disableBodyPointerEvents: p,
-  restoreBodyPointerEvents: B
+  getKeyBelow(e) {
+    let t = this.collection().getKeyAfter(e);
+    for (; t != null; ) {
+      const l = this.collection().getItem(t);
+      if (l && l.type === "item" && !l.disabled)
+        return t;
+      t = this.collection().getKeyAfter(t);
+    }
+  }
+  getKeyAbove(e) {
+    let t = this.collection().getKeyBefore(e);
+    for (; t != null; ) {
+      const l = this.collection().getItem(t);
+      if (l && l.type === "item" && !l.disabled)
+        return t;
+      t = this.collection().getKeyBefore(t);
+    }
+  }
+  getFirstKey() {
+    let e = this.collection().getFirstKey();
+    for (; e != null; ) {
+      const t = this.collection().getItem(e);
+      if (t && t.type === "item" && !t.disabled)
+        return e;
+      e = this.collection().getKeyAfter(e);
+    }
+  }
+  getLastKey() {
+    let e = this.collection().getLastKey();
+    for (; e != null; ) {
+      const t = this.collection().getItem(e);
+      if (t && t.type === "item" && !t.disabled)
+        return e;
+      e = this.collection().getKeyBefore(e);
+    }
+  }
+  getItem(e) {
+    return this.ref?.()?.querySelector(`[data-key="${e}"]`) ?? null;
+  }
+  // TODO: not working correctly
+  getKeyPageAbove(e) {
+    const t = this.ref?.();
+    let l = this.getItem(e);
+    if (!t || !l)
+      return;
+    const s = Math.max(0, l.offsetTop + l.offsetHeight - t.offsetHeight);
+    let o = e;
+    for (; o && l && l.offsetTop > s; )
+      o = this.getKeyAbove(o), l = o != null ? this.getItem(o) : null;
+    return o;
+  }
+  // TODO: not working correctly
+  getKeyPageBelow(e) {
+    const t = this.ref?.();
+    let l = this.getItem(e);
+    if (!t || !l)
+      return;
+    const s = Math.min(t.scrollHeight, l.offsetTop - l.offsetHeight + t.offsetHeight);
+    let o = e;
+    for (; o && l && l.offsetTop < s; )
+      o = this.getKeyBelow(o), l = o != null ? this.getItem(o) : null;
+    return o;
+  }
+  getKeyForSearch(e, t) {
+    const l = this.collator?.();
+    if (!l)
+      return;
+    let s = t != null ? this.getKeyBelow(t) : this.getFirstKey();
+    for (; s != null; ) {
+      const o = this.collection().getItem(s);
+      if (o) {
+        const c = o.textValue.slice(0, e.length);
+        if (o.textValue && l.compare(c, e) === 0)
+          return s;
+      }
+      s = this.getKeyBelow(s);
+    }
+  }
 };
+function m(e, t, l) {
+  const s = r({
+    usage: "search",
+    sensitivity: "base"
+  }), o = a(() => {
+    const c = i(e.keyboardDelegate);
+    return c || new u(e.collection, t, s);
+  });
+  return n({
+    selectionManager: () => i(e.selectionManager),
+    keyboardDelegate: o,
+    autoFocus: () => i(e.autoFocus),
+    deferAutoFocus: () => i(e.deferAutoFocus),
+    shouldFocusWrap: () => i(e.shouldFocusWrap),
+    disallowEmptySelection: () => i(e.disallowEmptySelection),
+    selectOnFocus: () => i(e.selectOnFocus),
+    disallowTypeAhead: () => i(e.disallowTypeAhead),
+    shouldUseVirtualFocus: () => i(e.shouldUseVirtualFocus),
+    allowsTabNavigation: () => i(e.allowsTabNavigation),
+    isVirtualized: () => i(e.isVirtualized),
+    scrollToKey: (c) => i(e.scrollToKey)?.(c),
+    orientation: () => i(e.orientation)
+  }, t, l);
+}
 export {
-  E as DATA_TOP_LAYER_ATTR,
-  b as layerStack
+  u as ListKeyboardDelegate,
+  m as createSelectableList
 };
 //# sourceMappingURL=index185.js.map
