@@ -33,6 +33,22 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.10.0",
+    date: "2026-07-23",
+    kind: "new",
+    title: "MediaTimeline rangeMode=\"independent\" — overlay-element lanes",
+    detail:
+      "The trim track's partition physics (sorted, non-overlapping, neighbour clamps) is now one of two modes. independent turns the ranges into free spans — the overlay lane every editor has: bars overlap (array order is z-order), drag a bar's body to move it whole (length preserved, grab point under the cursor, keyboard too), rangeLabel puts the element's text in the bar, and rangeColor takes any CSS colour and derives the fill, selection ring and handle colour from it. Clicking empty track deselects — onActiveIndexChange(-1), the DOM selectedIndex convention — and still seeks. Default stays partition; existing timelines are untouched. All four bindings.",
+  },
+  {
+    version: "9.10.0",
+    date: "2026-07-23",
+    kind: "fixed",
+    title: "The first track click after a drag was silently swallowed",
+    detail:
+      "Both MediaTimeline and Waveform armed an ignore-the-drag's-own-click flag on release that the drag's click never actually consumed, so your next real click-to-seek was eaten instead — one lost click per drag, in every binding. Fixed; the drag's own click is still correctly ignored.",
+  },
+  {
     version: "9.9.0",
     date: "2026-07-23",
     kind: "new",

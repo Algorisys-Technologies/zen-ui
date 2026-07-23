@@ -11,6 +11,44 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.10.0] - 2026-07-23
+
+### Added
+
+- **MediaTimeline `rangeMode="independent"` — labeled, movable, overlappable
+  ranges, all four bindings.** Consumer-driven again (StudioX's
+  elements-timeline, the overlay-elements lane its Phase C could not port).
+  Independent mode drops the neighbour clamps (spans overlap freely, z-order
+  is array order), adds body-drag (whole-span move, length preserved,
+  grab-point kept under the cursor — core `moveRange`, contract-tested) and
+  makes the bar body a focusable slider (arrows move it). New per-range hooks:
+  `rangeLabel` (rendered in the bar, truncated, pointer-events none) and
+  `rangeColor` (any CSS colour; fill/ring/handles derived — arbitrary hex is
+  exactly what class tokens cannot express). Precedence: rangeClass >
+  rangeColor > default tint. Deselection: empty-track click in independent
+  mode emits `onActiveIndexChange(-1)` (the DOM `selectedIndex` convention —
+  chosen over `number | null` because widening the callback parameter would
+  be a compile-breaking change for every existing consumer) and still seeks.
+  Recorded per-mode decisions: body-drag is independent-only (moving a
+  partition range through neighbours has no defined meaning); independent
+  lanes default to the shorter `zen-h-10` track (the caller's class lands on
+  the root, where a height utility cannot reach the track). Partition mode
+  is byte-for-byte unchanged — `dragRangeEdge`'s mode parameter defaults to
+  it. Default `"partition"`; existing consumers unaffected.
+
+### Fixed
+
+- **A stale `suppressClick` swallowed the first track click after any drag,
+  in both media components, all bindings.** The flag armed on drag-end
+  assumed the drag's own click would reach the track and consume it — but
+  that click targets the captured handle and is stopped by the range's click
+  handler, so it never arrives, and the NEXT genuine click-to-seek (or
+  independent-mode deselect) was eaten instead. The flag now clears on any
+  pointerdown that actually reaches the track: a fresh track press is what
+  legitimizes the click that follows it, while a capture-lost drag click
+  (whose pointerdown was stopped at the handle) is still suppressed. Found
+  by the interaction driver's new deselect assertion.
+
 ## [9.9.0] - 2026-07-23
 
 ### Added
