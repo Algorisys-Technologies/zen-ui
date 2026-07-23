@@ -14,7 +14,7 @@ SKILL.md.
 ### Toast
 
 - `variant?: "info" | "default" | "success" | "warning" | "destructive" | null | undefined`
-- from `@radix-ui/react-toast`: `type?`, `onPause?`, `open?`, `onOpenChange?`, `onEscapeKeyDown?`, `forceMount?`, `defaultOpen?`, `duration?`, `onResume?`, `onSwipeStart?`, `onSwipeMove?`, `onSwipeCancel?`, `onSwipeEnd?`
+- from `@radix-ui/react-toast`: `type?`, `onPause?`, `open?`, `onOpenChange?`, `duration?`, `onEscapeKeyDown?`, `forceMount?`, `defaultOpen?`, `onResume?`, `onSwipeStart?`, `onSwipeMove?`, `onSwipeCancel?`, `onSwipeEnd?`
 - from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 

@@ -29,6 +29,7 @@ import "./color-picker";
 import "./combobox";
 import "./data-table";
 import "./tree-table";
+import "./media-timeline";
 import "./micro-chart";
 import "./timeline";
 import "./upload-collection";
@@ -101,6 +102,7 @@ import "./tree";
 import "./value-help";
 import "./view-settings";
 import "./virtualized-items";
+import "./waveform";
 
 /**
  * Idempotent: the elements self-register on the imports above. Returns the list of

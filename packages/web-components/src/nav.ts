@@ -116,6 +116,8 @@ export const NAV: NavGroup[] = [
       { to: "/planning-calendar", label: "PlanningCalendar", description: "Resource-by-time grid \u2014 rows of people or rooms, appointments as blocks, day / week / month views", source: "packages/web-components/src/components/PlanningCalendarDemo.ts" },
       { to: "/form", label: "Form (RHF + Zod)", description: "createForm() controller + any zod-shaped schema; FormField wires a11y/errors (React's FormControl Slot, without a Slot), plus Bound* field wrappers", source: "packages/web-components/src/components/FormDemo.ts" },
       { to: "/pivot", label: "Pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/web-components/src/components/PivotDemo.ts" },
+      { to: "/media-timeline", label: "MediaTimeline", description: "Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state", source: "packages/web-components/src/components/MediaTimelineDemo.ts" },
+      { to: "/waveform", label: "Waveform", description: "Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align", source: "packages/web-components/src/components/WaveformDemo.ts" },
     ],
   },
   {

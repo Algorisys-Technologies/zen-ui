@@ -31,6 +31,9 @@ real props; guessing prop names is how agents invent APIs.
 - [components-pivot.md](components-pivot.md) — `PivotWorkbench`, `PivotGrid`, `PivotDropZone`, `PivotFieldChip`, `PivotFilterMenu`, `PivotWorkbenchProps`, `PivotGridProps`, `PivotDropZoneProps`, `PivotFieldChipProps`, `PivotFilterMenuProps`
 - [zen-ui-core-pivot.md](zen-ui-core-pivot.md) — `createEmptyLayout`, `moveFieldToZone`, `removeFieldFromLayout`, `updateValueAggregation`, `zoneOf`, `zoneLabel`, `fieldLabel`, `availableFields`, `isLayoutRenderable`, `defaultAggregationForField`, `normalizeFilterSelection`, `isFilterActive`, `isValueSelected`, `hasActiveFilters`, `describeFilterSelection`, `describeMove`, `PIVOT_ZONES`, `PIVOT_AGGREGATIONS`, `PivotLayout`, `PivotField`, `PivotFieldType`, `PivotValueField`, `PivotZone`, `PivotAggregation`, `PivotFilters`, `PivotFilterSelection`, `PivotFilterOptionsBody`, `PivotMembersRequest`, `PivotMembersResult`, `PivotSort`, `SortDirection`
 - [carousel.md](carousel.md) — `Carousel`, `CarouselProps`
+- [media-timeline.md](media-timeline.md) — `MediaTimeline`, `MediaTimelineProps`
+- [waveform.md](waveform.md) — `Waveform`, `WaveformProps`
+- [media.md](media.md) — `formatMediaTime`, `MIN_MEDIA_RANGE`, `MediaRange`, `WaveformClip`
 - [link.md](link.md) — `Link`, `linkVariants`, `LinkProps`
 - [popover.md](popover.md) — `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverAnchor`
 - [checkbox.md](checkbox.md) — `Checkbox`, `CheckboxProps`, `CheckboxSize`

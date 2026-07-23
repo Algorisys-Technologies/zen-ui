@@ -1,0 +1,175 @@
+import { createSignal } from "solid-js";
+import { formatMediaTime, type MediaRange } from "@algorisys/zen-ui-core";
+import { MediaTimeline } from "./media-timeline/media-timeline";
+import { Slider } from "./form/slider/slider";
+import { DemoPage, DemoSection } from "./demo-helpers";
+
+// Stand-in filmstrip frames — the component takes image URLs and never touches
+// ffmpeg, so the demo fabricates frames the same way an app would supply them.
+const thumb = (hue: number) =>
+  `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='56'><rect width='80' height='56' fill='hsl(${hue} 55% 60%)'/><circle cx='40' cy='28' r='12' fill='hsl(${hue} 65% 40%)'/></svg>`,
+  )}`;
+const THUMBS = Array.from({ length: 12 }, (_, i) => thumb(i * 30));
+
+const fmtRanges = (ranges: MediaRange[]) =>
+  ranges.map((r) => `${r.start.toFixed(1)}–${r.end.toFixed(1)}s`).join(" · ");
+
+const NewMediaTimelineDemo = () => {
+  const [ranges, setRanges] = createSignal<MediaRange[]>([
+    { start: 8, end: 22 },
+    { start: 40, end: 65 },
+  ]);
+  const [active, setActive] = createSignal(0);
+  const [time, setTime] = createSignal(30);
+  const [commits, setCommits] = createSignal(0);
+
+  const [zoom, setZoom] = createSignal([2]);
+  const [zRanges, setZRanges] = createSignal<MediaRange[]>([{ start: 20, end: 24 }]);
+  const [zActive, setZActive] = createSignal(0);
+
+  const [cuts, setCuts] = createSignal<MediaRange[]>([{ start: 10, end: 25 }]);
+  const [cutActive, setCutActive] = createSignal(0);
+
+  const addCut = (t: number) => {
+    const half = 2.5;
+    const next: MediaRange = { start: Math.max(0, t - half), end: Math.min(120, t + half) };
+    if (cuts().some((c) => next.start < c.end && next.end > c.start)) return;
+    const sorted = [...cuts(), next].sort((a, b) => a.start - b.start);
+    setCuts(sorted);
+    setCutActive(sorted.indexOf(next));
+  };
+
+  return (
+    <DemoPage
+      title="MediaTimeline"
+      description="A filmstrip trim track: draggable ranges over thumbnails, playhead, hover scrubbing, zoom. Controlled-only — the app owns ranges, zoom and the playhead. Not the event Timeline; this one edits time."
+    >
+      <DemoSection
+        title="Trim ranges"
+        codeTitle="Drag the edges; click the track to seek"
+        codeDescription="onRangesInput fires per pointermove (no history), onSeek follows the dragged edge so a video preview can track it live, and onRangesCommit fires once on release — wire undo there. Keyboard: focus a handle, arrows nudge (Shift for 1s steps)."
+        code={`const [ranges, setRanges] = createSignal<MediaRange[]>([
+  { start: 8, end: 22 },
+  { start: 40, end: 65 },
+]);
+
+<MediaTimeline
+  duration={120}
+  ranges={ranges()}
+  activeIndex={active()}
+  onActiveIndexChange={setActive}
+  onRangesInput={setRanges}
+  onRangesChange={setRanges}
+  onRangesCommit={(r) => { setRanges(r); pushHistory(r); }}
+  onSeek={setTime}
+  currentTime={time()}
+  thumbnails={thumbnails}
+/>`}
+      >
+        <div class="zen-flex zen-w-full zen-flex-col zen-gap-2">
+          <MediaTimeline
+            duration={120}
+            ranges={ranges()}
+            activeIndex={active()}
+            onActiveIndexChange={setActive}
+            onRangesInput={setRanges}
+            onRangesChange={setRanges}
+            onRangesCommit={(r) => {
+              setRanges(r);
+              setCommits(commits() + 1);
+            }}
+            onSeek={setTime}
+            currentTime={time()}
+            thumbnails={THUMBS}
+          />
+          <div class="zen-text-xs zen-font-mono zen-text-zen-muted-fg">
+            ranges: {fmtRanges(ranges())} · active: {active()} · playhead:{" "}
+            {formatMediaTime(time())} · commits: {commits()}
+          </div>
+        </div>
+      </DemoSection>
+
+      <DemoSection
+        title="Zoom"
+        codeTitle="zoom is a plain controlled prop — bring your own control"
+        codeDescription="There is no built-in zoom UI: the component takes zoom (>= 1) and scrolls horizontally when the track outgrows its box. A Slider next to it is the whole story, and it stays in the app so the chrome matches the app's."
+        code={`const [zoom, setZoom] = createSignal([2]);
+
+<Slider value={zoom()} onChange={setZoom} minValue={1} maxValue={10} step={0.5} />
+<MediaTimeline duration={60} ranges={ranges()} zoom={zoom()[0]} … />`}
+      >
+        <div class="zen-flex zen-w-full zen-flex-col zen-gap-2">
+          <div class="zen-flex zen-items-center zen-gap-3">
+            <Slider
+              value={zoom()}
+              onChange={setZoom}
+              minValue={1}
+              maxValue={10}
+              step={0.5}
+              class="zen-w-40"
+            />
+            <span class="zen-text-xs zen-font-mono zen-text-zen-muted-fg">{zoom()[0]}x</span>
+          </div>
+          <MediaTimeline
+            duration={60}
+            ranges={zRanges()}
+            activeIndex={zActive()}
+            onActiveIndexChange={setZActive}
+            onRangesInput={setZRanges}
+            onRangesChange={setZRanges}
+            zoom={zoom()[0]}
+            thumbnails={THUMBS}
+          />
+        </div>
+      </DemoSection>
+
+      <DemoSection
+        title="Consumer semantics"
+        codeTitle="A range is just a range — the app decides it means “cut”"
+        codeDescription="rangeClass replaces the default tint, onRangeRemove puts a remove button on the active range, and double-click hands the app a time — whether that adds a range (and with what overlap rules) is the app's call. This is StudioX's red cut-segment editor built on the generic component."
+        code={`<MediaTimeline
+  duration={120}
+  ranges={cuts()}
+  activeIndex={cutActive()}
+  onActiveIndexChange={setCutActive}
+  onRangesInput={setCuts}
+  onRangesChange={setCuts}
+  onRangeRemove={(i) => setCuts(cuts().filter((_, k) => k !== i))}
+  onTrackDblClick={addCut}
+  rangeClass={(_, act) =>
+    act
+      ? "zen-ring-2 zen-ring-zen-error zen-bg-zen-error-soft"
+      : "zen-ring-1 zen-ring-zen-error zen-bg-zen-error-soft"
+  }
+/>`}
+      >
+        <div class="zen-flex zen-w-full zen-flex-col zen-gap-2">
+          <MediaTimeline
+            duration={120}
+            ranges={cuts()}
+            activeIndex={cutActive()}
+            onActiveIndexChange={setCutActive}
+            onRangesInput={setCuts}
+            onRangesChange={setCuts}
+            onRangeRemove={(i) => {
+              setCuts(cuts().filter((_, k) => k !== i));
+              setCutActive(Math.min(cutActive(), cuts().length - 1));
+            }}
+            onTrackDblClick={addCut}
+            rangeClass={(_, act) =>
+              act
+                ? "zen-ring-2 zen-ring-zen-error zen-bg-zen-error-soft"
+                : "zen-ring-1 zen-ring-zen-error zen-bg-zen-error-soft"
+            }
+          />
+          <div class="zen-text-xs zen-font-mono zen-text-zen-muted-fg">
+            Double-click the track to add a cut · cuts: {fmtRanges(cuts())}
+          </div>
+        </div>
+      </DemoSection>
+    </DemoPage>
+  );
+};
+
+export default NewMediaTimelineDemo;

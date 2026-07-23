@@ -103,6 +103,8 @@ import UploadCollectionDemo from "./components/UploadCollectionDemo";
 import PlanningCalendarDemo from "./components/PlanningCalendarDemo";
 import FormDemo from "./components/FormDemo";
 import PivotDemo from "./components/PivotDemo";
+import MediaTimelineDemo from "./components/MediaTimelineDemo";
+import WaveformDemo from "./components/WaveformDemo";
 
 /**
  * The route table. `bun run check:nav` re-derives route -> component -> file from
@@ -201,6 +203,8 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/planning-calendar": PlanningCalendarDemo,
   "/form": FormDemo,
   "/pivot": PivotDemo,
+  "/media-timeline": MediaTimelineDemo,
+  "/waveform": WaveformDemo,
 };
 
 /**

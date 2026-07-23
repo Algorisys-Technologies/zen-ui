@@ -173,6 +173,13 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    group: "Media",
+    items: [
+      { label: "MediaTimeline", path: "/media-timeline", description: "Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state", source: "packages/solid/src/components/NewMediaTimelineDemo.tsx" },
+      { label: "Waveform", path: "/waveform", description: "Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align", source: "packages/solid/src/components/NewWaveformDemo.tsx" },
+    ],
+  },
+  {
     group: "Forms",
     items: [
       { label: "Form", path: "/form-new", description: "Form primitives with validation wiring", source: "packages/solid/src/components/NewFormDemo.tsx" },

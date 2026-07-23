@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev:all": "node scripts/dev-all.mjs",
-    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide && bun run check:skill-api",
+    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:media && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide && bun run check:skill-api",
     "gen:agent-guide": "bun run scripts/gen-agent-guide.ts",
     "check:agent-guide": "bun run scripts/gen-agent-guide.ts --check",
     "gen:skill-api": "bun run scripts/gen-skill-api.ts",
@@ -23,6 +23,7 @@
     "check:color": "bun run scripts/check-color.ts",
     "check:date-range": "bun run scripts/check-date-range.ts",
     "check:chart": "bun run scripts/check-chart.ts",
+    "check:media": "bun run scripts/check-media.ts",
     "check:pivot": "bun run scripts/check-pivot.ts",
     "check:virtual-window": "bun run scripts/check-virtual-window.ts",
     "check:planning": "bun run scripts/check-planning.ts",
