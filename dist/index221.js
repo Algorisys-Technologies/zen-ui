@@ -1,24 +1,47 @@
-var f = (l, t) => {
-  switch (t) {
-    case "x":
-      return [l.clientWidth, l.scrollLeft, l.scrollWidth];
-    case "y":
-      return [l.clientHeight, l.scrollTop, l.scrollHeight];
-  }
-}, v = (l, t) => {
-  const r = getComputedStyle(l), o = t === "x" ? r.overflowX : r.overflowY;
-  return o === "auto" || o === "scroll" || // The HTML element is a scroll container if it has overflow visible
-  l.tagName === "HTML" && o === "visible";
-}, S = (l, t, r) => {
-  const o = t === "x" && window.getComputedStyle(l).direction === "rtl" ? -1 : 1;
-  let e = l, i = 0, s = 0, n = !1;
-  do {
-    const [d, c, u] = f(e, t), a = u - d - o * c;
-    (c !== 0 || a !== 0) && v(e, t) && (i += a, s += c), e === (r ?? document.documentElement) ? n = !0 : e = e._$host ?? e.parentElement;
-  } while (e && !n);
-  return [i, s];
-};
+import { setDefaultOpts as l, defaultOpts as g } from "./index136.js";
+import { store as p, dispatch as u } from "./index218.js";
+import { defaultToasterOptions as f } from "./index220.js";
+import { ActionType as d } from "./index219.js";
+const O = /* @__PURE__ */ (() => {
+  let t = 0;
+  return () => String(++t);
+})(), S = (t) => {
+  l((e) => ({
+    containerClassName: t.containerClassName ?? e.containerClassName,
+    containerStyle: t.containerStyle ?? e.containerStyle,
+    gutter: t.gutter ?? e.gutter,
+    position: t.position ?? e.position,
+    toastOptions: {
+      ...t.toastOptions
+    }
+  }));
+}, b = (t, e) => {
+  const s = t.includes("top") ? { top: 0, "margin-top": `${e}px` } : { bottom: 0, "margin-bottom": `${e}px` }, i = t.includes("center") ? { "justify-content": "center" } : t.includes("right") ? { "justify-content": "flex-end" } : {};
+  return {
+    left: 0,
+    right: 0,
+    display: "flex",
+    position: "absolute",
+    transition: "all 230ms cubic-bezier(.21,1.02,.73,1)",
+    ...s,
+    ...i
+  };
+}, C = (t, e) => {
+  const n = t.getBoundingClientRect();
+  n.height !== e.height && u({
+    type: d.UPDATE_TOAST,
+    toast: { id: e.id, height: n.height }
+  });
+}, A = (t, e) => {
+  const { toasts: n } = p, s = g().gutter || f.gutter || 8, i = n.filter((o) => (o.position || e) === e && o.height), c = i.findIndex((o) => o.id === t.id), a = i.filter((o, r) => r < c && o.visible).length;
+  return i.slice(0, a).reduce((o, r) => o + s + (r.height || 0), 0);
+}, D = (t, e) => (t.position || e).includes("top") ? 1 : -1;
 export {
-  S as getScrollAtLocation
+  O as generateID,
+  b as getToastWrapperStyles,
+  D as getToastYDirection,
+  A as getWrapperYAxisOffset,
+  S as mergeContainerOptions,
+  C as updateToastHeight
 };
 //# sourceMappingURL=index221.js.map

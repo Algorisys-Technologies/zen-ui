@@ -1,15 +1,22 @@
-import { isString as a } from "./index163.js";
-import { createSignal as i, createEffect as m } from "solid-js";
-function f(e, t) {
-  const [n, o] = i(r(t?.()));
-  return m(() => {
-    o(e()?.tagName.toLowerCase() || r(t?.()));
-  }), n;
-}
+import "solid-js";
+const i = /((?:--)?(?:\w+-?)+)\s*:\s*([^;]*)/g;
 function r(e) {
-  return a(e) ? e : void 0;
+  const t = {};
+  let n;
+  for (; n = i.exec(e); )
+    t[n[1]] = n[2];
+  return t;
+}
+function c(e, t) {
+  if (typeof e == "string") {
+    if (typeof t == "string")
+      return `${e};${t}`;
+    e = r(e);
+  } else typeof t == "string" && (t = r(t));
+  return { ...e, ...t };
 }
 export {
-  f as createTagName
+  c as combineStyle,
+  r as stringStyleToObject
 };
 //# sourceMappingURL=index168.js.map

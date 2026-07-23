@@ -4,7 +4,7 @@
 
 # media — API (React, the parity reference)
 
-Exports: `formatMediaTime`, `MIN_MEDIA_RANGE`, `MediaRange`, `WaveformClip`
+Exports: `formatMediaTime`, `MIN_MEDIA_RANGE`, `MediaRange`, `MediaRangeMode`, `WaveformClip`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-media>`-style
@@ -26,3 +26,4 @@ SKILL.md.
 
 - `formatMediaTime(seconds: number): string`
 - `MIN_MEDIA_RANGE: 0.1`
+- `MediaRangeMode` = `"partition" | "independent"`

@@ -1,74 +1,119 @@
-import { DATA_TOP_LAYER_ATTR as N } from "./index178.js";
-import { DATA_LIVE_ANNOUNCER_ATTR as b } from "./index179.js";
-import { createEffect as p, onCleanup as A } from "solid-js";
-import { access as u } from "./index165.js";
-function F(s) {
-  p(() => {
-    u(s.isDisabled) || A(g(u(s.targets), u(s.root)));
-  });
+let l = /* @__PURE__ */ new Map(), u = !1;
+try {
+  u = new Intl.NumberFormat("de-DE", {
+    signDisplay: "exceptZero"
+  }).resolvedOptions().signDisplay === "exceptZero";
+} catch {
 }
-var a = /* @__PURE__ */ new WeakMap(), r = [];
-function g(s, l = document.body) {
-  const i = new Set(s), c = /* @__PURE__ */ new Set(), E = (e) => {
-    for (const o of e.querySelectorAll(`[${b}], [${N}]`))
-      i.add(o);
-    const t = (o) => {
-      if (i.has(o) || o.parentElement && c.has(o.parentElement) && o.parentElement.getAttribute("role") !== "row")
-        return NodeFilter.FILTER_REJECT;
-      for (const h of i)
-        if (o.contains(h))
-          return NodeFilter.FILTER_SKIP;
-      return NodeFilter.FILTER_ACCEPT;
-    }, n = document.createTreeWalker(e, NodeFilter.SHOW_ELEMENT, {
-      acceptNode: t
-    }), T = t(e);
-    if (T === NodeFilter.FILTER_ACCEPT && m(e), T !== NodeFilter.FILTER_REJECT) {
-      let o = n.nextNode();
-      for (; o != null; )
-        m(o), o = n.nextNode();
+let o = !1;
+try {
+  o = new Intl.NumberFormat("de-DE", {
+    style: "unit",
+    unit: "degree"
+  }).resolvedOptions().style === "unit";
+} catch {
+}
+const f = {
+  degree: {
+    narrow: {
+      default: "°",
+      "ja-JP": " 度",
+      "zh-TW": "度",
+      "sl-SI": " °"
     }
-  }, m = (e) => {
-    const t = a.get(e) ?? 0;
-    e.getAttribute("aria-hidden") === "true" && t === 0 || (t === 0 && e.setAttribute("aria-hidden", "true"), c.add(e), a.set(e, t + 1));
-  };
-  r.length && r[r.length - 1].disconnect(), E(l);
-  const d = new MutationObserver((e) => {
-    for (const t of e)
-      if (!(t.type !== "childList" || t.addedNodes.length === 0) && ![...i, ...c].some((n) => n.contains(t.target))) {
-        for (const n of t.removedNodes)
-          n instanceof Element && (i.delete(n), c.delete(n));
-        for (const n of t.addedNodes)
-          (n instanceof HTMLElement || n instanceof SVGElement) && (n.dataset.liveAnnouncer === "true" || n.dataset.reactAriaTopLayer === "true") ? i.add(n) : n instanceof Element && E(n);
-      }
-  });
-  d.observe(l, {
-    childList: !0,
-    subtree: !0
-  });
-  const f = {
-    observe() {
-      d.observe(l, {
-        childList: !0,
-        subtree: !0
-      });
-    },
-    disconnect() {
-      d.disconnect();
+  }
+};
+class c {
+  constructor(t, e = {}) {
+    this.numberFormatter = p(t, e), this.options = e;
+  }
+  /** Formats a number value as a string, according to the locale and options provided to the constructor. */
+  format(t) {
+    let e = "";
+    if (!u && this.options.signDisplay != null ? e = m(this.numberFormatter, this.options.signDisplay, t) : e = this.numberFormatter.format(t), this.options.style === "unit" && !o) {
+      let { unit: s, unitDisplay: n = "short", locale: r } = this.resolvedOptions();
+      if (!s) return e;
+      let a = f[s]?.[n];
+      e += a[r] || a.default;
     }
-  };
-  return r.push(f), () => {
-    d.disconnect();
-    for (const e of c) {
-      const t = a.get(e);
-      if (t == null)
-        return;
-      t === 1 ? (e.removeAttribute("aria-hidden"), a.delete(e)) : a.set(e, t - 1);
-    }
-    f === r[r.length - 1] ? (r.pop(), r.length && r[r.length - 1].observe()) : r.splice(r.indexOf(f), 1);
-  };
+    return e;
+  }
+  /** Formats a number to an array of parts such as separators, digits, punctuation, and more. */
+  formatToParts(t) {
+    return this.numberFormatter.formatToParts(t);
+  }
+  /** Formats a number range as a string. */
+  formatRange(t, e) {
+    if (typeof this.numberFormatter.formatRange == "function") return this.numberFormatter.formatRange(t, e);
+    if (e < t) throw new RangeError("End date must be >= start date");
+    return `${this.format(t)} – ${this.format(e)}`;
+  }
+  /** Formats a number range as an array of parts. */
+  formatRangeToParts(t, e) {
+    if (typeof this.numberFormatter.formatRangeToParts == "function") return this.numberFormatter.formatRangeToParts(t, e);
+    if (e < t) throw new RangeError("End date must be >= start date");
+    let s = this.numberFormatter.formatToParts(t), n = this.numberFormatter.formatToParts(e);
+    return [
+      ...s.map((r) => ({
+        ...r,
+        source: "startRange"
+      })),
+      {
+        type: "literal",
+        value: " – ",
+        source: "shared"
+      },
+      ...n.map((r) => ({
+        ...r,
+        source: "endRange"
+      }))
+    ];
+  }
+  /** Returns the resolved formatting options based on the values passed to the constructor. */
+  resolvedOptions() {
+    let t = this.numberFormatter.resolvedOptions();
+    return !u && this.options.signDisplay != null && (t = {
+      ...t,
+      signDisplay: this.options.signDisplay
+    }), !o && this.options.style === "unit" && (t = {
+      ...t,
+      style: "unit",
+      unit: this.options.unit,
+      unitDisplay: this.options.unitDisplay
+    }), t;
+  }
+}
+function p(i, t = {}) {
+  let { numberingSystem: e } = t;
+  if (e && i.includes("-nu-") && (i.includes("-u-") || (i += "-u-"), i += `-nu-${e}`), t.style === "unit" && !o) {
+    let { unit: r, unitDisplay: a = "short" } = t;
+    if (!r) throw new Error('unit option must be provided with style: "unit"');
+    if (!f[r]?.[a]) throw new Error(`Unsupported unit ${r} with unitDisplay = ${a}`);
+    t = {
+      ...t,
+      style: "decimal"
+    };
+  }
+  let s = i + (t ? Object.entries(t).sort((r, a) => r[0] < a[0] ? -1 : 1).join() : "");
+  if (l.has(s)) return l.get(s);
+  let n = new Intl.NumberFormat(i, t);
+  return l.set(s, n), n;
+}
+function m(i, t, e) {
+  if (t === "auto") return i.format(e);
+  if (t === "never") return i.format(Math.abs(e));
+  {
+    let s = !1;
+    if (t === "always" ? s = e > 0 || Object.is(e, 0) : t === "exceptZero" && (Object.is(e, -0) || Object.is(e, 0) ? e = Math.abs(e) : s = e > 0), s) {
+      let n = i.format(-e), r = i.format(e), a = n.replace(r, "").replace(/\u200e|\u061C/, "");
+      return [
+        ...a
+      ].length !== 1 && console.warn("@react-aria/i18n polyfill for NumberFormat signDisplay: Unsupported case"), n.replace(r, "!!!").replace(a, "+").replace("!!!", r);
+    } else return i.format(e);
+  }
 }
 export {
-  g as ariaHideOutside,
-  F as createHideOutside
+  c as NumberFormatter,
+  m as numberFormatSignDisplayPolyfill
 };
 //# sourceMappingURL=index171.js.map

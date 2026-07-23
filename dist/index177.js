@@ -1,119 +1,61 @@
-let l = /* @__PURE__ */ new Map(), u = !1;
-try {
-  u = new Intl.NumberFormat("de-DE", {
-    signDisplay: "exceptZero"
-  }).resolvedOptions().signDisplay === "exceptZero";
-} catch {
+import { createComponent as g, mergeProps as c, memo as p } from "solid-js/web";
+import { createTagName as v } from "./index169.js";
+import { Polymorphic as N } from "./index162.js";
+import { __export as y } from "./index163.js";
+import { mergeDefaultProps as P } from "./index164.js";
+import { splitProps as B, createMemo as u } from "solid-js";
+import { mergeRefs as T } from "./index167.js";
+var _ = {};
+y(_, {
+  Button: () => I,
+  Root: () => d
+});
+var x = ["button", "color", "file", "image", "reset", "submit"];
+function h(r) {
+  const e = r.tagName.toLowerCase();
+  return e === "button" ? !0 : e === "input" && r.type ? x.indexOf(r.type) !== -1 : !1;
 }
-let o = !1;
-try {
-  o = new Intl.NumberFormat("de-DE", {
-    style: "unit",
-    unit: "degree"
-  }).resolvedOptions().style === "unit";
-} catch {
-}
-const f = {
-  degree: {
-    narrow: {
-      default: "°",
-      "ja-JP": " 度",
-      "zh-TW": "度",
-      "sl-SI": " °"
+function d(r) {
+  let e;
+  const f = P({
+    type: "button"
+  }, r), [t, l] = B(f, ["ref", "type", "disabled"]), i = v(() => e, () => "button"), o = u(() => {
+    const n = i();
+    return n == null ? !1 : h({
+      tagName: n,
+      type: t.type
+    });
+  }), a = u(() => i() === "input"), s = u(() => i() === "a" && e?.getAttribute("href") != null);
+  return g(N, c({
+    as: "button",
+    ref(n) {
+      var m = T((b) => e = b, t.ref);
+      typeof m == "function" && m(n);
+    },
+    get type() {
+      return p(() => !!(o() || a()))() ? t.type : void 0;
+    },
+    get role() {
+      return !o() && !s() ? "button" : void 0;
+    },
+    get tabIndex() {
+      return !o() && !s() && !t.disabled ? 0 : void 0;
+    },
+    get disabled() {
+      return p(() => !!(o() || a()))() ? t.disabled : void 0;
+    },
+    get "aria-disabled"() {
+      return !o() && !a() && t.disabled ? !0 : void 0;
+    },
+    get "data-disabled"() {
+      return t.disabled ? "" : void 0;
     }
-  }
-};
-class c {
-  constructor(t, e = {}) {
-    this.numberFormatter = p(t, e), this.options = e;
-  }
-  /** Formats a number value as a string, according to the locale and options provided to the constructor. */
-  format(t) {
-    let e = "";
-    if (!u && this.options.signDisplay != null ? e = m(this.numberFormatter, this.options.signDisplay, t) : e = this.numberFormatter.format(t), this.options.style === "unit" && !o) {
-      let { unit: s, unitDisplay: n = "short", locale: r } = this.resolvedOptions();
-      if (!s) return e;
-      let a = f[s]?.[n];
-      e += a[r] || a.default;
-    }
-    return e;
-  }
-  /** Formats a number to an array of parts such as separators, digits, punctuation, and more. */
-  formatToParts(t) {
-    return this.numberFormatter.formatToParts(t);
-  }
-  /** Formats a number range as a string. */
-  formatRange(t, e) {
-    if (typeof this.numberFormatter.formatRange == "function") return this.numberFormatter.formatRange(t, e);
-    if (e < t) throw new RangeError("End date must be >= start date");
-    return `${this.format(t)} – ${this.format(e)}`;
-  }
-  /** Formats a number range as an array of parts. */
-  formatRangeToParts(t, e) {
-    if (typeof this.numberFormatter.formatRangeToParts == "function") return this.numberFormatter.formatRangeToParts(t, e);
-    if (e < t) throw new RangeError("End date must be >= start date");
-    let s = this.numberFormatter.formatToParts(t), n = this.numberFormatter.formatToParts(e);
-    return [
-      ...s.map((r) => ({
-        ...r,
-        source: "startRange"
-      })),
-      {
-        type: "literal",
-        value: " – ",
-        source: "shared"
-      },
-      ...n.map((r) => ({
-        ...r,
-        source: "endRange"
-      }))
-    ];
-  }
-  /** Returns the resolved formatting options based on the values passed to the constructor. */
-  resolvedOptions() {
-    let t = this.numberFormatter.resolvedOptions();
-    return !u && this.options.signDisplay != null && (t = {
-      ...t,
-      signDisplay: this.options.signDisplay
-    }), !o && this.options.style === "unit" && (t = {
-      ...t,
-      style: "unit",
-      unit: this.options.unit,
-      unitDisplay: this.options.unitDisplay
-    }), t;
-  }
+  }, l));
 }
-function p(i, t = {}) {
-  let { numberingSystem: e } = t;
-  if (e && i.includes("-nu-") && (i.includes("-u-") || (i += "-u-"), i += `-nu-${e}`), t.style === "unit" && !o) {
-    let { unit: r, unitDisplay: a = "short" } = t;
-    if (!r) throw new Error('unit option must be provided with style: "unit"');
-    if (!f[r]?.[a]) throw new Error(`Unsupported unit ${r} with unitDisplay = ${a}`);
-    t = {
-      ...t,
-      style: "decimal"
-    };
-  }
-  let s = i + (t ? Object.entries(t).sort((r, a) => r[0] < a[0] ? -1 : 1).join() : "");
-  if (l.has(s)) return l.get(s);
-  let n = new Intl.NumberFormat(i, t);
-  return l.set(s, n), n;
-}
-function m(i, t, e) {
-  if (t === "auto") return i.format(e);
-  if (t === "never") return i.format(Math.abs(e));
-  {
-    let s = !1;
-    if (t === "always" ? s = e > 0 || Object.is(e, 0) : t === "exceptZero" && (Object.is(e, -0) || Object.is(e, 0) ? e = Math.abs(e) : s = e > 0), s) {
-      let n = i.format(-e), r = i.format(e), a = n.replace(r, "").replace(/\u200e|\u061C/, "");
-      return [
-        ...a
-      ].length !== 1 && console.warn("@react-aria/i18n polyfill for NumberFormat signDisplay: Unsupported case"), n.replace(r, "!!!").replace(a, "+").replace("!!!", r);
-    } else return i.format(e);
-  }
-}
+var I = d;
 export {
-  c as NumberFormatter,
-  m as numberFormatSignDisplayPolyfill
+  I as Button,
+  d as ButtonRoot,
+  _ as button_exports
 };
 //# sourceMappingURL=index177.js.map

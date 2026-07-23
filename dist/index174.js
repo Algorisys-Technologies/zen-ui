@@ -1,61 +1,74 @@
-import { createComponent as g, mergeProps as c, memo as p } from "solid-js/web";
-import { createTagName as v } from "./index168.js";
-import { Polymorphic as N } from "./index161.js";
-import { __export as y } from "./index162.js";
-import { mergeDefaultProps as P } from "./index163.js";
-import { splitProps as B, createMemo as u } from "solid-js";
-import { mergeRefs as T } from "./index166.js";
-var _ = {};
-y(_, {
-  Button: () => I,
-  Root: () => d
-});
-var x = ["button", "color", "file", "image", "reset", "submit"];
-function h(r) {
-  const e = r.tagName.toLowerCase();
-  return e === "button" ? !0 : e === "input" && r.type ? x.indexOf(r.type) !== -1 : !1;
+import { DATA_TOP_LAYER_ATTR as N } from "./index180.js";
+import { DATA_LIVE_ANNOUNCER_ATTR as b } from "./index181.js";
+import { createEffect as p, onCleanup as A } from "solid-js";
+import { access as u } from "./index166.js";
+function F(s) {
+  p(() => {
+    u(s.isDisabled) || A(g(u(s.targets), u(s.root)));
+  });
 }
-function d(r) {
-  let e;
-  const f = P({
-    type: "button"
-  }, r), [t, l] = B(f, ["ref", "type", "disabled"]), i = v(() => e, () => "button"), o = u(() => {
-    const n = i();
-    return n == null ? !1 : h({
-      tagName: n,
-      type: t.type
-    });
-  }), a = u(() => i() === "input"), s = u(() => i() === "a" && e?.getAttribute("href") != null);
-  return g(N, c({
-    as: "button",
-    ref(n) {
-      var m = T((b) => e = b, t.ref);
-      typeof m == "function" && m(n);
-    },
-    get type() {
-      return p(() => !!(o() || a()))() ? t.type : void 0;
-    },
-    get role() {
-      return !o() && !s() ? "button" : void 0;
-    },
-    get tabIndex() {
-      return !o() && !s() && !t.disabled ? 0 : void 0;
-    },
-    get disabled() {
-      return p(() => !!(o() || a()))() ? t.disabled : void 0;
-    },
-    get "aria-disabled"() {
-      return !o() && !a() && t.disabled ? !0 : void 0;
-    },
-    get "data-disabled"() {
-      return t.disabled ? "" : void 0;
+var a = /* @__PURE__ */ new WeakMap(), r = [];
+function g(s, l = document.body) {
+  const i = new Set(s), c = /* @__PURE__ */ new Set(), E = (e) => {
+    for (const o of e.querySelectorAll(`[${b}], [${N}]`))
+      i.add(o);
+    const t = (o) => {
+      if (i.has(o) || o.parentElement && c.has(o.parentElement) && o.parentElement.getAttribute("role") !== "row")
+        return NodeFilter.FILTER_REJECT;
+      for (const h of i)
+        if (o.contains(h))
+          return NodeFilter.FILTER_SKIP;
+      return NodeFilter.FILTER_ACCEPT;
+    }, n = document.createTreeWalker(e, NodeFilter.SHOW_ELEMENT, {
+      acceptNode: t
+    }), T = t(e);
+    if (T === NodeFilter.FILTER_ACCEPT && m(e), T !== NodeFilter.FILTER_REJECT) {
+      let o = n.nextNode();
+      for (; o != null; )
+        m(o), o = n.nextNode();
     }
-  }, l));
+  }, m = (e) => {
+    const t = a.get(e) ?? 0;
+    e.getAttribute("aria-hidden") === "true" && t === 0 || (t === 0 && e.setAttribute("aria-hidden", "true"), c.add(e), a.set(e, t + 1));
+  };
+  r.length && r[r.length - 1].disconnect(), E(l);
+  const d = new MutationObserver((e) => {
+    for (const t of e)
+      if (!(t.type !== "childList" || t.addedNodes.length === 0) && ![...i, ...c].some((n) => n.contains(t.target))) {
+        for (const n of t.removedNodes)
+          n instanceof Element && (i.delete(n), c.delete(n));
+        for (const n of t.addedNodes)
+          (n instanceof HTMLElement || n instanceof SVGElement) && (n.dataset.liveAnnouncer === "true" || n.dataset.reactAriaTopLayer === "true") ? i.add(n) : n instanceof Element && E(n);
+      }
+  });
+  d.observe(l, {
+    childList: !0,
+    subtree: !0
+  });
+  const f = {
+    observe() {
+      d.observe(l, {
+        childList: !0,
+        subtree: !0
+      });
+    },
+    disconnect() {
+      d.disconnect();
+    }
+  };
+  return r.push(f), () => {
+    d.disconnect();
+    for (const e of c) {
+      const t = a.get(e);
+      if (t == null)
+        return;
+      t === 1 ? (e.removeAttribute("aria-hidden"), a.delete(e)) : a.set(e, t - 1);
+    }
+    f === r[r.length - 1] ? (r.pop(), r.length && r[r.length - 1].observe()) : r.splice(r.indexOf(f), 1);
+  };
 }
-var I = d;
 export {
-  I as Button,
-  d as ButtonRoot,
-  _ as button_exports
+  g as ariaHideOutside,
+  F as createHideOutside
 };
 //# sourceMappingURL=index174.js.map

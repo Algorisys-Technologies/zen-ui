@@ -1,51 +1,57 @@
-const m = 0.1, g = (t) => {
-  const e = Math.floor(t / 3600), s = Math.floor(t % 3600 / 60), n = Math.floor(t % 60), f = Math.floor(t % 1 * 100), r = (a) => String(a).padStart(2, "0");
-  return `${r(e)}:${r(s)}:${r(n)}.${r(f)}`;
-}, $ = (t, e, s, n, f, r = 0.1) => {
-  const a = t.slice(), o = a[e];
-  if (!o) return { ranges: a, edgeTime: n };
-  const h = e > 0 ? a[e - 1].end + r : 0, d = e < a.length - 1 ? a[e + 1].start - r : f;
+const $ = 0.1, c = (t) => {
+  const e = Math.floor(t / 3600), f = Math.floor(t % 3600 / 60), s = Math.floor(t % 60), o = Math.floor(t % 1 * 100), n = (a) => String(a).padStart(2, "0");
+  return `${n(e)}:${n(f)}:${n(s)}.${n(o)}`;
+}, u = (t, e, f, s, o, n = 0.1, a = "partition") => {
+  const r = t.slice(), h = r[e];
+  if (!h) return { ranges: r, edgeTime: s };
+  const d = a === "partition", g = d && e > 0 ? r[e - 1].end + n : 0, m = d && e < r.length - 1 ? r[e + 1].start - n : o;
   let M;
-  return s === "start" ? (M = Math.max(h, Math.min(n, o.end - r)), a[e] = { start: M, end: o.end }) : (M = Math.max(o.start + r, Math.min(n, d)), a[e] = { start: o.start, end: M }), { ranges: a, edgeTime: M };
-}, u = (t, e, s, n) => {
-  const f = n.minDuration ?? 0.1;
+  return f === "start" ? (M = Math.max(g, Math.min(s, h.end - n)), r[e] = { start: M, end: h.end }) : (M = Math.max(h.start + n, Math.min(s, m)), r[e] = { start: h.start, end: M }), { ranges: r, edgeTime: M };
+}, E = (t, e, f, s) => {
+  const o = t.slice(), n = o[e];
+  if (!n) return { ranges: o, start: f };
+  const a = n.end - n.start, r = Math.max(0, Math.min(f, s - a));
+  return o[e] = { start: r, end: r + a }, { ranges: o, start: r };
+}, A = (t, e, f, s) => {
+  const o = s.minDuration ?? 0.1;
   if (e === "start") {
-    const o = Math.max(
+    const r = Math.max(
       -t.start,
       -t.offset,
-      Math.min(s - t.offset, t.end - f - t.start)
+      Math.min(f - t.offset, t.end - o - t.start)
     );
-    return { offset: t.offset + o, start: t.start + o, end: t.end };
+    return { offset: t.offset + r, start: t.start + r, end: t.end };
   }
-  const r = t.offset + (t.end - t.start), a = Math.max(
-    t.start + f - t.end,
-    Math.min(s - r, n.audioDuration - t.end, n.laneDuration - r)
+  const n = t.offset + (t.end - t.start), a = Math.max(
+    t.start + o - t.end,
+    Math.min(f - n, s.audioDuration - t.end, s.laneDuration - n)
   );
   return { offset: t.offset, start: t.start, end: t.end + a };
-}, E = (t, e, s) => {
-  const n = t.end - t.start;
+}, I = (t, e, f) => {
+  const s = t.end - t.start;
   return {
-    offset: Math.max(0, Math.min(e, s - n)),
+    offset: Math.max(0, Math.min(e, f - s)),
     start: t.start,
     end: t.end
   };
-}, c = (t, e = 0.02) => {
+}, N = (t, e = 0.02) => {
   if (t.length === 0) return "";
-  const s = (a) => Math.max(e, Math.min(1, a)), n = (a) => String(Math.round(a * 1e3) / 1e3);
-  let f = "", r = "";
+  const f = (a) => Math.max(e, Math.min(1, a)), s = (a) => String(Math.round(a * 1e3) / 1e3);
+  let o = "", n = "";
   for (let a = 0; a < t.length; a++) {
-    const o = s(t[a]);
-    f += `${a === 0 ? "M" : "L"}${a},${n(1 - o)}L${a + 1},${n(1 - o)}`, r = `L${a + 1},${n(1 + o)}L${a},${n(1 + o)}` + r;
+    const r = f(t[a]);
+    o += `${a === 0 ? "M" : "L"}${a},${s(1 - r)}L${a + 1},${s(1 - r)}`, n = `L${a + 1},${s(1 + r)}L${a},${s(1 + r)}` + n;
   }
-  return `${f}${r}Z`;
-}, A = (t) => Math.max(3, Math.min(97, t));
+  return `${o}${n}Z`;
+}, _ = (t) => Math.max(3, Math.min(97, t));
 export {
-  m as MIN_MEDIA_RANGE,
-  A as clampBadgePct,
-  u as dragClipEdge,
-  $ as dragRangeEdge,
-  g as formatMediaTime,
-  E as moveClip,
-  c as waveformPath
+  $ as MIN_MEDIA_RANGE,
+  _ as clampBadgePct,
+  A as dragClipEdge,
+  u as dragRangeEdge,
+  c as formatMediaTime,
+  I as moveClip,
+  E as moveRange,
+  N as waveformPath
 };
 //# sourceMappingURL=index29.js.map

@@ -1,117 +1,122 @@
-import { DATA_TOP_LAYER_ATTR as _ } from "./index178.js";
-import { getActiveElement as f, contains as d, focusWithoutScrolling as c, getDocument as j, removeItemFromArray as N, isFocusable as w, visuallyHiddenStyles as D, getAllTabbableIn as x } from "./index163.js";
-import { createSignal as V, createEffect as v, onCleanup as E } from "solid-js";
-import { isServer as b } from "solid-js/web";
-import { access as k } from "./index165.js";
-var h = "focusScope.autoFocusOnMount", F = "focusScope.autoFocusOnUnmount", C = {
-  bubbles: !1,
-  cancelable: !0
-}, P = {
-  /** A stack of focus scopes, with the active one at the top */
-  stack: [],
-  active() {
-    return this.stack[0];
-  },
-  add(o) {
-    o !== this.active() && this.active()?.pause(), this.stack = N(this.stack, o), this.stack.unshift(o);
-  },
-  remove(o) {
-    this.stack = N(this.stack, o), this.active()?.resume();
-  }
-};
-function q(o, i) {
-  const [T, g] = V(!1), A = {
-    pause() {
-      g(!0);
-    },
-    resume() {
-      g(!1);
+import { createComponent as a, mergeProps as l, memo as h } from "solid-js/web";
+import { createNumberFormatter as M } from "./index147.js";
+import { createRegisterId as I } from "./index160.js";
+import { Polymorphic as o } from "./index162.js";
+import { createUniqueId as y, splitProps as s, createSignal as P, createMemo as C, createContext as w, createEffect as F, onCleanup as k, useContext as R } from "solid-js";
+import { mergeDefaultProps as f, createGenerateId as E, clamp as S } from "./index164.js";
+import { combineStyle as T } from "./index168.js";
+var g = w();
+function m() {
+  const r = R(g);
+  if (r === void 0)
+    throw new Error("[kobalte]: `useMeterContext` must be used within a `Meter.Root` component");
+  return r;
+}
+function W(r) {
+  const t = m(), [n, e] = s(r, ["style"]);
+  return a(o, l({
+    as: "div",
+    get style() {
+      return T({
+        "--kb-meter-fill-width": t.meterFillWidth()
+      }, n.style);
     }
+  }, () => t.dataset(), e));
+}
+function $(r) {
+  const t = m(), n = f({
+    id: t.generateId("label")
+  }, r), [e, i] = s(n, ["id"]);
+  return F(() => k(t.registerLabelId(e.id))), a(o, l({
+    as: "span",
+    get id() {
+      return e.id;
+    }
+  }, () => t.dataset(), i));
+}
+function j(r) {
+  const t = `meter-${y()}`, n = f({
+    id: t,
+    value: 0,
+    minValue: 0,
+    maxValue: 100,
+    role: "meter",
+    indeterminate: !1
+  }, r), [e, i] = s(n, ["value", "minValue", "maxValue", "getValueLabel", "role", "aria-valuetext", "aria-labelledby", "aria-valuemax", "aria-valuemin", "aria-valuenow", "indeterminate"]), [d, x] = P(), p = M(() => ({
+    style: "percent"
+  })), u = () => S(e.value, e.minValue, e.maxValue), c = () => (u() - e.minValue) / (e.maxValue - e.minValue), v = () => {
+    if (!e.indeterminate)
+      return e.getValueLabel ? e.getValueLabel({
+        value: u(),
+        min: e.minValue,
+        max: e.maxValue
+      }) : p().format(c());
+  }, V = () => `${c() * 100}%`, b = C(() => ({})), L = {
+    dataset: b,
+    value: u,
+    valuePercent: c,
+    valueLabel: v,
+    labelId: d,
+    meterFillWidth: V,
+    generateId: E(() => i.id),
+    registerLabelId: I(x)
   };
-  let m = null;
-  const S = (e) => o.onMountAutoFocus?.(e), p = (e) => o.onUnmountAutoFocus?.(e), a = () => j(i()), O = () => {
-    const e = a().createElement("span");
-    return e.setAttribute("data-focus-trap", ""), e.tabIndex = 0, Object.assign(e.style, D), e;
-  }, L = () => {
-    const e = i();
-    return e ? x(e, !0).filter((t) => !t.hasAttribute("data-focus-trap")) : [];
-  }, U = () => {
-    const e = L();
-    return e.length > 0 ? e[0] : null;
-  }, y = () => {
-    const e = L();
-    return e.length > 0 ? e[e.length - 1] : null;
-  }, I = () => {
-    const e = i();
-    if (!e)
-      return !1;
-    const t = f(e);
-    return !t || d(e, t) ? !1 : w(t);
-  };
-  v(() => {
-    if (b)
-      return;
-    const e = i();
-    if (!e)
-      return;
-    P.add(A);
-    const t = f(e);
-    if (!d(e, t)) {
-      const n = new CustomEvent(h, C);
-      e.addEventListener(h, S), e.dispatchEvent(n), n.defaultPrevented || setTimeout(() => {
-        c(U()), f(e) === t && c(e);
-      }, 0);
+  return a(g.Provider, {
+    value: L,
+    get children() {
+      return a(o, l({
+        as: "div",
+        get role() {
+          return e.role || "meter";
+        },
+        get "aria-valuenow"() {
+          return h(() => !!e.indeterminate)() ? void 0 : u();
+        },
+        get "aria-valuemin"() {
+          return e.minValue;
+        },
+        get "aria-valuemax"() {
+          return e.maxValue;
+        },
+        get "aria-valuetext"() {
+          return v();
+        },
+        get "aria-labelledby"() {
+          return d();
+        }
+      }, b, i));
     }
-    E(() => {
-      e.removeEventListener(h, S), setTimeout(() => {
-        const n = new CustomEvent(F, C);
-        I() && n.preventDefault(), e.addEventListener(F, p), e.dispatchEvent(n), n.defaultPrevented || c(t ?? a().body), e.removeEventListener(F, p), P.remove(A);
-      }, 0);
-    });
-  }), v(() => {
-    if (b)
-      return;
-    const e = i();
-    if (!e || !k(o.trapFocus) || T())
-      return;
-    const t = (n) => {
-      const r = n.target;
-      r?.closest(`[${_}]`) || (d(e, r) ? m = r : c(m));
-    }, s = (n) => {
-      const u = n.relatedTarget ?? f(e);
-      u?.closest(`[${_}]`) || d(e, u) || c(m);
-    };
-    a().addEventListener("focusin", t), a().addEventListener("focusout", s), E(() => {
-      a().removeEventListener("focusin", t), a().removeEventListener("focusout", s);
-    });
-  }), v(() => {
-    if (b)
-      return;
-    const e = i();
-    if (!e || !k(o.trapFocus) || T())
-      return;
-    const t = O();
-    e.insertAdjacentElement("afterbegin", t);
-    const s = O();
-    e.insertAdjacentElement("beforeend", s);
-    function n(u) {
-      const l = U(), M = y();
-      u.relatedTarget === l ? c(M) : c(l);
-    }
-    t.addEventListener("focusin", n), s.addEventListener("focusin", n);
-    const r = new MutationObserver((u) => {
-      for (const l of u)
-        l.previousSibling === s && (s.remove(), e.insertAdjacentElement("beforeend", s)), l.nextSibling === t && (t.remove(), e.insertAdjacentElement("afterbegin", t));
-    });
-    r.observe(e, {
-      childList: !0,
-      subtree: !1
-    }), E(() => {
-      t.removeEventListener("focusin", n), s.removeEventListener("focusin", n), t.remove(), s.remove(), r.disconnect();
-    });
   });
 }
+function q(r) {
+  const t = m();
+  return a(o, l({
+    as: "div"
+  }, () => t.dataset(), r));
+}
+function D(r) {
+  const t = m();
+  return a(o, l({
+    as: "div"
+  }, () => t.dataset(), r, {
+    get children() {
+      return t.valueLabel();
+    }
+  }));
+}
+var H = Object.assign(j, {
+  Fill: W,
+  Label: $,
+  Track: q,
+  ValueLabel: D
+});
 export {
-  q as createFocusScope
+  H as Meter,
+  W as MeterFill,
+  $ as MeterLabel,
+  j as MeterRoot,
+  q as MeterTrack,
+  D as MeterValueLabel,
+  m as useMeterContext
 };
 //# sourceMappingURL=index170.js.map

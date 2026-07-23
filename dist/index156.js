@@ -1,23 +1,27 @@
-import { createEffect as o, on as s, onCleanup as u } from "solid-js";
-function m(t, r) {
-  o(s(t, (n) => {
-    if (n == null)
-      return;
-    const e = i(n);
-    e != null && (e.addEventListener("reset", r, {
-      passive: !0
-    }), u(() => {
-      e.removeEventListener("reset", r);
-    }));
-  }));
-}
-function i(t) {
-  return f(t) ? t.form : t.closest("form");
-}
-function f(t) {
-  return t.matches("textarea, input, select, button");
+import { createComponent as i, mergeProps as s, memo as c } from "solid-js/web";
+import { useFormControlContext as g } from "./index159.js";
+import { createTagName as d } from "./index169.js";
+import { Polymorphic as u } from "./index162.js";
+import { mergeDefaultProps as b } from "./index164.js";
+import { splitProps as C, createEffect as P, onCleanup as x } from "solid-js";
+import { mergeRefs as h } from "./index167.js";
+function E(m) {
+  let r;
+  const e = g(), a = b({
+    id: e.generateId("label")
+  }, m), [f, o] = C(a, ["ref"]), l = d(() => r, () => "label");
+  return P(() => x(e.registerLabel(o.id))), i(u, s({
+    as: "label",
+    ref(n) {
+      var t = h((p) => r = p, f.ref);
+      typeof t == "function" && t(n);
+    },
+    get for() {
+      return c(() => l() === "label")() ? e.fieldId() : void 0;
+    }
+  }, () => e.dataset(), o));
 }
 export {
-  m as createFormResetListener
+  E as FormControlLabel
 };
 //# sourceMappingURL=index156.js.map

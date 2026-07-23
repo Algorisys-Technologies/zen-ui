@@ -1,26 +1,23 @@
-import { createComponent as t, mergeProps as m } from "solid-js/web";
-import { useFormControlContext as a } from "./index158.js";
-import { Polymorphic as c } from "./index161.js";
-import { mergeDefaultProps as p } from "./index163.js";
-import { splitProps as f, createEffect as l, onCleanup as d, Show as g } from "solid-js";
-function M(n) {
-  const r = a(), s = p({
-    id: r.generateId("error-message")
-  }, n), [i, o] = f(s, ["forceMount"]), e = () => r.validationState() === "invalid";
-  return l(() => {
-    e() && d(r.registerErrorMessage(o.id));
-  }), t(g, {
-    get when() {
-      return i.forceMount || e();
-    },
-    get children() {
-      return t(c, m({
-        as: "div"
-      }, () => r.dataset(), o));
-    }
-  });
+import { createEffect as o, on as s, onCleanup as u } from "solid-js";
+function m(t, r) {
+  o(s(t, (n) => {
+    if (n == null)
+      return;
+    const e = i(n);
+    e != null && (e.addEventListener("reset", r, {
+      passive: !0
+    }), u(() => {
+      e.removeEventListener("reset", r);
+    }));
+  }));
+}
+function i(t) {
+  return f(t) ? t.form : t.closest("form");
+}
+function f(t) {
+  return t.matches("textarea, input, select, button");
 }
 export {
-  M as FormControlErrorMessage
+  m as createFormResetListener
 };
 //# sourceMappingURL=index157.js.map

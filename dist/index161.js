@@ -1,19 +1,25 @@
-import { createComponent as t, Dynamic as i, mergeProps as n } from "solid-js/web";
-import { splitProps as p } from "solid-js";
-function a(r) {
-  const [o, e] = p(r, ["as"]);
-  if (!o.as)
-    throw new Error("[kobalte]: Polymorphic is missing the required `as` prop.");
-  return (
-    // @ts-ignore: Props are valid but not worth calculating
-    t(i, n(e, {
-      get component() {
-        return o.as;
-      }
-    }))
-  );
+import { createSignal as s, createMemo as u, untrack as i } from "solid-js";
+import { accessWith as v } from "./index166.js";
+function r(e) {
+  const [t, a] = s(e.defaultValue?.()), l = u(() => e.value?.() !== void 0), o = u(() => l() ? e.value?.() : t());
+  return [o, (c) => {
+    i(() => {
+      const n = v(c, o());
+      return Object.is(n, o()) || (l() || a(n), e.onChange?.(n)), n;
+    });
+  }];
+}
+function m(e) {
+  const [t, a] = r(e);
+  return [() => t() ?? !1, a];
+}
+function C(e) {
+  const [t, a] = r(e);
+  return [() => t() ?? [], a];
 }
 export {
-  a as Polymorphic
+  C as createControllableArraySignal,
+  m as createControllableBooleanSignal,
+  r as createControllableSignal
 };
 //# sourceMappingURL=index161.js.map

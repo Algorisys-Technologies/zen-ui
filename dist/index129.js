@@ -1,20 +1,20 @@
 import { createComponent as w, mergeProps as I, template as Te, spread as Pe } from "solid-js/web";
 import { stopEventDefaultAndPropagation as M, getNextSortedValues as $, hasMinStepsBetweenValues as N, getClosestValueIndex as Se, linearScale as xe } from "./index203.js";
-import { createDomCollection as Ce, createDomCollectionItem as De } from "./index188.js";
+import { createDomCollection as Ce, createDomCollectionItem as De } from "./index186.js";
 import { createNumberFormatter as ye, useLocale as we } from "./index147.js";
 import { FORM_CONTROL_FIELD_PROP_NAMES as Z, createFormControlField as ee } from "./index201.js";
-import { FormControlLabel as te } from "./index155.js";
-import { createFormResetListener as Fe } from "./index156.js";
-import { FormControlErrorMessage as ne } from "./index157.js";
-import { FormControlDescription as re, FORM_CONTROL_PROP_NAMES as Ee, createFormControl as Me, FormControlContext as Ie, useFormControlContext as Le } from "./index158.js";
-import { createControllableArraySignal as Re } from "./index160.js";
-import { Polymorphic as B } from "./index161.js";
-import { __export as Be } from "./index162.js";
+import { FormControlLabel as te } from "./index156.js";
+import { createFormResetListener as Fe } from "./index157.js";
+import { FormControlErrorMessage as ne } from "./index158.js";
+import { FormControlDescription as re, FORM_CONTROL_PROP_NAMES as Ee, createFormControl as Me, FormControlContext as Ie, useFormControlContext as Le } from "./index159.js";
+import { createControllableArraySignal as Re } from "./index161.js";
+import { Polymorphic as B } from "./index162.js";
+import { __export as Be } from "./index163.js";
 import { createUniqueId as ae, splitProps as k, createSignal as F, createMemo as R, createContext as oe, onMount as ke, createEffect as ze, useContext as ie } from "solid-js";
-import { mergeDefaultProps as O, createGenerateId as _e, visuallyHiddenStyles as Ke, snapValueToStep as A, clamp as se, callHandler as C } from "./index163.js";
-import { access as Q } from "./index165.js";
-import { mergeRefs as q } from "./index166.js";
-import { combineStyle as H } from "./index167.js";
+import { mergeDefaultProps as O, createGenerateId as _e, visuallyHiddenStyles as Ke, snapValueToStep as A, clamp as se, callHandler as C } from "./index164.js";
+import { access as Q } from "./index166.js";
+import { mergeRefs as q } from "./index167.js";
+import { combineStyle as H } from "./index168.js";
 var Oe = /* @__PURE__ */ Te("<input type=range>"), Ue = {};
 Be(Ue, {
   Description: () => re,

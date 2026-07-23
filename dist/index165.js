@@ -1,53 +1,38 @@
-import { onCleanup as e, getOwner as a, DEV as u } from "solid-js";
-import { isServer as y } from "solid-js/web";
-import { isServer as V } from "solid-js/web";
-const g = !y, h = g && !!u, N = (() => {
-}), p = (o) => o != null, A = (o) => o.filter(p);
-function C(o) {
-  return (...n) => {
-    for (const i of o)
-      i && i(...n);
+import { access as o } from "./index223.js";
+import { createMemo as h, createSignal as v, createEffect as l, untrack as g, onCleanup as A } from "solid-js";
+var E = (r) => {
+  const c = h(() => {
+    const e = o(r.element);
+    if (e)
+      return getComputedStyle(e);
+  }), m = () => c()?.animationName ?? "none", [s, i] = v(o(r.show) ? "present" : "hidden");
+  let d = "none";
+  return l((e) => {
+    const n = o(r.show);
+    return g(() => {
+      if (e === n) return n;
+      const a = d, t = m();
+      n ? i("present") : t === "none" || c()?.display === "none" ? i("hidden") : i(e === !0 && a !== t ? "hiding" : "hidden");
+    }), n;
+  }), l(() => {
+    const e = o(r.element);
+    if (!e) return;
+    const n = (t) => {
+      t.target === e && (d = m());
+    }, a = (t) => {
+      const f = m().includes(t.animationName);
+      t.target === e && f && s() === "hiding" && i("hidden");
+    };
+    e.addEventListener("animationstart", n), e.addEventListener("animationcancel", a), e.addEventListener("animationend", a), A(() => {
+      e.removeEventListener("animationstart", n), e.removeEventListener("animationcancel", a), e.removeEventListener("animationend", a);
+    });
+  }), {
+    present: () => s() === "present" || s() === "hiding",
+    state: s,
+    setState: i
   };
-}
-const D = (o) => typeof o == "function" && !o.length ? o() : o, E = (o) => Array.isArray(o) ? o : o ? [o] : [];
-function k(o, ...n) {
-  return typeof o == "function" ? o(...n) : o;
-}
-const x = h ? (o) => a() ? e(o) : o : e;
-function L(o, n, i, c) {
-  const l = o.length, f = n.length;
-  let t = 0;
-  if (!f) {
-    for (; t < l; t++)
-      i(o[t]);
-    return;
-  }
-  if (!l) {
-    for (; t < f; t++)
-      c(n[t]);
-    return;
-  }
-  for (; t < f && n[t] === o[t]; t++)
-    ;
-  let s, r;
-  n = n.slice(t), o = o.slice(t);
-  for (s of n)
-    o.includes(s) || c(s);
-  for (r of o)
-    n.includes(r) || i(r);
-}
+}, N = E, S = N;
 export {
-  D as access,
-  k as accessWith,
-  E as asArray,
-  C as chain,
-  A as filterNonNullable,
-  L as handleDiffArray,
-  g as isClient,
-  h as isDev,
-  p as isNonNullable,
-  V as isServer,
-  N as noop,
-  x as tryOnCleanup
+  S as default
 };
 //# sourceMappingURL=index165.js.map

@@ -1,21 +1,119 @@
-import { asArray as c, access as o, tryOnCleanup as a } from "./index165.js";
-import { createEffect as m, createRenderEffect as E } from "solid-js";
-import { isServer as u } from "solid-js/web";
-function v(e, r, n, t) {
-  return e.addEventListener(r, n, t), a(e.removeEventListener.bind(e, r, n, t));
-}
-function h(e, r, n, t) {
-  if (u)
-    return;
-  const f = () => {
-    c(o(e)).forEach((i) => {
-      i && c(o(r)).forEach((s) => v(i, s, n, t));
-    });
-  };
-  typeof e == "function" ? m(f) : E(f);
+import { createSelectableCollection as n } from "./index185.js";
+import { createCollator as r } from "./index147.js";
+import { createMemo as a } from "solid-js";
+import { access as i } from "./index166.js";
+var u = class {
+  collection;
+  ref;
+  collator;
+  constructor(e, t, l) {
+    this.collection = e, this.ref = t, this.collator = l;
+  }
+  getKeyBelow(e) {
+    let t = this.collection().getKeyAfter(e);
+    for (; t != null; ) {
+      const l = this.collection().getItem(t);
+      if (l && l.type === "item" && !l.disabled)
+        return t;
+      t = this.collection().getKeyAfter(t);
+    }
+  }
+  getKeyAbove(e) {
+    let t = this.collection().getKeyBefore(e);
+    for (; t != null; ) {
+      const l = this.collection().getItem(t);
+      if (l && l.type === "item" && !l.disabled)
+        return t;
+      t = this.collection().getKeyBefore(t);
+    }
+  }
+  getFirstKey() {
+    let e = this.collection().getFirstKey();
+    for (; e != null; ) {
+      const t = this.collection().getItem(e);
+      if (t && t.type === "item" && !t.disabled)
+        return e;
+      e = this.collection().getKeyAfter(e);
+    }
+  }
+  getLastKey() {
+    let e = this.collection().getLastKey();
+    for (; e != null; ) {
+      const t = this.collection().getItem(e);
+      if (t && t.type === "item" && !t.disabled)
+        return e;
+      e = this.collection().getKeyBefore(e);
+    }
+  }
+  getItem(e) {
+    return this.ref?.()?.querySelector(`[data-key="${e}"]`) ?? null;
+  }
+  // TODO: not working correctly
+  getKeyPageAbove(e) {
+    const t = this.ref?.();
+    let l = this.getItem(e);
+    if (!t || !l)
+      return;
+    const s = Math.max(0, l.offsetTop + l.offsetHeight - t.offsetHeight);
+    let o = e;
+    for (; o && l && l.offsetTop > s; )
+      o = this.getKeyAbove(o), l = o != null ? this.getItem(o) : null;
+    return o;
+  }
+  // TODO: not working correctly
+  getKeyPageBelow(e) {
+    const t = this.ref?.();
+    let l = this.getItem(e);
+    if (!t || !l)
+      return;
+    const s = Math.min(t.scrollHeight, l.offsetTop - l.offsetHeight + t.offsetHeight);
+    let o = e;
+    for (; o && l && l.offsetTop < s; )
+      o = this.getKeyBelow(o), l = o != null ? this.getItem(o) : null;
+    return o;
+  }
+  getKeyForSearch(e, t) {
+    const l = this.collator?.();
+    if (!l)
+      return;
+    let s = t != null ? this.getKeyBelow(t) : this.getFirstKey();
+    for (; s != null; ) {
+      const o = this.collection().getItem(s);
+      if (o) {
+        const c = o.textValue.slice(0, e.length);
+        if (o.textValue && l.compare(c, e) === 0)
+          return s;
+      }
+      s = this.getKeyBelow(s);
+    }
+  }
+};
+function m(e, t, l) {
+  const s = r({
+    usage: "search",
+    sensitivity: "base"
+  }), o = a(() => {
+    const c = i(e.keyboardDelegate);
+    return c || new u(e.collection, t, s);
+  });
+  return n({
+    selectionManager: () => i(e.selectionManager),
+    keyboardDelegate: o,
+    autoFocus: () => i(e.autoFocus),
+    deferAutoFocus: () => i(e.deferAutoFocus),
+    shouldFocusWrap: () => i(e.shouldFocusWrap),
+    disallowEmptySelection: () => i(e.disallowEmptySelection),
+    selectOnFocus: () => i(e.selectOnFocus),
+    disallowTypeAhead: () => i(e.disallowTypeAhead),
+    shouldUseVirtualFocus: () => i(e.shouldUseVirtualFocus),
+    allowsTabNavigation: () => i(e.allowsTabNavigation),
+    isVirtualized: () => i(e.isVirtualized),
+    scrollToKey: (c) => i(e.scrollToKey)?.(c),
+    orientation: () => i(e.orientation)
+  }, t, l);
 }
 export {
-  h as createEventListener,
-  v as makeEventListener
+  u as ListKeyboardDelegate,
+  m as createSelectableList
 };
 //# sourceMappingURL=index190.js.map

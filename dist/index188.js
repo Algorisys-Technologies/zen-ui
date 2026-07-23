@@ -1,126 +1,93 @@
-import { createControllableArraySignal as C } from "./index160.js";
-import { mergeDefaultProps as g, getDocument as D, addItemToArray as I } from "./index163.js";
-import { createEffect as l, onCleanup as f, useContext as h, createContext as p, createComponent as O } from "solid-js";
-import { access as P } from "./index165.js";
-var m = p();
-function E() {
-  return h(m);
-}
-function v() {
-  const e = E();
-  if (e === void 0)
-    throw new Error("[kobalte]: `useDomCollectionContext` must be used within a `DomCollectionProvider` component");
-  return e;
-}
-function a(e, o) {
-  return !!(o.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_PRECEDING);
-}
-function b(e, o) {
-  const t = o.ref();
-  if (!t)
-    return -1;
-  let n = e.length;
-  if (!n)
-    return -1;
-  for (; n--; ) {
-    const c = e[n]?.ref();
-    if (c && a(c, t))
-      return n + 1;
-  }
-  return 0;
-}
-function x(e) {
-  const o = e.map((n, c) => [c, n]);
-  let t = !1;
-  return o.sort(([n, c], [r, i]) => {
-    const s = c.ref(), u = i.ref();
-    return s === u || !s || !u ? 0 : a(s, u) ? (n > r && (t = !0), -1) : (n < r && (t = !0), 1);
-  }), t ? o.map(([n, c]) => c) : e;
-}
-function d(e, o) {
-  const t = x(e);
-  e !== t && o(t);
-}
-function w(e) {
-  const o = e[0], t = e[e.length - 1]?.ref();
-  let n = o?.ref()?.parentElement;
-  for (; n; ) {
-    if (t && n.contains(t))
-      return n;
-    n = n.parentElement;
-  }
-  return D(n).body;
-}
-function T(e, o) {
-  l(() => {
-    const t = setTimeout(() => {
-      d(e(), o);
-    });
-    f(() => clearTimeout(t));
-  });
-}
-function M(e, o) {
-  if (typeof IntersectionObserver != "function") {
-    T(e, o);
-    return;
-  }
-  let t = [];
-  l(() => {
-    const n = () => {
-      const i = !!t.length;
-      t = e(), i && d(e(), o);
-    }, c = w(e()), r = new IntersectionObserver(n, {
-      root: c
-    });
-    for (const i of e()) {
-      const s = i.ref();
-      s && r.observe(s);
-    }
-    f(() => r.disconnect());
-  });
-}
-function S(e = {}) {
-  const [o, t] = C({
-    value: () => P(e.items),
-    onChange: (r) => e.onItemsChange?.(r)
-  });
-  M(o, t);
-  const n = (r) => (t((i) => {
-    const s = b(i, r);
-    return I(i, r, s);
-  }), () => {
-    t((i) => {
-      const s = i.filter((u) => u.ref() !== r.ref());
-      return i.length === s.length ? i : s;
-    });
-  });
-  return {
-    DomCollectionProvider: (r) => O(m.Provider, {
-      value: {
-        registerItem: n
-      },
-      get children() {
-        return r.children;
-      }
-    })
+import { isString as r, isNumber as S } from "./index164.js";
+import { createMemo as x } from "solid-js";
+import { access as c } from "./index166.js";
+function s(t) {
+  let l = t.startIndex ?? 0;
+  const o = t.startLevel ?? 0, i = [], f = (e) => {
+    if (e == null)
+      return "";
+    const n = t.getKey ?? "key", u = r(n) ? e[n] : n(e);
+    return u != null ? String(u) : "";
+  }, h = (e) => {
+    if (e == null)
+      return "";
+    const n = t.getTextValue ?? "textValue", u = r(n) ? e[n] : n(e);
+    return u != null ? String(u) : "";
+  }, g = (e) => {
+    if (e == null)
+      return !1;
+    const n = t.getDisabled ?? "disabled";
+    return (r(n) ? e[n] : n(e)) ?? !1;
+  }, d = (e) => {
+    if (e != null)
+      return r(t.getSectionChildren) ? e[t.getSectionChildren] : t.getSectionChildren?.(e);
   };
+  for (const e of t.dataSource) {
+    if (r(e) || S(e)) {
+      i.push({
+        type: "item",
+        rawValue: e,
+        key: String(e),
+        textValue: String(e),
+        disabled: g(e),
+        level: o,
+        index: l
+      }), l++;
+      continue;
+    }
+    if (d(e) != null) {
+      i.push({
+        type: "section",
+        rawValue: e,
+        key: "",
+        // not applicable here
+        textValue: "",
+        // not applicable here
+        disabled: !1,
+        // not applicable here
+        level: o,
+        index: l
+      }), l++;
+      const n = d(e) ?? [];
+      if (n.length > 0) {
+        const u = s({
+          dataSource: n,
+          getKey: t.getKey,
+          getTextValue: t.getTextValue,
+          getDisabled: t.getDisabled,
+          getSectionChildren: t.getSectionChildren,
+          startIndex: l,
+          startLevel: o + 1
+        });
+        i.push(...u), l += u.length;
+      }
+    } else
+      i.push({
+        type: "item",
+        rawValue: e,
+        key: f(e),
+        textValue: h(e),
+        disabled: g(e),
+        level: o,
+        index: l
+      }), l++;
+  }
+  return i;
 }
-function _(e) {
-  const o = v(), t = g({
-    shouldRegisterItem: !0
-  }, e);
-  l(() => {
-    if (!t.shouldRegisterItem)
-      return;
-    const n = o.registerItem(t.getItem());
-    f(n);
+function b(t, l = []) {
+  return x(() => {
+    const o = s({
+      dataSource: c(t.dataSource),
+      getKey: c(t.getKey),
+      getTextValue: c(t.getTextValue),
+      getDisabled: c(t.getDisabled),
+      getSectionChildren: c(t.getSectionChildren)
+    });
+    for (let i = 0; i < l.length; i++) l[i]();
+    return t.factory(o);
   });
 }
 export {
-  m as DomCollectionContext,
-  S as createDomCollection,
-  _ as createDomCollectionItem,
-  v as useDomCollectionContext,
-  E as useOptionalDomCollectionContext
+  b as createCollection
 };
 //# sourceMappingURL=index188.js.map

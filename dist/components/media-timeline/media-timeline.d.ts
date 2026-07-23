@@ -1,5 +1,5 @@
 import { type JSX } from "solid-js";
-import { type MediaRange } from "@algorisys/zen-ui-core";
+import { type MediaRange, type MediaRangeMode } from "@algorisys/zen-ui-core";
 /**
  * MediaTimeline — a filmstrip trim track: draggable ranges over optional
  * thumbnails, with a playhead, hover scrubbing and zoom.
@@ -35,9 +35,23 @@ import { type MediaRange } from "@algorisys/zen-ui-core";
 export type MediaTimelineProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class"> & {
     /** Total media length, seconds. The track maps [0, duration] to its width. */
     duration: number;
-    /** Sorted, non-overlapping spans. The app owns the array (controlled). */
+    /**
+     * The spans. In `"partition"` mode: sorted, non-overlapping. In
+     * `"independent"` mode: free — overlap allowed, z-order is array order.
+     * The app owns the array either way (controlled).
+     */
     ranges: MediaRange[];
-    /** Which range is highlighted; the remove affordance renders on it. */
+    /**
+     * How the ranges relate: `"partition"` (a trim track — edge drags clamp
+     * against neighbours) or `"independent"` (an overlay-element lane — spans
+     * move and overlap freely, bars carry labels/colors). Default "partition".
+     */
+    rangeMode?: MediaRangeMode;
+    /**
+     * Which range is highlighted; the remove affordance renders on it. `-1` (the
+     * DOM's own selectedIndex convention) or omitted = none. In independent
+     * mode, clicking empty track emits `onActiveIndexChange(-1)` — deselect.
+     */
     activeIndex?: number;
     onActiveIndexChange?: (index: number) => void;
     /** Committed edits — keyboard nudges land here. */
@@ -65,8 +79,22 @@ export type MediaTimelineProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class
     /**
      * Colour treatment for a range. Replaces the default primary tint + ring —
      * the positioning stays. This is the "a range is just a range" hook.
+     * Precedence: rangeClass > rangeColor > default.
      */
     rangeClass?: (index: number, active: boolean) => string;
+    /**
+     * A CSS color per range (any color — StudioX feeds hex from a palette,
+     * which class tokens cannot express). The component derives the fill
+     * (color-mix, 40% active / 25% not) and an inset ring (full color, 2px
+     * active / 1px not), and paints the edge handles with it. `rangeClass`
+     * wins if both are provided.
+     */
+    rangeColor?: (index: number, active: boolean) => string;
+    /**
+     * Rendered inside the bar — element text, a clip name. Truncated, and
+     * pointer-events: none so the body-drag surface stays whole.
+     */
+    rangeLabel?: (index: number) => JSX.Element;
     /** Names the timeline for a screen reader. */
     label?: string;
     class?: string;
