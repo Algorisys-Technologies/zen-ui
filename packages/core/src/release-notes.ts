@@ -33,6 +33,22 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.7.0",
+    date: "2026-07-23",
+    kind: "new",
+    title: "Your AI coding agent gets a zen-ui skill",
+    detail:
+      "Every binding package now ships skills/zen-ui — a Claude Code skill that loads itself whenever an agent builds UI in a project depending on zen-ui. Install once per project: cp -r node_modules/@algorisys/zen-ui-react/skills/zen-ui .claude/skills/ (any binding; the skill is identical in all four and starts by picking yours). It carries the full catalogue with what each component is FOR, the setup rules that fail silently — the mandatory /styles import, the optional peer deps behind Chart, RichText, Map and Camera — the binding divergences an agent trained on React examples gets wrong in the other three, and the theming rule: override --zen-* custom properties, never patch generated CSS. Generated from the same source as the demo navigation and checked in CI, so it cannot drift from what ships. AGENTS.md still ships in every package root for agents that do not load skills.",
+  },
+  {
+    version: "9.7.0",
+    date: "2026-07-23",
+    kind: "new",
+    title: "Search the component catalogue in every demo",
+    detail:
+      "The demo sidebars have a search box now — zen-ui's own Search component, doing real work. It matches names AND what a component is for, so \"wizard\" finds Stepper. Groups with no matches drop out, and clearing the box restores the full list. Same behaviour in all four demos.",
+  },
+  {
     version: "9.6.0",
     date: "2026-07-21",
     kind: "new",
