@@ -33,7 +33,7 @@ const NewAvatarDemo = () => (
 
 {/* src fails to load — the fallback stays put */}
 <Avatar size="lg">
-  <AvatarImage src="https://broken.invalid/x.png" alt="broken" />
+  <AvatarImage src="/deliberately-missing.jpg" alt="broken" />
   <AvatarFallback>FB</AvatarFallback>
 </Avatar>`}
     >
@@ -45,7 +45,7 @@ const NewAvatarDemo = () => (
         <AvatarFallback>RD</AvatarFallback>
       </Avatar>
       <Avatar size="lg">
-        <AvatarImage src="https://broken.invalid/x.png" alt="broken" />
+        <AvatarImage src="/deliberately-missing.jpg" alt="broken" />
         <AvatarFallback>FB</AvatarFallback>
       </Avatar>
     </DemoSection>
