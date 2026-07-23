@@ -11,6 +11,25 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.8.0] - 2026-07-23
+
+### Added
+
+- **`skills/zen-ui/references/api/` — per-family API references, generated
+  from the React source types.** `scripts/gen-skill-api.ts` walks `index.ts`'s
+  export declarations with the TypeScript checker (the module specifier is the
+  family) and filters each props type by declaration origin: in-repo members
+  in full (name, type, JSDoc — includes the cva variant unions, which resolve
+  to core's `variants.ts`), third-party non-DOM members (Radix escape hatches)
+  as names grouped by package, inherited DOM attributes as one summary count.
+  Item shapes (`StepperStep`, …) render their members; short aliases inline
+  (`StepStatus = "error" | "current" | …`). Component-level JSDoc deliberately
+  dropped — headers like "on @radix-ui/react-dialog" parse the package name as
+  a JSDoc tag and truncate. 108 family files + `index.md`, root copy plus one
+  per binding package. `check:skill-api` joins `bun run check`; write mode
+  deletes orphaned files. SKILL.md workflow gains "read the API file before
+  writing props".
+
 ## [9.7.0] - 2026-07-23
 
 ### Added

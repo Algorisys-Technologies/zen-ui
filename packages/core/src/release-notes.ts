@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "9.8.0",
+    date: "2026-07-23",
+    kind: "new",
+    title: "The agent skill now carries the real API, not just the catalogue",
+    detail:
+      "The skill from 9.7.0 told your coding agent WHICH component to use; it still had to guess the props, and guessed props fail silently as unknown attributes. references/api/ now has one file per component family — 108 plus an index — extracted from the source by the TypeScript compiler: every zen-specific prop with its type and doc (including the variant unions, which are exactly what gets hallucinated), item shapes like StepperStep whose members ARE the API of a data-driven component, and the underlying primitives' escape hatches by name without 290 inherited DOM attributes drowning them. Generated and checked in CI, so a prop change cannot ship without the reference updating. If you installed the skill, refresh it: cp -r node_modules/@algorisys/zen-ui-react/skills/zen-ui .claude/skills/",
+  },
+  {
     version: "9.7.0",
     date: "2026-07-23",
     kind: "new",
