@@ -161,6 +161,7 @@ import NewListReportDemo from "./components/NewListReportDemo";
 import NewPivotDemo from "./components/NewPivotDemo";
 import ReleaseNotes from "./components/ReleaseNotes";
 import { Toaster } from "./components/toast/toaster";
+import { Search } from "./components/form/search/search";
 
 /**
  * Navigation data — single source of truth for the sidebar.
@@ -168,32 +169,66 @@ import { Toaster } from "./components/toast/toaster";
  */
 
 
-const Sidebar: React.FC<{ collapsed: boolean }> = ({ collapsed }) => (
-  <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`} aria-hidden={collapsed}>
-    {NAV.map((group) => (
-      <div key={group.title} className="sidebar-group">
-        <h4 className="sidebar-group-title">{group.title}</h4>
-        <ul className="sidebar-list">
-          {group.items.map((item) => (
-            <li key={item.to}>
-              <NavLink
-                to={item.to}
-                end={item.to === "/"}
-                className={({ isActive }) =>
-                  isActive
-                    ? "sidebar-link sidebar-link-active"
-                    : "sidebar-link sidebar-link-inactive"
-                }
-              >
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+const Sidebar: React.FC<{ collapsed: boolean }> = ({ collapsed }) => {
+  const [query, setQuery] = useState("");
+  /**
+   * The sidebar filtered by the search box — the library's own Search
+   * component, dogfooded. Matches the label AND the nav description, so
+   * "wizard" finds Stepper; a group with no hits disappears rather than
+   * sitting as an empty heading. Empty query returns NAV itself, so the
+   * unfiltered sidebar renders exactly what it always did.
+   */
+  const q = query.trim().toLowerCase();
+  const filteredNav = !q
+    ? NAV
+    : NAV.map((group) => ({
+        ...group,
+        items: group.items.filter(
+          (item) =>
+            item.label.toLowerCase().includes(q) ||
+            (item.description?.toLowerCase().includes(q) ?? false),
+        ),
+      })).filter((group) => group.items.length > 0);
+  return (
+    <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`} aria-hidden={collapsed}>
+      <div className="sidebar-search">
+        <Search
+          size="sm"
+          value={query}
+          onValueChange={setQuery}
+          placeholder="Search components"
+          aria-label="Search components"
+        />
       </div>
-    ))}
-  </aside>
-);
+      {filteredNav.length === 0 ? (
+        <p className="sidebar-empty">No components match “{query}”.</p>
+      ) : (
+        filteredNav.map((group) => (
+          <div key={group.title} className="sidebar-group">
+            <h4 className="sidebar-group-title">{group.title}</h4>
+            <ul className="sidebar-list">
+              {group.items.map((item) => (
+                <li key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    end={item.to === "/"}
+                    className={({ isActive }) =>
+                      isActive
+                        ? "sidebar-link sidebar-link-active"
+                        : "sidebar-link sidebar-link-inactive"
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
+    </aside>
+  );
+};
 
 const SidebarToggle: React.FC<{
   collapsed: boolean;

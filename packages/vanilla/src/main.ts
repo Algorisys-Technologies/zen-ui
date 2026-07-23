@@ -8,6 +8,7 @@ import "virtual:uno.css";
 import "./App.css";
 
 import { applyTheme, getInitialTheme } from "@algorisys/zen-ui-core/theme";
+import { Search } from "./components/form/search/search";
 import { NAV } from "./nav";
 import { ThemeSwitcher } from "./components/theme-switcher";
 import { ReleaseNotes } from "./components/ReleaseNotes";
@@ -306,28 +307,70 @@ function shell() {
   const body = el("div", "app-body");
   const sidebar = el("aside", "sidebar");
 
-  for (const group of NAV) {
-    const g = el("div", "sidebar-group");
-    g.append(el("h4", "sidebar-group-title", group.title));
-    const ul = el("ul", "sidebar-list");
-    for (const item of group.items) {
-      const li = el("li");
-      const a = el("a", "sidebar-link sidebar-link-inactive", item.label);
-      a.href = `${BASE}${item.to}`;
-      a.dataset.route = item.to;
-      a.addEventListener("click", (e) => {
-        // Intercept only a plain left click: ctrl/cmd/shift/middle must still open
-        // a new tab. An <a> that swallows them is a broken link.
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-        e.preventDefault();
-        navigate(item.to);
-      });
-      li.append(a);
-      ul.append(li);
+  /**
+   * The sidebar filtered by the search box — the library's own Search factory,
+   * dogfooded. Matches the label AND the nav description, so "wizard" finds
+   * Stepper; a group with no hits disappears rather than sitting as an empty
+   * heading. Rebuilding on each keystroke re-derives the active link from
+   * path(), because the links are new nodes each time and render()'s repaint
+   * only runs on navigation.
+   */
+  const searchWrap = el("div", "sidebar-search");
+  const searchField = Search({
+    size: "sm",
+    placeholder: "Search components",
+    "aria-label": "Search components",
+    onValueChange: (v) => renderGroups(v),
+  });
+  searchWrap.append(searchField.el);
+  const groupsHost = el("div");
+  sidebar.append(searchWrap, groupsHost);
+
+  const renderGroups = (query = "") => {
+    const q = query.trim().toLowerCase();
+    const active = path() in ROUTES ? path() : "/";
+    const groups: HTMLElement[] = [];
+    for (const group of NAV) {
+      const items = !q
+        ? group.items
+        : group.items.filter(
+            (item) =>
+              item.label.toLowerCase().includes(q) ||
+              (item.description?.toLowerCase().includes(q) ?? false),
+          );
+      if (items.length === 0) continue;
+      const g = el("div", "sidebar-group");
+      g.append(el("h4", "sidebar-group-title", group.title));
+      const ul = el("ul", "sidebar-list");
+      for (const item of items) {
+        const li = el("li");
+        const isActive = item.to === active;
+        const a = el(
+          "a",
+          `sidebar-link ${isActive ? "sidebar-link-active" : "sidebar-link-inactive"}`,
+          item.label,
+        );
+        a.href = `${BASE}${item.to}`;
+        a.dataset.route = item.to;
+        if (isActive) a.setAttribute("aria-current", "page");
+        a.addEventListener("click", (e) => {
+          // Intercept only a plain left click: ctrl/cmd/shift/middle must still open
+          // a new tab. An <a> that swallows them is a broken link.
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+          e.preventDefault();
+          navigate(item.to);
+        });
+        li.append(a);
+        ul.append(li);
+      }
+      g.append(ul);
+      groups.push(g);
     }
-    g.append(ul);
-    sidebar.append(g);
-  }
+    groupsHost.replaceChildren(
+      ...(groups.length ? groups : [el("p", "sidebar-empty", `No components match “${query}”.`)]),
+    );
+  };
+  renderGroups();
 
   const content = el("main", "app-content");
   body.append(sidebar, content);

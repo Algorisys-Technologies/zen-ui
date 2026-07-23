@@ -161,6 +161,24 @@
   overflow: hidden;
 }
 
+/* The component filter at the top of the sidebar. Sticky inside the sidebar's
+   own scroll, so the field stays reachable however deep the list goes; the
+   solid background keeps list items from showing through as they pass under. */
+.sidebar-search {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--zen-color-background);
+  padding: 0 1.25rem 0.75rem;
+}
+
+.sidebar-empty {
+  margin: 0;
+  padding: 0.25rem 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--zen-color-muted-fg);
+}
+
 .sidebar-group {
   margin-bottom: 1rem;
 }

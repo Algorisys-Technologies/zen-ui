@@ -3,6 +3,7 @@ import { A, useLocation } from "@solidjs/router";
 import { useTheme } from "./lib/theme";
 import { NAV } from "./nav";
 import ReleaseNotes from "./components/ReleaseNotes";
+import { Search } from "./components/form/search/search";
 
 /**
  * Derived from NAV, never hand-counted: nav.ts is already the single source of
@@ -147,6 +148,27 @@ const RouteError = (props: { err: unknown; reset: () => void }) => (
 const App: Component<ParentProps> = (props) => {
   const { theme, setTheme, themes } = useTheme();
   const [collapsed, setCollapsed] = createSignal(false);
+  const [query, setQuery] = createSignal("");
+
+  /**
+   * The sidebar filtered by the search box — the demo's own Search component,
+   * dogfooded. Matches the label AND the nav description, so "wizard" finds
+   * Stepper; a group with no hits disappears rather than sitting as an empty
+   * heading. Empty query returns NAV itself, not a copy, so the unfiltered
+   * sidebar renders exactly what it always did.
+   */
+  const filteredNav = () => {
+    const q = query().trim().toLowerCase();
+    if (!q) return NAV;
+    return NAV.map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) =>
+          item.label.toLowerCase().includes(q) ||
+          (item.description?.toLowerCase().includes(q) ?? false),
+      ),
+    })).filter((group) => group.items.length > 0);
+  };
 
   return (
     <div class="app-shell">
@@ -201,8 +223,21 @@ const App: Component<ParentProps> = (props) => {
 
       <div class="app-body">
         <aside class={`sidebar ${collapsed() ? "is-collapsed" : ""}`}>
+          <div class="sidebar-search">
+            <Search
+              size="sm"
+              value={query()}
+              onValueChange={setQuery}
+              placeholder="Search components"
+              aria-label="Search components"
+            />
+          </div>
           <nav>
-            <For each={NAV}>
+            <Show
+              when={filteredNav().length > 0}
+              fallback={<p class="sidebar-empty">No components match “{query()}”.</p>}
+            >
+              <For each={filteredNav()}>
               {(group) => (
                 <div class="sidebar-group">
                   <h3 class="sidebar-group-title">{group.group}</h3>
@@ -234,7 +269,8 @@ const App: Component<ParentProps> = (props) => {
                   </ul>
                 </div>
               )}
-            </For>
+              </For>
+            </Show>
           </nav>
         </aside>
         <main class="app-content">
