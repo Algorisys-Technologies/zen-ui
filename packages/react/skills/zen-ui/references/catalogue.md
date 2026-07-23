@@ -1,27 +1,8 @@
 <!-- GENERATED FILE — do not edit by hand.
-     Source: ../../packages/react/src/nav.ts (via scripts/gen-agent-guide.ts)
+     Source: packages/react/src/nav.ts (via scripts/gen-agent-guide.ts)
      Regenerate: bun run gen:agent-guide  (checked by `bun run check`) -->
 
-# @algorisys/zen-ui-solid — for AI coding agents
-
-The **Solid** binding of zen-ui. JSX components (Kobalte-backed). Mirrors the React API.
-
-zen-ui ships four bindings that share one API and one design core; this file is
-for agents targeting **Solid**. The other bindings —
-`@algorisys/zen-ui-react`, `@algorisys/zen-ui-vanilla`, `@algorisys/zen-ui-web-components` — expose the same catalogue with their own idiom.
-
-```tsx
-import { Button } from "@algorisys/zen-ui-solid";
-import "@algorisys/zen-ui-solid/styles";
-
-<Button variant="solid" color="primary">Save</Button>;
-```
-
-> This package also ships the same guidance as a Claude Code **skill** that
-> loads itself whenever an agent builds UI here. Install it once per project:
-> `cp -r node_modules/@algorisys/zen-ui-solid/skills/zen-ui .claude/skills/`
-
-## How to choose a component
+# zen-ui component catalogue
 
 Each entry is the component's name and what it is *for*. Match the task to the
 description, then import the name from your binding's package.
@@ -132,37 +113,3 @@ description, then import the name from your binding's package.
 ### Patterns (compositions, not exported components)
 
 - **List Report** — FilterBar + DataTable — filter a set, read the result, act on a row
-
-## Binding divergences an agent must know
-
-The bindings are one API with four renderers, but three differences are
-structural — reaching for the React shape in another binding is a bug, not a
-missing export:
-
-- **Compound parts exist only in React and Solid.** `DialogContent`,
-  `TabsList`, `AccordionItem`, `SelectTrigger` and the like are child
-  components you compose. The **vanilla** and **web-components** bindings expose
-  each family as ONE factory (or one `<zen-*>` element) that takes data — there
-  is nothing to name the parts. Do not import `DialogContent` from
-  `@algorisys/zen-ui-vanilla`; it does not exist by design.
-- **Select.** React exports the Radix compound parts
-  (`SelectTrigger`, `SelectContent`, `SelectItem`, …). Solid, vanilla and
-  web-components export a single `Select` that takes an `options` array.
-- **Toast.** React wraps Radix Toast primitives; Solid uses solid-toast. Both
-  expose an imperative `toast()` plus a viewport, but the primitive API differs.
-
-## Rules that apply in every binding
-
-- **You must import the stylesheet.** `import "<pkg>/styles";` once at your
-  app entry. Without it, components render unstyled — utilities resolve to
-  nothing. An optional element reset is a separate opt-in: `import "<pkg>/preflight";`.
-- **Utilities are prefixed `zen-`; variants sit outside the prefix** —
-  `hover:zen-bg-zen-primary`, `data-[state=open]:zen-p-4`, `!zen-p-4`. You
-  rarely write these as a consumer, but if you extend a component's class, keep
-  the prefix.
-- **Theming is `--zen-*` custom properties — that is the whole public surface.**
-  Override them in your own CSS. Three built-in themes switch via
-  `data-theme`: `default`, `zen-theme`, `dark`.
-- **Heavy components need an optional peer dep.** Chart wants `recharts`,
-  RichText wants jodit, Map wants `leaflet`, Camera wants `react-webcam`. They
-  lazy-load it; install it when you use one.

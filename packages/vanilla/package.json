@@ -22,7 +22,8 @@
   },
   "files": [
     "dist",
-    "AGENTS.md"
+    "AGENTS.md",
+    "skills"
   ],
   "repository": {
     "type": "git",
