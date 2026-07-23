@@ -17,6 +17,10 @@ import "@algorisys/zen-ui-react/styles";
 <Button variant="solid" color="primary">Save</Button>;
 ```
 
+> This package also ships the same guidance as a Claude Code **skill** that
+> loads itself whenever an agent builds UI here. Install it once per project:
+> `cp -r node_modules/@algorisys/zen-ui-react/skills/zen-ui .claude/skills/`
+
 ## How to choose a component
 
 Each entry is the component's name and what it is *for*. Match the task to the

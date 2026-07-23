@@ -11,13 +11,25 @@
  * nav.ts (the reference binding wins, per scripts/bindings.mjs) and re-emits
  * the guide; nothing is typed twice.
  *
- * It writes FIVE files from that one source:
+ * It writes FIFTEEN files from that one source:
  *   - AGENTS.md at the repo root — for an agent working in this repo, and the
  *     canonical copy.
  *   - packages/<binding>/AGENTS.md — one per binding, so a consumer's agent
  *     finds it in node_modules. Each carries that binding's own consume-idiom
  *     header (JSX vs factory vs custom element) above the shared catalogue.
  *     These are in each package's `files` allowlist, so they publish.
+ *   - skills/zen-ui/SKILL.md + references/catalogue.md — the same content as a
+ *     Claude Code skill. AGENTS.md is the passive layer (read if the agent
+ *     looks in node_modules); the skill is the active one — its description
+ *     triggers loading whenever the agent builds UI in a consuming project.
+ *     One skill for all four bindings: picking the binding is step 1 inside it.
+ *     The catalogue is a lazy-loaded reference so SKILL.md stays token-cheap.
+ *   - packages/<binding>/skills/zen-ui/* — the SAME two skill files, copied
+ *     into each binding so they publish (each package's `files` lists
+ *     `skills`). Identical on purpose: it is one skill that begins by picking
+ *     the binding, so a consumer installs it from whichever package they have
+ *     (`cp -r node_modules/@algorisys/zen-ui-<b>/skills/zen-ui .claude/skills/`)
+ *     and gets the same thing four ways.
  *
  * Usage:
  *   bun run scripts/gen-agent-guide.ts            # write the files
@@ -27,7 +39,7 @@
  * diffs against disk, so a component added to nav.ts without regenerating this
  * fails the same gate as any other drift — that is the "kept updated" contract.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { NAV, type NavGroup } from "../packages/react/src/nav.ts";
@@ -131,6 +143,135 @@ const RULES = `## Rules that apply in every binding
   RichText wants jodit, Map wants \`leaflet\`, Camera wants \`react-webcam\`. They
   lazy-load it; install it when you use one.`;
 
+/**
+ * The Claude Code skill. Same source of truth, different activation: the
+ * `description` frontmatter makes an agent load this on its own whenever it
+ * builds UI in a project that depends on a zen-ui package — no wiring in the
+ * consumer's CLAUDE.md needed. The body is workflow-shaped (what to check, in
+ * what order, what fails silently) rather than catalogue-shaped; the catalogue
+ * itself is a reference file the agent reads only when choosing a component.
+ *
+ * The generated-file notice sits AFTER the frontmatter — an HTML comment above
+ * the opening `---` would stop the frontmatter parsing as frontmatter.
+ */
+const skillDoc = (): string => `---
+name: zen-ui
+description: Build UI with the zen-ui design system (@algorisys/zen-ui-react, -solid, -vanilla, -web-components). Use when adding or modifying ANY user interface in a project that depends on a zen-ui package — forms, dialogs, tables, date/time pickers, navigation, dashboards, app shells — or when theming or styling such a project. Covers picking the right component, required style imports, theming via --zen-* tokens, and the API differences between the four bindings.
+---
+
+${GENERATED_NOTICE("packages/react/src/nav.ts (via scripts/gen-agent-guide.ts)")}
+
+# Building UI with zen-ui
+
+zen-ui is one shadcn/Radix-style design system shipped as four framework
+bindings that share one design core. A component present in one binding exists
+in all of them — roughly 80 families, from primitives (Button, Dialog, Select)
+through data-heavy surfaces (DataTable, TreeTable, Pivot, PlanningCalendar) to
+a full app frame (ShellBar, Sidebar, FlexibleColumnLayout, DynamicPage).
+
+## Workflow
+
+1. **Identify the binding** from the project's \`package.json\`:
+
+   | Dependency | Binding | Idiom |
+   |---|---|---|
+   | \`@algorisys/zen-ui-react\` | React | JSX components (Radix-backed). The reference API. |
+   | \`@algorisys/zen-ui-solid\` | Solid | JSX components (Kobalte-backed). Mirrors the React API. |
+   | \`@algorisys/zen-ui-vanilla\` | Vanilla | Factories: props object in, handle out; \`handle.el\` is the DOM node. |
+   | \`@algorisys/zen-ui-web-components\` | Web Components | \`<zen-*>\` custom elements; importing the package registers all of them. |
+
+2. **Check the catalogue before building anything by hand.** Read
+   [references/catalogue.md](references/catalogue.md) and match the task to a
+   component's description. If zen-ui has it, use it — do not compose a
+   date-range picker out of two inputs when \`DateRangePicker\` exists, and do
+   not reach for raw shadcn/Radix alongside it.
+
+3. **Verify the setup rules below** — the failure they prevent is silent:
+   the build passes and the page renders wrong.
+
+## Setup rules (every binding)
+
+- **The stylesheet import is mandatory.** Once, at the app entry:
+  \`import "<pkg>/styles";\`. Without it components render completely unstyled —
+  nothing errors, the build stays green.
+- **The element reset is opt-in and separate**: \`import "<pkg>/preflight";\`.
+  Do not add it to an app that has its own reset.
+- **Heavy components need an optional peer dep**, lazy-loaded on use:
+  Chart → \`recharts\`, RichText → jodit, Map → \`leaflet\` (+ \`react-leaflet\`
+  in React), Camera → \`react-webcam\`. Install the dep when you use the
+  component; without it the component has nothing to load.
+
+${DIVERGENCES}
+
+Same component, all four idioms:
+
+\`\`\`tsx
+// React / Solid
+import { Button } from "@algorisys/zen-ui-react"; // or -solid
+import "@algorisys/zen-ui-react/styles";
+<Button variant="solid" color="primary">Save</Button>;
+\`\`\`
+
+\`\`\`ts
+// Vanilla
+import { Button } from "@algorisys/zen-ui-vanilla";
+import "@algorisys/zen-ui-vanilla/styles";
+const btn = Button({ variant: "solid", color: "primary", children: "Save" });
+document.body.append(btn.el);
+\`\`\`
+
+\`\`\`html
+<!-- Web Components (import "@algorisys/zen-ui-web-components" once) -->
+<zen-button variant="solid" color="primary">Save</zen-button>
+\`\`\`
+
+## Theming and styling
+
+- **Theming is \`--zen-*\` custom properties — that is the whole public
+  surface.** Override them in the consuming app's CSS. Three built-in themes
+  switch via \`data-theme\` on any ancestor: \`default\`, \`zen-theme\`, \`dark\`.
+  Do not fork component source or patch generated CSS to restyle.
+- **zen-ui's utilities are prefixed \`zen-\`** (\`zen-p-4\`,
+  \`hover:zen-bg-zen-primary\`). The consuming app's Tailwind/UnoCSS does NOT
+  generate these, so writing new \`zen-*\` classes in app code produces nothing.
+  To adjust a component: pass \`className\`/\`class\` with the app's own
+  utilities, or override \`--zen-*\` tokens.
+- A dark panel inside a light page (or vice versa) is the \`Theme\` component /
+  a nested \`data-theme\` — not manual color overrides.
+
+## Pitfalls that fail silently
+
+| Symptom | Cause |
+|---|---|
+| Everything renders unstyled, no errors | Missing \`import "<pkg>/styles"\` |
+| Import error: \`DialogContent\` not exported (vanilla/wc) | Compound parts are React/Solid-only — use the family's single factory/element |
+| Chart / RichText / Map / Camera renders nothing | Optional peer dep not installed |
+| A \`zen-*\` class you wrote has no effect | Consumer builds don't generate prefixed utilities — use tokens or your own classes |
+| Select code from a React example fails in Solid | API divergence — Solid's \`Select\` takes \`options\` |
+
+## References
+
+- [references/catalogue.md](references/catalogue.md) — the full component
+  catalogue: every family, grouped, with a one-line "what it is for". Read it
+  whenever choosing a component.
+- Each installed package also ships \`AGENTS.md\` at its root (in
+  \`node_modules/@algorisys/zen-ui-<binding>/AGENTS.md\`) with the same
+  catalogue plus that binding's idiom.
+`;
+
+/** The skill's lazy-loaded catalogue reference — nav.ts descriptions, same as
+ *  the AGENTS.md catalogue, kept out of SKILL.md so the always-loaded part
+ *  stays small. */
+const catalogueDoc = (): string => `${GENERATED_NOTICE("packages/react/src/nav.ts (via scripts/gen-agent-guide.ts)")}
+
+# zen-ui component catalogue
+
+Each entry is the component's name and what it is *for*. Match the task to the
+description, then import the name from your binding's package.
+
+${renderCatalogue()}
+`;
+
 /** The shared body every copy carries: catalogue + divergences + rules. */
 const body = (): string => `## How to choose a component
 
@@ -198,6 +339,10 @@ ${BINDINGS.filter((o) => o.id !== b.id)
 ${idiom?.example ?? ""}
 \`\`\`
 
+> This package also ships the same guidance as a Claude Code **skill** that
+> loads itself whenever an agent builds UI here. Install it once per project:
+> \`cp -r node_modules/${b.pkg}/skills/zen-ui .claude/skills/\`
+
 ${body()}`;
 };
 
@@ -205,9 +350,17 @@ ${body()}`;
 const targets = (): Array<{ path: string; content: string }> => {
   const files: Array<{ path: string; content: string }> = [
     { path: resolve(root, "AGENTS.md"), content: rootDoc() },
+    { path: resolve(root, "skills/zen-ui/SKILL.md"), content: skillDoc() },
+    { path: resolve(root, "skills/zen-ui/references/catalogue.md"), content: catalogueDoc() },
   ];
   for (const b of BINDINGS) {
     files.push({ path: resolve(root, b.dir, "AGENTS.md"), content: bindingDoc(b) });
+    // The published copy of the skill — identical per binding, see header.
+    files.push({ path: resolve(root, b.dir, "skills/zen-ui/SKILL.md"), content: skillDoc() });
+    files.push({
+      path: resolve(root, b.dir, "skills/zen-ui/references/catalogue.md"),
+      content: catalogueDoc(),
+    });
   }
   return files;
 };
@@ -228,6 +381,7 @@ for (const { path, content } of targets()) {
     if (!ok) drift++;
     console.log(`  ${ok ? "ok  " : "FAIL"} ${rel}${ok ? "" : "  (stale — run `bun run gen:agent-guide`)"}`);
   } else {
+    mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, content);
     console.log(`  wrote ${rel}`);
   }
