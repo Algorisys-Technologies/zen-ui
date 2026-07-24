@@ -1,15 +1,24 @@
-# @algorisys/zen-ui-react
+# zen-ui
 
-A React component library shipping **shadcn-style primitives on top of
-Radix UI**, themed via CSS custom properties. Every component forwards
-a ref, supports `asChild` where it makes sense, and exposes a flat
-React-idiomatic prop API.
+An accessible component suite built once and shipped as four framework
+bindings — **React, Solid, vanilla JS, and native Web Components** —
+that share a single design core. One set of design tokens, one visual
+language, one API shape; pick the binding that fits your stack.
 
-```bash
-npm install @algorisys/zen-ui-react
-```
+| Package | Install | For |
+|---|---|---|
+| `@algorisys/zen-ui-react` | `npm i @algorisys/zen-ui-react` | React apps (Radix-backed) |
+| `@algorisys/zen-ui-solid` | `npm i @algorisys/zen-ui-solid` | SolidJS apps (Kobalte-backed) |
+| `@algorisys/zen-ui-vanilla` | `npm i @algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM |
+| `@algorisys/zen-ui-web-components` | `npm i @algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) usable anywhere |
+
+Accessibility is a property of the whole suite, not one binding: React
+sits on Radix UI, Solid on Kobalte — both keyboard, focus and ARIA
+primitives — and the vanilla and Web Components bindings carry the same
+roles and semantics through to the light DOM.
 
 ```tsx
+// React
 import {
   Button,
   Dialog,
@@ -21,35 +30,38 @@ import {
 import "@algorisys/zen-ui-react/styles";   // tokens + utility classes
 ```
 
-See the demo at `/builder/` for live examples of every component.
+```html
+<!-- Web Components — register the elements once, then use them as markup -->
+<zen-button variant="primary">Save</zen-button>
+```
+
+Every binding mirrors the same component set and behaviour; React is the
+reference the others are built to match. See the demos — `/builder/`
+(React), `/builder-solid/` (Solid), `/builder-vanilla/` (vanilla) and
+`/builder-wc/` (Web Components) — for live examples of every component.
 
 ---
 
 ## Repository layout
 
 This repo is a [bun workspaces](https://bun.sh/docs/install/workspaces)
-monorepo. Each framework binding lives in its own publishable package
-under `packages/`:
+monorepo. A shared core plus one publishable package per framework
+binding, all under `packages/`:
 
 ```
 zen-ui/
-├── package.json            # workspace root (private)
+├── package.json                # workspace root (private)
 ├── bun.lock
 ├── packages/
-│   ├── core/               # @algorisys/zen-ui-core (framework-agnostic)
-│   │   ├── package.json
-│   │   ├── src/            # cn, theme primitives, UnoCSS preset
-│   │   └── styles/         # tokens.css, preflight.css
-│   ├── react/              # @algorisys/zen-ui-react
-│   │   ├── package.json
-│   │   ├── src/
-│   │   ├── vite.config.lib.ts
-│   │   ├── vite.config.demo.ts
-│   │   └── uno.config.ts
-│   └── solid/              # @algorisys/zen-ui-solid (same core, Solid binding)
-│       ├── package.json
-│       ├── src/
-│       └── uno.config.ts
+│   ├── core/                   # @algorisys/zen-ui-core (framework-agnostic)
+│   │   ├── src/                # cn, theme primitives, UnoCSS preset
+│   │   └── styles/             # tokens.css, preflight.css
+│   ├── react/                  # @algorisys/zen-ui-react (Radix-backed) + demo
+│   ├── solid/                  # @algorisys/zen-ui-solid (Kobalte-backed) + demo
+│   ├── vanilla/                # @algorisys/zen-ui-vanilla (no framework) + demo
+│   └── web-components/         # @algorisys/zen-ui-web-components + demo
+├── apps/
+│   └── landing/                # marketing page (depends on core only)
 ├── docs/
 ├── README.md
 └── todo.md
@@ -59,38 +71,59 @@ zen-ui/
 framework-agnostic — design tokens (`tokens.css`), the preflight
 reset, the `cn` helper, the UnoCSS theme + rem-rescale postprocess,
 and the pure DOM-level theme primitives (`THEMES`, `applyTheme`,
-`getInitialTheme`). The React binding depends on it via
-`workspace:*` and layers the `useTheme` hook on top.
+`getInitialTheme`). Every binding depends on it via `workspace:*`, so
+all four render from the same tokens and stay visually identical.
 
-A SolidJS binding (`packages/solid` → `@algorisys/zen-ui-solid`)
-ships alongside the React one, reusing the same core so both bindings
-stay visually identical.
+The four bindings render the same design in four different ways:
+
+- **React** (`@algorisys/zen-ui-react`) wraps Radix UI primitives and
+  is the **reference implementation** of the API — where two bindings
+  disagree about what a prop or component should be, React wins.
+- **Solid** (`@algorisys/zen-ui-solid`) wraps Kobalte and mirrors the
+  React API; it also ships a server (SSR) build alongside the DOM one.
+- **Vanilla** (`@algorisys/zen-ui-vanilla`) needs no framework at all:
+  data-driven factories render into the light DOM. Data-driven
+  families take an `items` array rather than compound children.
+- **Web Components** (`@algorisys/zen-ui-web-components`) is a
+  declarative custom-element layer (`<zen-button>`, `<zen-dialog>`, …)
+  over the vanilla factories, re-exporting their surface verbatim.
+
+Parity between bindings is enforced, not aspirational: a component that
+exists in one binding and not the others is treated as a bug. React and
+Solid are the primary demo targets; vanilla and Web Components carry the
+same component set.
 
 ---
 
 ## Status
 
-- 21 primitive components on the shadcn / Radix-style API.
-- Higher-level primitives shipped: `Form` (RHF + Zod), `DataTable`
-  (TanStack Table + Virtual), `Combobox` (cmdk; sync + async), `Alert`,
-  `Popover`, `VirtualizedItems`.
+- All published packages share **one version** and bump together —
+  `core` plus the four bindings. The whole suite is at the version shown
+  in each `package.json` and in the demo footer.
+- The same component set ships in every binding: primitives (Button,
+  Tooltip, DropdownMenu, Switch, Checkbox, RadioGroup, Select, Slider,
+  Input, DatePicker, and more) plus higher-level pieces — `Form`
+  (validated), `DataTable` (sortable / filterable / editable /
+  virtualized), `Combobox`, `Alert`, `Popover`. See each demo for the
+  full, current list.
 - 3 built-in themes: **default** (Algorisys brand), **zen-theme**
-  (Algorisys Zen palette), **dark**. Theme switcher in the demo shell
-  header.
+  (Algorisys Zen palette), **dark**. Theme switcher in every demo shell.
 
-See [todo.md](./todo.md) for the deferred-work list (column drag /
-resize on DataTable, async-validated form fields, high-contrast theme,
-release housekeeping, etc.).
+See [todo.md](./todo.md) for the deferred-work list.
 
 ---
 
 ## Theming
 
-All visual properties — colours, radii, shadows, spacing — are CSS
-custom properties prefixed `--zen-*`, declared in
+Theming is one surface for all four bindings, because it lives in
+`core`. All visual properties — colours, radii, shadows, spacing — are
+CSS custom properties prefixed `--zen-*`, declared in
 [`packages/core/styles/tokens.css`](./packages/core/styles/tokens.css). Components reference
 the tokens via UnoCSS utility classes like `bg-zen-primary`,
-`rounded-zen-md`, `shadow-zen-sm`.
+`rounded-zen-md`, `shadow-zen-sm`. Override the `--zen-*` variables once
+and every binding follows; the theme primitives shown below
+(`useTheme` here, and the framework-agnostic `applyTheme` /
+`getInitialTheme` / `THEMES`) are re-exported by each binding.
 
 ### Built-in themes
 
@@ -277,7 +310,13 @@ rest.
 
 ## Component overview
 
-See the demo app `/builder/` for live examples.
+The same components ship in every binding. See the demos for live
+examples — `/builder/` (React), `/builder-solid/` (Solid),
+`/builder-vanilla/` (vanilla) and `/builder-wc/` (Web Components).
+The list below names the React exports; the other bindings mirror them,
+with two deliberate divergences noted where a data-driven or
+framework-native API reads better (e.g. vanilla and Web Components take
+an `items` array instead of compound children).
 
 ### Primitives
 
@@ -338,11 +377,14 @@ Pick the channel that matches the stage of adoption:
 | Public, world-readable installs               | [Public npm](#3-public-npm)        |
 | Two repos open side-by-side, live reload      | [`npm link`](#4-local-dev-cross-project) |
 
-The package is already configured to publish to the GitHub Packages
-registry under the `@algorisys` scope (`packages/react/package.json` →
-`publishConfig`). `"files": ["dist"]` means the published tarball
-contains only the built output, not source. All publishing / packing
-commands below run from inside `packages/react/`.
+Every binding publishes the same way. The steps below use the React
+package as the example — for the others, swap in the package you want
+(`packages/solid`, `packages/vanilla`, `packages/web-components`) and its
+`build:lib:*` script. Each binding is already configured to publish to
+the GitHub Packages registry under the `@algorisys` scope
+(`packages/<binding>/package.json` → `publishConfig`). `"files":
+["dist"]` means the published tarball contains only the built output, not
+source.
 
 ### 1. Tarball
 
@@ -352,16 +394,16 @@ Fastest way to share with one team without registry plumbing.
 cd packages/react
 bun run build:lib
 npm pack
-# → algorisys-zen-ui-2.1.1.tgz in packages/react/
+# → algorisys-zen-ui-react-<version>.tgz in packages/react/
 ```
 
 Share the `.tgz` (Slack, internal artifact store, a GitHub release
 attachment). Consumers install it directly:
 
 ```bash
-npm install /absolute/path/to/algorisys-zen-ui-2.1.1.tgz
+npm install /absolute/path/to/algorisys-zen-ui-react-<version>.tgz
 # or from a URL:
-npm install https://github.com/Algorisys-Technologies/zen-ui/releases/download/v2.1.1/algorisys-zen-ui-2.1.1.tgz
+npm install https://github.com/Algorisys-Technologies/zen-ui/releases/download/v<version>/algorisys-zen-ui-react-<version>.tgz
 ```
 
 Then in their app:
@@ -466,15 +508,21 @@ npm install                 # restores the published version
 
 ### Versioning conventions
 
-- Patch (`2.1.x`) — bug fixes, internal refactors, demo-only changes
-  that don't affect the published surface.
-- Minor (`2.x.0`) — new components, new exports, new props with
-  default values that preserve existing behaviour.
-- Major (`x.0.0`) — removed exports, renamed props, breaking changes
-  to a component's default rendering or behaviour.
+`core` and all four bindings carry **one shared version** and are
+released together, so a given version number means the same thing across
+the whole suite — you never have to reconcile a React version against a
+Solid one.
 
-Consuming teams pinning with `^2.1.0` will pick up everything up to
-the next major safely.
+- Patch (`x.y.Z`) — bug fixes, internal refactors, demo-only changes
+  that don't affect the published surface.
+- Minor (`x.Y.0`) — new components, new exports, new props with
+  default values that preserve existing behaviour.
+- Major (`X.0.0`) — removed exports, renamed props, breaking changes to
+  a component's default rendering or behaviour. A visual change that
+  reflows a consumer's page counts as breaking.
+
+Consuming teams pinning with a caret (`^`) pick up everything up to the
+next major safely.
 
 ---
 
