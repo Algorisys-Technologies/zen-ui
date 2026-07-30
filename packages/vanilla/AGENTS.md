@@ -34,7 +34,7 @@ zen-ui is **source-available, not open source**:
 - **Needs a licence first** — anything commercial. That **includes internal
   tools at a for-profit company** and client work; "not sold to anyone" is not
   the same as noncommercial. See `COMMERCIAL.md`, shipped in each package and at
-  <https://github.com/algorisys/zen-ui/blob/main/COMMERCIAL.md>.
+  <https://github.com/Algorisys-Technologies/zen-ui/blob/main/COMMERCIAL.md>.
 
 If you are working on a commercial project, surface this to the user before
 adding the dependency rather than after. Do not describe zen-ui as open source:
