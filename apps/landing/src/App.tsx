@@ -57,9 +57,9 @@ const VANILLA_LOGO = (
     <path
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
       d="M8 4 3 12l5 8M16 4l5 8-5 8M13.5 3.5l-3 17"
     />
   </svg>
@@ -70,9 +70,9 @@ const WEB_COMPONENTS_LOGO = (
     <path
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
       d="M12 2 3 7v10l9 5 9-5V7l-9-5ZM9.5 9.5 7 12l2.5 2.5M14.5 9.5 17 12l-2.5 2.5"
     />
   </svg>
@@ -467,7 +467,22 @@ const App = () => (
 
     <footer class="border-t border-zen-border mt-12">
       <div class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between text-xs text-zen-muted-fg">
-        <span>Built by Algorisys Technologies. MIT-style internal use.</span>
+        {/* This said "MIT-style internal use", which was wrong in the direction
+            that costs money: MIT permits commercial use and this licence grants
+            none. A licence claim on the most public page in the repo is the one
+            a consumer can say they relied on, so it states the actual terms and
+            links to them. */}
+        <span>
+          Built by Algorisys Technologies · free for noncommercial use —{" "}
+          <a
+            class="underline hover:text-zen-fg"
+            href="https://github.com/Algorisys-Technologies/zen-ui/blob/main/COMMERCIAL.md"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            commercial licensing
+          </a>
+        </span>
         <span>v{__ZEN_VERSION__} · {new Date().getFullYear()}</span>
       </div>
     </footer>

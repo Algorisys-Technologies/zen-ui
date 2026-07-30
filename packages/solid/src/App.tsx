@@ -287,6 +287,18 @@ const App: Component<ParentProps> = (props) => {
           </a>
           <span class="app-footer-sep">·</span>
           zen-ui · Kobalte-backed components
+          {/* The licence, where someone evaluating the library is already
+              looking. "Noncommercial" is the fact they need; the link carries
+              the rest. Stated as what they MAY do, because a footer that only
+              names a licence makes a reader go and find out what it means. */}
+          <span class="app-footer-sep">·</span>
+          <a
+            href="https://github.com/Algorisys-Technologies/zen-ui/blob/main/LICENSE"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Free for noncommercial use
+          </a>
         </span>
         <ReleaseNotes />
       </footer>
