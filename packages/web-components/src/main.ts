@@ -389,11 +389,21 @@ function shell() {
   algorisys.href = "https://www.algorisys.com";
   algorisys.target = "_blank";
   algorisys.rel = "noreferrer noopener";
+  // The licence, where someone evaluating the library is already looking.
+  // "Noncommercial" is the fact they need; the link carries the rest. Stated as
+  // what they MAY do, because a footer that only names a licence makes a reader
+  // go and find out what it means.
+  const licence = el("a", undefined, "Free for noncommercial use");
+  licence.href = "https://github.com/Algorisys-Technologies/zen-ui/blob/main/LICENSE";
+  licence.target = "_blank";
+  licence.rel = "noreferrer noopener";
   copy.append(
     document.createTextNode(`© ${new Date().getFullYear()} `),
     algorisys,
     el("span", "app-footer-sep", "·"),
     document.createTextNode("zen-ui · web-components binding"),
+    el("span", "app-footer-sep", "·"),
+    licence,
   );
   const notes = ReleaseNotes();
   footer.append(copy, notes.el);
