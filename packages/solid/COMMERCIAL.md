@@ -1,11 +1,11 @@
 # Commercial licensing
 
-zen-ui is copyright **Algorisys Technologies**, authored by Rajesh Pillai, and
+zen-ui is copyright **Algorisys Technologies Pvt. Ltd**, authored by Rajesh Pillai, and
 released under the [PolyForm Noncommercial License 1.0.0](LICENSE). That license
 is generous about noncommercial use and silent about commercial use — it grants
 none. This page is the other half: how to get one.
 
-Commercial licenses are granted by Algorisys Technologies, which holds the
+Commercial licenses are granted by Algorisys Technologies Pvt. Ltd, which holds the
 copyright in the work and can therefore license it on any terms it chooses.
 
 ## The short version
@@ -62,11 +62,11 @@ termination nobody intended).
 
 ## Contributing
 
-Contributions are welcome, with one thing to be aware of. Algorisys Technologies
+Contributions are welcome, with one thing to be aware of. Algorisys Technologies Pvt. Ltd
 can grant commercial licenses because it holds the copyright in the whole work;
 a contributor keeps copyright in their own lines unless they say otherwise. So
 by opening a pull request you agree that your contribution is licensed to the
-project under the same terms as the rest of it, and that Algorisys Technologies
+project under the same terms as the rest of it, and that Algorisys Technologies Pvt. Ltd
 may include it in commercial licenses granted to others.
 
 If that does not work for you, open an issue describing the change instead of a

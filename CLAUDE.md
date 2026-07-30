@@ -519,7 +519,7 @@ both into its directory, then prove it:
 
 ## Licence
 
-zen-ui is copyright **Algorisys Technologies** (authored by Rajesh Pillai) and
+zen-ui is copyright **Algorisys Technologies Pvt. Ltd** (authored by Rajesh Pillai) and
 **source-available, not open source**: PolyForm Noncommercial 1.0.0
 (SPDX `PolyForm-Noncommercial-1.0.0`) — free for personal, hobby, educational,
 research, charity and government use; commercial use needs a separate licence.
