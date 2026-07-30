@@ -47,6 +47,29 @@ t(
 
 const version = core;
 
+console.log("\nbun.lock agrees with the manifests");
+// This is not cosmetic and it does not self-heal. `bun install` only rewrites the
+// lockfile when the dependency GRAPH changes, so bumping five versions leaves the
+// workspace entries behind — `bun install --force` does not fix it either. It was
+// found two majors stale (7.1.0 against 9.10.0 manifests), and it matters because
+// `bun pm pack` takes the version it substitutes for a `workspace:*` range from
+// the lockfile: a stale entry stamps a wrong dependency range into every tarball.
+// Nothing else in this file reads the lockfile, which is why it drifted unnoticed.
+// Fix by editing the `"packages/<name>"` version fields directly; deleting the
+// lockfile mid-release would re-resolve every range.
+{
+  const lock = readFileSync("bun.lock", "utf8");
+  for (const name of ["core", ...BINDINGS.map((b) => b.id)]) {
+    const block = lock.split(`"packages/${name}": {`)[1]?.split("}")[0] ?? "";
+    const locked = block.match(/"version": "([^"]+)"/)?.[1];
+    t(
+      locked === version,
+      `bun.lock: packages/${name} is ${version}`,
+      locked ? `lockfile says ${locked}` : "no version entry found",
+    );
+  }
+}
+
 console.log("\nthe release note exists and is about THIS version");
 const notePath = `release-notes/${version}.md`;
 t(existsSync(notePath), `${notePath} exists`, `no note for the version in package.json`);
