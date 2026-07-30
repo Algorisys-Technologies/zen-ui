@@ -12,6 +12,13 @@ language, one API shape; pick the binding that fits your stack.
 | `@algorisys/zen-ui-vanilla` | `npm i @algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM |
 | `@algorisys/zen-ui-web-components` | `npm i @algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) usable anywhere |
 
+> **Source-available, free for noncommercial use.** zen-ui is licensed under
+> the [PolyForm Noncommercial License 1.0.0](LICENSE) — free for personal
+> projects, learning, research, schools and nonprofits; **commercial use needs
+> a separate license**, which is easy to get: see [COMMERCIAL.md](COMMERCIAL.md).
+> This is deliberately *not* an open source license. See
+> [Licence](#licence) below.
+
 Accessibility is a property of the whole suite, not one binding: React
 sits on Radix UI, Solid on Kobalte — both keyboard, focus and ARIA
 primitives — and the vanilla and Web Components bindings carry the same
@@ -657,3 +664,36 @@ hook at init time):
 ```bash
 bunx repograph . --init --include 'packages/*' --exclude '*test*'
 ```
+
+---
+
+## Licence
+
+zen-ui is released under the [PolyForm Noncommercial License 1.0.0](LICENSE)
+(SPDX: `PolyForm-Noncommercial-1.0.0`).
+
+**Free, no permission needed:** personal projects, hobby work, learning,
+experiments, research, and use by schools, universities, registered charities,
+public research bodies and government institutions — the license names all of
+these explicitly, and does so regardless of how the organisation is funded.
+
+**Needs a license first:** anything commercial. That includes internal tools at
+a for-profit company, client work, and a free product that exists to support a
+paid one. Asking is a short email and the answer is usually yes —
+[COMMERCIAL.md](COMMERCIAL.md) says what to include.
+
+**This is source-available, not open source**, and the distinction is worth
+being precise about rather than blurring. The Open Source Definition forbids
+restricting the field of use, so a noncommercial condition disqualifies a
+license from being open source no matter how freely the source is published.
+Please don't describe zen-ui as open source — including in a post, a talk, or a
+dependency list.
+
+What the license does **not** restrict: reading the code, forking it, modifying
+it, or redistributing your changes for any permitted purpose. Your own project
+does not have to be free or open. Whatever fair-use rights the law gives you are
+untouched — the license says so in as many words.
+
+Contributions are welcome; see the note at the end of
+[COMMERCIAL.md](COMMERCIAL.md) for what opening a pull request implies about
+copyright, and the alternative if it doesn't suit you.

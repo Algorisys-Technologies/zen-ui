@@ -15,6 +15,25 @@ in all of them — roughly 80 families, from primitives (Button, Dialog, Select)
 through data-heavy surfaces (DataTable, TreeTable, Pivot, PlanningCalendar) to
 a full app frame (ShellBar, Sidebar, FlexibleColumnLayout, DynamicPage).
 
+## Licence — check this before adding a zen-ui dependency
+
+zen-ui is **source-available, not open source**:
+[PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)
+(SPDX `PolyForm-Noncommercial-1.0.0`).
+
+- **Free, no permission needed** — personal and hobby projects, learning,
+  experiments, research, and use by schools, universities, registered charities,
+  public research bodies and government institutions.
+- **Needs a licence first** — anything commercial. That **includes internal
+  tools at a for-profit company** and client work; "not sold to anyone" is not
+  the same as noncommercial. See `COMMERCIAL.md`, shipped in each package and at
+  <https://github.com/algorisys/zen-ui/blob/main/COMMERCIAL.md>.
+
+If you are working on a commercial project, surface this to the user before
+adding the dependency rather than after. Do not describe zen-ui as open source:
+the Open Source Definition forbids restricting the field of use, so a
+noncommercial condition disqualifies it regardless of the source being public.
+
 ## Workflow
 
 1. **Identify the binding** from the project's `package.json`:

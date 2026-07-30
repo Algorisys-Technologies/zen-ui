@@ -60,6 +60,21 @@ dist-demo
 !.claude/skills/impeccable/**/*.md
 !todo.md
 !README.md
+# How to get a commercial license, since LICENSE (PolyForm Noncommercial) grants
+# none. Same `*.md`-at-any-depth trap as the release notes, and the worst one to
+# hit: the license's `Required Notice:` line points at this file BY NAME, so an
+# untracked COMMERCIAL.md means a clone reads "commercial use requires a license
+# — see COMMERCIAL.md" and finds nothing. LICENSE has no extension, so `*.md`
+# never reached it.
+#
+# One line covers the per-package copies as well: a bare pattern with no slash
+# matches the basename AT ANY DEPTH, in a negation exactly as in an ignore. That
+# makes the `!packages/**/AGENTS.md` line above redundant with its own `!AGENTS.md`
+# — kept, because deleting a working line to prove a point about gitignore
+# semantics is not worth the risk of being wrong. Verify with `git add -n`:
+# `git check-ignore -v` counts a negation as a match and exits 0, which reads as
+# "ignored" and means the opposite.
+!COMMERCIAL.md
 # The old-idiom -> new-idiom map for the vanilla binding (LOOPS XXXVI: "write the
 # mapping down"). It is what keeps three bindings agreeing on one API instead of
 # drifting, so it is team documentation in the same sense as LOOPS.md — and the

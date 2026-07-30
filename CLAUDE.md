@@ -15,6 +15,11 @@ mirror.
 | `packages/web-components` — `@algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) — a declarative layer over the vanilla factories, re-exporting its surface verbatim. |
 | `apps/landing` | Marketing page. Ships CSS to nobody; depends on `core` only. |
 
+**Licensed PolyForm Noncommercial 1.0.0 — source-available, not open source.**
+Free for personal, hobby, educational, research, charity and government use;
+commercial use needs a separate licence. See [Licence](#licence) below before
+describing this project anywhere.
+
 ## Development guidelines
 
 **Read [LOOPS.md](LOOPS.md) before doing substantial work in this repo.** It is
@@ -494,6 +499,69 @@ both shipped:
   never wrote, so consumers got no TypeScript at all — and it survived a release
   because `emptyOutDir: false` kept a stale `index.d.ts` alive on any machine
   that had built the old layout once. `rm -rf dist` before believing `dist`.
+
+**Neither of them checks the licence files, and a new binding is where that
+bites.** `LICENSE` and `COMMERCIAL.md` are listed in every published package's
+`files` array by hand. npm auto-includes a `LICENSE` from a package's own
+directory only when `files` is ABSENT — every binding here has one, so an
+unlisted licence is silently dropped from the tarball, and the licence's
+`Required Notice:` line names `COMMERCIAL.md` explicitly, so dropping that ships
+a notice pointing at nothing. Add a binding, add both to its `files` and copy
+both into its directory, then prove it:
+
+```bash
+# per package: the tarball must contain both, not merely the repo
+(cd packages/<binding> && npm pack --dry-run --json) \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+      const f=JSON.parse(s)[0].files.map(x=>x.path);
+      console.log(["LICENSE","COMMERCIAL.md"].map(n=>`${n}: ${f.includes(n)}`).join("  "))})'
+```
+
+## Licence
+
+zen-ui is **source-available, not open source**: PolyForm Noncommercial 1.0.0
+(SPDX `PolyForm-Noncommercial-1.0.0`) — free for personal, hobby, educational,
+research, charity and government use; commercial use needs a separate licence.
+[COMMERCIAL.md](COMMERCIAL.md) is how one is asked for, and it is the file to
+edit when the terms or the contact change.
+
+Three things that will bite an edit here:
+
+- **The distinction is not pedantry, and this repo's own docs are the most
+  likely place to lose it.** The Open Source Definition forbids restricting the
+  field of use, so a noncommercial condition disqualifies a licence from being
+  open source no matter how public the source is — SPDX agrees, and marks the id
+  `isOsiApproved: false`. Do not let "open source" into the README, the landing
+  page, a release note or a commit message. It is the kind of claim a consumer
+  can later argue was relied on.
+- **The licence text is verbatim upstream and must stay that way.** It is the
+  raw file from `polyformproject.org`'s repo, not the rendered page — the
+  rendered page transcribes differently ("To receive any license" for "In order
+  to get any license", a dropped `Required Notice:` example). The only additions
+  are the two `Required Notice:` lines at the top, which is the mechanism the
+  licence itself provides for licensor-supplied notices that must travel with
+  copies. Diff against upstream rather than editing prose:
+
+  ```bash
+  curl -sfL https://raw.githubusercontent.com/polyformproject/polyform-licenses/1.0.0/PolyForm-Noncommercial-1.0.0.md \
+    -o /tmp/pf.md
+  diff <(grep -v '^Required Notice:' LICENSE | cat -s) <(cat -s /tmp/pf.md)
+  ```
+
+- **`.gitignore` has `*.md` at any depth**, so `COMMERCIAL.md` is allowlisted
+  (`!COMMERCIAL.md`). A bare pattern matches at any depth, so that one line
+  covers the per-package copies too — unlike the `!AGENTS.md` /
+  `!packages/**/AGENTS.md` pair above it, whose second line is redundant. Verify
+  with `git add -n`, not `git check-ignore -v`: with `-v` a NEGATION counts as a
+  match and the command exits 0, which reads as "ignored" and is the opposite of
+  the truth.
+
+The agent-facing guides state the licence too, and are **generated** — the block
+lives in `scripts/gen-agent-guide.ts` (`LICENSING`), not in the 15 files it
+writes. It is there because `AGENTS.md` and the zen-ui skill are what a
+consumer's agent reads before recommending a dependency: with nothing said, an
+agent will add zen-ui to a for-profit product and call it open source in the PR
+description, and no other check in this repo can see either mistake.
 
 ## Theming
 

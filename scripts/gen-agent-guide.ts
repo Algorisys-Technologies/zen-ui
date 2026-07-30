@@ -127,6 +127,41 @@ missing export:
 - **Toast.** React wraps Radix Toast primitives; Solid uses solid-toast. Both
   expose an imperative \`toast()\` plus a viewport, but the primitive API differs.`;
 
+/**
+ * The licence, stated where an agent will actually read it.
+ *
+ * These guides are what a consumer's agent reads BEFORE it recommends zen-ui,
+ * and they said nothing about the terms — so an agent would cheerfully add a
+ * zen-ui dependency to a for-profit product it is not licensed for, and call it
+ * open source in the PR description. Neither is a code mistake, which is why no
+ * other check in the repo can catch it.
+ *
+ * Deliberately short, and deliberately not folded into RULES: everything there
+ * is about making a component render, and a reader skimming for API facts
+ * should not have to parse permission facts to get at them. The two lines that
+ * earn their place are the ones this class of licence gets wrong — that
+ * "noncommercial" still excludes internal tools at a for-profit company, and
+ * that source-available is not open source.
+ */
+const LICENSING = `## Licence — check this before adding a zen-ui dependency
+
+zen-ui is **source-available, not open source**:
+[PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)
+(SPDX \`PolyForm-Noncommercial-1.0.0\`).
+
+- **Free, no permission needed** — personal and hobby projects, learning,
+  experiments, research, and use by schools, universities, registered charities,
+  public research bodies and government institutions.
+- **Needs a licence first** — anything commercial. That **includes internal
+  tools at a for-profit company** and client work; "not sold to anyone" is not
+  the same as noncommercial. See \`COMMERCIAL.md\`, shipped in each package and at
+  <https://github.com/algorisys/zen-ui/blob/main/COMMERCIAL.md>.
+
+If you are working on a commercial project, surface this to the user before
+adding the dependency rather than after. Do not describe zen-ui as open source:
+the Open Source Definition forbids restricting the field of use, so a
+noncommercial condition disqualifies it regardless of the source being public.`;
+
 const RULES = `## Rules that apply in every binding
 
 - **You must import the stylesheet.** \`import "<pkg>/styles";\` once at your
@@ -168,6 +203,8 @@ bindings that share one design core. A component present in one binding exists
 in all of them — roughly 80 families, from primitives (Button, Dialog, Select)
 through data-heavy surfaces (DataTable, TreeTable, Pivot, PlanningCalendar) to
 a full app frame (ShellBar, Sidebar, FlexibleColumnLayout, DynamicPage).
+
+${LICENSING}
 
 ## Workflow
 
@@ -284,8 +321,12 @@ description, then import the name from your binding's package.
 ${renderCatalogue()}
 `;
 
-/** The shared body every copy carries: catalogue + divergences + rules. */
-const body = (): string => `## How to choose a component
+/** The shared body every copy carries: licence + catalogue + divergences + rules.
+ *  Licence first, because it is the only part that can make the rest moot, and
+ *  because the catalogue below it is ~80 entries of scrolling. */
+const body = (): string => `${LICENSING}
+
+## How to choose a component
 
 Each entry is the component's name and what it is *for*. Match the task to the
 description, then import the name from your binding's package.
