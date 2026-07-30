@@ -23,7 +23,8 @@ import "@algorisys/zen-ui-solid/styles";
 
 ## Licence — check this before adding a zen-ui dependency
 
-zen-ui is **source-available, not open source**:
+zen-ui is copyright **Algorisys Technologies** and **source-available, not open
+source**:
 [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)
 (SPDX `PolyForm-Noncommercial-1.0.0`).
 
@@ -32,7 +33,9 @@ zen-ui is **source-available, not open source**:
   public research bodies and government institutions.
 - **Needs a licence first** — anything commercial. That **includes internal
   tools at a for-profit company** and client work; "not sold to anyone" is not
-  the same as noncommercial. See `COMMERCIAL.md`, shipped in each package and at
+  the same as noncommercial. A licence is granted by Algorisys Technologies and
+  asked for at <pillai.rajesh@gmail.com>; see `COMMERCIAL.md`, shipped in each
+  package and at
   <https://github.com/Algorisys-Technologies/zen-ui/blob/main/COMMERCIAL.md>.
 
 If you are working on a commercial project, surface this to the user before

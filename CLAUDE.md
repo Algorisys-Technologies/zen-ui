@@ -519,11 +519,22 @@ both into its directory, then prove it:
 
 ## Licence
 
-zen-ui is **source-available, not open source**: PolyForm Noncommercial 1.0.0
+zen-ui is copyright **Algorisys Technologies** (authored by Rajesh Pillai) and
+**source-available, not open source**: PolyForm Noncommercial 1.0.0
 (SPDX `PolyForm-Noncommercial-1.0.0`) — free for personal, hobby, educational,
 research, charity and government use; commercial use needs a separate licence.
 [COMMERCIAL.md](COMMERCIAL.md) is how one is asked for, and it is the file to
 edit when the terms or the contact change.
+
+**The licensor is the company, not the individual, and that is deliberate.** The
+author owns Algorisys, so either name would grant valid licences — but a
+commercial licensee needs an entity to contract with and invoice, and a personal
+copyright line on a repo under the company org invites the question of whether
+the company had the right to license it at all. The authorship is recorded in a
+second `Required Notice:` line rather than dropped. If the copyright ever moves,
+it moves in `LICENSE`, `COMMERCIAL.md`, `README.md`, this file, and the
+`LICENSING` block in `scripts/gen-agent-guide.ts` — five places, none generated
+from another.
 
 Three things that will bite an edit here:
 

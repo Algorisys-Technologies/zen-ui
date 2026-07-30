@@ -669,7 +669,8 @@ bunx repograph . --init --include 'packages/*' --exclude '*test*'
 
 ## Licence
 
-zen-ui is released under the [PolyForm Noncommercial License 1.0.0](LICENSE)
+zen-ui is copyright **Algorisys Technologies**, authored by Rajesh Pillai, and
+released under the [PolyForm Noncommercial License 1.0.0](LICENSE)
 (SPDX: `PolyForm-Noncommercial-1.0.0`).
 
 **Free, no permission needed:** personal projects, hobby work, learning,
