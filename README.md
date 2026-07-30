@@ -605,11 +605,13 @@ Four things about this route are load-bearing:
   where `/builder` swallowed `/builder-solid`.
 - **`dedupe` is not optional.** Two copies of solid-js (or React) across the
   boundary breaks reactivity/hooks, and the symptom looks like a component bug.
-- **`skipLibCheck: true` is doing real work.** The emitted `.d.ts` files still
-  reference `@algorisys/zen-ui-core/*` for types (27 files do), and the alias
-  above does not map core. With `skipLibCheck: false` those references do not
-  resolve. Either keep it true, or add a second `paths` entry for
-  `@algorisys/zen-ui-core/*` pointing at `packages/core/src/*`.
+- **`skipLibCheck` is no longer load-bearing for zen-ui's sake.** The emitted
+  `.d.ts` used to reference `@algorisys/zen-ui-core/*`, which the alias above does
+  not map — so `skipLibCheck: false` broke. The published declarations are now
+  self-contained (core's types are vendored into `dist/_core/` and referenced
+  relatively), and a strict consumer reports **0 errors** against them. You may
+  still want it on for unrelated reasons: `@kobalte/core` ships 27 errors of its
+  own and `solid-toast` wants `@types/node`.
 - **You must rebuild zen-ui after changing it** — the alias points at `dist`,
   not `src`, so `bun run build:lib:solid` is the step that makes an edit visible.
 

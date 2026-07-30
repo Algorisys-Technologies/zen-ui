@@ -39,7 +39,7 @@
   "scripts": {
     "dev": "vite --config vite.config.demo.ts",
     "build": "tsc -b && vite build --config vite.config.demo.ts",
-    "build:lib": "vite build --config vite.config.lib.ts && npm run build:types && cp src/styles.d.ts dist/styles.d.ts && cp ../core/styles/preflight.css dist/preflight.css",
+    "build:lib": "rm -rf dist/assets && vite build --config vite.config.lib.ts && npm run build:types && tsc -p ../core/tsconfig.types.json && node ../../scripts/vendor-core-types.mjs vanilla && cp src/styles.d.ts dist/styles.d.ts && cp ../core/styles/preflight.css dist/preflight.css",
     "build:types": "tsc --project tsconfig.lib.json --emitDeclarationOnly",
     "publish:lib": "npm run build:lib && npm publish",
     "lint": "eslint src",
@@ -47,7 +47,8 @@
     "preview": "vite preview --config vite.config.demo.ts"
   },
   "dependencies": {
-    "class-variance-authority": "^0.7.1"
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1"
   },
   "devDependencies": {
     "@algorisys/zen-ui-core": "workspace:*",

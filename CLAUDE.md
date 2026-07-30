@@ -534,6 +534,66 @@ One asymmetry worth knowing: `bun add file:<a package directory>` installs that
 directory's `devDependencies`, so it still trips on `workspace:*` where npm and
 both tarball paths do not. Use a tarball or a bundler alias for bun.
 
+**The TYPES had the same disease, one level down, and `skipLibCheck` hides it.**
+Fixing the runtime left every binding's emitted `.d.ts` saying
+`from "@algorisys/zen-ui-core/color"` — core's `exports` point at `./src/*.ts`, so
+tsc resolves the source inside the workspace and writes the bare specifier out.
+A consumer has no core. Measured on the solid tarball with a strict consumer:
+**69 TS errors, 37 unresolved siblings**. It survives because the usual consumer
+sets `skipLibCheck: true`, which suppresses errors *inside* declaration files —
+erpnext does, which is why nobody noticed.
+
+`scripts/vendor-core-types.mjs` fixes it: core gets a declaration-only build
+(`packages/core/tsconfig.types.json`), its `.d.ts` are copied into each binding's
+`dist/_core/`, and every specifier is rewritten to a relative path. Wired into
+each `build:lib` after `build:types`. Four things it has to get right, three of
+which bit during the build:
+
+- **Subpath before bare.** `@algorisys/zen-ui-core` is a prefix of
+  `@algorisys/zen-ui-core/color`, so replacing the bare form first yields
+  `_core/index/color`. Same prefix trap as `dev:all`'s proxy table.
+- **Inline `import()` types are not statements.** tsc writes
+  `themes: import("@algorisys/zen-ui-core").ThemeDescriptor[]` when a symbol is
+  only reachable structurally. The first version anchored on lines starting with
+  `import`/`export`, missed all three (react 1, solid 2), **and used the same
+  anchor for its own leak check — so it reported "0 sibling specifiers" while the
+  strict consumer still failed.** The predicate is shared between rewrite and
+  assertion now, so the two cannot disagree again.
+- **`declare module "…/styles"` must keep the bare specifier** — it is what
+  declares that subpath for consumers. `vanilla/dist/styles.d.ts` relies on it.
+  JSDoc mentions must survive untouched too (26 of them do).
+- **vanilla is built before web-components**, which vendors vanilla's
+  declarations as well as core's. Build them out of order and wc vendors a
+  vanilla whose types still point at core.
+
+`clsx` and `class-variance-authority` are now real `dependencies` of every
+binding: the vendored `_core/cn.d.ts` and `_core/variants.d.ts` import
+`ClassValue` and `VariantProps` from them, so they are part of the public **type**
+surface even though the JS inlines them.
+
+Verify with a strict consumer, because a lax one cannot tell a self-contained
+declaration from a broken one:
+
+```bash
+cd packages/solid && bun run build:lib && npm pack --pack-destination /tmp
+mkdir -p /tmp/zt && cd /tmp/zt && npm init -y >/dev/null
+npm install /tmp/algorisys-zen-ui-solid-*.tgz solid-js typescript
+printf '{"compilerOptions":{"module":"ESNext","moduleResolution":"bundler","strict":true,"skipLibCheck":false,"noEmit":true},"include":["s"]}' > tsconfig.json
+mkdir -p s && echo 'import type * as Z from "@algorisys/zen-ui-solid"; export type P = keyof typeof Z;' > s/p.ts
+npx tsc -p tsconfig.json   # errors under @algorisys/** must be 0
+```
+
+Expect noise from third-party declarations — `@kobalte/core` ships 27
+"only refers to a type but is being used as a value" errors and `solid-toast`
+wants `@types/node`. Neither is ours; count only `@algorisys/**`.
+
+**`dist/assets/` was shipping 7.1 MB of stale demo output.** The demo build moved
+to `dist-demo` long ago, but `emptyOutDir: false` kept the old bundles alive on
+any machine that had built the previous layout, and `files: ["dist"]` published
+them — 36% of the react tarball, and the only remaining files that still imported
+core. `build:lib` now starts with `rm -rf dist/assets`. Unpacked sizes went react
+9.92 → 6.36 MB, vanilla 5.82 → 4.13, web-components 5.28 → 3.54.
+
 **Neither of them checks the licence files either, and a new binding is where
 that bites.** `LICENSE` and `COMMERCIAL.md` are listed in every published package's
 `files` array by hand. npm auto-includes a `LICENSE` from a package's own
