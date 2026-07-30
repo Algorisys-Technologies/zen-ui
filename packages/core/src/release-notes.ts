@@ -33,6 +33,38 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.0.0",
+    date: "2026-07-30",
+    kind: "breaking",
+    title: "Licensed PolyForm Noncommercial 1.0.0 — free for noncommercial use",
+    detail:
+      "There was no licence before, which means all rights reserved, not permissive. Free for personal, hobby, learning, research, education, charity and government use; commercial use needs a separate licence (see COMMERCIAL.md). Source-available, not open source.",
+  },
+  {
+    version: "10.0.0",
+    date: "2026-07-30",
+    kind: "fixed",
+    title: "The packages can actually be installed now",
+    detail:
+      "Every binding declared zen-ui-core as a workspace:* dependency, which only resolves inside this monorepo — so tarball, file:, GitHub Packages and git-URL installs all failed. Core is inlined into the bundle at build time, so it is a build-time dependency and now says so.",
+  },
+  {
+    version: "10.0.0",
+    date: "2026-07-30",
+    kind: "fixed",
+    title: "TypeScript declarations resolve without skipLibCheck",
+    detail:
+      "The .d.ts files referenced zen-ui-core, which a consumer does not have — 37 unresolved imports, masked by skipLibCheck: true. Core's declarations are now vendored into each package and referenced relatively; a strict consumer reports zero errors.",
+  },
+  {
+    version: "10.0.0",
+    date: "2026-07-30",
+    kind: "improved",
+    title: "Smaller packages — up to 36% less",
+    detail:
+      "dist/assets/ had been publishing stale demo bundles. Unpacked: react 9.92 to 6.36 MB, vanilla 5.82 to 4.13, web-components 5.28 to 3.54.",
+  },
+  {
     version: "9.10.0",
     date: "2026-07-23",
     kind: "new",

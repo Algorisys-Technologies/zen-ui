@@ -11,6 +11,113 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0] - 2026-07-30
+
+### Breaking
+
+- **Licensed PolyForm Noncommercial 1.0.0** (SPDX `PolyForm-Noncommercial-1.0.0`),
+  copyright Algorisys Technologies Pvt. Ltd, authored by Rajesh Pillai. There was
+  previously no `LICENSE` and no `license` field in any manifest, which is *all
+  rights reserved* by default, not permissive. Free for personal, hobby,
+  learning, research, education, charity and government use; commercial use needs
+  a separate licence (`COMMERCIAL.md`). Source-available, **not** open source —
+  the OSD forbids field-of-use restrictions and SPDX marks the id
+  `isOsiApproved: false`.
+  - `LICENSE` + `COMMERCIAL.md` at the root and in all five packages, listed in
+    each `files` array — npm auto-includes a package's own `LICENSE` only when
+    `files` is absent, and every binding has one.
+  - The licence body is byte-identical to the upstream PolyForm file. Diff
+    against that repo, not the rendered page: the page transcribes differently
+    ("To receive any license" for "In order to get any license", a dropped
+    `Required Notice:` example).
+  - `.gitignore` allowlists `COMMERCIAL.md` — `*.md` matches at any depth, and
+    the licence's `Required Notice:` names that file, so an untracked copy would
+    ship a pointer to nothing. A bare pattern covers the per-package copies too;
+    verify with `git add -n`, not `git check-ignore -v`, which counts a negation
+    as a match and exits 0.
+  - Stated in `AGENTS.md` and the zen-ui skill via `LICENSING` in
+    `scripts/gen-agent-guide.ts`, so a consumer's coding agent sees it before
+    recommending the dependency.
+
+### Fixed
+
+- **The published packages were not installable.** Each binding declared
+  `@algorisys/zen-ui-core` as `workspace:*` under `dependencies`; that protocol
+  resolves only inside this monorepo, so tarball, `file:`, GitHub Packages and
+  git-URL installs all failed (`npm`: `EUNSUPPORTEDPROTOCOL`; `bun`: `failed to
+  resolve`), and `packages/core` is `private: true` so the range could never have
+  pointed at anything publishable. Green everywhere inside the workspace, which
+  is why it survived. No binding externalises core, so rollup inlines it and
+  `dist/index.js` imports nothing from it — measured 0 sibling imports in all
+  four entries — making it a build-time dependency, now declared as one.
+  `check:package` verifies declared paths exist, not that the dependency graph
+  resolves outside the workspace.
+- **The published type declarations did not resolve.** Same cause one level down:
+  every `.d.ts` referenced `@algorisys/zen-ui-core/*` because core's `exports`
+  point at `./src/*.ts` and tsc resolves the source across the workspace. A
+  strict consumer measured 69 errors, 37 unresolved siblings; `skipLibCheck:
+  true` hid it. `scripts/vendor-core-types.mjs` now copies core's declarations
+  into each `dist/_core/` and rewrites specifiers to relative paths, wired into
+  each `build:lib` after `build:types`. Three traps, all recorded in CLAUDE.md:
+  subpath must be rewritten before the bare specifier; tsc's inline
+  `import("…").T` form is not a statement, and the first version used the same
+  line anchor for its own leak check so it reported 0 leaks while a strict
+  consumer still failed; `declare module "…/styles"` and 26 JSDoc mentions must
+  keep the bare specifier.
+- **`dist/assets/` was publishing stale demo output** — bundles from before the
+  demo build moved to `dist-demo`, kept alive by `emptyOutDir: false` and shipped
+  by `files: ["dist"]`. 36% of the React tarball, and the last files still
+  importing core. `build:lib` now begins `rm -rf dist/assets`. Unpacked: react
+  9.92 → 6.36 MB, vanilla 5.82 → 4.13, web-components 5.28 → 3.54.
+- **`bun.lock` recorded 7.1.0 for all five packages** while the manifests said
+  9.10.0 — two majors stale. `bun pm pack` takes the version it substitutes for
+  `workspace:*` from the lockfile, so it was stamping a wrong range into
+  tarballs. `check:release` guards the four places a version lives and never
+  reads the lockfile.
+- **The landing page claimed "MIT-style internal use"** and printed
+  `npm install @algorisys/zen-ui-<binding>` on three of four cards. Nothing is on
+  a public registry (all five 404), so that command has never worked. Cards now
+  show the tarball route, gated on `repoHref` so the planned Vue and Svelte cards
+  do not render a build command for a directory that does not exist.
+- **`build:landing` had been failing** since c05babc — two SVG `<path>` elements
+  used React's camelCase `strokeWidth`/`strokeLinecap`/`strokeLinejoin`, which
+  Solid's JSX types reject. Invisible from both directions: `bun run check` does
+  not build the landing page, and `deploy.sh` runs `vite build` directly,
+  skipping the `tsc -b` in the package's own build script — so every deploy
+  succeeded while the script failed.
+- **The demo footer's first ~240px was hidden behind the sidebar** in all four
+  demos, so the copyright line read as starting mid-word at "en-ui". `.sidebar`
+  is `position: sticky` at `calc(100vh - header)`, which never subtracts the
+  footer, so it overhangs by exactly the footer's height and, being positioned,
+  paints over a non-positioned in-flow bar. `.app-footer` is now
+  `position: relative; z-index: 1`.
+
+### Added
+
+- **`COMMERCIAL.md`** — who needs a commercial licence, what to send, and the
+  contributor note about copyright.
+- **`packages/core/tsconfig.types.json`** — declaration-only build for core, so
+  its `.d.ts` can be vendored. `uno-preset.ts` excluded: no binding's public
+  types reference it and it would drag unocss's types in.
+- **`scripts/vendor-core-types.mjs`** — makes a binding's declarations
+  self-contained; asserts 0 sibling specifiers and reports the count of
+  declarations examined.
+- **README distribution route 5 — bundler alias** for a submodule or sibling
+  checkout, with the alias-ordering, `dedupe` and rebuild caveats. The route
+  consumers were already using and the only one that was undocumented.
+- **A licence line in every demo footer** and on the landing page.
+- **`clsx` and `class-variance-authority`** as dependencies of every binding —
+  the vendored `_core/cn.d.ts` and `_core/variants.d.ts` import `ClassValue` and
+  `VariantProps`, so they are part of the public type surface even though the JS
+  inlines them.
+
+### Changed
+
+- `@algorisys/zen-ui-core` moved from `dependencies` to `devDependencies` in all
+  four bindings; `@algorisys/zen-ui-vanilla` likewise in web-components.
+- Manifest `repository.url` and `homepage` corrected from `github.com/algorisys`
+  (404) to `github.com/Algorisys-Technologies`.
+
 ## [9.10.0] - 2026-07-23
 
 ### Added
