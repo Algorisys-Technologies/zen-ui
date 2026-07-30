@@ -473,7 +473,7 @@ const App = () => (
             a consumer can say they relied on, so it states the actual terms and
             links to them. */}
         <span>
-          Built by Algorisys Technologies · free for noncommercial use —{" "}
+          Built by Algorisys Technologies Pvt. Ltd · free for noncommercial use —{" "}
           <a
             class="underline hover:text-zen-fg"
             href="https://github.com/Algorisys-Technologies/zen-ui/blob/main/COMMERCIAL.md"
