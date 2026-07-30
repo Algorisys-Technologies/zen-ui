@@ -275,6 +275,14 @@
    it collapses when the content is tall — the shell is height:100%, not
    min-height (see the note on .app-shell). */
 .app-footer {
+  /* Above the sidebar. .sidebar is sticky and its height is
+     calc(100vh - header) — it does not subtract the footer, so it overhangs into
+     this bar by exactly the footer's height and, being positioned, paints over
+     it. That hid the first ~240px of this footer's text: the copyright line read
+     as starting mid-word at "en-ui". A non-positioned element cannot win against
+     a sticky one, so this needs a stacking context of its own. */
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
   display: flex;
   align-items: center;
