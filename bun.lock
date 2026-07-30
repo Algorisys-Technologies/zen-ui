@@ -65,6 +65,7 @@
         "@tanstack/react-table": "^8.21.3",
         "@tanstack/react-virtual": "^3.13.24",
         "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
         "date-fns": "^2.30.0",
         "react-day-picker": "^10.0.1",
@@ -129,6 +130,7 @@
         "@tanstack/solid-virtual": "^3.13.0",
         "@thisbeyond/solid-dnd": "^0.7.5",
         "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
         "date-fns": "^2.30.0",
         "solid-toast": "^0.5.0",
         "uuid": "^9.0.0",
@@ -159,6 +161,7 @@
       "version": "9.10.0",
       "dependencies": {
         "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
       },
       "devDependencies": {
         "@algorisys/zen-ui-core": "workspace:*",
@@ -188,6 +191,10 @@
     "packages/web-components": {
       "name": "@algorisys/zen-ui-web-components",
       "version": "9.10.0",
+      "dependencies": {
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+      },
       "devDependencies": {
         "@algorisys/zen-ui-core": "workspace:*",
         "@algorisys/zen-ui-vanilla": "workspace:*",

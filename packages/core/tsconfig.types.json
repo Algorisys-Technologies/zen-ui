@@ -1,0 +1,46 @@
+{
+  // Declaration-only build for core.
+  //
+  // core is consumed via `exports` that point straight at `./src/*.ts`, so it has
+  // never needed a build: inside the workspace, TypeScript resolves the source.
+  // That is exactly why every binding's emitted `.d.ts` could say
+  // `from "@algorisys/zen-ui-core/color"` and work here while resolving to
+  // nothing in a consumer's node_modules — core is `private: true` and its source
+  // never leaves the repo.
+  //
+  // This emits core's declarations so `scripts/vendor-core-types.mjs` can copy
+  // them into each binding's dist and rewrite those specifiers to relative paths,
+  // making the published types self-contained. Nothing else consumes this output;
+  // it is an intermediate, which is why it lands in `dist/` (gitignored).
+  //
+  // Standalone rather than extending a binding's config: core is
+  // framework-agnostic, so it must not inherit a `jsx`/`jsxImportSource` or a
+  // `types: ["vite/client"]` from anyone.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": [],
+
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force"
+  },
+  // uno-preset.ts is deliberately excluded: no binding's public types reference
+  // `@algorisys/zen-ui-core/uno-preset` (it is a build-time config import, not an
+  // API type), and including it would drag unocss's types into every binding's
+  // vendored declarations for nothing.
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/uno-preset.ts", "src/**/*.test.ts", "src/**/*.spec.ts"]
+}
