@@ -500,8 +500,42 @@ both shipped:
   because `emptyOutDir: false` kept a stale `index.d.ts` alive on any machine
   that had built the old layout once. `rm -rf dist` before believing `dist`.
 
-**Neither of them checks the licence files, and a new binding is where that
-bites.** `LICENSE` and `COMMERCIAL.md` are listed in every published package's
+**Neither of them checks that the package can actually be INSTALLED, and that
+broke every distribution route at once.** `@algorisys/zen-ui-core` sat in each
+binding's `dependencies` as `workspace:*` — a protocol that resolves only inside
+this monorepo. Outside it every installer fails hard (`npm`:
+`EUNSUPPORTEDPROTOCOL Unsupported URL Type "workspace:"`; `bun`: `failed to
+resolve`), and `packages/core` is `private: true`, so the range could never have
+pointed at anything publishable either. Tarball, `file:`, GitHub Packages and
+git-URL installs were all dead, while `bun install`, every demo, `check`, `lint`
+and `check:package` stayed green — because inside the workspace it resolves
+perfectly.
+
+It is fixed by declaring it where it belongs: no binding externalises core, so
+rollup inlines it and `dist/index.js` imports nothing from it (measured: **0
+sibling imports across all four entries**), which makes it a build-time
+dependency and it now lives in `devDependencies`. Two ways to undo that
+silently:
+
+- **Putting core back in `dependencies`.** Nothing in the repo will complain.
+- **Adding core to a binding's `rollupOptions.external`.** Then `dist` stops
+  being self-contained, which also breaks the bundler-alias consumers (they
+  alias `@algorisys/zen-ui-<binding>` only, never core) — see README route 5.
+
+Verify by installing, not by building:
+
+```bash
+cd packages/react && bun run build:lib && npm pack --pack-destination /tmp
+mkdir -p /tmp/zt && cd /tmp/zt && npm init -y >/dev/null
+npm install /tmp/algorisys-zen-ui-react-*.tgz react react-dom   # must not EUNSUPPORTEDPROTOCOL
+```
+
+One asymmetry worth knowing: `bun add file:<a package directory>` installs that
+directory's `devDependencies`, so it still trips on `workspace:*` where npm and
+both tarball paths do not. Use a tarball or a bundler alias for bun.
+
+**Neither of them checks the licence files either, and a new binding is where
+that bites.** `LICENSE` and `COMMERCIAL.md` are listed in every published package's
 `files` array by hand. npm auto-includes a `LICENSE` from a package's own
 directory only when `files` is ABSENT — every binding here has one, so an
 unlisted licence is silently dropped from the tarball, and the licence's

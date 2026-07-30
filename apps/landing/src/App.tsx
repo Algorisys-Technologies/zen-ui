@@ -27,7 +27,6 @@ interface Binding {
   features: string[];
   demoHref?: string;
   repoHref?: string;
-  installCmd?: string;
   accent: string;
   logo: JSX.Element;
 }
@@ -116,7 +115,6 @@ const BINDINGS: Binding[] = [
     ],
     demoHref: demo("builder"),
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/react",
-    installCmd: "npm install @algorisys/zen-ui-react",
     accent: "var(--zen-color-info)",
     logo: REACT_LOGO,
   },
@@ -134,7 +132,6 @@ const BINDINGS: Binding[] = [
     ],
     demoHref: demo("builder-solid"),
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/solid",
-    installCmd: "npm install @algorisys/zen-ui-solid",
     accent: "var(--zen-color-success)",
     logo: SOLID_LOGO,
   },
@@ -169,7 +166,6 @@ const BINDINGS: Binding[] = [
     ],
     demoHref: demo("builder-wc"),
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/web-components",
-    installCmd: "npm install @algorisys/zen-ui-web-components",
     accent: "var(--zen-color-primary)",
     logo: WEB_COMPONENTS_LOGO,
   },
@@ -305,10 +301,37 @@ const Card = (props: { binding: Binding }) => {
         </For>
       </ul>
 
-      <Show when={b().installCmd}>
-        <pre class="m-0 mb-4 px-3 py-2 text-xs bg-zen-muted/60 rounded-zen-sm overflow-x-auto">
-          <code>$ {b().installCmd}</code>
+      {/* How to actually get it, and it has to be TRUE. These cards used to print
+          `npm install @algorisys/zen-ui-<binding>` for three of the four bindings.
+          That command cannot work: nothing is on the public registry (all five
+          404), and until the manifests were fixed the tarball carried a
+          `workspace:*` dependency that no installer can resolve either. Shown for
+          every binding now, because none of them is registry-installable and
+          pretending one is was the whole bug. */}
+      {/* Gated on repoHref, which only the four bindings that EXIST have. Without
+          it the planned Vue and Svelte cards render `cd packages/vue && bun run
+          build:lib` for a directory that is not there — a new false instruction in
+          the middle of removing one. */}
+      <Show when={b().repoHref}>
+        <pre class="m-0 mb-2 px-3 py-2 text-xs bg-zen-muted/60 rounded-zen-sm overflow-x-auto">
+          <code>
+            $ cd packages/{b().package.replace("@algorisys/zen-ui-", "")} && bun run build:lib && npm pack{"\n"}
+            $ npm install /path/to/{b().package.replace("@algorisys/", "algorisys-")}-&lt;version&gt;.tgz
+          </code>
         </pre>
+        <p class="m-0 mb-4 text-xs text-zen-muted-fg">
+          Not on a public registry — install the tarball as above, or point your
+          bundler straight at{" "}
+          <code>packages/{b().package.replace("@algorisys/zen-ui-", "")}/dist</code>.{" "}
+          <a
+            class="underline hover:text-zen-fg"
+            href="https://github.com/Algorisys-Technologies/zen-ui#distribution--sharing-this-library-with-other-projects"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Setup guide
+          </a>
+        </p>
       </Show>
 
       <div class="flex items-center gap-2">
