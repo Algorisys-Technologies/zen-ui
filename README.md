@@ -5,12 +5,17 @@ bindings — **React, Solid, vanilla JS, and native Web Components** —
 that share a single design core. One set of design tokens, one visual
 language, one API shape; pick the binding that fits your stack.
 
-| Package | Install | For |
-|---|---|---|
-| `@algorisys/zen-ui-react` | `npm i @algorisys/zen-ui-react` | React apps (Radix-backed) |
-| `@algorisys/zen-ui-solid` | `npm i @algorisys/zen-ui-solid` | SolidJS apps (Kobalte-backed) |
-| `@algorisys/zen-ui-vanilla` | `npm i @algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM |
-| `@algorisys/zen-ui-web-components` | `npm i @algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) usable anywhere |
+| Package | For |
+|---|---|
+| `@algorisys/zen-ui-react` | React apps (Radix-backed) |
+| `@algorisys/zen-ui-solid` | SolidJS apps (Kobalte-backed) |
+| `@algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM |
+| `@algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) usable anywhere |
+
+> **None of these is on a public registry**, so there is no `npm i
+> @algorisys/zen-ui-…` that works — that command 404s. Get it via a
+> [tarball, GitHub Packages, or a bundler alias](#distribution--sharing-this-library-with-other-projects);
+> the tarball route is two commands and needs no registry at all.
 
 > **Source-available, free for noncommercial use.** zen-ui is licensed under
 > the [PolyForm Noncommercial License 1.0.0](LICENSE) — free for personal
@@ -383,15 +388,44 @@ Pick the channel that matches the stage of adoption:
 | Internal distribution across Algorisys teams  | [GitHub Packages](#2-github-packages) (already configured) |
 | Public, world-readable installs               | [Public npm](#3-public-npm)        |
 | Two repos open side-by-side, live reload      | [`npm link`](#4-local-dev-cross-project) |
+| A submodule or sibling checkout, no install   | [bundler alias](#5-bundler-alias--submodule-or-sibling-checkout) |
 
 Every binding publishes the same way. The steps below use the React
 package as the example — for the others, swap in the package you want
 (`packages/solid`, `packages/vanilla`, `packages/web-components`) and its
 `build:lib:*` script. Each binding is already configured to publish to
 the GitHub Packages registry under the `@algorisys` scope
-(`packages/<binding>/package.json` → `publishConfig`). `"files":
-["dist"]` means the published tarball contains only the built output, not
-source.
+(`packages/<binding>/package.json` → `publishConfig`). `files` is
+`["LICENSE", "COMMERCIAL.md", "dist", "AGENTS.md", "skills"]` — the built
+output plus the licence and the agent guide, never source.
+
+**One thing to know before picking a route, because it silently broke every
+one of them until it was fixed.** `@algorisys/zen-ui-core` is a `workspace:*`
+dependency, and that protocol resolves only inside this monorepo — an
+installer outside it fails hard (`npm`: `EUNSUPPORTEDPROTOCOL Unsupported URL
+Type "workspace:"`; `bun`: `failed to resolve`). Since no binding externalises
+core, rollup inlines it and the built `dist/index.js` imports nothing from it
+(measured: 0 sibling imports in all four entries), so it is a **build-time**
+dependency and now sits in `devDependencies` where installers ignore it. Keep
+it there. If you ever add core to `dependencies`, or add it to a binding's
+`rollupOptions.external`, every route below breaks at once and no check in this
+repo will catch it — `check:package` verifies that declared paths exist, not
+that the dependency graph resolves outside the workspace.
+
+Measured status of each route, so nobody has to rediscover it:
+
+| Route | npm | bun |
+|---|---|---|
+| tarball (`npm pack` → install the `.tgz`) | works | works |
+| `file:` a package directory | works | **fails** — bun installs a directory dep's `devDependencies`, npm does not |
+| bundler alias at `dist` | works | works |
+| submodule listed in the consumer's `workspaces` | works | works |
+| git URL to a subdirectory (`…/zen-ui/packages/react`) | **unsupported** | **unsupported** |
+
+The last row is not a zen-ui limitation and cannot be fixed here: neither
+installer supports a subdirectory in a git dependency. npm reads the path as
+part of the repo name (`… /packages/react is not a valid repository name`) and
+bun 404s on the tarball API. Use a tarball or an alias.
 
 ### 1. Tarball
 
@@ -483,7 +517,13 @@ npm login                       # against npmjs.org
 npm publish --access public
 ```
 
-Consumers then `npm install @algorisys/zen-ui-react` with no auth.
+Consumers then `npm install @algorisys/zen-ui-react` with no auth. **Nothing
+has been published this way** — all five packages 404 on `registry.npmjs.org`
+today, so treat this section as the procedure if you ever choose to, not as a
+description of how the library is currently distributed. Note also that
+`packages/core` is `private: true`, which is deliberate and does not block any
+route above: core is inlined into each binding at build time, so a consumer
+never needs it.
 
 ### 4. Local dev — cross-project
 
@@ -512,6 +552,66 @@ To detach:
 npm unlink @algorisys/zen-ui-react
 npm install                 # restores the published version
 ```
+
+### 5. Bundler alias — submodule or sibling checkout
+
+The route to reach for when zen-ui lives beside the app as a git submodule or
+a sibling clone, and you would rather not install it at all. Nothing is copied
+into `node_modules`, so a rebuild in zen-ui is picked up on the next dev-server
+refresh with no re-link step. It is what
+[erpnext](https://github.com/Algorisys-Technologies) does today, and it works
+precisely because the built `dist` is self-contained.
+
+```ts
+// vite.config.ts in the consuming app
+const zenDist = resolve(here, "../vendor/zen-ui/packages/solid/dist");
+
+export default defineConfig({
+  // A single framework instance across the package boundary, or reactivity
+  // breaks in ways that look like your bug rather than a duplicated runtime.
+  resolve: {
+    dedupe: ["solid-js"],                 // "react", "react-dom" for the React binding
+    alias: [
+      { find: "@algorisys/zen-ui-solid/preflight", replacement: `${zenDist}/preflight.css` },
+      { find: "@algorisys/zen-ui-solid/styles",    replacement: `${zenDist}/style.css` },
+      { find: "@algorisys/zen-ui-solid",           replacement: `${zenDist}/index.js` },
+    ],
+  },
+  // Vite refuses to read outside the project root without this.
+  server: { fs: { allow: [here, zenDist] } },
+});
+```
+
+```jsonc
+// tsconfig.json in the consuming app — so the types come from the same dist
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@algorisys/zen-ui-solid": ["../vendor/zen-ui/packages/solid/dist/index.d.ts"]
+    },
+    "skipLibCheck": true
+  }
+}
+```
+
+Four things about this route are load-bearing:
+
+- **Order the aliases longest-first.** A string `find` matches the bare
+  specifier *and* its subpaths, so the bare `@algorisys/zen-ui-solid` entry also
+  matches `@algorisys/zen-ui-solid/styles`. Listed first, it wins and rewrites
+  the stylesheet import to `…/index.js/styles`. Put the two subpath aliases
+  above it, as in the snippet — the same prefix trap as `dev:all`'s proxy table,
+  where `/builder` swallowed `/builder-solid`.
+- **`dedupe` is not optional.** Two copies of solid-js (or React) across the
+  boundary breaks reactivity/hooks, and the symptom looks like a component bug.
+- **`skipLibCheck: true` is doing real work.** The emitted `.d.ts` files still
+  reference `@algorisys/zen-ui-core/*` for types (27 files do), and the alias
+  above does not map core. With `skipLibCheck: false` those references do not
+  resolve. Either keep it true, or add a second `paths` entry for
+  `@algorisys/zen-ui-core/*` pointing at `packages/core/src/*`.
+- **You must rebuild zen-ui after changing it** — the alias points at `dist`,
+  not `src`, so `bun run build:lib:solid` is the step that makes an edit visible.
 
 ### Versioning conventions
 
