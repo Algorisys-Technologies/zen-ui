@@ -72,6 +72,15 @@ import {
  * opens showing its own shape rather than whichever calendar month today falls
  * in. It is the only view that is never trivially wrong.
  *
+ * ONE LAYOUT TRAP, and it is the caller's to avoid. The fit axis sizes itself
+ * from the scroller's measured width, so it needs a container with a width of
+ * its OWN. Drop the chart into a flex row or an inline-block whose width comes
+ * from its content and the two define each other: measured on this repo's own
+ * demo page, identical data rendered at 516px in one section and 1800px in
+ * another, purely because the wrapper lacked `width: 100%`. Give the wrapper a
+ * definite width — the component's root already carries `w-full` for exactly
+ * this reason, but it cannot fix a parent that has none.
+ *
  * Times are the caller's local `Date`s, deliberately unconverted — see the
  * module note in core.
  */

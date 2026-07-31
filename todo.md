@@ -968,6 +968,12 @@ built — Tier 1 spent a day marked done while a row was missing.
       this entry is that the parity debt doubles once `ProductionSchedule`
       lands — six deferred entries instead of three — which is an argument for
       paying some of it down first, not for reversing the decision.
+      **It has landed** (2026-07-31): `ProductionSchedule` plus
+      `packages/core/src/production.ts`, React only. `check:parity`'s three
+      FAIL lines now each name both components. A sixth drift for the ports,
+      and the largest single one — but the maths is all in core and the
+      renderer is shared with Gantt, so a binding that ports `ScheduleGrid`
+      once gets most of the way to both.
       It is deferred at the user's request rather than on substance — the
       consuming app is React and wanted the import unblocked without waiting on
       a full four-binding release. Nothing is marked `divergent` in

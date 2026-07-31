@@ -57,7 +57,16 @@ import { Icon } from "../icon/icon";
  * re-deriving any of that would re-derive the bugs with it.
  */
 
-/** Pixel height of a row. Fixed, and the connector routes depend on it. */
+/**
+ * Default pixel height of a row.
+ *
+ * A chart may raise it — a resource row holding three lanes of operations needs
+ * more than a task row holding one bar — but every row in ONE chart is the same
+ * height, and that is not negotiable: `ganttRowWindow` is arithmetic rather than
+ * measurement, and `ganttConnectors` places an endpoint at
+ * `rowIndex * rowHeight + rowHeight / 2`. Rows that varied would need a
+ * measured offset table, and both of those would have to read it.
+ */
 export const ROW_PX = 36;
 export const HEADER_PX = 44;
 /** Indent per level of hierarchy, applied by the caller inside its first column. */
@@ -193,6 +202,26 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
   timelineColIndex: number;
   /** What goes on the axis for this row — one bar, or a whole sequence. */
   renderTrack: (row: R, axisWidth: number) => React.ReactNode;
+  /**
+   * Uniform height for every row, defaulting to ROW_PX. Raise it for a chart
+   * whose rows hold more than one bar; see ROW_PX for why it cannot vary
+   * between rows.
+   */
+  rowHeight?: number;
+  /**
+   * A strip under the rows, aligned to the axis and stuck to the bottom of the
+   * scroller — a load histogram, a capacity trace, a shift band.
+   *
+   * Outside the `treegrid` element rather than inside it, deliberately: a div
+   * that is not a `row` inside a grid is invalid ARIA, and a fake row would be
+   * counted by `aria-rowcount` and announced as data.
+   */
+  renderFooter?: (context: {
+    columns: PlanningColumn[];
+    columnWidths: number[];
+    axisWidth: number;
+    paneWidth: number;
+  }) => React.ReactNode;
 
   /* ---- the axis ----
      Only what the TOOLBAR needs. The axis itself arrives already resolved, in
@@ -413,6 +442,8 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   colCount,
   timelineColIndex,
   renderTrack,
+  rowHeight = ROW_PX,
+  renderFooter,
   view,
   anchor,
   now,
@@ -442,7 +473,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
      point of the two view types. */
   const anchoredView: GanttAnchoredView = view === "fit" ? "month" : view;
   const marker = nowPct(range, now);
-  const bodyHeight = rows.length * ROW_PX;
+  const bodyHeight = rows.length * rowHeight;
 
   const visibleColumns = React.useMemo(
     () => paneKeys.map((key) => paneColumns.find((c) => c.key === key)!).filter(Boolean),
@@ -454,7 +485,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
      windowed path is the one no demo and no check ever runs, and production is
      the first thing to try it. Below a screenful the window covers every row,
      so small plans render exactly as they did. */
-  const rowWindow = ganttRowWindow(rows.length, ROW_PX, metrics.top, metrics.height);
+  const rowWindow = ganttRowWindow(rows.length, rowHeight, metrics.top, metrics.height);
   const visibleRows = rows.slice(rowWindow.startIndex, rowWindow.endIndex);
 
   /* The connector layer is memoized as an ELEMENT, not just as data. It is one
@@ -541,9 +572,9 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
     if (!el) return;
     /* The header is sticky and covers the top HEADER_PX of the viewport, so a
        row scrolled flush to the top is a row hidden behind the column titles. */
-    const rowTop = HEADER_PX + rowIndex * ROW_PX;
+    const rowTop = HEADER_PX + rowIndex * rowHeight;
     const upper = rowTop - HEADER_PX;
-    const lower = rowTop + ROW_PX - el.clientHeight;
+    const lower = rowTop + rowHeight - el.clientHeight;
     const next = Math.max(0, Math.min(Math.max(el.scrollTop, lower), upper));
     if (next === el.scrollTop) return;
     el.scrollTop = next;
@@ -600,7 +631,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
     const backward = rtl ? "ArrowRight" : "ArrowLeft";
     /* A screenful of rows, minus the header the sticky row covers. At least
        one, so a chart shorter than its own header still moves. */
-    const page = Math.max(1, Math.floor((metrics.height - HEADER_PX) / ROW_PX));
+    const page = Math.max(1, Math.floor((metrics.height - HEADER_PX) / rowHeight));
     const last = rows.length - 1;
     const row = rows[activeRow];
 
@@ -855,6 +886,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
                 paneWidth={paneWidth}
                 timelineColIndex={timelineColIndex}
                 renderTrack={renderTrack}
+                rowHeight={rowHeight}
                 /* -1 on every row but one. The grid is a single tab stop, and
                    which cell holds it is the roving tabindex's whole job. */
                 tabCol={row.index === tabRow ? activeCol : -1}
@@ -879,6 +911,15 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
             {connectorLayer}
           </div>
         </div>
+
+        {renderFooter && (
+          <div
+            className="zen-sticky zen-bottom-0 zen-z-30 zen-flex zen-border-t zen-border-zen-border zen-bg-zen-muted"
+            style={{ width: paneWidth + axisWidth }}
+          >
+            {renderFooter({ columns, columnWidths, axisWidth, paneWidth })}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -893,6 +934,26 @@ interface ScheduleRowProps<R extends ScheduleRowShape> {
   paneWidth: number;
   timelineColIndex: number;
   renderTrack: (row: R, axisWidth: number) => React.ReactNode;
+  /**
+   * Uniform height for every row, defaulting to ROW_PX. Raise it for a chart
+   * whose rows hold more than one bar; see ROW_PX for why it cannot vary
+   * between rows.
+   */
+  rowHeight?: number;
+  /**
+   * A strip under the rows, aligned to the axis and stuck to the bottom of the
+   * scroller — a load histogram, a capacity trace, a shift band.
+   *
+   * Outside the `treegrid` element rather than inside it, deliberately: a div
+   * that is not a `row` inside a grid is invalid ARIA, and a fake row would be
+   * counted by `aria-rowcount` and announced as data.
+   */
+  renderFooter?: (context: {
+    columns: PlanningColumn[];
+    columnWidths: number[];
+    axisWidth: number;
+    paneWidth: number;
+  }) => React.ReactNode;
   /** Which cell of THIS row carries the grid's single tab stop, or -1. */
   tabCol: number;
   onFocusCell: (row: number, col: number) => void;
@@ -907,6 +968,7 @@ function ScheduleRow<R extends ScheduleRowShape>({
   paneWidth,
   timelineColIndex,
   renderTrack,
+  rowHeight,
   tabCol,
   onFocusCell,
 }: ScheduleRowProps<R>) {
@@ -923,7 +985,7 @@ function ScheduleRow<R extends ScheduleRowShape>({
       aria-level={row.depth + 1}
       aria-expanded={row.hasChildren ? row.expanded : undefined}
       className="zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0"
-      style={{ height: ROW_PX, boxSizing: "border-box" }}
+      style={{ height: rowHeight, boxSizing: "border-box" }}
     >
       <div
         className="zen-sticky zen-z-20 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-background"

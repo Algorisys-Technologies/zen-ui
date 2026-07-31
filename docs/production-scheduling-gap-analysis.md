@@ -6,7 +6,8 @@ branch only).
 takes.
 **Status:** Tier (a) is **shipped** (React). Decisions 1 and 2 were **settled on 2026-07-31** — see
 their sections; the analysis that led to each is kept because the reasoning is what a future
-reversal has to argue against. Tier (b) is unblocked and not started.
+reversal has to argue against. Tier (b)'s first slice is **shipped** as `ProductionSchedule`
+(React) — see "What was built" below for what is in it and what is still open.
 
 ## Executive summary
 
@@ -374,9 +375,29 @@ signature. None of it is thrown away; it is the module `ProductionSchedule` is b
    rather than asserted: a DOM fingerprint of all 16 charts on `/gantt`, plus 12 keyboard
    interactions, is byte-identical before and after in both LTR and RTL. The seam is written up in
    `docs/handoff-gantt.md`.
-2. **Tier (b), read-only**: resource rows, finite capacity, load, setup, lag. Keep the component
-   controlled and report conflicts rather than enforcing them — see Decision 2.
-3. **Revisit Decision 2** with an overload on screen to drag at.
+2. **Tier (b), read-only.** **First slice shipped** as `ProductionSchedule` (React):
+   `packages/core/src/production.ts` (604 lines, 122 assertions in `scripts/check-production.ts`
+   across two timezones) plus the renderer over the shared `ScheduleGrid`. What landed —
+   - **resource rows** that nest, where a collapsed line carries every operation beneath it;
+   - **lanes**, so a double-booking is two bars rather than one drawn over the other, packed
+     first-fit so a busy machine with no overlap stays on one line;
+   - **setup**, resolved through the calendar and counted in the load, because a changeover
+     occupies the machine and makes nothing;
+   - **finite capacity and overload**, computed as a sweep over the bookings rather than a
+     pairwise overlap test — three jobs that overlap only two-at-a-time never claim more than two,
+     and a pairwise check would paint a coping two-operator cell red;
+   - **load per column**, booked working time over available working time, with the histogram
+     under the axis;
+   - **conflicts**, computed and reported as data: over-capacity, booked-into-a-shutdown, and
+     booked-on-a-resource-that-does-not-exist (which is drawn nowhere at all, so without the
+     report it leaves the chart in silence).
+
+   Still open in tier (b): **sequence-dependent setup** (a changeover matrix keyed on the
+   preceding operation — setup is a per-operation duration today) and **dependency lag/lead**.
+   Neither is blocked; both were left out of the first slice to keep it reviewable.
+
+3. **Revisit Decision 2** with an overload on screen to drag at. There now is one — section 3 of
+   the demo puts three jobs on a one-operator machine and reports 300%.
 
 Backward compatibility on tier (a) is absolute: a caller who passes no calendar gets the
 pre-calendar behaviour exactly, because the working-time path is not entered at all. That was
