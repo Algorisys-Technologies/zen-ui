@@ -2,24 +2,22 @@ import {
   flattenGanttTasks,
   formatGanttVariance,
   ganttConnectors,
-  nowPct,
+  ganttFitRange,
   placeAppointment,
-  planningColumns,
-  planningRange,
-  planningRangeLabel,
-  shiftPlanningAnchor,
   type GanttBarAnchor,
+  type GanttCalendar,
   type GanttDependency,
+  type GanttPaneColumn,
   type GanttRow,
   type GanttTaskNode,
   type GanttTaskStatus,
+  type GanttView,
   type PlanningPlacement,
-  type PlanningView,
+  type PlanningRange,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "../avatar/avatar";
 import { Badge } from "../badge/badge";
-import { Button } from "../button/button";
 import {
   EmptyState,
   EmptyStateDescription,
@@ -29,35 +27,52 @@ import {
 import { Icon } from "../icon/icon";
 import { Skeleton } from "../skeleton/skeleton";
 import { Tooltip } from "../tooltip/tooltip";
+import { toNodes, type AnyZenComponent, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
 import {
-  applyProps,
-  Disposer,
-  toNodes,
-  type AnyZenComponent,
-  type BaseProps,
-  type Child,
-  type ZenComponent,
-} from "../../lib/component";
+  INDENT_PX,
+  ROW_PX,
+  ScheduleGrid,
+  resolveScheduleAxis,
+  type ScheduleAxis,
+  type ScheduleColumn,
+  type ScheduleGridHandle,
+} from "./schedule-grid";
 
 /**
  * Gantt — what the project is doing, and what is waiting on what.
  *
  *   Gantt({ tasks: plan, dependencies: links }).el
  *
- * Two panes over one clock: a task tree that collapses on the left, the same
- * rows as bars on a shared time axis on the right, dependency arrows between
- * them. They are ONE scroller — the task pane is stuck to the inline start and
- * the header to the top — so vertical scrolling can never take a row's name
- * away from its bar.
+ * Two panes over one clock. On the left a task tree that collapses; on the
+ * right the same rows as bars on a shared time axis, with dependency arrows
+ * between them.
  *
- * Vanilla port; see the React binding for the reasoning. Same API, same output.
- * All the arithmetic is imported from @algorisys/zen-ui-core/gantt and
- * /planning, pinned by scripts/check-gantt.ts and scripts/check-planning.ts, so
- * four renderers cannot drift on where a date is.
+ * This file is the PROJECT half only. The chrome underneath it — the scroller,
+ * the axis and its six views, the frozen pane that sheds columns, row
+ * windowing, the connector overlay and the treegrid keyboard model — lives in
+ * ./schedule-grid, which knows nothing about tasks.
  *
- * It does NOT edit: no drag-to-move, no drag-to-resize, no pulling a new
- * dependency between two bars. `onTaskClick` hands you the task and its derived
- * row, and you hand back new `tasks`.
+ * All the arithmetic is in @algorisys/zen-ui-core, pinned by
+ * scripts/check-gantt.ts, and this binding derives no dates of its own. The
+ * rendering is pinned too: `node scripts/check-schedule-dom.mjs vanilla` runs
+ * the same assertions React and Solid pass, and
+ * `check-schedule-parity.mjs vanilla` compares the drawn chart against React's.
+ *
+ * It does NOT edit. Rescheduling cascades through successors, and the cascade
+ * policy, the undo story and the permission model belong to the caller's
+ * domain. `onTaskClick` hands you the task and its derived row.
+ * (`ProductionSchedule` is the component that DOES edit, deliberately.)
+ *
+ * The default view is `fit`: the axis range is the span of the tasks, so a plan
+ * opens showing its own shape rather than whichever calendar month today falls
+ * in. Its range does not depend on the anchor, so prev / next / today are
+ * HIDDEN while it is on — a control that cannot change anything is worse than
+ * no control.
+ *
+ * ONE LAYOUT TRAP, and it is the caller's to avoid. The fit axis sizes itself
+ * from the scroller's measured width, so it needs a container with a width of
+ * its OWN. Drop the chart into a flex row whose width comes from its content
+ * and the two define each other.
  */
 
 /** Someone the work is assigned to. */
@@ -88,11 +103,11 @@ export interface GanttProps extends BaseProps {
   showDependencies?: boolean;
 
   /** Starting view. The factory owns it after that; `update({ view })` controls it. */
-  defaultView?: PlanningView;
-  view?: PlanningView;
-  onViewChange?: (view: PlanningView) => void;
-  /** Which views the switcher offers. Default all three. */
-  views?: PlanningView[];
+  defaultView?: GanttView;
+  view?: GanttView;
+  onViewChange?: (view: GanttView) => void;
+  /** Which views the switcher offers. Default all six. */
+  views?: GanttView[];
 
   /** Any date inside the range to open on. Default today. */
   defaultDate?: Date;
@@ -107,11 +122,27 @@ export interface GanttProps extends BaseProps {
 
   onTaskClick?: (task: GanttTask, row: GanttRow<GanttTask>) => void;
 
+  /**
+   * When work can happen — shift patterns per weekday plus dated exceptions.
+   * With one supplied, durations become WORKING durations and bars break across
+   * non-working time. Omit it and nothing changes: no calendar means a 24/7 one.
+   */
+  calendar?: GanttCalendar;
+  /** Hours per column in the DAY view. Default 1; 0.25 for quarter-hour columns. */
+  hourStep?: number;
   /** Reference "now" for the marker, the today column and the derived status. */
   now?: Date;
-  /** Pixel width of one column. Defaults to something readable per view. */
+  /**
+   * Nominal pixel width of one column. Setting it also opts the FIT view out of
+   * sizing itself to the container, which is the one thing that view exists for.
+   */
   columnWidth?: number;
   hideToolbar?: boolean;
+  /**
+   * Which columns the frozen pane carries, in PREFERENCE order: what you list
+   * last is what it sheds first. The first entry is never dropped.
+   */
+  columns?: GanttPaneColumn[];
 
   /** Show skeleton rows instead of the chart. */
   loading?: boolean;
@@ -121,41 +152,50 @@ export interface GanttProps extends BaseProps {
   emptyState?: Child;
 }
 
-const VIEW_LABEL: Record<PlanningView, string> = { day: "Day", week: "Week", month: "Month" };
-const ALL_VIEWS: PlanningView[] = ["day", "week", "month"];
-
-/**
- * Column widths per view, because one number cannot serve all three. A week is
- * 7 columns and can afford to be wide; a month is 31 and cannot.
- */
-const COLUMN_PX: Record<PlanningView, number> = { day: 56, week: 128, month: 44 };
-
-const ROW_PX = 36;
 const BAR_PX = 18;
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
  *  exactly ROW_PX / 2 — the y the connector routes are computed at. */
 const BAR_TOP = (ROW_PX - BAR_PX) / 2;
-const HEADER_PX = 44;
 
-const NAME_PX = 188;
-const ASSIGNEES_PX = 104;
-const STATUS_PX = 96;
-const VARIANCE_PX = 80;
-const LEFT_PX = NAME_PX + ASSIGNEES_PX + STATUS_PX + VARIANCE_PX;
+/** The frozen pane's columns. Fixed, because a sticky pane cannot be sized by
+ *  its content without moving as you scroll. */
+const PANE_PX: Record<GanttPaneColumn, number> = {
+  name: 180,
+  assignees: 96,
+  status: 88,
+  variance: 72,
+};
 
-const INDENT_PX = 14;
+const PANE_LABEL: Record<GanttPaneColumn, string> = {
+  name: "Task",
+  assignees: "Assignees",
+  status: "Status",
+  variance: "Variance",
+};
+
+/** Each column's place in the FULL set — fixed, not renumbered when one drops. */
+const COL_INDEX: Record<GanttPaneColumn | "timeline", number> = {
+  name: 1,
+  assignees: 2,
+  status: 3,
+  variance: 4,
+  timeline: 5,
+};
+
+const DEFAULT_PANE: GanttPaneColumn[] = ["name", "assignees", "status", "variance"];
+
 const AVATAR_MAX = 3;
 
 /**
  * Where the percent label goes, in the two places the obvious answer fails.
- * Under ~44px of bar there is no room for "100%" and it clips; past ~85% done
- * the fill has reached the inline end and a label there is solid-on-solid.
+ * Under ~44px there is no room for "100%" at all; past ~85% the fill has
+ * reached the inline end and a label there is solid-on-solid.
  */
 const LABEL_MIN_PX = 44;
 const LABEL_MAX_PCT = 85;
-
-/** Half-height of the connector arrowhead, in the axis's pixel space. */
-const ARROW_PX = 5;
+/** Room an outside label needs after the bar before it is put in front of it —
+ *  without this a task ending at the range edge draws its label PAST the axis. */
+const LABEL_OUTSIDE_PX = 30;
 
 const BAR_CLASS: Record<GanttTaskStatus, string> = {
   "not-started": "zen-bg-zen-muted zen-border-zen-border",
@@ -192,8 +232,6 @@ const STATUS_LABEL: Record<GanttTaskStatus, string> = {
   complete: "Complete",
 };
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-
 const initialsOf = (assignee: GanttAssignee): string =>
   assignee.initials ??
   assignee.name
@@ -204,6 +242,7 @@ const initialsOf = (assignee: GanttAssignee): string =>
     .join("")
     .toUpperCase();
 
+/** Every parent's id, for the "everything is open" default. */
 const parentIds = (tasks: GanttTask[]): string[] => {
   const out: string[] = [];
   const walk = (list: GanttTask[]) => {
@@ -232,47 +271,54 @@ const el = <K extends keyof HTMLElementTagNameMap>(
   return node;
 };
 
+type Row = GanttRow<GanttTask>;
+
 export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
   let current: GanttProps = { ...props };
-  const disposer = new Disposer();
-  let removeProps: (() => void) | undefined;
 
-  /* The factory owns the uncontrolled view, date and expansion, because there is
-     no state hook here — `update({ view })` is how a caller takes control.
-     `innerExpanded` is null rather than an empty array for the same reason the
-     other bindings hold null: it means "no answer given", which is everything
-     open, and a resolved list would freeze that at construction and leave
-     later-arriving tasks collapsed. */
-  let innerView: PlanningView = props.defaultView ?? "week";
+  /* The factory owns the uncontrolled view, date and expansion, because there
+     is no state hook here — `update({ view })` is how a caller takes control.
+     `innerExpanded` is null rather than an empty array: it means "no answer
+     given", which is everything open, and a resolved list would freeze that at
+     construction and leave later-arriving tasks collapsed. */
+  let innerView: GanttView = props.defaultView ?? "fit";
   let innerDate: Date = props.defaultDate ?? new Date();
   let innerExpanded: string[] | null = props.defaultExpanded ?? null;
 
-  const root = el("div");
+  /* Read once per CONSTRUCTION, not per render. Two `new Date()`s in one pass
+     can straddle a millisecond and leave the marker and the today column
+     disagreeing. Pass `now` to control it. */
+  const constructedAt = new Date();
 
-  /* Handles built by the CURRENT render, destroyed before the next one: a Button
-     or a Tooltip holds real listeners on nodes this component created, and there
-     is no unmount here to take them away. */
+  const root = el("div");
+  let grid: ScheduleGridHandle<Row> | null = null;
   let owned: AnyZenComponent[] = [];
   const keep = <T extends AnyZenComponent>(comp: T): T => {
     owned.push(comp);
     return comp;
   };
 
-  /* Click listeners on plain <button>s this file builds, so no handle releases
-     them. Per-render rather than pushed onto the Disposer, which only runs at
-     destroy() and would therefore grow by one entry per bar on every render. */
-  let cleanups: Array<() => void> = [];
-  const on = (node: HTMLElement, type: string, handler: EventListener) => {
-    node.addEventListener(type, handler);
-    cleanups.push(() => node.removeEventListener(type, handler));
-  };
-
   const viewOf = () => current.view ?? innerView;
   const dateOf = () => current.date ?? innerDate;
+  const nowOf = () => current.now ?? constructedAt;
   const expandedOf = () => current.expanded ?? innerExpanded;
-  const columnPxOf = () => current.columnWidth ?? COLUMN_PX[viewOf()];
+  const requestedPane = () => current.columns ?? DEFAULT_PANE;
 
-  const setView = (next: PlanningView) => {
+  const setView = (next: GanttView) => {
+    /* Leaving fit re-anchors, when the anchor is nowhere near the plan.
+       Otherwise the obvious gesture — open on fit, click Month to zoom in —
+       lands on today's month, which for a plan that runs next spring is an
+       empty axis and reads as the data having vanished. */
+    const fit = fitRangeOf();
+    if (viewOf() === "fit" && next !== "fit" && fit) {
+      const from = fit.start.getTime();
+      const to = fit.end.getTime();
+      const anchorTime = dateOf().getTime();
+      if (anchorTime < from || anchorTime >= to) {
+        const nowTime = nowOf().getTime();
+        setDate(nowTime >= from && nowTime < to ? nowOf() : fit.start);
+      }
+    }
     if (current.view === undefined) innerView = next;
     current.onViewChange?.(next);
     render();
@@ -290,559 +336,451 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     render();
   };
 
-  function toolbar(view: PlanningView, anchor: Date, now: Date): HTMLElement {
-    const bar = el("div", "zen-flex zen-flex-wrap zen-items-center zen-gap-2");
+  const fitRangeOf = (): PlanningRange | null =>
+    viewOf() === "fit" ? ganttFitRange(current.tasks ?? [], { calendar: current.calendar }) : null;
 
-    const prev = keep(
-      Button({
-        variant: "outline",
-        size: "sm",
-        "aria-label": "Previous",
-        // Logical, not physical: under RTL the axis runs the other way.
-        children: keep(Icon({ name: "chevron-left", size: 14, class: "rtl:zen-rotate-180" })),
-        onClick: () => setDate(shiftPlanningAnchor(view, anchor, -1)),
-      }),
-    );
-    const today = keep(
-      Button({ variant: "outline", size: "sm", children: "Today", onClick: () => setDate(now) }),
-    );
-    const next = keep(
-      Button({
-        variant: "outline",
-        size: "sm",
-        "aria-label": "Next",
-        children: keep(Icon({ name: "chevron-right", size: 14, class: "rtl:zen-rotate-180" })),
-        onClick: () => setDate(shiftPlanningAnchor(view, anchor, 1)),
-      }),
-    );
+  /** The four pane columns, as DATA — which is what lets the grid know nothing about tasks. */
+  const paneColumns = (): ScheduleColumn<Row>[] =>
+    requestedPane().map((key) => ({
+      key,
+      label: PANE_LABEL[key],
+      width: PANE_PX[key],
+      colIndex: COL_INDEX[key],
+      class: key === "name" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
+      style:
+        key === "name"
+          ? (row: Row) => [["padding-inline-start", `${8 + row.depth * INDENT_PX}px`]] as Array<[string, string]>
+          : undefined,
+      /* The avatars are decorative and the "+N" chip hides names outright, so
+         the cell says who — the tooltip is the pointer's version of it. */
+      ariaLabel:
+        key === "assignees"
+          ? (row: Row) =>
+              row.task.assignees && row.task.assignees.length > 0
+                ? row.task.assignees.map((a) => a.name).join(", ")
+                : undefined
+          : undefined,
+      render: (row: Row) => paneCell(key, row),
+    }));
 
-    const label = el(
-      "span",
-      "zen-mx-1 zen-text-sm zen-font-medium zen-text-zen-foreground",
-      planningRangeLabel(view, anchor),
-    );
+  function paneCell(column: GanttPaneColumn, row: Row): Array<Node | AnyZenComponent> {
+    const task = row.task;
 
-    const switcher = el("div", "zen-ms-auto zen-flex zen-gap-1");
-    switcher.setAttribute("role", "group");
-    switcher.setAttribute("aria-label", "View");
-    for (const v of current.views ?? ALL_VIEWS) {
-      switcher.append(
-        keep(
-          Button({
-            variant: view === v ? "solid" : "outline",
-            size: "sm",
-            "aria-pressed": view === v,
-            children: VIEW_LABEL[v],
-            onClick: () => setView(v),
-          }),
-        ).el,
-      );
-    }
-
-    bar.append(prev.el, today.el, next.el, label, switcher);
-    return bar;
-  }
-
-  function assignees(list: GanttAssignee[] | undefined): HTMLElement | null {
-    if (!list || list.length === 0) return null;
-    const group = keep(
-      AvatarGroup({
-        max: AVATAR_MAX,
-        size: "xs",
-        // "loose" is -4px: at xs an avatar is 24px, and the default -8px hides a
-        // third of each initial pair behind the next one.
-        spacing: "loose",
-        children: list.map((assignee) =>
-          keep(
-            Avatar({
-              size: "xs",
-              children: [
-                assignee.src ? keep(AvatarImage({ src: assignee.src, alt: assignee.name })) : null,
-                keep(AvatarFallback({ children: initialsOf(assignee) })),
-              ],
-            }),
-          ),
-        ),
-      }),
-    );
-    /* Focusable, so the full list is reachable without a pointer — the "+N" chip
-       is the only place some names appear at all. */
-    const trigger = el(
-      "span",
-      "zen-rounded-zen-full focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-    );
-    trigger.tabIndex = 0;
-    trigger.append(group.el);
-    keep(
-      Tooltip({
-        trigger,
-        content: list.map((a) => a.name).join(", "),
-        delayDuration: 200,
-      }) as AnyZenComponent,
-    );
-    return trigger;
-  }
-
-  function render(): void {
-    for (const comp of owned) comp.destroy();
-    owned = [];
-    for (const off of cleanups) off();
-    cleanups = [];
-    root.replaceChildren();
-
-    const {
-      tasks,
-      emptyState,
-      class: className,
-      children: _children,
-      dependencies: _deps,
-      showDependencies: _sd,
-      defaultView: _dv,
-      defaultDate: _dd,
-      defaultExpanded: _de,
-      view: _v,
-      date: _d,
-      expanded: _e,
-      views: _vs,
-      now: _n,
-      columnWidth: _cw,
-      hideToolbar: _ht,
-      loading: _l,
-      loadingRows: _lr,
-      onViewChange: _ovc,
-      onDateChange: _odc,
-      onExpandedChange: _oec,
-      onTaskClick: _otc,
-      ...rest
-    } = current;
-
-    if (current.loading) {
-      root.className = cn(
-        "zen-flex zen-w-full zen-flex-col zen-gap-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-p-3",
-        className,
-      );
-      root.setAttribute("role", "status");
-      root.setAttribute("aria-label", "Loading schedule");
-      for (let i = 0; i < (current.loadingRows ?? 6); i++) {
-        const line = el("div", "zen-flex zen-items-center zen-gap-3");
-        line.append(
-          keep(Skeleton({ class: "zen-h-4", style: { width: `${NAME_PX - 24 - (i % 3) * INDENT_PX}px` } })).el,
-          keep(Skeleton({ class: "zen-h-4 zen-w-16" })).el,
-          keep(
-            Skeleton({
-              class: "zen-h-4",
-              /* Staggered so the placeholder reads as a schedule rather than as
-                 a table — the shape is the information here. */
-              style: { marginInlineStart: `${(i * 37) % 45}%`, width: `${20 + ((i * 13) % 30)}%` },
-            }),
-          ).el,
-        );
-        root.append(line);
-      }
-      removeProps?.();
-      removeProps = applyProps(root, rest as Record<string, unknown>);
-      return;
-    }
-
-    root.removeAttribute("role");
-    root.removeAttribute("aria-label");
-
-    const view = viewOf();
-    const anchor = dateOf();
-    const now = current.now ?? new Date();
-    const range = planningRange(view, anchor);
-    const columns = planningColumns(view, anchor, { now });
-    const columnPx = columnPxOf();
-    const axisWidth = columns.length * columnPx;
-    const marker = nowPct(range, now);
-
-    const expandedIds = expandedOf();
-    const expandedSet = expandedIds === null ? null : new Set(expandedIds);
-    const { rows, rowIndexById } = flattenGanttTasks<GanttTask>(
-      tasks ?? [],
-      (task) => (expandedSet === null ? true : expandedSet.has(task.id)),
-      now,
-    );
-
-    if (rows.length === 0) {
-      root.className = cn("zen-w-full", className);
-      root.append(
-        ...toNodes(
-          emptyState ??
-            keep(
-              EmptyState({
-                bordered: true,
-                children: [
-                  keep(EmptyStateIcon({ children: keep(Icon({ name: "calendar", size: 22 })) })),
-                  keep(EmptyStateTitle({ children: "Nothing scheduled" })),
-                  keep(
-                    EmptyStateDescription({
-                      children:
-                        "Add a task with a start and an end date and it will appear on the timeline.",
-                    }),
-                  ),
-                ],
-              }),
-            ),
-        ),
-      );
-      removeProps?.();
-      removeProps = applyProps(root, rest as Record<string, unknown>);
-      return;
-    }
-
-    root.className = cn("zen-flex zen-w-full zen-flex-col zen-gap-3", className);
-
-    const placements = new Map<number, PlanningPlacement>();
-    for (const row of rows) {
-      if (!row.span) continue;
-      const placement = placeAppointment(row.span, range);
-      if (placement) placements.set(row.index, placement);
-    }
-
-    if (!current.hideToolbar) root.append(toolbar(view, anchor, now));
-
-    /* ONE scroller. The task pane is sticky at the inline start and the header
-       sticky at the top, so vertical scroll moves both panes and horizontal
-       scroll moves only the axis — with no scroll listener to fall out of sync. */
-    const scroller = el(
-      "div",
-      "zen-relative zen-max-h-[32rem] zen-overflow-auto zen-rounded-zen-md zen-border zen-border-zen-border",
-    );
-    const inner = el("div");
-    inner.style.width = `${LEFT_PX + axisWidth}px`;
-
-    const head = el(
-      "div",
-      "zen-sticky zen-top-0 zen-z-30 zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted",
-    );
-    head.style.height = `${HEADER_PX}px`;
-    head.style.boxSizing = "border-box";
-
-    const headLeft = el(
-      "div",
-      "zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
-    );
-    headLeft.style.width = `${LEFT_PX}px`;
-    headLeft.style.setProperty("inset-inline-start", "0");
-    for (const [width, text] of [
-      [NAME_PX, "Task"],
-      [ASSIGNEES_PX, "Assignees"],
-      [STATUS_PX, "Status"],
-      [VARIANCE_PX, "Variance"],
-    ] as Array<[number, string]>) {
-      const cell = el("div", width === NAME_PX ? "zen-truncate zen-px-3" : "zen-truncate zen-px-2", text);
-      cell.style.width = `${width}px`;
-      headLeft.append(cell);
-    }
-    head.append(headLeft);
-
-    const headCols = el("div", "zen-flex");
-    headCols.style.width = `${axisWidth}px`;
-    for (const column of columns) {
-      const cell = el(
-        "div",
-        cn(
-          "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-border-e zen-border-zen-border last:zen-border-e-0",
-          column.nonWorking && "zen-bg-zen-muted",
-          column.today && "zen-bg-zen-primary-soft",
-        ),
-      );
-      cell.style.width = `${columnPx}px`;
-      cell.append(el("span", "zen-text-xs zen-font-medium zen-text-zen-foreground", column.label));
-      if (column.sublabel) {
-        cell.append(el("span", "zen-text-[10px] zen-text-zen-muted-fg", column.sublabel));
-      }
-      headCols.append(cell);
-    }
-    head.append(headCols);
-    inner.append(head);
-
-    const body = el("div", "zen-relative");
-    body.style.height = `${rows.length * ROW_PX}px`;
-
-    for (const row of rows) {
-      const placement = placements.get(row.index) ?? null;
-      const progress = row.progress ?? 0;
-      const widthPx = placement ? (placement.widthPct / 100) * axisWidth : 0;
-      const labelOutside = widthPx < LABEL_MIN_PX;
-      const labelOnFill = !labelOutside && progress >= LABEL_MAX_PCT;
-
-      const rowEl = el("div", "zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0");
-      rowEl.style.height = `${ROW_PX}px`;
-      rowEl.style.boxSizing = "border-box";
-
-      const left = el(
-        "div",
-        "zen-sticky zen-z-20 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-background",
-      );
-      left.style.width = `${LEFT_PX}px`;
-      left.style.setProperty("inset-inline-start", "0");
-
-      const nameCell = el("div", "zen-flex zen-min-w-0 zen-items-center zen-gap-1 zen-pe-2");
-      nameCell.style.width = `${NAME_PX}px`;
-      nameCell.style.setProperty("padding-inline-start", `${8 + row.depth * INDENT_PX}px`);
-
+    if (column === "name") {
+      const out: Array<Node | AnyZenComponent> = [];
       if (row.hasChildren) {
-        const chevron = document.createElement("button");
+        const chevron = el(
+          "button",
+          "zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+        );
         chevron.type = "button";
-        chevron.className =
-          "zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring";
-        chevron.setAttribute("aria-expanded", String(row.expanded));
+        /* Out of the tab order, in the grid's: the chevron is reached by
+           arrowing to the first column and pressing the forward arrow, not by a
+           tab stop per parent. */
+        chevron.tabIndex = -1;
         chevron.setAttribute(
           "aria-label",
-          row.expanded ? `Collapse ${row.task.name}` : `Expand ${row.task.name}`,
+          row.expanded ? `Collapse ${task.name}` : `Expand ${task.name}`,
         );
-        chevron.append(
-          keep(
-            Icon({
-              name: row.expanded ? "chevron-down" : "chevron-right",
-              size: 14,
-              class: row.expanded ? undefined : "rtl:zen-rotate-180",
-            }),
-          ).el,
-        );
-        on(chevron, "click", () => toggle(row.task.id));
-        nameCell.append(chevron);
+        chevron.addEventListener("click", () => toggle(task.id));
+        const icon = Icon({
+          name: row.expanded ? "chevron-down" : "chevron-right",
+          size: 14,
+          class: row.expanded ? undefined : "rtl:zen-rotate-180",
+        });
+        chevron.append(icon.el);
+        out.push(chevron, icon);
       } else {
         /* A spacer, not a hidden chevron: leaves must line up with their
            siblings' text, or every leaf reads as one level shallower. */
         const spacer = el("span", "zen-h-5 zen-w-5 zen-shrink-0");
         spacer.setAttribute("aria-hidden", "true");
-        nameCell.append(spacer);
+        out.push(spacer);
       }
 
-      const names = el("span", "zen-min-w-0");
-      const title = el(
+      const text = el("span", "zen-min-w-0");
+      const name = el(
+        "span",
+        cn("zen-block zen-truncate zen-text-sm zen-text-zen-foreground", row.hasChildren && "zen-font-semibold"),
+        task.name,
+      );
+      name.title = task.name;
+      text.append(name);
+      if (task.subtitle) {
+        text.append(el("span", "zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg", task.subtitle));
+      }
+      out.push(text);
+      return out;
+    }
+
+    if (column === "assignees") {
+      const people = task.assignees;
+      if (!people || people.length === 0) return [];
+      /* "loose" is -4px: at xs an avatar is 24px, and the default -8px hides a
+         third of each initial pair behind the next one. */
+      const group = AvatarGroup({
+        max: AVATAR_MAX,
+        size: "xs",
+        spacing: "loose",
+        children: people.map((assignee) =>
+          Avatar({
+            size: "xs",
+            children: [
+              assignee.src ? AvatarImage({ src: assignee.src, alt: assignee.name }) : null,
+              AvatarFallback({ children: initialsOf(assignee) }),
+            ],
+          }),
+        ),
+      });
+      /* Not a tab stop of its own — the grid is one — but the full list is
+         still reachable: the cell carries it as its accessible name. */
+      const wrap = el("span", "zen-rounded-zen-full");
+      wrap.setAttribute("aria-hidden", "true");
+      wrap.append(group.el);
+      const tip = Tooltip({ trigger: wrap, content: people.map((a) => a.name).join(", ") });
+      return [tip, group];
+    }
+
+    if (column === "status") {
+      return [
+        Badge({
+          variant: "soft",
+          color: STATUS_COLOR[row.status],
+          class: "zen-truncate",
+          children: task.statusLabel ?? STATUS_LABEL[row.status],
+        }),
+      ];
+    }
+
+    const varianceText = formatGanttVariance(row.variance);
+    if (!varianceText) return [];
+    const chip = Badge({
+      variant: "soft",
+      color:
+        row.variance === null || row.variance === 0
+          ? "neutral"
+          : row.variance > 0
+            ? "error"
+            : "success",
+      children: varianceText,
+    });
+    /* "+2d" is a signed number, and bidi reorders a leading sign to the far side
+       in an RTL run — it renders as "2d+". Set on the node rather than passed as
+       a prop, because vanilla's BaseProps does not carry arbitrary attributes;
+       the other two bindings spell it `dir="ltr"` on the component. */
+    chip.el.setAttribute("dir", "ltr");
+    return [chip];
+  }
+
+  /** The bar on the axis: one per row, broken into pieces where work stops. */
+  function track(
+    row: Row,
+    axis: ScheduleAxis,
+    placement: PlanningPlacement | null,
+  ): Array<Node | AnyZenComponent> {
+    if (!placement) {
+      /* An empty gridcell is announced as "blank", which is right for a cell
+         with no data and wrong for THIS one: the reader arrowed to the timeline
+         expecting a bar, and "blank" does not distinguish "no dates" from
+         "starts after the range you are looking at". */
+      return [el("span", "zen-sr-only", row.span ? "Not scheduled in this range" : "No dates")];
+    }
+
+    const progress = row.progress ?? 0;
+    const widthPx = (placement.widthPct / 100) * axis.axisWidth;
+    const labelOutside = widthPx < LABEL_MIN_PX;
+    const labelOnFill = !labelOutside && progress >= LABEL_MAX_PCT;
+    const endPct = placement.startPct + placement.widthPct;
+    /* Which SIDE the outside label goes. After the bar normally; before it when
+       the bar ends against the edge of the axis and there is nowhere after. */
+    const labelBefore = ((100 - endPct) / 100) * axis.axisWidth < LABEL_OUTSIDE_PX;
+
+    /**
+     * The bar's working stretches, as percentages OF THE BAR, with the progress
+     * fill handed out along them by working duration — 40% complete on a job
+     * that runs an hour on Friday and seven on Monday means the Friday piece is
+     * full and the Monday one has barely started.
+     */
+    let pieces: Array<{ startPct: number; widthPct: number; fillPct: number }> | null = null;
+    if (row.segments && row.span) {
+      /* Percentages of the VISIBLE bar, not of the whole span: `placeAppointment`
+         clips a bar to the range, and measuring against the full span would
+         squash and shift every piece the moment a job started before it. */
+      const from = Math.max(row.span.start.getTime(), axis.range.start.getTime());
+      const to = Math.min(row.span.end.getTime(), axis.range.end.getTime());
+      const total = to - from;
+      if (total > 0) {
+        const allDurations = row.segments.map((s) => s.end.getTime() - s.start.getTime());
+        const workingTotal = allDurations.reduce((a, b) => a + b, 0);
+        let remaining = (workingTotal * progress) / 100;
+        const out: Array<{ startPct: number; widthPct: number; fillPct: number }> = [];
+        row.segments.forEach((seg, i) => {
+          const done = Math.max(0, Math.min(remaining, allDurations[i]));
+          remaining -= done;
+          const segStart = Math.max(seg.start.getTime(), from);
+          const segEnd = Math.min(seg.end.getTime(), to);
+          if (segEnd <= segStart) return;
+          const visible = segEnd - segStart;
+          const fillVisible = Math.max(0, Math.min(done - (segStart - seg.start.getTime()), visible));
+          out.push({
+            startPct: ((segStart - from) / total) * 100,
+            widthPct: (visible / total) * 100,
+            fillPct: visible > 0 ? (fillVisible / visible) * 100 : 0,
+          });
+        });
+        pieces = out.length > 0 ? out : null;
+      }
+    }
+
+    const bar = el(
+      "button",
+      cn(
+        "zen-absolute zen-rounded-zen-sm",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+        /* Drawn as pieces, the button is only the hit area and the focus ring —
+           the skin moves onto each piece, or the gaps would be filled by the
+           button's own background. */
+        pieces === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[row.status]),
+        /* Square off a cut edge so a bar continuing past the view does not look
+           like it ends there. */
+        pieces === null && placement.clippedStart && "zen-rounded-s-none zen-border-s-0",
+        pieces === null && placement.clippedEnd && "zen-rounded-e-none zen-border-e-0",
+        current.onTaskClick && "hover:zen-brightness-95",
+      ),
+    );
+    bar.type = "button";
+    /* Reachable, not tabbable. The timeline CELL carries the tab stop; the bar
+       is what the keyboard scrolls into view once it does. */
+    bar.tabIndex = -1;
+    bar.setAttribute("data-gantt-bar", "");
+    bar.style.insetInlineStart = `${placement.startPct}%`;
+    bar.style.width = `${placement.widthPct}%`;
+    bar.style.top = `${BAR_TOP}px`;
+    bar.style.height = `${BAR_PX}px`;
+    bar.title = `${row.task.name} · ${formatDay(row.span!.start)} – ${formatDay(row.span!.end)}${
+      row.progress === null ? "" : ` · ${Math.round(progress)}%`
+    }`;
+    bar.addEventListener("click", () => current.onTaskClick?.(row.task, row));
+
+    bar.append(
+      el(
+        "span",
+        "zen-sr-only",
+        `${formatDay(row.span!.start)} to ${formatDay(row.span!.end)}, ${STATUS_LABEL[row.status]}${
+          row.progress === null ? "" : `, ${Math.round(progress)} percent complete`
+        }`,
+      ),
+    );
+
+    /* The bar broken at the gaps where no work happens. The pieces sit INSIDE
+       one button rather than being buttons themselves: the job is one thing to
+       click, one thing to focus and one accessible name, however many stretches
+       it is worked in. The gaps are left genuinely transparent so the shaded
+       non-working column shows through. */
+    if (pieces !== null) {
+      for (const piece of pieces) {
+        const part = el(
+          "span",
+          cn("zen-absolute zen-inset-y-0 zen-overflow-hidden", BAR_CLASS[row.status], "zen-rounded-zen-sm zen-border"),
+        );
+        part.setAttribute("aria-hidden", "true");
+        part.style.insetInlineStart = `${piece.startPct}%`;
+        part.style.width = `${piece.widthPct}%`;
+        if (row.progress !== null && piece.fillPct > 0) {
+          const fill = el("span", cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[row.status]));
+          fill.style.width = `${piece.fillPct}%`;
+          part.append(fill);
+        }
+        bar.append(part);
+      }
+    } else if (row.progress !== null) {
+      const fill = el("span", cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[row.status]));
+      fill.setAttribute("aria-hidden", "true");
+      fill.style.width = `${progress}%`;
+      bar.append(fill);
+    }
+
+    if (row.progress !== null && !labelOutside) {
+      const label = el(
         "span",
         cn(
-          "zen-block zen-truncate zen-text-sm zen-text-zen-foreground",
-          row.hasChildren && "zen-font-semibold",
+          "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-text-[10px] zen-font-medium",
+          labelOnFill ? cn("zen-start-1", FILL_TEXT_CLASS[row.status]) : "zen-end-1 zen-text-zen-foreground",
         ),
-        row.task.name,
+        `${Math.round(progress)}%`,
       );
-      title.title = row.task.name;
-      names.append(title);
-      if (row.task.subtitle) {
-        names.append(el("span", "zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg", row.task.subtitle));
-      }
-      nameCell.append(names);
-      left.append(nameCell);
-
-      const assigneeCell = el("div", "zen-flex zen-items-center zen-px-2");
-      assigneeCell.style.width = `${ASSIGNEES_PX}px`;
-      const avatars = assignees(row.task.assignees);
-      if (avatars) assigneeCell.append(avatars);
-      left.append(assigneeCell);
-
-      const statusCell = el("div", "zen-flex zen-items-center zen-px-2");
-      statusCell.style.width = `${STATUS_PX}px`;
-      statusCell.append(
-        keep(
-          Badge({
-            variant: "soft",
-            color: STATUS_COLOR[row.status],
-            class: "zen-truncate",
-            children: row.task.statusLabel ?? STATUS_LABEL[row.status],
-          }),
-        ).el,
-      );
-      left.append(statusCell);
-
-      const varianceCell = el("div", "zen-flex zen-items-center zen-px-2");
-      varianceCell.style.width = `${VARIANCE_PX}px`;
-      const varianceText = formatGanttVariance(row.variance);
-      if (varianceText) {
-        const chip = keep(
-          Badge({
-            variant: "soft",
-            color:
-              row.variance === null || row.variance === 0
-                ? "neutral"
-                : row.variance > 0
-                  ? "error"
-                  : "success",
-            children: varianceText,
-          }),
-        ).el;
-        /* "+2d" is a signed number, and bidi reorders a leading sign to the far
-           side in an RTL run — it renders as "2d+". */
-        chip.setAttribute("dir", "ltr");
-        varianceCell.append(chip);
-      }
-      left.append(varianceCell);
-      rowEl.append(left);
-
-      const track = el("div", "zen-relative zen-shrink-0");
-      track.style.width = `${axisWidth}px`;
-
-      // The column rules as a background layer rather than as parents of the
-      // bar: a bar spanning four days cannot live inside one day's box.
-      const rules = el("div", "zen-absolute zen-inset-0 zen-flex");
-      rules.setAttribute("aria-hidden", "true");
-      for (const column of columns) {
-        const rule = el(
-          "div",
-          cn(
-            "zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0",
-            column.nonWorking && "zen-bg-zen-muted/40",
-            column.today && "zen-bg-zen-primary-soft/40",
-          ),
-        );
-        rule.style.width = `${columnPx}px`;
-        rules.append(rule);
-      }
-      track.append(rules);
-
-      if (placement && row.span) {
-        /* A real <button> whether or not a handler was passed: bars are the only
-           things on the axis worth reaching by keyboard, and a plain div takes
-           the whole chart out of the tab order. */
-        const bar = document.createElement("button");
-        bar.type = "button";
-        bar.className = cn(
-          "zen-absolute zen-overflow-hidden zen-rounded-zen-sm zen-border",
-          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-          BAR_CLASS[row.status],
-          // Square off a cut edge so a bar continuing past the view does not
-          // look like it ends there.
-          placement.clippedStart && "zen-rounded-s-none zen-border-s-0",
-          placement.clippedEnd && "zen-rounded-e-none zen-border-e-0",
-          current.onTaskClick && "hover:zen-brightness-95",
-        );
-        bar.style.setProperty("inset-inline-start", `${placement.startPct}%`);
-        bar.style.width = `${placement.widthPct}%`;
-        bar.style.top = `${BAR_TOP}px`;
-        bar.style.height = `${BAR_PX}px`;
-        const dates = `${formatDay(row.span.start)} – ${formatDay(row.span.end)}`;
-        bar.title = `${row.task.name} · ${dates}${row.progress === null ? "" : ` · ${Math.round(progress)}%`}`;
-        bar.append(
-          el(
-            "span",
-            "zen-sr-only",
-            `${formatDay(row.span.start)} to ${formatDay(row.span.end)}, ${STATUS_LABEL[row.status]}${
-              row.progress === null ? "" : `, ${Math.round(progress)} percent complete`
-            }`,
-          ),
-        );
-
-        if (row.progress !== null) {
-          const fill = el("span", cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[row.status]));
-          fill.setAttribute("aria-hidden", "true");
-          fill.style.width = `${progress}%`;
-          bar.append(fill);
-
-          if (!labelOutside) {
-            const label = el(
-              "span",
-              cn(
-                "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-text-[10px] zen-font-medium",
-                labelOnFill
-                  ? cn("zen-start-1", FILL_TEXT_CLASS[row.status])
-                  : "zen-end-1 zen-text-zen-foreground",
-              ),
-              `${Math.round(progress)}%`,
-            );
-            label.setAttribute("aria-hidden", "true");
-            bar.append(label);
-          }
-        }
-
-        const handler = current.onTaskClick;
-        if (handler) on(bar, "click", () => handler(row.task, row));
-        track.append(bar);
-
-        if (row.progress !== null && labelOutside) {
-          const outside = el(
-            "span",
-            "zen-absolute zen-flex zen-items-center zen-text-[10px] zen-font-medium zen-text-zen-muted-fg",
-            `${Math.round(progress)}%`,
-          );
-          outside.setAttribute("aria-hidden", "true");
-          outside.style.setProperty(
-            "inset-inline-start",
-            `calc(${placement.startPct + placement.widthPct}% + 4px)`,
-          );
-          outside.style.top = `${BAR_TOP}px`;
-          outside.style.height = `${BAR_PX}px`;
-          track.append(outside);
-        }
-      }
-
-      rowEl.append(track);
-      body.append(rowEl);
+      label.setAttribute("aria-hidden", "true");
+      bar.append(label);
     }
 
-    if (marker !== null) {
-      const line = el("div", "zen-pointer-events-none zen-absolute zen-top-0 zen-z-10 zen-w-px zen-bg-zen-error");
-      line.setAttribute("aria-hidden", "true");
-      line.style.height = `${rows.length * ROW_PX}px`;
-      line.style.setProperty("inset-inline-start", `${LEFT_PX + (marker / 100) * axisWidth}px`);
-      body.append(line);
+    const out: Array<Node | AnyZenComponent> = [bar];
+    if (row.progress !== null && labelOutside) {
+      const outside = el(
+        "span",
+        "zen-absolute zen-flex zen-items-center zen-text-[10px] zen-font-medium zen-text-zen-muted-fg",
+        `${Math.round(progress)}%`,
+      );
+      outside.setAttribute("aria-hidden", "true");
+      if (labelBefore) outside.style.insetInlineEnd = `calc(${100 - placement.startPct}% + 4px)`;
+      else outside.style.insetInlineStart = `calc(${endPct}% + 4px)`;
+      outside.style.top = `${BAR_TOP}px`;
+      outside.style.height = `${BAR_PX}px`;
+      out.push(outside);
+    }
+    return out;
+  }
+
+  function render(): void {
+    for (const handle of owned) handle.destroy();
+    owned = [];
+
+    const now = nowOf();
+    const spec = requestedPane().map((key) => ({ key, width: PANE_PX[key] }));
+    /* Resolved TWICE on the first pass and once after: the axis needs the
+       scroller's width, and the scroller does not exist until the grid is
+       built. The grid reports the measurement back through `onMetrics`, which
+       lands here as an update — the same measure/recompute/redraw loop the
+       other bindings run through a signal. */
+    const axis = resolveScheduleAxis({
+      view: viewOf(),
+      anchor: dateOf(),
+      fitRange: fitRangeOf(),
+      now,
+      calendar: current.calendar,
+      hourStep: current.hourStep,
+      columnWidth: current.columnWidth,
+      paneColumns: spec,
+      available: grid?.metrics().width ?? 0,
+    });
+
+    const expandedSet = expandedOf() === null ? null : new Set(expandedOf()!);
+    const flat = flattenGanttTasks<GanttTask>(
+      current.tasks ?? [],
+      (task) => (expandedSet === null ? true : expandedSet.has(task.id)),
+      now,
+      { calendar: current.calendar, minGapMs: axis.minGapMs },
+    );
+
+    if (current.loading) {
+      grid?.destroy();
+      grid = null;
+      root.className = cn(
+        "zen-flex zen-w-full zen-flex-col zen-gap-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-p-3",
+        current.class,
+      );
+      root.setAttribute("role", "status");
+      root.setAttribute("aria-label", "Loading schedule");
+      root.replaceChildren();
+      for (let i = 0; i < (current.loadingRows ?? 6); i++) {
+        const line = el("div", "zen-flex zen-items-center zen-gap-3");
+        const a = keep(Skeleton({ class: "zen-h-4" }));
+        (a.el as HTMLElement).style.width = `${PANE_PX.name - 24 - (i % 3) * INDENT_PX}px`;
+        const b = keep(Skeleton({ class: "zen-h-4 zen-w-16" }));
+        /* Staggered so the placeholder reads as a schedule rather than as a
+           table — the shape is the information here. */
+        const c = keep(Skeleton({ class: "zen-h-4" }));
+        (c.el as HTMLElement).style.marginInlineStart = `${(i * 37) % 45}%`;
+        (c.el as HTMLElement).style.width = `${20 + ((i * 13) % 30)}%`;
+        line.append(a.el, b.el, c.el);
+        root.append(line);
+      }
+      return;
     }
 
-    const dependencies = current.dependencies;
-    if (current.showDependencies !== false && dependencies && dependencies.length > 0) {
+    if (flat.rows.length === 0) {
+      grid?.destroy();
+      grid = null;
+      root.className = cn("zen-w-full", current.class);
+      root.removeAttribute("role");
+      root.removeAttribute("aria-label");
+      root.replaceChildren();
+      if (current.emptyState !== undefined) {
+        root.append(...toNodes(current.emptyState));
+      } else {
+        const empty = keep(
+          EmptyState({
+            bordered: true,
+            children: [
+              EmptyStateIcon({ children: Icon({ name: "calendar", size: 22 }) }),
+              EmptyStateTitle({ children: "Nothing scheduled" }),
+              EmptyStateDescription({
+                children:
+                  "Add a task with a start and an end date and it will appear on the timeline.",
+              }),
+            ],
+          }),
+        );
+        root.append(empty.el);
+      }
+      return;
+    }
+
+    const placements = new Map<number, PlanningPlacement>();
+    for (const row of flat.rows) {
+      if (!row.span) continue;
+      const placement = placeAppointment(row.span, axis.range);
+      if (placement) placements.set(row.index, placement);
+    }
+
+    let connectors = [] as ReturnType<typeof ganttConnectors>;
+    if (current.showDependencies !== false && current.dependencies && current.dependencies.length > 0) {
       const anchors = new Map<string, GanttBarAnchor>();
-      for (const [id, index] of rowIndexById) {
+      for (const [id, index] of flat.rowIndexById) {
         const placement = placements.get(index);
         if (placement) {
           anchors.set(id, { rowIndex: index, startPct: placement.startPct, widthPct: placement.widthPct });
         }
       }
-      const connectors = ganttConnectors(anchors, dependencies, { axisWidth, rowHeight: ROW_PX });
-      if (connectors.length > 0) {
-        const height = rows.length * ROW_PX;
-        /* Mirrored under RTL rather than recomputed: the bars are placed with
-           logical inset properties, so the axis is already flipped and the
-           routes have to flip with it — arrowheads included. */
-        const svg = document.createElementNS(SVG_NS, "svg");
-        svg.setAttribute("aria-hidden", "true");
-        svg.setAttribute("class", "zen-pointer-events-none zen-absolute zen-top-0 zen-z-10 rtl:-zen-scale-x-100");
-        svg.setAttribute("width", String(axisWidth));
-        svg.setAttribute("height", String(height));
-        svg.setAttribute("viewBox", `0 0 ${axisWidth} ${height}`);
-        svg.style.setProperty("inset-inline-start", `${LEFT_PX}px`);
-        for (const connector of connectors) {
-          const path = document.createElementNS(SVG_NS, "path");
-          path.setAttribute("d", connector.d);
-          path.setAttribute("fill", "none");
-          // zen-stroke-* / zen-fill-* generate nothing under this preset — the
-          // token has to be named directly.
-          path.setAttribute("stroke", "var(--zen-color-muted-fg)");
-          path.setAttribute("stroke-width", "1.5");
-          const head2 = document.createElementNS(SVG_NS, "polygon");
-          head2.setAttribute(
-            "points",
-            [
-              `${connector.arrow.x},${connector.arrow.y}`,
-              `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y - ARROW_PX}`,
-              `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y + ARROW_PX}`,
-            ].join(" "),
-          );
-          head2.setAttribute("fill", "var(--zen-color-muted-fg)");
-          svg.append(path, head2);
-        }
-        body.append(svg);
-      }
+      connectors = ganttConnectors(anchors, current.dependencies, {
+        axisWidth: axis.axisWidth,
+        rowHeight: ROW_PX,
+      });
     }
 
-    inner.append(body);
-    scroller.append(inner);
-    root.append(scroller);
+    /* `w-full` and `min-w-0`, and they are load-bearing rather than tidy. This
+       root wraps the grid so the loading and empty states have somewhere stable
+       to swap into — but a bare <div> inside a flex row is sized by its CONTENT,
+       and the fit axis is sized from the container, so the two define each
+       other. Measured before this line existed: identical data drew at 1096px,
+       1800px and 930px in different sections of this very page, where React and
+       Solid drew 1008 throughout. The other bindings avoid it by having the
+       grid's own root BE the component's root, which already carries w-full. */
+    root.className = "zen-w-full zen-min-w-0";
+    root.removeAttribute("role");
+    root.removeAttribute("aria-label");
 
-    removeProps?.();
-    removeProps = applyProps(root, rest as Record<string, unknown>);
+    const options = {
+      rows: flat.rows,
+      rowId: (row: Row) => row.task.id,
+      columns: paneColumns(),
+      colCount: 5,
+      timelineColIndex: COL_INDEX.timeline,
+      renderTrack: (row: Row) => track(row, axis, placements.get(row.index) ?? null),
+      axis,
+      view: viewOf(),
+      anchor: dateOf(),
+      now,
+      connectors,
+      views: current.views,
+      hideToolbar: current.hideToolbar,
+      onViewChange: setView,
+      onDateChange: setDate,
+      onToggle: (row: Row) => toggle(row.task.id),
+      onActivate: (row: Row) => current.onTaskClick?.(row.task, row),
+      onMetrics: () => render(),
+      ariaLabel: "Project schedule",
+      class: current.class,
+    };
+
+    if (grid) {
+      grid.update(options);
+    } else {
+      grid = ScheduleGrid<Row>(options);
+      root.replaceChildren(grid.el);
+    }
   }
 
   render();
-  disposer.add(() => removeProps?.());
-  disposer.add(() => {
-    for (const comp of owned) comp.destroy();
-    owned = [];
-    for (const off of cleanups) off();
-    cleanups = [];
-  });
 
   return {
     el: root,
@@ -851,7 +789,10 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       render();
     },
     destroy() {
-      disposer.dispose();
+      for (const handle of owned) handle.destroy();
+      owned = [];
+      grid?.destroy();
+      grid = null;
       root.remove();
     },
   };

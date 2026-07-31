@@ -222,14 +222,39 @@ export type { PlanningCalendarProps, PlanningRow, PlanningAppointment, PlanningA
 export { Gantt } from "./components/gantt/gantt";
 export type { GanttProps, GanttTask, GanttAssignee } from "./components/gantt/gantt";
 export type {
+  GanttAnchoredView,
   GanttBarAnchor,
+  GanttCalendar,
+  GanttCalendarException,
+  GanttColumnUnit,
   GanttConnector,
   GanttDependency,
   GanttDependencyType,
   GanttRow,
   GanttSpan,
   GanttTaskNode,
+  GanttPaneColumn,
+  GanttSegmentOptions,
   GanttTaskStatus,
+  GanttView,
+  GanttWorkingPeriod,
+  GanttFitOptions,
+  GanttFlattenOptions,
+} from "@algorisys/zen-ui-core/gantt";
+export {
+  GANTT_CALENDAR_24_7,
+  GANTT_PANE_COLUMNS,
+  ganttAddWorkingMs,
+  ganttFitRange,
+  ganttFitUnit,
+  ganttIsWorking,
+  ganttPaneColumns,
+  ganttRangeColumns,
+  ganttSpanLabel,
+  ganttSubWorkingMs,
+  ganttWorkingMs,
+  ganttWorkingPeriodsOn,
+  ganttWorkingSegments,
 } from "@algorisys/zen-ui-core/gantt";
 export { UploadCollection } from "./components/upload-collection/upload-collection";
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";
