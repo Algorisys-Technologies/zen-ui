@@ -5,6 +5,7 @@ import {
   ganttFitRange,
   placeAppointment,
   productionLoad,
+  productionCriticalPath,
   productionReschedule,
   productionSequenceConflicts,
   type GanttBarAnchor,
@@ -19,6 +20,7 @@ import {
   type ProductionPlacement,
   type ProductionResourceNode,
   type ProductionRow as ProductionRowData,
+  type ProductionFloat,
   type ProductionMove,
   type ProductionProposal,
   type ProductionSetupMatrix,
@@ -113,7 +115,7 @@ export interface ProductionOperation extends ProductionOperationNode {
 }
 
 /** Which columns the frozen pane can carry. */
-export type ProductionPaneColumn = "resource" | "jobs" | "capacity" | "load";
+export type ProductionPaneColumn = "resource" | "jobs" | "capacity" | "load" | "float";
 
 export interface ProductionScheduleProps {
   resources: ProductionResource[];
@@ -203,6 +205,19 @@ export interface ProductionScheduleProps {
   maxLanes?: number;
   /** Draw the load histogram under the axis. Default true. */
   showLoad?: boolean;
+  /**
+   * Compute float and mark the critical path. Off by default: it is a graph
+   * pass over every operation, and a schedule with no routing has nothing to
+   * be critical about.
+   *
+   * With `until` supplied it is measured against a real due date, and every
+   * operation can then have NEGATIVE float — which is the plant being late,
+   * not a fault. Without it, the latest finish in the schedule is the end, so
+   * the longest chain is critical by construction.
+   */
+  showCriticalPath?: boolean;
+  /** The date float is measured against. Default: the schedule's own last finish. */
+  until?: Date;
 
   now?: Date;
   columnWidth?: number;
@@ -223,6 +238,7 @@ const PANE_PX: Record<ProductionPaneColumn, number> = {
   jobs: 60,
   capacity: 72,
   load: 84,
+  float: 84,
 };
 
 const PANE_LABEL: Record<ProductionPaneColumn, string> = {
@@ -230,6 +246,10 @@ const PANE_LABEL: Record<ProductionPaneColumn, string> = {
   jobs: "Jobs",
   capacity: "Capacity",
   load: "Load",
+  /* The row's TIGHTEST operation, because a row is only as movable as the job
+     on it with the least room. Reporting an average would say a machine has
+     four hours of slack while one of its jobs has none. */
+  float: "Float",
 };
 
 /** Place in the FULL set, so a dropped column does not renumber the others. */
@@ -238,7 +258,8 @@ const COL_INDEX: Record<ProductionPaneColumn | "timeline", number> = {
   jobs: 2,
   capacity: 3,
   load: 4,
-  timeline: 5,
+  float: 5,
+  timeline: 6,
 };
 
 const DEFAULT_PANE: ProductionPaneColumn[] = ["resource", "jobs", "capacity", "load"];
@@ -307,6 +328,8 @@ export const ProductionSchedule = ({
   canReschedule,
   maxLanes = 3,
   showLoad = true,
+  showCriticalPath = false,
+  until,
   now: nowProp,
   columnWidth,
   hideToolbar,
@@ -496,6 +519,38 @@ export const ProductionSchedule = ({
     return map;
   }, [rows, range, calendar]);
 
+  /**
+   * Float per operation, and which of them have none.
+   *
+   * Off unless asked for: it is a graph pass over every operation, and a
+   * schedule with no routing has nothing to be critical about.
+   */
+  const cpa = React.useMemo(() => {
+    if (!showCriticalPath) return null;
+    return productionCriticalPath(operations ?? [], dependencies ?? [], {
+      calendar,
+      setupMatrix,
+      until,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCriticalPath, operations, dependencies, calendar, setupMatrix, until?.getTime()]);
+
+  /** The tightest float on each row — a row is only as movable as its worst job. */
+  const rowFloat = React.useMemo(() => {
+    const map = new Map<number, ProductionFloat>();
+    if (!cpa) return map;
+    for (const row of rows) {
+      let worst: ProductionFloat | undefined;
+      for (const placement of row.subtree) {
+        const value = cpa.byOperation.get(placement.operation.id);
+        if (!value) continue;
+        if (!worst || value.totalFloatMinutes < worst.totalFloatMinutes) worst = value;
+      }
+      if (worst) map.set(row.index, worst);
+    }
+    return map;
+  }, [cpa, rows]);
+
   const paneColumns = React.useMemo<ScheduleColumn<Row>[]>(
     () =>
       requestedPane.map((key) => ({
@@ -509,11 +564,17 @@ export const ProductionSchedule = ({
             ? (row: Row) => ({ paddingInlineStart: 8 + row.depth * INDENT_PX })
             : undefined,
         render: (row: Row) => (
-          <ProductionPaneCell column={key} row={row} load={rowLoad.get(row.index)} onToggle={toggle} />
+          <ProductionPaneCell
+            column={key}
+            row={row}
+            load={rowLoad.get(row.index)}
+            float={rowFloat.get(row.index)}
+            onToggle={toggle}
+          />
         ),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [requestedPane.join(","), rowLoad, expandedIds, resources],
+    [requestedPane.join(","), rowLoad, rowFloat, expandedIds, resources],
   );
 
   /**
@@ -598,6 +659,11 @@ export const ProductionSchedule = ({
     onViewChange?.(next);
   };
 
+  const isCritical = React.useCallback(
+    (id: string) => cpa?.byOperation.get(id)?.critical ?? false,
+    [cpa],
+  );
+
   const renderTrack = React.useCallback(
     (row: Row) => (
       <ProductionTrack
@@ -608,10 +674,11 @@ export const ProductionSchedule = ({
         mayMove={mayMove}
         msPerPx={msPerPx}
         onPropose={propose}
+        isCritical={isCritical}
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose],
+    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose, isCritical],
   );
 
   const renderFooter = React.useCallback(
@@ -669,7 +736,7 @@ export const ProductionSchedule = ({
         rows={rows}
         rowId={(row) => row.resource.id}
         columns={paneColumns}
-        colCount={5}
+        colCount={6}
         timelineColIndex={COL_INDEX.timeline}
         renderTrack={renderTrack}
         rowHeight={rowHeight}
@@ -699,15 +766,28 @@ export const ProductionSchedule = ({
   );
 };
 
+/** "4h 30m", "0", "-2h" — float is minutes, and nobody reads minutes past 90. */
+const formatFloat = (minutes: number): string => {
+  const sign = minutes < 0 ? "-" : "";
+  const total = Math.abs(minutes);
+  if (total === 0) return "0";
+  if (total < 60) return `${sign}${total}m`;
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  return rest === 0 ? `${sign}${hours}h` : `${sign}${hours}h ${rest}m`;
+};
+
 const ProductionPaneCell = ({
   column,
   row,
   load,
+  float,
   onToggle,
 }: {
   column: ProductionPaneColumn;
   row: Row;
   load?: ProductionLoadBucket;
+  float?: ProductionFloat;
   onToggle: (id: string) => void;
 }) => {
   const { resource } = row;
@@ -793,6 +873,34 @@ const ProductionPaneCell = ({
     );
   }
 
+  if (column === "float") {
+    if (!float) return <span className="zen-text-sm zen-text-zen-muted-fg">—</span>;
+    return (
+      <Badge
+        dir="ltr"
+        variant="soft"
+        color={float.totalFloatMinutes < 0 ? "error" : float.critical ? "warning" : "neutral"}
+        /* The words, not only the colour: "Critical" and a negative number are
+           different situations, and a chart that already uses red for overload
+           cannot carry a third meaning on hue alone. */
+        /* Negative FREE float is not "minus five hours of room" — it is an
+           overlap that already exists, and phrasing it as a countdown reads as
+           a rounding error rather than as a schedule that does not work. */
+        title={
+          float.totalFloatMinutes < 0
+            ? `Past the date it is measured against by ${formatFloat(-float.totalFloatMinutes)}`
+            : float.freeFloatMinutes < 0
+              ? `Already overlaps the next operation by ${formatFloat(-float.freeFloatMinutes)}`
+              : float.critical
+                ? "On the critical path — no room to move"
+                : `${formatFloat(float.freeFloatMinutes)} before it disturbs the next operation`
+        }
+      >
+        {float.critical && float.totalFloatMinutes === 0 ? "Critical" : formatFloat(float.totalFloatMinutes)}
+      </Badge>
+    );
+  }
+
   /* A shut resource over the visible range has no utilisation — not 0%. An
      empty bar there would claim the machine was idle when it was closed. */
   if (!load || load.utilisation === null) {
@@ -818,6 +926,7 @@ const ProductionTrack = ({
   mayMove,
   msPerPx,
   onPropose,
+  isCritical,
 }: {
   row: Row;
   range: PlanningRange;
@@ -826,6 +935,7 @@ const ProductionTrack = ({
   mayMove: (operation: ProductionOperation) => boolean;
   msPerPx: number;
   onPropose: (move: ProductionMove) => void;
+  isCritical: (id: string) => boolean;
 }) => (
   <>
     {row.lanes.length === 0 && (
@@ -849,6 +959,7 @@ const ProductionTrack = ({
           mayMove={mayMove}
           msPerPx={msPerPx}
           onPropose={onPropose}
+          critical={isCritical(placement.operation.id)}
         />
       )),
     )}
@@ -864,6 +975,7 @@ const ProductionBar = ({
   mayMove,
   msPerPx,
   onPropose,
+  critical,
 }: {
   placement: ProductionPlacement<ProductionOperation>;
   row: Row;
@@ -873,6 +985,7 @@ const ProductionBar = ({
   mayMove: (operation: ProductionOperation) => boolean;
   msPerPx: number;
   onPropose: (move: ProductionMove) => void;
+  critical: boolean;
 }) => {
   const { operation } = placement;
   const placed = placeAppointment(placement.span, range);
@@ -1006,6 +1119,7 @@ const ProductionBar = ({
     operation.order ? `Order ${operation.order}` : null,
     `${formatTime(placement.span.start)} – ${formatTime(placement.span.end)}`,
     placement.setup ? "incl. changeover" : null,
+    critical ? "on the critical path" : null,
     progress === null ? null : `${Math.round(progress)}%`,
   ]
     .filter(Boolean)
@@ -1034,6 +1148,11 @@ const ProductionBar = ({
             /* The affordance IS the gate: an operation the caller will not let
                move simply does not offer to. */
             movable && "zen-cursor-grab active:zen-cursor-grabbing",
+            /* A RING, not a recolour. The bar's fill already carries status, so
+               a critical operation cannot be signalled by hue without taking
+               that meaning away — and the Float column says "Critical" in words
+               beside it, because a ring on its own is not a legend. */
+            critical && "zen-ring-2 zen-ring-zen-warning zen-ring-offset-1",
             dragPx !== null && "zen-z-20 zen-opacity-80 zen-shadow-zen-md",
           )}
           style={{

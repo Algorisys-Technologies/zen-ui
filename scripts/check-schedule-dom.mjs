@@ -193,7 +193,14 @@ for (const direction of DIRECTIONS) {
     t("the page does not scroll sideways", pageOverflowX, 0);
     t("every chart is exactly ONE tab stop", [...new Set(charts.map((c) => c.tabStops))], [1]);
     t("no bar is tabbable", charts.reduce((n, c) => n + c.tabbableBars, 0), 0);
-    t("every chart reports 5 columns", [...new Set(charts.map((c) => c.colCount))], [5]);
+    /* Per route, not one number for both: a Gantt has four pane columns plus
+       the timeline, and a ProductionSchedule five plus it. Asserting a single
+       value would either be wrong for one of them or be loosened to nothing. */
+    const expectedColumns = route === "gantt" ? 5 : 6;
+    t(`every chart reports ${expectedColumns} columns`, [...new Set(charts.map((c) => c.colCount))], [expectedColumns]);
+    /* `aria-colcount` must not shrink when the pane sheds a column — it names
+       the whole table, which is what lets a partial row be announced right. */
+    t("…even the charts whose pane has shed one", charts.some((c) => c.pane.length < expectedColumns - 1), true);
     /* One height per chart is not cosmetic: ganttRowWindow is arithmetic, and
        ganttConnectors places endpoints at rowIndex * rowHeight + offset. */
     t("rows are a uniform height within each chart", charts.every((c) => c.rowHeights.length <= 1), true);
