@@ -550,6 +550,18 @@ export { TreeTable } from "./components/tree-table/tree-table";
 export { PlanningCalendar } from "./components/planning-calendar/planning-calendar";
 export type { PlanningView } from "@algorisys/zen-ui-core/planning";
 export type { PlanningCalendarProps, PlanningRow, PlanningAppointment, PlanningAppointmentState } from "./components/planning-calendar/planning-calendar";
+export { Gantt } from "./components/gantt/gantt";
+export type { GanttProps, GanttTask, GanttAssignee } from "./components/gantt/gantt";
+export type {
+  GanttBarAnchor,
+  GanttConnector,
+  GanttDependency,
+  GanttDependencyType,
+  GanttRow,
+  GanttSpan,
+  GanttTaskNode,
+  GanttTaskStatus,
+} from "@algorisys/zen-ui-core/gantt";
 export { UploadCollection } from "./components/upload-collection/upload-collection";
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";
 export { Timeline } from "./components/timeline/timeline";
