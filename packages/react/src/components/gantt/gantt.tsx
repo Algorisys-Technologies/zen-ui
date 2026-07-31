@@ -5,15 +5,24 @@ import {
   ganttColumns,
   ganttColumnWidths,
   ganttConnectors,
+  ganttFitRange,
+  ganttFitUnit,
+  ganttPaneColumns,
   ganttRange,
+  ganttRangeColumns,
   ganttRangeLabel,
   ganttRowWindow,
+  ganttSpanLabel,
   nowPct,
   placeAppointment,
   shiftGanttAnchor,
+  GANTT_PANE_COLUMNS,
+  type GanttAnchoredView,
   type GanttBarAnchor,
   type GanttCalendar,
+  type GanttColumnUnit,
   type GanttDependency,
+  type GanttPaneColumn,
   type GanttRow,
   type GanttTaskNode,
   type GanttTaskStatus,
@@ -63,10 +72,25 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../too
  * `onTaskClick` hands you the task and its derived row; you open your own
  * editor and hand back new `tasks`.
  *
+ * The default view is `fit`: the axis range is the span of the tasks, so a plan
+ * opens showing its own shape rather than whichever calendar month today falls
+ * in. It is the only view that is never trivially wrong. Its range does not
+ * depend on the anchor, so prev / next / today are HIDDEN while it is on — a
+ * control that cannot change anything is worse than no control.
+ *
+ * It is one TAB STOP with APG grid navigation inside: arrows move a cell,
+ * Home/End and their Ctrl forms jump the row and the grid, PageUp/PageDown move
+ * a screenful, and left/right on the first column collapse and expand the
+ * hierarchy. Roving tabindex, so tabbing past the chart is one key press rather
+ * than one per bar.
+ *
  * Rows ARE windowed, always, at every size — only the screenful under the
  * viewport is in the DOM (`ganttRowWindow` in core, which is arithmetic rather
  * than measurement because rows are a fixed height). Measured: 10,000 rows
- * mount ~26 of them.
+ * mount ~26 of them. Keyboard navigation has to cooperate with that: moving to
+ * an unmounted row scrolls it in, re-renders, and focuses it on the next
+ * commit, or focus lands on <body> and the next Tab restarts from the top of
+ * the page.
  *
  * The connector overlay is deliberately NOT windowed. It is one SVG spanning
  * every row, sitting beside the row list rather than inside it, so the routes
@@ -106,12 +130,16 @@ export interface GanttProps {
   /** Draw the connector layer. Default true. */
   showDependencies?: boolean;
 
-  /** Uncontrolled starting view. Default "month". */
+  /**
+   * Uncontrolled starting view. Default "fit" — the axis takes its range from
+   * the tasks, so the plan opens whole instead of showing whichever calendar
+   * month today happens to fall in.
+   */
   defaultView?: GanttView;
   /** Controlled view; pair with `onViewChange`. */
   view?: GanttView;
   onViewChange?: (view: GanttView) => void;
-  /** Which views the switcher offers. Default all five. */
+  /** Which views the switcher offers. Default all six. */
   views?: GanttView[];
 
   /** Any date inside the range to open on. Default today. */
@@ -150,13 +178,30 @@ export interface GanttProps {
   now?: Date;
   /**
    * Nominal pixel width of one column — the axis is `columns × this`. In the
-   * quarter and year views columns differ in length (a 28-day February is
+   * quarter, year and fit views columns differ in length (a 28-day February is
    * narrower than a 31-day January), so this sets the average rather than the
    * literal width. Defaults to something readable per view.
+   *
+   * Setting it also opts the FIT view out of sizing itself to the container,
+   * which is the one thing that view exists to do — so pass it there only when
+   * you would rather scroll than let the columns choose their own width.
    */
   columnWidth?: number;
   /** Hide the toolbar when your page already has one. */
   hideToolbar?: boolean;
+
+  /**
+   * Which columns the frozen pane carries, and in what order. Default all four:
+   * `["name", "assignees", "status", "variance"]`.
+   *
+   * The order is a PREFERENCE order, not just a set. Four columns at their
+   * natural widths plus a year axis need about 1430px, so what you list last is
+   * what the pane sheds first when the container is too narrow to hold both it
+   * and a usable axis. The first entry is never dropped, and if even that plus
+   * the axis does not fit, the chart scrolls sideways as a last resort. Drop the
+   * two your data cannot fill and the pane stops costing you the timeline.
+   */
+  columns?: GanttPaneColumn[];
 
   /** Show skeleton rows instead of the chart. */
   loading?: boolean;
@@ -169,13 +214,16 @@ export interface GanttProps {
 }
 
 const VIEW_LABEL: Record<GanttView, string> = {
+  fit: "Fit",
   day: "Day",
   week: "Week",
   month: "Month",
   quarter: "Quarter",
   year: "Year",
 };
-const ALL_VIEWS: GanttView[] = ["day", "week", "month", "quarter", "year"];
+/* Fit first: it is the default, and it is the one that answers "what does this
+   plan look like" before you have decided which zoom to argue about. */
+const ALL_VIEWS: GanttView[] = ["fit", "day", "week", "month", "quarter", "year"];
 
 /**
  * NOMINAL column width per view — the axis is `columns.length × this`, and each
@@ -188,7 +236,7 @@ const ALL_VIEWS: GanttView[] = ["day", "week", "month", "quarter", "year"];
  * own axis. Quarter is ~14 weeks and year is 12 months, both of which want the
  * whole span to fit a normal screen — that is the entire point of having them.
  */
-const COLUMN_PX: Record<GanttView, number> = {
+const COLUMN_PX: Record<GanttAnchoredView, number> = {
   day: 56,
   week: 128,
   month: 44,
@@ -200,6 +248,27 @@ const COLUMN_PX: Record<GanttView, number> = {
   year: 80,
 };
 
+/**
+ * Fit sizes its columns to the CONTAINER, because "the whole plan without
+ * scrolling sideways" is the only thing the view is for and a table of fixed
+ * widths cannot promise it. These are the FLOORS: the narrowest each unit's
+ * label survives at, measured against the label it actually draws — "08:00",
+ * "31", "13 Jul", "Sep". Below them the labels stop being labels, and
+ * scrolling is the better failure.
+ *
+ * Tighter than COLUMN_PX above, deliberately. Those are widths chosen to
+ * breathe; these are widths chosen to fit, and the difference is the whole
+ * point of a view that adapts.
+ */
+const FIT_MIN_COLUMN_PX: Record<GanttColumnUnit, number> = {
+  hour: 40,
+  day: 20,
+  /* 26, not the quarter view's 72: a fit week column draws "13" with the month
+     only where it changes, not "13 Jul" twenty times over. */
+  week: 26,
+  month: 30,
+};
+
 const ROW_PX = 36;
 const BAR_PX = 18;
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
@@ -207,13 +276,29 @@ const BAR_PX = 18;
 const BAR_TOP = (ROW_PX - BAR_PX) / 2;
 const HEADER_PX = 44;
 
-/** The frozen pane, and the columns inside it. Fixed, because a sticky pane
- *  cannot be sized by its content without moving as you scroll. */
-const NAME_PX = 188;
-const ASSIGNEES_PX = 104;
-const STATUS_PX = 96;
-const VARIANCE_PX = 80;
-const LEFT_PX = NAME_PX + ASSIGNEES_PX + STATUS_PX + VARIANCE_PX;
+/**
+ * The frozen pane's columns. Fixed widths, because a sticky pane cannot be
+ * sized by its content without moving as you scroll.
+ *
+ * Trimmed from 188/104/96/80 — 468px, which left a year axis needing ~1430px in
+ * total and scrolling at any normal page width. The pane sheds columns from the
+ * end when even 424 will not fit; see `columns` and `ganttPaneColumns`.
+ */
+const PANE_PX: Record<GanttPaneColumn, number> = {
+  name: 180,
+  /* Three xs avatars at "loose" spacing plus a "+N" chip is 84px, and the cell
+     costs 16px of padding either side of it. */
+  assignees: 96,
+  status: 88,
+  variance: 72,
+};
+
+/**
+ * A floor under what the pane will shed for. Nothing narrower than this is a
+ * chart — it is a legend — so a view whose columns want less than this still
+ * costs the pane this much.
+ */
+const MIN_AXIS_PX = 280;
 
 /** Indent per level of hierarchy. */
 const INDENT_PX = 14;
@@ -240,6 +325,39 @@ const ARROW_PX = 5;
 /** Matches `zen-max-h-[32rem]` on the scroller — 32rem at the 16px root. Used
  *  only to seed the window before the element has been measured. */
 const SCROLLER_MAX_PX = 512;
+
+/**
+ * The column each pane key reports as, and the one the timeline reports as.
+ *
+ * FIXED, not renumbered when a column is dropped: `aria-colindex` names a
+ * column's place in the whole table, which is exactly what lets a partially
+ * rendered row be announced correctly. `aria-colcount` stays 5 for the same
+ * reason — a reader who is told "column 5 of 5" on the timeline is being told
+ * the truth whether or not Variance was drawn.
+ */
+const COL_INDEX: Record<GanttPaneColumn | "timeline", number> = {
+  name: 1,
+  assignees: 2,
+  status: 3,
+  variance: 4,
+  timeline: 5,
+};
+
+/** Every cell in a row, left to right, once the pane has decided its columns. */
+type GanttCellKey = GanttPaneColumn | "timeline";
+
+const PANE_LABEL: Record<GanttPaneColumn, string> = {
+  name: "Task",
+  assignees: "Assignees",
+  status: "Status",
+  variance: "Variance",
+};
+
+/** Grid cells are focus targets, so they need a ring of their own. Inset,
+ *  because a cell is flush against its neighbours and an outset ring is drawn
+ *  under the next cell's background. */
+const CELL_FOCUS_CLASS =
+  "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-inset focus-visible:zen-ring-zen-ring";
 
 const BAR_CLASS: Record<GanttTaskStatus, string> = {
   "not-started": "zen-bg-zen-muted zen-border-zen-border",
@@ -325,15 +443,18 @@ export const Gantt = ({
   hourStep,
   columnWidth,
   hideToolbar,
+  columns: paneColumnsProp,
   loading,
   loadingRows = 6,
   emptyState,
   className,
 }: GanttProps) => {
-  /* Month, not week. A seven-day window is the right default for a calendar and
-     the wrong one for a plan: most projects run for months, so `week` opened on
-     an axis where every phase but one was off-screen. */
-  const [innerView, setInnerView] = React.useState<GanttView>(defaultView ?? "month");
+  /* Fit, not month, and certainly not week. A seven-day window is right for a
+     calendar and wrong for a plan; a month is right for a plan that fits in one
+     and wrong for the majority that do not. Fit is the only default that is
+     never trivially wrong, because it is the only one derived from the data
+     rather than from today's date. */
+  const [innerView, setInnerView] = React.useState<GanttView>(defaultView ?? "fit");
   const [innerDate, setInnerDate] = React.useState<Date>(defaultDate ?? new Date());
   /* null is not "nothing open", it is "no answer given" — the default, which is
      everything open. Storing the resolved list instead would freeze the answer
@@ -343,10 +464,26 @@ export const Gantt = ({
   const scrollerRef = React.useRef<HTMLDivElement>(null);
   /* Seeded with the scroller's own max height rather than 0. At 0 the first
      paint mounts only the overscan and then visibly fills in a frame later;
-     seeding it means the first paint is already the right screenful. */
-  const [scroll, setScroll] = React.useState({ top: 0, height: SCROLLER_MAX_PX });
+     seeding it means the first paint is already the right screenful.
+     `width` is seeded at 0, meaning UNMEASURED — which `ganttPaneColumns` reads
+     as "keep every column" rather than as a zero-width container. */
+  const [scroll, setScroll] = React.useState({ top: 0, height: SCROLLER_MAX_PX, width: 0 });
 
-  React.useEffect(() => {
+  const measure = React.useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setScroll((prev) =>
+      prev.top === el.scrollTop && prev.height === el.clientHeight && prev.width === el.clientWidth
+        ? prev
+        : { top: el.scrollTop, height: el.clientHeight, width: el.clientWidth },
+    );
+  }, []);
+
+  /* Layout, not passive: the pane's columns and the fit axis's width are both
+     computed FROM this measurement, so reading it after paint would draw a
+     four-column pane and a floor-width axis for one frame and then replace
+     them. That reads as a glitch rather than as a layout. */
+  React.useLayoutEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
     /* Coalesced into one frame. A wheel gesture fires scroll far faster than
@@ -355,16 +492,11 @@ export const Gantt = ({
     let frame = 0;
     const read = () => {
       frame = 0;
-      setScroll((prev) =>
-        prev.top === el.scrollTop && prev.height === el.clientHeight
-          ? prev
-          : { top: el.scrollTop, height: el.clientHeight },
-      );
+      measure();
     };
     const onScroll = () => {
       if (frame === 0) frame = requestAnimationFrame(read);
     };
-    read();
     el.addEventListener("scroll", onScroll, { passive: true });
     const observer = new ResizeObserver(onScroll);
     observer.observe(el);
@@ -373,7 +505,16 @@ export const Gantt = ({
       el.removeEventListener("scroll", onScroll);
       observer.disconnect();
     };
-  }, []);
+  }, [measure]);
+
+  /* Every commit, deliberately without a dependency list. A ResizeObserver
+     watches the BORDER box, which does not move when a vertical scrollbar
+     appears inside it — but `clientWidth` drops by the scrollbar's width, and
+     the fit axis is sized from `clientWidth`. Expanding a phase past a
+     screenful would otherwise leave the axis ~15px too wide and trade the
+     vertical scrollbar for a horizontal one. `measure` bails when nothing
+     changed, so this cannot loop. */
+  React.useLayoutEffect(measure);
 
   const view = viewProp ?? innerView;
   const anchor = dateProp ?? innerDate;
@@ -388,10 +529,6 @@ export const Gantt = ({
   const now = nowProp ?? nowFallback.current;
   const nowTime = now.getTime();
 
-  const setView = (next: GanttView) => {
-    if (viewProp === undefined) setInnerView(next);
-    onViewChange?.(next);
-  };
   const setDate = (next: Date) => {
     if (dateProp === undefined) setInnerDate(next);
     onDateChange?.(next);
@@ -418,14 +555,73 @@ export const Gantt = ({
      object defeats the memo entirely — which is the bug these memos exist to
      fix, reintroduced by the linter's own advice. */
   const anchorTime = anchor.getTime();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const range = React.useMemo(() => ganttRange(view, anchor), [view, anchorTime]);
-  const columns = React.useMemo(
-    () => ganttColumns(view, anchor, { now, calendar, hourStep }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [view, anchorTime, nowTime, calendar, hourStep],
+
+  const isFit = view === "fit";
+  /* The one place the two worlds meet. Every anchored function refuses `fit` at
+     the TYPE level, so there is no path by which a fit view reaches
+     `ganttRange` and silently gets a month — which is exactly the trap
+     `planningRange` still has, and the reason the two view types are split. */
+  const anchoredView: GanttAnchoredView = isFit ? "month" : view;
+
+  /* Null when not fitting, and ALSO null when fitting a plan in which nothing
+     has dates yet. Both fall through to the anchored month below, so the axis
+     and the toolbar still make sense while the dates are being filled in. */
+  const fitRange = React.useMemo(
+    () => (isFit ? ganttFitRange(tasks ?? [], { calendar }) : null),
+    [isFit, tasks, calendar],
   );
-  const axisWidth = columns.length * (columnWidth ?? COLUMN_PX[view]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const anchoredRange = React.useMemo(() => ganttRange(anchoredView, anchor), [anchoredView, anchorTime]);
+  const range = fitRange ?? anchoredRange;
+
+  const fitUnit = fitRange ? ganttFitUnit(fitRange.end.getTime() - fitRange.start.getTime()) : null;
+
+  const columns = React.useMemo(
+    () =>
+      fitRange && fitUnit
+        ? ganttRangeColumns(fitRange, fitUnit, { now, calendar, hourStep })
+        : ganttColumns(anchoredView, anchor, { now, calendar, hourStep }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, hourStep],
+  );
+
+  /* What the axis WANTS: its comfortable width for an anchored view, its
+     narrowest legible width for a fit one. Everything below negotiates against
+     this number rather than against a constant. */
+  const desiredAxis =
+    columnWidth !== undefined
+      ? columns.length * columnWidth
+      : fitUnit
+        ? columns.length * FIT_MIN_COLUMN_PX[fitUnit]
+        : columns.length * COLUMN_PX[anchoredView];
+
+  /* The pane sheds exactly as much as the axis needs, and no more.
+     Shedding against a fixed minimum instead was the version that did not fix
+     anything: a year axis wants 960px, so at 1292px the pane kept all four
+     columns — 436 + 280 fits comfortably — and the chart scrolled 104px
+     anyway, which is the bug this exists to remove.
+     `columns` is a preference order, the caller's last choice goes first, and
+     the first entry never goes — so this can still return more than fits, and
+     then the chart scrolls as a genuinely last resort. */
+  const requestedPane = paneColumnsProp ?? GANTT_PANE_COLUMNS;
+  const requestedPaneKey = requestedPane.join(",");
+  const paneKeys = React.useMemo(
+    () => ganttPaneColumns(requestedPane, PANE_PX, scroll.width, Math.max(MIN_AXIS_PX, desiredAxis)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [requestedPaneKey, scroll.width, desiredAxis],
+  );
+  const paneWidth = paneKeys.reduce((sum, key) => sum + PANE_PX[key], 0);
+  const cellKeys = React.useMemo<GanttCellKey[]>(() => [...paneKeys, "timeline"], [paneKeys]);
+
+  /* Fit then spends whatever the pane left over, so a container wider than the
+     floors needs draws wider columns rather than a stripe of empty gutter. The
+     anchored views keep their stated widths: a week view that stretched to the
+     window would make "how long is that bar" a question about the browser. */
+  const axisWidth =
+    fitUnit && columnWidth === undefined
+      ? Math.max(desiredAxis, scroll.width - paneWidth)
+      : desiredAxis;
   /* Per column, from its own duration — NOT axisWidth / columns.length. A year
      of 28-to-31-day months drawn at one uniform width walks every bar off its
      gridline by up to three days, and looks entirely reasonable doing it. */
@@ -434,6 +630,23 @@ export const Gantt = ({
     [columns, range, axisWidth],
   );
   const marker = nowPct(range, now);
+
+  const setView = (next: GanttView) => {
+    /* Leaving fit re-anchors, when the anchor is nowhere near the plan.
+       Otherwise the obvious gesture — open on fit, click Month to zoom in —
+       lands on today's month, which for a plan that runs next spring is an
+       empty axis and reads as the data having vanished. `now` where the plan is
+       running, the plan's start where it is not. */
+    if (isFit && next !== "fit" && fitRange) {
+      const from = fitRange.start.getTime();
+      const to = fitRange.end.getTime();
+      if (anchorTime < from || anchorTime >= to) {
+        setDate(nowTime >= from && nowTime < to ? now : fitRange.start);
+      }
+    }
+    if (viewProp === undefined) setInnerView(next);
+    onViewChange?.(next);
+  };
 
   /* Splitting is a GEOMETRY decision, not a data one: a gap that would draw
      narrower than a pixel is not worth a second DOM node, and at a year zoom
@@ -509,7 +722,7 @@ export const Gantt = ({
         width={axisWidth}
         height={bodyHeight}
         viewBox={`0 0 ${axisWidth} ${bodyHeight}`}
-        style={{ insetInlineStart: LEFT_PX }}
+        style={{ insetInlineStart: paneWidth }}
       >
         {connectors.map((connector) => (
           <g key={connector.id}>
@@ -533,20 +746,185 @@ export const Gantt = ({
         ))}
       </svg>
     );
-  }, [connectors, axisWidth, bodyHeight]);
+  }, [connectors, axisWidth, bodyHeight, paneWidth]);
 
-  /* Focus rescue. Scrolling a focused bar out of the window unmounts the button
-     under it and the browser drops focus to <body> — so the next Tab restarts
-     from the top of the PAGE, stranding a keyboard user who was reading row
-     4,000. This puts focus on the scroller instead: still inside the chart,
-     still scrolled where they left it, and Tab continues from there.
+  /* ------------------------------------------------------------------ *
+   * Keyboard: one tab stop, APG grid navigation inside.
+   *
+   * Before this the chart was tab-through-bars, which is not a navigation
+   * model at 10,000 rows — it is 10,000 tab stops between the reader and
+   * whatever comes after the chart. Roving tabindex fixes both halves: exactly
+   * one cell is tabbable, and the arrows do the moving.
+   * ------------------------------------------------------------------ */
+  const [active, setActive] = React.useState({ row: 0, col: 0 });
+  const activeRow = Math.min(Math.max(active.row, 0), Math.max(rows.length - 1, 0));
+  const activeCol = Math.min(Math.max(active.col, 0), cellKeys.length - 1);
+
+  /* The tab stop follows the VIEWPORT when the active row has been scrolled out
+     of the window. Anchoring it to the active row instead would leave no cell
+     with tabindex 0 at all — the row is not in the DOM — and Tab would skip the
+     entire chart, which is a worse regression than the one this replaces. */
+  const tabRow = Math.min(Math.max(activeRow, rowWindow.startIndex), Math.max(rowWindow.endIndex - 1, 0));
+
+  /* Set when WE move focus, so the layout effect below knows the difference
+     between "the row we asked for has finally mounted" and "the user scrolled
+     away from a focused cell". */
+  const pendingFocusRef = React.useRef<{ row: number; col: number } | null>(null);
+  /* Whether focus has ever been inside the chart. Recorded from the event
+     rather than from an effect: focusing a cell changes no React state, so no
+     effect runs to notice it, and the rescue below would still think focus was
+     outside when the row unmounts. */
+  const hadFocusRef = React.useRef(false);
+
+  const scrollRowIntoView = (rowIndex: number) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    /* The header is sticky and covers the top HEADER_PX of the viewport, so a
+       row scrolled flush to the top is a row hidden behind the column titles. */
+    const rowTop = HEADER_PX + rowIndex * ROW_PX;
+    const upper = rowTop - HEADER_PX;
+    const lower = rowTop + ROW_PX - el.clientHeight;
+    const next = Math.max(0, Math.min(Math.max(el.scrollTop, lower), upper));
+    if (next === el.scrollTop) return;
+    el.scrollTop = next;
+    /* Pushed into state in the same commit rather than waiting for the scroll
+       event's rAF: the row has to be in the window on THIS render, or the
+       effect that focuses it finds nothing and focus stays where it was. */
+    setScroll((prev) => (prev.top === next ? prev : { ...prev, top: next }));
+  };
+
+  /* Bails on an unchanged position, so re-focusing the cell we just moved to
+     does not queue a render whose only effect is to allocate a new object. */
+  const focusCell = React.useCallback((row: number, col: number) => {
+    setActive((prev) => (prev.row === row && prev.col === col ? prev : { row, col }));
+  }, []);
+
+  const moveTo = (row: number, col: number) => {
+    setActive({ row, col });
+    pendingFocusRef.current = { row, col };
+    scrollRowIntoView(row);
+  };
+
+  React.useLayoutEffect(() => {
+    const pending = pendingFocusRef.current;
+    const el = scrollerRef.current;
+    if (!pending || !el) return;
+    const cell = el.querySelector<HTMLElement>(
+      `[data-gantt-cell="${pending.row}:${pending.col}"]`,
+    );
+    // Not mounted yet — stay pending, and the next commit will find it.
+    if (!cell) return;
+    pendingFocusRef.current = null;
+    hadFocusRef.current = true;
+    /* preventScroll, then adjusted by hand. The browser's own scrolling would
+       drag the timeline cell — which is the whole axis wide — fully into view,
+       jumping the axis to a place nobody asked for. */
+    cell.focus({ preventScroll: true });
+
+    /* Sideways, from rects rather than from offsets, so RTL needs no special
+       case: the pane is at the INLINE start in both directions and a relative
+       `scrollLeft` nudge in physical pixels means the same thing under either
+       of the browsers' two RTL scrollLeft conventions. The bar, not the cell —
+       the cell spans the entire axis, so "bring the cell into view" is
+       satisfied by any scroll position at all. */
+    const bar = cell.querySelector<HTMLElement>("[data-gantt-bar]");
+    if (!bar) return;
+    const box = bar.getBoundingClientRect();
+    const viewport = el.getBoundingClientRect();
+    const rtl = getComputedStyle(el).direction === "rtl";
+    const minX = rtl ? viewport.left : viewport.left + paneWidth;
+    const maxX = rtl ? viewport.right - paneWidth : viewport.right;
+    if (box.left < minX) el.scrollLeft -= minX - box.left;
+    else if (box.right > maxX) el.scrollLeft += Math.min(box.right - maxX, box.left - minX);
+  });
+
+  const onGridKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.altKey || event.metaKey) return;
+    const el = scrollerRef.current;
+    /* Arrow keys follow the VISUAL direction, which is what APG specifies and
+       what a reader expects from the key with an arrow drawn on it. */
+    const rtl = el ? getComputedStyle(el).direction === "rtl" : false;
+    const forward = rtl ? "ArrowLeft" : "ArrowRight";
+    const backward = rtl ? "ArrowRight" : "ArrowLeft";
+    /* A screenful of rows, minus the header the sticky row covers. At least
+       one, so a chart shorter than its own header still moves. */
+    const page = Math.max(1, Math.floor((scroll.height - HEADER_PX) / ROW_PX));
+    const last = rows.length - 1;
+    const row = rows[activeRow];
+
+    let nextRow = activeRow;
+    let nextCol = activeCol;
+
+    switch (event.key) {
+      case "ArrowDown":
+        nextRow = Math.min(last, activeRow + 1);
+        break;
+      case "ArrowUp":
+        nextRow = Math.max(0, activeRow - 1);
+        break;
+      case forward:
+        /* On the first column, forward EXPANDS a closed parent rather than
+           moving — the treegrid pattern, and the only way to open a subtree
+           without a pointer. It moves as usual once there is nothing to open. */
+        if (activeCol === 0 && row?.hasChildren && !row.expanded) {
+          event.preventDefault();
+          toggle(row.task.id);
+          return;
+        }
+        nextCol = Math.min(cellKeys.length - 1, activeCol + 1);
+        break;
+      case backward:
+        if (activeCol === 0 && row?.hasChildren && row.expanded) {
+          event.preventDefault();
+          toggle(row.task.id);
+          return;
+        }
+        nextCol = Math.max(0, activeCol - 1);
+        break;
+      case "Home":
+        nextCol = 0;
+        if (event.ctrlKey) nextRow = 0;
+        break;
+      case "End":
+        nextCol = cellKeys.length - 1;
+        if (event.ctrlKey) nextRow = last;
+        break;
+      case "PageDown":
+        nextRow = Math.min(last, activeRow + page);
+        break;
+      case "PageUp":
+        nextRow = Math.max(0, activeRow - page);
+        break;
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        if (row) onTaskClick?.(row.task, row);
+        return;
+      default:
+        return;
+    }
+
+    // Swallowed even when the move is a no-op at an edge, or ArrowDown on the
+    // last row scrolls the PAGE while the chart appears to ignore it.
+    event.preventDefault();
+    if (nextRow === activeRow && nextCol === activeCol) return;
+    moveTo(nextRow, nextCol);
+  };
+
+  /* Focus rescue. Scrolling a focused cell out of the window unmounts it and
+     the browser drops focus to <body> — so the next Tab restarts from the top
+     of the PAGE, stranding a keyboard user who was reading row 4,000. This puts
+     focus on the scroller instead: still inside the chart, still scrolled where
+     they left it, and Tab continues from there, into the cell the roving
+     tabindex has meanwhile moved to the visible band.
      Deliberately NOT "keep the focused row mounted": that row can be thousands
      of rows from the window, and mounting the span between them is the exact
-     thing this change exists to avoid. */
-  const hadFocusRef = React.useRef(false);
+     thing windowing exists to avoid. */
   React.useEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
+    // A move of ours is mid-flight; the effect above owns focus this commit.
+    if (pendingFocusRef.current) return;
     if (el.contains(document.activeElement)) return;
     /* Only rescue when focus fell to <body>, which is what unmounting the
        focused node does. If it went to some other element the user moved it
@@ -570,7 +948,7 @@ export const Gantt = ({
       >
         {Array.from({ length: loadingRows }, (_, i) => (
           <div key={i} className="zen-flex zen-items-center zen-gap-3">
-            <Skeleton className="zen-h-4" style={{ width: NAME_PX - 24 - i % 3 * INDENT_PX }} />
+            <Skeleton className="zen-h-4" style={{ width: PANE_PX.name - 24 - (i % 3) * INDENT_PX }} />
             <Skeleton className="zen-h-4 zen-w-16" />
             <Skeleton
               className="zen-h-4"
@@ -607,29 +985,48 @@ export const Gantt = ({
       <div className={cn("zen-flex zen-w-full zen-flex-col zen-gap-3", className)}>
         {!hideToolbar && (
           <div className="zen-flex zen-flex-wrap zen-items-center zen-gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              aria-label="Previous"
-              onClick={() => setDate(shiftGanttAnchor(view, anchor, -1))}
-            >
-              {/* Logical, not physical: under RTL the axis runs the other way. */}
-              <Icon name="chevron-left" size={14} className="rtl:zen-rotate-180" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDate(now)}>
-              Today
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              aria-label="Next"
-              onClick={() => setDate(shiftGanttAnchor(view, anchor, 1))}
-            >
-              <Icon name="chevron-right" size={14} className="rtl:zen-rotate-180" />
-            </Button>
+            {/* GONE under fit, not disabled and not left live. A fit axis has no
+                anchor to move, so Previous, Today and Next have nothing to
+                change — and three buttons that visibly do nothing are read as a
+                broken chart, which is worse than three buttons that are not
+                there. The range label stays: it is the one thing that still
+                says something, and it says it about the plan instead. */}
+            {!isFit && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label="Previous"
+                  onClick={() => setDate(shiftGanttAnchor(anchoredView, anchor, -1))}
+                >
+                  {/* Logical, not physical: under RTL the axis runs the other way. */}
+                  <Icon name="chevron-left" size={14} className="rtl:zen-rotate-180" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setDate(now)}>
+                  Today
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label="Next"
+                  onClick={() => setDate(shiftGanttAnchor(anchoredView, anchor, 1))}
+                >
+                  <Icon name="chevron-right" size={14} className="rtl:zen-rotate-180" />
+                </Button>
+              </>
+            )}
 
-            <span className="zen-mx-1 zen-text-sm zen-font-medium zen-text-zen-foreground">
-              {ganttRangeLabel(view, anchor)}
+            <span
+              /* "29 Jun – 31 Jul 2026" opens with a number, and bidi reorders a
+                 leading number to the far side of an RTL run — it renders as
+                 "Jun – 31 Jul 2026 29". `auto` rather than `ltr` because the
+                 month names come from `toLocaleString`: under an Arabic locale
+                 the label really is RTL, and pinning it would break the case
+                 that is actually right. */
+              dir="auto"
+              className="zen-mx-1 zen-text-sm zen-font-medium zen-text-zen-foreground"
+            >
+              {isFit ? ganttSpanLabel(range) : ganttRangeLabel(anchoredView, anchor)}
             </span>
 
             <div className="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label="View">
@@ -657,24 +1054,27 @@ export const Gantt = ({
           /* Focusable so the focus rescue has somewhere to land, and so a
              keyboard user can scroll the chart without first tabbing to a bar. */
           tabIndex={-1}
-          /* Recorded from the event, not from the effect: focusing a bar changes
-             no React state, so the effect never runs to notice it and would
-             still think focus was outside when the row unmounts. */
           onFocus={() => {
             hadFocusRef.current = true;
           }}
           className="zen-relative zen-max-h-[32rem] zen-overflow-auto zen-rounded-zen-md zen-border zen-border-zen-border focus-visible:zen-outline-none"
         >
           <div
-            style={{ width: LEFT_PX + axisWidth }}
-            role="grid"
+            style={{ width: paneWidth + axisWidth }}
+            /* treegrid, not grid: the rows form a tree, and that is what makes
+               left and right on the first column mean collapse and expand
+               rather than nothing. `aria-level` and `aria-expanded` on each row
+               are the other half of the same claim. */
+            role="treegrid"
             /* The TRUE totals, not the windowed ones. This is the whole reason
                a virtualized grid needs explicit row semantics: without them a
                screen reader counts the DOM and announces "row 3 of 26" in a
-               10,000-row plan. +1 for the header row. */
+               10,000-row plan. +1 for the header row. Colcount stays 5 even
+               when the pane has shed a column — see COL_INDEX. */
             aria-rowcount={rows.length + 1}
             aria-colcount={5}
             aria-label="Project schedule"
+            onKeyDown={onGridKeyDown}
           >
             <div
               role="row"
@@ -684,20 +1084,19 @@ export const Gantt = ({
             >
               <div
                 className="zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-text-xs zen-font-semibold zen-text-zen-muted-fg"
-                style={{ width: LEFT_PX, insetInlineStart: 0 }}
+                style={{ width: paneWidth, insetInlineStart: 0 }}
               >
-                <div role="columnheader" aria-colindex={1} className="zen-truncate zen-px-3" style={{ width: NAME_PX }}>
-                  Task
-                </div>
-                <div role="columnheader" aria-colindex={2} className="zen-truncate zen-px-2" style={{ width: ASSIGNEES_PX }}>
-                  Assignees
-                </div>
-                <div role="columnheader" aria-colindex={3} className="zen-truncate zen-px-2" style={{ width: STATUS_PX }}>
-                  Status
-                </div>
-                <div role="columnheader" aria-colindex={4} className="zen-truncate zen-px-2" style={{ width: VARIANCE_PX }}>
-                  Variance
-                </div>
+                {paneKeys.map((key) => (
+                  <div
+                    key={key}
+                    role="columnheader"
+                    aria-colindex={COL_INDEX[key]}
+                    className={cn("zen-truncate", key === "name" ? "zen-px-3" : "zen-px-2")}
+                    style={{ width: PANE_PX[key] }}
+                  >
+                    {PANE_LABEL[key]}
+                  </div>
+                ))}
               </div>
 
               <div role="columnheader" aria-colindex={5} aria-label="Timeline" className="zen-flex" style={{ width: axisWidth }}>
@@ -739,8 +1138,14 @@ export const Gantt = ({
                   columns={columns}
                   columnWidths={columnWidths}
                   axisWidth={axisWidth}
+                  paneWidth={paneWidth}
+                  cellKeys={cellKeys}
                   range={range}
                   placement={placements.get(row.index) ?? null}
+                  /* -1 on every row but one. The grid is a single tab stop, and
+                     which cell holds it is the roving tabindex's whole job. */
+                  tabCol={row.index === tabRow ? activeCol : -1}
+                  onFocusCell={focusCell}
                   onToggle={toggle}
                   onTaskClick={onTaskClick}
                 />
@@ -755,7 +1160,7 @@ export const Gantt = ({
                   className="zen-pointer-events-none zen-absolute zen-top-0 zen-z-10 zen-w-px zen-bg-zen-error"
                   style={{
                     height: bodyHeight,
-                    insetInlineStart: LEFT_PX + (marker / 100) * axisWidth,
+                    insetInlineStart: paneWidth + (marker / 100) * axisWidth,
                   }}
                 />
               )}
@@ -774,8 +1179,14 @@ interface GanttRowViewProps {
   columns: PlanningColumn[];
   columnWidths: number[];
   axisWidth: number;
+  paneWidth: number;
+  /** The pane's surviving columns, then "timeline". Also the arrow-key order. */
+  cellKeys: GanttCellKey[];
   range: PlanningRange;
   placement: PlanningPlacement | null;
+  /** Which cell of THIS row carries the grid's single tab stop, or -1. */
+  tabCol: number;
+  onFocusCell: (row: number, col: number) => void;
   onToggle: (id: string) => void;
   onTaskClick?: (task: GanttTask, row: GanttRow<GanttTask>) => void;
 }
@@ -785,8 +1196,12 @@ const GanttRowView = ({
   columns,
   columnWidths,
   axisWidth,
+  paneWidth,
+  cellKeys,
   range,
   placement,
+  tabCol,
+  onFocusCell,
   onToggle,
   onTaskClick,
 }: GanttRowViewProps) => {
@@ -856,82 +1271,123 @@ const GanttRowView = ({
          that numbers rows from the DOM tells a screen-reader user they are on
          row 3 of 26 when they are on row 4,812 of 10,000. */
       aria-rowindex={row.index + 2}
+      /* treegrid semantics, and the only place the tree is stated to a screen
+         reader: the indent is a paddingInlineStart nobody can hear. */
+      aria-level={row.depth + 1}
+      aria-expanded={row.hasChildren ? row.expanded : undefined}
       className="zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0"
       style={{ height: ROW_PX, boxSizing: "border-box" }}
     >
       <div
         className="zen-sticky zen-z-20 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-background"
-        style={{ width: LEFT_PX, insetInlineStart: 0 }}
+        style={{ width: paneWidth, insetInlineStart: 0 }}
       >
-        <div
-          role="gridcell"
-          aria-colindex={1}
-          className="zen-flex zen-min-w-0 zen-items-center zen-gap-1 zen-pe-2"
-          style={{ width: NAME_PX, paddingInlineStart: 8 + row.depth * INDENT_PX }}
-        >
-          {row.hasChildren ? (
-            <button
-              type="button"
-              onClick={() => onToggle(task.id)}
-              aria-expanded={row.expanded}
-              aria-label={row.expanded ? `Collapse ${task.name}` : `Expand ${task.name}`}
-              className="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
-            >
-              <Icon
-                name={row.expanded ? "chevron-down" : "chevron-right"}
-                size={14}
-                className={row.expanded ? undefined : "rtl:zen-rotate-180"}
-              />
-            </button>
-          ) : (
-            /* A spacer, not a hidden chevron: leaves must line up with their
-               siblings' text, or every leaf reads as one level shallower. */
-            <span aria-hidden="true" className="zen-h-5 zen-w-5 zen-shrink-0" />
-          )}
-          <span className="zen-min-w-0">
-            <span
+        {cellKeys.map((key, col) =>
+          key === "timeline" ? null : (
+            <div
+              key={key}
+              role="gridcell"
+              aria-colindex={COL_INDEX[key]}
+              /* How the keyboard finds a cell that may not have been in the DOM
+                 when the move was decided — see the focus effect. */
+              data-gantt-cell={`${row.index}:${col}`}
+              tabIndex={tabCol === col ? 0 : -1}
+              onFocus={() => onFocusCell(row.index, col)}
+              /* The avatars are decorative and the "+N" chip hides names
+                 outright, so the cell says who — the tooltip is the pointer's
+                 version of the same sentence. */
+              aria-label={
+                key === "assignees" && task.assignees && task.assignees.length > 0
+                  ? task.assignees.map((a) => a.name).join(", ")
+                  : undefined
+              }
               className={cn(
-                "zen-block zen-truncate zen-text-sm zen-text-zen-foreground",
-                row.hasChildren && "zen-font-semibold",
+                "zen-flex zen-items-center",
+                key === "name" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
+                CELL_FOCUS_CLASS,
               )}
-              title={task.name}
+              style={{
+                width: PANE_PX[key],
+                ...(key === "name" ? { paddingInlineStart: 8 + row.depth * INDENT_PX } : null),
+              }}
             >
-              {task.name}
-            </span>
-            {task.subtitle && (
-              <span className="zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg">
-                {task.subtitle}
-              </span>
-            )}
-          </span>
-        </div>
+              {key === "name" && (
+                <>
+                  {row.hasChildren ? (
+                    <button
+                      type="button"
+                      /* Out of the tab order, in the grid's: the chevron is
+                         reached by arrowing to the first column and pressing
+                         the forward arrow, not by a tab stop per parent. */
+                      tabIndex={-1}
+                      onClick={() => onToggle(task.id)}
+                      aria-label={row.expanded ? `Collapse ${task.name}` : `Expand ${task.name}`}
+                      className="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
+                    >
+                      <Icon
+                        name={row.expanded ? "chevron-down" : "chevron-right"}
+                        size={14}
+                        className={row.expanded ? undefined : "rtl:zen-rotate-180"}
+                      />
+                    </button>
+                  ) : (
+                    /* A spacer, not a hidden chevron: leaves must line up with
+                       their siblings' text, or every leaf reads as one level
+                       shallower. */
+                    <span aria-hidden="true" className="zen-h-5 zen-w-5 zen-shrink-0" />
+                  )}
+                  <span className="zen-min-w-0">
+                    <span
+                      className={cn(
+                        "zen-block zen-truncate zen-text-sm zen-text-zen-foreground",
+                        row.hasChildren && "zen-font-semibold",
+                      )}
+                      title={task.name}
+                    >
+                      {task.name}
+                    </span>
+                    {task.subtitle && (
+                      <span className="zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg">
+                        {task.subtitle}
+                      </span>
+                    )}
+                  </span>
+                </>
+              )}
 
-        <div role="gridcell" aria-colindex={2} className="zen-flex zen-items-center zen-px-2" style={{ width: ASSIGNEES_PX }}>
-          <GanttAssignees assignees={task.assignees} />
-        </div>
+              {key === "assignees" && <GanttAssignees assignees={task.assignees} />}
 
-        <div role="gridcell" aria-colindex={3} className="zen-flex zen-items-center zen-px-2" style={{ width: STATUS_PX }}>
-          <Badge variant="soft" color={STATUS_COLOR[row.status]} className="zen-truncate">
-            {task.statusLabel ?? STATUS_LABEL[row.status]}
-          </Badge>
-        </div>
+              {key === "status" && (
+                <Badge variant="soft" color={STATUS_COLOR[row.status]} className="zen-truncate">
+                  {task.statusLabel ?? STATUS_LABEL[row.status]}
+                </Badge>
+              )}
 
-        <div role="gridcell" aria-colindex={4} className="zen-flex zen-items-center zen-px-2" style={{ width: VARIANCE_PX }}>
-          {varianceText && (
-            <Badge
-              /* "+2d" is a signed number, and bidi reorders a leading sign to
-                 the far side in an RTL run — it renders as "2d+". */
-              dir="ltr"
-              variant="soft"
-              color={row.variance === null || row.variance === 0 ? "neutral" : row.variance > 0 ? "error" : "success"}
-            >
-              {varianceText}
-            </Badge>
-          )}
-        </div>
+              {key === "variance" && varianceText && (
+                <Badge
+                  /* "+2d" is a signed number, and bidi reorders a leading sign
+                     to the far side in an RTL run — it renders as "2d+". */
+                  dir="ltr"
+                  variant="soft"
+                  color={row.variance === null || row.variance === 0 ? "neutral" : row.variance > 0 ? "error" : "success"}
+                >
+                  {varianceText}
+                </Badge>
+              )}
+            </div>
+          ),
+        )}
       </div>
 
-      <div role="gridcell" aria-colindex={5} className="zen-relative zen-shrink-0" style={{ width: axisWidth }}>
+      <div
+        role="gridcell"
+        aria-colindex={COL_INDEX.timeline}
+        data-gantt-cell={`${row.index}:${cellKeys.length - 1}`}
+        tabIndex={tabCol === cellKeys.length - 1 ? 0 : -1}
+        onFocus={() => onFocusCell(row.index, cellKeys.length - 1)}
+        className={cn("zen-relative zen-shrink-0", CELL_FOCUS_CLASS)}
+        style={{ width: axisWidth }}
+      >
         {/* The column rules as a background layer rather than as parents of the
             bar: a bar spanning four days cannot live inside one day's box. */}
         <div aria-hidden="true" className="zen-absolute zen-inset-0 zen-flex">
@@ -952,9 +1408,13 @@ const GanttRowView = ({
           <button
             type="button"
             onClick={() => onTaskClick?.(task, row)}
-            /* A button whether or not a handler was passed: bars are the only
-               things on the axis worth reaching by keyboard, and a plain div
-               takes the whole chart out of the tab order. */
+            /* Reachable, not tabbable. The timeline CELL carries the tab stop;
+               the bar is what the keyboard scrolls into view once it does — see
+               `data-gantt-bar`, which is how the focus effect finds it. A
+               button rather than a div so a pointer user still gets a real
+               control, and so the accessible name below has somewhere to live. */
+            tabIndex={-1}
+            data-gantt-bar=""
             className={cn(
               "zen-absolute zen-rounded-zen-sm",
               "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
@@ -1052,9 +1512,11 @@ const GanttAssignees = ({ assignees }: { assignees?: GanttAssignee[] }) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        {/* Focusable, so the full list is reachable without a pointer — the
-            "+N" chip is the only place some names appear at all. */}
-        <span tabIndex={0} className="zen-rounded-zen-full focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring">
+        {/* Not a tab stop of its own — the grid is one — but the full list is
+            still reachable without a pointer: the cell carries it as its
+            accessible name, so arrowing onto the column reads every name even
+            though the "+N" chip only draws three. */}
+        <span aria-hidden="true" className="zen-rounded-zen-full">
           {/* "loose" is -4px: at xs an avatar is 24px, and the default -8px
               hides a third of each initial pair behind the next one. */}
           <AvatarGroup max={AVATAR_MAX} size="xs" spacing="loose">

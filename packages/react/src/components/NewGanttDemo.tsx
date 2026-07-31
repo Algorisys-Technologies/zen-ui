@@ -166,7 +166,43 @@ const SHOP_LINKS: GanttDependency[] = [
   { from: "j2", to: "j3" },
 ];
 
-/** Section 6: a live click handler, so the section is not a dead control. */
+/** A plan that crosses New Year — the case no calendar year can show whole. */
+const CROSS_YEAR: GanttTask[] = [
+  {
+    id: "X1",
+    name: "Plant relocation",
+    assignees: [SVEN, OLU],
+    children: [
+      { id: "X1a", name: "Site prep", start: on(11, 2), end: on(12, 18), percentComplete: 60, assignees: [SVEN] },
+      { id: "X1b", name: "Line teardown", start: new Date(2026, 11, 7), end: new Date(2027, 0, 23), percentComplete: 10, assignees: [OLU] },
+      { id: "X1c", name: "Recommission", start: new Date(2027, 0, 19), end: new Date(2027, 2, 6), percentComplete: 0, assignees: [MEI, SVEN] },
+    ],
+  },
+];
+
+/**
+ * Section 12: a plan big enough that windowing and keyboard navigation actually
+ * meet. Below a screenful the window covers every row and the interesting path
+ * — move focus to a row that is not in the DOM — is never taken, which is how
+ * it would go untested by every other section on this page.
+ */
+const BIG_PLAN: GanttTask[] = Array.from({ length: 40 }, (_, w) => ({
+  id: `w${w}`,
+  name: `Work centre ${w + 1}`,
+  children: Array.from({ length: 20 }, (_, j) => {
+    const day = 1 + ((w * 7 + j * 3) % 110);
+    return {
+      id: `w${w}j${j}`,
+      name: `Job ${w + 1}-${String(j + 1).padStart(2, "0")}`,
+      start: on(7, day),
+      end: on(7, day + 2 + (j % 5)),
+      percentComplete: (w * 13 + j * 7) % 101,
+      assignees: [[RHEA, ARUN, MEI, OLU, SVEN][(w + j) % 5]],
+    };
+  }),
+}));
+
+/** Sections 8 and 9: a live readout, so neither section is a dead control. */
 const Clickable = () => {
   const [picked, setPicked] = React.useState("Nothing picked yet");
   return (
@@ -188,7 +224,25 @@ const Clickable = () => {
   );
 };
 
-/** Section 2: collapsing a parent, driven from outside the component. */
+/** Section 9: the same handler, reached by keyboard rather than by pointer. */
+const Keyboardable = () => {
+  const [picked, setPicked] = React.useState("Tab to the chart, then use the arrow keys");
+  return (
+    <div className="zen-flex zen-flex-col zen-gap-2">
+      <Gantt
+        tasks={LONG_PLAN}
+        dependencies={LONG_LINKS}
+        now={NOW}
+        onTaskClick={(task) => setPicked(`Activated: ${task.name}`)}
+      />
+      <p className="zen-m-0 zen-text-sm zen-text-zen-muted-fg" aria-live="polite">
+        {picked}
+      </p>
+    </div>
+  );
+};
+
+/** Section 3: collapsing a parent, driven from outside the component. */
 const Collapsible = () => {
   const [expanded, setExpanded] = React.useState<string[]>(["p1", "p2", "p3"]);
   return (
@@ -235,14 +289,31 @@ const NewGanttDemo = () => (
   },
 ];
 
-<Gantt tasks={plan} defaultView="month" />`}
+<Gantt tasks={plan} />`}
       >
-        <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} defaultDate={NOW} defaultView="month" />
+        <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} />
       </CodeExample>
     </section>
 
     <section className="demo-section">
-      <h2>2. The hierarchy collapses, and the arrows survive it</h2>
+      <h2>2. Fit, and why it is the default</h2>
+      <CodeExample
+        title="An axis whose range comes from the data"
+        description="Every other view is a window onto a calendar: pick a month and you see that month, whether or not the plan is in it. This one takes its range from the tasks — the span of every task, padded, snapped outward to whole hours, days, weeks or months depending on how long the plan runs. So a plan opens showing its own shape rather than whichever month today falls in, and a plan that crosses New Year can be seen whole at all, which no calendar year can do. The granularity is chosen from the span by a pinned function in core rather than by a ternary in the renderer, and the columns are sized to the container, because 'the whole plan without scrolling sideways' is the only thing the view is for. Notice what is missing from the toolbar: a fit axis has no anchor to move, so Previous, Today and Next are gone rather than disabled. Three buttons that visibly do nothing read as a broken chart."
+        code={`<Gantt tasks={plan} />                    // fit is the default
+
+<Gantt tasks={plan} defaultView="month" />   // or pin a calendar window
+<Gantt tasks={plan} views={["fit", "week", "month"]} />`}
+      >
+        <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <Gantt tasks={CROSS_YEAR} now={NOW} />
+          <Gantt tasks={CROSS_YEAR} now={NOW} defaultDate={NOW} defaultView="year" />
+        </div>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>3. The hierarchy collapses, and the arrows survive it</h2>
       <CodeExample
         title="expanded / onExpandedChange"
         description="Close a phase and its children fold into the summary bar. Their dependencies do not disappear with them: a link touching a hidden task is redrawn against the bar it folded into, and a dozen links that all end up between the same two summary bars collapse to one arrow rather than stacking. Dropping them instead would make a collapsed project look like a project with no dependencies at all. Leave expanded off entirely and everything opens, which is what a plan you have just loaded should look like."
@@ -260,7 +331,7 @@ const NewGanttDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>3. Dependencies</h2>
+      <h2>4. Dependencies</h2>
       <CodeExample
         title="Four kinds, routed around the bars"
         description="A dependency is two ids and a kind. Finish-to-start is the default and the common one — B cannot begin until A is done — and start-to-start, finish-to-finish and start-to-finish join the other ends. A link whose successor starts before its predecessor finishes has to double back, so it turns in the gutter between the two rows instead of cutting a straight line through everything in between. A dependency naming a task with no bar, because it has no dates or is entirely outside the view, draws nothing: a line running off the edge of the chart reads as a task that starts off-screen."
@@ -284,7 +355,7 @@ const NewGanttDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>4. Slip, and the colour that follows from it</h2>
+      <h2>5. Slip, and the colour that follows from it</h2>
       <CodeExample
         title="baselineEnd, and the derived status"
         description="Give a task the date the plan originally promised and the row reports the difference in whole calendar days: 'On time', '+5d', '-2d'. Whole days rather than hours, so finishing at 18:00 instead of 09:00 on the same date is not late and a daylight-saving boundary cannot turn two days into 1.96. The bar's colour follows from the same reading, and the order it resolves in is the whole point: finished beats late, so a task delivered after its baseline is complete rather than red — the slip is already said by the chip. Late beats not-started, so a task that is 0% done and a week past due is the most urgent row on the chart instead of the quietest. Pass status yourself to override the lot."
@@ -299,7 +370,7 @@ const NewGanttDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>5. Quarter and year, for a plan that outlasts a month</h2>
+      <h2>6. Quarter and year, for a plan that outlasts a month</h2>
       <CodeExample
         title="A whole project, at the granularity that fits it"
         description="A month is the widest view a calendar needs and the narrowest a plan does: this four-month schedule shows one phase in month view and three empty columns of nothing. Quarter draws week columns, year draws month columns. Both have columns of UNEQUAL length — a quarter begins on the 1st, which is almost never a Monday, so its first and last weeks are partial, and months are 28 to 31 days. Each column is therefore drawn at its own share of the axis rather than at one uniform width. That is not a detail: uniform month columns walk every bar off its gridline by up to three days across a year, while looking perfectly reasonable. Check a bar's edge against the line beside it in the year view below."
@@ -317,7 +388,45 @@ const NewGanttDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>6. Clicking a task</h2>
+      <h2>7. The pane gives way before the axis does</h2>
+      <CodeExample
+        title="columns"
+        description="Task, Assignees, Status and Variance are 436px of frozen pane, and a year axis wants around 960 more — so a normal page width used to scroll sideways before anybody had done anything, and the columns pushed off were whichever ones happened to be last. Now the pane sheds them on purpose. List the ones you want and the order is a PREFERENCE order, not just a set: what you list last is the first to go when the container cannot hold both the pane and a usable axis. The Task column is never dropped, because a schedule with no task names is not a narrower schedule. Drop the two your data cannot fill and the pane stops costing you the timeline — the first chart below asks for two columns, the second asks for all four inside an 800px container and gets what fits."
+        code={`// Say what you want, in the order you want to lose it:
+<Gantt tasks={plan} columns={["name", "status"]} />
+
+// Or leave it alone and let the container decide:
+<Gantt tasks={plan} />`}
+      >
+        <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <Gantt tasks={LONG_PLAN} dependencies={LONG_LINKS} now={NOW} columns={["name", "status"]} />
+          <div style={{ maxWidth: 800 }}>
+            <Gantt tasks={LONG_PLAN} dependencies={LONG_LINKS} now={NOW} />
+          </div>
+        </div>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>8. Keyboard: one tab stop, arrows inside</h2>
+      <CodeExample
+        title="Grid navigation over a windowed chart"
+        description="Tab reaches the chart once and leaves it once, however many rows it has — at 10,000 rows the old tab-through-the-bars model put 10,000 stops between a reader and whatever came after the chart. Inside, the arrow keys move a cell: up and down a row, left and right a column, Home and End to the ends of the row, Ctrl+Home and Ctrl+End to the ends of the plan, PageUp and PageDown a screenful. On the first column the forward arrow expands a closed phase and the backward arrow collapses an open one, which is how the hierarchy is reached without a pointer. Enter or Space activates the row and calls onTaskClick. The hard part is invisible: rows are windowed, so moving to a row that is not in the DOM has to scroll it in, re-render, and then focus it — get that wrong and focus lands on the page body and the next Tab restarts from the top of the document. Arrow keys follow the visual direction, so they still point the way they are drawn under RTL."
+        code={`<Gantt tasks={plan} onTaskClick={(task) => open(task)} />
+
+// Arrow keys       move one cell
+// Home / End       first / last cell in the row
+// Ctrl+Home / End  first / last row of the plan
+// PageUp / Down    one screenful
+// Left / Right     collapse / expand, on the first column
+// Enter / Space    onTaskClick`}
+      >
+        <Keyboardable />
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>9. Clicking a task</h2>
       <CodeExample
         title="It renders the plan; it does not reschedule it"
         description="There is no drag-to-move, no drag-to-resize and no pulling a new dependency between two bars. Moving a task in a real plan cascades through its successors, and what should happen then is a policy question: does it push the whole chain, does it need an approval, what does undo mean, who is allowed. That belongs to your domain. onTaskClick hands you the task and its derived row — status, rolled-up span, progress, slip — and you open your own editor."
@@ -334,7 +443,7 @@ const NewGanttDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>7. Working time — shifts, holidays and split bars</h2>
+      <h2>10. Working time — shifts, holidays and split bars</h2>
       <CodeExample
         title="calendar"
         description="A factory does not work every hour, and until that is modelled every duration is wrong. Give the chart a calendar — working periods per weekday, plus dated exceptions for holidays, planned maintenance or one-off overtime — and three things change. Durations become working durations: a job given workingMinutes has its end derived through the calendar, so six hours starting Friday 16:00 finishes on MONDAY rather than at Friday 22:00. Bars break across the time nobody is working instead of drawing straight through it, and the gap is transparent so the shaded column shows through. And the shading itself comes from the calendar rather than from a weekend-and-nine-to-five guess. Switch to Day below to see the shift and its lunch break. Pass no calendar and none of this happens — no calendar means a 24/7 one, which is exactly the behaviour every other section on this page shows."
@@ -374,7 +483,7 @@ const NewGanttDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>8. Loading and empty</h2>
+      <h2>11. Loading and empty</h2>
       <CodeExample
         title="loading / emptyState"
         description="The skeleton is staggered rather than a stack of equal bars, because the shape is the information: a schedule that loads as a table reads as the wrong component for a second. The toolbar is not drawn over either state — Previous, Today and Next cannot change anything the user can see when there is nothing to see, and a dead control is worse than no control."
@@ -386,6 +495,21 @@ const NewGanttDemo = () => (
           <Gantt tasks={[]} loading now={NOW} defaultDate={NOW} />
           <Gantt tasks={[]} now={NOW} defaultDate={NOW} />
         </div>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>12. 840 rows, 26 of them in the DOM</h2>
+      <CodeExample
+        title="Windowing, and the keyboard that has to survive it"
+        description="Rows are windowed always, at every size — only the screenful under the viewport is mounted, and the spacers above and below keep the scrollbar measuring the whole plan rather than the window. There is no threshold, deliberately: a threshold would mean the windowed path is the one no demo and no check ever exercises, and production is the first thing to try it. The connector layer is the exception and is drawn whole, because a link between two off-screen tasks still routes through the band you can see, and culling it would blink arrows in and out as their endpoints scrolled away. This is also the only section where windowing and keyboard navigation meet: press Ctrl+End here and focus has to move to a row that is not in the document yet, which means scrolling it in, re-rendering, and then focusing it. Get that wrong and focus lands on the page body — from where the next Tab restarts at the top of the document, stranding whoever was reading row 800."
+        code={`// Nothing to switch on. 840 rows or 8, the same component:
+<Gantt tasks={plan} />
+
+// Ctrl+End      last row of the plan, scrolled in and focused
+// PageDown      one screenful at a time`}
+      >
+        <Gantt tasks={BIG_PLAN} now={NOW} defaultExpanded={["w0", "w1"]} />
       </CodeExample>
     </section>
   </div>

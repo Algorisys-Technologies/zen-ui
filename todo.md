@@ -946,6 +946,20 @@ built — Tier 1 spent a day marked done while a row was missing.
       whole span. Measuring against the span squashes and shifts every piece on
       any bar that starts before the range, and it is invisible until you look
       at one that does.
+      **A fifth drift**: the `fit` view, the responsive frozen pane and APG
+      keyboard navigation are React-only. Core carries `ganttFitRange`,
+      `ganttFitUnit`, `ganttRangeColumns`, `ganttSpanLabel` and
+      `ganttPaneColumns`, all pinned in check-gantt.ts, so the port is renderer
+      work again. Three things go with it: **`GanttView` now includes `"fit"`
+      but `GanttAnchoredView` does not** — that split is the whole reason a fit
+      view cannot reach `ganttRange` and silently get a month, so port the two
+      types together or not at all; the pane must shed columns only when
+      shedding ACHIEVES a fit (the greedy version drops three columns and still
+      scrolls, which costs the reader twice); and the keyboard's roving tabindex
+      has to cooperate with windowing — moving focus to an unmounted row means
+      scrolling it in, re-rendering, and focusing it on the next commit, or
+      focus lands on `<body>`. Verified in a browser at 21/21 checks, LTR and
+      RTL, including Ctrl+End across the window boundary.
       See [docs/production-scheduling-gap-analysis.md](docs/production-scheduling-gap-analysis.md)
       for the two open decisions this sits under: whether production scheduling
       becomes a second component, and whether the read-only stance survives.
