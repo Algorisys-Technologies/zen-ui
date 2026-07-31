@@ -99,6 +99,7 @@ import NewMicroChartDemo from "./components/NewMicroChartDemo";
 import NewTimelineDemo from "./components/NewTimelineDemo";
 import NewUploadCollectionDemo from "./components/NewUploadCollectionDemo";
 import NewPlanningCalendarDemo from "./components/NewPlanningCalendarDemo";
+import NewGanttDemo from "./components/NewGanttDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewAlertDemo from "./components/NewAlertDemo";
@@ -343,6 +344,7 @@ const App: React.FC = () => {
             <Route path="/timeline" element={<NewTimelineDemo />} />
             <Route path="/upload-collection" element={<NewUploadCollectionDemo />} />
             <Route path="/planning-calendar" element={<NewPlanningCalendarDemo />} />
+            <Route path="/gantt" element={<NewGanttDemo />} />
             <Route path="/lazy-options" element={<NewLazyOptionsDemo />} />
             <Route path="/combobox" element={<NewComboboxDemo />} />
             <Route path="/alert" element={<NewAlertDemo />} />

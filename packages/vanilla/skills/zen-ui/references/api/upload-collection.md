@@ -37,7 +37,7 @@ SKILL.md.
 
 ### Other exports
 
-- `UploadStatus` = `"error" | "pending" | "uploading" | "complete"`
+- `UploadStatus` = `"error" | "pending" | "complete" | "uploading"`
 
 ### Types
 

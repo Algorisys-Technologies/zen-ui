@@ -90,6 +90,7 @@ description, then import the name from your binding's package.
 - **Timeline** — Ordered list of events with a rail, markers, timestamps and date groups
 - **UploadCollection** — The list of uploaded files — progress, rename, delete, retry; the result FileUpload has no view for
 - **PlanningCalendar** — Resource-by-time grid — rows of people or rooms, appointments as blocks, day / week / month views
+- **Gantt** — Project schedule — a collapsing task tree beside bars on a shared clock, with percent-complete fills, slip chips and dependency arrows
 - **Pivot** — Drag-and-drop pivot builder; fields into zones, 2D-windowed grid
 - **MediaTimeline** — Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state
 - **Waveform** — Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align

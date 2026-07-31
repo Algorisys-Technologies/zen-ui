@@ -101,6 +101,8 @@ real props; guessing prop names is how agents invent APIs.
 - [tree-table.md](tree-table.md) — `TreeTable`, `TreeTableProps`
 - [planning-calendar.md](planning-calendar.md) — `PlanningCalendar`, `PlanningCalendarProps`, `PlanningRow`, `PlanningAppointment`, `PlanningAppointmentState`
 - [planning.md](planning.md) — `PlanningView`
+- [gantt-gantt.md](gantt-gantt.md) — `Gantt`, `GanttProps`, `GanttTask`, `GanttAssignee`
+- [zen-ui-core-gantt.md](zen-ui-core-gantt.md) — `GanttBarAnchor`, `GanttConnector`, `GanttDependency`, `GanttDependencyType`, `GanttRow`, `GanttSpan`, `GanttTaskNode`, `GanttTaskStatus`
 - [upload-collection.md](upload-collection.md) — `UploadCollection`, `UploadCollectionProps`, `UploadItem`, `UploadStatus`
 - [timeline.md](timeline.md) — `Timeline`, `TimelineProps`, `TimelineItem`, `TimelineState`
 - [micro-chart.md](micro-chart.md) — `MicroLineChart`, `MicroBarChart`, `MicroBulletChart`, `MicroDeltaChart`, `MicroRadialChart`, `MicroChartColor`, `MicroLineChartProps`, `MicroBarChartProps`, `MicroBulletChartProps`, `MicroDeltaChartProps`, `MicroRadialChartProps`
