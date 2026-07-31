@@ -32,7 +32,21 @@ const PORTS = { react: 4360, solid: 4361, vanilla: 4362, "web-components": 4363 
 const ROUTES = ["gantt", "production-schedule"];
 
 const argv = process.argv.slice(2).filter((a) => !a.startsWith("--"));
-const others = argv.length > 0 ? argv : BINDINGS.map((b) => b.id).filter((id) => id !== "react");
+/* `all` means the same thing as no argument — every binding except the
+   reference. It is spelled out because check-schedule-dom.mjs takes `all` and
+   these two are run side by side; one accepting the word and the other dying on
+   an undefined lookup is exactly the sort of difference nobody reads twice. */
+const others =
+  argv.length === 0 || argv[0] === "all"
+    ? BINDINGS.map((b) => b.id).filter((id) => id !== "react")
+    : argv;
+
+const unknown = others.filter((id) => !BINDINGS.some((b) => b.id === id));
+if (unknown.length > 0) {
+  console.error(`unknown binding(s): ${unknown.join(", ")}`);
+  console.error(`known: ${BINDINGS.map((b) => b.id).join(", ")}, or "all"`);
+  process.exit(1);
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Everything about a chart that both bindings must agree on. */
