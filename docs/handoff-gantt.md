@@ -273,9 +273,25 @@ keyboard model and connector overlay were used as-is.
 > sideways. Per-scroller overflow checks cannot see it — the scroller was
 > internally consistent. The probe now asserts `document.scrollWidth` too.
 
-**Next:** the rest of tier (b) — sequence-dependent setup (a changeover matrix,
-rather than today's per-operation duration) and dependency lag/lead — then
-revisit Decision 2, which now has a real overload to drag at.
+**Tier (b) is now complete.** The second slice added sequence-dependent
+changeover (`ProductionSetupMatrix`, keyed on the pair of `setupFamily` values,
+derived per resource in TIME order) and dependency lag/lead
+(`GanttDependency.lagMinutes` in working minutes, `ganttSubWorkingMs` for the
+backwards walk a lead needs, `productionSequenceConflicts` to report what the
+schedule violates). Violated links draw in the error tone AND thicker, because
+colour alone is not a signal on a chart that already uses red for delay.
+
+> **It also exposed a bug older than any of this: `ganttConnectors` dropped
+> every link whose ends shared a row.** That is right for two tasks folded into
+> one summary bar and wrong for a production schedule, where op 10 followed by
+> op 20 on ONE machine is the normal case — a paint booth running three jobs in
+> sequence drew no routing whatsoever, in silence. It now skips only when both
+> ends resolve to the same BAR (same row *and* same placement *and* same lane),
+> and dedups on anchors rather than rows so a dozen links collapsing onto one
+> pair of summary bars is still one arrow.
+
+**Next:** revisit Decision 2, which now has both a 300%-loaded machine and a
+violated cooling link to drag at.
 
 **DECISION 3 — axis: settled, wall-clock with non-working shaded.** (§225)
 Compression would turn one linear date→x map into a piecewise one at every call

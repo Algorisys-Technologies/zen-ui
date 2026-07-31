@@ -392,9 +392,27 @@ signature. None of it is thrown away; it is the module `ProductionSchedule` is b
      booked-on-a-resource-that-does-not-exist (which is drawn nowhere at all, so without the
      report it leaves the chart in silence).
 
-   Still open in tier (b): **sequence-dependent setup** (a changeover matrix keyed on the
-   preceding operation — setup is a per-operation duration today) and **dependency lag/lead**.
-   Neither is blocked; both were left out of the first slice to keep it reviewable.
+   **Second slice shipped** — tier (b) is now complete:
+   - **sequence-dependent setup.** `ProductionSetupMatrix` is keyed on the (from, to) pair of
+     `setupFamily` values with `"*"` wildcards, most-specific-first. `productionSetupPlan` derives
+     each operation's changeover from what ran before it on the same resource, in TIME order — not
+     lane order, because which lane a job lands in depends on what happened to overlap it. It is
+     not circular even though it looks it: the ordering is by the caller's `start`, which nothing
+     derives, so setups resolve before spans and spans before packing. A stated `setupMinutes`
+     still wins, as `end` wins over `runMinutes`.
+   - **dependency lag and lead.** `GanttDependency.lagMinutes`, measured in WORKING minutes
+     against the anchor each link type actually uses — a start-to-start link asks about the two
+     starts, not the predecessor's finish. Negative is a lead and walks backwards through the
+     calendar, which is what `ganttSubWorkingMs` was added for: four working hours before Monday
+     09:00 is Friday 16:00 on a single-shift plant, not 05:00 Monday.
+     `productionSequenceConflicts` reports violations; nothing enforces them.
+
+   Two bugs the slice exposed, both older than it:
+   - **`ganttConnectors` dropped every same-row link.** Right for two tasks folded into one
+     summary bar; wrong for a production schedule, whose normal case is op 10 then op 20 on ONE
+     machine — a paint booth running three jobs in sequence drew no routing at all. It now skips
+     only when both ends resolve to the same BAR, and dedups on anchors rather than on rows.
+   - The demo's own data had a routing violation in the section about layout.
 
 3. **Revisit Decision 2** with an overload on screen to drag at. There now is one — section 3 of
    the demo puts three jobs on a one-operator machine and reports 300%.

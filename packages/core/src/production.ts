@@ -42,9 +42,12 @@
 
 import {
   ganttAddWorkingMs,
+  ganttSubWorkingMs,
   ganttWorkingMs,
   ganttWorkingSegments,
   type GanttCalendar,
+  type GanttDependency,
+  type GanttDependencyType,
   type GanttSegmentOptions,
   type GanttSpan,
   type GanttTaskStatus,
@@ -76,8 +79,22 @@ export interface ProductionOperationNode {
    * Changeover before the run, in working minutes. It occupies the machine and
    * makes nothing, which is exactly why it has to be counted rather than
    * assumed away.
+   *
+   * A stated number is a STATEMENT and wins over anything derived, the same way
+   * `end` wins over `runMinutes`. Leave it off and a `ProductionSetupMatrix`
+   * derives it from what ran before — see `setupFamily`.
    */
   setupMinutes?: number;
+  /**
+   * What this operation is, for changeover purposes — a product, a colour, a
+   * material, a tooling set.
+   *
+   * Changeover is SEQUENCE-DEPENDENT and that is not a refinement: going from
+   * white paint to black costs minutes, and black to white costs an hour of
+   * washing out. A per-operation duration cannot express a cost that depends on
+   * what the machine did before, so the matrix is keyed on the pair.
+   */
+  setupFamily?: string;
   /**
    * How much of the resource's capacity this consumes. Default 1. A job that
    * needs both operators on a two-operator cell is 2.
@@ -111,6 +128,90 @@ export interface ProductionResourceNode {
    */
   calendar?: GanttCalendar;
   children?: ProductionResourceNode[];
+}
+
+/**
+ * What a changeover costs, per (from, to) pair of setup families.
+ *
+ * `"*"` matches anything on either side, so a plant with one expensive
+ * transition writes that one rule and a fallback rather than an N×N table it
+ * has to maintain. Lookup is most-specific-first and pinned in
+ * scripts/check-production.ts, because "which rule won" is exactly the kind of
+ * thing that is invisible once it is drawn.
+ */
+export interface ProductionSetupMatrix {
+  /** `minutes[fromFamily][toFamily]`, either key optionally `"*"`. */
+  minutes: Record<string, Record<string, number>>;
+  /** When nothing matches. Default 0 — no rule means no changeover, not a guess. */
+  fallbackMinutes?: number;
+}
+
+/**
+ * The changeover from `from` to `to`, in working minutes.
+ *
+ * `from` is null for the first operation on a resource: there is nothing to
+ * change over FROM, and charging a full changeover for it would inflate every
+ * shift's first job. A plant that really does pay a warm-up writes a `"*"` rule
+ * against its own family and gets it that way, deliberately rather than by
+ * default.
+ */
+export function productionSetupMinutes(
+  matrix: ProductionSetupMatrix,
+  from: string | null,
+  to: string | null,
+): number {
+  const rows = matrix.minutes ?? {};
+  const target = to ?? "*";
+  const candidates: Array<number | undefined> = [
+    from === null ? undefined : rows[from]?.[target],
+    from === null ? undefined : rows[from]?.["*"],
+    rows["*"]?.[target],
+    rows["*"]?.["*"],
+  ];
+  for (const value of candidates) {
+    if (typeof value === "number") return Math.max(0, value);
+  }
+  return Math.max(0, matrix.fallbackMinutes ?? 0);
+}
+
+/**
+ * Each operation's changeover, derived from what ran before it on the same
+ * resource.
+ *
+ * TIME ORDER, not lane order. Lanes are a packing artefact — which lane a job
+ * lands in depends on what else overlapped it — so attributing a changeover to
+ * "the previous job in lane 1" would make the cost depend on how the chart drew
+ * itself. The previous job in TIME on that machine is the physical answer, and
+ * on a capacity-1 resource it is the only one. On a multi-capacity resource it
+ * is an approximation, and a deliberate one: which spindle or operator picked
+ * the job up is not modelled here, so neither is a per-spindle changeover.
+ *
+ * NOT CIRCULAR, though it looks it. Setup changes a span, spans decide lane
+ * packing — but the ordering used here is by the caller's `start`, which is
+ * given and which nothing derives. So: order by start, derive setups, build
+ * spans, then pack.
+ */
+export function productionSetupPlan<O extends ProductionOperationNode>(
+  operations: O[],
+  matrix: ProductionSetupMatrix,
+): Map<string, number> {
+  const out = new Map<string, number>();
+  const byResource = new Map<string, O[]>();
+  for (const operation of operations) {
+    const list = byResource.get(operation.resourceId);
+    if (list) list.push(operation);
+    else byResource.set(operation.resourceId, [operation]);
+  }
+
+  for (const list of byResource.values()) {
+    const ordered = [...list].sort((a, b) => a.start.getTime() - b.start.getTime());
+    let previous: string | null = null;
+    for (const operation of ordered) {
+      out.set(operation.id, productionSetupMinutes(matrix, previous, operation.setupFamily ?? null));
+      previous = operation.setupFamily ?? null;
+    }
+  }
+  return out;
 }
 
 /** An operation resolved onto the clock: where setup ends and the run begins. */
@@ -206,15 +307,23 @@ const MINUTE = 60_000;
  * explicit end. A zero-length booking is not a milestone here — a machine
  * claimed for no time is a data error, and inventing a width would hide it.
  */
+export interface ProductionPlacementOptions extends GanttSegmentOptions {
+  /**
+   * Changeover derived from the sequence, used only when the operation does not
+   * state its own. A stated `setupMinutes` is a statement and wins.
+   */
+  setupMinutes?: number;
+}
+
 export function productionPlacement<O extends ProductionOperationNode>(
   operation: O,
   calendar?: GanttCalendar,
-  segmentOptions: GanttSegmentOptions = {},
+  segmentOptions: ProductionPlacementOptions = {},
 ): ProductionPlacement<O> | null {
   const add = (from: Date, ms: number): Date =>
     calendar ? ganttAddWorkingMs(calendar, from, ms) : new Date(from.getTime() + ms);
 
-  const setupMs = Math.max(0, (operation.setupMinutes ?? 0) * MINUTE);
+  const setupMs = Math.max(0, (operation.setupMinutes ?? segmentOptions.setupMinutes ?? 0) * MINUTE);
   const setupStart = new Date(operation.start.getTime());
   const runStart = setupMs > 0 ? add(setupStart, setupMs) : setupStart;
 
@@ -330,6 +439,12 @@ export interface ProductionFlattenOptions extends GanttSegmentOptions {
   /** The plant's calendar. A resource's own `calendar` overrides it. */
   calendar?: GanttCalendar;
   /**
+   * Sequence-dependent changeover. With one supplied, an operation that states
+   * no `setupMinutes` gets one derived from what ran before it on the same
+   * resource — see `productionSetupPlan`.
+   */
+  setupMatrix?: ProductionSetupMatrix;
+  /**
    * How many lanes a row may grow to. Default 3.
    *
    * Bounded because rows are a FIXED height — the window and the connector
@@ -355,7 +470,12 @@ export function flattenProductionResources<
   isExpanded: (resource: R) => boolean,
   options: ProductionFlattenOptions = {},
 ): ProductionFlatten<R, O> {
-  const { calendar, maxLanes = 3, ...segmentOptions } = options;
+  const { calendar, maxLanes = 3, setupMatrix, ...segmentOptions } = options;
+
+  /* Derived ONCE for the whole set, before anything is placed: a changeover
+     depends on the operation before it on that machine, so it cannot be worked
+     out row by row while the rows are being built. */
+  const setups = setupMatrix ? productionSetupPlan(operations, setupMatrix) : null;
 
   const byResource = new Map<string, O[]>();
   for (const operation of operations) {
@@ -398,7 +518,12 @@ export function flattenProductionResources<
        showing its children's work too would draw every bar twice. */
     const place = (list: O[]) =>
       list
-        .map((operation) => productionPlacement(operation, resource.calendar ?? calendar, segmentOptions))
+        .map((operation) =>
+          productionPlacement(operation, resource.calendar ?? calendar, {
+            ...segmentOptions,
+            setupMinutes: setups?.get(operation.id),
+          }),
+        )
         .filter((p): p is ProductionPlacement<O> => p !== null);
 
     const subtree = place(collect(resource, []));
@@ -522,6 +647,81 @@ export function productionLoad(
   });
 }
 
+/**
+ * Whether a routing link is satisfied, and by how much it is not.
+ *
+ * The four link types anchor at different ends, and getting that wrong reports
+ * a healthy schedule as broken: a start-to-start link with four hours of lag
+ * asks about the two STARTS, not about the predecessor's finish.
+ */
+const LAG_ANCHORS: Record<GanttDependencyType, { from: "start" | "end"; to: "start" | "end" }> = {
+  "finish-to-start": { from: "end", to: "start" },
+  "start-to-start": { from: "start", to: "start" },
+  "finish-to-finish": { from: "end", to: "end" },
+  "start-to-finish": { from: "start", to: "end" },
+};
+
+/**
+ * Routing links the schedule violates, as data.
+ *
+ * The earliest the successor MAY sit is the predecessor's anchor plus the lag,
+ * measured in working time — four hours of cooling that starts at 16:00 on a
+ * single-shift plant is not over at 20:00. A negative lag is a lead and walks
+ * backwards through the calendar instead, which is why `ganttSubWorkingMs`
+ * exists.
+ *
+ * REPORTED, NEVER ENFORCED, like everything else here. A planner who knowingly
+ * overlaps two operations because the first one's last pallet is already off
+ * the machine is not making an error the component should refuse; they are
+ * making a decision it should show.
+ *
+ * A link naming an operation with no placement is skipped rather than reported:
+ * "this link is violated" about a job that is not on the chart is noise, and
+ * `unknown-resource` already covers work that vanished.
+ */
+export function productionSequenceConflicts(
+  dependencies: GanttDependency[],
+  placements: Map<string, ProductionPlacement>,
+  options: { calendar?: GanttCalendar } = {},
+): ProductionConflict[] {
+  const { calendar } = options;
+  const out: ProductionConflict[] = [];
+
+  for (const dependency of dependencies) {
+    if (dependency.from === dependency.to) continue;
+    const a = placements.get(dependency.from);
+    const b = placements.get(dependency.to);
+    if (!a || !b) continue;
+
+    const type = dependency.type ?? "finish-to-start";
+    const anchors = LAG_ANCHORS[type];
+    const predecessor = anchors.from === "end" ? a.span.end : a.span.start;
+    const successor = anchors.to === "end" ? b.span.end : b.span.start;
+
+    const lagMs = (dependency.lagMinutes ?? 0) * MINUTE;
+    let earliest: Date;
+    if (lagMs > 0) {
+      earliest = calendar ? ganttAddWorkingMs(calendar, predecessor, lagMs) : new Date(predecessor.getTime() + lagMs);
+    } else if (lagMs < 0) {
+      earliest = calendar
+        ? ganttSubWorkingMs(calendar, predecessor, -lagMs)
+        : new Date(predecessor.getTime() + lagMs);
+    } else {
+      earliest = predecessor;
+    }
+
+    if (successor.getTime() < earliest.getTime()) {
+      out.push({
+        kind: "sequence",
+        resourceId: b.operation.resourceId,
+        operationIds: [dependency.from, dependency.to],
+      });
+    }
+  }
+
+  return out;
+}
+
 /** What the schedule says is wrong. Reported to the caller, never acted on. */
 export type ProductionConflictKind =
   /** More capacity consumed at once than the resource has. */
@@ -529,7 +729,9 @@ export type ProductionConflictKind =
   /** Booked into time the plant is shut — a holiday, a weekend, a shutdown. */
   | "non-working"
   /** Booked on a resource id that is not in the tree. */
-  | "unknown-resource";
+  | "unknown-resource"
+  /** A routing link's lag is not respected — the successor sits too early. */
+  | "sequence";
 
 export interface ProductionConflict {
   kind: ProductionConflictKind;

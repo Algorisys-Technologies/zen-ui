@@ -640,6 +640,57 @@ t(pane(1292, ["name", "variance", "status"]), ["name", "variance", "status"], "a
 t(pane(560, ["name", "variance", "status"]), ["name", "variance"], "…and it is a PREFERENCE order: what is listed last goes first");
 t(pane(100, ["name"]), ["name"], "one column is already the floor");
 
+console.log("\nconnectors between bars that share a row");
+/* A production schedule's normal case: op 10 then op 20 on ONE machine. The
+   old rule skipped any link whose ends shared a row — right for two tasks
+   folded into one summary bar, and it silently dropped every routing arrow on
+   a single-resource chart. */
+const sameRow = new Map<string, GanttBarAnchor>([
+  ["op10", { rowIndex: 0, startPct: 0, widthPct: 20 }],
+  ["op20", { rowIndex: 0, startPct: 30, widthPct: 20 }],
+  ["op30", { rowIndex: 0, startPct: 60, widthPct: 20 }],
+]);
+t(
+  ganttConnectors(sameRow, [{ from: "op10", to: "op20" }, { from: "op20", to: "op30" }], { axisWidth: 1000, rowHeight: 36 }).length,
+  2,
+  "two links along one row are two arrows, not none",
+);
+/* …while the case the old rule existed for still collapses: two tasks hidden
+   inside one collapsed parent resolve to the SAME bar, and a link between them
+   is a link from a thing to itself. */
+const folded = new Map<string, GanttBarAnchor>([
+  ["a", { rowIndex: 2, startPct: 10, widthPct: 40 }],
+  ["b", { rowIndex: 2, startPct: 10, widthPct: 40 }],
+]);
+t(ganttConnectors(folded, [{ from: "a", to: "b" }], { axisWidth: 1000, rowHeight: 36 }).length, 0, "…but two ends on the SAME bar still draw nothing");
+t(
+  ganttConnectors(
+    new Map<string, GanttBarAnchor>([
+      ["a", { rowIndex: 1, startPct: 10, widthPct: 40 }],
+      ["b", { rowIndex: 1, startPct: 10, widthPct: 40 }],
+      ["c", { rowIndex: 4, startPct: 60, widthPct: 20 }],
+    ]),
+    [{ from: "a", to: "c" }, { from: "b", to: "c" }],
+    { axisWidth: 1000, rowHeight: 36 },
+  ).length,
+  1,
+  "and a dozen links collapsing onto one pair of summary bars is still ONE arrow",
+);
+/* Lanes: two bars at the same x on one row but different lanes are different
+   bars, and the arrow between them is real. */
+t(
+  ganttConnectors(
+    new Map<string, GanttBarAnchor>([
+      ["x", { rowIndex: 0, startPct: 10, widthPct: 20, yOffset: 8 }],
+      ["y", { rowIndex: 0, startPct: 10, widthPct: 20, yOffset: 28 }],
+    ]),
+    [{ from: "x", to: "y" }],
+    { axisWidth: 1000, rowHeight: 48 },
+  ).length,
+  1,
+  "…and two LANES of one row are two bars, so the link between them draws",
+);
+
 console.log("\nthe row window — which rows are worth putting in the DOM");
 const win = (rowCount: number, scrollTop: number, viewport: number, overscan = 6) =>
   ganttRowWindow(rowCount, 36, scrollTop, viewport, overscan);
