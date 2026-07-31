@@ -923,6 +923,16 @@ built — Tier 1 spent a day marked done while a row was missing.
       branch returns a MONTH for any view it does not recognise, so `view="year"`
       would type-check and silently draw the wrong axis. The two FAIL lines
       naming `GanttView` are accurate: those bindings do not have the feature.
+      **A third drift**: React's Gantt WINDOWS its rows and the other two do
+      not, so they still put every row in the DOM. `ganttRowWindow` is in core
+      and adds no export to any index, so `check:parity` cannot see this one at
+      all — which is exactly why it is written down here. Porting it is a slice
+      plus two spacer divs, but three things go with it or the port is worse
+      than not doing it: the memoisation (without it, scrolling re-flattens
+      every row and the window buys nothing), the `aria-rowcount` /
+      `aria-rowindex` pair (a windowed grid otherwise tells a screen reader
+      "row 3 of 26" in a 10,000-row plan), and the focus rescue (a focused bar
+      that unmounts drops focus to `<body>` and strands the keyboard user).
       It is deferred at the user's request rather than on substance — the
       consuming app is React and wanted the import unblocked without waiting on
       a full four-binding release. Nothing is marked `divergent` in

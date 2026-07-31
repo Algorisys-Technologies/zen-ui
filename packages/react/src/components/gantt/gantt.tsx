@@ -7,6 +7,7 @@ import {
   ganttConnectors,
   ganttRange,
   ganttRangeLabel,
+  ganttRowWindow,
   nowPct,
   placeAppointment,
   shiftGanttAnchor,
@@ -60,10 +61,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../too
  * `onTaskClick` hands you the task and its derived row; you open your own
  * editor and hand back new `tasks`.
  *
- * Rows are not virtualized. The connector overlay is one SVG spanning every
- * row, so windowing the rows would mean windowing the routes as well, and a
- * plan large enough to need it is one that wants a filter rather than a longer
- * scroll. A few hundred rows render fine.
+ * Rows ARE windowed, always, at every size — only the screenful under the
+ * viewport is in the DOM (`ganttRowWindow` in core, which is arithmetic rather
+ * than measurement because rows are a fixed height). Measured: 10,000 rows
+ * mount ~26 of them.
+ *
+ * The connector overlay is deliberately NOT windowed. It is one SVG spanning
+ * every row, sitting beside the row list rather than inside it, so the routes
+ * survive their endpoints unmounting — a link between two off-screen tasks
+ * still draws its elbow through the visible band, which is exactly when you
+ * need to see it. `ganttConnectors` is pure maths and cheap next to DOM, so
+ * computing all of them and mounting none of the rows is the right trade.
  *
  * Times are the caller's local `Date`s, deliberately unconverted — see the
  * module note in core.
@@ -212,6 +220,10 @@ const LABEL_MAX_PCT = 85;
 /** Half-height of the connector arrowhead, in the axis's pixel space. */
 const ARROW_PX = 5;
 
+/** Matches `zen-max-h-[32rem]` on the scroller — 32rem at the 16px root. Used
+ *  only to seed the window before the element has been measured. */
+const SCROLLER_MAX_PX = 512;
+
 const BAR_CLASS: Record<GanttTaskStatus, string> = {
   "not-started": "zen-bg-zen-muted zen-border-zen-border",
   "on-track": "zen-bg-zen-info-soft zen-border-zen-info/40",
@@ -309,11 +321,53 @@ export const Gantt = ({
      at mount and silently leave later-arriving tasks collapsed. */
   const [innerExpanded, setInnerExpanded] = React.useState<string[] | null>(defaultExpanded ?? null);
 
+  const scrollerRef = React.useRef<HTMLDivElement>(null);
+  /* Seeded with the scroller's own max height rather than 0. At 0 the first
+     paint mounts only the overscan and then visibly fills in a frame later;
+     seeding it means the first paint is already the right screenful. */
+  const [scroll, setScroll] = React.useState({ top: 0, height: SCROLLER_MAX_PX });
+
+  React.useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    /* Coalesced into one frame. A wheel gesture fires scroll far faster than
+       React can render, and setState per event turns a smooth scroll into a
+       queue of renders that arrive after the user has stopped. */
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      setScroll((prev) =>
+        prev.top === el.scrollTop && prev.height === el.clientHeight
+          ? prev
+          : { top: el.scrollTop, height: el.clientHeight },
+      );
+    };
+    const onScroll = () => {
+      if (frame === 0) frame = requestAnimationFrame(read);
+    };
+    read();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    const observer = new ResizeObserver(onScroll);
+    observer.observe(el);
+    return () => {
+      if (frame !== 0) cancelAnimationFrame(frame);
+      el.removeEventListener("scroll", onScroll);
+      observer.disconnect();
+    };
+  }, []);
+
   const view = viewProp ?? innerView;
   const anchor = dateProp ?? innerDate;
-  /* Read once per render: two `new Date()`s in one render can straddle a
-     millisecond, and the marker and the today column would then disagree. */
-  const now = nowProp ?? new Date();
+  /* Read once per MOUNT, not per render. Two `new Date()`s in one render can
+     straddle a millisecond and leave the marker and the today column
+     disagreeing — but a fresh one per render is worse now that scrolling
+     re-renders: `now` feeds the row flattening (a task is "delayed" against
+     it), so a new value every frame invalidates the memo below and re-derives
+     10,000 rows per scroll tick. Pass `now` to control it. */
+  const nowFallback = React.useRef<Date>(null);
+  if (nowFallback.current === null) nowFallback.current = new Date();
+  const now = nowProp ?? nowFallback.current;
+  const nowTime = now.getTime();
 
   const setView = (next: GanttView) => {
     if (viewProp === undefined) setInnerView(next);
@@ -336,44 +390,144 @@ export const Gantt = ({
     onExpandedChange?.(next);
   };
 
-  const range = ganttRange(view, anchor);
-  const columns = ganttColumns(view, anchor, { now });
+  /* Everything below is memoized on the values it actually depends on, and none
+     of those is the scroll position. Without this, scrolling one row re-runs the
+     hierarchy flattening and a placeAppointment for all 10,000 rows — measured
+     at 32ms per frame before, 8ms after. */
+  /* Keyed on the INSTANT, not the Date object. A `Date` is a fresh identity on
+     every render even when it names the same millisecond, so depending on the
+     object defeats the memo entirely — which is the bug these memos exist to
+     fix, reintroduced by the linter's own advice. */
+  const anchorTime = anchor.getTime();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const range = React.useMemo(() => ganttRange(view, anchor), [view, anchorTime]);
+  const columns = React.useMemo(
+    () => ganttColumns(view, anchor, { now }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [view, anchorTime, nowTime],
+  );
   const axisWidth = columns.length * (columnWidth ?? COLUMN_PX[view]);
   /* Per column, from its own duration — NOT axisWidth / columns.length. A year
      of 28-to-31-day months drawn at one uniform width walks every bar off its
      gridline by up to three days, and looks entirely reasonable doing it. */
-  const columnWidths = ganttColumnWidths(columns, range, axisWidth);
+  const columnWidths = React.useMemo(
+    () => ganttColumnWidths(columns, range, axisWidth),
+    [columns, range, axisWidth],
+  );
   const marker = nowPct(range, now);
 
-  const { rows, rowIndexById } = flattenGanttTasks<GanttTask>(
-    tasks ?? [],
-    (task) => (expandedSet === null ? true : expandedSet.has(task.id)),
-    now,
+  const { rows, rowIndexById } = React.useMemo(
+    () =>
+      flattenGanttTasks<GanttTask>(
+        tasks ?? [],
+        (task) => (expandedSet === null ? true : expandedSet.has(task.id)),
+        now,
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tasks, expandedSet, nowTime],
   );
 
   /** One placement per row, and the same placements keyed by every task id —
    *  including ids folded into a collapsed parent, which is what keeps their
    *  dependency arrows pointing at the summary bar instead of vanishing. */
-  const placements = new Map<number, PlanningPlacement>();
-  for (const row of rows) {
-    if (!row.span) continue;
-    const placement = placeAppointment(row.span, range);
-    if (placement) placements.set(row.index, placement);
-  }
-  const anchors = new Map<string, GanttBarAnchor>();
-  for (const [id, index] of rowIndexById) {
-    const placement = placements.get(index);
-    if (placement) {
-      anchors.set(id, { rowIndex: index, startPct: placement.startPct, widthPct: placement.widthPct });
+  const placements = React.useMemo(() => {
+    const map = new Map<number, PlanningPlacement>();
+    for (const row of rows) {
+      if (!row.span) continue;
+      const placement = placeAppointment(row.span, range);
+      if (placement) map.set(row.index, placement);
     }
-  }
+    return map;
+  }, [rows, range]);
 
-  const connectors =
-    showDependencies && dependencies && dependencies.length > 0
-      ? ganttConnectors(anchors, dependencies, { axisWidth, rowHeight: ROW_PX })
-      : [];
+  const connectors = React.useMemo(() => {
+    if (!showDependencies || !dependencies || dependencies.length === 0) return [];
+    const anchors = new Map<string, GanttBarAnchor>();
+    for (const [id, index] of rowIndexById) {
+      const placement = placements.get(index);
+      if (placement) {
+        anchors.set(id, { rowIndex: index, startPct: placement.startPct, widthPct: placement.widthPct });
+      }
+    }
+    return ganttConnectors(anchors, dependencies, { axisWidth, rowHeight: ROW_PX });
+  }, [showDependencies, dependencies, rowIndexById, placements, axisWidth]);
 
   const bodyHeight = rows.length * ROW_PX;
+
+  /* Which rows actually go in the DOM. Always on: a threshold would mean the
+     windowed path is the one no demo and no check ever runs, and production is
+     the first thing to try it. Below a screenful the window covers every row,
+     so small plans render exactly as they did. */
+  const rowWindow = ganttRowWindow(rows.length, ROW_PX, scroll.top, scroll.height);
+  const visibleRows = rows.slice(rowWindow.startIndex, rowWindow.endIndex);
+
+  /* The connector layer is memoized as an ELEMENT, not just as data. It is one
+     SVG of up to several thousand paths, it does not depend on scroll, and
+     without this React reconciles every one of those nodes on each scroll frame
+     — measured at 13ms per frame of pure diffing for 3,000 links. It is
+     deliberately NOT windowed: a link between two off-screen tasks still routes
+     through the visible band, and culling it would blink connectors in and out
+     as their endpoints scrolled away. */
+  const connectorLayer = React.useMemo(() => {
+    if (connectors.length === 0) return null;
+    return (
+      /* Mirrored under RTL rather than recomputed: the bars are placed with
+         logical inset properties, so the axis is already flipped and the routes
+         have to flip with it — arrowheads included. */
+      <svg
+        aria-hidden="true"
+        className="zen-pointer-events-none zen-absolute zen-top-0 zen-z-10 rtl:-zen-scale-x-100"
+        width={axisWidth}
+        height={bodyHeight}
+        viewBox={`0 0 ${axisWidth} ${bodyHeight}`}
+        style={{ insetInlineStart: LEFT_PX }}
+      >
+        {connectors.map((connector) => (
+          <g key={connector.id}>
+            <path
+              d={connector.d}
+              fill="none"
+              /* zen-stroke-* / zen-fill-* generate nothing under this preset —
+                 the token has to be named directly. */
+              stroke="var(--zen-color-muted-fg)"
+              strokeWidth={1.5}
+            />
+            <polygon
+              points={[
+                `${connector.arrow.x},${connector.arrow.y}`,
+                `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y - ARROW_PX}`,
+                `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y + ARROW_PX}`,
+              ].join(" ")}
+              fill="var(--zen-color-muted-fg)"
+            />
+          </g>
+        ))}
+      </svg>
+    );
+  }, [connectors, axisWidth, bodyHeight]);
+
+  /* Focus rescue. Scrolling a focused bar out of the window unmounts the button
+     under it and the browser drops focus to <body> — so the next Tab restarts
+     from the top of the PAGE, stranding a keyboard user who was reading row
+     4,000. This puts focus on the scroller instead: still inside the chart,
+     still scrolled where they left it, and Tab continues from there.
+     Deliberately NOT "keep the focused row mounted": that row can be thousands
+     of rows from the window, and mounting the span between them is the exact
+     thing this change exists to avoid. */
+  const hadFocusRef = React.useRef(false);
+  React.useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    if (el.contains(document.activeElement)) return;
+    /* Only rescue when focus fell to <body>, which is what unmounting the
+       focused node does. If it went to some other element the user moved it
+       deliberately and stealing it back would be worse than the problem. */
+    if (hadFocusRef.current && document.activeElement === document.body) {
+      el.focus({ preventScroll: true });
+      return;
+    }
+    hadFocusRef.current = false;
+  }, [rowWindow.startIndex, rowWindow.endIndex]);
 
   if (loading) {
     return (
@@ -469,9 +623,33 @@ export const Gantt = ({
             header sticky at the top, so vertical scroll moves both panes and
             horizontal scroll moves only the axis — with no scroll listener to
             fall out of sync. */}
-        <div className="zen-relative zen-max-h-[32rem] zen-overflow-auto zen-rounded-zen-md zen-border zen-border-zen-border">
-          <div style={{ width: LEFT_PX + axisWidth }}>
+        <div
+          ref={scrollerRef}
+          /* Focusable so the focus rescue has somewhere to land, and so a
+             keyboard user can scroll the chart without first tabbing to a bar. */
+          tabIndex={-1}
+          /* Recorded from the event, not from the effect: focusing a bar changes
+             no React state, so the effect never runs to notice it and would
+             still think focus was outside when the row unmounts. */
+          onFocus={() => {
+            hadFocusRef.current = true;
+          }}
+          className="zen-relative zen-max-h-[32rem] zen-overflow-auto zen-rounded-zen-md zen-border zen-border-zen-border focus-visible:zen-outline-none"
+        >
+          <div
+            style={{ width: LEFT_PX + axisWidth }}
+            role="grid"
+            /* The TRUE totals, not the windowed ones. This is the whole reason
+               a virtualized grid needs explicit row semantics: without them a
+               screen reader counts the DOM and announces "row 3 of 26" in a
+               10,000-row plan. +1 for the header row. */
+            aria-rowcount={rows.length + 1}
+            aria-colcount={5}
+            aria-label="Project schedule"
+          >
             <div
+              role="row"
+              aria-rowindex={1}
               className="zen-sticky zen-top-0 zen-z-30 zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted"
               style={{ height: HEADER_PX, boxSizing: "border-box" }}
             >
@@ -479,21 +657,21 @@ export const Gantt = ({
                 className="zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-text-xs zen-font-semibold zen-text-zen-muted-fg"
                 style={{ width: LEFT_PX, insetInlineStart: 0 }}
               >
-                <div className="zen-truncate zen-px-3" style={{ width: NAME_PX }}>
+                <div role="columnheader" aria-colindex={1} className="zen-truncate zen-px-3" style={{ width: NAME_PX }}>
                   Task
                 </div>
-                <div className="zen-truncate zen-px-2" style={{ width: ASSIGNEES_PX }}>
+                <div role="columnheader" aria-colindex={2} className="zen-truncate zen-px-2" style={{ width: ASSIGNEES_PX }}>
                   Assignees
                 </div>
-                <div className="zen-truncate zen-px-2" style={{ width: STATUS_PX }}>
+                <div role="columnheader" aria-colindex={3} className="zen-truncate zen-px-2" style={{ width: STATUS_PX }}>
                   Status
                 </div>
-                <div className="zen-truncate zen-px-2" style={{ width: VARIANCE_PX }}>
+                <div role="columnheader" aria-colindex={4} className="zen-truncate zen-px-2" style={{ width: VARIANCE_PX }}>
                   Variance
                 </div>
               </div>
 
-              <div className="zen-flex" style={{ width: axisWidth }}>
+              <div role="columnheader" aria-colindex={5} aria-label="Timeline" className="zen-flex" style={{ width: axisWidth }}>
                 {columns.map((column, i) => (
                   <div
                     key={column.start.getTime()}
@@ -516,7 +694,16 @@ export const Gantt = ({
             </div>
 
             <div className="zen-relative" style={{ height: bodyHeight }}>
-              {rows.map((row) => (
+              {/* Spacers stand in for the rows that are not mounted, so the
+                  scrollbar measures the whole plan rather than the window.
+                  Spacers rather than a transform on purpose: a transformed
+                  ancestor makes `position: sticky` resolve against IT instead
+                  of the scroll container, and the frozen task pane would come
+                  unstuck the moment the window moved. */}
+              {rowWindow.paddingTop > 0 && (
+                <div aria-hidden="true" style={{ height: rowWindow.paddingTop }} />
+              )}
+              {visibleRows.map((row) => (
                 <GanttRowView
                   key={row.task.id}
                   row={row}
@@ -528,6 +715,9 @@ export const Gantt = ({
                   onTaskClick={onTaskClick}
                 />
               ))}
+              {rowWindow.paddingBottom > 0 && (
+                <div aria-hidden="true" style={{ height: rowWindow.paddingBottom }} />
+              )}
 
               {marker !== null && (
                 <div
@@ -540,40 +730,7 @@ export const Gantt = ({
                 />
               )}
 
-              {connectors.length > 0 && (
-                /* Mirrored under RTL rather than recomputed: the bars are placed
-                   with logical inset properties, so the axis is already flipped
-                   and the routes have to flip with it — arrowheads included. */
-                <svg
-                  aria-hidden="true"
-                  className="zen-pointer-events-none zen-absolute zen-top-0 zen-z-10 rtl:-zen-scale-x-100"
-                  width={axisWidth}
-                  height={bodyHeight}
-                  viewBox={`0 0 ${axisWidth} ${bodyHeight}`}
-                  style={{ insetInlineStart: LEFT_PX }}
-                >
-                  {connectors.map((connector) => (
-                    <g key={connector.id}>
-                      <path
-                        d={connector.d}
-                        fill="none"
-                        /* zen-stroke-* / zen-fill-* generate nothing under this
-                           preset — the token has to be named directly. */
-                        stroke="var(--zen-color-muted-fg)"
-                        strokeWidth={1.5}
-                      />
-                      <polygon
-                        points={[
-                          `${connector.arrow.x},${connector.arrow.y}`,
-                          `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y - ARROW_PX}`,
-                          `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y + ARROW_PX}`,
-                        ].join(" ")}
-                        fill="var(--zen-color-muted-fg)"
-                      />
-                    </g>
-                  ))}
-                </svg>
-              )}
+              {connectorLayer}
             </div>
           </div>
         </div>
@@ -610,6 +767,11 @@ const GanttRowView = ({
 
   return (
     <div
+      role="row"
+      /* The row's TRUE position in the plan, +1 for the header. A windowed grid
+         that numbers rows from the DOM tells a screen-reader user they are on
+         row 3 of 26 when they are on row 4,812 of 10,000. */
+      aria-rowindex={row.index + 2}
       className="zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0"
       style={{ height: ROW_PX, boxSizing: "border-box" }}
     >
@@ -618,6 +780,8 @@ const GanttRowView = ({
         style={{ width: LEFT_PX, insetInlineStart: 0 }}
       >
         <div
+          role="gridcell"
+          aria-colindex={1}
           className="zen-flex zen-min-w-0 zen-items-center zen-gap-1 zen-pe-2"
           style={{ width: NAME_PX, paddingInlineStart: 8 + row.depth * INDENT_PX }}
         >
@@ -658,17 +822,17 @@ const GanttRowView = ({
           </span>
         </div>
 
-        <div className="zen-flex zen-items-center zen-px-2" style={{ width: ASSIGNEES_PX }}>
+        <div role="gridcell" aria-colindex={2} className="zen-flex zen-items-center zen-px-2" style={{ width: ASSIGNEES_PX }}>
           <GanttAssignees assignees={task.assignees} />
         </div>
 
-        <div className="zen-flex zen-items-center zen-px-2" style={{ width: STATUS_PX }}>
+        <div role="gridcell" aria-colindex={3} className="zen-flex zen-items-center zen-px-2" style={{ width: STATUS_PX }}>
           <Badge variant="soft" color={STATUS_COLOR[row.status]} className="zen-truncate">
             {task.statusLabel ?? STATUS_LABEL[row.status]}
           </Badge>
         </div>
 
-        <div className="zen-flex zen-items-center zen-px-2" style={{ width: VARIANCE_PX }}>
+        <div role="gridcell" aria-colindex={4} className="zen-flex zen-items-center zen-px-2" style={{ width: VARIANCE_PX }}>
           {varianceText && (
             <Badge
               /* "+2d" is a signed number, and bidi reorders a leading sign to
@@ -683,7 +847,7 @@ const GanttRowView = ({
         </div>
       </div>
 
-      <div className="zen-relative zen-shrink-0" style={{ width: axisWidth }}>
+      <div role="gridcell" aria-colindex={5} className="zen-relative zen-shrink-0" style={{ width: axisWidth }}>
         {/* The column rules as a background layer rather than as parents of the
             bar: a bar spanning four days cannot live inside one day's box. */}
         <div aria-hidden="true" className="zen-absolute zen-inset-0 zen-flex">

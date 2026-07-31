@@ -644,3 +644,68 @@ export function ganttConnectors(
 export function ganttAnchor(rowIndex: number, placement: PlanningPlacement): GanttBarAnchor {
   return { rowIndex, startPct: placement.startPct, widthPct: placement.widthPct };
 }
+
+/** Which rows to actually mount, and the spacers that stand in for the rest. */
+export interface GanttRowWindow {
+  /** First row index to mount. */
+  startIndex: number;
+  /** One PAST the last row to mount, so `rows.slice(startIndex, endIndex)`. */
+  endIndex: number;
+  /** Height of the spacer standing in for the rows above. */
+  paddingTop: number;
+  /** …and below. */
+  paddingBottom: number;
+}
+
+/**
+ * The slice of rows worth putting in the DOM for a given scroll position.
+ *
+ * Rows are a FIXED height — the connector routes already depend on that, since
+ * they place an endpoint at `rowIndex * rowHeight + rowHeight / 2` — so the
+ * window is arithmetic rather than measurement, and no virtualizer is needed to
+ * discover row offsets. That is why this is eleven lines in core instead of a
+ * React-only integration: the Solid and vanilla ports get it by calling the
+ * same function, which is the rule the whole module exists to serve.
+ *
+ * The spacers are what keep the scrollbar honest. Total height is always
+ * `paddingTop + (endIndex - startIndex) * rowHeight + paddingBottom`, which is
+ * `rowCount * rowHeight` however the window moves — so the thumb neither grows
+ * nor jumps as rows mount and unmount.
+ *
+ * `overscan` rows are mounted beyond each edge so a fast scroll does not show a
+ * band of blank before React catches up. It is deliberately NOT huge: every
+ * overscanned row is a real row of DOM, and the cost of one is what the whole
+ * change is trying to avoid.
+ *
+ * Always on, at every size. A threshold would mean the windowed path is the one
+ * no demo, no screenshot and no check ever runs, and production is the first
+ * thing to try it. Below a screenful the window simply covers every row and the
+ * output is identical to not windowing at all.
+ */
+export function ganttRowWindow(
+  rowCount: number,
+  rowHeight: number,
+  scrollTop: number,
+  viewportHeight: number,
+  overscan = 6,
+): GanttRowWindow {
+  if (rowCount <= 0 || rowHeight <= 0) {
+    return { startIndex: 0, endIndex: 0, paddingTop: 0, paddingBottom: 0 };
+  }
+  // Clamped at 0: a rubber-band overscroll reports a NEGATIVE scrollTop on
+  // macOS and iOS, which floors to a negative first index and yields a negative
+  // paddingTop — the rows jump up under the header for the length of the bounce.
+  const top = Math.max(0, scrollTop);
+  const firstVisible = Math.floor(top / rowHeight);
+  const lastVisible = Math.ceil((top + Math.max(0, viewportHeight)) / rowHeight);
+
+  const startIndex = Math.min(Math.max(firstVisible - overscan, 0), rowCount);
+  const endIndex = Math.min(Math.max(lastVisible + overscan, startIndex), rowCount);
+
+  return {
+    startIndex,
+    endIndex,
+    paddingTop: startIndex * rowHeight,
+    paddingBottom: (rowCount - endIndex) * rowHeight,
+  };
+}
