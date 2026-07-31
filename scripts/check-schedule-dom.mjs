@@ -123,6 +123,28 @@ const survey = (page) =>
         ),
         setupHatch: grid.querySelectorAll('[style*="repeating-linear-gradient"]').length,
         clientWidth: scroller.clientWidth,
+        /* Anything drawn past the grid's own width widens the scroller, so the
+           chart scrolls sideways to reveal it. A percent label placed after a
+           bar that ends at the edge of the range did exactly this. */
+        overhangPx: Math.round(scroller.scrollWidth - Math.ceil(grid.getBoundingClientRect().width)),
+        gridName: grid.getAttribute("aria-label"),
+        /* PER GRID, not page-wide: `rows` above already drops this grid's own
+           header row, and a page-wide slice drops only one of sixteen. */
+        rowsWithoutLevel: rows.filter((r) => !r.getAttribute("aria-level")).length,
+        /* aria-expanded belongs on parents only. On a leaf it tells a reader
+           there is something to open when there is not. */
+        expandedOnLeaves: rows.filter(
+          (r) =>
+            r.getAttribute("aria-expanded") !== null &&
+            !r.querySelector("button[aria-label^='Collapse'],button[aria-label^='Expand']"),
+        ).length,
+        /* An empty gridcell is announced as "blank". Right for absent data,
+           wrong for the timeline cell — the reader arrowed there expecting a
+           bar, and "blank" does not separate "no dates" from "starts after the
+           range you are looking at". */
+        unnamedTimelineCells: [...grid.querySelectorAll('[role="gridcell"][aria-colindex="5"]')].filter(
+          (c) => !(c.getAttribute("aria-label") || c.textContent || "").trim(),
+        ).length,
       };
     });
     return {
@@ -177,6 +199,11 @@ for (const direction of DIRECTIONS) {
     t("rows are a uniform height within each chart", charts.every((c) => c.rowHeights.length <= 1), true);
     t("every mounted row states its level", charts.every((c) => c.levels === c.mounted), true);
     t("every chart draws axis columns", charts.every((c) => c.axisColumns > 0), true);
+    t("nothing is drawn past the grid's own width", charts.filter((c) => c.overhangPx > 0).length, 0);
+    t("every chart names itself", charts.every((c) => (c.gridName ?? "").length > 0), true);
+    t("every data row states its level", charts.reduce((n, c) => n + c.rowsWithoutLevel, 0), 0);
+    t("aria-expanded appears on no leaf row", charts.reduce((n, c) => n + c.expandedOnLeaves, 0), 0);
+    t("no timeline cell is announced as blank", charts.reduce((n, c) => n + c.unnamedTimelineCells, 0), 0);
     t("charts with rows have a pane column", charts.every((c) => c.rowCount === 0 || c.pane.length > 0), true);
 
     if (route === "gantt") {

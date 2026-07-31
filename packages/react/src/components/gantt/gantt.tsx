@@ -255,6 +255,16 @@ const AVATAR_MAX = 3;
  */
 const LABEL_MIN_PX = 44;
 const LABEL_MAX_PCT = 85;
+/**
+ * Room an outside label needs after the bar before it is put in front of it
+ * instead.
+ *
+ * Without this a task finishing at the end of the range draws its label PAST
+ * the axis, which widens the scroller and makes the chart scroll sideways to
+ * reveal two characters of grey text. Measured: 26px of overhang on the year
+ * view, which is a horizontal scrollbar on a chart that otherwise fits.
+ */
+const LABEL_OUTSIDE_PX = 30;
 
 const BAR_CLASS: Record<GanttTaskStatus, string> = {
   "not-started": "zen-bg-zen-muted zen-border-zen-border",
@@ -685,6 +695,10 @@ const GanttTrack = ({
   const widthPx = placement ? (placement.widthPct / 100) * axisWidth : 0;
   const labelOutside = widthPx < LABEL_MIN_PX;
   const labelOnFill = !labelOutside && progress >= LABEL_MAX_PCT;
+  /* Which SIDE the outside label goes. After the bar normally; before it when
+     the bar ends against the edge of the axis and there is nowhere after. */
+  const endPct = placement ? placement.startPct + placement.widthPct : 0;
+  const labelBefore = ((100 - endPct) / 100) * axisWidth < LABEL_OUTSIDE_PX;
 
   /**
    * The bar's working stretches, as percentages OF THE BAR, with the progress
@@ -738,7 +752,16 @@ const GanttTrack = ({
     return out.length > 0 ? out : null;
   }, [row.segments, row.span, progress, range]);
 
-  if (!placement) return null;
+  /* An empty gridcell is announced as "blank", which is correct for a cell with
+     no data and wrong for THIS one: the reader arrowed to the timeline
+     expecting a bar, and "blank" does not distinguish "no dates" from "starts
+     after the range you are looking at". */
+  if (!placement)
+    return (
+      <span className="zen-sr-only">
+        {row.span ? "Not scheduled in this range" : "No dates"}
+      </span>
+    );
 
   return (
     <>
@@ -830,7 +853,9 @@ const GanttTrack = ({
           aria-hidden="true"
           className="zen-absolute zen-flex zen-items-center zen-text-[10px] zen-font-medium zen-text-zen-muted-fg"
           style={{
-            insetInlineStart: `calc(${placement.startPct + placement.widthPct}% + 4px)`,
+            ...(labelBefore
+              ? { insetInlineEnd: `calc(${100 - placement.startPct}% + 4px)` }
+              : { insetInlineStart: `calc(${endPct}% + 4px)` }),
             top: BAR_TOP,
             height: BAR_PX,
           }}

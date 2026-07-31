@@ -655,6 +655,37 @@ export function ganttFitUnit(spanMs: number): GanttColumnUnit {
   return "month";
 }
 
+/**
+ * Hours per column for a fit axis in the HOUR band, so the count stays
+ * readable.
+ *
+ * The band covers everything up to two days, and at one column per hour that is
+ * 48 of them — an axis wider than any container, on the one view whose entire
+ * purpose is not having to scroll sideways. Stepping is the fix rather than
+ * narrowing the band: a 32-hour works order across two shifts genuinely wants
+ * sub-day resolution, and demoting it to day columns would take all of it away.
+ *
+ * The ladder is quarter-hours upward, and the smallest step that fits the cap
+ * wins, so a short span gets FINER columns rather than merely fewer — a
+ * three-hour job draws at 15 minutes, which is the resolution a shop floor
+ * actually schedules at.
+ *
+ * The price, and it is real: a 3- or 4-hour column is only shaded non-working
+ * when NO part of it is, so shift boundaries stop landing on gridlines at the
+ * coarse end of the band. That is the trade for an axis that fits, and it only
+ * bites above about a day.
+ */
+const FIT_HOUR_STEPS = [0.25, 0.5, 1, 2, 3, 4, 6];
+
+export function ganttFitHourStep(spanMs: number, maxColumns = 16): number {
+  const hours = spanMs / MS_HOUR;
+  const cap = Math.max(1, maxColumns);
+  for (const step of FIT_HOUR_STEPS) {
+    if (hours / step <= cap) return step;
+  }
+  return FIT_HOUR_STEPS[FIT_HOUR_STEPS.length - 1];
+}
+
 export interface GanttFitOptions {
   /** Durations are resolved through this, as everywhere else. */
   calendar?: GanttCalendar;
