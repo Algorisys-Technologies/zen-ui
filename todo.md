@@ -933,6 +933,22 @@ built — Tier 1 spent a day marked done while a row was missing.
       `aria-rowindex` pair (a windowed grid otherwise tells a screen reader
       "row 3 of 26" in a 10,000-row plan), and the focus rescue (a focused bar
       that unmounts drops focus to `<body>` and strands the keyboard user).
+      **A fourth drift, and the largest**: React's Gantt has a WORKING-TIME
+      model — `GanttCalendar`, `ganttWorkingMs`, `ganttAddWorkingMs`,
+      `ganttWorkingSegments`, `workingMinutes` on a task, calendar-driven column
+      shading and split bars. All of it is in `packages/core/src/gantt.ts` and
+      pinned by 375 assertions run under two timezones, so the ports are
+      renderer work only: thread `calendar` and `hourStep` through, and draw
+      `row.segments` as pieces INSIDE the existing bar button rather than as
+      separate buttons — one job is one focus target however many stretches it
+      is worked in. The trap that cost a fix here and will cost one again:
+      piece positions are percentages of the VISIBLE, clipped bar, not of the
+      whole span. Measuring against the span squashes and shifts every piece on
+      any bar that starts before the range, and it is invisible until you look
+      at one that does.
+      See [docs/production-scheduling-gap-analysis.md](docs/production-scheduling-gap-analysis.md)
+      for the two open decisions this sits under: whether production scheduling
+      becomes a second component, and whether the read-only stance survives.
       It is deferred at the user's request rather than on substance — the
       consuming app is React and wanted the import unblocked without waiting on
       a full four-binding release. Nothing is marked `divergent` in

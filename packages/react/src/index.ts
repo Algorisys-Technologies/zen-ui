@@ -716,14 +716,27 @@ export { Gantt } from "./components/gantt/gantt";
 export type { GanttProps, GanttTask, GanttAssignee } from "./components/gantt/gantt";
 export type {
   GanttBarAnchor,
+  GanttCalendar,
+  GanttCalendarException,
   GanttConnector,
   GanttDependency,
   GanttDependencyType,
+  GanttFlattenOptions,
   GanttRow,
+  GanttSegmentOptions,
   GanttSpan,
   GanttTaskNode,
   GanttTaskStatus,
   GanttView,
+  GanttWorkingPeriod,
+} from "@algorisys/zen-ui-core/gantt";
+export {
+  GANTT_CALENDAR_24_7,
+  ganttAddWorkingMs,
+  ganttIsWorking,
+  ganttWorkingMs,
+  ganttWorkingPeriodsOn,
+  ganttWorkingSegments,
 } from "@algorisys/zen-ui-core/gantt";
 export { UploadCollection } from "./components/upload-collection/upload-collection";
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";

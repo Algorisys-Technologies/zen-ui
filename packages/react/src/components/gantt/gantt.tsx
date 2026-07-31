@@ -12,6 +12,7 @@ import {
   placeAppointment,
   shiftGanttAnchor,
   type GanttBarAnchor,
+  type GanttCalendar,
   type GanttDependency,
   type GanttRow,
   type GanttTaskNode,
@@ -19,6 +20,7 @@ import {
   type GanttView,
   type PlanningColumn,
   type PlanningPlacement,
+  type PlanningRange,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "../avatar/avatar";
@@ -129,6 +131,21 @@ export interface GanttProps {
 
   onTaskClick?: (task: GanttTask, row: GanttRow<GanttTask>) => void;
 
+  /**
+   * When work can happen — shift patterns per weekday plus dated exceptions for
+   * holidays, planned maintenance and one-off overtime.
+   *
+   * With one supplied, durations become WORKING durations, bars break across
+   * non-working time instead of drawing through it, and the shaded columns are
+   * decided by this rather than by the weekend-and-nine-to-five default.
+   * Omit it and nothing changes: no calendar means a 24/7 one.
+   */
+  calendar?: GanttCalendar;
+  /**
+   * Hours per column in the DAY view. Default 1. Set 0.25 for quarter-hour
+   * columns, which is the resolution a shop floor schedules at.
+   */
+  hourStep?: number;
   /** Reference "now" for the marker, the today column and the derived status. */
   now?: Date;
   /**
@@ -304,6 +321,8 @@ export const Gantt = ({
   onExpandedChange,
   onTaskClick,
   now: nowProp,
+  calendar,
+  hourStep,
   columnWidth,
   hideToolbar,
   loading,
@@ -402,9 +421,9 @@ export const Gantt = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const range = React.useMemo(() => ganttRange(view, anchor), [view, anchorTime]);
   const columns = React.useMemo(
-    () => ganttColumns(view, anchor, { now }),
+    () => ganttColumns(view, anchor, { now, calendar, hourStep }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [view, anchorTime, nowTime],
+    [view, anchorTime, nowTime, calendar, hourStep],
   );
   const axisWidth = columns.length * (columnWidth ?? COLUMN_PX[view]);
   /* Per column, from its own duration — NOT axisWidth / columns.length. A year
@@ -416,15 +435,25 @@ export const Gantt = ({
   );
   const marker = nowPct(range, now);
 
+  /* Splitting is a GEOMETRY decision, not a data one: a gap that would draw
+     narrower than a pixel is not worth a second DOM node, and at a year zoom
+     that is every gap. Derived from the axis so the day view breaks at lunch
+     and the year view does not. */
+  const minGapMs = React.useMemo(
+    () => (axisWidth > 0 ? (range.end.getTime() - range.start.getTime()) / axisWidth : 0),
+    [range, axisWidth],
+  );
+
   const { rows, rowIndexById } = React.useMemo(
     () =>
       flattenGanttTasks<GanttTask>(
         tasks ?? [],
         (task) => (expandedSet === null ? true : expandedSet.has(task.id)),
         now,
+        { calendar, minGapMs },
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tasks, expandedSet, nowTime],
+    [tasks, expandedSet, nowTime, calendar, minGapMs],
   );
 
   /** One placement per row, and the same placements keyed by every task id —
@@ -710,6 +739,7 @@ export const Gantt = ({
                   columns={columns}
                   columnWidths={columnWidths}
                   axisWidth={axisWidth}
+                  range={range}
                   placement={placements.get(row.index) ?? null}
                   onToggle={toggle}
                   onTaskClick={onTaskClick}
@@ -744,6 +774,7 @@ interface GanttRowViewProps {
   columns: PlanningColumn[];
   columnWidths: number[];
   axisWidth: number;
+  range: PlanningRange;
   placement: PlanningPlacement | null;
   onToggle: (id: string) => void;
   onTaskClick?: (task: GanttTask, row: GanttRow<GanttTask>) => void;
@@ -754,6 +785,7 @@ const GanttRowView = ({
   columns,
   columnWidths,
   axisWidth,
+  range,
   placement,
   onToggle,
   onTaskClick,
@@ -764,6 +796,58 @@ const GanttRowView = ({
   const widthPx = placement ? (placement.widthPct / 100) * axisWidth : 0;
   const labelOutside = widthPx < LABEL_MIN_PX;
   const labelOnFill = !labelOutside && progress >= LABEL_MAX_PCT;
+
+  /**
+   * The bar's working stretches, as percentages OF THE BAR, with the progress
+   * fill handed out along them.
+   *
+   * The fill is distributed by working duration rather than given to each piece
+   * equally or drawn as one overlay: 40% complete on a job that runs an hour on
+   * Friday and seven on Monday means the Friday piece is full and the Monday one
+   * has barely started, not that both are 40% shaded. Percentages of the bar,
+   * not of the axis, so the pieces move with the bar and need no second
+   * placement pass.
+   */
+  const pieces = React.useMemo(() => {
+    if (!row.segments || !row.span) return null;
+    /* Percentages of the VISIBLE bar, not of the whole span. `placeAppointment`
+       clips a bar to the range, so the button is only the part in view — and
+       measuring the pieces against the full span would squash and shift every
+       one of them the moment a job started before the range. That is invisible
+       until you look at a bar that spans the left edge. */
+    const from = Math.max(row.span.start.getTime(), range.start.getTime());
+    const to = Math.min(row.span.end.getTime(), range.end.getTime());
+    const total = to - from;
+    if (total <= 0) return null;
+
+    /* The fill is handed out over the segments the WHOLE job is worked in, not
+       just the visible ones, or a job half-done off-screen would look untouched
+       where you can see it. */
+    const allDurations = row.segments.map((seg) => seg.end.getTime() - seg.start.getTime());
+    const workingTotal = allDurations.reduce((a, b) => a + b, 0);
+    let remaining = (workingTotal * progress) / 100;
+
+    const out: Array<{ key: number; startPct: number; widthPct: number; fillPct: number }> = [];
+    row.segments.forEach((seg, i) => {
+      const done = Math.max(0, Math.min(remaining, allDurations[i]));
+      remaining -= done;
+
+      const segStart = Math.max(seg.start.getTime(), from);
+      const segEnd = Math.min(seg.end.getTime(), to);
+      if (segEnd <= segStart) return;
+      const visible = segEnd - segStart;
+      /* `done` counts filled milliseconds from the segment's own start, so a
+         segment cut by the left edge shows only the part of its fill in view. */
+      const fillVisible = Math.max(0, Math.min(done - (segStart - seg.start.getTime()), visible));
+      out.push({
+        key: segStart,
+        startPct: ((segStart - from) / total) * 100,
+        widthPct: (visible / total) * 100,
+        fillPct: visible > 0 ? (fillVisible / visible) * 100 : 0,
+      });
+    });
+    return out.length > 0 ? out : null;
+  }, [row.segments, row.span, progress, range]);
 
   return (
     <div
@@ -872,13 +956,16 @@ const GanttRowView = ({
                things on the axis worth reaching by keyboard, and a plain div
                takes the whole chart out of the tab order. */
             className={cn(
-              "zen-absolute zen-overflow-hidden zen-rounded-zen-sm zen-border",
+              "zen-absolute zen-rounded-zen-sm",
               "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-              BAR_CLASS[row.status],
+              /* Drawn as pieces, the button is only the hit area and the focus
+                 ring — the skin moves onto each piece, or the gaps would be
+                 filled by the button's own background. */
+              pieces === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[row.status]),
               /* Square off a cut edge so a bar continuing past the view does
                  not look like it ends there. */
-              placement.clippedStart && "zen-rounded-s-none zen-border-s-0",
-              placement.clippedEnd && "zen-rounded-e-none zen-border-e-0",
+              pieces === null && placement.clippedStart && "zen-rounded-s-none zen-border-s-0",
+              pieces === null && placement.clippedEnd && "zen-rounded-e-none zen-border-e-0",
               onTaskClick && "hover:zen-brightness-95",
             )}
             style={{
@@ -896,7 +983,30 @@ const GanttRowView = ({
                 row.progress === null ? "" : `, ${Math.round(progress)} percent complete`
               }`}
             </span>
-            {row.progress !== null && (
+            {/* The bar broken at the gaps where no work happens. The pieces sit
+                INSIDE one button rather than being buttons themselves: the job
+                is one thing to click, one thing to focus and one accessible
+                name, however many stretches it is worked in. The gaps are left
+                genuinely transparent so the shaded non-working column shows
+                through — which is what makes the break read as "the plant is
+                shut" rather than as a rendering fault. */}
+            {pieces !== null &&
+              pieces.map((piece) => (
+                <span
+                  key={piece.key}
+                  aria-hidden="true"
+                  className={cn("zen-absolute zen-inset-y-0 zen-overflow-hidden", BAR_CLASS[row.status], "zen-rounded-zen-sm zen-border")}
+                  style={{ insetInlineStart: `${piece.startPct}%`, width: `${piece.widthPct}%` }}
+                >
+                  {row.progress !== null && piece.fillPct > 0 && (
+                    <span
+                      className={cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[row.status])}
+                      style={{ width: `${piece.fillPct}%` }}
+                    />
+                  )}
+                </span>
+              ))}
+            {pieces === null && row.progress !== null && (
               <span
                 aria-hidden="true"
                 className={cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[row.status])}

@@ -28,7 +28,7 @@
     "check:pivot": "bun run scripts/check-pivot.ts",
     "check:virtual-window": "bun run scripts/check-virtual-window.ts",
     "check:planning": "bun run scripts/check-planning.ts",
-    "check:gantt": "bun run scripts/check-gantt.ts",
+    "check:gantt": "bun run scripts/check-gantt.ts && TZ=Europe/London bun run scripts/check-gantt.ts",
     "check:nav": "bun run scripts/check-nav.ts",
     "check:parity": "bun run scripts/check-parity.ts",
     "check:release": "bun run scripts/check-release.ts",
