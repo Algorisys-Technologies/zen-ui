@@ -621,6 +621,7 @@ export function ganttColumns(
 /** What one column of an arbitrary range covers. */
 export type GanttColumnUnit = "hour" | "day" | "week" | "month";
 
+const MS_HOUR = 60 * 60 * 1000;
 const pad2 = (n: number): string => String(n).padStart(2, "0");
 const startOfMonth = (d: Date): Date => new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0);
 const startOfHour = (d: Date): Date =>
@@ -665,7 +666,17 @@ export interface GanttFitOptions {
    * that really is cut by the range.
    */
   padFraction?: number;
-  /** A floor on that padding, so a one-day plan still gets room. Default 1 day. */
+  /**
+   * A floor on that padding, so a zero-width plan still gets a real axis.
+   * Default one HOUR.
+   *
+   * It was a day, and a day made the `hour` band unreachable: a 4-hour works
+   * order padded to 3 days and drew as three day columns, with none of the
+   * sub-day resolution the whole working-time model exists to show. Measured —
+   * a 4-hour job, an 8-hour shift and a two-shift order all came back `day`.
+   * The floor is only there for the degenerate case, so it belongs at the
+   * smallest unit the axis can draw rather than at the largest.
+   */
   minPadMs?: number;
 }
 
@@ -723,7 +734,7 @@ export function ganttFitRange(
   tasks: GanttTaskNode[],
   options: GanttFitOptions = {},
 ): PlanningRange | null {
-  const { calendar, padFraction = 0.04, minPadMs = MS_DAY } = options;
+  const { calendar, padFraction = 0.04, minPadMs = MS_HOUR } = options;
 
   let from = Number.POSITIVE_INFINITY;
   let to = Number.NEGATIVE_INFINITY;

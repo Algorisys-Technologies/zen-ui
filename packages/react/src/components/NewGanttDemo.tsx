@@ -478,6 +478,11 @@ const NewGanttDemo = () => (
             defaultDate={SHOP_NOW}
             defaultView="day"
           />
+          {/* The four-hour overtime job on its own, so fit lands in the HOUR
+              band — the resolution a shop floor actually schedules at, and the
+              one a day-wide padding floor used to make unreachable. The shaded
+              columns either side are the hours the plant is shut. */}
+          <Gantt tasks={[SHOP[0].children![3]]} calendar={PLANT} now={SHOP_NOW} />
         </div>
       </CodeExample>
     </section>
