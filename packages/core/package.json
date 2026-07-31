@@ -22,6 +22,7 @@
     "./planning": "./src/planning.ts",
     "./gantt": "./src/gantt.ts",
     "./production": "./src/production.ts",
+    "./reschedule": "./src/reschedule.ts",
     "./media": "./src/media.ts",
     "./variants": "./src/variants.ts",
     "./release-notes": "./src/release-notes.ts"

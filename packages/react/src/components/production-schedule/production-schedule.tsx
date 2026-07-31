@@ -5,6 +5,7 @@ import {
   ganttFitRange,
   placeAppointment,
   productionLoad,
+  productionReschedule,
   productionSequenceConflicts,
   type GanttBarAnchor,
   type GanttCalendar,
@@ -18,6 +19,8 @@ import {
   type ProductionPlacement,
   type ProductionResourceNode,
   type ProductionRow as ProductionRowData,
+  type ProductionMove,
+  type ProductionProposal,
   type ProductionSetupMatrix,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
@@ -164,6 +167,33 @@ export interface ProductionScheduleProps {
   onOperationClick?: (operation: ProductionOperation, row: ProductionRowData<ProductionResource, ProductionOperation>) => void;
 
   /**
+   * Called with what WOULD happen if the user's move were made. Supplying it is
+   * what turns rescheduling on.
+   *
+   * The component never applies it. It stays controlled: it renders the
+   * `operations` it is given, hands you a proposal, and changes nothing until
+   * you pass a new array. That is what keeps undo yours — a history of arrays
+   * you already own — and it is why there is no internal pending state to get
+   * out of sync with your ERP.
+   *
+   * `proposal.cascade` includes the operation the user dragged, first. Persist
+   * only that one and you have written a schedule nobody saw. `conflicts` and
+   * `cycles` are reported, never enforced: overtime gets authorised, and a
+   * supervisor who knows both jobs can run may double-book deliberately.
+   */
+  onReschedule?: (proposal: ProductionProposal) => void;
+  /**
+   * Whether an operation may be moved at all. Default: everything may, once
+   * `onReschedule` is supplied.
+   *
+   * This GATES THE AFFORDANCE rather than the outcome — a forbidden operation
+   * simply is not draggable, so a user never does the work of moving something
+   * and then gets told no. Returning a rejection after the drag is the version
+   * that feels like a bug.
+   */
+  canReschedule?: (operation: ProductionOperation) => boolean;
+
+  /**
    * How many operations may stack on one row before the rest are counted as
    * overflow. Default 3.
    *
@@ -273,6 +303,8 @@ export const ProductionSchedule = ({
   defaultExpanded,
   onExpandedChange,
   onOperationClick,
+  onReschedule,
+  canReschedule,
   maxLanes = 3,
   showLoad = true,
   now: nowProp,
@@ -505,6 +537,53 @@ export const ProductionSchedule = ({
     [violated],
   );
 
+  /* ------------------------------------------------------------------ *
+   * Rescheduling.
+   *
+   * The component proposes and never applies, so there is no pending move to
+   * hold — only which operation is being dragged and by how far, which is
+   * pixels and is discarded on release. `productionReschedule` does the
+   * arithmetic; this decides what the pixels mean.
+   * ------------------------------------------------------------------ */
+  const editable = onReschedule !== undefined;
+  const mayMove = React.useCallback(
+    (operation: ProductionOperation) => editable && (canReschedule?.(operation) ?? true),
+    [editable, canReschedule],
+  );
+
+  /** Milliseconds per pixel, so a drag reads as time rather than as distance. */
+  const msPerPx = axisWidth > 0 ? (range.end.getTime() - range.start.getTime()) / axisWidth : 0;
+
+  const calendarFor = React.useCallback(
+    (resourceId: string) => {
+      const find = (list: ProductionResource[]): GanttCalendar | undefined => {
+        for (const resource of list) {
+          if (resource.id === resourceId) return resource.calendar ?? calendar;
+          const inner = resource.children ? find(resource.children) : undefined;
+          if (inner) return inner;
+        }
+        return undefined;
+      };
+      return find(resources ?? []) ?? calendar;
+    },
+    [resources, calendar],
+  );
+
+  const propose = React.useCallback(
+    (move: ProductionMove) => {
+      if (!onReschedule) return;
+      onReschedule(
+        productionReschedule(operations, dependencies ?? [], move, {
+          calendar,
+          calendarFor,
+          resources,
+          setupMatrix,
+        }),
+      );
+    },
+    [onReschedule, operations, dependencies, calendar, calendarFor, resources, setupMatrix],
+  );
+
   const setView = (next: GanttView) => {
     /* Leaving fit re-anchors when the anchor is nowhere near the work, or
        clicking Day on next week's schedule lands on an empty shift. */
@@ -526,10 +605,13 @@ export const ProductionSchedule = ({
         range={range}
         laneTop={laneTop}
         onOperationClick={onOperationClick}
+        mayMove={mayMove}
+        msPerPx={msPerPx}
+        onPropose={propose}
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [range, onOperationClick, rowHeight, laneCount],
+    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose],
   );
 
   const renderFooter = React.useCallback(
@@ -733,11 +815,17 @@ const ProductionTrack = ({
   range,
   laneTop,
   onOperationClick,
+  mayMove,
+  msPerPx,
+  onPropose,
 }: {
   row: Row;
   range: PlanningRange;
   laneTop: (lane: number) => number;
   onOperationClick?: (operation: ProductionOperation, row: Row) => void;
+  mayMove: (operation: ProductionOperation) => boolean;
+  msPerPx: number;
+  onPropose: (move: ProductionMove) => void;
 }) => (
   <>
     {row.lanes.length === 0 && (
@@ -758,6 +846,9 @@ const ProductionTrack = ({
           range={range}
           top={laneTop(laneIndex)}
           onOperationClick={onOperationClick}
+          mayMove={mayMove}
+          msPerPx={msPerPx}
+          onPropose={onPropose}
         />
       )),
     )}
@@ -770,12 +861,18 @@ const ProductionBar = ({
   range,
   top,
   onOperationClick,
+  mayMove,
+  msPerPx,
+  onPropose,
 }: {
   placement: ProductionPlacement<ProductionOperation>;
   row: Row;
   range: PlanningRange;
   top: number;
   onOperationClick?: (operation: ProductionOperation, row: Row) => void;
+  mayMove: (operation: ProductionOperation) => boolean;
+  msPerPx: number;
+  onPropose: (move: ProductionMove) => void;
 }) => {
   const { operation } = placement;
   const placed = placeAppointment(placement.span, range);
@@ -818,6 +915,90 @@ const ProductionBar = ({
     return out;
   }, [placed, placement, range]);
 
+  /* PHYSICAL pixels of drag, held here and discarded on release. It is the ONLY
+     state this component keeps about a move, and deliberately: the proposal
+     goes to the caller, who owns whether anything actually happens.
+     
+     Physical rather than direction-corrected, because it is fed to `translate`,
+     which is a physical property — a logical value would send the preview the
+     wrong way under RTL while the proposal went the right way, which is the
+     kind of thing that looks like a rendering fault rather than a bug. The
+     conversion to "later or earlier in time" happens once, at the proposal. */
+  const [dragPx, setDragPx] = React.useState<number | null>(null);
+  const movable = mayMove(operation);
+
+  /** Where the booking would start, given a pixel offset. */
+  const proposedStart = (px: number) => new Date(placement.span.start.getTime() + px * msPerPx);
+
+  const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!movable || event.button !== 0) return;
+    const originX = event.clientX;
+    const target = event.currentTarget;
+    /* Captured so the gesture survives the pointer leaving the bar — which it
+       does immediately, because the bar is what is moving. */
+    target.setPointerCapture(event.pointerId);
+    /* Direction-aware: under RTL the axis runs the other way, so dragging left
+       moves a job LATER. Reading it from the element rather than from a prop
+       keeps it correct inside a nested DirectionProvider. */
+    const rtl = getComputedStyle(target).direction === "rtl";
+
+    let moved = 0;
+    const onMove = (e: PointerEvent) => {
+      moved = e.clientX - originX;
+      setDragPx(moved);
+    };
+    const finish = (commit: boolean) => {
+      target.releasePointerCapture?.(event.pointerId);
+      target.removeEventListener("pointermove", onMove);
+      target.removeEventListener("pointerup", onUp);
+      target.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("keydown", onKey);
+      setDragPx(null);
+      /* A few pixels is a click, not a drag. Without this every click on a bar
+         proposes a move of about ninety seconds. */
+      if (commit && Math.abs(moved) > 3) {
+        onPropose({ operationId: operation.id, start: proposedStart(moved * (rtl ? -1 : 1)) });
+      }
+      else if (commit) onOperationClick?.(operation, row);
+    };
+    const onUp = () => finish(true);
+    const onCancel = () => finish(false);
+    // Escape abandons the gesture, which is the only way out of a drag that
+    // has gone somewhere the user did not mean.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") finish(false);
+    };
+
+    target.addEventListener("pointermove", onMove);
+    target.addEventListener("pointerup", onUp);
+    target.addEventListener("pointercancel", onCancel);
+    window.addEventListener("keydown", onKey);
+  };
+
+  /**
+   * The keyboard path, and it is not optional.
+   *
+   * A drag-only affordance is unreachable for anyone not using a pointer, and
+   * "reschedule" is the component's primary action once it is switched on.
+   * Alt+Arrow nudges by an hour, Shift+Alt+Arrow by a day — modified so the
+   * plain arrows keep moving between cells, which is the grid's own navigation
+   * and must not be captured by whatever bar happens to be focused.
+   */
+  const onBarKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!movable || !event.altKey) return;
+    const rtl = getComputedStyle(event.currentTarget).direction === "rtl";
+    const forward = rtl ? "ArrowLeft" : "ArrowRight";
+    const backward = rtl ? "ArrowRight" : "ArrowLeft";
+    if (event.key !== forward && event.key !== backward) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const stepMs = (event.shiftKey ? 24 : 1) * 60 * 60_000 * (event.key === forward ? 1 : -1);
+    onPropose({
+      operationId: operation.id,
+      start: new Date(placement.span.start.getTime() + stepMs),
+    });
+  };
+
   if (!placed) return null;
 
   const title = [
@@ -839,17 +1020,29 @@ const ProductionBar = ({
              and `data-gantt-bar` is how the keyboard scrolls this into view. */
           tabIndex={-1}
           data-gantt-bar=""
-          onClick={() => onOperationClick?.(operation, row)}
+          data-gantt-movable={movable ? "" : undefined}
+          /* Click is handled by the pointer gesture, which distinguishes a
+             click from a drag by distance — a separate onClick would fire on
+             both. It stays here for the read-only case. */
+          onClick={movable ? undefined : () => onOperationClick?.(operation, row)}
+          onPointerDown={onPointerDown}
+          onKeyDown={onBarKeyDown}
           className={cn(
             "zen-absolute zen-rounded-zen-sm",
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
             onOperationClick && "hover:zen-brightness-95",
+            /* The affordance IS the gate: an operation the caller will not let
+               move simply does not offer to. */
+            movable && "zen-cursor-grab active:zen-cursor-grabbing",
+            dragPx !== null && "zen-z-20 zen-opacity-80 zen-shadow-zen-md",
           )}
           style={{
             insetInlineStart: `${placed.startPct}%`,
             width: `${placed.widthPct}%`,
             top,
             height: LANE_BAR_PX,
+            /* Logical, so the preview follows the pointer under RTL too. */
+            ...(dragPx !== null ? { translate: `${dragPx}px` } : null),
           }}
           title={title}
         >
