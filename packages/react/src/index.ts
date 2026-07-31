@@ -741,6 +741,7 @@ export {
   ganttFitRange,
   ganttFitUnit,
   ganttIsWorking,
+  ganttSubWorkingMs,
   ganttPaneColumns,
   ganttRangeColumns,
   ganttSpanLabel,
