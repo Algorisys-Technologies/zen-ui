@@ -11,7 +11,13 @@
 # A committed tarball is the one form that works with plain npm, no registry
 # and no auth:
 #
-#   npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/feat/gantt/dist-pkg/zen-ui-react.tgz
+#   npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-react.tgz
+#
+# POINT THIS AT THE BRANCH CONSUMERS SHOULD TRACK, and re-point it when the work
+# moves. It said `feat/gantt` until that branch merged into `dev`, at which
+# point the URL became a snapshot that had quietly stopped moving — the same
+# stale-tarball failure this file warns about below, one level up: the app keeps
+# installing something that builds fine and is simply old.
 #
 # The `refs/heads/` prefix is required, not decorative: the branch name contains
 # a slash, so `.../zen-ui/feat/gantt/dist-pkg/...` is ambiguous and GitHub can

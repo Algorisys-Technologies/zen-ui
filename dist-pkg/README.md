@@ -6,7 +6,7 @@ directly off this branch:
 ```jsonc
 // package.json
 "@algorisys/zen-ui-react":
-  "https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/feat/gantt/dist-pkg/zen-ui-react.tgz"
+  "https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-react.tgz"
 ```
 
 ## Why a tarball rather than a git dependency
