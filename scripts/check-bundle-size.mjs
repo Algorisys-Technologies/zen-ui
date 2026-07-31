@@ -61,6 +61,38 @@ createRoot(document.getElementById("root")).render(<Button>Hi</Button>);`,
 import { createRoot } from "react-dom/client";
 createRoot(document.getElementById("root")).render(<Card><Button>a</Button><Input /><Checkbox /><Badge>b</Badge><Tabs /><Select /><Dialog><DialogContent>x</DialogContent></Dialog></Card>);`,
   },
+  /* The two schedule components, and the pair together.
+   *
+   * The PAIR is the one with teeth. They share ~750 lines of renderer
+   * (gantt/schedule-grid.tsx) and a core module, so importing both costs 5 kB
+   * more than importing one. Duplicate that renderer — the obvious thing a
+   * future change does when the seam gets awkward — and the pair goes to about
+   * 108 kB, which this budget catches and nothing else in the repo would.
+   * Measured 2026-07-31: 55 / 53 / 60. */
+  {
+    binding: "react",
+    name: "Gantt",
+    budgetKB: 70,
+    code: `import { Gantt } from "@algorisys/zen-ui-react";
+import { createRoot } from "react-dom/client";
+createRoot(document.body).render(<Gantt tasks={[]} />);`,
+  },
+  {
+    binding: "react",
+    name: "ProductionSchedule",
+    budgetKB: 70,
+    code: `import { ProductionSchedule } from "@algorisys/zen-ui-react";
+import { createRoot } from "react-dom/client";
+createRoot(document.body).render(<ProductionSchedule resources={[]} operations={[]} />);`,
+  },
+  {
+    binding: "react",
+    name: "both schedules (shared renderer)",
+    budgetKB: 75,
+    code: `import { Gantt, ProductionSchedule } from "@algorisys/zen-ui-react";
+import { createRoot } from "react-dom/client";
+createRoot(document.body).render(<><Gantt tasks={[]} /><ProductionSchedule resources={[]} operations={[]} /></>);`,
+  },
   {
     binding: "solid",
     name: "one Button",
