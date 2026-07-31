@@ -21,6 +21,7 @@ import {
   ganttProgress,
   ganttRange,
   ganttRangeLabel,
+  ganttRowWindow,
   ganttSpan,
   ganttTaskStatus,
   ganttVarianceDays,
@@ -418,6 +419,47 @@ t(
   false,
   "the uniform-width answer is different, which is the bug this prevents",
 );
+
+console.log("\nthe row window — which rows are worth putting in the DOM");
+const win = (rowCount: number, scrollTop: number, viewport: number, overscan = 6) =>
+  ganttRowWindow(rowCount, 36, scrollTop, viewport, overscan);
+/* The invariant that keeps the scrollbar honest: the spacers plus the mounted
+   rows always add up to the full list, however the window moves. Get this wrong
+   and the thumb grows or jumps as you scroll, which reads as a broken page. */
+const totalHeight = (rowCount: number, scrollTop: number, viewport: number) => {
+  const w = win(rowCount, scrollTop, viewport);
+  return w.paddingTop + (w.endIndex - w.startIndex) * 36 + w.paddingBottom;
+};
+t(totalHeight(10_000, 0, 500), 360_000, "top: spacers + mounted = the whole list");
+t(totalHeight(10_000, 180_000, 500), 360_000, "…and in the middle");
+t(totalHeight(10_000, 359_500, 500), 360_000, "…and at the very bottom");
+t(totalHeight(7, 0, 500), 252, "…and when everything fits");
+
+t([win(10_000, 0, 500).startIndex, win(10_000, 0, 500).endIndex], [0, 20], "at the top: no rows above, a screenful plus overscan below");
+t(win(10_000, 0, 500).paddingTop, 0, "…and no leading spacer");
+const mid = win(10_000, 3600, 500);
+t([mid.startIndex, mid.endIndex], [94, 120], "scrolled to row 100: a 26-row window, not 10,000");
+t([mid.paddingTop, mid.paddingBottom], [94 * 36, (10_000 - 120) * 36], "…with the rest standing in as spacers");
+// The window must never run past the ends, in either direction.
+t(win(10_000, 359_640, 500).endIndex, 10_000, "the last screenful stops at the last row");
+t(win(10_000, 359_640, 500).paddingBottom, 0, "…and has no trailing spacer");
+t(win(10_000, 999_999, 500).endIndex <= 10_000, true, "a scrollTop past the end cannot overrun");
+t(win(10_000, 999_999, 500).startIndex <= win(10_000, 999_999, 500).endIndex, true, "…and start never passes end");
+// macOS rubber-band scrolls NEGATIVE. Unclamped this yields a negative
+// paddingTop and the rows jump up under the header for the bounce.
+t([win(10_000, -200, 500).startIndex, win(10_000, -200, 500).paddingTop], [0, 0], "a negative scrollTop from overscroll clamps to the top");
+t(win(10_000, 0, -50).startIndex, 0, "a negative viewport height does not invert the window");
+// Small lists must come out identical to not windowing at all, because that is
+// the path every demo and every screenshot in the repo exercises.
+t([win(12, 0, 500).startIndex, win(12, 0, 500).endIndex], [0, 12], "a 12-row plan mounts all 12 — the window is a no-op below a screenful");
+t([win(12, 0, 500).paddingTop, win(12, 0, 500).paddingBottom], [0, 0], "…with no spacers at all");
+t([win(0, 0, 500).startIndex, win(0, 0, 500).endIndex], [0, 0], "no rows, no window");
+t(ganttRowWindow(10, 0, 0, 500).endIndex, 0, "a zero row height measures nothing rather than dividing by it");
+t(win(10_000, 3600, 500, 0).startIndex, 100, "overscan 0 starts exactly at the first visible row");
+t(win(10_000, 3600, 500, 0).endIndex, 114, "…and ends at the last");
+// Mounted count must stay bounded by the viewport, not by the list.
+const mounted = (n: number) => { const w = win(n, 180_000 % (n * 36), 500); return w.endIndex - w.startIndex; };
+t(mounted(10_000) <= 30 && mounted(100_000) <= 30, true, "the mounted count does not grow with the list");
 
 console.log(f === 0 ? "\nall passed\n" : `\n${f} FAILED\n`);
 process.exit(f === 0 ? 0 : 1);
