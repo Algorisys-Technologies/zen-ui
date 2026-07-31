@@ -238,7 +238,14 @@ scroller's measured width, so a content-sized container makes the two define
 each other — identical data rendered at 516px in one section and 1800px in
 another, and per-scroller overflow checks could not see it because each
 scroller was internally consistent. Neither script is in `bun run check`: that
-target is pure logic and must run with no build and no browser. A build says nothing about whether a panel is clipped, a switch
+target is pure logic and must run with no build and no browser.
+
+**It takes a binding argument** (`react` by default, or `all`), and it was
+parameterised BEFORE the ports were written rather than after. A binding that
+has not ported a component is reported as NOT PORTED and counts as neither a
+pass nor a failure — and if nothing at all was checked it exits **non-zero**,
+because "all passed — 0 assertions" is the zero-denominator green this repo has
+shipped twice. It printed exactly that once, during its own development. A build says nothing about whether a panel is clipped, a switch
 landed on the wrong side, or a class silently generated no CSS — all three have
 shipped here.
 
@@ -465,7 +472,8 @@ bun run check          # pure-logic contracts, incl. check:release
 bun run check:dist     # builds both libs, then check:package + check:size
 bun run lint           # and lint:solid / lint:vanilla / lint:wc — 0 problems each
 node scripts/visual-check.mjs react && node scripts/visual-check.mjs solid
-bun run check:schedule-dom   # Gantt + ProductionSchedule, LTR and RTL
+bun run check:schedule-dom       # react: Gantt + ProductionSchedule, LTR and RTL
+bun run check:schedule-dom:all   # …every binding, once they are ported
 
 git commit && git tag v<version>
 git checkout main && git merge --ff-only dev && git push origin main --tags
