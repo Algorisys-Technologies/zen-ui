@@ -215,6 +215,11 @@ missing export:
 - **You must import the stylesheet.** `import "<pkg>/styles";` once at your
   app entry. Without it, components render unstyled — utilities resolve to
   nothing. An optional element reset is a separate opt-in: `import "<pkg>/preflight";`.
+- **If you import both, preflight goes FIRST.** The reset sets
+  `background-color: transparent` on `[type="button"]` — an attribute selector,
+  so the same specificity as `.zen-bg-zen-primary`. A tie is broken by source
+  order, so importing preflight SECOND makes it win and every solid `<Button>`
+  renders invisible. Nothing errors and the build stays green.
 - **Utilities are prefixed `zen-`; variants sit outside the prefix** —
   `hover:zen-bg-zen-primary`, `data-[state=open]:zen-p-4`, `!zen-p-4`. You
   rarely write these as a consumer, but if you extend a component's class, keep
