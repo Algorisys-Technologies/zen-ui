@@ -764,8 +764,10 @@ export type {
   ProductionLoadOptions,
   ProductionOperationNode,
   ProductionPlacement,
+  ProductionPlacementOptions,
   ProductionResourceNode,
   ProductionRow,
+  ProductionSetupMatrix,
 } from "@algorisys/zen-ui-core/production";
 export {
   flattenProductionResources,
@@ -774,6 +776,9 @@ export {
   productionLoad,
   productionPeakLoad,
   productionPlacement,
+  productionSequenceConflicts,
+  productionSetupMinutes,
+  productionSetupPlan,
 } from "@algorisys/zen-ui-core/production";
 export { UploadCollection } from "./components/upload-collection/upload-collection";
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";

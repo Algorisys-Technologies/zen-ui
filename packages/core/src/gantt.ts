@@ -111,6 +111,21 @@ export interface GanttDependency {
   to: string;
   /** Default "finish-to-start". */
   type?: GanttDependencyType;
+  /**
+   * Enforced delay between the two ends, in WORKING minutes — "start four hours
+   * after the previous operation finishes, for cooling".
+   *
+   * Negative is a LEAD: the successor may begin that much before the link would
+   * otherwise allow, which is how overlapping operations are expressed ("start
+   * the next op when the first is 80% through"). Working minutes rather than
+   * elapsed, for the reason everything else here is: four hours of cooling that
+   * begins at 16:00 on a single-shift plant is not done at 20:00.
+   *
+   * Nothing in this module ENFORCES it. A read-only schedule reports a link it
+   * violates and draws the bars where the caller put them — see
+   * `productionSequenceConflicts`.
+   */
+  lagMinutes?: number;
 }
 
 /**
@@ -333,6 +348,47 @@ export function ganttAddWorkingMs(calendar: GanttCalendar, from: Date, ms: numbe
   }
   // Out of calendar. Returning `from` would silently claim zero duration; this
   // at least lands the bar where the scan gave up.
+  return new Date(cursor.getTime());
+}
+
+/**
+ * `from` minus a working duration — `ganttAddWorkingMs` walking backwards.
+ *
+ * Needed because a dependency LEAD is a negative lag, and "four working hours
+ * before 09:00 on Monday" is 13:00 the previous Friday on a single-shift plant,
+ * not 05:00 on Monday. Subtracting milliseconds gets the second answer, which
+ * is a time nobody was at work.
+ *
+ * A separate function rather than widening `ganttAddWorkingMs` to accept a
+ * negative: that one's contract is that a non-positive duration returns `from`
+ * unchanged — a milestone is a point someone chose, not a point to be
+ * relocated — and several assertions rest on it.
+ *
+ * Lands ON a period's start rather than at the end of the previous one, which
+ * is the mirror of the forward rule: "starts at 06:00" is what a planner means,
+ * and pushing it back to 17:00 the day before would report work beginning on a
+ * day nothing happened.
+ */
+export function ganttSubWorkingMs(calendar: GanttCalendar, from: Date, ms: number): Date {
+  if (ms <= 0) return new Date(from.getTime());
+
+  let remaining = ms;
+  let cursor = startOfDay(from);
+  for (let guard = 0; guard < MAX_DAYS_SCANNED; guard++) {
+    // Latest period first: we are consuming time backwards from `from`.
+    const periods = ganttWorkingPeriodsOn(calendar, cursor).slice().reverse();
+    for (const p of periods) {
+      const periodStart = atMinutes(cursor, p.from).getTime();
+      const periodEnd = Math.min(atMinutes(cursor, p.to).getTime(), from.getTime());
+      if (periodEnd <= periodStart) continue;
+      const available = periodEnd - periodStart;
+      if (available >= remaining) return new Date(periodEnd - remaining);
+      remaining -= available;
+    }
+    cursor = addDays(cursor, -1);
+  }
+  // Out of calendar, as in ganttAddWorkingMs: land where the scan gave up
+  // rather than silently claim zero duration.
   return new Date(cursor.getTime());
 }
 
@@ -1342,10 +1398,24 @@ export function ganttConnectors(
     const a = anchors.get(dependency.from);
     const b = anchors.get(dependency.to);
     if (!a || !b) continue;
-    // Both ends folded into the same summary bar: a link from a task to itself.
-    if (a.rowIndex === b.rowIndex) continue;
+    /* Skip only when the two ends resolve to the SAME BAR — same row and the
+       same placement on it — which is what a link between two tasks folded into
+       one summary bar looks like, and is genuinely a link from a thing to
+       itself.
+       
+       Same ROW alone is not enough, and used to be: a production schedule's
+       normal case is op 10 followed by op 20 on one machine, where the two bars
+       share a row and the arrow between them is the routing. Skipping on row
+       dropped every one of those, so a paint booth running three jobs in
+       sequence drew no routing at all. */
+    const anchorKey = (x: GanttBarAnchor) =>
+      `${x.rowIndex}:${r2(x.startPct)}:${r2(x.widthPct)}:${x.yOffset ?? ""}`;
+    if (anchorKey(a) === anchorKey(b)) continue;
 
-    const key = `${a.rowIndex}:${b.rowIndex}:${type}`;
+    /* Keyed on the ANCHORS, not the rows, for the same reason: a dozen links
+       that collapse onto the same pair of summary bars are still one arrow, but
+       two distinct pairs of operations on one machine are two. */
+    const key = `${anchorKey(a)}->${anchorKey(b)}:${type}`;
     if (seen.has(key)) continue;
     seen.add(key);
 

@@ -253,6 +253,14 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
   now: Date;
 
   connectors?: GanttConnector[];
+  /**
+   * Which connectors are drawn as a problem rather than as a fact.
+   *
+   * The grid does not know what makes a link wrong — a Gantt dependency has no
+   * notion of one, and a production routing's lag lives in a different module —
+   * so the caller decides and this only draws it.
+   */
+  connectorAccent?: (connector: GanttConnector) => boolean;
 
   /* ---- toolbar ---- */
   views?: GanttView[];
@@ -498,6 +506,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   anchor,
   now,
   connectors,
+  connectorAccent,
   views,
   hideToolbar,
   onViewChange,
@@ -559,29 +568,37 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
         viewBox={`0 0 ${axisWidth} ${bodyHeight}`}
         style={{ insetInlineStart: paneWidth }}
       >
-        {connectors.map((connector) => (
-          <g key={connector.id}>
-            <path
-              d={connector.d}
-              fill="none"
-              /* zen-stroke-* / zen-fill-* generate nothing under this preset —
-                 the token has to be named directly. */
-              stroke="var(--zen-color-muted-fg)"
-              strokeWidth={1.5}
-            />
-            <polygon
-              points={[
-                `${connector.arrow.x},${connector.arrow.y}`,
-                `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y - ARROW_PX}`,
-                `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y + ARROW_PX}`,
-              ].join(" ")}
-              fill="var(--zen-color-muted-fg)"
-            />
-          </g>
-        ))}
+        {connectors.map((connector) => {
+          /* zen-stroke-* / zen-fill-* generate nothing under this preset — the
+             token has to be named directly. */
+          const tone = connectorAccent?.(connector)
+            ? "var(--zen-color-error)"
+            : "var(--zen-color-muted-fg)";
+          return (
+            <g key={connector.id}>
+              <path
+                d={connector.d}
+                fill="none"
+                stroke={tone}
+                /* Thicker as well as red: colour alone is not a signal, and a
+                   red line on a chart that already uses red for delay needs a
+                   second channel to be read as "this link is broken". */
+                strokeWidth={connectorAccent?.(connector) ? 2.25 : 1.5}
+              />
+              <polygon
+                points={[
+                  `${connector.arrow.x},${connector.arrow.y}`,
+                  `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y - ARROW_PX}`,
+                  `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y + ARROW_PX}`,
+                ].join(" ")}
+                fill={tone}
+              />
+            </g>
+          );
+        })}
       </svg>
     );
-  }, [connectors, axisWidth, bodyHeight, paneWidth]);
+  }, [connectors, connectorAccent, axisWidth, bodyHeight, paneWidth]);
 
   /* ------------------------------------------------------------------ *
    * Keyboard: one tab stop, APG grid navigation inside.

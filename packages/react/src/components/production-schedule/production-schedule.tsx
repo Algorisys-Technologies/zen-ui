@@ -5,6 +5,7 @@ import {
   ganttFitRange,
   placeAppointment,
   productionLoad,
+  productionSequenceConflicts,
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
@@ -17,6 +18,7 @@ import {
   type ProductionPlacement,
   type ProductionResourceNode,
   type ProductionRow as ProductionRowData,
+  type ProductionSetupMatrix,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
@@ -131,6 +133,17 @@ export interface ProductionScheduleProps {
   calendar?: GanttCalendar;
   /** Hours per column in the DAY view. Default 1; 0.25 for quarter-hour columns. */
   hourStep?: number;
+
+  /**
+   * Sequence-dependent changeover, keyed on the pair of `setupFamily` values.
+   *
+   * With one supplied, an operation that states no `setupMinutes` gets one
+   * derived from what ran before it on the same machine. This is the difference
+   * between a changeover and a changeover *cost*: white to black is an hour of
+   * washing out, black to white is fifteen minutes, and a single per-operation
+   * duration cannot say so.
+   */
+  setupMatrix?: ProductionSetupMatrix;
 
   /** Uncontrolled starting view. Default "fit". */
   defaultView?: GanttView;
@@ -248,6 +261,7 @@ export const ProductionSchedule = ({
   showDependencies = true,
   calendar,
   hourStep,
+  setupMatrix,
   defaultView,
   view: viewProp,
   onViewChange,
@@ -355,9 +369,9 @@ export const ProductionSchedule = ({
         resources ?? [],
         operations ?? [],
         (resource) => (expandedSet === null ? true : expandedSet.has(resource.id)),
-        { calendar, maxLanes, minGapMs },
+        { calendar, maxLanes, minGapMs, setupMatrix },
       ),
-    [resources, operations, expandedSet, calendar, maxLanes, minGapMs],
+    [resources, operations, expandedSet, calendar, maxLanes, minGapMs, setupMatrix],
   );
 
   /* ONE height for the whole chart, from the busiest row. Rows that varied
@@ -470,6 +484,27 @@ export const ProductionSchedule = ({
     [requestedPane.join(","), rowLoad, expandedIds, resources],
   );
 
+  /**
+   * Routing links whose lag the schedule does not respect.
+   *
+   * Reported, never enforced — a planner who knowingly overlaps two operations
+   * because the first one's last pallet is already off the machine is making a
+   * decision, not an error. The link is drawn in the error tone and thicker;
+   * the bars stay exactly where the caller put them.
+   */
+  const violated = React.useMemo(() => {
+    if (!showDependencies || !dependencies || dependencies.length === 0) return null;
+    const byId = new Map<string, ProductionPlacement>();
+    for (const [id, entry] of placements) byId.set(id, entry.placement);
+    const found = productionSequenceConflicts(dependencies, byId, { calendar });
+    return new Set(found.map((c) => `${c.operationIds[0]}->${c.operationIds[1]}`));
+  }, [showDependencies, dependencies, placements, calendar]);
+
+  const connectorAccent = React.useCallback(
+    (connector: { from: string; to: string }) => violated?.has(`${connector.from}->${connector.to}`) ?? false,
+    [violated],
+  );
+
   const setView = (next: GanttView) => {
     /* Leaving fit re-anchors when the anchor is nowhere near the work, or
        clicking Day on next week's schedule lands on an empty shift. */
@@ -561,6 +596,7 @@ export const ProductionSchedule = ({
         anchor={anchor}
         now={now}
         connectors={connectors}
+        connectorAccent={connectorAccent}
         views={views}
         hideToolbar={hideToolbar}
         onViewChange={setView}

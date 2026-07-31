@@ -21,11 +21,14 @@ import {
   productionLoad,
   productionPeakLoad,
   productionPlacement,
+  productionSequenceConflicts,
+  productionSetupMinutes,
+  productionSetupPlan,
   type ProductionOperationNode,
   type ProductionPlacement,
   type ProductionResourceNode,
 } from "../packages/core/src/production";
-import { ganttColumns, type GanttCalendar } from "../packages/core/src/gantt";
+import { ganttAddWorkingMs, ganttColumns, ganttSubWorkingMs, type GanttCalendar, type GanttDependency } from "../packages/core/src/gantt";
 
 let f = 0;
 const t = (got: unknown, want: unknown, name: string) => {
@@ -356,6 +359,131 @@ t(found.filter((c) => c.kind === "non-working").map((c) => c.operationIds).flat(
    the chart in silence. */
 t(found.filter((c) => c.kind === "unknown-resource").map((c) => c.operationIds).flat(), ["ghost"], "…and so is work booked on a resource that does not exist");
 t(conflictRows.rows[0].lanes.flat().length, 3, "the conflicting operations are still DRAWN — reported is not refused");
+
+console.log("\nsequence-dependent changeover — the cost depends on what ran BEFORE");
+const MATRIX = {
+  minutes: {
+    white: { black: 60, "*": 15 },
+    black: { white: 15, "*": 10 },
+    "*": { black: 30 },
+  },
+  fallbackMinutes: 5,
+};
+const setup = (from: string | null, to: string | null) => productionSetupMinutes(MATRIX, from, to);
+/* Lookup is most-specific first, and "which rule won" is invisible once it is
+   drawn — which is the whole reason it is pinned rather than described. */
+t(setup("white", "black"), 60, "an exact pair wins outright");
+t(setup("white", "green"), 15, "…then the row's own wildcard");
+t(setup("green", "black"), 30, "…then the wildcard row's exact column");
+t(setup("green", "green"), 5, "…and nothing matching falls back");
+t(setup("black", "white"), 15, "the matrix is DIRECTIONAL — black to white is 15…");
+t(setup("white", "black"), 60, "…where white to black is 60, which is the point of a matrix");
+/* Nothing ran before, so there is nothing to change over FROM. Charging a full
+   changeover here would inflate the first job of every shift. */
+t(setup(null, "black"), 30, "the first job on a machine takes only a wildcard rule");
+t(setup(null, "green"), 5, "…or the fallback, never a from-specific one");
+t(productionSetupMinutes({ minutes: {} }, "white", "black"), 0, "an empty matrix costs nothing, rather than guessing");
+t(productionSetupMinutes({ minutes: { a: { b: -30 } } }, "a", "b"), 0, "a negative rule is clamped, not subtracted from the run");
+
+console.log("\n…derived per resource, in TIME order");
+const SEQ: ProductionOperationNode[] = [
+  { id: "b1", resourceId: "m1", start: at(2026, 7, 6, 10), runMinutes: 60, setupFamily: "black" },
+  { id: "w1", resourceId: "m1", start: at(2026, 7, 6, 6), runMinutes: 60, setupFamily: "white" },
+  { id: "w2", resourceId: "m1", start: at(2026, 7, 6, 14), runMinutes: 60, setupFamily: "white" },
+  // Another machine: its own sequence, and the first job on it starts fresh.
+  { id: "b2", resourceId: "m2", start: at(2026, 7, 6, 6), runMinutes: 60, setupFamily: "black" },
+];
+const plan = productionSetupPlan(SEQ, MATRIX);
+t(plan.get("w1"), 5, "m1's first job finds no wildcard column for white, so it falls back");
+t(plan.get("b1"), 60, "…then white to black is the expensive one");
+t(plan.get("w2"), 15, "…and black back to white is cheap");
+t(plan.get("b2"), 30, "a second machine has its OWN sequence, not a continuation of the first");
+/* Input order must not matter: the sequence is by START, and the array arrived
+   deliberately shuffled above. */
+t(
+  productionSetupPlan([...SEQ].reverse(), MATRIX).get("b1"),
+  60,
+  "shuffling the input changes nothing — the order is by start, not by array",
+);
+/* A STATED setupMinutes is a statement and beats the matrix, the same way an
+   explicit end beats runMinutes. */
+const stated = flattenProductionResources(
+  [{ id: "m1", name: "CNC" } as Res],
+  [
+    // black first: the wildcard row DOES have a black column, so 30 is derived.
+    { id: "a", resourceId: "m1", start: at(2026, 7, 6, 6), runMinutes: 60, setupFamily: "black" },
+    // black -> white would derive 15; the stated 5 wins.
+    { id: "b", resourceId: "m1", start: at(2026, 7, 6, 10), runMinutes: 60, setupFamily: "white", setupMinutes: 5 },
+  ],
+  () => true,
+  { setupMatrix: MATRIX },
+).rows[0].subtree;
+t(
+  stated.map((p) => (p.setup ? (p.setup.end.getTime() - p.setup.start.getTime()) / 60000 : 0)),
+  [30, 5],
+  "the matrix fills the gap; a stated changeover overrides it",
+);
+t(
+  flattenProductionResources([{ id: "m1", name: "CNC" } as Res], SEQ.filter((o) => o.resourceId === "m1"), () => true)
+    .rows[0].subtree.every((p) => p.setup === null),
+  true,
+  "and with NO matrix nothing is derived — no changeover is not a guess of zero",
+);
+
+console.log("\nworking time, walked backwards — what a LEAD needs");
+/* Four working hours before Monday 09:00 is 13:00 the previous FRIDAY on a
+   single-shift plant, not 05:00 on Monday, which is a time nobody was at work. */
+t(iso(ganttSubWorkingMs(PLANT, at(2026, 7, 6, 9), 4 * 60 * 60_000)), "2026-07-03 16:00", "four working hours before Monday 09:00 is Friday 16:00");
+/* The invariant that makes the two functions trustworthy together, and the one
+   that would have caught the arithmetic slip in the line above: stepping back
+   and then forward by the same working duration returns where you started. */
+for (const hours of [1, 3, 4, 9, 20]) {
+  const back = ganttSubWorkingMs(PLANT, at(2026, 7, 6, 9), hours * 60 * 60_000);
+  t(iso(ganttAddWorkingMs(PLANT, back, hours * 60 * 60_000)), "2026-07-06 09:00", `${hours}h back then ${hours}h forward is a round trip`);
+}
+t(iso(ganttSubWorkingMs(PLANT, at(2026, 7, 6, 11), 60 * 60_000)), "2026-07-06 10:00", "an hour back inside one shift is just an hour");
+// Across the lunch break, which is not working time.
+t(iso(ganttSubWorkingMs(PLANT, at(2026, 7, 6, 14), 2 * 60 * 60_000)), "2026-07-06 11:00", "two hours back across lunch skips the closed hour");
+t(iso(ganttSubWorkingMs(PLANT, at(2026, 7, 6, 9), 0)), "2026-07-06 09:00", "a zero lead moves nothing");
+t(iso(ganttSubWorkingMs(PLANT, at(2026, 7, 6, 9), -60_000)), "2026-07-06 09:00", "…and neither does a negative one");
+
+console.log("\nrouting links, and the lag they are measured against");
+const place2 = (id: string, from: Date, to: Date): ProductionPlacement =>
+  productionPlacement({ id, resourceId: "m1", start: from, end: to })!;
+const map = new Map<string, ProductionPlacement>([
+  ["p", place2("p", at(2026, 7, 6, 6), at(2026, 7, 6, 10))],
+  ["s", place2("s", at(2026, 7, 6, 10), at(2026, 7, 6, 14))],
+]);
+const seq = (deps: GanttDependency[], calendar?: GanttCalendar) =>
+  productionSequenceConflicts(deps, map, { calendar }).map((c) => c.operationIds.join("->"));
+t(seq([{ from: "p", to: "s" }]), [], "a successor starting exactly when the predecessor ends is fine");
+t(seq([{ from: "p", to: "s", lagMinutes: 60 }]), ["p->s"], "…and an hour of required cooling it does not get is reported");
+t(seq([{ from: "p", to: "s", lagMinutes: -60 }]), [], "a LEAD relaxes the link rather than tightening it");
+/* The four types anchor at different ends, and getting that wrong reports a
+   healthy schedule as broken. */
+t(seq([{ from: "p", to: "s", type: "start-to-start" }]), [], "start-to-start asks about the two STARTS");
+t(seq([{ from: "p", to: "s", type: "start-to-start", lagMinutes: 300 }]), ["p->s"], "…so five hours of lag between them is violated");
+t(seq([{ from: "p", to: "s", type: "finish-to-finish" }]), [], "finish-to-finish asks about the two ends");
+t(seq([{ from: "p", to: "s", type: "start-to-finish" }]), [], "start-to-finish asks about the predecessor's start");
+t(seq([{ from: "p", to: "p" }]), [], "a link from a task to itself is not a violation, it is a typo");
+t(seq([{ from: "p", to: "ghost", lagMinutes: 600 }]), [], "a link naming an operation with no bar says nothing rather than crying wolf");
+/* The lag is WORKING minutes: two hours from 16:00 on a shift ending at 17:00
+   is 07:00 the next morning, so a successor at 10:00 the same evening violates
+   a link that elapsed-time arithmetic would have called satisfied. */
+const evening = new Map<string, ProductionPlacement>([
+  ["p", place2("p", at(2026, 7, 6, 12), at(2026, 7, 6, 16))],
+  ["s", place2("s", at(2026, 7, 6, 18), at(2026, 7, 6, 20))],
+]);
+t(
+  productionSequenceConflicts([{ from: "p", to: "s", lagMinutes: 120 }], evening, { calendar: PLANT }).length,
+  1,
+  "two WORKING hours after 16:00 lands next morning, so an 18:00 start is short",
+);
+t(
+  productionSequenceConflicts([{ from: "p", to: "s", lagMinutes: 120 }], evening).length,
+  0,
+  "…which plain elapsed time would have called satisfied, and that is the bug",
+);
 
 console.log(f === 0 ? "\nall passed\n" : `\n${f} FAILED\n`);
 process.exit(f === 0 ? 0 : 1);
