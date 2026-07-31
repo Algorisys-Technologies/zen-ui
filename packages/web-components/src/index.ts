@@ -57,6 +57,13 @@ export {
   normalizeFilterSelection, objectStatusVariants, paginationRange, parseISODate,
   resolveDateRange, sheetContentVariants, spinnerVariants, tabsListVariants, tabsTriggerVariants,
   toISODate, toast, toastVariants,
+  GANTT_CALENDAR_24_7, GANTT_PANE_COLUMNS, Gantt, ProductionSchedule,
+  flattenProductionResources, ganttAddWorkingMs, ganttFitRange, ganttFitUnit, ganttIsWorking,
+  ganttPaneColumns, ganttRangeColumns, ganttSpanLabel, ganttSubWorkingMs, ganttWorkingMs,
+  ganttWorkingPeriodsOn, ganttWorkingSegments, packProductionLanes, productionConflicts,
+  productionCriticalPath, productionLoad, productionPeakLoad, productionPlacement,
+  productionReschedule, productionSequenceConflicts, productionSetupMinutes,
+  productionSetupPlan,
 } from "@algorisys/zen-ui-vanilla";
 
 export type {
@@ -118,6 +125,16 @@ export type {
   ValueHelpItem, ValueHelpOperator, ValueHelpProps, ValueHelpResult, ViewSettingsDialogHandle,
   ViewSettingsDialogProps, ViewSettingsFilterGroup, ViewSettingsItem, ViewSettingsValue,
   VirtualizedItemsDenseProps, VirtualizedItemsProps, VirtualizedItemsSparseProps, ZenComponent,
+  GanttAnchoredView, GanttAssignee, GanttBarAnchor, GanttCalendar, GanttCalendarException,
+  GanttColumnUnit, GanttConnector, GanttDependency, GanttDependencyType, GanttFitOptions,
+  GanttFlattenOptions, GanttPaneColumn, GanttProps, GanttRow, GanttSegmentOptions, GanttSpan,
+  GanttTask, GanttTaskNode, GanttTaskStatus, GanttView, GanttWorkingPeriod, ProductionConflict,
+  ProductionConflictKind, ProductionCriticalPath, ProductionCriticalPathOptions,
+  ProductionFlatten, ProductionFlattenOptions, ProductionFloat, ProductionLoadBucket,
+  ProductionLoadOptions, ProductionMove, ProductionOperation, ProductionOperationNode,
+  ProductionPaneColumn, ProductionPlacement, ProductionPlacementOptions, ProductionProposal,
+  ProductionRescheduleOptions, ProductionResource, ProductionResourceNode, ProductionRow,
+  ProductionScheduleProps, ProductionSetupMatrix, ProductionShift,
 } from "@algorisys/zen-ui-vanilla";
 
 // The custom-element layer's own surface.
