@@ -66,6 +66,59 @@ const PLAN: GanttTask[] = [
   },
 ];
 
+/* A four-month plan, for the two views that exist to show one. `on` takes a
+   month and a day so the phases can run past July, which the single-month PLAN
+   above deliberately does not. */
+const on = (month: number, day: number) => new Date(2026, month - 1, day, 0, 0, 0, 0);
+
+const LONG_PLAN: GanttTask[] = [
+  {
+    id: "L1",
+    name: "Discovery",
+    assignees: [RHEA, ARUN],
+    children: [
+      { id: "L1a", name: "Stakeholder interviews", start: on(7, 6), end: on(7, 15), percentComplete: 100, assignees: [RHEA] },
+      { id: "L1b", name: "Systems audit", start: on(7, 13), end: on(7, 24), percentComplete: 100, assignees: [ARUN] },
+    ],
+  },
+  {
+    id: "L2",
+    name: "Design",
+    assignees: [MEI, OLU],
+    children: [
+      { id: "L2a", name: "Wireframes", start: on(7, 20), end: on(8, 5), percentComplete: 95, assignees: [MEI] },
+      { id: "L2b", name: "Design system", start: on(8, 3), end: on(8, 21), percentComplete: 40, assignees: [MEI, OLU] },
+    ],
+  },
+  {
+    id: "L3",
+    name: "Build",
+    assignees: [SVEN, OLU, MEI, ARUN],
+    children: [
+      { id: "L3a", name: "Application shell", start: on(8, 10), end: on(8, 28), percentComplete: 70, assignees: [SVEN] },
+      { id: "L3b", name: "Gantt view", start: on(8, 24), end: on(9, 18), percentComplete: 5, assignees: [OLU, MEI] },
+      { id: "L3c", name: "Reporting", start: on(9, 14), end: on(10, 9), percentComplete: 0, assignees: [ARUN] },
+    ],
+  },
+  {
+    id: "L4",
+    name: "Launch",
+    assignees: [ARUN],
+    children: [
+      { id: "L4a", name: "Beta cohort", start: on(10, 12), end: on(10, 30), percentComplete: 0, assignees: [ARUN, RHEA] },
+    ],
+  },
+];
+
+const LONG_LINKS: GanttDependency[] = [
+  { from: "L1", to: "L2" },
+  { from: "L2a", to: "L2b" },
+  { from: "L2a", to: "L3" },
+  { from: "L3a", to: "L3b" },
+  { from: "L3b", to: "L3c" },
+  { from: "L3", to: "L4" },
+];
+
 const LINKS: GanttDependency[] = [
   { from: "t1", to: "t2" },
   { from: "t2", to: "t3" },
@@ -210,24 +263,42 @@ const NewGanttDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>5. Three views, and clicking a task</h2>
+      <h2>5. Quarter and year, for a plan that outlasts a month</h2>
+      <CodeExample
+        title="A whole project, at the granularity that fits it"
+        description="A month is the widest view a calendar needs and the narrowest a plan does: this four-month schedule shows one phase in month view and three empty columns of nothing. Quarter draws week columns, year draws month columns. Both have columns of UNEQUAL length — a quarter begins on the 1st, which is almost never a Monday, so its first and last weeks are partial, and months are 28 to 31 days. Each column is therefore drawn at its own share of the axis rather than at one uniform width. That is not a detail: uniform month columns walk every bar off its gridline by up to three days across a year, while looking perfectly reasonable. Check a bar's edge against the line beside it in the year view below."
+        code={`<Gantt tasks={plan} dependencies={links} defaultView="year" />
+<Gantt tasks={plan} defaultView="quarter" />
+
+// Offer a subset — a plan measured in days has no use for a year:
+<Gantt tasks={plan} views={["week", "month", "quarter"]} />`}
+      >
+        <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <Gantt tasks={LONG_PLAN} dependencies={LONG_LINKS} now={NOW} defaultDate={NOW} defaultView="year" />
+          <Gantt tasks={LONG_PLAN} dependencies={LONG_LINKS} now={NOW} defaultDate={NOW} defaultView="quarter" />
+        </div>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>6. Clicking a task</h2>
       <CodeExample
         title="It renders the plan; it does not reschedule it"
-        description="Day is hours, week is days, month is days — the same axis PlanningCalendar uses, from the same functions, so the two cannot disagree about where a date is. There is no drag-to-move, no drag-to-resize and no pulling a new dependency between two bars. Moving a task in a real plan cascades through its successors, and what should happen then is a policy question: does it push the whole chain, does it need an approval, what does undo mean, who is allowed. That belongs to your domain. onTaskClick hands you the task and its derived row — status, rolled-up span, progress, slip — and you open your own editor."
+        description="There is no drag-to-move, no drag-to-resize and no pulling a new dependency between two bars. Moving a task in a real plan cascades through its successors, and what should happen then is a policy question: does it push the whole chain, does it need an approval, what does undo mean, who is allowed. That belongs to your domain. onTaskClick hands you the task and its derived row — status, rolled-up span, progress, slip — and you open your own editor."
         code={`<Gantt
   tasks={plan}
   dependencies={links}
   onTaskClick={(task, row) => openEditor(task, row.status)}
 />
 
-<Gantt tasks={plan} views={["week", "month"]} defaultView="week" />`}
+<Gantt tasks={plan} views={["month", "quarter", "year"]} />`}
       >
         <Clickable />
       </CodeExample>
     </section>
 
     <section className="demo-section">
-      <h2>6. Loading and empty</h2>
+      <h2>7. Loading and empty</h2>
       <CodeExample
         title="loading / emptyState"
         description="The skeleton is staggered rather than a stack of equal bars, because the shape is the information: a schedule that loads as a table reads as the wrong component for a second. The toolbar is not drawn over either state — Previous, Today and Next cannot change anything the user can see when there is nothing to see, and a dead control is worse than no control."
