@@ -319,6 +319,102 @@ for (const id of wanted) {
       t("…and moves it up a screenful", Number(up2.cell?.split(":")[0]) < rowCount - 1, true);
       t("…still visible", up2.visible, true);
 
+      /* ---- rescheduling: the component's primary action, and until now the
+         only part of it nothing drove. Both paths are exercised, because they
+         are separate code in every binding — the pointer gesture and the
+         keyboard nudge share only the proposal they build. The section owns its
+         own state, so the assertion is on what the DEMO did with the proposal:
+         a component that silently applied the move would look identical here
+         and be wrong, which is why the note is read rather than the bars. ---- */
+      if (route === "production-schedule") {
+        const found = await page.evaluate(() => {
+          const grids = [...document.querySelectorAll('[role="treegrid"]')];
+          /* The rescheduling section is the only chart whose bars offer to
+             move — no flag to read, and no reliance on section order. */
+          const index = grids.findIndex((g) => g.querySelector("[data-gantt-movable]"));
+          if (index < 0) return null;
+          const grid = grids[index];
+          let wrap = grid.parentElement;
+          while (wrap && !wrap.querySelector('[aria-live="polite"]')) wrap = wrap.parentElement;
+          return {
+            index,
+            bars: grid.querySelectorAll("[data-gantt-bar]").length,
+            movable: grid.querySelectorAll("[data-gantt-movable]").length,
+            note: wrap?.querySelector('[aria-live="polite"]')?.textContent ?? null,
+          };
+        });
+        t("one chart offers rescheduling", found !== null, true);
+
+        if (found) {
+          /* Permission gates the AFFORDANCE, not the outcome: the inspection is
+             fixed by an audit window, so its bars never offer to be dragged. */
+          t("…and some of its bars are withheld", found.movable < found.bars && found.movable > 0, true);
+
+          const liveNote = () =>
+            page.evaluate((i) => {
+              const grid = [...document.querySelectorAll('[role="treegrid"]')][i];
+              let wrap = grid?.parentElement;
+              while (wrap && !wrap.querySelector('[aria-live="polite"]')) wrap = wrap.parentElement;
+              return wrap?.querySelector('[aria-live="polite"]')?.textContent ?? null;
+            }, found.index);
+          const firstMovable = () =>
+            page.locator('[role="treegrid"]').nth(found.index).locator("[data-gantt-movable]").first();
+
+          const bar = firstMovable();
+          await bar.scrollIntoViewIfNeeded();
+          await bar.evaluate((b) => b.focus());
+          await page.keyboard.press(`Alt+${FWD}`);
+          await sleep(250);
+          t("Alt+arrow on a bar proposes a move", (await liveNote())?.startsWith("Moved"), true);
+
+          const undo = page.getByRole("button", { name: /Undo/ });
+          t("…and the caller can undo it", await undo.isEnabled(), true);
+          await undo.click();
+          await sleep(250);
+          t("…which the caller, not the component, does", await liveNote(), "Undone");
+
+          /* The pointer path. Coordinates are VIEWPORT ones, so the bar has to
+             be scrolled into view first — a probe that skips this quietly
+             clicks whatever happens to be at those coordinates instead. */
+          const drag = firstMovable();
+          await drag.scrollIntoViewIfNeeded();
+          const box = await drag.boundingBox();
+          t("a movable bar has a hit area", box !== null && box.width > 0, true);
+          if (box) {
+            const y = box.y + box.height / 2;
+            const x = box.x + box.width / 2;
+            /* A few pixels is a CLICK, not a drag. Without the threshold every
+               click on a bar proposes a move of about ninety seconds. */
+            await page.mouse.move(x, y);
+            await page.mouse.down();
+            await page.mouse.move(x + 2, y, { steps: 2 });
+            await page.mouse.up();
+            await sleep(200);
+            t("a 2px twitch is a click, not a reschedule", (await liveNote())?.startsWith("Moved"), false);
+
+            /* VISUALLY forward, which under RTL is leftwards — and the
+               direction matters to the assertion rather than only to the
+               arithmetic. Dragged the other way this first bar does not move at
+               all, correctly: it starts at 06:00, exactly the shift boundary,
+               so "earlier" is non-working time and the calendar snaps it
+               straight back to where it was. That makes a wrong RTL sign fail
+               here rather than pass by proposing something in the wrong
+               direction. */
+            const dx = rtl ? -90 : 90;
+            await page.mouse.move(x, y);
+            await page.mouse.down();
+            await page.mouse.move(x + dx, y, { steps: 8 });
+            await page.mouse.up();
+            await sleep(250);
+            t("…and dragging it 90px does propose one", (await liveNote())?.startsWith("Moved"), true);
+            /* The bar follows the pointer. Stated this way it holds in both
+               directions without the probe knowing which way time runs. */
+            const moved = await firstMovable().boundingBox();
+            t("…and the bar follows the pointer", moved && Math.sign(moved.x - box.x) === Math.sign(dx), true);
+          }
+        }
+      }
+
       t("no runtime errors", errors, []);
       await page.close();
     }

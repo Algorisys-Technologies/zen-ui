@@ -102,6 +102,7 @@ import TimelineDemo from "./components/TimelineDemo";
 import UploadCollectionDemo from "./components/UploadCollectionDemo";
 import PlanningCalendarDemo from "./components/PlanningCalendarDemo";
 import GanttDemo from "./components/GanttDemo";
+import ProductionScheduleDemo from "./components/ProductionScheduleDemo";
 import FormDemo from "./components/FormDemo";
 import PivotDemo from "./components/PivotDemo";
 import MediaTimelineDemo from "./components/MediaTimelineDemo";
@@ -203,6 +204,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/upload-collection": UploadCollectionDemo,
   "/planning-calendar": PlanningCalendarDemo,
   "/gantt": GanttDemo,
+  "/production-schedule": ProductionScheduleDemo,
   "/form": FormDemo,
   "/pivot": PivotDemo,
   "/media-timeline": MediaTimelineDemo,
