@@ -101,6 +101,7 @@ import MicroChartDemo from "./components/MicroChartDemo";
 import TimelineDemo from "./components/TimelineDemo";
 import UploadCollectionDemo from "./components/UploadCollectionDemo";
 import PlanningCalendarDemo from "./components/PlanningCalendarDemo";
+import GanttDemo from "./components/GanttDemo";
 import FormDemo from "./components/FormDemo";
 import PivotDemo from "./components/PivotDemo";
 import MediaTimelineDemo from "./components/MediaTimelineDemo";
@@ -201,6 +202,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/timeline": TimelineDemo,
   "/upload-collection": UploadCollectionDemo,
   "/planning-calendar": PlanningCalendarDemo,
+  "/gantt": GanttDemo,
   "/form": FormDemo,
   "/pivot": PivotDemo,
   "/media-timeline": MediaTimelineDemo,
