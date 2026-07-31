@@ -33,6 +33,38 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.1.0",
+    date: "2026-08-01",
+    kind: "new",
+    title: "Gantt — the project plan, and what is waiting on what",
+    detail:
+      "A collapsing task tree beside bars on a shared clock, with dependency arrows, percent-complete fills and slip against a baseline. Opens on a view fitted to your data rather than on this month. Give it a shift calendar and durations stop being wall-clock: six working hours from Friday 16:00 finishes on Monday, and the bar splits across the gap. One tab stop with arrow-key navigation inside.",
+  },
+  {
+    version: "10.1.0",
+    date: "2026-08-01",
+    kind: "new",
+    title: "ProductionSchedule — what each machine is doing, and whether it can",
+    detail:
+      "Work centres as rows holding many operations in lanes, changeovers drawn as time the machine is busy making nothing and counted in the load, finite capacity with overload, and a histogram of booked over available WORKING hours. Changeover cost can depend on the pair of jobs, not just the job.",
+  },
+  {
+    version: "10.1.0",
+    date: "2026-08-01",
+    kind: "new",
+    title: "Rescheduling that proposes rather than applies",
+    detail:
+      "Drag a bar or press Alt with an arrow key, and ProductionSchedule hands you what WOULD happen — the whole cascade, the operation you dragged first. It changes nothing itself, so undo stays yours and there is no pending state to fall out of step with your ERP. Conflicts and routing cycles are reported, never enforced.",
+  },
+  {
+    version: "10.1.0",
+    date: "2026-08-01",
+    kind: "new",
+    title: "Float, and the chain that has none",
+    detail:
+      "showCriticalPath gives every operation its free float (how far it slips before disturbing its successor) and its total float (before it moves the end) — different numbers, and reading one for the other is how six jobs get pushed. Measured against the schedule as it stands, not forward-scheduled from zero. Pass a due date as `until` and float can go negative, which is the plant being late.",
+  },
+  {
     version: "10.0.0",
     date: "2026-07-30",
     kind: "breaking",

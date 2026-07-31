@@ -11,6 +11,114 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.1.0] - 2026-08-01
+
+Two new components across all four bindings, and the pure-logic and browser
+harnesses that hold them. Purely additive: 16,274 insertions, zero deletions in
+`packages/*/src`, no token or stylesheet change, no existing component touched.
+
+### Added
+
+- **`Gantt`** — a `treegrid` of tasks beside bars on a shared clock. Collapsing
+  hierarchy with rolled-up parent bars and duration-weighted percentages,
+  four dependency types with routed connectors, slip against `baselineEnd`,
+  fit / day / week / month / quarter / year views, a frozen pane that sheds
+  columns before the axis gives way, and row windowing at every size with no
+  threshold. `GanttAnchoredView` vs `GanttView` is a deliberate type split:
+  passing `"fit"` to a function that needs an anchor is a compile error rather
+  than a silent month.
+- **`ProductionSchedule`** — work centres as rows carrying lane-packed
+  operations. Sequence-dependent changeover via `setupMatrix`, finite capacity
+  with a sweep-based overload test (not pairwise), a load histogram of booked
+  over available working time, routing links with lag, and a critical path with
+  free and total float.
+- **Rescheduling** — `onReschedule` / `canReschedule` on `ProductionSchedule`.
+  Pointer drag and `Alt`+arrow both build a `ProductionProposal`; the component
+  never mutates its inputs. Push-later-never-pull, cycles reported rather than
+  iterated, setups held constant through the cascade.
+- **Working-time model in core** — `GanttCalendar` with weekly shifts and dated
+  exceptions; `ganttWorkingMs`, `ganttAddWorkingMs`, `ganttSubWorkingMs`,
+  `ganttWorkingSegments` and split bars. Everything downstream measures in
+  working minutes, including float and the reschedule cascade.
+- **New core modules**: `gantt.ts`, `production.ts`, `reschedule.ts`,
+  `critical-path.ts`.
+- **`<zen-gantt>` and `<zen-production-schedule>`** in the web-components
+  binding, with recursive ISO-date revival for the task tree, the resource tree
+  and calendar exceptions.
+
+### Changed
+
+- `packages/*/src/components/gantt/schedule-grid.*` — one renderer shared by both
+  components in every binding (axis, frozen pane, row window, connector layer,
+  roving-tabindex keyboard model). Measured payoff: `Gantt` 56 kB,
+  `ProductionSchedule` 59 kB, **both together 66 kB** against a 75 kB budget;
+  duplicating the shell would put the pair at ~108 kB.
+- React's `ProductionSchedule` bar no longer wraps in a Radix `Tooltip`. It was
+  a divergence introduced during the Solid port and never recorded; all three
+  bindings now carry the same sentence in `title`. A tooltip trigger installs
+  pointer handlers on a bar that is draggable, and they compete with the pointer
+  capture the drag depends on.
+- `scripts/check-schedule-parity.mjs` accepts `all`, which its sibling harness
+  already took — it was dying on an undefined lookup. An unknown binding now
+  reports itself instead of throwing a `TypeError`.
+
+### Fixed
+
+- `ganttConnectors` skipped a link whenever two anchors *resolved* to the same
+  bar; it now compares the resolved anchor rather than the id, so a link between
+  two tasks folded into one collapsed parent still draws.
+- `ganttFitUnit`'s hour band was unreachable: `minPadMs` defaulted to one day,
+  inflating a four-hour job to three. It is one hour now.
+- The frozen pane shed columns greedily and could drop three and still scroll.
+  It sheds only when shedding achieves a fit, and anchored views shrink before
+  shedding rather than growing.
+- An expanded parent reported 0% load — `ProductionRow` now carries both `lanes`
+  (what it draws) and `subtree` (what it is responsible for).
+- The over-capacity marker lived in the Capacity column, which is among the
+  first the pane sheds; a conflict marker that vanishes when the container
+  narrows is worse than none. It is on the never-dropped resource column.
+- A cross-resource reschedule measured the duration with the *target* calendar,
+  so a four-hour job arrived on a continuous furnace seventeen hours long.
+  `productionReschedule` takes the source calendar for the duration.
+- An overhanging percent label widened the scroller by 25 px; it flips to the
+  other side of the bar instead.
+- `ganttSubWorkingMs` was implemented but unexported from both bindings — found
+  by unpacking the tarball, not by any check in the repo at the time.
+
+### Testing
+
+- Pure-logic contracts: `check-gantt.ts` (263 assertions), `check-production.ts`
+  (102), `check-reschedule.ts` (28), `check-critical-path.ts` (32), all wired
+  into `bun run check`.
+- `scripts/check-schedule-dom.mjs` is parameterised by binding and drives
+  `/gantt` and `/production-schedule` in both directions: **600 assertions over
+  four bindings**. A binding that has not ported a component is reported as NOT
+  PORTED and counts as neither pass nor failure, and a run that checked nothing
+  exits non-zero — it printed "all passed — 0 assertions" once during its own
+  development, which is the zero-denominator green this repo has shipped twice.
+- Rescheduling is now driven by the harness, both paths. It reads the demo's
+  live note rather than the bars, because a component that silently *applied* a
+  move would look identical in the DOM and be wrong. Proved failing by inverting
+  vanilla's RTL drag sign.
+- `scripts/check-schedule-parity.mjs` compares rendered charts against React:
+  pane columns, axis columns, first label, `aria-rowcount`/`colcount`, mounted
+  rows, bars, connectors, range label. **72 charts, all identical.**
+
+### Notes for maintainers
+
+- `show-dependencies` / `show-load` are declared as element **properties**, not
+  attributes, in the web-components binding. An absent boolean attribute coerces
+  to `false` (so removing one resets the prop), and both flags default to true —
+  as attributes they switched the load strip off on all eight charts while the
+  build, the typecheck and the lint all passed. Every other boolean attribute in
+  `src/elements` defaults to false; these two are the whole exception.
+- The layout trap that produced two false readings: `.example-preview` is
+  `display: flex`, so a wrapper without `w-full` is content-sized — and a fit
+  axis sizes itself from its scroller's measured width, which makes the two
+  define each other. Identical data rendered at 516 px in one section and 1800 px
+  in another, and per-scroller overflow checks could not see it because each
+  scroller was internally consistent.
+
 ## [10.0.0] - 2026-07-30
 
 ### Breaking
