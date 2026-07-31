@@ -39,6 +39,7 @@
     "check:size": "node scripts/check-bundle-size.mjs",
     "check:schedule-dom": "node scripts/check-schedule-dom.mjs",
     "check:schedule-dom:all": "node scripts/check-schedule-dom.mjs all",
+    "check:schedule-parity": "node scripts/check-schedule-parity.mjs",
     "check:dist": "bun run build:lib && bun run build:lib:solid && bun run build:lib:vanilla && bun run build:lib:wc && bun run check:package && bun run check:size",
     "dev": "bun --filter @algorisys/zen-ui-react dev",
     "build": "bun --filter @algorisys/zen-ui-react build",

@@ -3,25 +3,22 @@ import {
   flattenGanttTasks,
   formatGanttVariance,
   ganttConnectors,
-  nowPct,
+  ganttFitRange,
   placeAppointment,
-  planningColumns,
-  planningRange,
-  planningRangeLabel,
-  shiftPlanningAnchor,
   type GanttBarAnchor,
+  type GanttCalendar,
   type GanttDependency,
+  type GanttPaneColumn,
   type GanttRow,
   type GanttTaskNode,
   type GanttTaskStatus,
-  type PlanningColumn,
+  type GanttView,
   type PlanningPlacement,
-  type PlanningView,
+  type PlanningRange,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "../avatar/avatar";
 import { Badge } from "../badge/badge";
-import { Button } from "../button/button";
 import {
   EmptyState,
   EmptyStateDescription,
@@ -31,6 +28,14 @@ import {
 import { Icon } from "../icon/icon";
 import { Skeleton } from "../skeleton/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip/tooltip";
+import {
+  INDENT_PX,
+  ROW_PX,
+  ScheduleGrid,
+  createScheduleAxis,
+  createScrollerMetrics,
+  type ScheduleColumn,
+} from "./schedule-grid";
 
 /**
  * Gantt — what the project is doing, and what is waiting on what.
@@ -39,33 +44,41 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip/tooltip";
  *
  * Two panes over one clock. On the left a task tree that collapses; on the
  * right the same rows as bars on a shared time axis, with dependency arrows
- * between them. They are ONE scroller, not two: the left pane is stuck to the
- * inline start and the header to the top, so vertical scrolling can never take
- * a row's name away from its bar. Two panes scrolled in sync by JavaScript is
- * the version that drifts by a row the first time a scrollbar appears.
+ * between them.
  *
- * All the arithmetic — the range, the columns, bar placement, the now line, the
- * hierarchy projection, summary rollups, slip and the connector routes — is in
- * @algorisys/zen-ui-core/gantt and @algorisys/zen-ui-core/planning, pinned by
- * scripts/check-gantt.ts and scripts/check-planning.ts. The component is a
- * renderer over those functions and derives no dates of its own.
+ * This file is the PROJECT half only. The chrome underneath it — the scroller,
+ * the axis and its six views, the frozen pane that sheds columns, row
+ * windowing, the connector overlay and the treegrid keyboard model — lives in
+ * ./schedule-grid, which knows nothing about tasks. What is here is what a
+ * project schedule MEANS: the task shape, the four pane columns, the bar with
+ * its progress fill and slip chip.
  *
- * It does NOT edit, and that is the same decision PlanningCalendar made for the
- * same reason. There is no drag-to-move, no drag-to-resize, no drag-to-create
- * and no way to redraw a dependency by pulling on it. Rescheduling a task in a
- * real plan cascades through its successors, and what should happen then is a
- * policy question — does it push the whole chain, does it need an approval,
- * what does undo mean, who is allowed. That belongs to the caller's domain.
- * `onTaskClick` hands you the task and its derived row; you open your own
- * editor and hand back new `tasks`.
+ * All the arithmetic is in @algorisys/zen-ui-core, pinned by
+ * scripts/check-gantt.ts, and this binding derives no dates of its own — which
+ * is what lets it mirror the React one exactly rather than approximately. The
+ * rendering is pinned too: `node scripts/check-schedule-dom.mjs solid` runs the
+ * same assertions the React binding passes.
  *
- * Rows are not virtualized. The connector overlay is one SVG spanning every
- * row, so windowing the rows would mean windowing the routes as well, and a
- * plan large enough to need it is one that wants a filter rather than a longer
- * scroll. A few hundred rows render fine.
+ * It does NOT edit. Rescheduling a task in a real plan cascades through its
+ * successors, and what should happen then is a policy question — does it push
+ * the whole chain, does it need an approval, what does undo mean, who is
+ * allowed. That belongs to the caller's domain. `onTaskClick` hands you the
+ * task and its derived row; you open your own editor and hand back new `tasks`.
  *
- * Times are the caller's local `Date`s, deliberately unconverted — see the
- * module note in core.
+ * The default view is `fit`: the axis range is the span of the tasks, so a plan
+ * opens showing its own shape rather than whichever calendar month today falls
+ * in. It is the only view that is never trivially wrong. Its range does not
+ * depend on the anchor, so prev / next / today are HIDDEN while it is on — a
+ * control that cannot change anything is worse than no control.
+ *
+ * ONE LAYOUT TRAP, and it is the caller's to avoid. The fit axis sizes itself
+ * from the scroller's measured width, so it needs a container with a width of
+ * its OWN. Drop the chart into a flex row or an inline-block whose width comes
+ * from its content and the two define each other: measured on this repo's own
+ * demo page, identical data rendered at 516px in one section and 1800px in
+ * another, purely because the wrapper lacked `width: 100%`.
+ *
+ * Times are the caller's local `Date`s, deliberately unconverted.
  */
 
 /** Someone the work is assigned to. */
@@ -95,13 +108,13 @@ export interface GanttProps {
   /** Draw the connector layer. Default true. */
   showDependencies?: boolean;
 
-  /** Uncontrolled starting view. Default "week". */
-  defaultView?: PlanningView;
+  /** Uncontrolled starting view. Default "fit". */
+  defaultView?: GanttView;
   /** Controlled view; pair with `onViewChange`. */
-  view?: PlanningView;
-  onViewChange?: (view: PlanningView) => void;
-  /** Which views the switcher offers. Default all three. */
-  views?: PlanningView[];
+  view?: GanttView;
+  onViewChange?: (view: GanttView) => void;
+  /** Which views the switcher offers. Default all six. */
+  views?: GanttView[];
 
   /** Any date inside the range to open on. Default today. */
   defaultDate?: Date;
@@ -109,10 +122,7 @@ export interface GanttProps {
   date?: Date;
   onDateChange?: (date: Date) => void;
 
-  /**
-   * Ids of the parents that are open. Controlled; pair with
-   * `onExpandedChange`. A parent not in the list is closed.
-   */
+  /** Ids of the parents that are open. Controlled; pair with `onExpandedChange`. */
   expanded?: string[];
   /** Uncontrolled starting set. Omit it and everything opens. */
   defaultExpanded?: string[];
@@ -120,12 +130,38 @@ export interface GanttProps {
 
   onTaskClick?: (task: GanttTask, row: GanttRow<GanttTask>) => void;
 
+  /**
+   * When work can happen — shift patterns per weekday plus dated exceptions for
+   * holidays, planned maintenance and one-off overtime.
+   *
+   * With one supplied, durations become WORKING durations, bars break across
+   * non-working time instead of drawing through it, and the shaded columns are
+   * decided by this rather than by the weekend-and-nine-to-five default.
+   * Omit it and nothing changes: no calendar means a 24/7 one.
+   */
+  calendar?: GanttCalendar;
+  /** Hours per column in the DAY view. Default 1; 0.25 for quarter-hour columns. */
+  hourStep?: number;
   /** Reference "now" for the marker, the today column and the derived status. */
   now?: Date;
-  /** Pixel width of one column. Defaults to something readable per view. */
+  /**
+   * Nominal pixel width of one column. In the quarter, year and fit views
+   * columns differ in length, so this sets the average rather than the literal
+   * width. Setting it also opts the FIT view out of sizing itself to the
+   * container, which is the one thing that view exists to do.
+   */
   columnWidth?: number;
   /** Hide the toolbar when your page already has one. */
   hideToolbar?: boolean;
+
+  /**
+   * Which columns the frozen pane carries, and in what order. Default all four.
+   *
+   * The order is a PREFERENCE order: what you list last is what the pane sheds
+   * first when the container is too narrow to hold both it and a usable axis.
+   * The first entry is never dropped.
+   */
+  columns?: GanttPaneColumn[];
 
   /** Show skeleton rows instead of the chart. */
   loading?: boolean;
@@ -137,33 +173,45 @@ export interface GanttProps {
   class?: string;
 }
 
-const VIEW_LABEL: Record<PlanningView, string> = { day: "Day", week: "Week", month: "Month" };
-const ALL_VIEWS: PlanningView[] = ["day", "week", "month"];
-
-/**
- * Column widths per view, because one number cannot serve all three. A week is
- * 7 columns and can afford to be wide; a month is 31 and cannot, or every plan
- * opens scrolled halfway off its own axis.
- */
-const COLUMN_PX: Record<PlanningView, number> = { day: 56, week: 128, month: 44 };
-
-const ROW_PX = 36;
 const BAR_PX = 18;
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
  *  exactly ROW_PX / 2 — which is the y the connector routes are computed at. */
 const BAR_TOP = (ROW_PX - BAR_PX) / 2;
-const HEADER_PX = 44;
 
-/** The frozen pane, and the columns inside it. Fixed, because a sticky pane
- *  cannot be sized by its content without moving as you scroll. */
-const NAME_PX = 188;
-const ASSIGNEES_PX = 104;
-const STATUS_PX = 96;
-const VARIANCE_PX = 80;
-const LEFT_PX = NAME_PX + ASSIGNEES_PX + STATUS_PX + VARIANCE_PX;
+/**
+ * The frozen pane's columns. Fixed widths, because a sticky pane cannot be
+ * sized by its content without moving as you scroll.
+ */
+const PANE_PX: Record<GanttPaneColumn, number> = {
+  name: 180,
+  /* Three xs avatars at "loose" spacing plus a "+N" chip is 84px, and the cell
+     costs 16px of padding either side of it. */
+  assignees: 96,
+  status: 88,
+  variance: 72,
+};
 
-/** Indent per level of hierarchy. */
-const INDENT_PX = 14;
+const PANE_LABEL: Record<GanttPaneColumn, string> = {
+  name: "Task",
+  assignees: "Assignees",
+  status: "Status",
+  variance: "Variance",
+};
+
+/**
+ * Each pane column's place in the FULL set — fixed, not renumbered when one is
+ * dropped. `aria-colindex` names a column's place in the whole table, which is
+ * exactly what lets a partially rendered row be announced correctly.
+ */
+const COL_INDEX: Record<GanttPaneColumn | "timeline", number> = {
+  name: 1,
+  assignees: 2,
+  status: 3,
+  variance: 4,
+  timeline: 5,
+};
+
+const DEFAULT_PANE: GanttPaneColumn[] = ["name", "assignees", "status", "variance"];
 
 /** How many avatars before the group collapses to "+N". */
 const AVATAR_MAX = 3;
@@ -171,18 +219,20 @@ const AVATAR_MAX = 3;
 /**
  * Where the percent label goes, in the two places the obvious answer fails.
  *
- * Under ~44px of bar there is no room for "100%" at all and it clips to "10",
- * so the label moves out beside the bar. Past ~85% done the fill has reached
- * the inline end, so a label sitting there would be solid-on-solid — it moves
- * to the inline START instead, onto the fill, in the fill's own foreground
- * colour. Putting it outside in that case is what the first version did, and
- * it landed exactly where a finish-to-start connector leaves the bar.
+ * Under ~44px of bar there is no room for "100%" and it clips to "10", so the
+ * label moves out beside the bar. Past ~85% done the fill has reached the
+ * inline end, so a label sitting there would be solid-on-solid — it moves to
+ * the inline START instead, onto the fill, in the fill's own foreground colour.
  */
 const LABEL_MIN_PX = 44;
 const LABEL_MAX_PCT = 85;
-
-/** Half-height of the connector arrowhead, in the axis's pixel space. */
-const ARROW_PX = 5;
+/**
+ * Room an outside label needs after the bar before it is put in front of it.
+ * Without this a task finishing at the end of the range draws its label PAST
+ * the axis, which widens the scroller and makes the chart scroll sideways to
+ * reveal two characters of grey text.
+ */
+const LABEL_OUTSIDE_PX = 30;
 
 const BAR_CLASS: Record<GanttTaskStatus, string> = {
   "not-started": "zen-bg-zen-muted zen-border-zen-border",
@@ -248,23 +298,32 @@ const parentIds = (tasks: GanttTask[]): string[] => {
 const formatDay = (d: Date): string =>
   `${d.getDate()} ${d.toLocaleString(undefined, { month: "short" })} ${d.getFullYear()}`;
 
+type Row = GanttRow<GanttTask>;
+
 export const Gantt = (props: GanttProps) => {
-  const [innerView, setInnerView] = createSignal<PlanningView>(props.defaultView ?? "week");
+  /* Fit, not month, and certainly not week. A seven-day window is right for a
+     calendar and wrong for a plan; a month is right for a plan that fits in one
+     and wrong for the majority that do not. Fit is the only default that is
+     never trivially wrong, because it is the only one derived from the data
+     rather than from today's date. */
+  const [innerView, setInnerView] = createSignal<GanttView>(props.defaultView ?? "fit");
   const [innerDate, setInnerDate] = createSignal<Date>(props.defaultDate ?? new Date());
   /* null is not "nothing open", it is "no answer given" — the default, which is
      everything open. Storing the resolved list instead would freeze the answer
      at mount and silently leave later-arriving tasks collapsed. */
   const [innerExpanded, setInnerExpanded] = createSignal<string[] | null>(props.defaultExpanded ?? null);
 
+  const scroller = createScrollerMetrics();
+
   const view = () => props.view ?? innerView();
   const anchor = () => props.date ?? innerDate();
-  const now = () => props.now ?? new Date();
-  const columnPx = () => props.columnWidth ?? COLUMN_PX[view()];
+  /* Read once per MOUNT, not per read. Two `new Date()`s in one pass can
+     straddle a millisecond and leave the marker and the today column
+     disagreeing — and a fresh one per read would invalidate every memo below on
+     every scroll tick. Pass `now` to control it. */
+  const mountedAt = new Date();
+  const now = () => props.now ?? mountedAt;
 
-  const setView = (next: PlanningView) => {
-    if (props.view === undefined) setInnerView(next);
-    props.onViewChange?.(next);
-  };
   const setDate = (next: Date) => {
     if (props.date === undefined) setInnerDate(next);
     props.onDateChange?.(next);
@@ -282,10 +341,29 @@ export const Gantt = (props: GanttProps) => {
     props.onExpandedChange?.(next);
   };
 
-  const range = createMemo(() => planningRange(view(), anchor()));
-  const columns = createMemo(() => planningColumns(view(), anchor(), { now: now() }));
-  const axisWidth = createMemo(() => columns().length * columnPx());
-  const marker = createMemo(() => nowPct(range(), now()));
+  /* Null when not fitting, and ALSO null when fitting a plan in which nothing
+     has dates yet. Both fall through to the anchored month, so the axis and the
+     toolbar still make sense while the dates are being filled in. */
+  const fitRange = createMemo(() =>
+    view() === "fit" ? ganttFitRange(props.tasks ?? [], { calendar: props.calendar }) : null,
+  );
+
+  /* The pane's columns are DATA, which is what lets the grid underneath know
+     nothing about tasks. */
+  const requestedPane = () => props.columns ?? DEFAULT_PANE;
+  const paneSpec = createMemo(() => requestedPane().map((key) => ({ key, width: PANE_PX[key] })));
+
+  const axis = createScheduleAxis(() => ({
+    view: view(),
+    anchor: anchor(),
+    fitRange: fitRange(),
+    now: now(),
+    calendar: props.calendar,
+    hourStep: props.hourStep,
+    columnWidth: props.columnWidth,
+    paneColumns: paneSpec(),
+    available: scroller.metrics().width,
+  }));
 
   const flat = createMemo(() => {
     const set = expandedSet();
@@ -293,6 +371,7 @@ export const Gantt = (props: GanttProps) => {
       props.tasks ?? [],
       (task) => (set === null ? true : set.has(task.id)),
       now(),
+      { calendar: props.calendar, minGapMs: axis.minGapMs() },
     );
   });
   const rows = () => flat().rows;
@@ -304,27 +383,68 @@ export const Gantt = (props: GanttProps) => {
     const map = new Map<number, PlanningPlacement>();
     for (const row of rows()) {
       if (!row.span) continue;
-      const placement = placeAppointment(row.span, range());
+      const placement = placeAppointment(row.span, axis.range());
       if (placement) map.set(row.index, placement);
     }
     return map;
   });
 
   const connectors = createMemo(() => {
-    const dependencies = props.dependencies;
-    if (props.showDependencies === false || !dependencies || dependencies.length === 0) return [];
-    const placed = placements();
+    if (props.showDependencies === false) return [];
+    const links = props.dependencies;
+    if (!links || links.length === 0) return [];
     const anchors = new Map<string, GanttBarAnchor>();
     for (const [id, index] of flat().rowIndexById) {
-      const placement = placed.get(index);
+      const placement = placements().get(index);
       if (placement) {
         anchors.set(id, { rowIndex: index, startPct: placement.startPct, widthPct: placement.widthPct });
       }
     }
-    return ganttConnectors(anchors, dependencies, { axisWidth: axisWidth(), rowHeight: ROW_PX });
+    return ganttConnectors(anchors, links, { axisWidth: axis.axisWidth(), rowHeight: ROW_PX });
   });
 
-  const bodyHeight = () => rows().length * ROW_PX;
+  const setView = (next: GanttView) => {
+    /* Leaving fit re-anchors, when the anchor is nowhere near the plan.
+       Otherwise the obvious gesture — open on fit, click Month to zoom in —
+       lands on today's month, which for a plan that runs next spring is an
+       empty axis and reads as the data having vanished. */
+    const fit = fitRange();
+    if (view() === "fit" && next !== "fit" && fit) {
+      const from = fit.start.getTime();
+      const to = fit.end.getTime();
+      const anchorTime = anchor().getTime();
+      if (anchorTime < from || anchorTime >= to) {
+        const nowTime = now().getTime();
+        setDate(nowTime >= from && nowTime < to ? now() : fit.start);
+      }
+    }
+    if (props.view === undefined) setInnerView(next);
+    props.onViewChange?.(next);
+  };
+
+  const paneColumns = createMemo<ScheduleColumn<Row>[]>(() =>
+    requestedPane().map((key) => ({
+      key,
+      label: PANE_LABEL[key],
+      width: PANE_PX[key],
+      colIndex: COL_INDEX[key],
+      class: key === "name" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
+      style:
+        key === "name"
+          ? (row: Row) => ({ "padding-inline-start": `${8 + row.depth * INDENT_PX}px` })
+          : undefined,
+      /* The avatars are decorative and the "+N" chip hides names outright, so
+         the cell says who — the tooltip is the pointer's version of it. */
+      ariaLabel:
+        key === "assignees"
+          ? (row: Row) =>
+              row.task.assignees && row.task.assignees.length > 0
+                ? row.task.assignees.map((a) => a.name).join(", ")
+                : undefined
+          : undefined,
+      render: (row: Row) => <GanttPaneCell column={key} row={row} onToggle={toggle} />,
+    })),
+  );
 
   return (
     <Show
@@ -341,7 +461,7 @@ export const Gantt = (props: GanttProps) => {
           <For each={Array.from({ length: props.loadingRows ?? 6 }, (_, i) => i)}>
             {(i) => (
               <div class="zen-flex zen-items-center zen-gap-3">
-                <Skeleton class="zen-h-4" style={{ width: `${NAME_PX - 24 - (i % 3) * INDENT_PX}px` }} />
+                <Skeleton class="zen-h-4" style={{ width: `${PANE_PX.name - 24 - (i % 3) * INDENT_PX}px` }} />
                 <Skeleton class="zen-h-4 zen-w-16" />
                 <Skeleton
                   class="zen-h-4"
@@ -373,386 +493,323 @@ export const Gantt = (props: GanttProps) => {
           </div>
         }
       >
-        <div class={cn("zen-flex zen-w-full zen-flex-col zen-gap-3", props.class)}>
-          <Show when={!props.hideToolbar}>
-            <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                aria-label="Previous"
-                onClick={() => setDate(shiftPlanningAnchor(view(), anchor(), -1))}
-              >
-                {/* Logical, not physical: under RTL the axis runs the other way. */}
-                <Icon name="chevron-left" size={14} class="rtl:zen-rotate-180" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setDate(now())}>
-                Today
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                aria-label="Next"
-                onClick={() => setDate(shiftPlanningAnchor(view(), anchor(), 1))}
-              >
-                <Icon name="chevron-right" size={14} class="rtl:zen-rotate-180" />
-              </Button>
-
-              <span class="zen-mx-1 zen-text-sm zen-font-medium zen-text-zen-foreground">
-                {planningRangeLabel(view(), anchor())}
-              </span>
-
-              <div class="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label="View">
-                <For each={props.views ?? ALL_VIEWS}>
-                  {(v) => (
-                    <Button
-                      variant={view() === v ? "solid" : "outline"}
-                      size="sm"
-                      aria-pressed={view() === v}
-                      onClick={() => setView(v)}
-                    >
-                      {VIEW_LABEL[v]}
-                    </Button>
-                  )}
-                </For>
-              </div>
-            </div>
-          </Show>
-
-          {/* ONE scroller. The task pane is sticky at the inline start and the
-              header sticky at the top, so vertical scroll moves both panes and
-              horizontal scroll moves only the axis — with no scroll listener to
-              fall out of sync. */}
-          <div class="zen-relative zen-max-h-[32rem] zen-overflow-auto zen-rounded-zen-md zen-border zen-border-zen-border">
-            <div style={{ width: `${LEFT_PX + axisWidth()}px` }}>
-              <div
-                class="zen-sticky zen-top-0 zen-z-30 zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted"
-                style={{ height: `${HEADER_PX}px`, "box-sizing": "border-box" }}
-              >
-                <div
-                  class="zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-text-xs zen-font-semibold zen-text-zen-muted-fg"
-                  style={{ width: `${LEFT_PX}px`, "inset-inline-start": "0" }}
-                >
-                  <div class="zen-truncate zen-px-3" style={{ width: `${NAME_PX}px` }}>
-                    Task
-                  </div>
-                  <div class="zen-truncate zen-px-2" style={{ width: `${ASSIGNEES_PX}px` }}>
-                    Assignees
-                  </div>
-                  <div class="zen-truncate zen-px-2" style={{ width: `${STATUS_PX}px` }}>
-                    Status
-                  </div>
-                  <div class="zen-truncate zen-px-2" style={{ width: `${VARIANCE_PX}px` }}>
-                    Variance
-                  </div>
-                </div>
-
-                <div class="zen-flex" style={{ width: `${axisWidth()}px` }}>
-                  <For each={columns()}>
-                    {(column) => (
-                      <div
-                        class={cn(
-                          "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-border-e zen-border-zen-border last:zen-border-e-0",
-                          column.nonWorking && "zen-bg-zen-muted",
-                          column.today && "zen-bg-zen-primary-soft",
-                        )}
-                        style={{ width: `${columnPx()}px` }}
-                      >
-                        <span class="zen-text-xs zen-font-medium zen-text-zen-foreground">
-                          {column.label}
-                        </span>
-                        <Show when={column.sublabel}>
-                          <span class="zen-text-[10px] zen-text-zen-muted-fg">{column.sublabel}</span>
-                        </Show>
-                      </div>
-                    )}
-                  </For>
-                </div>
-              </div>
-
-              <div class="zen-relative" style={{ height: `${bodyHeight()}px` }}>
-                <For each={rows()}>
-                  {(row) => (
-                    <GanttRowView
-                      row={row}
-                      columns={columns()}
-                      columnPx={columnPx()}
-                      axisWidth={axisWidth()}
-                      placement={placements().get(row.index) ?? null}
-                      onToggle={toggle}
-                      onTaskClick={props.onTaskClick}
-                    />
-                  )}
-                </For>
-
-                <Show when={marker() !== null}>
-                  <div
-                    aria-hidden="true"
-                    class="zen-pointer-events-none zen-absolute zen-top-0 zen-z-10 zen-w-px zen-bg-zen-error"
-                    style={{
-                      height: `${bodyHeight()}px`,
-                      "inset-inline-start": `${LEFT_PX + ((marker() ?? 0) / 100) * axisWidth()}px`,
-                    }}
-                  />
-                </Show>
-
-                <Show when={connectors().length > 0}>
-                  {/* Mirrored under RTL rather than recomputed: the bars are
-                      placed with logical inset properties, so the axis is already
-                      flipped and the routes have to flip with it — arrowheads
-                      included. */}
-                  <svg
-                    aria-hidden="true"
-                    class="zen-pointer-events-none zen-absolute zen-top-0 zen-z-10 rtl:-zen-scale-x-100"
-                    width={axisWidth()}
-                    height={bodyHeight()}
-                    viewBox={`0 0 ${axisWidth()} ${bodyHeight()}`}
-                    style={{ "inset-inline-start": `${LEFT_PX}px` }}
-                  >
-                    <For each={connectors()}>
-                      {(connector) => (
-                        <g>
-                          <path
-                            d={connector.d}
-                            fill="none"
-                            /* zen-stroke-* / zen-fill-* generate nothing under
-                               this preset — the token has to be named directly. */
-                            stroke="var(--zen-color-muted-fg)"
-                            stroke-width={1.5}
-                          />
-                          <polygon
-                            points={[
-                              `${connector.arrow.x},${connector.arrow.y}`,
-                              `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y - ARROW_PX}`,
-                              `${connector.arrow.x - connector.arrow.dir * ARROW_PX * 1.6},${connector.arrow.y + ARROW_PX}`,
-                            ].join(" ")}
-                            fill="var(--zen-color-muted-fg)"
-                          />
-                        </g>
-                      )}
-                    </For>
-                  </svg>
-                </Show>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ScheduleGrid<Row>
+          rows={rows()}
+          rowId={(row) => row.task.id}
+          columns={paneColumns()}
+          colCount={5}
+          timelineColIndex={COL_INDEX.timeline}
+          renderTrack={(row, axisWidth) => (
+            <GanttTrack
+              row={row}
+              range={axis.range()}
+              axisWidth={axisWidth}
+              placement={placements().get(row.index) ?? null}
+              onTaskClick={props.onTaskClick}
+            />
+          )}
+          view={view()}
+          anchor={anchor()}
+          now={now()}
+          connectors={connectors()}
+          views={props.views}
+          hideToolbar={props.hideToolbar}
+          onViewChange={setView}
+          onDateChange={setDate}
+          onToggle={(row) => toggle(row.task.id)}
+          onActivate={(row) => props.onTaskClick?.(row.task, row)}
+          ariaLabel="Project schedule"
+          class={props.class}
+          scrollerRef={scroller.ref}
+          scroller={scroller.element}
+          axis={axis}
+          metrics={scroller.metrics}
+          setMetrics={scroller.setMetrics}
+        />
       </Show>
     </Show>
   );
 };
 
-interface GanttRowViewProps {
-  row: GanttRow<GanttTask>;
-  columns: PlanningColumn[];
-  columnPx: number;
+/** What each of the four pane columns actually draws. */
+const GanttPaneCell = (props: { column: GanttPaneColumn; row: Row; onToggle: (id: string) => void }) => {
+  const task = () => props.row.task;
+  const varianceText = () => formatGanttVariance(props.row.variance);
+
+  return (
+    <>
+      <Show when={props.column === "name"}>
+        <Show
+          when={props.row.hasChildren}
+          fallback={
+            /* A spacer, not a hidden chevron: leaves must line up with their
+               siblings' text, or every leaf reads as one level shallower. */
+            <span aria-hidden="true" class="zen-h-5 zen-w-5 zen-shrink-0" />
+          }
+        >
+          <button
+            type="button"
+            /* Out of the tab order, in the grid's: the chevron is reached by
+               arrowing to the first column and pressing the forward arrow, not
+               by a tab stop per parent. */
+            tabindex={-1}
+            onClick={() => props.onToggle(task().id)}
+            aria-label={props.row.expanded ? `Collapse ${task().name}` : `Expand ${task().name}`}
+            class="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
+          >
+            <Icon
+              name={props.row.expanded ? "chevron-down" : "chevron-right"}
+              size={14}
+              class={props.row.expanded ? undefined : "rtl:zen-rotate-180"}
+            />
+          </button>
+        </Show>
+        <span class="zen-min-w-0">
+          <span
+            class={cn(
+              "zen-block zen-truncate zen-text-sm zen-text-zen-foreground",
+              props.row.hasChildren && "zen-font-semibold",
+            )}
+            title={task().name}
+          >
+            {task().name}
+          </span>
+          <Show when={task().subtitle}>
+            <span class="zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg">{task().subtitle}</span>
+          </Show>
+        </span>
+      </Show>
+
+      <Show when={props.column === "assignees"}>
+        <GanttAssignees assignees={task().assignees} />
+      </Show>
+
+      <Show when={props.column === "status"}>
+        <Badge variant="soft" color={STATUS_COLOR[props.row.status]} class="zen-truncate">
+          {task().statusLabel ?? STATUS_LABEL[props.row.status]}
+        </Badge>
+      </Show>
+
+      <Show when={props.column === "variance" && varianceText()}>
+        <Badge
+          /* "+2d" is a signed number, and bidi reorders a leading sign to the
+             far side in an RTL run — it renders as "2d+". */
+          dir="ltr"
+          variant="soft"
+          color={
+            props.row.variance === null || props.row.variance === 0
+              ? "neutral"
+              : props.row.variance > 0
+                ? "error"
+                : "success"
+          }
+        >
+          {varianceText()}
+        </Badge>
+      </Show>
+    </>
+  );
+};
+
+/** The bar on the axis: one per row, broken into pieces where work stops. */
+const GanttTrack = (props: {
+  row: Row;
+  range: PlanningRange;
   axisWidth: number;
   placement: PlanningPlacement | null;
-  onToggle: (id: string) => void;
-  onTaskClick?: (task: GanttTask, row: GanttRow<GanttTask>) => void;
-}
-
-const GanttRowView = (props: GanttRowViewProps) => {
+  onTaskClick?: (task: GanttTask, row: Row) => void;
+}) => {
   const task = () => props.row.task;
   const progress = () => props.row.progress ?? 0;
-  const varianceText = () => formatGanttVariance(props.row.variance);
   const widthPx = () => (props.placement ? (props.placement.widthPct / 100) * props.axisWidth : 0);
   const labelOutside = () => widthPx() < LABEL_MIN_PX;
   const labelOnFill = () => !labelOutside() && progress() >= LABEL_MAX_PCT;
-  const span = () => props.row.span;
+  const endPct = () => (props.placement ? props.placement.startPct + props.placement.widthPct : 0);
+  /* Which SIDE the outside label goes. After the bar normally; before it when
+     the bar ends against the edge of the axis and there is nowhere after. */
+  const labelBefore = () => ((100 - endPct()) / 100) * props.axisWidth < LABEL_OUTSIDE_PX;
+
+  /**
+   * The bar's working stretches, as percentages OF THE BAR, with the progress
+   * fill handed out along them.
+   *
+   * The fill is distributed by working duration rather than given to each piece
+   * equally: 40% complete on a job that runs an hour on Friday and seven on
+   * Monday means the Friday piece is full and the Monday one has barely
+   * started, not that both are 40% shaded.
+   */
+  const pieces = createMemo(() => {
+    const row = props.row;
+    if (!row.segments || !row.span) return null;
+    /* Percentages of the VISIBLE bar, not of the whole span. `placeAppointment`
+       clips a bar to the range, so the button is only the part in view — and
+       measuring against the full span would squash and shift every piece the
+       moment a job started before the range. */
+    const from = Math.max(row.span.start.getTime(), props.range.start.getTime());
+    const to = Math.min(row.span.end.getTime(), props.range.end.getTime());
+    const total = to - from;
+    if (total <= 0) return null;
+
+    /* The fill is handed out over the segments the WHOLE job is worked in, not
+       just the visible ones, or a job half-done off-screen would look untouched
+       where you can see it. */
+    const allDurations = row.segments.map((seg) => seg.end.getTime() - seg.start.getTime());
+    const workingTotal = allDurations.reduce((a, b) => a + b, 0);
+    let remaining = (workingTotal * progress()) / 100;
+
+    const out: Array<{ key: number; startPct: number; widthPct: number; fillPct: number }> = [];
+    row.segments.forEach((seg, i) => {
+      const done = Math.max(0, Math.min(remaining, allDurations[i]));
+      remaining -= done;
+      const segStart = Math.max(seg.start.getTime(), from);
+      const segEnd = Math.min(seg.end.getTime(), to);
+      if (segEnd <= segStart) return;
+      const visible = segEnd - segStart;
+      /* `done` counts filled milliseconds from the segment's own start, so a
+         segment cut by the left edge shows only the part of its fill in view. */
+      const fillVisible = Math.max(0, Math.min(done - (segStart - seg.start.getTime()), visible));
+      out.push({
+        key: segStart,
+        startPct: ((segStart - from) / total) * 100,
+        widthPct: (visible / total) * 100,
+        fillPct: visible > 0 ? (fillVisible / visible) * 100 : 0,
+      });
+    });
+    return out.length > 0 ? out : null;
+  });
 
   return (
-    <div
-      class="zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0"
-      style={{ height: `${ROW_PX}px`, "box-sizing": "border-box" }}
+    <Show
+      when={props.placement}
+      fallback={
+        /* An empty gridcell is announced as "blank", which is right for a cell
+           with no data and wrong for THIS one: the reader arrowed to the
+           timeline expecting a bar, and "blank" does not distinguish "no dates"
+           from "starts after the range you are looking at". */
+        <span class="zen-sr-only">{props.row.span ? "Not scheduled in this range" : "No dates"}</span>
+      }
     >
-      <div
-        class="zen-sticky zen-z-20 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-background"
-        style={{ width: `${LEFT_PX}px`, "inset-inline-start": "0" }}
-      >
-        <div
-          class="zen-flex zen-min-w-0 zen-items-center zen-gap-1 zen-pe-2"
-          style={{
-            width: `${NAME_PX}px`,
-            "padding-inline-start": `${8 + props.row.depth * INDENT_PX}px`,
-          }}
-        >
-          <Show
-            when={props.row.hasChildren}
-            fallback={
-              /* A spacer, not a hidden chevron: leaves must line up with their
-                 siblings' text, or every leaf reads as one level shallower. */
-              <span aria-hidden="true" class="zen-h-5 zen-w-5 zen-shrink-0" />
-            }
-          >
-            <button
-              type="button"
-              onClick={() => props.onToggle(task().id)}
-              aria-expanded={props.row.expanded}
-              aria-label={props.row.expanded ? `Collapse ${task().name}` : `Expand ${task().name}`}
-              class="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
-            >
-              <Icon
-                name={props.row.expanded ? "chevron-down" : "chevron-right"}
-                size={14}
-                class={props.row.expanded ? undefined : "rtl:zen-rotate-180"}
-              />
-            </button>
-          </Show>
-          <span class="zen-min-w-0">
-            <span
-              class={cn(
-                "zen-block zen-truncate zen-text-sm zen-text-zen-foreground",
-                props.row.hasChildren && "zen-font-semibold",
-              )}
-              title={task().name}
-            >
-              {task().name}
-            </span>
-            <Show when={task().subtitle}>
-              <span class="zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg">
-                {task().subtitle}
-              </span>
-            </Show>
-          </span>
-        </div>
-
-        <div class="zen-flex zen-items-center zen-px-2" style={{ width: `${ASSIGNEES_PX}px` }}>
-          <GanttAssignees assignees={task().assignees} />
-        </div>
-
-        <div class="zen-flex zen-items-center zen-px-2" style={{ width: `${STATUS_PX}px` }}>
-          <Badge variant="soft" color={STATUS_COLOR[props.row.status]} class="zen-truncate">
-            {task().statusLabel ?? STATUS_LABEL[props.row.status]}
-          </Badge>
-        </div>
-
-        <div class="zen-flex zen-items-center zen-px-2" style={{ width: `${VARIANCE_PX}px` }}>
-          <Show when={varianceText()}>
-            <Badge
-              /* "+2d" is a signed number, and bidi reorders a leading sign to
-                 the far side in an RTL run — it renders as "2d+". */
-              dir="ltr"
-              variant="soft"
-              color={
-                props.row.variance === null || props.row.variance === 0
-                  ? "neutral"
-                  : props.row.variance > 0
-                    ? "error"
-                    : "success"
-              }
-            >
-              {varianceText()}
-            </Badge>
-          </Show>
-        </div>
-      </div>
-
-      <div class="zen-relative zen-shrink-0" style={{ width: `${props.axisWidth}px` }}>
-        {/* The column rules as a background layer rather than as parents of the
-            bar: a bar spanning four days cannot live inside one day's box. */}
-        <div aria-hidden="true" class="zen-absolute zen-inset-0 zen-flex">
-          <For each={props.columns}>
-            {(column) => (
-              <div
-                class={cn(
-                  "zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0",
-                  column.nonWorking && "zen-bg-zen-muted/40",
-                  column.today && "zen-bg-zen-primary-soft/40",
-                )}
-                style={{ width: `${props.columnPx}px` }}
-              />
+      {(placement) => (
+        <>
+          <button
+            type="button"
+            onClick={() => props.onTaskClick?.(task(), props.row)}
+            /* Reachable, not tabbable. The timeline CELL carries the tab stop;
+               the bar is what the keyboard scrolls into view once it does — see
+               `data-gantt-bar`, which is how the focus effect finds it. */
+            tabindex={-1}
+            data-gantt-bar=""
+            class={cn(
+              "zen-absolute zen-rounded-zen-sm",
+              "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+              /* Drawn as pieces, the button is only the hit area and the focus
+                 ring — the skin moves onto each piece, or the gaps would be
+                 filled by the button's own background. */
+              pieces() === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[props.row.status]),
+              /* Square off a cut edge so a bar continuing past the view does not
+                 look like it ends there. */
+              pieces() === null && placement().clippedStart && "zen-rounded-s-none zen-border-s-0",
+              pieces() === null && placement().clippedEnd && "zen-rounded-e-none zen-border-e-0",
+              props.onTaskClick && "hover:zen-brightness-95",
             )}
-          </For>
-        </div>
-
-        <Show when={props.placement}>
-          {(placement) => (
-            <button
-              type="button"
-              onClick={() => props.onTaskClick?.(task(), props.row)}
-              /* A button whether or not a handler was passed: bars are the only
-                 things on the axis worth reaching by keyboard, and a plain div
-                 takes the whole chart out of the tab order. */
-              class={cn(
-                "zen-absolute zen-overflow-hidden zen-rounded-zen-sm zen-border",
-                "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-                BAR_CLASS[props.row.status],
-                /* Square off a cut edge so a bar continuing past the view does
-                   not look like it ends there. */
-                placement().clippedStart && "zen-rounded-s-none zen-border-s-0",
-                placement().clippedEnd && "zen-rounded-e-none zen-border-e-0",
-                props.onTaskClick && "hover:zen-brightness-95",
-              )}
-              style={{
-                "inset-inline-start": `${placement().startPct}%`,
-                width: `${placement().widthPct}%`,
-                top: `${BAR_TOP}px`,
-                height: `${BAR_PX}px`,
-              }}
-              title={`${task().name} · ${formatDay(span()!.start)} – ${formatDay(span()!.end)}${
-                props.row.progress === null ? "" : ` · ${Math.round(progress())}%`
-              }`}
-            >
-              <span class="zen-sr-only">
-                {`${formatDay(span()!.start)} to ${formatDay(span()!.end)}, ${STATUS_LABEL[props.row.status]}${
-                  props.row.progress === null ? "" : `, ${Math.round(progress())} percent complete`
-                }`}
-              </span>
-              <Show when={props.row.progress !== null}>
-                <span
-                  aria-hidden="true"
-                  class={cn(
-                    "zen-absolute zen-inset-y-0 zen-start-0",
-                    FILL_CLASS[props.row.status],
-                  )}
-                  style={{ width: `${progress()}%` }}
-                />
-              </Show>
-              <Show when={props.row.progress !== null && !labelOutside()}>
-                <span
-                  aria-hidden="true"
-                  class={cn(
-                    "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-text-[10px] zen-font-medium",
-                    labelOnFill()
-                      ? cn("zen-start-1", FILL_TEXT_CLASS[props.row.status])
-                      : "zen-end-1 zen-text-zen-foreground",
-                  )}
-                >
-                  {Math.round(progress())}%
-                </span>
-              </Show>
-            </button>
-          )}
-        </Show>
-
-        <Show when={props.placement && props.row.progress !== null && labelOutside()}>
-          <span
-            aria-hidden="true"
-            class="zen-absolute zen-flex zen-items-center zen-text-[10px] zen-font-medium zen-text-zen-muted-fg"
             style={{
-              "inset-inline-start": `calc(${(props.placement?.startPct ?? 0) + (props.placement?.widthPct ?? 0)}% + 4px)`,
+              "inset-inline-start": `${placement().startPct}%`,
+              width: `${placement().widthPct}%`,
               top: `${BAR_TOP}px`,
               height: `${BAR_PX}px`,
             }}
+            title={`${task().name} · ${formatDay(props.row.span!.start)} – ${formatDay(props.row.span!.end)}${
+              props.row.progress === null ? "" : ` · ${Math.round(progress())}%`
+            }`}
           >
-            {Math.round(progress())}%
-          </span>
-        </Show>
-      </div>
-    </div>
+            <span class="zen-sr-only">
+              {`${formatDay(props.row.span!.start)} to ${formatDay(props.row.span!.end)}, ${STATUS_LABEL[props.row.status]}${
+                props.row.progress === null ? "" : `, ${Math.round(progress())} percent complete`
+              }`}
+            </span>
+            {/* The bar broken at the gaps where no work happens. The pieces sit
+                INSIDE one button rather than being buttons themselves: the job
+                is one thing to click, one thing to focus and one accessible
+                name, however many stretches it is worked in. The gaps are left
+                genuinely transparent so the shaded non-working column shows
+                through — which is what makes the break read as "the plant is
+                shut" rather than as a rendering fault. */}
+            <Show when={pieces()}>
+              <For each={pieces()!}>
+                {(piece) => (
+                  <span
+                    aria-hidden="true"
+                    class={cn(
+                      "zen-absolute zen-inset-y-0 zen-overflow-hidden",
+                      BAR_CLASS[props.row.status],
+                      "zen-rounded-zen-sm zen-border",
+                    )}
+                    style={{ "inset-inline-start": `${piece.startPct}%`, width: `${piece.widthPct}%` }}
+                  >
+                    <Show when={props.row.progress !== null && piece.fillPct > 0}>
+                      <span
+                        class={cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[props.row.status])}
+                        style={{ width: `${piece.fillPct}%` }}
+                      />
+                    </Show>
+                  </span>
+                )}
+              </For>
+            </Show>
+            <Show when={pieces() === null && props.row.progress !== null}>
+              <span
+                aria-hidden="true"
+                class={cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[props.row.status])}
+                style={{ width: `${progress()}%` }}
+              />
+            </Show>
+            <Show when={props.row.progress !== null && !labelOutside()}>
+              <span
+                aria-hidden="true"
+                class={cn(
+                  "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-text-[10px] zen-font-medium",
+                  labelOnFill()
+                    ? cn("zen-start-1", FILL_TEXT_CLASS[props.row.status])
+                    : "zen-end-1 zen-text-zen-foreground",
+                )}
+              >
+                {Math.round(progress())}%
+              </span>
+            </Show>
+          </button>
+
+          <Show when={props.row.progress !== null && labelOutside()}>
+            <span
+              aria-hidden="true"
+              class="zen-absolute zen-flex zen-items-center zen-text-[10px] zen-font-medium zen-text-zen-muted-fg"
+              style={{
+                ...(labelBefore()
+                  ? { "inset-inline-end": `calc(${100 - placement().startPct}% + 4px)` }
+                  : { "inset-inline-start": `calc(${endPct()}% + 4px)` }),
+                top: `${BAR_TOP}px`,
+                height: `${BAR_PX}px`,
+              }}
+            >
+              {Math.round(progress())}%
+            </span>
+          </Show>
+        </>
+      )}
+    </Show>
   );
 };
 
 const GanttAssignees = (props: { assignees?: GanttAssignee[] }) => (
   <Show when={props.assignees && props.assignees.length > 0}>
-    {/* Kobalte needs no provider — the delay is a prop on each Tooltip. */}
-    <Tooltip openDelay={200}>
-      {/* Focusable, so the full list is reachable without a pointer — the "+N"
-          chip is the only place some names appear at all. */}
+    <Tooltip>
       <TooltipTrigger
         as="span"
-        tabindex={0}
-        class="zen-rounded-zen-full focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
+        /* Not a tab stop of its own — the grid is one — but the full list is
+           still reachable without a pointer: the cell carries it as its
+           accessible name, so arrowing onto the column reads every name even
+           though the "+N" chip only draws three. */
+        aria-hidden="true"
+        class="zen-rounded-zen-full"
       >
         {/* "loose" is -4px: at xs an avatar is 24px, and the default -8px hides
             a third of each initial pair behind the next one. */}
@@ -769,7 +826,7 @@ const GanttAssignees = (props: { assignees?: GanttAssignee[] }) => (
           </For>
         </AvatarGroup>
       </TooltipTrigger>
-      <TooltipContent>{(props.assignees ?? []).map((a) => a.name).join(", ")}</TooltipContent>
+      <TooltipContent>{props.assignees!.map((a) => a.name).join(", ")}</TooltipContent>
     </Tooltip>
   </Show>
 );
