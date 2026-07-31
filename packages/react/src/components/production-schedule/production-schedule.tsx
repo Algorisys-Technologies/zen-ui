@@ -632,6 +632,23 @@ const ProductionPaneCell = ({
             </span>
           )}
         </span>
+        {/* HERE, and not in the Capacity column where it started, because the
+            pane sheds columns to give the axis room and Capacity is among the
+            first to go. A conflict marker that vanishes when the container
+            narrows is worse than no marker at all: the schedule then looks
+            fine. The resource column is the one that is never dropped.
+            (Found by check-schedule-dom, after the anchored views learned to
+            shrink and section 3's pane shed down to one column.)
+            Overload is about CAPACITY, not overlap — two jobs at once on a
+            two-operator cell is fine and must not be flagged. */}
+        {row.overloaded && (
+          <Icon
+            name="warn"
+            size={13}
+            className="zen-ms-auto zen-shrink-0 zen-text-zen-error"
+            title="Over capacity"
+          />
+        )}
       </>
     );
   }
@@ -654,11 +671,6 @@ const ProductionPaneCell = ({
     return (
       <span className="zen-flex zen-items-center zen-gap-1 zen-text-sm zen-text-zen-muted-fg">
         <span dir="ltr">×{row.capacity}</span>
-        {/* Overload is about CAPACITY, not about overlap: two jobs at once on a
-            two-operator cell is fine and must not be painted red. */}
-        {row.overloaded && (
-          <Icon name="warn" size={12} className="zen-text-zen-error" aria-label="Over capacity" />
-        )}
       </span>
     );
   }
@@ -692,6 +704,15 @@ const ProductionTrack = ({
   onOperationClick?: (operation: ProductionOperation, row: Row) => void;
 }) => (
   <>
+    {row.lanes.length === 0 && (
+      /* An expanded parent draws nothing because its children draw its work —
+         which is a fact worth saying, not a blank cell. */
+      <span className="zen-sr-only">
+        {row.hasChildren && row.expanded
+          ? "Work shown on the rows below"
+          : "Nothing booked in this range"}
+      </span>
+    )}
     {row.lanes.map((lane, laneIndex) =>
       lane.map((placement) => (
         <ProductionBar

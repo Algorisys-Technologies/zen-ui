@@ -358,9 +358,61 @@ Both probes were deleted; the numbers above are what they reported.
 `check-gantt.ts` is now **479 assertions** — 236 per run, still run twice (ambient +
 `TZ=Europe/London`).
 
-**Still explicitly not done:** bundle size (468kB / 145kB gzipped). Real, but it
-is zen-ui's barrel export failing to tree-shake for any consumer using a handful
-of components — a library-wide packaging change, not a Gantt gap.
+### The three small gaps — closed 2026-07-31
+
+**1. The fit hour band steps itself.** It covers everything up to two days, and
+at one column per hour that was 48 of them — an axis wider than any container,
+on the view whose whole purpose is not scrolling. `ganttFitHourStep` picks from
+a quarter-hour ladder, smallest step that keeps the count within 16, so a short
+span gets FINER columns rather than merely fewer: a three-hour job now draws at
+15 minutes. The price, and it is real, is that a 3-hour column is only shaded
+non-working when NO part of it is, so shift boundaries stop landing on
+gridlines at the coarse end of the band.
+
+**2. Anchored views SHRINK before the pane sheds.** There are two numbers now,
+not one: a floor (the narrowest each view's label survives) and a ceiling (its
+comfortable width). Fit has no ceiling — it spends what is left. An anchored
+view will go below its comfortable width rather than scroll, but never above
+it, and that asymmetry is deliberate: stretching a week view to the window
+makes "how long is that bar" a question about the browser, while shrinking it
+is just the alternative to dragging the chart sideways.
+
+The pane now sheds against the FLOOR rather than the nominal width, so shrink
+happens first and shedding only when even the floor will not fit. A year axis
+at 1292px keeps all four pane columns at 71px per month instead of losing two
+to buy 80px.
+
+> Measured across both demo pages: **20 of 20 charts fit**, from 10 of 14
+> scrolling by 324–792px before. The last holdout was 25px and turned out to be
+> a bug older than any of this work — a task ending at the edge of the range
+> put its percent label PAST the axis, widening the scroller. It now flips to
+> the other side of the bar when there is no room after it.
+
+**3. The accessibility tree, read as AT sees it** (CDP `getFullAXTree`, not a
+DOM query — and not a substitute for a human with a screen reader, which has
+still not happened). It was largely healthy: `aria-level` and `aria-expanded`
+propagate, every chart is named, the focused node is a named gridcell. Two real
+findings:
+
+- **Every timeline cell without a bar was announced as "blank."** Right for an
+  empty data cell, wrong for the one a reader arrows to expecting a bar — it
+  did not separate "no dates" from "starts after the range you are looking at".
+  Both charts now say which. 0 unnamed timeline cells, down from 8.
+- **The Variance column demonstrated nothing.** Every chart that kept it had no
+  baseline data, and every chart with baselines had shed it. Demo data, not a
+  component bug, but the column was dead on the page.
+
+> **And the DOM check earned its keep immediately.** Making anchored views
+> shrink let section 3's pane shed to one column — which took the
+> over-capacity warning off screen with it, because the marker lived in the
+> Capacity column. A conflict indicator that vanishes as the container narrows
+> is worse than none: the schedule then looks fine. It has moved to the
+> resource column, which is never dropped. Nothing else would have caught this.
+
+`check-schedule-dom` is now **132 assertions**.
+
+**Still explicitly not done:** a real screen-reader pass (NVDA/VoiceOver), and
+the remaining tier-(b) work — sequence-dependent setup and dependency lag/lead.
 
 **Not re-packed.** `dist-pkg/zen-ui-react.tgz` is from before this batch, so the
 consuming app still has the old component. Run `./scripts/pack-dist-pkg.sh` and

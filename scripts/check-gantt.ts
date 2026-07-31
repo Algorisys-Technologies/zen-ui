@@ -19,6 +19,7 @@ import {
   ganttColumns,
   ganttColumnWidths,
   ganttConnectors,
+  ganttFitHourStep,
   ganttFitRange,
   ganttFitUnit,
   ganttPaneColumns,
@@ -536,6 +537,26 @@ for (const [unit, days, cap] of [["hour", 2, 48], ["day", 45, 46], ["week", 315,
   const cols = ganttRangeColumns(range, unit, { now: start });
   t(cols.length <= cap, true, `${days} days at ${unit} granularity is ${cols.length} columns, <= ${cap}`);
 }
+
+console.log("\nthe hour band steps, so 48 one-hour columns never happen");
+const HOUR = 3_600_000;
+const step = (hours: number) => ganttFitHourStep(hours * HOUR);
+const cols = (hours: number) => hours / step(hours);
+/* Finer for a short span, not merely fewer columns: a three-hour job draws at
+   quarter-hours, which is the resolution a shop floor schedules at. */
+t(step(3), 0.25, "a three-hour span draws quarter-hour columns");
+t(step(6), 0.5, "six hours draws half-hours");
+t(step(12), 1, "twelve hours draws hours");
+t(step(24), 2, "a full day draws two-hour columns");
+t(step(48), 3, "and two days — the top of the band — draws three-hour columns");
+/* The cap is the whole point: at 40px per column, 48 of them is an axis wider
+   than any container, on the one view whose purpose is not scrolling. */
+for (const hours of [1, 2, 3, 6, 12, 18, 24, 36, 48]) {
+  t(cols(hours) <= 16, true, `${hours}h is ${cols(hours)} columns, within the cap of 16`);
+}
+t(step(0), 0.25, "a zero span still returns a real step rather than 0 or NaN");
+t(ganttFitHourStep(48 * HOUR, 4), 6, "a tighter cap coarsens, and stops at the ladder's end");
+t(ganttFitHourStep(1000 * HOUR, 4), 6, "…and a span past the ladder returns its coarsest rather than looping");
 
 console.log("\ncolumns tile an ARBITRARY range too — the same invariant, unanchored");
 const tilesRange = (range: { start: Date; end: Date }, unit: "hour" | "day" | "week" | "month", name: string) => {

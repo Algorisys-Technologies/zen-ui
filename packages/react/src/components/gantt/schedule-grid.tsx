@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   ganttColumns,
   ganttColumnWidths,
+  ganttFitHourStep,
   ganttFitUnit,
   ganttPaneColumns,
   ganttRange,
@@ -115,6 +116,24 @@ const FIT_MIN_COLUMN_PX: Record<GanttColumnUnit, number> = {
      only where it changes, not "13 Jul" twenty times over. */
   week: 26,
   month: 30,
+};
+
+/**
+ * The narrowest each ANCHORED view survives at, measured against the label it
+ * actually draws — "08:00", "Mon 12", "31", "13 Jul", "Sep".
+ *
+ * These exist so an anchored view can SHRINK toward its floor rather than
+ * scroll. It never grows past COLUMN_PX above, and that asymmetry is the
+ * point: stretching a week view to the window would make "how long is that
+ * bar" a question about the browser, while shrinking it is simply the
+ * alternative to dragging the chart sideways to see Thursday.
+ */
+const MIN_COLUMN_PX: Record<GanttAnchoredView, number> = {
+  day: 34,
+  week: 44,
+  month: 20,
+  quarter: 38,
+  year: 30,
 };
 
 /**
@@ -306,6 +325,13 @@ export function useScheduleAxis(options: {
   const nowTime = now.getTime();
 
   const fitUnit = fitRange ? ganttFitUnit(fitRange.end.getTime() - fitRange.start.getTime()) : null;
+  /* A fit hour axis picks its own step so 48 one-hour columns never happen —
+     see `ganttFitHourStep`. A stated `hourStep` still wins: it is the caller
+     saying what resolution they schedule at. */
+  const effectiveHourStep =
+    fitUnit === "hour" && hourStep === undefined && fitRange
+      ? ganttFitHourStep(fitRange.end.getTime() - fitRange.start.getTime())
+      : hourStep;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const anchoredRange = React.useMemo(() => ganttRange(anchoredView, anchor), [anchoredView, anchorTime]);
@@ -314,20 +340,36 @@ export function useScheduleAxis(options: {
   const columns = React.useMemo(
     () =>
       fitRange && fitUnit
-        ? ganttRangeColumns(fitRange, fitUnit, { now, calendar, hourStep })
+        ? ganttRangeColumns(fitRange, fitUnit, { now, calendar, hourStep: effectiveHourStep })
         : ganttColumns(anchoredView, anchor, { now, calendar, hourStep }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, hourStep],
+    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, effectiveHourStep],
   );
 
-  /* What the axis WANTS: its comfortable width for an anchored view, its
-     narrowest legible width for a fit one. The pane negotiates against this
-     number rather than against a constant. */
-  const desiredAxis =
+  /* Two numbers, not one, and the pane negotiates against the SMALLER.
+     
+     `floorAxis` is the narrowest the axis survives at; `ceilingAxis` is the
+     widest it will take. Fit has no ceiling — it spends whatever is left, which
+     is what "the whole plan without scrolling" means. An anchored view's
+     ceiling is its comfortable width and it will SHRINK below that rather than
+     scroll, but never grow above it: stretching a week view to the window would
+     make "how long is that bar" a question about the browser.
+     
+     Shedding pane columns against the floor rather than the ceiling is what
+     lets a year axis at 1292px keep all four columns at 71px per month instead
+     of losing two to buy 80px per month. Order matters: shrink first, shed only
+     when even the floor will not fit. */
+  const floorAxis =
     columnWidth !== undefined
       ? columns.length * columnWidth
       : fitUnit
         ? columns.length * FIT_MIN_COLUMN_PX[fitUnit]
+        : columns.length * MIN_COLUMN_PX[anchoredView];
+  const ceilingAxis =
+    columnWidth !== undefined
+      ? columns.length * columnWidth
+      : fitUnit
+        ? Number.POSITIVE_INFINITY
         : columns.length * COLUMN_PX[anchoredView];
 
   const widths = React.useMemo(() => {
@@ -342,19 +384,27 @@ export function useScheduleAxis(options: {
         paneColumns.map((c) => c.key),
         widths,
         available,
-        Math.max(MIN_AXIS_PX, desiredAxis),
+        Math.max(MIN_AXIS_PX, floorAxis),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [requestedKey, widths, available, desiredAxis],
+    [requestedKey, widths, available, floorAxis],
   );
   const paneWidth = paneKeys.reduce((sum, key) => sum + (widths[key] ?? 0), 0);
 
-  /* Fit then spends whatever the pane left over, so a container wider than the
-     floors need draws wider columns rather than a stripe of empty gutter. The
-     anchored views keep their stated widths: a week view that stretched to the
-     window would make "how long is that bar" a question about the browser. */
+  /* Whatever the pane left over, clamped between the two. Below `floorAxis` the
+     labels stop being labels and scrolling is the better failure; above
+     `ceilingAxis` an anchored view would be stretching.
+     
+     UNMEASURED is not zero-width, here as in the pane: with no measurement an
+     anchored view takes its comfortable width — exactly what it did before any
+     of this existed — and a fit view takes its floor. `useLayoutEffect` measures
+     before paint, so this only decides what a DOM-less render produces. */
   const axisWidth =
-    fitUnit && columnWidth === undefined ? Math.max(desiredAxis, available - paneWidth) : desiredAxis;
+    available > 0
+      ? Math.min(ceilingAxis, Math.max(floorAxis, available - paneWidth))
+      : Number.isFinite(ceilingAxis)
+        ? ceilingAxis
+        : floorAxis;
 
   /* Per column, from its own duration — NOT axisWidth / columns.length. A year
      of 28-to-31-day months drawn at one uniform width walks every bar off its

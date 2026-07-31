@@ -86,7 +86,7 @@ const LONG_PLAN: GanttTask[] = [
     name: "Design",
     assignees: [MEI, OLU],
     children: [
-      { id: "L2a", name: "Wireframes", start: on(7, 20), end: on(8, 5), percentComplete: 95, assignees: [MEI] },
+      { id: "L2a", name: "Wireframes", start: on(7, 20), end: on(8, 5), percentComplete: 95, baselineEnd: on(7, 31), assignees: [MEI] },
       { id: "L2b", name: "Design system", start: on(8, 3), end: on(8, 21), percentComplete: 40, assignees: [MEI, OLU] },
     ],
   },
@@ -96,7 +96,7 @@ const LONG_PLAN: GanttTask[] = [
     assignees: [SVEN, OLU, MEI, ARUN],
     children: [
       { id: "L3a", name: "Application shell", start: on(8, 10), end: on(8, 28), percentComplete: 70, assignees: [SVEN] },
-      { id: "L3b", name: "Gantt view", start: on(8, 24), end: on(9, 18), percentComplete: 5, assignees: [OLU, MEI] },
+      { id: "L3b", name: "Gantt view", start: on(8, 24), end: on(9, 18), percentComplete: 5, baselineEnd: on(9, 25), assignees: [OLU, MEI] },
       { id: "L3c", name: "Reporting", start: on(9, 14), end: on(10, 9), percentComplete: 0, assignees: [ARUN] },
     ],
   },
