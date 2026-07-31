@@ -488,7 +488,30 @@ t(
    the axis collapsing. */
 const milestone = ganttFitRange([{ id: "m", start: at(2026, 7, 6), end: at(2026, 7, 6) }])!;
 t(milestone.end.getTime() > milestone.start.getTime(), true, "a single milestone still gets a real axis");
-t(span(milestone), ["2026-07-05 00:00", "2026-07-07 00:00"], "…one day either side, snapped to whole hours");
+t(span(milestone), ["2026-07-05 23:00", "2026-07-06 01:00"], "…an hour either side, snapped to whole hours");
+
+/* THE HOUR BAND HAS TO BE REACHABLE, and it was not. The padding floor was a
+   day, so a 4-hour works order inflated to 3 days and drew as three day
+   columns — none of the sub-day resolution the working-time model exists to
+   show, on the one kind of plan that needs it most. Nothing failed; the axis
+   was simply the wrong one. These four are the regression guard. */
+const unitOf = (tasks: GanttTaskNode[]) => {
+  const r = ganttFitRange(tasks)!;
+  return ganttFitUnit(r.end.getTime() - r.start.getTime());
+};
+t(unitOf([{ id: "j", start: at(2026, 7, 6, 9), end: at(2026, 7, 6, 13) }]), "hour", "a 4-hour job is drawn in HOURS");
+t(unitOf([{ id: "j", start: at(2026, 7, 6, 6), end: at(2026, 7, 6, 14) }]), "hour", "…and so is an 8-hour shift of work");
+// 32 hours: still inside the band, and rightly so — a works order spanning two
+// shifts is exactly what wants hour resolution. It is also 35 columns, which at
+// the 40px floor is wider than most containers; see the hourStep note below.
+t(unitOf([{ id: "j", start: at(2026, 7, 6, 6), end: at(2026, 7, 7, 14) }]), "hour", "a works order across two shifts is hours");
+t(unitOf([{ id: "j", start: at(2026, 7, 6), end: at(2026, 7, 9) }]), "day", "a 3-day plan is days");
+t(unitOf([{ id: "j", start: at(2026, 7, 6), end: at(2026, 7, 11) }]), "day", "…and a 5-day plan is unchanged");
+t(
+  span(ganttFitRange([{ id: "j", start: at(2026, 7, 6, 9), end: at(2026, 7, 6, 13) }])),
+  ["2026-07-06 08:00", "2026-07-06 14:00"],
+  "…the 4-hour job's axis is six hours wide, not three days",
+);
 /* Inverted dates are normalised by ganttSpan, so the fit range must not invert
    with them — an end before its start makes every width negative. */
 const inverted = ganttFitRange([{ id: "i", start: at(2026, 7, 24), end: at(2026, 7, 6) }])!;
