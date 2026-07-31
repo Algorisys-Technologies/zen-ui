@@ -907,6 +907,25 @@ built — Tier 1 spent a day marked done while a row was missing.
                   Timeline, UploadCollection and PlanningCalendar are all
                   shipped; the rest of the tier was dropped on substance in the
                   2026-07-21 triage.
+- [ ] **Gantt — web-components binding deferred** (2026-07-31, `feat/gantt`).
+      React, Solid and vanilla are shipped and driven in a browser; the
+      web-components element is NOT built, so **`check:parity` is red on that
+      branch by construction** — it reports `Gantt` and its nine types as
+      React-only. That is the rule working, not a break: CLAUDE.md's "a commit
+      landed in that window should say so" is what this entry is.
+      It is deferred at the user's request rather than on substance — the
+      consuming app is React and wanted the import unblocked without waiting on
+      a full four-binding release. Nothing is marked `divergent` in
+      scripts/bindings.mjs, deliberately: check-parity.ts says that list is for
+      convergence decisions and "do not use it to silence a component that is
+      merely missing", which is exactly what this is.
+      The remaining work is small and mechanical, because the maths is already
+      in `packages/core/src/gantt.ts` and the vanilla factory it wraps is done:
+      an `elements/gantt.ts` descriptor plus a demo. One hazard is already known
+      from PlanningCalendar and is WORSE here — JSON HAS NO DATE TYPE, so the
+      element must revive ISO strings RECURSIVELY through `children`, or a task
+      three levels down is `Invalid Date`, and its bar, its parent's rollup and
+      every dependency arrow touching it vanish with no error anywhere.
       - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
             DataTable, not dialogs around it.
 - [ ] **Tier 4 — build the whole tier** (decided 2026-07-15, overriding the
