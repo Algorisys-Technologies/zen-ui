@@ -357,8 +357,49 @@ the total; the tooltip says the free.
 The primitive is a second reference position per operation — the same mechanism
 planned-vs-actual needs — so the two should land together.
 
-**Next:** parity. Six drifts across Solid, vanilla and web-components, now
-seven with `ProductionSchedule`.
+### Parity: Solid's Gantt is ported
+
+`packages/solid/src/components/gantt/{schedule-grid,gantt}.tsx`, the same split
+React has, plus a demo with the same twelve sections. **All seven Gantt drifts
+are closed for Solid** — quarter/year, windowing, working time, fit, the
+responsive pane, the treegrid keyboard, and the label/overhang fixes. The
+Solid-vs-React parity delta is now **23 names, every one of them `Production*`**;
+no `Gantt*` symbol remains in it.
+
+**Two harnesses now make the remaining ports checkable rather than eyeballed:**
+
+| | what it answers |
+|---|---|
+| `check:schedule-dom <binding>` | does this binding's chart behave? 33 assertions per route per direction |
+| `check:schedule-parity <binding>` | does it render the SAME chart as React? per-chart comparison of pane columns, axis columns, labels, row counts, mounted rows, bars, connectors |
+
+The second is the one `check-parity.ts` cannot do: that compares export NAMES,
+and two bindings can export identical surfaces while drawing different charts —
+which is exactly what Solid and vanilla did for months, silently returning a
+month wherever a quarter was asked for. Solid now reports **16 of 16 charts
+identical to React**.
+
+> **What the port actually cost, and it was not the maths.** Core ported for
+> nothing — 3,300 lines, no changes. The renderer needed two real Solid-shaped
+> fixes, both found by the harness rather than by looking:
+>
+> - **`<For>` keys by VALUE identity**, and these row objects are derived, so
+>   every collapse tore down and rebuilt every row's DOM. That destroyed the
+>   focused cell, focus fell to `<body>`, and the next arrow key went to the
+>   document — collapsing a phase worked, and expanding it again did nothing.
+>   React never had this because `key={rowId(row)}` gave it identity for free.
+>   `<Index>` keys by POSITION, which is also the honest model for a windowed
+>   list, and it keeps the node so focus survives.
+> - **Solid effects run in creation order**, and the focus effect is declared
+>   before the JSX that renders the rows — so on the commit that scrolls a new
+>   band in it fired *before* the rows existed, found nothing, and never
+>   retried, because the window it depends on had already changed. Deferring the
+>   query by a microtask lands it after the render work of the same batch.
+>
+> Both are the kind of thing that looks like nothing in review and is obvious
+> the moment 8 of 33 assertions go red.
+
+**Next:** Solid's `ProductionSchedule`, then vanilla, then web-components.
 
 **DECISION 3 — axis: settled, wall-clock with non-working shaded.** (§225)
 Compression would turn one linear date→x map into a piecewise one at every call
