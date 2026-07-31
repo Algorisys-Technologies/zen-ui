@@ -4,7 +4,13 @@ import {
   type ProductionOperation,
   type ProductionResource,
 } from "./production-schedule/production-schedule";
-import type { GanttCalendar, GanttDependency, ProductionSetupMatrix } from "@algorisys/zen-ui-core";
+import type {
+  GanttCalendar,
+  GanttDependency,
+  ProductionProposal,
+  ProductionSetupMatrix,
+} from "@algorisys/zen-ui-core";
+import { Button } from "./button/button";
 import { CodeExample } from "./demo-helpers";
 
 /* A fixed reference instant, so the page reads the same on any date and a probe
@@ -121,7 +127,72 @@ const PAINT_ROUTING: GanttDependency[] = [
   { from: "p2", to: "p3", lagMinutes: 120 },
 ];
 
-/** Section 5: a live click handler, so the section is not a dead control. */
+/**
+ * Section 5: rescheduling, with the caller owning the outcome — which is the
+ * whole point of the contract. State lives here; undo is a stack of arrays this
+ * demo keeps, and the component never mutates anything.
+ */
+const Reschedulable = () => {
+  const [jobs, setJobs] = React.useState<ProductionOperation[]>(JOBS);
+  const [history, setHistory] = React.useState<ProductionOperation[][]>([]);
+  const [note, setNote] = React.useState("Drag a bar, or focus one and press Alt + arrow.");
+
+  const apply = (proposal: ProductionProposal) => {
+    if (proposal.cascade.length === 0) return;
+    /* Every shift, not just the dragged one: persisting only what was dragged
+       writes a schedule the user never saw. */
+    const moved = new Map(proposal.cascade.map((s) => [s.operationId, s]));
+    setHistory((h) => [...h, jobs]);
+    setJobs((current) =>
+      current.map((job) => {
+        const shift = moved.get(job.id);
+        if (!shift) return job;
+        return { ...job, start: shift.to.start, end: shift.to.end, runMinutes: undefined, setupMinutes: job.setupMinutes };
+      }),
+    );
+    const pushed = proposal.cascade.filter((s) => s.reason === "pushed").length;
+    setNote(
+      `Moved ${proposal.cascade[0].operationId}` +
+        (pushed > 0 ? `, pushing ${pushed} more` : "") +
+        (proposal.conflicts.length > 0 ? ` · ${proposal.conflicts.length} conflict(s) reported` : ""),
+    );
+  };
+
+  const undo = () => {
+    setHistory((h) => {
+      if (h.length === 0) return h;
+      setJobs(h[h.length - 1]);
+      setNote("Undone");
+      return h.slice(0, -1);
+    });
+  };
+
+  return (
+    <div className="zen-flex zen-w-full zen-min-w-0 zen-flex-col zen-gap-2">
+      <ProductionSchedule
+        resources={CELLS}
+        operations={jobs}
+        dependencies={ROUTING}
+        calendar={PLANT}
+        now={NOW}
+        onReschedule={apply}
+        /* The inspection is fixed by the customer's audit window, so it is not
+           offered as draggable at all — a forbidden move is never started. */
+        canReschedule={(operation) => operation.resourceId !== "insp"}
+      />
+      <div className="zen-flex zen-items-center zen-gap-3">
+        <Button size="sm" variant="outline" onClick={undo} disabled={history.length === 0}>
+          Undo{history.length > 0 ? ` (${history.length})` : ""}
+        </Button>
+        <p className="zen-m-0 zen-text-sm zen-text-zen-muted-fg" aria-live="polite">
+          {note}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/** Section 6: a live click handler, so the section is not a dead control. */
 const Clickable = () => {
   const [picked, setPicked] = React.useState("Nothing picked yet");
   /* `w-full` is load-bearing: `.example-preview` is a flex row, so a wrapper
@@ -263,7 +334,31 @@ const routing = [
     </section>
 
     <section className="demo-section">
-      <h2>5. Routing, and clicking an operation</h2>
+      <h2>5. Rescheduling — it proposes, you decide</h2>
+      <CodeExample
+        title="onReschedule + canReschedule"
+        description="Drag a bar, or focus one and press Alt with an arrow key — an hour a step, a day with Shift. The component works out what would happen and hands it over; it changes nothing itself. That is what keeps undo yours: the button below is a stack of the arrays this page already owns, and there is no pending state inside the component to fall out of step with your ERP. The cascade includes the operation you dragged, first, and everything the routing forced along with it — persist only the one you dragged and you have written a schedule nobody saw. Conflicts and routing cycles are reported alongside, never enforced: overtime gets authorised, due dates get renegotiated, and a supervisor who knows both jobs can run may double-book on purpose. Permission gates the AFFORDANCE rather than the outcome — the inspection below is fixed by an audit window, so it is not draggable at all, because being told no after doing the work of a drag feels like a fault."
+        code={`const [jobs, setJobs] = useState(operations);
+
+<ProductionSchedule
+  resources={cells}
+  operations={jobs}
+  dependencies={routing}
+  onReschedule={(proposal) => {
+    // EVERY shift, not just the dragged one.
+    const moved = new Map(proposal.cascade.map((s) => [s.operationId, s]));
+    setJobs((cur) => cur.map((j) =>
+      moved.has(j.id) ? { ...j, start: moved.get(j.id).to.start } : j));
+  }}
+  canReschedule={(op) => op.resourceId !== "insp"}
+/>`}
+      >
+        <Reschedulable />
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>6. Routing, and clicking an operation</h2>
       <CodeExample
         title="dependencies + onOperationClick"
         description="Routing links name operations rather than rows, and they arrive at the LANE the operation landed in — an arrow drawn to the middle of a three-lane row would miss every bar in it. A link whose endpoint has folded into a collapsed parent still draws, against the row it folded into. There is no drag-to-reschedule, and that is a deferred decision rather than a settled one: until the chart can show you the overload, a drag has nothing to aim at. Two consequences of the eventual answer are honoured already because they are cheaper kept than retrofitted — the component is fully controlled, and conflicts are computed and reported rather than enforced. Overtime gets authorised and due dates get renegotiated; a component that refused the booking would be wrong in every plant whose rules differ from the ones we guessed."
@@ -284,7 +379,7 @@ const routing = [
     </section>
 
     <section className="demo-section">
-      <h2>6. Loading and empty</h2>
+      <h2>7. Loading and empty</h2>
       <CodeExample
         title="loading / emptyState"
         description="The skeleton draws two blocks per row rather than one long bar, because a machine's day is a sequence and a single bar reads as the wrong component for a second. The toolbar is not drawn over either state: Previous, Today and Next cannot change anything the user can see when there is nothing to see."

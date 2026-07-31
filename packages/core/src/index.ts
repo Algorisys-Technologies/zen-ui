@@ -14,4 +14,5 @@ export * from "./virtual-window";
 export * from "./planning";
 export * from "./gantt";
 export * from "./production";
+export * from "./reschedule";
 export * from "./media";

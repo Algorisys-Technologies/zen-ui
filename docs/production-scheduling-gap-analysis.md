@@ -200,7 +200,7 @@ The second argument is the editing stance, which is a property of the whole comp
 of one prop. A component that is read-only by design and a component that is editable by design are
 two different promises to the caller.
 
-## DECISION 2 — the read-only stance. **SETTLED 2026-07-31: deferred until tier (b) exists.**
+## DECISION 2 — the read-only stance. **SETTLED: deferred, then TAKEN once tier (b) landed.**
 
 > **The decision.** Not "keep it" and not "drop it" — *decide it later, with something real to
 > drag at.* Build the shop-floor model read-only first: resource rows, finite capacity, load,
@@ -222,6 +222,33 @@ two different promises to the caller.
 > true before anything is draggable.
 >
 > `Gantt` itself is unaffected: it stays read-only by design, and that stance is not under review.
+>
+> **Taken 2026-07-31, once (b) had shipped and there was an overload to drag at.**
+> `packages/core/src/reschedule.ts` computes the cascade;
+> `ProductionSchedule` gains `onReschedule` and `canReschedule`. Both
+> deferred-decision consequences were honoured, and one part of the sketch below
+> turned out to be unnecessary:
+>
+> - **The result type is gone.** The sketch had
+>   `onReschedule(proposal) => accepted | rejected`, with the rejection path
+>   "for races". There is nothing for a rejection to undo — the component is
+>   controlled and never moved anything, so `accepted: false` and simply not
+>   calling back are indistinguishable to it. `canReschedule` gating the
+>   affordance is what remains, which was the better half of the idea anyway.
+> - **The cascade pushes later and never pulls earlier.** Pulling a successor
+>   forward would move work the planner did not ask about, into a slot they have
+>   not looked at.
+> - **A routing cycle is reported, not iterated.** Pushing round a cycle makes
+>   the next link worse forever, so nothing moves and the operations are named.
+>   Iterating to a guard limit produces a schedule that is merely wrong more
+>   slowly.
+> - **Changeovers are held at their current values through the cascade**, and
+>   that is a stated limit: a changeover depends on the order of jobs on a
+>   machine, the cascade is what changes that order, and re-deriving inside it
+>   does not converge in one pass. The consequence is bounded — the PREVIEW may
+>   be a few minutes out where a move reorders a machine, and the accepted
+>   result is exact, because the caller hands back operations and everything is
+>   re-derived from scratch.
 
 The analysis that led there, kept as written:
 
@@ -414,8 +441,9 @@ signature. None of it is thrown away; it is the module `ProductionSchedule` is b
      only when both ends resolve to the same BAR, and dedups on anchors rather than on rows.
    - The demo's own data had a routing violation in the section about layout.
 
-3. **Revisit Decision 2** with an overload on screen to drag at. There now is one — section 3 of
-   the demo puts three jobs on a one-operator machine and reports 300%.
+3. ~~**Revisit Decision 2.**~~ **Done** — see that section. Tiers (a), (b) and the interactive
+   half of (c) are all in for React. What remains of (c) is critical path and float, and scenario
+   comparison; (d) is integration work that mostly belongs in the consuming application.
 
 Backward compatibility on tier (a) is absolute: a caller who passes no calendar gets the
 pre-calendar behaviour exactly, because the working-time path is not entered at all. That was

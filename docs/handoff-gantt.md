@@ -290,8 +290,45 @@ colour alone is not a signal on a chart that already uses red for delay.
 > and dedups on anchors rather than rows so a dozen links collapsing onto one
 > pair of summary bars is still one arrow.
 
-**Next:** revisit Decision 2, which now has both a 300%-loaded machine and a
-violated cooling link to drag at.
+### Decision 2 taken: `ProductionSchedule` reschedules
+
+`packages/core/src/reschedule.ts` + `scripts/check-reschedule.ts` (28
+assertions, two timezones). `onReschedule(proposal)` and
+`canReschedule(operation)` on the component; drag a bar, or focus one and press
+Alt with an arrow — an hour a step, a day with Shift, because a drag-only
+affordance is unreachable and rescheduling is the component's primary action
+once it is on.
+
+**The component proposes and never applies.** It stays controlled: it renders
+the `operations` it is given, hands back a proposal, and changes nothing until
+the caller passes a new array. That is what keeps undo the caller's, and why
+there is no internal pending state to fall out of sync with an ERP. The demo's
+Undo button is a stack of arrays the *page* owns.
+
+Four things the implementation settled that the sketch did not:
+
+- **The `accepted | rejected` result type is gone.** Nothing exists for a
+  rejection to undo, so it and not calling back are the same thing.
+  `canReschedule` gating the affordance is what remains.
+- **Push later, never pull earlier** — pulling moves work nobody asked about.
+- **A routing cycle is reported, not iterated.** Every push round a cycle makes
+  the next link worse; iterating to a guard limit is wrong more slowly.
+- **Changeovers hold their current values through the cascade**, stated as a
+  limit: setup depends on machine order, the cascade changes that order, and
+  re-deriving inside it does not converge in one pass. The preview can be a few
+  minutes out where a move reorders a machine; the accepted result is exact,
+  because everything is re-derived from the array the caller hands back.
+
+> **One bug the checks caught, and it looked entirely right.** A cross-resource
+> move measured the job's working duration with the TARGET resource's calendar.
+> A four-hour job on a single-shift plant occupies 16:00 Monday to 09:00
+> Tuesday; asking a continuous furnace how much work that envelope holds
+> answers seventeen hours, so the job arrived on the furnace four times longer
+> than it is. Work content is a property of the job, not the machine: measure
+> on the source, replay on the target.
+
+**Next:** what is left of tier (c) — critical path and float, scenario
+comparison — then tier (d), most of which belongs in the consuming app.
 
 **DECISION 3 — axis: settled, wall-clock with non-working shaded.** (§225)
 Compression would turn one linear date→x map into a piecewise one at every call
