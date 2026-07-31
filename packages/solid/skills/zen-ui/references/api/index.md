@@ -102,7 +102,7 @@ real props; guessing prop names is how agents invent APIs.
 - [planning-calendar.md](planning-calendar.md) — `PlanningCalendar`, `PlanningCalendarProps`, `PlanningRow`, `PlanningAppointment`, `PlanningAppointmentState`
 - [planning.md](planning.md) — `PlanningView`
 - [gantt-gantt.md](gantt-gantt.md) — `Gantt`, `GanttProps`, `GanttTask`, `GanttAssignee`
-- [zen-ui-core-gantt.md](zen-ui-core-gantt.md) — `GanttBarAnchor`, `GanttConnector`, `GanttDependency`, `GanttDependencyType`, `GanttRow`, `GanttSpan`, `GanttTaskNode`, `GanttTaskStatus`
+- [zen-ui-core-gantt.md](zen-ui-core-gantt.md) — `GanttBarAnchor`, `GanttCalendar`, `GanttCalendarException`, `GanttConnector`, `GanttDependency`, `GanttDependencyType`, `GanttFlattenOptions`, `GanttRow`, `GanttSegmentOptions`, `GanttSpan`, `GanttTaskNode`, `GanttTaskStatus`, `GanttView`, `GanttWorkingPeriod`, `GANTT_CALENDAR_24_7`, `ganttAddWorkingMs`, `ganttIsWorking`, `ganttWorkingMs`, `ganttWorkingPeriodsOn`, `ganttWorkingSegments`
 - [upload-collection.md](upload-collection.md) — `UploadCollection`, `UploadCollectionProps`, `UploadItem`, `UploadStatus`
 - [timeline.md](timeline.md) — `Timeline`, `TimelineProps`, `TimelineItem`, `TimelineState`
 - [micro-chart.md](micro-chart.md) — `MicroLineChart`, `MicroBarChart`, `MicroBulletChart`, `MicroDeltaChart`, `MicroRadialChart`, `MicroChartColor`, `MicroLineChartProps`, `MicroBarChartProps`, `MicroBulletChartProps`, `MicroDeltaChartProps`, `MicroRadialChartProps`

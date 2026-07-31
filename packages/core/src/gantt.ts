@@ -109,6 +109,16 @@ export interface GanttTaskNode {
   end?: Date;
   /** 0–100. Omit on a parent to have it averaged from the children. */
   percentComplete?: number;
+  /**
+   * Duration in WORKING minutes. With a `start` and no `end`, the end is
+   * computed from the calendar — which is how a 6-hour job starting Friday
+   * 16:00 correctly finishes on Monday. Ignored when `end` is given, since an
+   * explicit end is a statement and a duration is a derivation.
+   *
+   * With no calendar in play this is elapsed minutes, because no calendar means
+   * a 24/7 one and the two are then the same number.
+   */
+  workingMinutes?: number;
   /** What the plan originally promised. Slip is measured against this. */
   baselineEnd?: Date;
   /** Overrides the derived status. */
@@ -122,6 +132,259 @@ export interface GanttSpan {
   end: Date;
 }
 
+/* ------------------------------------------------------------------------ *
+ * Working time
+ *
+ * A factory does not work every hour. It works two shifts and not three, it
+ * stops at the weekend, it stops for a public holiday, it stops for planned
+ * maintenance. Until that is modelled, every duration the module reports is
+ * wall-clock and therefore wrong: a 6-hour job starting Friday 16:00 on a
+ * single-shift plant draws to Friday 22:00 and really finishes Monday 13:00.
+ *
+ * LOCAL WALL CLOCK, deliberately, for the reason ./planning gives for the whole
+ * module. "The early shift is 06:00 to 14:00" is a statement about the clock on
+ * the wall, and it stays true across a daylight-saving change — which means the
+ * day a change falls on is genuinely 23 or 25 hours long, and a shift that
+ * spans the transition is genuinely an hour shorter or longer. Periods are
+ * therefore turned into instants with the local Date constructor rather than by
+ * adding milliseconds to midnight, because adding milliseconds does not respect
+ * a clock that jumped.
+ * ------------------------------------------------------------------------ */
+
+/** Minutes from local midnight, half-open: `[from, to)`. 1440 is end of day. */
+export interface GanttWorkingPeriod {
+  from: number;
+  to: number;
+}
+
+/** A dated override of the weekly pattern: a holiday, a shutdown, overtime. */
+export interface GanttCalendarException {
+  /** Any instant on the day this applies to. Only the local date is read. */
+  date: Date;
+  /** That day's working periods. An EMPTY array is a full non-working day. */
+  periods: GanttWorkingPeriod[];
+}
+
+/**
+ * When work can happen.
+ *
+ * Every working-time function takes one of these explicitly rather than reading
+ * an ambient default. That is what leaves room for per-resource calendars later
+ * — a machine on continuous run, a line on two shifts — without rewriting the
+ * module: the call site gains a lookup, the maths does not change. There is one
+ * calendar today because there is one kind of row today.
+ */
+export interface GanttCalendar {
+  /** Working periods per weekday, index 0 = Sunday, matching `Date#getDay`. */
+  week: GanttWorkingPeriod[][];
+  exceptions?: GanttCalendarException[];
+  /** Names the calendar, for the per-resource case. Unused today. */
+  id?: string;
+}
+
+const DAY_MINUTES = 24 * 60;
+
+/**
+ * Always working. Passing this is exactly equivalent to passing no calendar at
+ * all, which is the property that makes the whole feature backward compatible —
+ * and it is asserted rather than assumed in scripts/check-gantt.ts.
+ */
+export const GANTT_CALENDAR_24_7: GanttCalendar = {
+  id: "24/7",
+  week: Array.from({ length: 7 }, () => [{ from: 0, to: DAY_MINUTES }]),
+};
+
+/** An instant on `day` at `minutes` past local midnight. */
+const atMinutes = (day: Date, minutes: number): Date =>
+  new Date(
+    day.getFullYear(),
+    day.getMonth(),
+    day.getDate(),
+    // Not `midnight + minutes * 60000`: on a DST day that lands an hour out.
+    // The constructor normalises 24:00 to the next midnight, which is what a
+    // period ending at 1440 means.
+    Math.floor(minutes / 60),
+    minutes % 60,
+    0,
+    0,
+  );
+
+const sameDate = (a: Date, b: Date): boolean =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+/**
+ * Sorted, clamped, non-overlapping periods. Overlapping input would otherwise
+ * be counted twice by every duration below — a calendar with an 06:00–14:00 and
+ * an 08:00–16:00 entry would report a 12-hour day.
+ */
+const normalisePeriods = (periods: GanttWorkingPeriod[]): GanttWorkingPeriod[] => {
+  const clean = periods
+    .map((p) => ({ from: Math.max(0, Math.min(DAY_MINUTES, p.from)), to: Math.max(0, Math.min(DAY_MINUTES, p.to)) }))
+    .filter((p) => p.to > p.from)
+    .sort((a, b) => a.from - b.from);
+
+  const merged: GanttWorkingPeriod[] = [];
+  for (const p of clean) {
+    const last = merged[merged.length - 1];
+    if (last && p.from <= last.to) last.to = Math.max(last.to, p.to);
+    else merged.push({ ...p });
+  }
+  return merged;
+};
+
+/**
+ * The working periods that apply on a given date.
+ *
+ * An exception REPLACES the weekday pattern rather than adding to it, so a
+ * holiday is `periods: []` and a one-off Saturday shift is the shift. Merging
+ * the two instead would make "closed on Boxing Day" impossible to express.
+ */
+export function ganttWorkingPeriodsOn(calendar: GanttCalendar, day: Date): GanttWorkingPeriod[] {
+  const exception = calendar.exceptions?.find((e) => sameDate(e.date, day));
+  if (exception) return normalisePeriods(exception.periods);
+  return normalisePeriods(calendar.week[day.getDay()] ?? []);
+}
+
+/** Whether an instant falls inside working time. */
+export function ganttIsWorking(calendar: GanttCalendar, at: Date): boolean {
+  const t = at.getTime();
+  for (const p of ganttWorkingPeriodsOn(calendar, at)) {
+    if (t >= atMinutes(at, p.from).getTime() && t < atMinutes(at, p.to).getTime()) return true;
+  }
+  return false;
+}
+
+/**
+ * A day loop has to stop somewhere. A calendar with no working time at all
+ * would otherwise spin forever in `ganttAddWorkingMs`, and a caller who passes
+ * an empty week is far more likely to have a data bug than a ten-year job.
+ */
+const MAX_DAYS_SCANNED = 366 * 10;
+
+/**
+ * Working milliseconds in `[from, to)`.
+ *
+ * Half-open at both ends, as everywhere else in this module: work that ends
+ * exactly when a shift ends is counted once, not once per adjacent period.
+ */
+export function ganttWorkingMs(calendar: GanttCalendar, from: Date, to: Date): number {
+  const end = to.getTime();
+  if (end <= from.getTime()) return 0;
+
+  let total = 0;
+  let cursor = startOfDay(from);
+  for (let guard = 0; guard < MAX_DAYS_SCANNED && cursor.getTime() < end; guard++) {
+    for (const p of ganttWorkingPeriodsOn(calendar, cursor)) {
+      const segmentStart = Math.max(atMinutes(cursor, p.from).getTime(), from.getTime());
+      const segmentEnd = Math.min(atMinutes(cursor, p.to).getTime(), end);
+      if (segmentEnd > segmentStart) total += segmentEnd - segmentStart;
+    }
+    cursor = addDays(cursor, 1);
+  }
+  return total;
+}
+
+/**
+ * `from` plus a working duration.
+ *
+ * This is the function that answers the Friday-16:00 question, and it is the
+ * one everything in the tiers above it — setup times, capacity, float — is
+ * eventually built on.
+ *
+ * A duration that exactly fills the remainder of a shift ends AT the shift end,
+ * not at the start of the next one. "Finishes at 17:00" is what a planner
+ * means, and pushing it to 06:00 the next morning would report a job as
+ * finishing on a day no work happened.
+ *
+ * A non-positive duration returns `from` unchanged, including when `from` is
+ * outside working time — a milestone is a point someone chose, not a point to
+ * be relocated.
+ */
+export function ganttAddWorkingMs(calendar: GanttCalendar, from: Date, ms: number): Date {
+  if (ms <= 0) return new Date(from.getTime());
+
+  let remaining = ms;
+  let cursor = startOfDay(from);
+  for (let guard = 0; guard < MAX_DAYS_SCANNED; guard++) {
+    for (const p of ganttWorkingPeriodsOn(calendar, cursor)) {
+      const periodStart = Math.max(atMinutes(cursor, p.from).getTime(), from.getTime());
+      const periodEnd = atMinutes(cursor, p.to).getTime();
+      if (periodEnd <= periodStart) continue;
+      const available = periodEnd - periodStart;
+      if (available >= remaining) return new Date(periodStart + remaining);
+      remaining -= available;
+    }
+    cursor = addDays(cursor, 1);
+  }
+  // Out of calendar. Returning `from` would silently claim zero duration; this
+  // at least lands the bar where the scan gave up.
+  return new Date(cursor.getTime());
+}
+
+export interface GanttSegmentOptions {
+  /**
+   * Gaps shorter than this are absorbed rather than split on.
+   *
+   * Derived by the renderer from the axis scale — roughly one pixel's worth of
+   * time — because splitting is a geometry decision, not a data one. A 6-hour
+   * job across a weekend is two segments and that is the point; a three-month
+   * summary bar under a 24/5 calendar is ~65 segments, none of them a pixel
+   * wide, which is 65 DOM nodes to draw a dashed line.
+   */
+  minGapMs?: number;
+  /**
+   * Beyond this, the span is returned whole. A safety net against a calendar
+   * that alternates every few minutes, which would otherwise be able to hang
+   * the renderer.
+   */
+  maxSegments?: number;
+}
+
+/**
+ * `[from, to)` broken into the stretches where work actually happens.
+ *
+ * Returns `[]` when no part of the span is working time. That is deliberately
+ * NOT the same as returning the whole span: the caller has to be able to tell
+ * "this job runs straight through" from "this job is scheduled entirely inside
+ * a shutdown", and the second is a data error worth showing rather than hiding.
+ */
+export function ganttWorkingSegments(
+  calendar: GanttCalendar,
+  from: Date,
+  to: Date,
+  options: GanttSegmentOptions = {},
+): GanttSpan[] {
+  const end = to.getTime();
+  if (end <= from.getTime()) return [];
+
+  const minGap = options.minGapMs ?? 0;
+  const maxSegments = options.maxSegments ?? 500;
+
+  const raw: GanttSpan[] = [];
+  let cursor = startOfDay(from);
+  for (let guard = 0; guard < MAX_DAYS_SCANNED && cursor.getTime() < end; guard++) {
+    for (const p of ganttWorkingPeriodsOn(calendar, cursor)) {
+      const segmentStart = Math.max(atMinutes(cursor, p.from).getTime(), from.getTime());
+      const segmentEnd = Math.min(atMinutes(cursor, p.to).getTime(), end);
+      if (segmentEnd <= segmentStart) continue;
+      const last = raw[raw.length - 1];
+      // Adjacent or gap-too-small: extend rather than emit. Consecutive days of
+      // a 24/7 calendar are one segment, not 365.
+      if (last && segmentStart - last.end.getTime() <= minGap) {
+        last.end = new Date(segmentEnd);
+      } else {
+        raw.push({ start: new Date(segmentStart), end: new Date(segmentEnd) });
+      }
+    }
+    cursor = addDays(cursor, 1);
+  }
+
+  if (raw.length > maxSegments) {
+    return [{ start: raw[0].start, end: raw[raw.length - 1].end }];
+  }
+  return raw;
+}
+
 /** One visible line of the chart: a task, plus everything derived about it. */
 export interface GanttRow<T extends GanttTaskNode = GanttTaskNode> {
   task: T;
@@ -132,8 +395,24 @@ export interface GanttRow<T extends GanttTaskNode = GanttTaskNode> {
   parentId: string | null;
   hasChildren: boolean;
   expanded: boolean;
-  /** Its own dates, or the union of its descendants'. Null when nothing has dates. */
+  /**
+   * Its own dates, or the union of its descendants'. Null when nothing has
+   * dates. With a calendar in play this is CLAMPED to the working segments
+   * below — see `segments` for why that matters.
+   */
   span: GanttSpan | null;
+  /**
+   * The stretches of `span` where work actually happens, or null when the bar
+   * is drawn whole (no calendar, one continuous segment, or a span with no
+   * working time in it at all).
+   *
+   * `span` and `segments` cannot disagree: whenever segments exist, `span` has
+   * been clamped to `[segments[0].start, segments.at(-1).end]`. That is what
+   * keeps a dependency arrow on the bar it points at — anchoring to an
+   * unclamped envelope would put a finish-to-start arrow two days left of a
+   * bar whose first working segment is Monday.
+   */
+  segments: GanttSpan[] | null;
   /** Its own percentComplete, or the descendants' weighted average. Null when unknown. */
   progress: number | null;
   status: GanttTaskStatus;
@@ -230,12 +509,38 @@ export function ganttRangeLabel(view: GanttView, anchor: Date): string {
  * the whole basis of bars landing on gridlines, and it is pinned in
  * scripts/check-gantt.ts.
  */
+export interface GanttColumnOptions extends PlanningColumnOptions {
+  /**
+   * When supplied, `nonWorking` is decided by the CALENDAR rather than by
+   * planning.ts's weekend list and 9-to-18 default.
+   *
+   * That default is otherwise a second source of truth for the same fact, and
+   * the two disagree the moment a plant runs 06:00-14:00: the columns would
+   * shade nine-to-five while the bars broke at two. The calendar wins where one
+   * is given, and nothing changes where one is not.
+   */
+  calendar?: GanttCalendar;
+}
+
+/** Rewrites `nonWorking` from the calendar. A column counts as non-working when
+ *  NO part of it is working time — so an hour column inside a shift stays lit,
+ *  and a whole Sunday goes dark. */
+const applyCalendar = (columns: PlanningColumn[], calendar: GanttCalendar): PlanningColumn[] =>
+  columns.map((column) => ({
+    ...column,
+    nonWorking: ganttWorkingMs(calendar, column.start, column.end) === 0,
+  }));
+
 export function ganttColumns(
   view: GanttView,
   anchor: Date,
-  options: PlanningColumnOptions = {},
+  options: GanttColumnOptions = {},
 ): PlanningColumn[] {
-  if (view !== "quarter" && view !== "year") return planningColumns(view, anchor, options);
+  const { calendar } = options;
+  if (view !== "quarter" && view !== "year") {
+    const columns = planningColumns(view, anchor, options);
+    return calendar ? applyCalendar(columns, calendar) : columns;
+  }
 
   const now = options.now ?? new Date();
   const { start, end } = ganttRange(view, anchor);
@@ -258,7 +563,7 @@ export function ganttColumns(
       });
       d = next;
     }
-    return columns;
+    return calendar ? applyCalendar(columns, calendar) : columns;
   }
 
   for (let d = start; d.getTime() < end.getTime(); ) {
@@ -276,7 +581,7 @@ export function ganttColumns(
     });
     d = next;
   }
-  return columns;
+  return calendar ? applyCalendar(columns, calendar) : columns;
 }
 
 /**
@@ -321,7 +626,7 @@ const clampPct = (n: number): number => Math.min(100, Math.max(0, n));
  * not a one-instant task, it is half-entered data, and drawing it as a milestone
  * would invent an end date the caller never gave.
  */
-export function ganttSpan(task: GanttTaskNode): GanttSpan | null {
+export function ganttSpan(task: GanttTaskNode, calendar?: GanttCalendar): GanttSpan | null {
   if (task.start && task.end) {
     const a = task.start.getTime();
     const b = task.end.getTime();
@@ -330,10 +635,22 @@ export function ganttSpan(task: GanttTaskNode): GanttSpan | null {
     return { start: new Date(Math.min(a, b)), end: new Date(Math.max(a, b)) };
   }
 
+  /* A start plus a working duration. The end is DERIVED, which is the whole
+     point: the caller states how long the job takes, and the calendar decides
+     when that lands. Without a calendar this is elapsed time, because no
+     calendar means a 24/7 one. */
+  if (task.start && typeof task.workingMinutes === "number" && task.workingMinutes >= 0) {
+    const ms = task.workingMinutes * 60_000;
+    const end = calendar
+      ? ganttAddWorkingMs(calendar, task.start, ms)
+      : new Date(task.start.getTime() + ms);
+    return { start: new Date(task.start.getTime()), end };
+  }
+
   let from = Number.POSITIVE_INFINITY;
   let to = Number.NEGATIVE_INFINITY;
   for (const child of task.children ?? []) {
-    const span = ganttSpan(child);
+    const span = ganttSpan(child, calendar);
     if (!span) continue;
     from = Math.min(from, span.start.getTime());
     to = Math.max(to, span.end.getTime());
@@ -354,7 +671,7 @@ export function ganttSpan(task: GanttTaskNode): GanttSpan | null {
  * When every descendant is a milestone the weights are all zero, so it falls
  * back to a plain mean rather than dividing by nothing.
  */
-export function ganttProgress(task: GanttTaskNode): number | null {
+export function ganttProgress(task: GanttTaskNode, calendar?: GanttCalendar): number | null {
   if (typeof task.percentComplete === "number") return clampPct(task.percentComplete);
 
   let weighted = 0;
@@ -363,13 +680,24 @@ export function ganttProgress(task: GanttTaskNode): number | null {
   let count = 0;
   let anyStated = false;
 
+  /* WORKING duration where a calendar is in play, elapsed where it is not.
+     Weighting by wall clock would count a child that happens to straddle a
+     shutdown as larger than the work inside it — the same bug the whole
+     working-time model exists to remove, one level down. */
+  const weightOf = (node: GanttTaskNode): number => {
+    const span = ganttSpan(node, calendar);
+    if (!span) return 0;
+    return calendar
+      ? ganttWorkingMs(calendar, span.start, span.end)
+      : span.end.getTime() - span.start.getTime();
+  };
+
   const walk = (node: GanttTaskNode): void => {
     const children = node.children ?? [];
     if (children.length === 0) {
-      const span = ganttSpan(node);
       const pct = typeof node.percentComplete === "number" ? clampPct(node.percentComplete) : 0;
       if (typeof node.percentComplete === "number") anyStated = true;
-      const ms = span ? span.end.getTime() - span.start.getTime() : 0;
+      const ms = weightOf(node);
       weighted += pct * ms;
       weight += ms;
       plain += pct;
@@ -380,9 +708,8 @@ export function ganttProgress(task: GanttTaskNode): number | null {
     // re-derived: the caller has already answered the question for that branch.
     if (typeof node.percentComplete === "number") {
       anyStated = true;
-      const span = ganttSpan(node);
       const pct = clampPct(node.percentComplete);
-      const ms = span ? span.end.getTime() - span.start.getTime() : 0;
+      const ms = weightOf(node);
       weighted += pct * ms;
       weight += ms;
       plain += pct;
@@ -454,11 +781,40 @@ export function ganttTaskStatus(
  * default to open, closed, or open-to-depth-2 without this module having an
  * opinion. A leaf is never asked.
  */
+export interface GanttFlattenOptions extends GanttSegmentOptions {
+  /**
+   * When work can happen. Omit it and every span is wall-clock, which is
+   * exactly today's behaviour — the working-time path is not entered at all.
+   */
+  calendar?: GanttCalendar;
+}
+
 export function flattenGanttTasks<T extends GanttTaskNode>(
   tasks: T[],
   isExpanded: (task: T) => boolean,
   now: Date = new Date(),
+  options: GanttFlattenOptions = {},
 ): GanttFlatten<T> {
+  const { calendar, ...segmentOptions } = options;
+
+  /**
+   * The span as drawn, plus its pieces.
+   *
+   * Three cases, and the third is the one worth stating. When a span has NO
+   * working time in it — a job entered against a plant that is shut all week —
+   * the raw span is kept and drawn whole. Returning nothing would make the bar
+   * vanish, which reads as data that failed to load; drawing it against shaded
+   * background says "you have scheduled work into a closed plant", which is the
+   * thing the planner needs to see.
+   */
+  const resolve = (raw: GanttSpan | null): { span: GanttSpan | null; segments: GanttSpan[] | null } => {
+    if (!raw || !calendar) return { span: raw, segments: null };
+    const segments = ganttWorkingSegments(calendar, raw.start, raw.end, segmentOptions);
+    if (segments.length === 0) return { span: raw, segments: null };
+    const clamped = { start: segments[0].start, end: segments[segments.length - 1].end };
+    return { span: clamped, segments: segments.length > 1 ? segments : null };
+  };
+
   const rows: GanttRow<T>[] = [];
   const rowIndexById = new Map<string, number>();
 
@@ -475,8 +831,8 @@ export function flattenGanttTasks<T extends GanttTaskNode>(
     const children = (task.children ?? []) as T[];
     const hasChildren = children.length > 0;
     const expanded = hasChildren ? isExpanded(task) : false;
-    const span = ganttSpan(task);
-    const progress = ganttProgress(task);
+    const { span, segments } = resolve(ganttSpan(task, calendar));
+    const progress = ganttProgress(task, calendar);
     const index = rows.length;
 
     rows.push({
@@ -487,6 +843,7 @@ export function flattenGanttTasks<T extends GanttTaskNode>(
       hasChildren,
       expanded,
       span,
+      segments,
       progress,
       status: ganttTaskStatus(task, span, progress, now),
       variance: task.baselineEnd && span ? ganttVarianceDays(span.end, task.baselineEnd) : null,

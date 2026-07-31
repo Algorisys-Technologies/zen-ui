@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Gantt, type GanttTask } from "./gantt/gantt";
-import type { GanttDependency } from "@algorisys/zen-ui-core";
+import type { GanttCalendar, GanttDependency } from "@algorisys/zen-ui-core";
 import { CodeExample } from "./demo-helpers";
 
 /* A fixed reference day, so the demo reads the same on any date and a probe has
@@ -130,7 +130,43 @@ const LINKS: GanttDependency[] = [
   { from: "t8", to: "t9" },
 ];
 
-/** Section 5: a live click handler, so the section is not a dead control. */
+/* A single-shift plant: 06:00-17:00 Monday to Friday with an hour off at noon,
+   shut at weekends, closed on the 22nd, working a Saturday morning on the 25th.
+   2026-07-24 is a Friday. */
+const SHIFT = [{ from: 6 * 60, to: 12 * 60 }, { from: 13 * 60, to: 17 * 60 }];
+const PLANT: GanttCalendar = {
+  week: [[], SHIFT, SHIFT, SHIFT, SHIFT, SHIFT, []],
+  exceptions: [
+    { date: new Date(2026, 6, 22), periods: [] },
+    { date: new Date(2026, 6, 25), periods: [{ from: 8 * 60, to: 12 * 60 }] },
+  ],
+};
+const SHOP_NOW = new Date(2026, 6, 24, 10, 0, 0, 0);
+const shopAt = (day: number, h: number, m = 0) => new Date(2026, 6, day, h, m, 0, 0);
+
+const SHOP: GanttTask[] = [
+  {
+    id: "wo",
+    name: "Works order 4471",
+    assignees: [SVEN, OLU],
+    children: [
+      { id: "j1", name: "Mill housing", subtitle: "CNC-3", start: shopAt(23, 8), end: shopAt(24, 11), percentComplete: 100, assignees: [SVEN] },
+      // The end is derived: 6 working hours from Friday 16:00 lands Monday 11:00.
+      { id: "j2", name: "Heat treat", subtitle: "Furnace 2", start: shopAt(24, 16), workingMinutes: 360, percentComplete: 35, assignees: [OLU] },
+      { id: "j3", name: "Grind + inspect", start: shopAt(27, 11), workingMinutes: 300, percentComplete: 0, assignees: [MEI] },
+      // Booked onto a Saturday the plant does not normally work — the overtime
+      // exception is what makes it a real bar rather than a data error.
+      { id: "j4", name: "Rework (overtime)", start: shopAt(25, 8), end: shopAt(25, 12), percentComplete: 0, assignees: [ARUN] },
+    ],
+  },
+];
+
+const SHOP_LINKS: GanttDependency[] = [
+  { from: "j1", to: "j2" },
+  { from: "j2", to: "j3" },
+];
+
+/** Section 6: a live click handler, so the section is not a dead control. */
 const Clickable = () => {
   const [picked, setPicked] = React.useState("Nothing picked yet");
   return (
@@ -298,7 +334,47 @@ const NewGanttDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>7. Loading and empty</h2>
+      <h2>7. Working time — shifts, holidays and split bars</h2>
+      <CodeExample
+        title="calendar"
+        description="A factory does not work every hour, and until that is modelled every duration is wrong. Give the chart a calendar — working periods per weekday, plus dated exceptions for holidays, planned maintenance or one-off overtime — and three things change. Durations become working durations: a job given workingMinutes has its end derived through the calendar, so six hours starting Friday 16:00 finishes on MONDAY rather than at Friday 22:00. Bars break across the time nobody is working instead of drawing straight through it, and the gap is transparent so the shaded column shows through. And the shading itself comes from the calendar rather than from a weekend-and-nine-to-five guess. Switch to Day below to see the shift and its lunch break. Pass no calendar and none of this happens — no calendar means a 24/7 one, which is exactly the behaviour every other section on this page shows."
+        code={`const plant: GanttCalendar = {
+  // 0 = Sunday. Two shifts with an hour off at noon; weekends shut.
+  week: [[], shift, shift, shift, shift, shift, []],
+  exceptions: [
+    { date: new Date(2026, 6, 22), periods: [] },                    // holiday
+    { date: new Date(2026, 6, 25), periods: [{ from: 8 * 60, to: 12 * 60 }] }, // overtime
+  ],
+};
+
+// The end is DERIVED: 6 working hours from Friday 16:00 lands on Monday.
+{ id: "j2", name: "Heat treat", start: at(24, 16), workingMinutes: 360 }
+
+<Gantt tasks={jobs} calendar={plant} defaultView="week" />`}
+      >
+        <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <Gantt
+            tasks={SHOP}
+            dependencies={SHOP_LINKS}
+            calendar={PLANT}
+            now={SHOP_NOW}
+            defaultDate={SHOP_NOW}
+            defaultView="week"
+          />
+          <Gantt
+            tasks={SHOP}
+            dependencies={SHOP_LINKS}
+            calendar={PLANT}
+            now={SHOP_NOW}
+            defaultDate={SHOP_NOW}
+            defaultView="day"
+          />
+        </div>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>8. Loading and empty</h2>
       <CodeExample
         title="loading / emptyState"
         description="The skeleton is staggered rather than a stack of equal bars, because the shape is the information: a schedule that loads as a table reads as the wrong component for a second. The toolbar is not drawn over either state — Previous, Today and Next cannot change anything the user can see when there is nothing to see, and a dead control is worse than no control."

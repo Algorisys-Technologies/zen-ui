@@ -15,6 +15,7 @@
 import {
   flattenGanttTasks,
   formatGanttVariance,
+  ganttAddWorkingMs,
   ganttColumns,
   ganttColumnWidths,
   ganttConnectors,
@@ -23,10 +24,16 @@ import {
   ganttRangeLabel,
   ganttRowWindow,
   ganttSpan,
+  ganttIsWorking,
+  ganttWorkingMs,
+  ganttWorkingPeriodsOn,
+  ganttWorkingSegments,
+  GANTT_CALENDAR_24_7,
   ganttTaskStatus,
   ganttVarianceDays,
   shiftGanttAnchor,
   type GanttBarAnchor,
+  type GanttCalendar,
   type GanttTaskNode,
   type GanttView,
 } from "../packages/core/src/gantt";
@@ -409,10 +416,17 @@ t(
   Number(gridlineAtSept.toFixed(6)),
   "1 September sits on the September gridline",
 );
+/* 29/30 in REAL elapsed time, not in days: a September containing a DST
+   transition is 719 hours, not 720, so the naive fraction is wrong by a
+   measurable amount in Santiago. The columns are duration-proportional and get
+   this right; the assertion has to be too. */
+const septFraction =
+  (at(2026, 9, 30).getTime() - at(2026, 9, 1).getTime()) /
+  (at(2026, 10, 1).getTime() - at(2026, 9, 1).getTime());
 t(
   Number((((sept.startPct + sept.widthPct) / 100) * AXIS).toFixed(6)),
-  Number((yearWidths.slice(0, 8).reduce((a, b) => a + b, 0) + (29 / 30) * yearWidths[8]).toFixed(6)),
-  "…and the bar's right edge is 29/30 of the way through September",
+  Number((yearWidths.slice(0, 8).reduce((a, b) => a + b, 0) + septFraction * yearWidths[8]).toFixed(6)),
+  "…and the bar's right edge is 29/30 of September, measured in elapsed time",
 );
 t(
   Number((((8 / 12) * AXIS)).toFixed(6)) === Number(gridlineAtSept.toFixed(6)),
@@ -460,6 +474,232 @@ t(win(10_000, 3600, 500, 0).endIndex, 114, "…and ends at the last");
 // Mounted count must stay bounded by the viewport, not by the list.
 const mounted = (n: number) => { const w = win(n, 180_000 % (n * 36), 500); return w.endIndex - w.startIndex; };
 t(mounted(10_000) <= 30 && mounted(100_000) <= 30, true, "the mounted count does not grow with the list");
+
+console.log("\nworking calendars — when work can actually happen");
+const hm = (h: number, m = 0) => h * 60 + m;
+/** Mon-Fri 06:00-17:00 with an hour off at noon; weekends shut. */
+const SHIFT = [{ from: hm(6), to: hm(12) }, { from: hm(13), to: hm(17) }];
+const PLANT: GanttCalendar = { week: [[], SHIFT, SHIFT, SHIFT, SHIFT, SHIFT, []] };
+/** 2026-07-24 is a Friday, 2026-07-27 the Monday after. */
+t(ganttWorkingPeriodsOn(PLANT, at(2026, 7, 24)).length, 2, "a Friday has two periods");
+t(ganttWorkingPeriodsOn(PLANT, at(2026, 7, 25)).length, 0, "a Saturday has none");
+const withHoliday: GanttCalendar = {
+  ...PLANT,
+  exceptions: [
+    { date: at(2026, 7, 22), periods: [] },
+    { date: at(2026, 7, 25), periods: [{ from: hm(8), to: hm(12) }] },
+  ],
+};
+t(ganttWorkingPeriodsOn(withHoliday, at(2026, 7, 22)).length, 0, "a holiday exception closes a working day");
+t(ganttWorkingPeriodsOn(withHoliday, at(2026, 7, 25)), [{ from: 480, to: 720 }], "an overtime exception opens a closed one");
+t(ganttWorkingPeriodsOn(withHoliday, at(2026, 7, 23)).length, 2, "…and neither leaks onto the next day");
+t(
+  ganttWorkingPeriodsOn({ week: [[{ from: hm(6), to: hm(14) }, { from: hm(8), to: hm(16) }], [], [], [], [], [], []] }, at(2026, 7, 26)),
+  [{ from: 360, to: 960 }],
+  "overlapping periods merge rather than double-count",
+);
+t(
+  ganttWorkingPeriodsOn({ week: [[{ from: hm(17), to: hm(9) }], [], [], [], [], [], []] }, at(2026, 7, 26)),
+  [],
+  "an inverted period is dropped, not reversed",
+);
+t(ganttIsWorking(PLANT, at(2026, 7, 24, 10)), true, "Friday 10:00 is working time");
+t(ganttIsWorking(PLANT, at(2026, 7, 24, 12, 30)), false, "…the lunch break is not");
+t(ganttIsWorking(PLANT, at(2026, 7, 25, 10)), false, "…and neither is Saturday");
+t(ganttIsWorking(PLANT, at(2026, 7, 24, 17)), false, "17:00 exactly is outside a shift ending at 17:00");
+t(ganttIsWorking(PLANT, at(2026, 7, 24, 6)), true, "…while 06:00 exactly is inside one starting at 06:00");
+
+console.log("\nworking time between two instants");
+const hours = (n: number) => n * 3_600_000;
+t(ganttWorkingMs(PLANT, at(2026, 7, 24, 6), at(2026, 7, 24, 17)), hours(10), "a full day is 10 hours, not 11 — lunch is not work");
+t(ganttWorkingMs(PLANT, at(2026, 7, 24, 16), at(2026, 7, 24, 22)), hours(1), "an evening stops at the shift end");
+t(ganttWorkingMs(PLANT, at(2026, 7, 24, 16), at(2026, 7, 27, 8)), hours(3), "…and resumes on Monday, skipping the weekend entirely");
+t(ganttWorkingMs(PLANT, at(2026, 7, 25), at(2026, 7, 27)), 0, "a whole weekend is no work at all");
+t(ganttWorkingMs(PLANT, at(2026, 7, 24, 10), at(2026, 7, 24, 10)), 0, "a zero-length range is zero");
+t(ganttWorkingMs(PLANT, at(2026, 7, 24, 17), at(2026, 7, 24, 10)), 0, "an inverted range is zero, not negative");
+t(ganttWorkingMs(GANTT_CALENDAR_24_7, at(2026, 7, 24), at(2026, 7, 27)), 3 * 24 * 3_600_000, "24/7 counts every millisecond");
+
+console.log("\nadding a working duration — the Friday-16:00 question");
+t(
+  iso(ganttAddWorkingMs(PLANT, at(2026, 7, 24, 16), hours(6))),
+  "2026-07-27 11:00",
+  "6 hours from Friday 16:00 finishes MONDAY, not Friday 22:00",
+);
+/* 6 hours exactly fills the morning period, so it ends AT 12:00 by the same
+   rule as a shift end. 7 hours is the one that genuinely crosses lunch. */
+t(iso(ganttAddWorkingMs(PLANT, at(2026, 7, 24, 6), hours(6))), "2026-07-24 12:00", "a duration that exactly fills the morning ends at the break");
+t(iso(ganttAddWorkingMs(PLANT, at(2026, 7, 24, 6), hours(7))), "2026-07-24 14:00", "…and one that crosses lunch jumps the hour");
+t(iso(ganttAddWorkingMs(PLANT, at(2026, 7, 24, 13), hours(4))), "2026-07-24 17:00", "work that exactly fills a shift ends AT the shift end");
+t(iso(ganttAddWorkingMs(PLANT, at(2026, 7, 24, 20), hours(1))), "2026-07-27 07:00", "starting after hours begins at the next shift");
+t(iso(ganttAddWorkingMs(PLANT, at(2026, 7, 25, 9), hours(2))), "2026-07-27 08:00", "…and starting on a closed day too");
+t(iso(ganttAddWorkingMs(PLANT, at(2026, 7, 24, 10), 0)), "2026-07-24 10:00", "a zero duration does not move");
+t(iso(ganttAddWorkingMs(PLANT, at(2026, 7, 25, 9), 0)), "2026-07-25 09:00", "…not even out of non-working time; a milestone is where someone put it");
+t(iso(ganttAddWorkingMs(PLANT, at(2026, 7, 24, 10), -hours(3))), "2026-07-24 10:00", "a negative duration does not move either");
+t(
+  iso(ganttAddWorkingMs(withHoliday, at(2026, 7, 21, 13), hours(14))),
+  "2026-07-23 17:00",
+  "a holiday in the middle of a job pushes its finish a working day",
+);
+t(iso(ganttAddWorkingMs(GANTT_CALENDAR_24_7, at(2026, 7, 24, 16), hours(6))), "2026-07-24 22:00", "24/7 is plain elapsed time");
+const NEVER: GanttCalendar = { week: [[], [], [], [], [], [], []] };
+t(ganttAddWorkingMs(NEVER, at(2026, 7, 24), hours(1)).getTime() > at(2026, 7, 24).getTime(), true, "a calendar with no working time bails out rather than hanging");
+
+console.log("\nsplitting a span into the stretches where work happens");
+const segs = (c: GanttCalendar, a: Date, b: Date, o = {}) =>
+  ganttWorkingSegments(c, a, b, o).map((sp) => [iso(sp.start), iso(sp.end)]);
+t(
+  segs(PLANT, at(2026, 7, 24, 16), at(2026, 7, 27, 8)),
+  [["2026-07-24 16:00", "2026-07-24 17:00"], ["2026-07-27 06:00", "2026-07-27 08:00"]],
+  "Friday evening + Monday morning is two segments, and the weekend is not one",
+);
+t(
+  segs(PLANT, at(2026, 7, 24, 11), at(2026, 7, 24, 14)),
+  [["2026-07-24 11:00", "2026-07-24 12:00"], ["2026-07-24 13:00", "2026-07-24 14:00"]],
+  "a lunch break splits a bar mid-day",
+);
+t(
+  segs(PLANT, at(2026, 7, 24, 11), at(2026, 7, 24, 14), { minGapMs: hours(2) }),
+  [["2026-07-24 11:00", "2026-07-24 14:00"]],
+  "…unless minGapMs says that gap is too small to draw",
+);
+t(segs(PLANT, at(2026, 7, 25), at(2026, 7, 26)), [], "a span entirely inside a shutdown has NO segments");
+t(
+  segs(GANTT_CALENDAR_24_7, at(2026, 7, 20), at(2026, 7, 27)),
+  [["2026-07-20 00:00", "2026-07-27 00:00"]],
+  "24/7 is ONE segment, not one per day — which is what makes it identical to no calendar",
+);
+t(
+  ganttWorkingSegments(PLANT, at(2026, 1, 1), at(2026, 12, 31), { maxSegments: 10 }).length,
+  1,
+  "past maxSegments the span comes back whole rather than as hundreds of slivers",
+);
+
+console.log("\nthe span/segment contract — what keeps arrows on their bars");
+const flatSeg = (task: GanttTaskNode, calendar?: GanttCalendar) =>
+  flattenGanttTasks([task], () => true, NOW, calendar ? { calendar } : {}).rows[0];
+const weekendJob = flatSeg({ id: "w", start: at(2026, 7, 25, 9), end: at(2026, 7, 27, 10) }, PLANT);
+t(iso(weekendJob.span!.start), "2026-07-27 06:00", "a span starting on a closed Saturday is CLAMPED to the first working instant");
+t(iso(weekendJob.span!.end), "2026-07-27 10:00", "…and its end to the last");
+t(weekendJob.segments, null, "…and it is one piece, so it draws unsplit");
+const split = flatSeg({ id: "s", start: at(2026, 7, 24, 16), end: at(2026, 7, 27, 8) }, PLANT);
+t(split.segments?.length, 2, "a job across a weekend has two segments");
+t(
+  [iso(split.span!.start), iso(split.span!.end)],
+  [iso(split.segments![0].start), iso(split.segments![1].end)],
+  "the envelope is exactly the outer edges of the segments — they cannot disagree",
+);
+const shutJob = flatSeg({ id: "x", start: at(2026, 7, 25, 9), end: at(2026, 7, 25, 15) }, PLANT);
+t([iso(shutJob.span!.start), iso(shutJob.span!.end)], ["2026-07-25 09:00", "2026-07-25 15:00"], "a job entirely inside a shutdown keeps its RAW span");
+t(shutJob.segments, null, "…and draws whole, against shaded background");
+const noCal = flatSeg({ id: "n", start: at(2026, 7, 24, 16), end: at(2026, 7, 27, 8) });
+t([iso(noCal.span!.start), iso(noCal.span!.end)], ["2026-07-24 16:00", "2026-07-27 08:00"], "NO calendar leaves the span exactly as given");
+t(noCal.segments, null, "…and produces no segments at all");
+const cal247 = flatSeg({ id: "c", start: at(2026, 7, 24, 16), end: at(2026, 7, 27, 8) }, GANTT_CALENDAR_24_7);
+t(
+  [iso(cal247.span!.start), iso(cal247.span!.end), cal247.segments],
+  [iso(noCal.span!.start), iso(noCal.span!.end), null],
+  "a 24/7 calendar is byte-for-byte the same as no calendar — the backward-compat guarantee",
+);
+
+console.log("\ndurations from a working duration, and the columns that shade them");
+t(
+  iso(ganttSpan({ id: "d", start: at(2026, 7, 24, 16), workingMinutes: 360 }, PLANT)!.end),
+  "2026-07-27 11:00",
+  "workingMinutes derives the end through the calendar",
+);
+t(
+  iso(ganttSpan({ id: "d", start: at(2026, 7, 24, 16), workingMinutes: 360 })!.end),
+  "2026-07-24 22:00",
+  "…and is plain elapsed time without one",
+);
+t(
+  iso(ganttSpan({ id: "d", start: at(2026, 7, 24, 16), end: at(2026, 7, 24, 18), workingMinutes: 360 }, PLANT)!.end),
+  "2026-07-24 18:00",
+  "an explicit end beats a duration — a statement beats a derivation",
+);
+const dayCols2 = ganttColumns("day", at(2026, 7, 24), { now: NOW, calendar: PLANT });
+t(dayCols2.filter((c) => !c.nonWorking).length, 10, "the day view lights exactly the 10 working hours");
+t([dayCols2[12].nonWorking, dayCols2[13].nonWorking], [true, false], "…with the lunch hour dark and 13:00 lit again");
+const weekCols3 = ganttColumns("week", at(2026, 7, 24), { now: NOW, calendar: PLANT });
+t(weekCols3.filter((c) => c.nonWorking).map((c) => c.label), ["Sat 25", "Sun 26"], "the week view darkens the weekend from the CALENDAR");
+t(
+  ganttColumns("day", at(2026, 7, 24), { now: NOW }).filter((c) => !c.nonWorking).length,
+  9,
+  "without a calendar the old 9-to-18 default still decides — unchanged",
+);
+t(
+  ganttColumns("week", at(2026, 7, 20), { now: NOW, calendar: withHoliday }).filter((c) => c.nonWorking).map((c) => c.label),
+  ["Wed 22", "Sun 26"],
+  "a dated holiday darkens its own column, and an overtime Saturday lights one",
+);
+
+console.log("\ndaylight saving — a working day is 23 or 25 hours long");
+/* Everything here is local `Date`, so this only tests anything in a zone that
+   HAS a transition. `check:gantt` runs the file twice, once under the ambient
+   zone and once under Europe/London, so it is never vacuous in CI. */
+{
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const nextDay = (d: Date, n = 1) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+  const dayHours = (d: Date) => (nextDay(d).getTime() - d.getTime()) / 3_600_000;
+  /* Found by measuring day LENGTH, not by scanning UTC offsets. The offset at
+     midnight changes a day late in London (the clocks move at 01:00) and on the
+     day itself in Santiago (they move at midnight, so local 00:00 does not
+     exist). Measuring the thing under test is the only zone-agnostic way in. */
+  let short: Date | null = null;
+  let long: Date | null = null;
+  for (let d = 0; d < 365 && (!short || !long); d++) {
+    const day = new Date(2026, 0, 1 + d);
+    const h = dayHours(day);
+    if (h < 24 && !short) short = day;
+    if (h > 24 && !long) long = day;
+  }
+
+  if (!short && !long) {
+    console.log(`  skip 5 assertions — ${zone} has no daylight saving; check:gantt reruns under Europe/London`);
+  } else {
+    const ALL_DAY: GanttCalendar = { week: Array.from({ length: 7 }, () => [{ from: 0, to: 1440 }]) };
+    if (short) {
+      t(dayHours(short) < 24, true, `${zone}: found a short day, ${dayHours(short)}h`);
+      t(
+        ganttWorkingMs(ALL_DAY, short, nextDay(short)) / 3_600_000,
+        dayHours(short),
+        "a 24-hour calendar reports the day's REAL length, not 24",
+      );
+      // Not implied by the above: this walks the period loop across the
+      // boundary and must accumulate real elapsed time, so it lands past the
+      // next midnight by exactly the hour that went missing.
+      t(
+        ganttAddWorkingMs(ALL_DAY, short, 24 * 3_600_000).getTime(),
+        short.getTime() + 24 * 3_600_000,
+        "24 working hours from a short day's start is 24 REAL hours later",
+      );
+      t(ganttWorkingSegments(ALL_DAY, short, nextDay(short, 2)).length, 1, "…and a continuous calendar is still ONE segment across it");
+      /* The assertion that separates wall-clock periods from millisecond
+         arithmetic: a shift stated as 00:00-04:00 keeps its wall-clock bounds
+         and changes its real length. Guarded, because not every zone moves its
+         clocks inside that window. */
+      const windowHours = (new Date(short.getFullYear(), short.getMonth(), short.getDate(), 4).getTime() - short.getTime()) / 3_600_000;
+      if (windowHours !== 4) {
+        const SHIFTED: GanttCalendar = { week: Array.from({ length: 7 }, () => [{ from: 0, to: 240 }]) };
+        t(
+          ganttWorkingMs(SHIFTED, short, nextDay(short)) / 3_600_000,
+          windowHours,
+          `a 00:00-04:00 shift is ${windowHours}h that day — wall-clock bounds, real length`,
+        );
+      } else {
+        console.log(`  skip 1 assertion — ${zone} moves its clocks outside 00:00-04:00`);
+      }
+    }
+    if (long) {
+      t(dayHours(long) > 24, true, `${zone}: found a long day, ${dayHours(long)}h`);
+      t(
+        ganttWorkingMs(ALL_DAY, long, nextDay(long)) / 3_600_000,
+        dayHours(long),
+        "…and the long one reports its real length too",
+      );
+    }
+  }
+}
 
 console.log(f === 0 ? "\nall passed\n" : `\n${f} FAILED\n`);
 process.exit(f === 0 ? 0 : 1);
