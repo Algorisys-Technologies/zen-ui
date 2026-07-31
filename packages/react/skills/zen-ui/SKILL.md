@@ -70,7 +70,10 @@ noncommercial condition disqualifies it regardless of the source being public.
   `import "<pkg>/styles";`. Without it components render completely unstyled —
   nothing errors, the build stays green.
 - **The element reset is opt-in and separate**: `import "<pkg>/preflight";`.
-  Do not add it to an app that has its own reset.
+  Do not add it to an app that has its own reset. **If you import both, preflight
+  goes FIRST** — it sets `background-color: transparent` on `[type="button"]`,
+  which ties with `.zen-bg-zen-primary` on specificity, so importing it second
+  makes it win and every solid `<Button>` renders invisible.
 - **Heavy components need an optional peer dep**, lazy-loaded on use:
   Chart → `recharts`, RichText → jodit, Map → `leaflet` (+ `react-leaflet`
   in React), Camera → `react-webcam`. Install the dep when you use the

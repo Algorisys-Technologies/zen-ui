@@ -170,6 +170,11 @@ const RULES = `## Rules that apply in every binding
 - **You must import the stylesheet.** \`import "<pkg>/styles";\` once at your
   app entry. Without it, components render unstyled — utilities resolve to
   nothing. An optional element reset is a separate opt-in: \`import "<pkg>/preflight";\`.
+- **If you import both, preflight goes FIRST.** The reset sets
+  \`background-color: transparent\` on \`[type="button"]\` — an attribute selector,
+  so the same specificity as \`.zen-bg-zen-primary\`. A tie is broken by source
+  order, so importing preflight SECOND makes it win and every solid \`<Button>\`
+  renders invisible. Nothing errors and the build stays green.
 - **Utilities are prefixed \`zen-\`; variants sit outside the prefix** —
   \`hover:zen-bg-zen-primary\`, \`data-[state=open]:zen-p-4\`, \`!zen-p-4\`. You
   rarely write these as a consumer, but if you extend a component's class, keep
@@ -242,7 +247,10 @@ ${LICENSING}
   \`import "<pkg>/styles";\`. Without it components render completely unstyled —
   nothing errors, the build stays green.
 - **The element reset is opt-in and separate**: \`import "<pkg>/preflight";\`.
-  Do not add it to an app that has its own reset.
+  Do not add it to an app that has its own reset. **If you import both, preflight
+  goes FIRST** — it sets \`background-color: transparent\` on \`[type="button"]\`,
+  which ties with \`.zen-bg-zen-primary\` on specificity, so importing it second
+  makes it win and every solid \`<Button>\` renders invisible.
 - **Heavy components need an optional peer dep**, lazy-loaded on use:
   Chart → \`recharts\`, RichText → jodit, Map → \`leaflet\` (+ \`react-leaflet\`
   in React), Camera → \`react-webcam\`. Install the dep when you use the
