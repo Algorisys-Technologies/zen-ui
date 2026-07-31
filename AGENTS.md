@@ -124,6 +124,7 @@ description, then import the name from your binding's package.
 - **UploadCollection** — The list of uploaded files — progress, rename, delete, retry; the result FileUpload has no view for
 - **PlanningCalendar** — Resource-by-time grid — rows of people or rooms, appointments as blocks, day / week / month views
 - **Gantt** — Project schedule — a collapsing task tree beside bars on a shared clock, with percent-complete fills, slip chips and dependency arrows; opens on a fit axis taken from the data, one tab stop with arrow-key grid navigation
+- **ProductionSchedule** — Shop-floor schedule — work centres as rows holding many operations in lanes, changeovers drawn as time the machine is busy making nothing, finite capacity with overload, and a load histogram of booked over available WORKING hours
 - **Pivot** — Drag-and-drop pivot builder; fields into zones, 2D-windowed grid
 - **MediaTimeline** — Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state
 - **Waveform** — Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align

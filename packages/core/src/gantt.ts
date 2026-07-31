@@ -1232,6 +1232,15 @@ export interface GanttBarAnchor {
   /** 0–100 from the range start, as PlanningPlacement reports it. */
   startPct: number;
   widthPct: number;
+  /**
+   * Pixels from the row's TOP to the point a link should join, overriding the
+   * row's middle.
+   *
+   * A project Gantt has one bar per row and wants the middle, which is the
+   * default. A production row stacks its operations in lanes, and a routing
+   * arrow drawn to the middle of a three-lane row misses every bar in it.
+   */
+  yOffset?: number;
 }
 
 export interface GanttConnectorOptions {
@@ -1313,8 +1322,8 @@ export function ganttConnectors(
     const px = (pct: number) => (pct / 100) * axisWidth;
     const x1 = px(fromEnd ? a.startPct + a.widthPct : a.startPct);
     const x2 = px(toEnd ? b.startPct + b.widthPct : b.startPct);
-    const y1 = a.rowIndex * rowHeight + rowHeight / 2;
-    const y2 = b.rowIndex * rowHeight + rowHeight / 2;
+    const y1 = a.rowIndex * rowHeight + (a.yOffset ?? rowHeight / 2);
+    const y2 = b.rowIndex * rowHeight + (b.yOffset ?? rowHeight / 2);
 
     // Leaving a bar's finish runs right; leaving its start runs left. Arriving at
     // a start comes in from the left, so the head points right, and vice versa.

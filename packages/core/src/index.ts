@@ -13,4 +13,5 @@ export * from "./pivot";
 export * from "./virtual-window";
 export * from "./planning";
 export * from "./gantt";
+export * from "./production";
 export * from "./media";

@@ -3,7 +3,13 @@
 **Branch:** `feat/gantt`, ahead of `dev`, 0 behind.
 **Date:** 2026-07-31. **State:** `bun run check` green except `check:parity`
 (3 expected failures, deliberately not silenced — see below); `lint` 0 problems;
-both tsconfigs clean; `/gantt` driven in a browser, LTR and RTL.
+both tsconfigs clean; `/gantt` and `/production-schedule` both driven in a
+browser.
+
+> **`check:parity`'s failure list doubled, as predicted when Decision 1 was
+> taken.** It now names `ProductionSchedule` and its 13 types alongside `Gantt`
+> and its 12. That is the cost of two components, it was priced in, and it is
+> still not silenced via `divergent` in `bindings.mjs`.
 
 > **The default view changed.** It is `fit` now, not `month` — see the
 > smaller-gaps section. Gantt has never been in a release, so no consumer's
@@ -25,7 +31,8 @@ the reasoning this file only summarises.
 
 ## What exists
 
-A `Gantt` component for React, plus its maths in `packages/core/src/gantt.ts`.
+A `Gantt` and a `ProductionSchedule` for React, over one internal renderer,
+plus their maths in `packages/core/src/{gantt,production}.ts`.
 
 | Piece | Path |
 |---|---|
@@ -205,8 +212,49 @@ counts, toolbar buttons, range label — plus 12 keyboard interactions including
 Ctrl+End across the window boundary. Captured before, re-run after: **byte
 identical in both LTR and RTL.**
 
-**Next:** tier (b) read-only (resource rows, finite capacity, load, setup, lag)
-→ revisit Decision 2.
+### Step 2 is under way: `ProductionSchedule` exists
+
+The first tier-(b) slice shipped, React + core only, and it is the thing that
+PROVES the extraction was generic — the seam was written against one component
+and is now carrying two.
+
+| Piece | Path |
+|---|---|
+| Core maths | `packages/core/src/production.ts` (+ `/production` subpath) |
+| Check script | `scripts/check-production.ts` — 122 assertions, two timezones, wired into `bun run check` |
+| React component | `packages/react/src/components/production-schedule/production-schedule.tsx` |
+| Demo | `packages/react/src/components/NewProductionScheduleDemo.tsx`, route `/production-schedule` |
+
+What the second component needed that the first did not, and what it cost:
+
+- **`rowHeight` as a prop** on `ScheduleGrid` (lanes need taller rows). Rows
+  still have ONE height per chart — `ganttRowWindow` is arithmetic and
+  `ganttConnectors` places its endpoints from it, so varying heights would need
+  a measured offset table both would have to read.
+- **`renderFooter`**, for the load histogram. Rendered OUTSIDE the `treegrid`
+  element: a div that is not a `row` inside a grid is invalid ARIA, and a fake
+  row would be counted by `aria-rowcount` and announced as data.
+- **`yOffset` on `GanttBarAnchor`**, so a routing arrow arrives at the LANE
+  rather than at the row's middle, which in a three-lane row is between the bars.
+- **`ganttPaneColumns` generic over the column key** — already done during the
+  extraction, and it paid off immediately: the production pane is
+  resource/jobs/capacity/load and sheds by the same rule.
+
+Nothing else changed in `schedule-grid.tsx`. The axis, pane shedding, windowing,
+keyboard model and connector overlay were used as-is.
+
+> **The layout trap this turned up, which applies to BOTH components and was
+> already live on the Gantt page.** A fit axis sizes itself from the scroller's
+> measured width, so a container whose width comes from its own content makes
+> the two define each other. `.example-preview` is a flex row, so a demo wrapper
+> without `w-full` is content-sized: identical data rendered at **516px** in one
+> section and **1800px** in another, and the 1800 one made the whole page scroll
+> sideways. Per-scroller overflow checks cannot see it — the scroller was
+> internally consistent. The probe now asserts `document.scrollWidth` too.
+
+**Next:** the rest of tier (b) — sequence-dependent setup (a changeover matrix,
+rather than today's per-operation duration) and dependency lag/lead — then
+revisit Decision 2, which now has a real overload to drag at.
 
 **DECISION 3 — axis: settled, wall-clock with non-working shaded.** (§225)
 Compression would turn one linear date→x map into a piecewise one at every call

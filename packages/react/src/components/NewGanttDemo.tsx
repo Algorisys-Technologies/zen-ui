@@ -205,8 +205,11 @@ const BIG_PLAN: GanttTask[] = Array.from({ length: 40 }, (_, w) => ({
 /** Sections 8 and 9: a live readout, so neither section is a dead control. */
 const Clickable = () => {
   const [picked, setPicked] = React.useState("Nothing picked yet");
+  /* `w-full` is load-bearing: `.example-preview` is a flex row, so a wrapper
+     without it is content-sized and the fit axis has nothing stable to
+     measure — see the trap noted in the component. */
   return (
-    <div className="zen-flex zen-flex-col zen-gap-2">
+    <div className="zen-flex zen-w-full zen-min-w-0 zen-flex-col zen-gap-2">
       <Gantt
         tasks={PLAN}
         dependencies={LINKS}
@@ -227,8 +230,11 @@ const Clickable = () => {
 /** Section 9: the same handler, reached by keyboard rather than by pointer. */
 const Keyboardable = () => {
   const [picked, setPicked] = React.useState("Tab to the chart, then use the arrow keys");
+  /* `w-full` is load-bearing: `.example-preview` is a flex row, so a wrapper
+     without it is content-sized and the fit axis has nothing stable to
+     measure — see the trap noted in the component. */
   return (
-    <div className="zen-flex zen-flex-col zen-gap-2">
+    <div className="zen-flex zen-w-full zen-min-w-0 zen-flex-col zen-gap-2">
       <Gantt
         tasks={LONG_PLAN}
         dependencies={LONG_LINKS}
@@ -245,8 +251,11 @@ const Keyboardable = () => {
 /** Section 3: collapsing a parent, driven from outside the component. */
 const Collapsible = () => {
   const [expanded, setExpanded] = React.useState<string[]>(["p1", "p2", "p3"]);
+  /* `w-full` is load-bearing: `.example-preview` is a flex row, so a wrapper
+     without it is content-sized and the fit axis has nothing stable to
+     measure — see the trap noted in the component. */
   return (
-    <div className="zen-flex zen-flex-col zen-gap-2">
+    <div className="zen-flex zen-w-full zen-min-w-0 zen-flex-col zen-gap-2">
       <Gantt
         tasks={PLAN}
         dependencies={LINKS}

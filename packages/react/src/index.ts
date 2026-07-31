@@ -748,6 +748,33 @@ export {
   ganttWorkingPeriodsOn,
   ganttWorkingSegments,
 } from "@algorisys/zen-ui-core/gantt";
+export { ProductionSchedule } from "./components/production-schedule/production-schedule";
+export type {
+  ProductionScheduleProps,
+  ProductionResource,
+  ProductionOperation,
+  ProductionPaneColumn,
+} from "./components/production-schedule/production-schedule";
+export type {
+  ProductionConflict,
+  ProductionConflictKind,
+  ProductionFlatten,
+  ProductionFlattenOptions,
+  ProductionLoadBucket,
+  ProductionLoadOptions,
+  ProductionOperationNode,
+  ProductionPlacement,
+  ProductionResourceNode,
+  ProductionRow,
+} from "@algorisys/zen-ui-core/production";
+export {
+  flattenProductionResources,
+  packProductionLanes,
+  productionConflicts,
+  productionLoad,
+  productionPeakLoad,
+  productionPlacement,
+} from "@algorisys/zen-ui-core/production";
 export { UploadCollection } from "./components/upload-collection/upload-collection";
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";
 export { Timeline } from "./components/timeline/timeline";
