@@ -19,23 +19,29 @@ import {
   ganttColumns,
   ganttColumnWidths,
   ganttConnectors,
+  ganttFitRange,
+  ganttFitUnit,
+  ganttPaneColumns,
   ganttProgress,
   ganttRange,
+  ganttRangeColumns,
   ganttRangeLabel,
   ganttRowWindow,
   ganttSpan,
+  ganttSpanLabel,
   ganttIsWorking,
   ganttWorkingMs,
   ganttWorkingPeriodsOn,
   ganttWorkingSegments,
   GANTT_CALENDAR_24_7,
+  GANTT_PANE_COLUMNS,
   ganttTaskStatus,
   ganttVarianceDays,
   shiftGanttAnchor,
+  type GanttAnchoredView,
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttTaskNode,
-  type GanttView,
 } from "../packages/core/src/gantt";
 import { placeAppointment } from "../packages/core/src/planning";
 
@@ -366,7 +372,7 @@ console.log("\ncolumns TILE the range exactly — the invariant bars depend on")
    a percentage of the whole range, so a boundary only lines up when the columns
    partition the range with no gap and no overlap. Nothing else in the repo
    tests it, and every way it can break is invisible. */
-const tiles = (view: GanttView, anchor: Date, name: string) => {
+const tiles = (view: GanttAnchoredView, anchor: Date, name: string) => {
   const range = ganttRange(view, anchor);
   const cols = ganttColumns(view, anchor, { now: anchor });
   const startsAtRangeStart = cols[0].start.getTime() === range.start.getTime();
@@ -433,6 +439,162 @@ t(
   false,
   "the uniform-width answer is different, which is the bug this prevents",
 );
+
+console.log("\nfit — the axis whose range comes from the data");
+/* Every one of these fails silently. A fit range that misses a child by two
+   days draws a bar clipped at the edge of the ONE view that exists to show
+   everything whole; a granularity chosen a band too fine is 400 columns of
+   smear; a range that does not snap leaves a two-hour sliver of a first
+   column that every bar is then measured against. */
+const FIT_PLAN: GanttTaskNode[] = [
+  {
+    id: "P",
+    // Its own dates, DELIBERATELY narrower than the children's. ganttSpan
+    // believes a parent that states dates, so a fit range built from the roots
+    // alone would cut the last child in half.
+    start: at(2026, 7, 6),
+    end: at(2026, 9, 1),
+    children: [
+      { id: "a", start: at(2026, 7, 6), end: at(2026, 7, 24) },
+      { id: "b", start: at(2026, 8, 3), end: at(2026, 10, 30) },
+    ],
+  },
+];
+const fit = ganttFitRange(FIT_PLAN)!;
+t(fit.start.getTime() <= at(2026, 7, 6).getTime(), true, "the fit range starts at or before the earliest task");
+t(fit.end.getTime() >= at(2026, 10, 30).getTime(), true, "…and ends at or after the LATEST, child included");
+/* 116 days of plan plus 4.64 either side is 125, which is the WEEK band — so
+   the snap is to Mondays, not to the 1sts a reader of the label might assume.
+   The granularity and the snap come from the same number, deliberately. */
+t(span(fit), ["2026-06-29 00:00", "2026-11-09 00:00"], "padded, then snapped outward to whole weeks");
+
+/* Over a year, so the band is months and the snap is to the 1st. This is the
+   case `year` could never show: it crosses New Year, and no calendar year
+   contains it. */
+const LONG_FIT = ganttFitRange([
+  { id: "L", start: at(2026, 7, 6), end: at(2027, 10, 30) },
+])!;
+t(span(LONG_FIT), ["2026-06-01 00:00", "2027-12-01 00:00"], "a plan crossing New Year snaps to whole months");
+
+t(ganttFitRange([]), null, "no tasks, no range — a real state, not an error");
+t(ganttFitRange([{ id: "x" }, { id: "y", children: [{ id: "z" }] }]), null, "…and neither does a plan where nothing has dates");
+t(
+  ganttFitRange([{ id: "half", start: at(2026, 7, 6) }]),
+  null,
+  "a start with no end is half-entered data, not a milestone",
+);
+/* A milestone is a zero-width span, and a zero-width RANGE divides by zero in
+   every percentage placeAppointment computes. The padding floor is what stops
+   the axis collapsing. */
+const milestone = ganttFitRange([{ id: "m", start: at(2026, 7, 6), end: at(2026, 7, 6) }])!;
+t(milestone.end.getTime() > milestone.start.getTime(), true, "a single milestone still gets a real axis");
+t(span(milestone), ["2026-07-05 00:00", "2026-07-07 00:00"], "…one day either side, snapped to whole hours");
+/* Inverted dates are normalised by ganttSpan, so the fit range must not invert
+   with them — an end before its start makes every width negative. */
+const inverted = ganttFitRange([{ id: "i", start: at(2026, 7, 24), end: at(2026, 7, 6) }])!;
+t(inverted.end.getTime() > inverted.start.getTime(), true, "inverted task dates still yield a forward range");
+
+console.log("\nthe granularity a fit span is drawn at — pinned, not a ternary");
+const DAY = 24 * 60 * 60 * 1000;
+t(ganttFitUnit(0), "hour", "a zero span is hours");
+t(ganttFitUnit(2 * DAY), "hour", "two days is still hours (48 columns)");
+t(ganttFitUnit(2 * DAY + 1), "day", "…and a millisecond more is days");
+t(ganttFitUnit(45 * DAY), "day", "45 days is days");
+t(ganttFitUnit(45 * DAY + 1), "week", "…and a millisecond more is weeks");
+t(ganttFitUnit(315 * DAY), "week", "315 days is weeks");
+t(ganttFitUnit(315 * DAY + 1), "month", "…and a millisecond more is months");
+t(ganttFitUnit(10 * 365 * DAY), "month", "a decade is still months — there is nothing coarser");
+/* The cap each threshold exists to hold. A band that can produce 400 columns is
+   a band that produces a smear, and nothing in the renderer would notice — the
+   axis would simply be unreadable and every check would still be green. */
+for (const [unit, days, cap] of [["hour", 2, 48], ["day", 45, 46], ["week", 315, 46]] as const) {
+  const start = at(2026, 1, 5);
+  const range = { start, end: new Date(start.getTime() + days * DAY) };
+  const cols = ganttRangeColumns(range, unit, { now: start });
+  t(cols.length <= cap, true, `${days} days at ${unit} granularity is ${cols.length} columns, <= ${cap}`);
+}
+
+console.log("\ncolumns tile an ARBITRARY range too — the same invariant, unanchored");
+const tilesRange = (range: { start: Date; end: Date }, unit: "hour" | "day" | "week" | "month", name: string) => {
+  const cols = ganttRangeColumns(range, unit, { now: range.start });
+  if (cols.length === 0) {
+    t(false, true, `${name} — produced NO columns`);
+    return;
+  }
+  t(
+    [
+      cols[0].start.getTime() === range.start.getTime(),
+      cols.every((c, i) => i === 0 || c.start.getTime() === cols[i - 1].end.getTime()),
+      cols.at(-1)!.end.getTime() === range.end.getTime(),
+      cols.every((c) => c.end.getTime() > c.start.getTime()),
+    ],
+    [true, true, true, true],
+    `${name} (${cols.length} columns)`,
+  );
+};
+const fitOf = (tasks: GanttTaskNode[]) => ganttFitRange(tasks)!;
+tilesRange(fitOf([{ id: "s", start: at(2026, 7, 6, 9), end: at(2026, 7, 6, 17) }]), "hour", "hour columns tile a same-day plan");
+tilesRange(fitOf([{ id: "s", start: at(2026, 7, 6), end: at(2026, 8, 3) }]), "day", "day columns tile a four-week plan");
+tilesRange(fitOf([{ id: "s", start: at(2026, 7, 6), end: at(2026, 12, 20) }]), "week", "week columns tile a half-year plan");
+tilesRange(fit, "week", "week columns tile the fit range above");
+tilesRange(LONG_FIT, "month", "month columns tile a plan that outlasts a year");
+/* Half-open both ends: a range that starts and ends at the same instant has
+   nothing in it, and a renderer looping on "while cursor < end" must agree. */
+t(ganttRangeColumns({ start: at(2026, 7, 6), end: at(2026, 7, 6) }, "day").length, 0, "an empty range draws no columns");
+t(ganttRangeColumns({ start: at(2026, 7, 9), end: at(2026, 7, 6) }, "day").length, 0, "…and neither does an inverted one");
+// Unsnapped, deliberately: a caller can pass any range, and a partial first
+// column is better than a column that starts before the range does.
+const unsnapped = ganttRangeColumns({ start: at(2026, 7, 6, 13, 30), end: at(2026, 7, 9) }, "day");
+t(
+  [iso(unsnapped[0].start), iso(unsnapped[0].end), iso(unsnapped.at(-1)!.end)],
+  ["2026-07-06 13:30", "2026-07-07 00:00", "2026-07-09 00:00"],
+  "an unsnapped range still tiles exactly, with a partial first column",
+);
+/* The widths function is shared with the anchored views, so unequal fit columns
+   get exactly the treatment 28-vs-31-day months do — which is the whole reason
+   a fit axis can be trusted to put a bar on its gridline. LONG_FIT runs May 2026
+   to Dec 2027: index 7 is January 2027 (31 days), index 8 February (28). */
+const longCols = ganttRangeColumns(LONG_FIT, "month", { now: at(2026, 7, 6) });
+const fitWidths = ganttColumnWidths(longCols, LONG_FIT, 960);
+t(Number(fitWidths.reduce((a, b) => a + b, 0).toFixed(6)), 960, "fit column widths sum to the axis exactly");
+t([longCols[7].label, longCols[8].label], ["Jan", "Feb"], "…over the months this next line names");
+t(fitWidths[7] > fitWidths[8], true, "a 31-day January is drawn WIDER than a 28-day February");
+// The year is said once at each January and once at the start, and nowhere else
+// — twelve columns each carrying "2027" is noise, and none at all is a lie.
+t(longCols.filter((c) => c.sublabel !== "").map((c) => `${c.label} ${c.sublabel}`), ["Jun 2026", "Jan 2027"], "the year appears at the start and at each January");
+
+console.log("\nthe label for a range nobody anchored");
+t(ganttSpanLabel({ start: at(2026, 7, 6), end: at(2026, 7, 25) }), "6 – 24 Jul 2026", "days, inside one month — and the END is exclusive");
+t(ganttSpanLabel({ start: at(2026, 6, 28), end: at(2026, 7, 6) }), "28 Jun – 5 Jul 2026", "days across a month");
+t(ganttSpanLabel({ start: at(2026, 12, 28), end: at(2027, 1, 6) }), "28 Dec 2026 – 5 Jan 2027", "days across a year, so the year is said twice");
+t(ganttSpanLabel(fit), "Jun – Nov 2026", "months, once the span is past about two of them");
+t(ganttSpanLabel({ start: at(2026, 11, 1), end: at(2027, 3, 1) }), "Nov 2026 – Feb 2027", "months across a year");
+t(ganttSpanLabel({ start: at(2026, 7, 6), end: at(2026, 7, 6) }), "", "an empty range has nothing to say");
+
+console.log("\nthe frozen pane sheds columns rather than scrolling");
+const PANE = { name: 180, assignees: 96, status: 88, variance: 72 } as const;
+const pane = (available: number, requested = GANTT_PANE_COLUMNS) =>
+  ganttPaneColumns([...requested], { ...PANE }, available, 280);
+t(pane(1292), ["name", "assignees", "status", "variance"], "a normal page keeps all four");
+t(pane(0), ["name", "assignees", "status", "variance"], "UNMEASURED is not zero-width — it keeps everything");
+t(pane(-1), ["name", "assignees", "status", "variance"], "…and neither is a negative reading");
+t(pane(700), ["name", "assignees", "status"], "436 + 280 does not fit in 700, so Variance goes first");
+t(pane(600), ["name", "assignees"], "…then Status");
+t(pane(500), ["name"], "…then Assignees");
+/* The rule that stops shedding being a tax with no benefit. At 100px nothing
+   fits however much is dropped, so dropping three columns would cost the
+   reader Assignees, Status and Variance AND still leave them dragging the
+   chart sideways. Measured on the demo page before this: a month axis wanting
+   1364px in a 1008px container shed everything and still scrolled 536px. */
+t(pane(100), ["name", "assignees", "status", "variance"], "when NOTHING can fit, nothing is shed — the chart scrolls intact");
+t(pane(459), ["name", "assignees", "status", "variance"], "…one pixel short of the name column fitting, still intact");
+t(pane(460), ["name"], "…and one pixel over, shedding pays off and happens");
+/* The case this whole feature was reported for: a year axis is 12 columns at
+   80px, and at the app's 1292px the pane used to keep all four and scroll. */
+t(ganttPaneColumns([...GANTT_PANE_COLUMNS], { ...PANE }, 1292, 960), ["name", "assignees"], "a year axis at 1292px now fits, with two pane columns");
+t(pane(1292, ["name", "variance", "status"]), ["name", "variance", "status"], "a caller's order is kept");
+t(pane(560, ["name", "variance", "status"]), ["name", "variance"], "…and it is a PREFERENCE order: what is listed last goes first");
+t(pane(100, ["name"]), ["name"], "one column is already the floor");
 
 console.log("\nthe row window — which rows are worth putting in the DOM");
 const win = (rowCount: number, scrollTop: number, viewport: number, overscan = 6) =>

@@ -1,8 +1,14 @@
 # Gantt — handoff
 
-**Branch:** `feat/gantt`, 11 commits ahead of `dev`, 0 behind, all pushed.
-**Date:** 2026-07-31. **State:** clean tree, `bun run check` green except
-`check:parity` (3 expected failures, deliberately not silenced — see below).
+**Branch:** `feat/gantt`, ahead of `dev`, 0 behind.
+**Date:** 2026-07-31. **State:** `bun run check` green except `check:parity`
+(3 expected failures, deliberately not silenced — see below); `lint` 0 problems;
+both tsconfigs clean; `/gantt` driven in a browser, LTR and RTL.
+
+> **The default view changed.** It is `fit` now, not `month` — see the
+> smaller-gaps section. Gantt has never been in a release, so no consumer's
+> default moved, but the consuming app at `/home/rajesh/temp/demo/timeline`
+> will open differently once the tarball is re-packed.
 
 Read this alongside `docs/production-scheduling-gap-analysis.md`, which carries
 the reasoning this file only summarises.
@@ -24,7 +30,7 @@ A `Gantt` component for React, plus its maths in `packages/core/src/gantt.ts`.
 | Piece | Path |
 |---|---|
 | Core maths | `packages/core/src/gantt.ts` (+ `/gantt` subpath export) |
-| Check script | `scripts/check-gantt.ts` — **375 assertions**, wired into `bun run check` |
+| Check script | `scripts/check-gantt.ts` — **479 assertions** (236 per run, twice), wired into `bun run check` |
 | React component | `packages/react/src/components/gantt/gantt.tsx` |
 | React demo | `packages/react/src/components/NewGanttDemo.tsx`, route `/gantt` |
 | Solid, vanilla | same shape under `packages/solid` / `packages/vanilla` — **stale, see drift** |
@@ -33,10 +39,11 @@ A `Gantt` component for React, plus its maths in `packages/core/src/gantt.ts`.
 
 Shipped capabilities: nested task hierarchy with collapse; summary bars rolled
 up from children; dependency connectors (all four link types) drawn as an SVG
-overlay; slip against a baseline; assignee avatars; five views (day / week /
-month / quarter / year) on duration-proportional columns; row virtualization;
-and a working-time model (shift calendars, dated exceptions, split bars,
-sub-day columns).
+overlay; slip against a baseline; assignee avatars; **six** views — `fit` plus
+day / week / month / quarter / year — on duration-proportional columns; a
+frozen pane that sheds columns rather than scrolling; row virtualization; APG
+treegrid keyboard navigation; and a working-time model (shift calendars, dated
+exceptions, split bars, sub-day columns).
 
 Deliberately absent, with reasons in the component's doc comment: drag-to-move,
 drag-to-resize, drag-to-create, drag-to-draw-dependencies. The stance is that
@@ -93,15 +100,22 @@ interface GanttTask {
 }
 type GanttDependency = { from: string; to: string;
   type?: "finish-to-start" | "start-to-start" | "finish-to-finish" | "start-to-finish" };
-type GanttView = "day" | "week" | "month" | "quarter" | "year";
+type GanttAnchoredView = "day" | "week" | "month" | "quarter" | "year";
+type GanttView = GanttAnchoredView | "fit";        // "fit" is the DEFAULT
+type GanttPaneColumn = "name" | "assignees" | "status" | "variance";
 ```
 
 `GanttProps`: `tasks` · `dependencies?` · `showDependencies?` · `calendar?` ·
 `hourStep?` · `view?`/`defaultView?`/`onViewChange?`/`views?` ·
 `date?`/`defaultDate?`/`onDateChange?` ·
 `expanded?`/`defaultExpanded?`/`onExpandedChange?` · `onTaskClick?(task, row)` ·
-`now?` · `columnWidth?` · `hideToolbar?` · `loading?`/`loadingRows?` ·
-`emptyState?` · `className?`
+`now?` · `columnWidth?` · `columns?` · `hideToolbar?` ·
+`loading?`/`loadingRows?` · `emptyState?` · `className?`
+
+Fit API: `ganttFitRange(tasks, opts?)`, `ganttFitUnit(spanMs)`,
+`ganttRangeColumns(range, unit, opts?)`, `ganttSpanLabel(range)`. Pane API:
+`ganttPaneColumns(requested, widths, available, minAxisWidth)`,
+`GANTT_PANE_COLUMNS`.
 
 Working-time API: `GanttCalendar` (`week: GanttWorkingPeriod[][]`, `week[0]` is
 Sunday; `exceptions?`), `GanttCalendarException` (`periods: []` means closed),
@@ -150,44 +164,85 @@ one-function change later.
 
 ---
 
-## Next up: the smaller gaps (the user's stated priority)
+## The smaller gaps — done (2026-07-31, React + core only)
 
-This was briefed and then paused; nothing was written. Do these **before** tier
-(b), and stay React + core only.
+All three landed. Decisions taken by the user where the previous handoff flagged
+them: fit is a `GanttView` member and it is the **default**; the pane takes both
+caller choice and auto-drop.
 
-**1. A fit-to-project view — the important one.**
-`year` technically solved "see the whole plan" but badly: a calendar year is a
-fixed window, so a Jul–Oct plan fills ~40% of the axis and Jan–Jun is empty.
-Add a view whose range comes from the **data** — the span of all tasks, padded.
-Open questions: whether it is a `GanttView` member or a separate prop (as a
-member it breaks the invariant that range depends on `anchor`, so **prev / next
-/ today become meaningless** — disable or hide them, do not leave them live and
-inert); how column granularity is chosen from the span (make it a pure function
-in core with pinned thresholds, not a ternary in the renderer); degenerate cases
-— zero tasks, one task, tasks with no dates, a zero-width range; and whether it
-should become the default view (my instinct is yes, it is the only view never
-trivially wrong, but that changes a shipped default so flag it).
+**1. `view="fit"` — an axis whose range comes from the data.**
+`ganttFitRange(tasks)` unions **every** node's own span (not just the roots — a
+parent that states dates is believed, so a root-only union cuts a child in
+half), pads by 4% with a one-day floor, and snaps outward to whole units.
+`ganttFitUnit(spanMs)` picks the unit against pinned thresholds — `≤2d` hour,
+`≤45d` day, `≤315d` week, else month — chosen so each band tops out near 48
+columns. `ganttRangeColumns(range, unit)` tiles an arbitrary range, holding the
+same no-gap-no-overlap invariant the anchored views hold.
 
-**2. The frozen pane is too wide.**
-Year view needs ~1430px to avoid horizontal scroll: 468px of frozen pane
-(Task / Assignees / Status / Variance) + 960px of axis. At the app's 1292px it
-scrolls ~136px. Attack the pane — let callers choose columns, narrow the
-defaults, collapse below a container width, or make it resizable. It should
-degrade gracefully rather than just scroll.
+> **The type split is load-bearing.** `GanttAnchoredView` is the five views
+> whose range is a function of the anchor; `GanttView` is that plus `"fit"`.
+> `ganttRange` / `ganttColumns` / `ganttRangeLabel` / `shiftGanttAnchor` take
+> the **narrow** type, so passing `"fit"` is a compile error rather than the
+> silent month `planningRange` would hand back. Port the two types together or
+> the trap comes straight back.
 
-**3. Keyboard navigation.**
-`role="grid"`, `aria-rowcount` and `aria-rowindex` are in; APG arrow-key grid
-navigation is not — today it is tab-through-bars, which is not a navigation
-model at 10,000 rows. Implement arrows, Home/End, PageUp/PageDown, and **roving
-tabindex so the grid is one tab stop**; expand/collapse must be keyboard
-reachable. The hard part is the interaction with virtualization: moving focus to
-an unmounted row must scroll it into view *and* survive the remount, or focus
-lands on `<body>`. A focus-rescue mechanism already exists — make the two
-cooperate rather than fight.
+Prev / Today / Next are **hidden** under fit, not disabled. Leaving fit
+re-anchors the date to `now` (or the plan's start) when the anchor is outside
+the plan, or clicking "Month" on a plan running next spring lands on an empty
+axis. Degenerate cases return null and fall through to the anchored month: zero
+tasks, no dates, a start with no end. A single milestone gets a real axis from
+the padding floor.
 
-**Explicitly not in that batch:** bundle size (468kB / 145kB gzipped). Real, but
-it is zen-ui's barrel export failing to tree-shake for any consumer using a
-handful of components — a library-wide packaging change, not a Gantt gap.
+**2. The frozen pane sheds columns.** Widths trimmed 468 → 436px, and
+`columns?: GanttPaneColumn[]` states which columns and in what **preference**
+order — what you list last goes first. `ganttPaneColumns` drops from the end
+until the axis has the width it wants, never dropping the first entry.
+
+> **Shed only when shedding achieves a fit.** The greedy version measured worse
+> than doing nothing: a month axis wanting 1364px in a 1008px container dropped
+> three columns, got the scroll from 792px down to 536px, and still scrolled —
+> the reader lost Assignees, Status and Variance *and* still had to drag. It now
+> bails when the narrowest possible pane still cannot fit.
+
+The reported case is fixed and pinned: a year axis at 1292px keeps Task and
+Assignees and no longer scrolls. Anchored views in a container too small for
+them keep all four columns and scroll, which is the honest outcome — their axis
+width is fixed and the pane cannot rescue it.
+
+**3. Keyboard: `role="treegrid"`, one tab stop, roving tabindex.** Arrows move a
+cell; Home/End the row, Ctrl+Home/End the plan; PageUp/PageDown a screenful;
+forward/backward on the first column expand and collapse; Enter/Space calls
+`onTaskClick`. Arrows follow **visual** direction, so they still point the way
+they are drawn under RTL. Bars, chevrons and the assignee tooltip trigger are
+all `tabIndex={-1}`; the assignee cell carries the names as its accessible name
+because the "+N" chip hides some outright.
+
+> **Focus vs virtualization is the part that breaks.** A move to an unmounted
+> row sets a pending target, scrolls the row in, pushes the new `scrollTop`
+> into state in the **same commit** (waiting for the scroll event's rAF is one
+> render too late), and a layout effect focuses it by `data-gantt-cell` once it
+> mounts. If it is still not there, the target stays pending for the next
+> commit. The tab stop follows the **viewport**, not the active row — anchoring
+> it to a row that is not in the DOM leaves the grid with no tabbable cell at
+> all and Tab skips the whole chart.
+
+Verified in a browser rather than by building green: a DOM probe drove the keys
+on an 840-row chart and reported **21/21 in both LTR and RTL**, including
+Ctrl+End landing on a `gridcell` (not `<body>`) at row 839, scrolled clear of
+the sticky header. A second probe measured all 14 charts on the demo page —
+pane columns, column count, container width, horizontal overflow, tab stops.
+Both probes were deleted; the numbers above are what they reported.
+
+`check-gantt.ts` is now **479 assertions** — 236 per run, still run twice (ambient +
+`TZ=Europe/London`).
+
+**Still explicitly not done:** bundle size (468kB / 145kB gzipped). Real, but it
+is zen-ui's barrel export failing to tree-shake for any consumer using a handful
+of components — a library-wide packaging change, not a Gantt gap.
+
+**Not re-packed.** `dist-pkg/zen-ui-react.tgz` is from before this batch, so the
+consuming app still has the old component. Run `./scripts/pack-dist-pkg.sh` and
+commit the tarball when you want it there — see fact 1 above.
 
 ---
 
@@ -203,13 +258,12 @@ Web-components has no Gantt at all. The user has explicitly deferred all ports.
 > why `GanttView` was deliberately **not** re-exported from those indexes to
 > quiet parity — the red is load-bearing.
 
-`check:parity` reports 3 expected failures (`Gantt` + 10 types for
-web-components; the view functions for Solid/vanilla). Not added to `divergent`
-in `bindings.mjs`, because `check-parity.ts` says that list is for convergence
+`check:parity` reports 3 expected failures — `Gantt` plus 21 types and constants
+for web-components, 12 for Solid and vanilla. Not added to `divergent` in
+`bindings.mjs`, because `check-parity.ts` says that list is for convergence
 decisions and "do not use it to silence a component that is merely missing".
 
-Other open items: no fit view (above); year needs ~1430px (above); partial a11y
-(above); rows are windowed but **not** the connector layer, which is
+Other open items: rows are windowed but **not** the connector layer, which is
 deliberate — measured at 10k rows, keeping it whole costs ~55ms of first paint
 and nothing per frame, and culling would make connectors pop at the band edge.
 

@@ -65,14 +65,29 @@ import {
 } from "./planning";
 
 /**
- * The views a Gantt offers: PlanningCalendar's three, plus the two that let a
- * multi-month plan be seen whole.
+ * The views whose range is a function of the ANCHOR date: move the anchor and
+ * the window moves with it, which is what makes prev / next / today mean
+ * something.
  *
  * A superset rather than a widening of `PlanningView` — see the module note.
  * Quarter draws week columns, year draws month columns; both have columns of
  * UNEQUAL duration, which is what `ganttColumnWidths` exists for.
  */
-export type GanttView = PlanningView | "quarter" | "year";
+export type GanttAnchoredView = PlanningView | "quarter" | "year";
+
+/**
+ * Every view a Gantt offers, including the one whose range comes from the DATA.
+ *
+ * `fit` is the odd one out and deliberately typed apart from the rest: its range
+ * is the span of the tasks, so `ganttRange`, `ganttColumns`, `ganttRangeLabel`
+ * and `shiftGanttAnchor` cannot answer for it and do not accept it. That is a
+ * compile error rather than a silent wrong axis, which is the same trap
+ * `planningRange` still has for `quarter` and `year` — its final branch returns
+ * a MONTH for anything it does not recognise, so a view it has never heard of
+ * type-checks and draws the wrong four weeks. Use `ganttFitRange` +
+ * `ganttRangeColumns` for `fit`; the renderer branches once, at the top.
+ */
+export type GanttView = GanttAnchoredView | "fit";
 
 export type GanttTaskStatus = "not-started" | "on-track" | "delayed" | "complete";
 
@@ -457,7 +472,7 @@ const shortMonth = (d: Date): string => d.toLocaleString(undefined, { month: "sh
  * anchor, so the same quarter is shown from any date inside it and the columns
  * line up with how anyone reports one.
  */
-export function ganttRange(view: GanttView, anchor: Date): PlanningRange {
+export function ganttRange(view: GanttAnchoredView, anchor: Date): PlanningRange {
   if (view === "quarter") {
     const start = startOfQuarter(anchor);
     // Through the Date constructor so month 12 rolls the year, and day 1 cannot
@@ -472,7 +487,7 @@ export function ganttRange(view: GanttView, anchor: Date): PlanningRange {
 }
 
 /** Move the anchor one view forward or back. `delta` is in views, not days. */
-export function shiftGanttAnchor(view: GanttView, anchor: Date, delta: number): Date {
+export function shiftGanttAnchor(view: GanttAnchoredView, anchor: Date, delta: number): Date {
   if (view === "quarter") {
     const q = startOfQuarter(anchor);
     return new Date(q.getFullYear(), q.getMonth() + delta * 3, 1, 0, 0, 0, 0);
@@ -482,7 +497,7 @@ export function shiftGanttAnchor(view: GanttView, anchor: Date, delta: number): 
 }
 
 /** A heading for the whole range — what the toolbar shows between the arrows. */
-export function ganttRangeLabel(view: GanttView, anchor: Date): string {
+export function ganttRangeLabel(view: GanttAnchoredView, anchor: Date): string {
   if (view === "quarter") {
     const q = startOfQuarter(anchor);
     return `Q${Math.floor(q.getMonth() / 3) + 1} ${q.getFullYear()}`;
@@ -532,7 +547,7 @@ const applyCalendar = (columns: PlanningColumn[], calendar: GanttCalendar): Plan
   }));
 
 export function ganttColumns(
-  view: GanttView,
+  view: GanttAnchoredView,
   anchor: Date,
   options: GanttColumnOptions = {},
 ): PlanningColumn[] {
@@ -584,6 +599,350 @@ export function ganttColumns(
   return calendar ? applyCalendar(columns, calendar) : columns;
 }
 
+/* ------------------------------------------------------------------------ *
+ * Fit — an axis whose range comes from the data
+ *
+ * `year` technically answered "let me see the whole plan" and answered it
+ * badly: a calendar year is a fixed window, so a plan running July to October
+ * fills 40% of the axis and January to June is a wall of empty columns. Worse,
+ * a plan that crosses New Year cannot be seen whole in ANY anchored view.
+ *
+ * Fit takes the range from the tasks instead. That breaks the invariant every
+ * other view holds — range is a function of the anchor — and the consequence is
+ * not cosmetic: prev, next and today have nothing to move, so a renderer must
+ * HIDE them rather than leave them live and inert. Three arrows that do nothing
+ * are worse than three arrows that are not there.
+ *
+ * The granularity is chosen, not passed. `ganttFitUnit` is a pure function with
+ * pinned thresholds precisely so it is not a ternary in a renderer that four
+ * bindings would each get subtly different.
+ * ------------------------------------------------------------------------ */
+
+/** What one column of an arbitrary range covers. */
+export type GanttColumnUnit = "hour" | "day" | "week" | "month";
+
+const pad2 = (n: number): string => String(n).padStart(2, "0");
+const startOfMonth = (d: Date): Date => new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0);
+const startOfHour = (d: Date): Date =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), 0, 0, 0);
+
+/**
+ * The column unit for a span of `spanMs`.
+ *
+ * The thresholds are chosen so each band tops out near 48 columns, which is
+ * where a label stops fitting once the axis is squeezed into a normal content
+ * width — about 28px per column at 1300px. They are ABSOLUTE rather than
+ * derived from an available width because the alternative is a granularity that
+ * changes as you resize the window, which redraws the whole axis under the
+ * reader mid-sentence.
+ *
+ *     <= 2 days      hour    (<= 48 columns)
+ *     <= 45 days     day     (<= 45)
+ *     <= 315 days    week    (<= 45)
+ *     otherwise      month
+ *
+ * The caps are approximate on purpose: `ganttFitRange` snaps outward to whole
+ * units AFTER choosing one, so a 45-day span can end up drawn as 46 day
+ * columns. Snapping first and choosing second would need two passes to agree,
+ * and one extra column is not worth a second source of truth.
+ */
+export function ganttFitUnit(spanMs: number): GanttColumnUnit {
+  const days = spanMs / MS_DAY;
+  if (days <= 2) return "hour";
+  if (days <= 45) return "day";
+  if (days <= 315) return "week";
+  return "month";
+}
+
+export interface GanttFitOptions {
+  /** Durations are resolved through this, as everywhere else. */
+  calendar?: GanttCalendar;
+  /**
+   * Breathing room either side, as a fraction of the span. Default 0.04.
+   *
+   * Without it the first bar starts hard against the left edge and reads as
+   * clipped — the same thing `placeAppointment` deliberately signals for a bar
+   * that really is cut by the range.
+   */
+  padFraction?: number;
+  /** A floor on that padding, so a one-day plan still gets room. Default 1 day. */
+  minPadMs?: number;
+}
+
+/** A task's OWN span — dates, or a start plus a working duration. No rollup. */
+const explicitSpan = (task: GanttTaskNode, calendar?: GanttCalendar): GanttSpan | null => {
+  if (task.start && task.end) {
+    const a = task.start.getTime();
+    const b = task.end.getTime();
+    // Inverted, as in placeAppointment: normalised to its bounds rather than
+    // swapped-and-believed.
+    return { start: new Date(Math.min(a, b)), end: new Date(Math.max(a, b)) };
+  }
+  if (task.start && typeof task.workingMinutes === "number" && task.workingMinutes >= 0) {
+    const ms = task.workingMinutes * 60_000;
+    const end = calendar
+      ? ganttAddWorkingMs(calendar, task.start, ms)
+      : new Date(task.start.getTime() + ms);
+    return { start: new Date(task.start.getTime()), end };
+  }
+  return null;
+};
+
+/** Snap outward to whole units, so the first and last columns are not slivers. */
+const floorToUnit = (d: Date, unit: GanttColumnUnit): Date => {
+  if (unit === "hour") return startOfHour(d);
+  if (unit === "day") return startOfDay(d);
+  if (unit === "week") return startOfWeek(d);
+  return startOfMonth(d);
+};
+
+const ceilToUnit = (d: Date, unit: GanttColumnUnit): Date => {
+  const floored = floorToUnit(d, unit);
+  if (floored.getTime() === d.getTime()) return floored;
+  if (unit === "hour") return new Date(floored.getFullYear(), floored.getMonth(), floored.getDate(), floored.getHours() + 1, 0, 0, 0);
+  if (unit === "day") return addDays(floored, 1);
+  if (unit === "week") return addDays(floored, 7);
+  return new Date(floored.getFullYear(), floored.getMonth() + 1, 1, 0, 0, 0, 0);
+};
+
+/**
+ * The range that shows the whole plan: every task's span, padded and snapped.
+ *
+ * EVERY node is unioned, not just the roots. A parent that carries its own
+ * dates is believed rather than rolled up (`ganttSpan` says so), so a parent
+ * whose stated end falls before a child's would otherwise fit an axis that cuts
+ * the child in half — and a clipped bar in the one view that exists to show
+ * everything is exactly the silent wrong this module keeps warning about.
+ *
+ * Returns null when nothing has dates, which is a real state and not an error:
+ * a plan of unscheduled tasks. The caller decides what to show instead — the
+ * React binding falls back to the month around its anchor, so the toolbar and
+ * the axis still make sense while the dates are being filled in.
+ */
+export function ganttFitRange(
+  tasks: GanttTaskNode[],
+  options: GanttFitOptions = {},
+): PlanningRange | null {
+  const { calendar, padFraction = 0.04, minPadMs = MS_DAY } = options;
+
+  let from = Number.POSITIVE_INFINITY;
+  let to = Number.NEGATIVE_INFINITY;
+  const visit = (node: GanttTaskNode): void => {
+    const own = explicitSpan(node, calendar);
+    if (own) {
+      from = Math.min(from, own.start.getTime());
+      to = Math.max(to, own.end.getTime());
+    }
+    for (const child of node.children ?? []) visit(child);
+  };
+  for (const task of tasks) visit(task);
+  if (from === Number.POSITIVE_INFINITY) return null;
+
+  /* A single milestone is a zero-width span, and a zero-width range makes every
+     percentage in placeAppointment a division by zero. The floor is what keeps
+     it a real axis. */
+  const pad = Math.max(minPadMs, (to - from) * padFraction);
+  const unit = ganttFitUnit(to - from + 2 * pad);
+  return {
+    start: floorToUnit(new Date(from - pad), unit),
+    end: ceilToUnit(new Date(to + pad), unit),
+  };
+}
+
+/**
+ * Columns tiling an ARBITRARY range at a chosen unit.
+ *
+ * `ganttColumns` cannot do this: it derives the range from the view and the
+ * anchor, which is the one thing a fit axis does not have. Same invariant
+ * though, and it is the one everything else rests on — the columns tile the
+ * range exactly, first starting at `range.start` and last ending at
+ * `range.end`, with no gap and no overlap, so `ganttColumnWidths` can hand each
+ * one its own share of the axis and every bar lands on a gridline.
+ *
+ * Stepped through the local Date constructor rather than by adding
+ * milliseconds, for the reason the working-time section gives: on the day a
+ * clock changes, "one hour later" and "3,600,000ms later" are different
+ * instants, and the second walks every column after the transition off the wall
+ * clock by an hour.
+ */
+const WEEKDAY_INITIALS = ["S", "M", "T", "W", "T", "F", "S"];
+
+export function ganttRangeColumns(
+  range: PlanningRange,
+  unit: GanttColumnUnit,
+  options: GanttColumnOptions = {},
+): PlanningColumn[] {
+  const now = options.now ?? new Date();
+  const nonWorkingDays = options.nonWorkingDays ?? [0, 6];
+  const [workFrom, workTo] = options.workingHours ?? [9, 18];
+  const { calendar } = options;
+
+  const end = range.end.getTime();
+  const columns: PlanningColumn[] = [];
+  if (end <= range.start.getTime()) return columns;
+
+  /* Only worth repeating the year when the range actually crosses one. A fit
+     axis routinely does, which is the whole reason this is not the year view. */
+  const crossesYear = range.start.getFullYear() !== new Date(end - 1).getFullYear();
+  const stepMinutes = Math.max(
+    1,
+    Math.round((options.hourStep && options.hourStep > 0 ? options.hourStep : 1) * 60),
+  );
+
+  const advance = (d: Date): Date => {
+    if (unit === "hour") {
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes() + stepMinutes, 0, 0);
+    }
+    if (unit === "day") return addDays(d, 1);
+    if (unit === "week") return addDays(startOfWeek(d), 7);
+    return new Date(d.getFullYear(), d.getMonth() + 1, 1, 0, 0, 0, 0);
+  };
+
+  let cursor = range.start;
+  let previousDay = -1;
+  let previousMonth = -1;
+  for (let guard = 0; guard < 4096 && cursor.getTime() < end; guard++) {
+    const stepped = advance(cursor);
+    // A step that does not advance would spin forever. It cannot happen for a
+    // snapped range, and a caller can pass any range they like.
+    if (stepped.getTime() <= cursor.getTime()) break;
+    const next = stepped.getTime() < end ? stepped : range.end;
+
+    let label: string;
+    let sublabel = "";
+    let nonWorking = false;
+    if (unit === "hour") {
+      label = `${pad2(cursor.getHours())}:${pad2(cursor.getMinutes())}`;
+      // The date, once per day. An hour axis spanning two days is otherwise two
+      // identical runs of 00:00–23:00 with nothing to tell them apart.
+      if (cursor.getDate() !== previousDay) sublabel = `${cursor.getDate()} ${shortMonth(cursor)}`;
+      previousDay = cursor.getDate();
+      const hour = cursor.getHours() + cursor.getMinutes() / 60;
+      nonWorking = hour < workFrom || hour >= workTo;
+    } else if (unit === "day") {
+      label = String(cursor.getDate());
+      sublabel = WEEKDAY_INITIALS[cursor.getDay()];
+      nonWorking = nonWorkingDays.includes(cursor.getDay());
+    } else if (unit === "week") {
+      /* The date, and the month only where it CHANGES. "13 Jul" in every one
+         of twenty columns is nineteen redundant copies of "Jul", and the width
+         they cost is the difference between an axis that fits its container
+         and one the reader has to drag sideways. */
+      label = String(cursor.getDate());
+      if (cursor.getMonth() !== previousMonth) sublabel = shortMonth(cursor);
+      previousMonth = cursor.getMonth();
+      // A week or a month is neither working nor non-working — the weekend is
+      // inside every one of them, so shading any of them says nothing.
+    } else {
+      label = shortMonth(cursor);
+      if (crossesYear && (cursor.getMonth() === 0 || columns.length === 0)) {
+        sublabel = String(cursor.getFullYear());
+      }
+    }
+
+    columns.push({
+      start: cursor,
+      end: next,
+      label,
+      sublabel,
+      nonWorking,
+      today: now.getTime() >= cursor.getTime() && now.getTime() < next.getTime(),
+    });
+    cursor = next;
+  }
+
+  return calendar ? applyCalendar(columns, calendar) : columns;
+}
+
+/**
+ * A heading for a range nobody anchored — what the toolbar shows in place of
+ * "July 2026" when the axis came from the data.
+ *
+ * Days below about two months and months above it, which is the same reading
+ * `ganttFitUnit` makes: at day granularity "3 – 28 Jul 2026" is the useful
+ * sentence, and at month granularity the days are noise nobody can act on.
+ * The range is half-open, so the last instant is one millisecond before `end` —
+ * labelling `end` itself would report a plan finishing on the 28th as ending on
+ * the 29th.
+ */
+export function ganttSpanLabel(range: PlanningRange): string {
+  const start = range.start;
+  const last = new Date(range.end.getTime() - 1);
+  if (range.end.getTime() <= start.getTime()) return "";
+
+  const month = (d: Date) => shortMonth(d);
+  const sameYear = start.getFullYear() === last.getFullYear();
+
+  if ((range.end.getTime() - start.getTime()) / MS_DAY <= 62) {
+    if (sameYear && start.getMonth() === last.getMonth()) {
+      return `${start.getDate()} – ${last.getDate()} ${month(last)} ${last.getFullYear()}`;
+    }
+    if (sameYear) {
+      return `${start.getDate()} ${month(start)} – ${last.getDate()} ${month(last)} ${last.getFullYear()}`;
+    }
+    return `${start.getDate()} ${month(start)} ${start.getFullYear()} – ${last.getDate()} ${month(last)} ${last.getFullYear()}`;
+  }
+
+  if (sameYear && start.getMonth() === last.getMonth()) return `${month(start)} ${start.getFullYear()}`;
+  if (sameYear) return `${month(start)} – ${month(last)} ${last.getFullYear()}`;
+  return `${month(start)} ${start.getFullYear()} – ${month(last)} ${last.getFullYear()}`;
+}
+
+/* ------------------------------------------------------------------------ *
+ * The frozen pane
+ *
+ * Four columns of task metadata at their natural widths cost 468px, and a year
+ * axis wants another 960 — so a 1292px page scrolls sideways before the reader
+ * has done anything. Scrolling is the wrong failure: the columns that get
+ * pushed off are the ones nobody chose to lose.
+ * ------------------------------------------------------------------------ */
+
+/** A column of the frozen pane, other than the timeline itself. */
+export type GanttPaneColumn = "name" | "assignees" | "status" | "variance";
+
+/** Every pane column, in the order a caller who says nothing gets them. */
+export const GANTT_PANE_COLUMNS: GanttPaneColumn[] = ["name", "assignees", "status", "variance"];
+
+/**
+ * Which pane columns actually fit, dropping from the END of the list until the
+ * axis has `minAxisWidth` to work with.
+ *
+ * The order of `requested` is a PREFERENCE order, not just a set: what the
+ * caller lists last is what goes first. The first entry is never dropped —
+ * a schedule with no task names is not a narrower schedule, it is an unreadable
+ * one — so this can return a set that still does not fit, and the renderer
+ * scrolls as a last resort rather than rendering nothing.
+ *
+ * Shedding only happens when it ACHIEVES a fit. Measured on the demo page:
+ * a month axis wants 1364px in a 1008px container, so the greedy version
+ * dropped three columns, got the scroll down from 792px to 536px, and still
+ * scrolled — the reader lost Assignees, Status and Variance and gained a
+ * chart they still had to drag sideways. When the narrowest possible pane plus
+ * the axis cannot fit, nothing is dropped and the chart scrolls with all its
+ * columns intact.
+ *
+ * `available <= 0` means "not measured yet" and returns `requested` untouched.
+ * Treating an unmeasured container as a zero-width one would drop every column
+ * on the first paint and put them back on the second, which reads as a glitch
+ * rather than as a layout.
+ */
+export function ganttPaneColumns(
+  requested: GanttPaneColumn[],
+  widths: Record<GanttPaneColumn, number>,
+  available: number,
+  minAxisWidth: number,
+): GanttPaneColumn[] {
+  if (requested.length <= 1 || available <= 0) return requested;
+
+  const out = [...requested];
+  const total = () => out.reduce((sum, key) => sum + widths[key], 0);
+  if (total() + minAxisWidth <= available) return requested;
+  if (widths[requested[0]] + minAxisWidth > available) return requested;
+
+  while (out.length > 1 && total() + minAxisWidth > available) out.pop();
+  return out;
+}
+
 /**
  * Pixel width per column, from each column's own share of the range.
  *
@@ -627,25 +986,12 @@ const clampPct = (n: number): number => Math.min(100, Math.max(0, n));
  * would invent an end date the caller never gave.
  */
 export function ganttSpan(task: GanttTaskNode, calendar?: GanttCalendar): GanttSpan | null {
-  if (task.start && task.end) {
-    const a = task.start.getTime();
-    const b = task.end.getTime();
-    // Inverted, as in placeAppointment: normalised to its bounds rather than
-    // swapped-and-believed.
-    return { start: new Date(Math.min(a, b)), end: new Date(Math.max(a, b)) };
-  }
-
-  /* A start plus a working duration. The end is DERIVED, which is the whole
-     point: the caller states how long the job takes, and the calendar decides
-     when that lands. Without a calendar this is elapsed time, because no
-     calendar means a 24/7 one. */
-  if (task.start && typeof task.workingMinutes === "number" && task.workingMinutes >= 0) {
-    const ms = task.workingMinutes * 60_000;
-    const end = calendar
-      ? ganttAddWorkingMs(calendar, task.start, ms)
-      : new Date(task.start.getTime() + ms);
-    return { start: new Date(task.start.getTime()), end };
-  }
+  /* Its own dates, or a start plus a working duration — where the end is
+     DERIVED, which is the whole point: the caller states how long the job takes
+     and the calendar decides when that lands. Shared with `ganttFitRange`,
+     which needs the same answer WITHOUT the rollup below. */
+  const own = explicitSpan(task, calendar);
+  if (own) return own;
 
   let from = Number.POSITIVE_INFINITY;
   let to = Number.NEGATIVE_INFINITY;
