@@ -365,12 +365,15 @@ signature. None of it is thrown away; it is the module `ProductionSchedule` is b
 
 **Next, in order**, now that Decision 1 is settled:
 
-1. **Extract the generic renderer** from `packages/react/src/components/gantt/gantt.tsx` — the
-   ~750 lines measured in Decision 1 above. Do this BEFORE tier (b), not alongside it: extracting
-   under a passing `Gantt` is a refactor with a reference implementation to diff against, and
-   extracting while a second component is being written against a moving seam is two changes at
-   once. The last step is finishing the column model — `GanttRowView` already takes `cellKeys` as
-   data, so it needs a render function per column rather than a hardcoded four-way branch.
+1. ~~**Extract the generic renderer.**~~ **Done.**
+   `packages/react/src/components/gantt/schedule-grid.tsx` (980 lines) holds the axis, the frozen
+   pane, windowing, the connector overlay, the treegrid keyboard model and the toolbar;
+   `gantt.tsx` (861) holds the project half. Internal — deliberately absent from the package index,
+   so its shape can change without a major version. `ganttPaneColumns` is generic over the column
+   key now, so a second component sheds its own columns by the same rule. Verified as a refactor
+   rather than asserted: a DOM fingerprint of all 16 charts on `/gantt`, plus 12 keyboard
+   interactions, is byte-identical before and after in both LTR and RTL. The seam is written up in
+   `docs/handoff-gantt.md`.
 2. **Tier (b), read-only**: resource rows, finite capacity, load, setup, lag. Keep the component
    controlled and report conflicts rather than enforcing them — see Decision 2.
 3. **Revisit Decision 2** with an overload on screen to drag at.
