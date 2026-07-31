@@ -723,6 +723,7 @@ export type {
   GanttSpan,
   GanttTaskNode,
   GanttTaskStatus,
+  GanttView,
 } from "@algorisys/zen-ui-core/gantt";
 export { UploadCollection } from "./components/upload-collection/upload-collection";
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";

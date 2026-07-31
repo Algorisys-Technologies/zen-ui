@@ -15,14 +15,21 @@
 import {
   flattenGanttTasks,
   formatGanttVariance,
+  ganttColumns,
+  ganttColumnWidths,
   ganttConnectors,
   ganttProgress,
+  ganttRange,
+  ganttRangeLabel,
   ganttSpan,
   ganttTaskStatus,
   ganttVarianceDays,
+  shiftGanttAnchor,
   type GanttBarAnchor,
   type GanttTaskNode,
+  type GanttView,
 } from "../packages/core/src/gantt";
+import { placeAppointment } from "../packages/core/src/planning";
 
 let f = 0;
 const t = (got: unknown, want: unknown, name: string) => {
@@ -296,6 +303,121 @@ t(
 );
 t(fs[0].id, "a->b:finish-to-start", "the id is the dependency, not the rows, so it survives a collapse");
 t(ganttConnectors(anchors([["a", A], ["b", B]]), [], OPTS).length, 0, "no dependencies, no lines");
+
+console.log("\nthe axis: quarter and year, so a multi-month plan can be seen whole");
+// A calendar quarter, from any date inside it — not three months from the anchor.
+t(
+  [iso(ganttRange("quarter", at(2026, 8, 17)).start), iso(ganttRange("quarter", at(2026, 8, 17)).end)],
+  ["2026-07-01 00:00", "2026-10-01 00:00"],
+  "quarter: the 1st of Jul to the 1st of Oct, from mid-August",
+);
+t(iso(ganttRange("quarter", at(2026, 1, 1)).start), "2026-01-01 00:00", "January is in Q1");
+t(iso(ganttRange("quarter", at(2026, 12, 31)).end), "2027-01-01 00:00", "Q4 rolls into the next YEAR");
+t(
+  [iso(ganttRange("year", at(2026, 8, 17)).start), iso(ganttRange("year", at(2026, 8, 17)).end)],
+  ["2026-01-01 00:00", "2027-01-01 00:00"],
+  "year: Jan 1 to Jan 1",
+);
+// Delegation is the point: the three old views must be untouched.
+t(iso(ganttRange("week", at(2026, 7, 21)).start), "2026-07-20 00:00", "week still delegates to planning");
+t(iso(ganttRange("month", at(2026, 7, 21)).end), "2026-08-01 00:00", "month still delegates to planning");
+
+t(iso(shiftGanttAnchor("quarter", at(2026, 8, 17), 1)), "2026-10-01 00:00", "next quarter");
+t(iso(shiftGanttAnchor("quarter", at(2026, 2, 5), -1)), "2025-10-01 00:00", "previous quarter crosses the year");
+t(iso(shiftGanttAnchor("year", at(2026, 8, 17), 1)), "2027-01-01 00:00", "next year normalises to Jan 1");
+t(iso(shiftGanttAnchor("week", at(2026, 7, 21), 1)), "2026-07-27 00:00", "week still delegates");
+
+t(ganttRangeLabel("quarter", at(2026, 8, 17)), "Q3 2026", "a quarter names itself");
+t(ganttRangeLabel("quarter", at(2026, 1, 1)), "Q1 2026", "…and counts from 1, not 0");
+t(ganttRangeLabel("quarter", at(2026, 12, 31)), "Q4 2026", "Q4");
+t(ganttRangeLabel("year", at(2026, 8, 17)), "2026", "a year is just the year");
+t(ganttRangeLabel("month", at(2026, 7, 21)), "July 2026", "month still delegates");
+
+console.log("\ncolumn granularity and labels");
+const yearCols = ganttColumns("year", at(2026, 8, 17), { now: at(2026, 8, 17) });
+t(yearCols.length, 12, "a year is 12 month columns, not 365 day ones");
+t(yearCols.map((c) => c.label).slice(0, 3), ["Jan", "Feb", "Mar"], "labelled by month name — '7' means nothing when it is a month");
+t(yearCols.filter((c) => c.today).length, 1, "exactly one month holds now");
+t(yearCols.findIndex((c) => c.today), 7, "17 August lands in the August column");
+// Q3 2026: 1 Jul is a Wednesday, so the first column is a 5-day stub.
+const qCols = ganttColumns("quarter", at(2026, 8, 17), { now: at(2026, 8, 17) });
+t(qCols.length, 14, "Q3 2026 is 14 week columns");
+t(qCols.map((c) => c.label).slice(0, 3), ["1 Jul", "6 Jul", "13 Jul"], "labelled by the week's first date");
+t(
+  [iso(qCols[0].start), iso(qCols[0].end)],
+  ["2026-07-01 00:00", "2026-07-06 00:00"],
+  "the first week column is PARTIAL — a quarter does not start on a Monday",
+);
+t(iso(qCols.at(-1)!.end), "2026-10-01 00:00", "…and the last is clipped to the quarter, not run past it");
+t(qCols.filter((c) => c.today).length, 1, "exactly one week holds now");
+// A week or a month contains the weekend, so shading either says nothing.
+t(qCols.some((c) => c.nonWorking) || yearCols.some((c) => c.nonWorking), false, "no column of weeks or months is 'non-working'");
+
+console.log("\ncolumns TILE the range exactly — the invariant bars depend on");
+/* This is the one that keeps a bar on its gridline. `placeAppointment` returns
+   a percentage of the whole range, so a boundary only lines up when the columns
+   partition the range with no gap and no overlap. Nothing else in the repo
+   tests it, and every way it can break is invisible. */
+const tiles = (view: GanttView, anchor: Date, name: string) => {
+  const range = ganttRange(view, anchor);
+  const cols = ganttColumns(view, anchor, { now: anchor });
+  const startsAtRangeStart = cols[0].start.getTime() === range.start.getTime();
+  const endsAtRangeEnd = cols.at(-1)!.end.getTime() === range.end.getTime();
+  const contiguous = cols.every((c, i) => i === 0 || c.start.getTime() === cols[i - 1].end.getTime());
+  const forward = cols.every((c) => c.end.getTime() > c.start.getTime());
+  t([startsAtRangeStart, contiguous, endsAtRangeEnd, forward], [true, true, true, true], name);
+};
+tiles("day", at(2026, 7, 21), "day columns tile the day");
+tiles("week", at(2026, 7, 21), "week columns tile the week");
+tiles("month", at(2026, 7, 21), "month columns tile the month");
+tiles("month", at(2026, 2, 10), "…including a 28-day February");
+tiles("quarter", at(2026, 8, 17), "week columns tile the quarter, partial ends included");
+tiles("quarter", at(2026, 4, 15), "…in a quarter that starts on a Wednesday too");
+tiles("year", at(2026, 8, 17), "month columns tile the year");
+tiles("year", at(2024, 3, 1), "…including a leap year");
+
+console.log("\ncolumn widths come from duration, not from the column count");
+const yearRange = ganttRange("year", at(2026, 8, 17));
+const yearWidths = ganttColumnWidths(yearCols, yearRange, 1200);
+t(Number(yearWidths.reduce((a, b) => a + b, 0).toFixed(6)), 1200, "the widths sum to the axis exactly");
+// 31 days vs 28 at 1200px over 365: the naive uniform answer is 100 for both,
+// and that is the bug — a bar in December would sit ~3 days off its gridline.
+t(Number(yearWidths[0].toFixed(4)), Number(((31 / 365) * 1200).toFixed(4)), "January gets its 31 days' worth");
+t(Number(yearWidths[1].toFixed(4)), Number(((28 / 365) * 1200).toFixed(4)), "February gets its 28");
+t(yearWidths[0] > yearWidths[1], true, "…so a 31-day month is WIDER than a 28-day one");
+t(Number((yearWidths.length ? 1200 / 12 : 0).toFixed(4)) === Number(yearWidths[0].toFixed(4)), false, "which is not what uniform widths would give");
+// The old uniform maths and the new one must agree wherever durations are equal,
+// or day/week/month would shift by a pixel for no reason.
+const weekCols2 = ganttColumns("week", at(2026, 7, 21), { now: at(2026, 7, 21) });
+const weekWidths = ganttColumnWidths(weekCols2, ganttRange("week", at(2026, 7, 21)), 7 * 128);
+t(weekWidths.map((w) => Number(w.toFixed(6))), new Array(7).fill(128), "equal-duration columns are unchanged to the pixel");
+t(ganttColumnWidths([], yearRange, 1200), [], "no columns, no widths");
+t(ganttColumnWidths(yearCols, { start: yearRange.end, end: yearRange.start }, 1200).every((w) => w === 0), true, "an inverted range measures nothing rather than NaN");
+
+console.log("\na bar's edge lands exactly on the column boundary it shares");
+/* The acceptance test for the whole change, as arithmetic: place a task that
+   starts on 1 September and confirm its left edge is the cumulative width of
+   Jan..Aug, which is where the September gridline is drawn. Uniform columns
+   put the gridline at 8/12 of the axis and the bar at 243/365 — a visible,
+   entirely plausible-looking error. */
+const AXIS = 1200;
+const sept = placeAppointment({ start: at(2026, 9, 1), end: at(2026, 9, 30) }, yearRange)!;
+const gridlineAtSept = yearWidths.slice(0, 8).reduce((a, b) => a + b, 0);
+t(
+  Number(((sept.startPct / 100) * AXIS).toFixed(6)),
+  Number(gridlineAtSept.toFixed(6)),
+  "1 September sits on the September gridline",
+);
+t(
+  Number((((sept.startPct + sept.widthPct) / 100) * AXIS).toFixed(6)),
+  Number((yearWidths.slice(0, 8).reduce((a, b) => a + b, 0) + (29 / 30) * yearWidths[8]).toFixed(6)),
+  "…and the bar's right edge is 29/30 of the way through September",
+);
+t(
+  Number((((8 / 12) * AXIS)).toFixed(6)) === Number(gridlineAtSept.toFixed(6)),
+  false,
+  "the uniform-width answer is different, which is the bug this prevents",
+);
 
 console.log(f === 0 ? "\nall passed\n" : `\n${f} FAILED\n`);
 process.exit(f === 0 ? 0 : 1);

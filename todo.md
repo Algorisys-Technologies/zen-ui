@@ -907,12 +907,22 @@ built — Tier 1 spent a day marked done while a row was missing.
                   Timeline, UploadCollection and PlanningCalendar are all
                   shipped; the rest of the tier was dropped on substance in the
                   2026-07-21 triage.
-- [ ] **Gantt — web-components binding deferred** (2026-07-31, `feat/gantt`).
+- [ ] **Gantt — web-components deferred, and Solid/vanilla now lag by two
+      views** (2026-07-31, `feat/gantt`).
       React, Solid and vanilla are shipped and driven in a browser; the
       web-components element is NOT built, so **`check:parity` is red on that
-      branch by construction** — it reports `Gantt` and its nine types as
+      branch by construction** — it reports `Gantt` and its ten types as
       React-only. That is the rule working, not a break: CLAUDE.md's "a commit
       landed in that window should say so" is what this entry is.
+      **A second drift landed on top.** `quarter` and `year` views — and with
+      them `GanttView`, `ganttRange`, `ganttColumns`, `ganttRangeLabel`,
+      `shiftGanttAnchor` and `ganttColumnWidths` — are React-only. All the maths
+      is in core, so the ports are mechanical, but do NOT shortcut them by
+      re-exporting `GanttView` from the Solid or vanilla index just to quiet
+      `check:parity`. Those components still call `planningRange`, whose last
+      branch returns a MONTH for any view it does not recognise, so `view="year"`
+      would type-check and silently draw the wrong axis. The two FAIL lines
+      naming `GanttView` are accurate: those bindings do not have the feature.
       It is deferred at the user's request rather than on substance — the
       consuming app is React and wanted the import unblocked without waiting on
       a full four-binding release. Nothing is marked `divergent` in

@@ -2,20 +2,22 @@ import * as React from "react";
 import {
   flattenGanttTasks,
   formatGanttVariance,
+  ganttColumns,
+  ganttColumnWidths,
   ganttConnectors,
+  ganttRange,
+  ganttRangeLabel,
   nowPct,
   placeAppointment,
-  planningColumns,
-  planningRange,
-  planningRangeLabel,
-  shiftPlanningAnchor,
+  shiftGanttAnchor,
   type GanttBarAnchor,
   type GanttDependency,
   type GanttRow,
   type GanttTaskNode,
   type GanttTaskStatus,
+  type GanttView,
+  type PlanningColumn,
   type PlanningPlacement,
-  type PlanningView,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "../avatar/avatar";
@@ -94,13 +96,13 @@ export interface GanttProps {
   /** Draw the connector layer. Default true. */
   showDependencies?: boolean;
 
-  /** Uncontrolled starting view. Default "week". */
-  defaultView?: PlanningView;
+  /** Uncontrolled starting view. Default "month". */
+  defaultView?: GanttView;
   /** Controlled view; pair with `onViewChange`. */
-  view?: PlanningView;
-  onViewChange?: (view: PlanningView) => void;
-  /** Which views the switcher offers. Default all three. */
-  views?: PlanningView[];
+  view?: GanttView;
+  onViewChange?: (view: GanttView) => void;
+  /** Which views the switcher offers. Default all five. */
+  views?: GanttView[];
 
   /** Any date inside the range to open on. Default today. */
   defaultDate?: Date;
@@ -121,7 +123,12 @@ export interface GanttProps {
 
   /** Reference "now" for the marker, the today column and the derived status. */
   now?: Date;
-  /** Pixel width of one column. Defaults to something readable per view. */
+  /**
+   * Nominal pixel width of one column — the axis is `columns × this`. In the
+   * quarter and year views columns differ in length (a 28-day February is
+   * narrower than a 31-day January), so this sets the average rather than the
+   * literal width. Defaults to something readable per view.
+   */
   columnWidth?: number;
   /** Hide the toolbar when your page already has one. */
   hideToolbar?: boolean;
@@ -136,15 +143,37 @@ export interface GanttProps {
   className?: string;
 }
 
-const VIEW_LABEL: Record<PlanningView, string> = { day: "Day", week: "Week", month: "Month" };
-const ALL_VIEWS: PlanningView[] = ["day", "week", "month"];
+const VIEW_LABEL: Record<GanttView, string> = {
+  day: "Day",
+  week: "Week",
+  month: "Month",
+  quarter: "Quarter",
+  year: "Year",
+};
+const ALL_VIEWS: GanttView[] = ["day", "week", "month", "quarter", "year"];
 
 /**
- * Column widths per view, because one number cannot serve all three. A week is
- * 7 columns and can afford to be wide; a month is 31 and cannot, or every plan
- * opens scrolled halfway off its own axis.
+ * NOMINAL column width per view — the axis is `columns.length × this`, and each
+ * column then takes its own share of that by duration (`ganttColumnWidths`).
+ * For day, week and month every column is the same length, so this is also the
+ * literal width; for quarter and year it is the average.
+ *
+ * One number cannot serve all five. A week is 7 columns and can afford to be
+ * wide; a month is 31 and cannot, or every plan opens scrolled halfway off its
+ * own axis. Quarter is ~14 weeks and year is 12 months, both of which want the
+ * whole span to fit a normal screen — that is the entire point of having them.
  */
-const COLUMN_PX: Record<PlanningView, number> = { day: 56, week: 128, month: 44 };
+const COLUMN_PX: Record<GanttView, number> = {
+  day: 56,
+  week: 128,
+  month: 44,
+  /* Sized to FIT, not to breathe: a year you have to scroll sideways to reach
+     December in is not showing you the year, which is the only reason the view
+     exists. 14 × 72 and 12 × 80 both land near 1000px — inside a normal content
+     column — and "13 Jul" and "Sep" are comfortable at those widths. */
+  quarter: 72,
+  year: 80,
+};
 
 const ROW_PX = 36;
 const BAR_PX = 18;
@@ -270,7 +299,10 @@ export const Gantt = ({
   emptyState,
   className,
 }: GanttProps) => {
-  const [innerView, setInnerView] = React.useState<PlanningView>(defaultView ?? "week");
+  /* Month, not week. A seven-day window is the right default for a calendar and
+     the wrong one for a plan: most projects run for months, so `week` opened on
+     an axis where every phase but one was off-screen. */
+  const [innerView, setInnerView] = React.useState<GanttView>(defaultView ?? "month");
   const [innerDate, setInnerDate] = React.useState<Date>(defaultDate ?? new Date());
   /* null is not "nothing open", it is "no answer given" — the default, which is
      everything open. Storing the resolved list instead would freeze the answer
@@ -283,7 +315,7 @@ export const Gantt = ({
      millisecond, and the marker and the today column would then disagree. */
   const now = nowProp ?? new Date();
 
-  const setView = (next: PlanningView) => {
+  const setView = (next: GanttView) => {
     if (viewProp === undefined) setInnerView(next);
     onViewChange?.(next);
   };
@@ -304,9 +336,13 @@ export const Gantt = ({
     onExpandedChange?.(next);
   };
 
-  const range = planningRange(view, anchor);
-  const columns = planningColumns(view, anchor, { now });
+  const range = ganttRange(view, anchor);
+  const columns = ganttColumns(view, anchor, { now });
   const axisWidth = columns.length * (columnWidth ?? COLUMN_PX[view]);
+  /* Per column, from its own duration — NOT axisWidth / columns.length. A year
+     of 28-to-31-day months drawn at one uniform width walks every bar off its
+     gridline by up to three days, and looks entirely reasonable doing it. */
+  const columnWidths = ganttColumnWidths(columns, range, axisWidth);
   const marker = nowPct(range, now);
 
   const { rows, rowIndexById } = flattenGanttTasks<GanttTask>(
@@ -392,7 +428,7 @@ export const Gantt = ({
               variant="outline"
               size="sm"
               aria-label="Previous"
-              onClick={() => setDate(shiftPlanningAnchor(view, anchor, -1))}
+              onClick={() => setDate(shiftGanttAnchor(view, anchor, -1))}
             >
               {/* Logical, not physical: under RTL the axis runs the other way. */}
               <Icon name="chevron-left" size={14} className="rtl:zen-rotate-180" />
@@ -404,13 +440,13 @@ export const Gantt = ({
               variant="outline"
               size="sm"
               aria-label="Next"
-              onClick={() => setDate(shiftPlanningAnchor(view, anchor, 1))}
+              onClick={() => setDate(shiftGanttAnchor(view, anchor, 1))}
             >
               <Icon name="chevron-right" size={14} className="rtl:zen-rotate-180" />
             </Button>
 
             <span className="zen-mx-1 zen-text-sm zen-font-medium zen-text-zen-foreground">
-              {planningRangeLabel(view, anchor)}
+              {ganttRangeLabel(view, anchor)}
             </span>
 
             <div className="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label="View">
@@ -458,15 +494,15 @@ export const Gantt = ({
               </div>
 
               <div className="zen-flex" style={{ width: axisWidth }}>
-                {columns.map((column) => (
+                {columns.map((column, i) => (
                   <div
                     key={column.start.getTime()}
                     className={cn(
-                      "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-border-e zen-border-zen-border last:zen-border-e-0",
+                      "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-overflow-hidden zen-border-e zen-border-zen-border last:zen-border-e-0",
                       column.nonWorking && "zen-bg-zen-muted",
                       column.today && "zen-bg-zen-primary-soft",
                     )}
-                    style={{ width: columnWidth ?? COLUMN_PX[view] }}
+                    style={{ width: columnWidths[i] }}
                   >
                     <span className="zen-text-xs zen-font-medium zen-text-zen-foreground">
                       {column.label}
@@ -485,7 +521,7 @@ export const Gantt = ({
                   key={row.task.id}
                   row={row}
                   columns={columns}
-                  columnPx={columnWidth ?? COLUMN_PX[view]}
+                  columnWidths={columnWidths}
                   axisWidth={axisWidth}
                   placement={placements.get(row.index) ?? null}
                   onToggle={toggle}
@@ -548,8 +584,8 @@ export const Gantt = ({
 
 interface GanttRowViewProps {
   row: GanttRow<GanttTask>;
-  columns: ReturnType<typeof planningColumns>;
-  columnPx: number;
+  columns: PlanningColumn[];
+  columnWidths: number[];
   axisWidth: number;
   placement: PlanningPlacement | null;
   onToggle: (id: string) => void;
@@ -559,7 +595,7 @@ interface GanttRowViewProps {
 const GanttRowView = ({
   row,
   columns,
-  columnPx,
+  columnWidths,
   axisWidth,
   placement,
   onToggle,
@@ -651,7 +687,7 @@ const GanttRowView = ({
         {/* The column rules as a background layer rather than as parents of the
             bar: a bar spanning four days cannot live inside one day's box. */}
         <div aria-hidden="true" className="zen-absolute zen-inset-0 zen-flex">
-          {columns.map((column) => (
+          {columns.map((column, i) => (
             <div
               key={column.start.getTime()}
               className={cn(
@@ -659,7 +695,7 @@ const GanttRowView = ({
                 column.nonWorking && "zen-bg-zen-muted/40",
                 column.today && "zen-bg-zen-primary-soft/40",
               )}
-              style={{ width: columnPx }}
+              style={{ width: columnWidths[i] }}
             />
           ))}
         </div>

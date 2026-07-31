@@ -3,29 +3,76 @@
  * DOM and no framework in it.
  *
  * A Gantt is a PlanningCalendar whose rows nest and whose blocks know about
- * each other. The time axis is therefore NOT re-derived here: ranges, columns,
- * bar placement and the now line all come from ./planning, which four renderers
- * already agree on. What this module adds is the four things a schedule has
- * that a calendar does not:
+ * each other. Bar placement and the now line still come from ./planning, which
+ * four renderers already agree on. What this module adds is the five things a
+ * schedule has that a calendar does not:
  *
  *  1. a hierarchy that collapses, so the visible rows are a projection of the
  *     tree rather than the tree itself;
  *  2. summary bars — a parent with no dates of its own spans its children, and
  *     its percent-complete is their duration-weighted average;
  *  3. slip against a baseline, in whole calendar days;
- *  4. dependency connectors, as orthogonal routes between two bars.
+ *  4. dependency connectors, as orthogonal routes between two bars;
+ *  5. an axis that can show a whole PROJECT — see below.
  *
- * All four fail silently when wrong. A collapsed subtree that drops its
+ * All of them fail silently when wrong. A collapsed subtree that drops its
  * dependency arrows looks like a project with no dependencies. A parent bar
  * rolled up from the wrong children is a plausible date. A connector routed
  * through a bar is just an ugly line. Nothing throws, so scripts/check-gantt.ts
  * is where they are pinned.
  *
+ * THE AXIS — this module's header used to say the axis was deliberately not
+ * re-derived here, and that stopped being true when `quarter` and `year` were
+ * added. The reason it changed: PlanningCalendar's widest view is one calendar
+ * month, which is right for "who is busy this month" and useless for a plan
+ * that runs from July to October — every phase after the first renders
+ * correctly and emptily, and the shape of the project, the one thing a Gantt
+ * exists to show, cannot be seen at all.
+ *
+ * So `ganttRange` / `ganttColumns` / `ganttRangeLabel` / `shiftGanttAnchor`
+ * DELEGATE to their planning equivalents for day, week and month, and handle
+ * quarter and year themselves. `PlanningView` is deliberately NOT widened:
+ * it ships in 10.0.0, so adding members is source-breaking for any exhaustive
+ * switch over it, and it would hand PlanningCalendar two views it was never
+ * designed or tested for. `GanttView` is the superset.
+ *
+ * EQUAL-DURATION COLUMNS ARE AN ASSUMPTION, AND THE NEW VIEWS BREAK IT.
+ * `placeAppointment` returns percentages of the whole range, so a bar only
+ * lands on a gridline when the column under it occupies the same fraction of
+ * the axis that it does of the range. That is automatic while every column is
+ * the same length — an hour, a day — and false the moment columns are months:
+ * 28 to 31 days drawn at one uniform width drifts a bar off its gridline by up
+ * to three days across a year, and looks entirely plausible while doing it.
+ * `ganttColumnWidths` is the fix and the reason it lives here rather than in a
+ * renderer: widths come from each column's own duration, so the tiling and the
+ * placement are computed from one set of numbers.
+ *
  * TIME ZONES: as in ./planning, everything is computed from the caller's local
  * `Date` objects, deliberately unconverted.
  */
 
-import type { PlanningPlacement } from "./planning";
+import {
+  planningColumns,
+  planningRange,
+  planningRangeLabel,
+  shiftPlanningAnchor,
+  startOfWeek,
+  type PlanningColumn,
+  type PlanningColumnOptions,
+  type PlanningPlacement,
+  type PlanningRange,
+  type PlanningView,
+} from "./planning";
+
+/**
+ * The views a Gantt offers: PlanningCalendar's three, plus the two that let a
+ * multi-month plan be seen whole.
+ *
+ * A superset rather than a widening of `PlanningView` — see the module note.
+ * Quarter draws week columns, year draws month columns; both have columns of
+ * UNEQUAL duration, which is what `ganttColumnWidths` exists for.
+ */
+export type GanttView = PlanningView | "quarter" | "year";
 
 export type GanttTaskStatus = "not-started" | "on-track" | "delayed" | "complete";
 
@@ -111,6 +158,159 @@ const MS_DAY = 24 * 60 * 60 * 1000;
 
 const startOfDay = (d: Date): Date =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+
+const addDays = (d: Date, n: number): Date =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, 0, 0, 0, 0);
+
+/** The 1st of the quarter containing `d` — January, April, July or October. */
+const startOfQuarter = (d: Date): Date =>
+  new Date(d.getFullYear(), Math.floor(d.getMonth() / 3) * 3, 1, 0, 0, 0, 0);
+
+const startOfYear = (d: Date): Date => new Date(d.getFullYear(), 0, 1, 0, 0, 0, 0);
+
+const shortMonth = (d: Date): string => d.toLocaleString(undefined, { month: "short" });
+
+/**
+ * The half-open interval a view covers.
+ *
+ * Delegates for day / week / month. A quarter is a CALENDAR quarter — the 1st
+ * of Jan/Apr/Jul/Oct to the 1st of the next one — not three months from the
+ * anchor, so the same quarter is shown from any date inside it and the columns
+ * line up with how anyone reports one.
+ */
+export function ganttRange(view: GanttView, anchor: Date): PlanningRange {
+  if (view === "quarter") {
+    const start = startOfQuarter(anchor);
+    // Through the Date constructor so month 12 rolls the year, and day 1 cannot
+    // overflow the way "31 January + 1 month" does.
+    return { start, end: new Date(start.getFullYear(), start.getMonth() + 3, 1, 0, 0, 0, 0) };
+  }
+  if (view === "year") {
+    const start = startOfYear(anchor);
+    return { start, end: new Date(start.getFullYear() + 1, 0, 1, 0, 0, 0, 0) };
+  }
+  return planningRange(view, anchor);
+}
+
+/** Move the anchor one view forward or back. `delta` is in views, not days. */
+export function shiftGanttAnchor(view: GanttView, anchor: Date, delta: number): Date {
+  if (view === "quarter") {
+    const q = startOfQuarter(anchor);
+    return new Date(q.getFullYear(), q.getMonth() + delta * 3, 1, 0, 0, 0, 0);
+  }
+  if (view === "year") return new Date(anchor.getFullYear() + delta, 0, 1, 0, 0, 0, 0);
+  return shiftPlanningAnchor(view, anchor, delta);
+}
+
+/** A heading for the whole range — what the toolbar shows between the arrows. */
+export function ganttRangeLabel(view: GanttView, anchor: Date): string {
+  if (view === "quarter") {
+    const q = startOfQuarter(anchor);
+    return `Q${Math.floor(q.getMonth() / 3) + 1} ${q.getFullYear()}`;
+  }
+  if (view === "year") return String(anchor.getFullYear());
+  return planningRangeLabel(view, anchor);
+}
+
+/**
+ * The columns a view shows.
+ *
+ * Quarter is weeks and year is months, because a quarter of day-columns is 90
+ * of them and a year is 365 — readable only as a smear. Both granularities
+ * produce columns of UNEQUAL duration, deliberately:
+ *
+ *  - A quarter starts on the 1st, which is almost never a Monday, so its first
+ *    and last week columns are PARTIAL. Snapping the range to whole weeks
+ *    instead would mean "Q3" showed dates from June, which is a worse lie than
+ *    a narrow first column.
+ *  - Months are 28 to 31 days and there is no honest way around that.
+ *
+ * In both cases the columns still tile the range exactly — no gap, no overlap,
+ * first starts at `range.start`, last ends at `range.end`. That invariant is
+ * the whole basis of bars landing on gridlines, and it is pinned in
+ * scripts/check-gantt.ts.
+ */
+export function ganttColumns(
+  view: GanttView,
+  anchor: Date,
+  options: PlanningColumnOptions = {},
+): PlanningColumn[] {
+  if (view !== "quarter" && view !== "year") return planningColumns(view, anchor, options);
+
+  const now = options.now ?? new Date();
+  const { start, end } = ganttRange(view, anchor);
+  const columns: PlanningColumn[] = [];
+
+  if (view === "year") {
+    for (let d = start; d.getTime() < end.getTime(); ) {
+      const next = new Date(d.getFullYear(), d.getMonth() + 1, 1, 0, 0, 0, 0);
+      columns.push({
+        start: d,
+        end: next,
+        label: shortMonth(d),
+        // The year is already in the range label; repeating it in all twelve
+        // columns is noise.
+        sublabel: "",
+        // A week or a month is neither working nor non-working — the weekend is
+        // inside every one of them, so shading any of them says nothing.
+        nonWorking: false,
+        today: now.getTime() >= d.getTime() && now.getTime() < next.getTime(),
+      });
+      d = next;
+    }
+    return columns;
+  }
+
+  for (let d = start; d.getTime() < end.getTime(); ) {
+    // The Monday after the week `d` falls in, clipped to the quarter. That is
+    // what makes the first and last columns partial and the tiling exact.
+    const nextMonday = addDays(startOfWeek(d), 7);
+    const next = nextMonday.getTime() < end.getTime() ? nextMonday : end;
+    columns.push({
+      start: d,
+      end: next,
+      label: `${d.getDate()} ${shortMonth(d)}`,
+      sublabel: "",
+      nonWorking: false,
+      today: now.getTime() >= d.getTime() && now.getTime() < next.getTime(),
+    });
+    d = next;
+  }
+  return columns;
+}
+
+/**
+ * Pixel width per column, from each column's own share of the range.
+ *
+ * The reason this is not `axisWidth / columns.length`: see the module note.
+ * Uniform widths silently misplace every bar the moment columns stop being
+ * equal in duration.
+ *
+ * Widths come from the DIFFERENCE between cumulative offsets rather than from
+ * each duration independently, so they sum to exactly `axisWidth` and no
+ * rounding residue opens a sub-pixel gap between two columns — a hairline the
+ * background shows through, once per column, all the way across.
+ *
+ * For equal-duration columns this returns exactly what the old uniform maths
+ * did, so day, week and month are unchanged to the pixel.
+ */
+export function ganttColumnWidths(
+  columns: PlanningColumn[],
+  range: PlanningRange,
+  axisWidth: number,
+): number[] {
+  const from = range.start.getTime();
+  const span = range.end.getTime() - from;
+  if (span <= 0) return columns.map(() => 0);
+
+  let previous = 0;
+  return columns.map((column) => {
+    const offset = ((column.end.getTime() - from) / span) * axisWidth;
+    const width = offset - previous;
+    previous = offset;
+    return width;
+  });
+}
 
 const clampPct = (n: number): number => Math.min(100, Math.max(0, n));
 
