@@ -226,7 +226,19 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
 Green output is not evidence. Prefer running the thing: `node
 scripts/visual-check.mjs <react|solid> [routes…]` boots the demo's preview
 server, screenshots each route from `nav.ts`, and reports per-route console and
-page errors. A build says nothing about whether a panel is clipped, a switch
+page errors.
+
+`bun run check:schedule-dom` goes further for the two components whose
+correctness is geometric — it drives `/gantt` and `/production-schedule` in
+both directions and asserts what the pure-logic checks cannot see: one tab stop
+per chart, no tabbable bars, uniform row heights, lanes actually drawn, focus
+surviving a move to an unmounted row, and **no page-level horizontal scroll**.
+That last one caught a bug that had shipped: a fit axis sizes itself from its
+scroller's measured width, so a content-sized container makes the two define
+each other — identical data rendered at 516px in one section and 1800px in
+another, and per-scroller overflow checks could not see it because each
+scroller was internally consistent. Neither script is in `bun run check`: that
+target is pure logic and must run with no build and no browser. A build says nothing about whether a panel is clipped, a switch
 landed on the wrong side, or a class silently generated no CSS — all three have
 shipped here.
 
@@ -453,6 +465,7 @@ bun run check          # pure-logic contracts, incl. check:release
 bun run check:dist     # builds both libs, then check:package + check:size
 bun run lint           # and lint:solid / lint:vanilla / lint:wc — 0 problems each
 node scripts/visual-check.mjs react && node scripts/visual-check.mjs solid
+bun run check:schedule-dom   # Gantt + ProductionSchedule, LTR and RTL
 
 git commit && git tag v<version>
 git checkout main && git merge --ff-only dev && git push origin main --tags

@@ -3,8 +3,29 @@
 **Branch:** `feat/gantt`, ahead of `dev`, 0 behind.
 **Date:** 2026-07-31. **State:** `bun run check` green except `check:parity`
 (3 expected failures, deliberately not silenced — see below); `lint` 0 problems;
-both tsconfigs clean; `/gantt` and `/production-schedule` both driven in a
-browser.
+both tsconfigs clean; `bun run check:schedule-dom` green — **112 assertions**
+over `/gantt` and `/production-schedule`, LTR and RTL.
+
+**Three things now hold this in place rather than a memory of having checked:**
+
+| | what it catches |
+|---|---|
+| `scripts/check-schedule-dom.mjs` | one tab stop per chart, no tabbable bars, uniform row heights, lanes drawn, focus surviving a move to an unmounted row, and **page-level** horizontal scroll |
+| `check:size` budgets | the shared renderer being duplicated — see below |
+| `dist-pkg/zen-ui-react.tgz` | re-packed, so the consuming app finally has fit, the keyboard, the pane and `ProductionSchedule` |
+
+**The bundle, measured rather than assumed.** `Gantt` 55 kB gzipped,
+`ProductionSchedule` 53 kB, **both together 60 kB** — five kilobytes more than
+one, which is the extraction paying for itself in bytes. Budgets are 70/70/**75**,
+and the pair is the one with teeth: duplicate `schedule-grid.tsx` and the pair
+goes to ~108 kB, which nothing else in the repo would notice. The old
+"468 kB / 145 kB gzipped" figure in earlier notes was never a tree-shaken
+import and should not be quoted.
+
+> **`check:schedule-dom` was proved to fail before being trusted.** Re-introducing
+> the tab-through-bars regression (`tabIndex={0}` on the bar) turned it red:
+> 149 tabbable bars, up to 22 tab stops in one chart, non-zero exit. A check
+> that has never failed is not known to work.
 
 > **`check:parity`'s failure list doubled, as predicted when Decision 1 was
 > taken.** It now names `ProductionSchedule` and its 13 types alongside `Gantt`
