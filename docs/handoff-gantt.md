@@ -130,30 +130,40 @@ consuming app across all five views — 3 views byte-identical, week 2px, month
 
 ---
 
-## Two decisions blocking manufacturing work
+## The two decisions — settled 2026-07-31
 
-Both are argued in full in `docs/production-scheduling-gap-analysis.md`. Neither
-is mine to settle.
+Both are argued in full, with the reasoning and its corrections, in
+`docs/production-scheduling-gap-analysis.md`. Tier (b) is unblocked.
 
-**DECISION 1 — one component or two?** (§107)
-Production props on `Gantt`, versus a separate `ProductionSchedule` sharing
-`packages/core/src/gantt.ts`. Recommendation: **two, weakly held.** The
-strongest argument is precedent — this repo already split `TreeTable` from
-`DataTable` for the same reason, and wrote down that a flag "would have needed a
-fifth mutual-exclusion gate to describe a combination nobody can use". Against
-it: parity debt doubles before it has been paid once, and the renderer
-duplication (toolbar, frozen pane, windowing, overlay) is real.
-**Everything in tier (b) and beyond is blocked on this.**
+**DECISION 1 — two components, over ONE internal renderer.** (§107)
+`ProductionSchedule` gets its own props, demo, nav entry and editing stance. It
+does not get its own renderer: the generic shell is extracted once and shared.
+Decided on the **data model** — a row holding many operations, each with a work
+centre, an order and lot, a quantity, a setup time and a routing sequence, is a
+different contract from a row holding one bar with a percentage and a baseline —
+and deliberately NOT on the editing stance, because that is Decision 2 and the
+two would otherwise deadlock.
 
-**DECISION 2 — the read-only stance.** (§163)
-Sound for a PM Gantt, wrong for production, where interactive rescheduling *is*
-the job. Sketched but not implemented: `onReschedule(proposal) → accepted |
-rejected`. The load-bearing part is that **undo stays the caller's**, by keeping
-the component controlled — optimistic internal mutation creates two sources of
-truth, and that is where every "the Gantt and the ERP disagree" bug comes from.
-Conflicts are computed and **reported, never enforced** (overtime gets
-authorised, due dates get renegotiated). Permissions **gate the affordance** via
-`canReschedule`, so a forbidden move is never offered.
+> Three things the doc got wrong, now recorded there. The `TreeTable` precedent
+> is **weaker** here than it claimed: TreeTable's is a hard impossibility (two
+> features claiming the same three TanStack slots), and "one bar per row" is
+> merely the degenerate case of "many bars per row". The reasoning was
+> **circular** — it used the editing stance to argue for two, while the tier
+> ordering says the editing stance cannot be decided until (b) exists, and (b)
+> was blocked on this. And the extraction is **~750 measured lines** of shared
+> shell, not the open-ended "real work" it reads as.
+
+**DECISION 2 — deferred until tier (b) exists.** (§163)
+Not kept and not dropped. Section (c)'s own argument — the drag has nothing to
+aim at until the component can show the overload — applies to *designing* the
+contract as much as to shipping it. Two of the sketch's three load-bearing
+choices constrain tier (b) anyway and are cheaper honoured than retrofitted:
+the component stays **controlled**, and conflicts are **computed and reported,
+never enforced**. `Gantt`'s own read-only stance is not under review.
+
+**Next, in order:** extract the generic renderer *under the passing `Gantt`*
+(a refactor with a reference to diff against, rather than a moving seam a second
+component is being written against) → tier (b) read-only → revisit Decision 2.
 
 **DECISION 3 — axis: settled, wall-clock with non-working shaded.** (§225)
 Compression would turn one linear date→x map into a piecewise one at every call
