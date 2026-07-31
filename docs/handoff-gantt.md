@@ -399,7 +399,36 @@ identical to React**.
 > Both are the kind of thing that looks like nothing in review and is obvious
 > the moment 8 of 33 assertions go red.
 
-**Next:** Solid's `ProductionSchedule`, then vanilla, then web-components.
+### Solid is DONE — both components, zero delta
+
+`ProductionSchedule` ported too, with the same eight demo sections. **React and
+Solid are now at full parity**: `check:parity` reports *"no component exists only
+in React"* and *"no component exists only in Solid"*, and its failure count is
+down from 3 to 2 — only vanilla and web-components remain.
+
+| | React | Solid |
+|---|---|---|
+| `check-schedule-dom` | 132 | **132** |
+| `check-schedule-parity` | — | **24 of 24 charts identical** |
+| drag / cascade / undo / keyboard probe | 12/12 | **12/12** |
+
+The second half cost almost nothing beyond transcription: `ScheduleGrid`'s props
+did not change, the drag and the reschedule contract ported unaltered, and the
+only Solid-specific issue was a `solid/reactivity` warning on a conditional
+event handler. That was a real smell rather than a lint quirk — building the
+handler inside a reactive ternary — and the fix (one stable handler, guarded
+inside) went into BOTH bindings, so the two still read the same side by side.
+
+> **Both harnesses earned their place again.** `check-schedule-dom` caught the
+> Gantt port's two reactivity bugs; `check-schedule-parity` is what makes
+> "identical to React" a measurement rather than a claim. For vanilla and
+> web-components they are already written and already parameterised — the next
+> port starts with a net rather than ending with one.
+
+**Next:** vanilla (both components), then web-components. Vanilla's risk is
+different: no VDOM, so row windowing is manual DOM surgery — though its
+synchronous model may make the focus-across-the-window dance *easier* than it
+was in Solid, where effect ordering was the whole problem.
 
 **DECISION 3 — axis: settled, wall-clock with non-working shaded.** (§225)
 Compression would turn one linear date→x map into a piecewise one at every call
