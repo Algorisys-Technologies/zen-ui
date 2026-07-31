@@ -550,6 +550,51 @@ export { TreeTable } from "./components/tree-table/tree-table";
 export { PlanningCalendar } from "./components/planning-calendar/planning-calendar";
 export type { PlanningView } from "@algorisys/zen-ui-core/planning";
 export type { PlanningCalendarProps, PlanningRow, PlanningAppointment, PlanningAppointmentState } from "./components/planning-calendar/planning-calendar";
+export { ProductionSchedule } from "./components/production-schedule/production-schedule";
+export type {
+  ProductionScheduleProps,
+  ProductionResource,
+  ProductionOperation,
+  ProductionPaneColumn,
+} from "./components/production-schedule/production-schedule";
+export type {
+  ProductionConflict,
+  ProductionConflictKind,
+  ProductionFlatten,
+  ProductionFlattenOptions,
+  ProductionLoadBucket,
+  ProductionLoadOptions,
+  ProductionOperationNode,
+  ProductionPlacement,
+  ProductionPlacementOptions,
+  ProductionResourceNode,
+  ProductionRow,
+  ProductionSetupMatrix,
+} from "@algorisys/zen-ui-core/production";
+export {
+  flattenProductionResources,
+  packProductionLanes,
+  productionConflicts,
+  productionLoad,
+  productionPeakLoad,
+  productionPlacement,
+  productionSequenceConflicts,
+  productionSetupMinutes,
+  productionSetupPlan,
+} from "@algorisys/zen-ui-core/production";
+export { productionReschedule } from "@algorisys/zen-ui-core/reschedule";
+export type {
+  ProductionMove,
+  ProductionProposal,
+  ProductionRescheduleOptions,
+  ProductionShift,
+} from "@algorisys/zen-ui-core/reschedule";
+export { productionCriticalPath } from "@algorisys/zen-ui-core/critical-path";
+export type {
+  ProductionCriticalPath,
+  ProductionCriticalPathOptions,
+  ProductionFloat,
+} from "@algorisys/zen-ui-core/critical-path";
 export { Gantt } from "./components/gantt/gantt";
 export type { GanttProps, GanttTask, GanttAssignee } from "./components/gantt/gantt";
 export type {

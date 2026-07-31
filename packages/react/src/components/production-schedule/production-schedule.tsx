@@ -1135,10 +1135,14 @@ const ProductionBar = ({
           tabIndex={-1}
           data-gantt-bar=""
           data-gantt-movable={movable ? "" : undefined}
-          /* Click is handled by the pointer gesture, which distinguishes a
-             click from a drag by distance — a separate onClick would fire on
-             both. It stays here for the read-only case. */
-          onClick={movable ? undefined : () => onOperationClick?.(operation, row)}
+          /* One handler, guarded inside, rather than a conditional one. When a
+             bar is movable the pointer gesture calls this itself once it has
+             told a click from a drag by distance, so attaching it here too
+             would fire on both. Kept identical to the Solid binding, where a
+             conditional handler also trips solid/reactivity. */
+          onClick={() => {
+            if (!movable) onOperationClick?.(operation, row);
+          }}
           onPointerDown={onPointerDown}
           onKeyDown={onBarKeyDown}
           className={cn(
