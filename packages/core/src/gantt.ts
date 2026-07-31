@@ -908,7 +908,14 @@ export function ganttSpanLabel(range: PlanningRange): string {
  * pushed off are the ones nobody chose to lose.
  * ------------------------------------------------------------------------ */
 
-/** A column of the frozen pane, other than the timeline itself. */
+/**
+ * A column of the Gantt's frozen pane, other than the timeline itself.
+ *
+ * `ganttPaneColumns` is generic over the key rather than taking this type, so a
+ * second schedule component can shed ITS columns — work centre, order, quantity
+ * — by the same rule. The rule is about widths and an axis, not about what the
+ * columns mean.
+ */
 export type GanttPaneColumn = "name" | "assignees" | "status" | "variance";
 
 /** Every pane column, in the order a caller who says nothing gets them. */
@@ -937,18 +944,18 @@ export const GANTT_PANE_COLUMNS: GanttPaneColumn[] = ["name", "assignees", "stat
  * on the first paint and put them back on the second, which reads as a glitch
  * rather than as a layout.
  */
-export function ganttPaneColumns(
-  requested: GanttPaneColumn[],
-  widths: Record<GanttPaneColumn, number>,
+export function ganttPaneColumns<K extends string>(
+  requested: readonly K[],
+  widths: Record<K, number>,
   available: number,
   minAxisWidth: number,
-): GanttPaneColumn[] {
-  if (requested.length <= 1 || available <= 0) return requested;
-
+): K[] {
   const out = [...requested];
+  if (out.length <= 1 || available <= 0) return out;
+
   const total = () => out.reduce((sum, key) => sum + widths[key], 0);
-  if (total() + minAxisWidth <= available) return requested;
-  if (widths[requested[0]] + minAxisWidth > available) return requested;
+  if (total() + minAxisWidth <= available) return out;
+  if (widths[out[0]] + minAxisWidth > available) return out;
 
   while (out.length > 1 && total() + minAxisWidth > available) out.pop();
   return out;

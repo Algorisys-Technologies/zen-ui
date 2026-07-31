@@ -31,6 +31,7 @@ A `Gantt` component for React, plus its maths in `packages/core/src/gantt.ts`.
 |---|---|
 | Core maths | `packages/core/src/gantt.ts` (+ `/gantt` subpath export) |
 | Check script | `scripts/check-gantt.ts` — **479 assertions** (236 per run, twice), wired into `bun run check` |
+| Shared renderer | `packages/react/src/components/gantt/schedule-grid.tsx` — internal, **not** exported from the index |
 | React component | `packages/react/src/components/gantt/gantt.tsx` |
 | React demo | `packages/react/src/components/NewGanttDemo.tsx`, route `/gantt` |
 | Solid, vanilla | same shape under `packages/solid` / `packages/vanilla` — **stale, see drift** |
@@ -161,9 +162,51 @@ choices constrain tier (b) anyway and are cheaper honoured than retrofitted:
 the component stays **controlled**, and conflicts are **computed and reported,
 never enforced**. `Gantt`'s own read-only stance is not under review.
 
-**Next, in order:** extract the generic renderer *under the passing `Gantt`*
-(a refactor with a reference to diff against, rather than a moving seam a second
-component is being written against) → tier (b) read-only → revisit Decision 2.
+### Step 1 is DONE: the renderer is extracted
+
+`schedule-grid.tsx` (980 lines) now holds everything that does not depend on
+what a row *is*; `gantt.tsx` (861) holds the project half. It is **internal** —
+absent from `packages/react/src/index.ts` on purpose, so its shape can change
+without a major version.
+
+The seam, for whoever writes `ProductionSchedule`:
+
+```tsx
+const { metrics, setMetrics } = useScrollerMetrics(scrollerRef);
+const axis = useScheduleAxis({ view, anchor, fitRange, now, calendar,
+                               paneColumns, available: metrics.width });
+<ScheduleGrid
+  rows={rows} rowId={…}
+  columns={paneColumns}          // ScheduleColumn<R>[] — label, width, colIndex, render
+  renderTrack={(row, axisWidth) => …}   // one bar, or a whole sequence
+  connectors={…} axis={axis} scrollerRef={scrollerRef}
+  metrics={metrics} setMetrics={setMetrics} … />
+```
+
+- **`useScheduleAxis` runs in the CALLER, not inside the grid**, and that is
+  deliberate: the caller needs `range` and `axisWidth` to place its own bars in
+  the same render, and a second pass measuring the DOM is exactly how two
+  sources of truth for one geometry get created.
+- **The chain inside it has an order that is easy to reverse.** The pane sheds
+  against what the axis *wants*; a fit axis then spends whatever the pane left
+  over. Pane-first-at-a-fixed-minimum is the version that did not fix anything.
+- `ganttPaneColumns` in core is now generic over the column key, so a second
+  component sheds *its* columns — work centre, order, quantity — by the same
+  rule.
+- `ScheduleRowShape` is the whole contract: `index`, `depth`, `hasChildren`,
+  `expanded`. Everything else about a row reaches the grid only through a
+  column's `render` or through `renderTrack`.
+
+**Verified as a refactor, not asserted.** A DOM probe fingerprinted all 16
+charts on `/gantt` — pane columns, `aria-colindex` sets, column counts and first
+labels, client/content widths, horizontal overflow, `aria-rowcount`/`colcount`,
+mounted row counts, `aria-level`/`aria-expanded`, tab stops, bar and connector
+counts, toolbar buttons, range label — plus 12 keyboard interactions including
+Ctrl+End across the window boundary. Captured before, re-run after: **byte
+identical in both LTR and RTL.**
+
+**Next:** tier (b) read-only (resource rows, finite capacity, load, setup, lag)
+→ revisit Decision 2.
 
 **DECISION 3 — axis: settled, wall-clock with non-working shaded.** (§225)
 Compression would turn one linear date→x map into a piecewise one at every call
