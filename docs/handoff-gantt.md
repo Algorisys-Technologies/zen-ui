@@ -327,8 +327,38 @@ Four things the implementation settled that the sketch did not:
 > than it is. Work content is a property of the job, not the machine: measure
 > on the source, replay on the target.
 
-**Next:** what is left of tier (c) — critical path and float, scenario
-comparison — then tier (d), most of which belongs in the consuming app.
+### Float and the critical path
+
+`packages/core/src/critical-path.ts` + `scripts/check-critical-path.ts` (32
+assertions, two timezones). `showCriticalPath` turns it on; `until` measures
+against a real due date; a `float` pane column reports it.
+
+**Measured against the schedule as it stands**, not by forward-scheduling from
+zero. The operations already have positions somebody chose, so a gap in front
+of one is real slack — a forward pass would have moved the job and called it
+critical.
+
+**Free float and total float are both reported, always.** Free is how far a job
+slips before disturbing its immediate successor; total is how far before it
+moves the end. Reading the total where the free was meant is how a planner
+moves one job into the next and the cascade pushes six more. The column shows
+the total; the tooltip says the free.
+
+> **Two things the visual check caught that the assertions could not.**
+> A negative free float rendered as "-5h before it disturbs the next
+> operation", which reads as a rounding error rather than as an overlap that
+> already exists — it now says "Already overlaps the next operation by 5h".
+> And my first selector for "which bars are ringed" was
+> `[class*="zen-ring-2"]`, which matches EVERY bar, because they all carry
+> `focus-visible:zen-ring-2`. It reported 10 of 10 critical and would have
+> passed vacuously forever.
+
+**Still not built, and recorded rather than forgotten:** scenario comparison.
+The primitive is a second reference position per operation — the same mechanism
+planned-vs-actual needs — so the two should land together.
+
+**Next:** parity. Six drifts across Solid, vanilla and web-components, now
+seven with `ProductionSchedule`.
 
 **DECISION 3 — axis: settled, wall-clock with non-working shaded.** (§225)
 Compression would turn one linear date→x map into a piecewise one at every call

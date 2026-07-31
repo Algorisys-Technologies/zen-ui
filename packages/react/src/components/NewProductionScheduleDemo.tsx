@@ -358,7 +358,46 @@ const routing = [
     </section>
 
     <section className="demo-section">
-      <h2>6. Routing, and clicking an operation</h2>
+      <h2>6. Float, and the chain that has none</h2>
+      <CodeExample
+        title="showCriticalPath + until"
+        description="'How much can I move this before it hurts?' is the question a planner asks before every drag, and float is the answer. Two different answers, in fact, and conflating them is the classic error: FREE float is how far a job slips before it disturbs its immediate successor, TOTAL float is how far before it moves the end. Read the total where you meant the free and you move one job into the next, and the cascade pushes six more. The column shows the total and says the free in its tooltip. It is measured against the schedule AS IT STANDS rather than by forward-scheduling from zero — the jobs already have positions somebody chose, and a gap in front of an operation is real slack rather than something to optimise away. Pass a real due date as until and the reading changes: every operation can then have NEGATIVE float, which is the plant being late rather than a fault in the arithmetic. Operations with no room are ringed and named Critical in words, because the bars' own colour already carries status and hue cannot be asked to mean two things at once."
+        code={`<ProductionSchedule
+  resources={cells}
+  operations={jobs}
+  dependencies={routing}
+  showCriticalPath
+  columns={["resource", "capacity", "float"]}
+  until={new Date(2026, 6, 24, 12)}   // the order's due date
+/>`}
+      >
+        <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <ProductionSchedule
+            resources={CELLS}
+            operations={JOBS}
+            dependencies={ROUTING}
+            calendar={PLANT}
+            now={NOW}
+            showCriticalPath
+            columns={["resource", "jobs", "float"]}
+          />
+          {/* The same schedule against a due date it does not make. */}
+          <ProductionSchedule
+            resources={CELLS}
+            operations={JOBS}
+            dependencies={ROUTING}
+            calendar={PLANT}
+            now={NOW}
+            showCriticalPath
+            until={new Date(2026, 6, 24, 12)}
+            columns={["resource", "jobs", "float"]}
+          />
+        </div>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>7. Routing, and clicking an operation</h2>
       <CodeExample
         title="dependencies + onOperationClick"
         description="Routing links name operations rather than rows, and they arrive at the LANE the operation landed in — an arrow drawn to the middle of a three-lane row would miss every bar in it. A link whose endpoint has folded into a collapsed parent still draws, against the row it folded into. There is no drag-to-reschedule, and that is a deferred decision rather than a settled one: until the chart can show you the overload, a drag has nothing to aim at. Two consequences of the eventual answer are honoured already because they are cheaper kept than retrofitted — the component is fully controlled, and conflicts are computed and reported rather than enforced. Overtime gets authorised and due dates get renegotiated; a component that refused the booking would be wrong in every plant whose rules differ from the ones we guessed."
@@ -379,7 +418,7 @@ const routing = [
     </section>
 
     <section className="demo-section">
-      <h2>7. Loading and empty</h2>
+      <h2>8. Loading and empty</h2>
       <CodeExample
         title="loading / emptyState"
         description="The skeleton draws two blocks per row rather than one long bar, because a machine's day is a sequence and a single bar reads as the wrong component for a second. The toolbar is not drawn over either state: Previous, Today and Next cannot change anything the user can see when there is nothing to see."

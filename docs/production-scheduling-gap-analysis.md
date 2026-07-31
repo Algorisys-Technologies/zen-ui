@@ -441,9 +441,20 @@ signature. None of it is thrown away; it is the module `ProductionSchedule` is b
      only when both ends resolve to the same BAR, and dedups on anchors rather than on rows.
    - The demo's own data had a routing violation in the section about layout.
 
-3. ~~**Revisit Decision 2.**~~ **Done** — see that section. Tiers (a), (b) and the interactive
-   half of (c) are all in for React. What remains of (c) is critical path and float, and scenario
-   comparison; (d) is integration work that mostly belongs in the consuming application.
+3. ~~**Revisit Decision 2.**~~ **Done** — see that section.
+4. ~~**Critical path and float.**~~ **Done.** `packages/core/src/critical-path.ts`, 32 assertions.
+   Measured against the schedule AS IT STANDS rather than by forward-scheduling from zero: the
+   operations already have positions somebody chose, and a gap in front of one is real slack rather
+   than something to optimise away. Free float and total float are BOTH reported, always, because
+   reading the total where the free was meant is how a planner moves one job into the next and the
+   cascade pushes six more. `until` measures against a real due date, where every operation can
+   have negative float — the plant being late, not a fault.
+
+**Tiers (a), (b) and (c) are in for React**, with two exceptions recorded rather than forgotten:
+**scenario comparison** (compare two schedules before committing) is not built — the primitive is
+a second reference position per operation, which is the same mechanism planned-vs-actual would
+need, and neither is done; and tier **(d)** is integration work that mostly belongs in the
+consuming application.
 
 Backward compatibility on tier (a) is absolute: a caller who passes no calendar gets the
 pre-calendar behaviour exactly, because the working-time path is not entered at all. That was

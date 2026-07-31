@@ -23,6 +23,7 @@
     "./gantt": "./src/gantt.ts",
     "./production": "./src/production.ts",
     "./reschedule": "./src/reschedule.ts",
+    "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",
     "./variants": "./src/variants.ts",
     "./release-notes": "./src/release-notes.ts"

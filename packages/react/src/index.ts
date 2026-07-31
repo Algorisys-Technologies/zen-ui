@@ -781,6 +781,12 @@ export {
   productionSetupPlan,
 } from "@algorisys/zen-ui-core/production";
 export { productionReschedule } from "@algorisys/zen-ui-core/reschedule";
+export { productionCriticalPath } from "@algorisys/zen-ui-core/critical-path";
+export type {
+  ProductionCriticalPath,
+  ProductionCriticalPathOptions,
+  ProductionFloat,
+} from "@algorisys/zen-ui-core/critical-path";
 export type {
   ProductionMove,
   ProductionProposal,
