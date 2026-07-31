@@ -3,9 +3,10 @@
 **Written:** 2026-07-31 against `feat/gantt` @ `0c185c4` (`Gantt` is unreleased; it exists on that
 branch only).
 **Audience:** whoever decides whether zen-ui ships a production-scheduling view, and what shape it
-takes. Two of the questions below are deliberately left open — they are architectural calls, not
-implementation details, and they are marked **DECISION**.
-**Status:** Tier (a) is being built now. Everything else is analysis.
+takes.
+**Status:** Tier (a) is **shipped** (React). Decisions 1 and 2 were **settled on 2026-07-31** — see
+their sections; the analysis that led to each is kept because the reasoning is what a future
+reversal has to argue against. Tier (b) is unblocked and not started.
 
 ## Executive summary
 
@@ -104,10 +105,48 @@ consuming application rather than in a component library. The part that does bel
 a progress input expressed as *quantity produced ÷ quantity ordered*, which is a two-field change
 to the task shape and which composes with the existing percent-complete fill.
 
-## DECISION 1 — one component, or two?
+## DECISION 1 — one component, or two? **SETTLED 2026-07-31: two, over one internal renderer.**
 
-**This is the user's call.** Both are defensible and the consequences are asymmetric, so here is
-each honestly.
+> **The decision.** `ProductionSchedule` is a separate component with its own props, demo, nav
+> entry and editing stance. It does **not** get its own renderer: the generic shell — toolbar,
+> frozen pane, row windowing, connector overlay, keyboard, the fit axis — is extracted once and
+> shared, alongside `packages/core/src/gantt.ts` which both already share by construction.
+>
+> **Decided on the DATA MODEL, deliberately, and not on the editing stance.** A row that holds many
+> operations — each with a work centre, an order and lot, a quantity, a setup time and a routing
+> sequence — is a different renderer contract from a row that holds one bar with a percentage and a
+> baseline. That is true whether or not anything is ever draggable, which matters because
+> Decision 2 is deferred (below) and the two must not deadlock.
+>
+> Three corrections to the analysis below, found when the decision was actually made. They are
+> recorded because the analysis reads more confidently than it should:
+>
+> - **The `TreeTable` precedent is weaker here than the recommendation claims.** TreeTable's
+>   argument is a hard impossibility — hierarchy and grouping both claim `subRows`, the `expanded`
+>   state and the chevron column, so DataTable's synthesized group rows would nest inside a real
+>   hierarchy and mean nothing. One table *cannot* hold both. There is no such conflict here: "one
+>   bar per row" is the degenerate case of "many bars per row", and a work centre holding one
+>   operation *is* a task row. The precedent supports a split; it does not force one, and calling it
+>   "the strongest argument" oversold it.
+> - **The reasoning below is circular.** It makes the editing stance an argument for "two", but the
+>   editing stance is Decision 2 — which the tier ordering says should not be decided until (b)
+>   exists, and (b) was blocked on Decision 1. Deciding on the data model is what breaks the loop.
+> - **The extraction cost is much smaller than "real work" suggests, and got smaller.** Measured on
+>   `packages/react/src/components/gantt/gantt.tsx` (1,535 lines): ~556 lines of the `Gantt`
+>   function (measurement, view/fit resolution, pane columns, memos, connectors, keyboard) and ~193
+>   lines of JSX shell (toolbar, sticky header, spacers, now-marker, overlay mount) are generic —
+>   about **750 lines that get written once, not twice**. The seam already exists: making the frozen
+>   pane column-driven meant `GanttRowView` takes `cellKeys` as DATA rather than hardcoding four
+>   cells, so finishing it is a per-column render function. The duplication the analysis warns about
+>   is precisely the part that is shared.
+>
+> **What actually doubles** is the public surface: props, demo, nav entry, `AGENTS.md` catalogue
+> line, and the `check:parity` entry across every binding. With three bindings already deferred that
+> is six entries instead of three, and it is the real cost of this decision.
+
+The analysis that led there, kept as written:
+
+Both are defensible and the consequences are asymmetric, so here is each honestly.
 
 ### Option A — extend `Gantt` with production props
 
@@ -160,9 +199,30 @@ The second argument is the editing stance, which is a property of the whole comp
 of one prop. A component that is read-only by design and a component that is editable by design are
 two different promises to the caller.
 
-## DECISION 2 — the read-only stance has to be revisited
+## DECISION 2 — the read-only stance. **SETTLED 2026-07-31: deferred until tier (b) exists.**
 
-**Also the user's call, and it should be made explicitly rather than inherited.**
+> **The decision.** Not "keep it" and not "drop it" — *decide it later, with something real to
+> drag at.* Build the shop-floor model read-only first: resource rows, finite capacity, load,
+> setup, lag. Then revisit.
+>
+> **This is the tier ordering applied to itself.** Section (c) argues that rescheduling should not
+> be pulled forward because "the value of dragging an operation is resolving a problem — an
+> overload, a late order — and until (b) exists the component cannot show the problem, so the drag
+> has nothing to aim at". That argument applies just as well to *designing* the drag as to shipping
+> it. Committing now to the `onReschedule` shape below would be guessing at a contract whose job is
+> to resolve conflicts the component cannot yet compute.
+>
+> **What this does NOT license.** Tier (b) must not be built in a way that assumes rows never move.
+> The sketch below is deferred, not rejected, and two of its three load-bearing choices constrain
+> (b) already: the component stays **controlled** (it renders what it is given and never mutates
+> optimistically), and conflicts are **computed and reported, never enforced**. Both are cheaper to
+> honour from the start than to retrofit — an internally-mutating component with a second source of
+> truth for the schedule is where every "the Gantt and the ERP disagree" bug comes from, and that is
+> true before anything is draggable.
+>
+> `Gantt` itself is unaffected: it stays read-only by design, and that stance is not under review.
+
+The analysis that led there, kept as written:
 
 `Gantt` refuses drag-to-reschedule on purpose. Its doc comment argues that rescheduling cascades
 through successors, and that the cascade policy, the undo story and the permission model belong to
@@ -295,16 +355,29 @@ that would draw narrower than roughly a pixel are absorbed rather than split. At
 lunch break splits; at a year zoom nothing does. A hard cap sits behind it so a pathological
 calendar cannot hang the renderer.
 
-## What is being built now, and why it is safe to start
+## What was built, and what comes next
 
-**Tier (a) only.** Not resource rows, capacity, load histograms, setup times, drag-to-reschedule,
-critical path, scenarios, or a `ProductionSchedule` component.
+**Tier (a) shipped** in React: working calendars, shift patterns, dated exceptions, working
+durations, split bars and sub-day columns, all in `packages/core/src/gantt.ts` and pinned by
+`scripts/check-gantt.ts`. It did not prejudge Decision 1, and that turned out to be right — the
+answer is two components, and every one of those functions is shared by both with the same
+signature. None of it is thrown away; it is the module `ProductionSchedule` is built on.
 
-The reason this does not prejudge Decision 1: **tier (a) is needed identically under both
-branches.** Working-time arithmetic lives in `packages/core/src/gantt.ts`, which a separate
-`ProductionSchedule` would share and an extended `Gantt` would use directly. Either way the
-functions are the same functions with the same signatures. If the answer is "two components", none
-of this work is thrown away; it is the module the second component is built on.
+**Next, in order**, now that Decision 1 is settled:
+
+1. **Extract the generic renderer** from `packages/react/src/components/gantt/gantt.tsx` — the
+   ~750 lines measured in Decision 1 above. Do this BEFORE tier (b), not alongside it: extracting
+   under a passing `Gantt` is a refactor with a reference implementation to diff against, and
+   extracting while a second component is being written against a moving seam is two changes at
+   once. The last step is finishing the column model — `GanttRowView` already takes `cellKeys` as
+   data, so it needs a render function per column rather than a hardcoded four-way branch.
+2. **Tier (b), read-only**: resource rows, finite capacity, load, setup, lag. Keep the component
+   controlled and report conflicts rather than enforcing them — see Decision 2.
+3. **Revisit Decision 2** with an overload on screen to drag at.
+
+Backward compatibility on tier (a) is absolute: a caller who passes no calendar gets the
+pre-calendar behaviour exactly, because the working-time path is not entered at all. That was
+verified against the consuming application rather than asserted.
 
 Backward compatibility is absolute: a caller who passes no calendar gets today's behaviour exactly,
 because the working-time path is not entered at all. That is verified against the consuming

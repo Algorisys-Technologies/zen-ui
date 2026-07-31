@@ -961,8 +961,13 @@ built — Tier 1 spent a day marked done while a row was missing.
       focus lands on `<body>`. Verified in a browser at 21/21 checks, LTR and
       RTL, including Ctrl+End across the window boundary.
       See [docs/production-scheduling-gap-analysis.md](docs/production-scheduling-gap-analysis.md)
-      for the two open decisions this sits under: whether production scheduling
-      becomes a second component, and whether the read-only stance survives.
+      for the two decisions this sits under, **both settled 2026-07-31**:
+      production scheduling becomes a SECOND component (`ProductionSchedule`)
+      over one shared internal renderer, and the read-only stance is deferred
+      until tier (b) exists rather than kept or dropped. The consequence for
+      this entry is that the parity debt doubles once `ProductionSchedule`
+      lands — six deferred entries instead of three — which is an argument for
+      paying some of it down first, not for reversing the decision.
       It is deferred at the user's request rather than on substance — the
       consuming app is React and wanted the import unblocked without waiting on
       a full four-binding release. Nothing is marked `divergent` in
