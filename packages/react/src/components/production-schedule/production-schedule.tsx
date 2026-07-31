@@ -35,7 +35,7 @@ import {
 } from "../empty-state/empty-state";
 import { Icon } from "../icon/icon";
 import { Skeleton } from "../skeleton/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../tooltip/tooltip";
+import { TooltipProvider } from "../tooltip/tooltip";
 import {
   INDENT_PX,
   ROW_PX,
@@ -1125,93 +1125,93 @@ const ProductionBar = ({
     .filter(Boolean)
     .join(" · ");
 
+  /* No Radix Tooltip here, deliberately, and the other two bindings agree.
+     The native `title` already carries the same sentence, and a tooltip
+     trigger installs pointer handlers on a bar that is DRAGGABLE — they
+     compete with the pointer capture the drag depends on. A hover card on
+     something you are in the middle of moving is noise anyway. */
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          /* Reachable, not tabbable: the timeline CELL carries the tab stop,
-             and `data-gantt-bar` is how the keyboard scrolls this into view. */
-          tabIndex={-1}
-          data-gantt-bar=""
-          data-gantt-movable={movable ? "" : undefined}
-          /* One handler, guarded inside, rather than a conditional one. When a
-             bar is movable the pointer gesture calls this itself once it has
-             told a click from a drag by distance, so attaching it here too
-             would fire on both. Kept identical to the Solid binding, where a
-             conditional handler also trips solid/reactivity. */
-          onClick={() => {
-            if (!movable) onOperationClick?.(operation, row);
-          }}
-          onPointerDown={onPointerDown}
-          onKeyDown={onBarKeyDown}
+    <button
+      type="button"
+      /* Reachable, not tabbable: the timeline CELL carries the tab stop,
+         and `data-gantt-bar` is how the keyboard scrolls this into view. */
+      tabIndex={-1}
+      data-gantt-bar=""
+      data-gantt-movable={movable ? "" : undefined}
+      /* One handler, guarded inside, rather than a conditional one. When a
+         bar is movable the pointer gesture calls this itself once it has
+         told a click from a drag by distance, so attaching it here too
+         would fire on both. Kept identical to the Solid binding, where a
+         conditional handler also trips solid/reactivity. */
+      onClick={() => {
+        if (!movable) onOperationClick?.(operation, row);
+      }}
+      onPointerDown={onPointerDown}
+      onKeyDown={onBarKeyDown}
+      className={cn(
+        "zen-absolute zen-rounded-zen-sm",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+        onOperationClick && "hover:zen-brightness-95",
+        /* The affordance IS the gate: an operation the caller will not let
+           move simply does not offer to. */
+        movable && "zen-cursor-grab active:zen-cursor-grabbing",
+        /* A RING, not a recolour. The bar's fill already carries status, so
+           a critical operation cannot be signalled by hue without taking
+           that meaning away — and the Float column says "Critical" in words
+           beside it, because a ring on its own is not a legend. */
+        critical && "zen-ring-2 zen-ring-zen-warning zen-ring-offset-1",
+        dragPx !== null && "zen-z-20 zen-opacity-80 zen-shadow-zen-md",
+      )}
+      style={{
+        insetInlineStart: `${placed.startPct}%`,
+        width: `${placed.widthPct}%`,
+        top,
+        height: LANE_BAR_PX,
+        /* Logical, so the preview follows the pointer under RTL too. */
+        ...(dragPx !== null ? { translate: `${dragPx}px` } : null),
+      }}
+      title={title}
+    >
+      <span className="zen-sr-only">
+        {`${operation.name}, ${formatTime(placement.span.start)} to ${formatTime(placement.span.end)}${
+          placement.setup ? ", including changeover" : ""
+        }${progress === null ? "" : `, ${Math.round(progress)} percent complete`}`}
+      </span>
+      {pieces.map((piece) => (
+        <span
+          key={piece.key}
+          aria-hidden="true"
           className={cn(
-            "zen-absolute zen-rounded-zen-sm",
-            "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-            onOperationClick && "hover:zen-brightness-95",
-            /* The affordance IS the gate: an operation the caller will not let
-               move simply does not offer to. */
-            movable && "zen-cursor-grab active:zen-cursor-grabbing",
-            /* A RING, not a recolour. The bar's fill already carries status, so
-               a critical operation cannot be signalled by hue without taking
-               that meaning away — and the Float column says "Critical" in words
-               beside it, because a ring on its own is not a legend. */
-            critical && "zen-ring-2 zen-ring-zen-warning zen-ring-offset-1",
-            dragPx !== null && "zen-z-20 zen-opacity-80 zen-shadow-zen-md",
+            "zen-absolute zen-inset-y-0 zen-overflow-hidden zen-rounded-zen-sm zen-border",
+            BAR_CLASS[status],
           )}
-          style={{
-            insetInlineStart: `${placed.startPct}%`,
-            width: `${placed.widthPct}%`,
-            top,
-            height: LANE_BAR_PX,
-            /* Logical, so the preview follows the pointer under RTL too. */
-            ...(dragPx !== null ? { translate: `${dragPx}px` } : null),
-          }}
-          title={title}
+          style={{ insetInlineStart: `${piece.startPct}%`, width: `${piece.widthPct}%` }}
         >
-          <span className="zen-sr-only">
-            {`${operation.name}, ${formatTime(placement.span.start)} to ${formatTime(placement.span.end)}${
-              placement.setup ? ", including changeover" : ""
-            }${progress === null ? "" : `, ${Math.round(progress)} percent complete`}`}
-          </span>
-          {pieces.map((piece) => (
+          {/* The changeover, in a hatch rather than a colour: it is not a
+              lighter kind of work, it is not work. A second solid tone
+              would read as a second job. */}
+          {piece.setupPct > 0 && (
             <span
-              key={piece.key}
-              aria-hidden="true"
-              className={cn(
-                "zen-absolute zen-inset-y-0 zen-overflow-hidden zen-rounded-zen-sm zen-border",
-                BAR_CLASS[status],
-              )}
-              style={{ insetInlineStart: `${piece.startPct}%`, width: `${piece.widthPct}%` }}
-            >
-              {/* The changeover, in a hatch rather than a colour: it is not a
-                  lighter kind of work, it is not work. A second solid tone
-                  would read as a second job. */}
-              {piece.setupPct > 0 && (
-                <span
-                  className="zen-absolute zen-inset-y-0 zen-start-0 zen-opacity-70"
-                  style={{
-                    width: `${piece.setupPct}%`,
-                    backgroundImage:
-                      "repeating-linear-gradient(45deg, var(--zen-color-muted-fg) 0 2px, transparent 2px 5px)",
-                  }}
-                />
-              )}
-              {progress !== null && piece.setupPct < 100 && (
-                <span
-                  className={cn("zen-absolute zen-inset-y-0", FILL_CLASS[status])}
-                  style={{
-                    insetInlineStart: `${piece.setupPct}%`,
-                    width: `${((100 - piece.setupPct) * progress) / 100}%`,
-                  }}
-                />
-              )}
-            </span>
-          ))}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent>{title}</TooltipContent>
-    </Tooltip>
+              className="zen-absolute zen-inset-y-0 zen-start-0 zen-opacity-70"
+              style={{
+                width: `${piece.setupPct}%`,
+                backgroundImage:
+                  "repeating-linear-gradient(45deg, var(--zen-color-muted-fg) 0 2px, transparent 2px 5px)",
+              }}
+            />
+          )}
+          {progress !== null && piece.setupPct < 100 && (
+            <span
+              className={cn("zen-absolute zen-inset-y-0", FILL_CLASS[status])}
+              style={{
+                insetInlineStart: `${piece.setupPct}%`,
+                width: `${((100 - piece.setupPct) * progress) / 100}%`,
+              }}
+            />
+          )}
+        </span>
+      ))}
+    </button>
   );
 };
 
