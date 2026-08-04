@@ -120,6 +120,13 @@ export const NAV: NavGroup[] = [
       { to: "/pivot", label: "Pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/vanilla/src/components/PivotDemo.ts" },
       { to: "/media-timeline", label: "MediaTimeline", description: "Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state", source: "packages/vanilla/src/components/MediaTimelineDemo.ts" },
       { to: "/waveform", label: "Waveform", description: "Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align", source: "packages/vanilla/src/components/WaveformDemo.ts" },
+      { to: "/countdown", label: "TimerBadge / TestCountdownBar", description: "Exam clock from a deadline, not a decrementing number — colour thresholds, auto-expire hook, sticky bar", source: "packages/vanilla/src/components/CountdownDemo.ts" },
+      { to: "/spreadsheet-grid", label: "SpreadsheetGrid / SheetCalculator", description: "Editable cells with a real formula evaluator; errors render as errors, never a plausible number", source: "packages/vanilla/src/components/SpreadsheetGridDemo.ts" },
+      { to: "/proctor", label: "ProctorStreamGrid / ProctorFlagOverlay", description: "Live candidate tiles with violation flags; displays streams, does not detect anything", source: "packages/vanilla/src/components/ProctorDemo.ts" },
+      { to: "/chunk-uploader", label: "ChunkUploader", description: "Large file in pieces — bounded retries, exponential backoff, pause and resume", source: "packages/vanilla/src/components/ChunkUploaderDemo.ts" },
+      { to: "/diff-view", label: "DiffView", description: "What changed between two snapshots — added / removed / changed rows for an audit payload or a revision", source: "packages/vanilla/src/components/DiffViewDemo.ts" },
+      { to: "/splitter", label: "Splitter", description: "Resizable panes — drag the divider, or arrow it; percentages, collapse, full WAI-ARIA separator", source: "packages/vanilla/src/components/SplitterDemo.ts" },
+      { to: "/sortable-list", label: "SortableList", description: "Reorder a list by dragging or entirely by keyboard; the app owns the order", source: "packages/vanilla/src/components/SortableListDemo.ts" },
     ],
   },
   {
@@ -129,6 +136,9 @@ export const NAV: NavGroup[] = [
       { to: "/camera", label: "Camera (webcam)", description: "Webcam capture via getUserMedia; onCapture returns a data-URL screenshot painted from an offscreen canvas", source: "packages/vanilla/src/components/CameraDemo.ts" },
       { to: "/map", label: "Map (leaflet)", description: "Lazy-loaded map with markers; leaflet is an optional peer dep", source: "packages/vanilla/src/components/MapDemo.ts" },
       { to: "/chart", label: "Chart", description: "Line / bar / area / pie / donut; dependency-free SVG in the vanilla binding", source: "packages/vanilla/src/components/ChartDemo.ts" },
+      { to: "/code-editor", label: "CodeEditor / IDEWindow", description: "Monaco wrapper — language, theme, read-only, Ctrl+Enter run hook; file list beside it", source: "packages/vanilla/src/components/CodeEditorDemo.ts" },
+      { to: "/document-viewer", label: "DocumentViewer", description: "Show a scanned document — image or PDF, with zoom, fit, rotate and page count; the other half of FileUpload", source: "packages/vanilla/src/components/DocumentViewerDemo.ts" },
+      { to: "/diagram-canvas", label: "DiagramCanvas / ArchitectureDraw", description: "Embedded diagrams.net or YappyDraw editor over postMessage; draw.io XML or Yappy JSON in and out", source: "packages/vanilla/src/components/DiagramCanvasDemo.ts" },
     ],
   },
   {
