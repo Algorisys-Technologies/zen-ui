@@ -11,6 +11,73 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.7.0] - 2026-08-04
+
+The port closes. `vanilla` and `web-components` gain both component sets, and
+`check:parity` is green in every direction for the first time — 2409 assertions
+across `bun run check`, no component existing in only one binding.
+
+### Added
+
+- `packages/vanilla` and `packages/web-components` — `TimerBadge`,
+  `TestCountdownBar`, `CodeEditor`, `IDEWindow`, `SpreadsheetGrid`,
+  `SheetCalculator`, `ProctorStreamGrid`, `ProctorFlagOverlay`, `ChunkUploader`,
+  `DiagramCanvas`, `ArchitectureDraw`, `DiffView`, `DocumentViewer`, `Splitter`
+  and `SortableList`, plus `Timeline`'s collapsible body. Ten demos, nav entries
+  and routes in each.
+- `pdfjs-dist` and `@monaco-editor/loader` as OPTIONAL peers of both bindings.
+  They were resolving only through hoisting from another package's install.
+
+### Changed
+
+- `scripts/bindings.mjs` — `SplitterPanel`, `SplitterHandle`, `SortableListItem`
+  and `SortableListHandle` join `DATA_DRIVEN_DIVERGENT`, with
+  `SplitterPanelSpec`, `SortableItemSpec` and `CountdownCore` as their
+  data-driven counterparts. Same decision as every other family in that list.
+- `packages/vanilla` — `SortableList`'s pointer dragging is written here against
+  measured row boxes. There is no drag library in this binding and one is not
+  worth adding for a single component; the keyboard path is still core's reducer,
+  so the two agree with React's by construction.
+- `packages/web-components` — `define.ts` refuses to define a `_bag` property
+  that shadows a member it reads on the host. The guard is a named list rather
+  than "anything on `HTMLElement.prototype`", because several elements shadow
+  `children` deliberately: it is the default `childrenProp`, and since
+  `Element.children` is getter-only the shadow is what makes it assignable.
+
+### Fixed
+
+- `packages/web-components` — `<zen-input-otp>` declared `style` as a prop, which
+  shadowed `HTMLElement.prototype.style` with an accessor returning `undefined`;
+  `connectedCallback`'s own `if (!this.style.display)` threw on every instance.
+  Five runtime errors on the OTP demo and a dead page behind them. Pre-existing;
+  found by running `visual-check` against this binding for the first time.
+- `packages/vanilla` — `SpreadsheetGrid` selected the cell's text on entering
+  edit mode, so the character that seeded the draft was replaced by the next
+  keystroke: typing `=` then `1+2*3` committed the literal string `1+2*3`. Every
+  formula silently stopped being one, and it read as the parser failing.
+- `packages/vanilla` — `Timeline`'s disclosure never settled. Assigning `.open`
+  fires `toggle` exactly as a click does, including on a freshly built element,
+  so each rebuild reported itself as a user action and the caller re-rendered
+  again. Clicking a second row left the first open and spun the page until the
+  next navigation timed out. It compares against what was last rendered now.
+  React and Solid already compared against their current state; this was
+  vanilla's alone.
+
+### Verified
+
+- In a browser, all four bindings agreeing: splitter divider 1px in a 12px hit
+  area, focus-on-click, `aria-valuenow/min/max` against real clamps, arrow 1%,
+  shift 10%, Home/End on the announced bounds, drag, collapse-snap and reopen
+  past min; sortable announcing "Picked up item 1 of 5", arrow reorder, Escape
+  restoring exactly and still bubbling at rest; the same invoice arithmetic
+  (1260 / 2095 / 439.95 / 2534.95) including a web-components grid seeded
+  entirely from a `cells` attribute; `=1+2*3` giving 7; the PDF drawing real ink
+  at 540×760 with a "1 / 2" counter and surviving six rapid zooms to 381% with no
+  canvas collisions; Monaco loading 5 instances.
+- `visual-check`: react 105 routes, vanilla 102, web-components 102 — no runtime
+  errors in any.
+- `check:dist`: budgets unchanged, one React Button still 18 kB gzip.
+
 ## [10.6.0] - 2026-08-04
 
 The four Solid-only components, ported to **React**. `check:parity` now reports
