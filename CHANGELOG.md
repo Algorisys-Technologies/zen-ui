@@ -11,6 +11,42 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.6.0] - 2026-08-04
+
+The four Solid-only components, ported to **React**. `check:parity` now reports
+React↔Solid clean in BOTH directions; `vanilla` and `web-components` remain red
+for both this set and the 10.4.0 assessment set, which is the port still to do.
+
+### Added
+
+- `packages/react` — `DocumentViewer`, `DiffView`, `Splitter` (with
+  `SplitterPanel`, `SplitterHandle`), `SortableList` (with `SortableListItem`,
+  `SortableListHandle`), each with a demo, a `nav.ts` entry and a route.
+- `packages/react` — `Timeline` items take `collapsible`, `open`,
+  `onOpenChange` and `children`, rendering a disclosure body. Additive: an item
+  without `collapsible` renders exactly as before.
+- `pdfjs-dist` as an OPTIONAL peer of the React binding (`^5 || ^6`), loaded
+  lazily and only when a PDF is actually rendered.
+
+### Changed
+
+- Keyboard reordering in React's `SortableList` comes from
+  `@algorisys/zen-ui-core/sortable`, not dnd-kit's `KeyboardSensor`, which is
+  deliberately not registered. Three of four bindings need a hand-written
+  keyboard layer regardless (`@thisbeyond/solid-dnd` has none; vanilla and
+  web-components have no drag library), so taking the free one would give React
+  different cancel semantics and announcement timing from the rest.
+
+### Verified
+
+- In a browser, both bindings: splitter divider 1×222 with a 12px hit area,
+  focus-on-click, `aria-valuenow/min/max` 30/20/70 against real clamps, arrow
+  moving 1% and Home landing exactly on the announced min; sortable pick-up
+  announcing "Picked up item 1 of 5", arrow reordering, Escape restoring the
+  original order exactly and announcing "Reorder cancelled", and Escape at rest
+  still bubbling.
+- `visual-check react` — 105 routes, no runtime errors.
+
 ## [10.5.0] - 2026-08-04
 
 The seven assessment components from 10.4.0, ported to **Solid**. The

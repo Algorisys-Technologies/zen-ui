@@ -102,6 +102,10 @@ import NewSpreadsheetGridDemo from "./components/NewSpreadsheetGridDemo";
 import NewProctorDemo from "./components/NewProctorDemo";
 import NewChunkUploaderDemo from "./components/NewChunkUploaderDemo";
 import NewDiagramCanvasDemo from "./components/NewDiagramCanvasDemo";
+import NewDiffViewDemo from "./components/NewDiffViewDemo";
+import NewDocumentViewerDemo from "./components/NewDocumentViewerDemo";
+import NewSplitterDemo from "./components/NewSplitterDemo";
+import NewSortableListDemo from "./components/NewSortableListDemo";
 import NewTimelineDemo from "./components/NewTimelineDemo";
 import NewUploadCollectionDemo from "./components/NewUploadCollectionDemo";
 import NewPlanningCalendarDemo from "./components/NewPlanningCalendarDemo";
@@ -354,6 +358,10 @@ const App: React.FC = () => {
             <Route path="/proctor" element={<NewProctorDemo />} />
             <Route path="/chunk-uploader" element={<NewChunkUploaderDemo />} />
             <Route path="/diagram-canvas" element={<NewDiagramCanvasDemo />} />
+            <Route path="/diff-view" element={<NewDiffViewDemo />} />
+            <Route path="/document-viewer" element={<NewDocumentViewerDemo />} />
+            <Route path="/splitter" element={<NewSplitterDemo />} />
+            <Route path="/sortable-list" element={<NewSortableListDemo />} />
             <Route path="/timeline" element={<NewTimelineDemo />} />
             <Route path="/upload-collection" element={<NewUploadCollectionDemo />} />
             <Route path="/planning-calendar" element={<NewPlanningCalendarDemo />} />

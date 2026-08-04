@@ -119,3 +119,4 @@ dist-site/
 # to text when a file is missing.
 packages/*/public/previews/
 apps/landing/public/previews/
+.playwright-mcp/

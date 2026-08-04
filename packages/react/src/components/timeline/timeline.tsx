@@ -59,7 +59,77 @@ export interface TimelineItem {
   group?: string;
   /** Anything richer than a description: a diff, a quote, an attachment. */
   children?: React.ReactNode;
+  /**
+   * Put `children` behind a disclosure. A history where every entry carries a
+   * payload is unreadable fully expanded — the events stop being scannable,
+   * which is the one thing a timeline is for.
+   */
+  collapsible?: boolean;
+  /** Starting state when the disclosure is uncontrolled. */
+  defaultOpen?: boolean;
+  /**
+   * Controlled disclosure. Pass it with `onOpenChange` and the caller owns which
+   * items are open — the only way to build a single-open accordion, where
+   * opening one row closes the others.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /**
+   * The disclosure's label. Defaults to "Details". A function receives the
+   * current state, for a toggle that reads "Show" / "Hide" rather than one
+   * fixed word.
+   */
+  collapseLabel?: React.ReactNode | ((open: boolean) => React.ReactNode);
 }
+
+/**
+ * The body of one item, disclosed or not.
+ *
+ * A native `<details>` rather than the Accordion: it is keyboard-operable and
+ * findable by the browser's in-page search with no JS at all, and an audit trail
+ * is exactly the place someone hits Ctrl+F expecting to match text inside a
+ * collapsed row. The open state is mirrored into React state only so the chevron
+ * can point the right way — the disclosure itself stays uncontrolled unless the
+ * caller passes `open`.
+ */
+const TimelineBody = ({ item }: { item: TimelineItem }) => {
+  const [internal, setInternal] = React.useState(!!item.defaultOpen);
+  const open = item.open ?? internal;
+
+  const label =
+    item.collapseLabel === undefined
+      ? "Details"
+      : typeof item.collapseLabel === "function"
+        ? item.collapseLabel(open)
+        : item.collapseLabel;
+
+  if (!item.collapsible) return <div className="zen-mt-1">{item.children}</div>;
+
+  return (
+    <details
+      className="zen-mt-1"
+      open={open}
+      onToggle={(e) => {
+        /* A controlled caller may refuse the change, so the element's own state
+           is not the truth — push it back if it drifted. */
+        const next = (e.currentTarget as HTMLDetailsElement).open;
+        if (next === open) return;
+        setInternal(next);
+        item.onOpenChange?.(next);
+      }}
+    >
+      <summary className="zen-inline-flex zen-cursor-pointer zen-list-none zen-items-center zen-gap-1 zen-rounded-zen-sm zen-text-xs zen-font-medium zen-text-zen-muted-fg hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring">
+        <Icon
+          name="chevron-down"
+          size={14}
+          className={cn("zen-transition-transform", open ? undefined : "-zen-rotate-90 rtl:zen-rotate-90")}
+        />
+        {label}
+      </summary>
+      <div className="zen-mt-2">{item.children}</div>
+    </details>
+  );
+};
 
 export interface TimelineProps {
   items: TimelineItem[];
@@ -158,9 +228,7 @@ export const Timeline = ({ items, density, emptyMessage, className }: TimelinePr
                   {row.item.description}
                 </p>
               )}
-              {!compact && row.item.children && (
-                <div className="zen-mt-1">{row.item.children}</div>
-              )}
+              {!compact && row.item.children && <TimelineBody item={row.item} />}
             </div>
           </li>
         </React.Fragment>
