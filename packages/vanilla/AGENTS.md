@@ -178,6 +178,48 @@ missing export:
 - **Toast.** React wraps Radix Toast primitives; Solid uses solid-toast. Both
   expose an imperative `toast()` plus a viewport, but the primitive API differs.
 
+## Styling your own markup — do not write `zen-` classes by default
+
+The stylesheet you import (`<pkg>/styles`) is a **closed set**: UnoCSS generated
+it by scanning zen-ui's own source, so it contains exactly the utilities zen-ui's
+components use and nothing else. It never saw your app.
+
+A `zen-` class you write in your own markup therefore produces **no CSS** unless
+zen-ui already uses that identical class. It fails silently — no error, no
+warning, green build, unstyled element.
+
+**Use your app's own styling system for your own markup.** Plain Tailwind or
+UnoCSS utilities, CSS modules, whatever you already have. The `zen-` prefix
+exists so zen-ui cannot collide with your CSS; it is not a vocabulary offered to
+you.
+
+If you genuinely want to author `zen-` utilities, run UnoCSS over your own
+source with zen-ui's preset:
+
+```ts
+// uno.config.ts, in YOUR app
+import { defineConfig, presetUno } from "unocss";
+import { ZEN_PREFIX, zenUnoTheme, zenAnimationsPreset } from "@algorisys/zen-ui-core/uno-preset";
+
+export default defineConfig({
+  presets: [presetUno({ prefix: ZEN_PREFIX }), zenAnimationsPreset],
+  theme: zenUnoTheme,
+});
+```
+
+Two things NOT to conclude when a `zen-` class does nothing:
+
+- **Not "the preset has no spacing scale."** It does. `zen-p-7`, `zen-p-9`,
+  `zen-p-0.5`, `zen-py-3.5`, `zen-gap-1.5` and arbitrary values like
+  `zen-p-[10px]`, `zen-text-[0.7rem]`, `zen-grid-cols-[1fr_1fr]` all generate
+  when UnoCSS is actually run over the file that uses them.
+- **Not "the token is missing."** Check the spelling first. `muted-fg`, not
+  `muted-foreground`; there is no `card` colour — use `background`.
+
+To restyle zen-ui's OWN components, override `--zen-*` custom properties. That
+is the supported theming surface and it needs no build step.
+
+
 ## Rules that apply in every binding
 
 - **You must import the stylesheet.** `import "<pkg>/styles";` once at your

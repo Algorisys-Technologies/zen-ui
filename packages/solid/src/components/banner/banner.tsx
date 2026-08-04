@@ -21,6 +21,8 @@ const bannerVariants = cva(
         info: "zen-bg-zen-info-soft zen-text-zen-info-soft-fg zen-border-zen-info-soft",
         success: "zen-bg-zen-success-soft zen-text-zen-success-soft-fg zen-border-zen-success-soft",
         warning: "zen-bg-zen-warning-soft zen-text-zen-warning-soft-fg zen-border-zen-warning-soft",
+        error: "zen-bg-zen-error-soft zen-text-zen-error-soft-fg zen-border-zen-error-soft",
+        /** @deprecated spell it `error` — same tokens, same rendering. */
         destructive: "zen-bg-zen-error-soft zen-text-zen-error-soft-fg zen-border-zen-error-soft",
       },
       sticky: {

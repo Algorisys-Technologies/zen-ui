@@ -127,6 +127,70 @@ zen-group / zen-peer                 ✅   (anchors are prefixed too; `group-hov
 
 `ZEN_PREFIX` in [packages/core/src/uno-preset.ts](../packages/core/src/uno-preset.ts) is shared by every binding's `uno.config.ts` **and** by `cn()`. They must not drift apart.
 
+### The shipped `style.css` is a CLOSED SET — read this before writing `zen-` classes in your own app
+
+`dist/style.css` is what UnoCSS generated **from zen-ui's own source**. UnoCSS is
+a scanner: it emits a rule only for a class it has actually seen in a file it was
+told to read. It never saw your app.
+
+So the utilities in that file are exactly the ones zen-ui's own components
+happen to use — nothing else. A `zen-` class you write in your markup generates
+nothing unless zen-ui already used the identical class somewhere. Measured
+against the shipped `packages/solid/dist/style.css`:
+
+```
+zen-p-4        present   ← zen-ui uses it
+zen-gap-2      present   ← zen-ui uses it
+zen-p-7        ABSENT
+zen-py-3.5     ABSENT
+zen-p-[10px]   ABSENT
+```
+
+**This is not a gap in the preset**, and it is worth being precise because a
+consumer hit exactly this and drew the wrong conclusion — that the preset
+shipped no spacing scale and no arbitrary values, and that two-thirds of their
+styles therefore had to become inline `style` attributes. Asked directly, the
+generator emits all of them:
+
+```
+zen-p-7  zen-p-9  zen-p-11  zen-p-14  zen-p-16  zen-p-20  zen-p-24   all generate
+zen-p-0.5  zen-py-1.5  zen-gap-1.5  zen-py-3.5  zen-mt-2.5           all generate
+zen-p-[10px]  zen-text-[0.7rem]  zen-grid-cols-[1fr_1fr]             all generate
+```
+
+`presetUno` supplies the spacing scale and arbitrary-value support; zen-ui's
+preset adds the theme on top. Nothing is missing. The stylesheet is just a
+snapshot, not a library.
+
+**If you want to author `zen-` utilities in your own app, run UnoCSS yourself**
+over your own source, with zen-ui's preset so the theme and prefix match:
+
+```ts
+// uno.config.ts, in YOUR app
+import { defineConfig, presetUno } from "unocss";
+import { ZEN_PREFIX, zenUnoTheme, zenAnimationsPreset } from "@algorisys/zen-ui-core/uno-preset";
+
+export default defineConfig({
+  presets: [presetUno({ prefix: ZEN_PREFIX }), zenAnimationsPreset],
+  theme: zenUnoTheme,
+});
+```
+
+Then import zen-ui's stylesheet for the components **and** your own generated
+CSS for your markup. The two do not conflict: same prefix, same theme, same
+tokens.
+
+Prefer plain unprefixed utilities in your own app if you already have Tailwind
+or UnoCSS set up — the `zen-` prefix exists to stop zen-ui colliding with YOUR
+CSS, not to be the vocabulary you write in.
+
+A last check before blaming the preset: a class that generates nothing may
+simply be misspelled against the theme. Two real ones from the same report —
+`zen-text-zen-muted-foreground` (the token is `muted-fg`) and `zen-bg-zen-card`
+(there is no `card` colour; use `background`) — were genuine bugs in the
+consumer's markup, and no preset change would have fixed them. The token list is
+in the [README](../README.md#token-reference).
+
 ### Two traps worth knowing
 
 **`cn()` cannot use `extendTailwindMerge({ prefix })`.** That option follows Tailwind v4 semantics, where a prefix is a leading variant (`zen:p-4`). UnoCSS emits the v3 form (`zen-p-4`), so the built-in option silently matches nothing and every override breaks. [cn.ts](../packages/core/src/cn.ts) instead strips the prefix from the parsed base class via `experimentalParseClassName`.
