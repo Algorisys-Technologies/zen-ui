@@ -81,6 +81,12 @@ export interface DiagramCanvasProps {
   src?: string;
   /** The bridge failed — most often an origin the Yappy deployment has not allowlisted. */
   onError?: (message: string) => void;
+  /**
+   * The frame's `sandbox`. Overriding it is an explicit security decision —
+   * read the note beside the default before narrowing it, because dropping
+   * `allow-same-origin` stops most editors loading their own assets.
+   */
+  sandbox?: string;
   /** CSS height. Default `"32rem"`. */
   height?: string;
   /** Accessible name for the frame. */
@@ -96,6 +102,7 @@ export const DiagramCanvas = ({
   onReady,
   onError,
   src,
+  sandbox = "allow-scripts allow-same-origin allow-popups allow-forms allow-downloads",
   height = "32rem",
   title = "Diagram editor",
   className,
@@ -221,9 +228,23 @@ export const DiagramCanvas = ({
     };
 
     window.addEventListener("message", onMessage);
-    if (provider === "yappydraw" && url) void startYappy();
+    /*
+     * Wait for the frame to NAVIGATE before probing.
+     *
+     * A fresh iframe holds an initial about:blank that inherits the parent's
+     * origin, so posting with the editor's origin as targetOrigin is rejected —
+     * "target origin ... does not match the recipient window's origin
+     * (http://localhost:5170)". The ping loop retried past it, but every attempt
+     * logged, so a working integration looked broken.
+     */
+    const onLoad = () => {
+      if (provider === "yappydraw") void startYappy();
+    };
+    const frame = frameRef.current;
+    frame?.addEventListener("load", onLoad);
 
     return () => {
+      frame?.removeEventListener("load", onLoad);
       window.removeEventListener("message", onMessage);
       if (pollId) clearInterval(pollId);
       pending.clear();
@@ -236,10 +257,28 @@ export const DiagramCanvas = ({
       src={url}
       title={title}
       style={{ height }}
-      /* No allow-same-origin: the frame is a third-party editor and must not
-         reach this document. It communicates by postMessage, which needs none
-         of it. */
-      sandbox="allow-scripts allow-popups allow-forms allow-downloads"
+      /*
+       * `allow-same-origin` is required, and it is safe HERE — but only because
+       * `src` is a different origin from the host.
+       *
+       * Without it the frame gets an OPAQUE origin, so every asset it fetches
+       * from its own server counts as cross-origin and needs CORS headers most
+       * apps do not send. Measured against yappydraw.com: the document loaded
+       * and then all four of its own bundles were blocked, leaving a blank
+       * frame with no error the component could see. draw.io survives the
+       * omission only because diagrams.net serves its assets with CORS.
+       *
+       * What it grants is the frame's OWN origin back — its cookies, its
+       * storage. It does NOT let the frame reach this document; the same-origin
+       * policy between two different origins still does that, and the sandbox
+       * is not what was holding the line.
+       *
+       * The one configuration to avoid is a SAME-ORIGIN `src` together with
+       * this: a frame on your own origin can then reach in and remove its own
+       * sandbox attribute. Host the editor somewhere else, which is the normal
+       * arrangement anyway.
+       */
+      sandbox={sandbox}
       className={cn(
         "zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background",
         className,

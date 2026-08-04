@@ -11,6 +11,36 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.4.1] - 2026-08-04
+
+### Fixed
+
+- **`DiagramCanvas` could not load an embedded editor's own assets.** The frame
+  was sandboxed without `allow-same-origin`, giving it an OPAQUE origin, so every
+  asset it fetched from its own server counted as cross-origin and needed CORS
+  headers most apps do not send. Measured against yappydraw.com: the document
+  loaded and then all four of its own bundles were blocked, leaving a blank frame
+  that the host page cannot detect. draw.io survived the omission only because
+  diagrams.net serves its assets with CORS — which is exactly why this shipped:
+  the provider it was written against masked it.
+
+  `allow-same-origin` is now in the default sandbox, with a `sandbox` prop to
+  narrow it. It grants the frame its OWN origin back, not access to the host
+  document — the same-origin policy between two different origins does that, and
+  the sandbox was never what held that line. The arrangement to avoid is a
+  same-origin `src` with `allow-same-origin` + `allow-scripts`, where the frame
+  can remove its own sandbox attribute.
+- **The YappyDraw bridge probed before the frame had navigated.** A fresh iframe
+  holds an initial `about:blank` inheriting the parent's origin, so the first
+  `postMessage` was rejected with a target-origin mismatch. The retry loop got
+  past it, but every attempt logged, so a working integration read as broken. It
+  waits for the frame's `load` event now.
+
+Verified in a browser: framing yappydraw.com goes from 8 console errors to 0,
+the only remaining message being YappyDraw's own analytics noting it is in a
+frame — which is proof its scripts now execute. `visual-check` react: 101 routes,
+no runtime errors.
+
 ## [10.4.0] - 2026-08-04
 
 Seven components for assessment platforms, in the **React binding only**.
