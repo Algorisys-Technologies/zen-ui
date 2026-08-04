@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.6.0",
+    date: "2026-08-04",
+    kind: "new",
+    title: "DocumentViewer, DiffView, Splitter and SortableList are now in React too",
+    detail:
+      "The mirror image of the last release: the four Solid-only components, ported. A scanned document or PDF viewer that renders to a canvas rather than an iframe, a diff that survives the strings a real audit column actually holds, resizable panes, and a list you can reorder entirely by keyboard. Timeline items can now be collapsible and hold the payload that changed.",
+  },
+  {
     version: "10.5.0",
     date: "2026-08-04",
     kind: "new",

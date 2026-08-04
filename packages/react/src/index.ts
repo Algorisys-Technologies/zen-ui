@@ -836,6 +836,67 @@ export {
 } from "@algorisys/zen-ui-core/chunk-upload";
 export type { ChunkPlanItem } from "@algorisys/zen-ui-core/chunk-upload";
 
+export {
+  SortableList,
+  SortableListItem,
+  SortableListHandle,
+} from "./components/sortable-list/sortable-list";
+export type {
+  SortableListProps,
+  SortableListItemProps,
+  SortableListHandleProps,
+} from "./components/sortable-list/sortable-list";
+export {
+  moveItem,
+  reduceReorder,
+  keyToReorderAction,
+  DEFAULT_REORDER_ANNOUNCEMENTS,
+} from "@algorisys/zen-ui-core/sortable";
+export type {
+  PickedUp,
+  ReorderAction,
+  ReorderIntent,
+  ReorderResult,
+  ReorderOrientation,
+  ReorderAnnouncements,
+} from "@algorisys/zen-ui-core/sortable";
+
+export { Splitter, SplitterPanel, SplitterHandle } from "./components/splitter/splitter";
+export type {
+  SplitterProps,
+  SplitterPanelProps,
+  SplitterHandleProps,
+  SplitterOrientation,
+} from "./components/splitter/splitter";
+export {
+  normalizeSizes,
+  dragHandle,
+  handleBounds,
+  splitterKeyDelta,
+  mirrorDelta,
+  SPLITTER_STEP,
+  SPLITTER_STEP_LARGE,
+} from "@algorisys/zen-ui-core/splitter";
+export type { SplitterPanelConstraint } from "@algorisys/zen-ui-core/splitter";
+
+export { DocumentViewer } from "./components/document-viewer/document-viewer";
+export type { DocumentViewerProps } from "./components/document-viewer/document-viewer";
+export {
+  inferDocumentKind,
+  clampZoom,
+  zoomStep,
+  normalizeRotation,
+  fitScale,
+  DOCUMENT_ZOOM_MIN,
+  DOCUMENT_ZOOM_MAX,
+} from "@algorisys/zen-ui-core/document";
+export type { DocumentKind, DocumentFit, DocumentSize } from "@algorisys/zen-ui-core/document";
+
+export { DiffView } from "./components/diff-view/diff-view";
+export type { DiffViewProps } from "./components/diff-view/diff-view";
+export { computeDiff, parseSnapshot, isKeyed } from "@algorisys/zen-ui-core/diff";
+export type { DiffRow, DiffKind, DiffOptions, DiffSnapshot } from "@algorisys/zen-ui-core/diff";
+
 export { TimerBadge, TestCountdownBar } from "./components/countdown/countdown";
 export type { TimerBadgeProps, TestCountdownBarProps, CountdownLevel } from "./components/countdown/countdown";
 export {

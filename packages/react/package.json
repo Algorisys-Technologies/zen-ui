@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-react",
-  "version": "10.5.0",
+  "version": "10.6.0",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "sideEffects": [
@@ -57,7 +57,8 @@
     "react-leaflet": "^4.0.0 || ^5.0.0",
     "react-webcam": "^7.0.0",
     "@monaco-editor/react": "^4.0.0",
-    "katex": "^0.16.0"
+    "katex": "^0.16.0",
+    "pdfjs-dist": "^5.0.0 || ^6.0.0"
   },
   "peerDependenciesMeta": {
     "recharts": {
@@ -79,6 +80,9 @@
       "optional": true
     },
     "katex": {
+      "optional": true
+    },
+    "pdfjs-dist": {
       "optional": true
     }
   },
@@ -138,6 +142,7 @@
     "jodit-pro-react": "^5.2.44",
     "katex": "^0.16.11",
     "leaflet": "^1.9.4",
+    "pdfjs-dist": "^6.2.108",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-leaflet": "^5.0.0",

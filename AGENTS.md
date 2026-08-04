@@ -126,6 +126,10 @@ description, then import the name from your binding's package.
 - **ProctorStreamGrid / ProctorFlagOverlay** — Live candidate tiles with violation flags; displays streams, does not detect anything
 - **ChunkUploader** — Large file in pieces — bounded retries, exponential backoff, pause and resume
 - **DiagramCanvas / ArchitectureDraw** — Embedded diagrams.net editor over postMessage; draw.io XML in and out
+- **DiffView** — What changed between two snapshots — added / removed / changed rows for an audit payload or a revision
+- **DocumentViewer** — Show a scanned document — image or PDF, with zoom, fit, rotate and page count; the other half of FileUpload
+- **Splitter** — Resizable panes — drag the divider, or arrow it; percentages, collapse, full WAI-ARIA separator
+- **SortableList** — Reorder a list by dragging or entirely by keyboard; the app owns the order
 - **Timeline** — Ordered list of events with a rail, markers, timestamps and date groups
 - **UploadCollection** — The list of uploaded files — progress, rename, delete, retry; the result FileUpload has no view for
 - **PlanningCalendar** — Resource-by-time grid — rows of people or rooms, appointments as blocks, day / week / month views
