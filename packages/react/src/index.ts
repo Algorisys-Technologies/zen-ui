@@ -796,6 +796,56 @@ export type {
 } from "@algorisys/zen-ui-core/reschedule";
 export { UploadCollection } from "./components/upload-collection/upload-collection";
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";
+export { SpreadsheetGrid, SheetCalculator } from "./components/spreadsheet-grid/spreadsheet-grid";
+export type { SpreadsheetGridProps, SheetCalculatorProps } from "./components/spreadsheet-grid/spreadsheet-grid";
+export {
+  parseRef,
+  formatRef,
+  expandRange,
+  evaluateFormula,
+  formatCellValue,
+  isCellError,
+  CELL_ERRORS,
+} from "@algorisys/zen-ui-core/spreadsheet";
+export type { CellMap, CellValue, CellFormat, CellRef, CellError } from "@algorisys/zen-ui-core/spreadsheet";
+
+export { DiagramCanvas, ArchitectureDraw, DEFAULT_DIAGRAM_EMBED_URL, DEFAULT_YAPPYDRAW_EMBED_URL } from "./components/diagram-canvas/diagram-canvas";
+export type { DiagramCanvasProps, ArchitectureDrawProps, DiagramProvider } from "./components/diagram-canvas/diagram-canvas";
+
+export { ProctorStreamGrid, ProctorFlagOverlay } from "./components/proctor/proctor";
+export type {
+  ProctorStreamGridProps,
+  ProctorFlagOverlayProps,
+  ProctorParticipant,
+  ProctorFlag,
+  ProctorFlagLevel,
+} from "./components/proctor/proctor";
+
+export { CodeEditor, IDEWindow, CODE_LANGUAGES } from "./components/code-editor/code-editor";
+export type { CodeEditorProps, IDEWindowProps, CodeFile, CodeLanguage } from "./components/code-editor/code-editor";
+
+export { ChunkUploader } from "./components/chunk-uploader/chunk-uploader";
+export type { ChunkUploaderProps, ChunkMeta, ChunkUploadStatus } from "./components/chunk-uploader/chunk-uploader";
+export {
+  planChunks,
+  shouldRetry,
+  nextAttemptDelay,
+  uploadProgress,
+  DEFAULT_CHUNK_SIZE,
+  DEFAULT_MAX_ATTEMPTS,
+} from "@algorisys/zen-ui-core/chunk-upload";
+export type { ChunkPlanItem } from "@algorisys/zen-ui-core/chunk-upload";
+
+export { TimerBadge, TestCountdownBar } from "./components/countdown/countdown";
+export type { TimerBadgeProps, TestCountdownBarProps, CountdownLevel } from "./components/countdown/countdown";
+export {
+  remainingMs,
+  formatCountdown,
+  countdownLevel,
+  crossedThresholds,
+  DEFAULT_COUNTDOWN_THRESHOLDS,
+} from "@algorisys/zen-ui-core/countdown";
+
 export { Timeline } from "./components/timeline/timeline";
 export type { TimelineProps, TimelineItem, TimelineState } from "./components/timeline/timeline";
 export {
@@ -893,6 +943,7 @@ export type { Slice } from "@algorisys/zen-ui-core/chart";
 export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
 
 // UI Components - RichText (lazy jodit-pro-react wrapper; optional peer dep)
+export { renderMath } from "./components/rich-text/rich-text";
 export { RichText } from "./components/rich-text/rich-text";
 export type { RichTextProps } from "./components/rich-text/rich-text";
 

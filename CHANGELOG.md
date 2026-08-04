@@ -11,6 +11,74 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.4.0] - 2026-08-04
+
+Seven components for assessment platforms, in the **React binding only**.
+`check:parity` is now RED IN BOTH DIRECTIONS — 31 React-only names and 28
+Solid-only — which is the cost of building React-first before closing the Solid
+port, and was flagged before the work started.
+
+### Added
+
+- `packages/core/src/countdown.ts` (38 assertions), `chunk-upload.ts` (33) and
+  `spreadsheet.ts` (72), each wired into `bun run check`.
+- `TimerBadge` / `TestCountdownBar` — deadline-driven, not a decrementing
+  counter. `crossedThresholds` compares two readings rather than testing for an
+  exact second, because a throttled tab skips seconds and a warning that tests
+  for exactly 300 never fires.
+- `CodeEditor` / `IDEWindow` — `@monaco-editor/react` as an OPTIONAL peer,
+  lazily imported behind an error boundary that names the package.
+- `SpreadsheetGrid` / `SheetCalculator` — recursive-descent formula parser, NOT
+  `eval`. Circular references return `#CIRCULAR!` rather than overflowing the
+  stack.
+- `ProctorStreamGrid` / `ProctorFlagOverlay` — display only. No MediaPipe, no
+  getUserMedia; the boundary is deliberate and documented.
+- `ChunkUploader` — bounded retries with exponential backoff, resuming on the
+  failed chunk rather than past it.
+- `DiagramCanvas` / `ArchitectureDraw` — `postMessage` embed with two providers:
+  `drawio`, and `yappydraw` (Algorisys's own, client-side and self-hostable) with
+  its structured `__yappy` RPC bridge.
+- `RichText.onImageUpload` and `RichText.math`, plus an exported `renderMath`.
+  `katex` as an OPTIONAL peer.
+
+### Fixed (during development, never released)
+
+- **The spreadsheet doubled the first keystroke.** Typing `=` seeded the draft
+  AND was inserted again by the browser into the input that autofocused on the
+  next render, so `=` became `==` and every typed formula evaluated to
+  `#ERROR!`. The parser was never at fault. Missing `preventDefault`.
+- **Editing a cell resized the grid.** An `<input>` carries an intrinsic width of
+  about twenty characters, so entering edit mode widened the cell 96px → 186px
+  and the table 425 → 515; the grid jumped under the cursor on every edit. Fixed
+  with `table-layout: fixed` plus an explicit `<colgroup>`, so a column's width
+  comes from the layout and never from its contents. Re-measured: 96×25 and 425
+  across idle, editing, and a long formula.
+- **CodeEditor crashed the demo with "Cannot read properties of null (reading
+  'useState')".** Installing monaco into `packages/react` pulled a NESTED React
+  (19.2.8 beside the root's 19.2.3), so Monaco's hooks ran against a second React
+  instance. Nothing in that error names React duplication and the library build
+  was unaffected, so only the demo showed it. `resolve.dedupe` in
+  `vite.config.demo.ts`.
+- A dead `zen--outline-offset-2` — the negative marker goes BEFORE the prefix.
+  Caught by `check:css-live`, which is what that check is for.
+
+### Changed
+
+- The DiagramCanvas demo loads its iframes behind a button rather than on page
+  view. Both providers are third-party origins, and a demo page that frames one
+  as you scroll past makes a privacy decision for the reader. It also removed the
+  sandboxed frame's own blocked XHR from every visual-check run.
+
+### Verification
+
+- `bun run check` — 27 green; only `check:parity`, red in both directions.
+- lint 0 problems across all four bindings.
+- `node scripts/visual-check.mjs react` — 101 routes, no runtime errors.
+- Driven in a browser: formulas evaluated live (3 × 420 = €1,260, SUM = €2,095,
+  +21% VAT = €2,534.95), all five error values rendered, `=1+2*3` typed into a
+  cell returned 7, a reference to a formula cell returned €70.00, Escape
+  abandoned an edit, and cell geometry was measured stable through an edit.
+
 ## [10.3.1] - 2026-08-04
 
 ### Fixed

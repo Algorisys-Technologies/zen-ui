@@ -96,6 +96,12 @@ import NewFormDemo from "./components/NewFormDemo";
 import NewDataTableDemo from "./components/NewDataTableDemo";
 import NewTreeTableDemo from "./components/NewTreeTableDemo";
 import NewMicroChartDemo from "./components/NewMicroChartDemo";
+import NewCountdownDemo from "./components/NewCountdownDemo";
+import NewCodeEditorDemo from "./components/NewCodeEditorDemo";
+import NewSpreadsheetGridDemo from "./components/NewSpreadsheetGridDemo";
+import NewProctorDemo from "./components/NewProctorDemo";
+import NewChunkUploaderDemo from "./components/NewChunkUploaderDemo";
+import NewDiagramCanvasDemo from "./components/NewDiagramCanvasDemo";
 import NewTimelineDemo from "./components/NewTimelineDemo";
 import NewUploadCollectionDemo from "./components/NewUploadCollectionDemo";
 import NewPlanningCalendarDemo from "./components/NewPlanningCalendarDemo";
@@ -342,6 +348,12 @@ const App: React.FC = () => {
             <Route path="/data-table" element={<NewDataTableDemo />} />
             <Route path="/tree-table" element={<NewTreeTableDemo />} />
             <Route path="/micro-chart" element={<NewMicroChartDemo />} />
+            <Route path="/countdown" element={<NewCountdownDemo />} />
+            <Route path="/code-editor" element={<NewCodeEditorDemo />} />
+            <Route path="/spreadsheet-grid" element={<NewSpreadsheetGridDemo />} />
+            <Route path="/proctor" element={<NewProctorDemo />} />
+            <Route path="/chunk-uploader" element={<NewChunkUploaderDemo />} />
+            <Route path="/diagram-canvas" element={<NewDiagramCanvasDemo />} />
             <Route path="/timeline" element={<NewTimelineDemo />} />
             <Route path="/upload-collection" element={<NewUploadCollectionDemo />} />
             <Route path="/planning-calendar" element={<NewPlanningCalendarDemo />} />
