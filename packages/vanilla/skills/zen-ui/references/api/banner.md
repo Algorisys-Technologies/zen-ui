@@ -13,7 +13,7 @@ SKILL.md.
 
 ### Banner
 
-- `color?: "info" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined`
+- `color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined`
 - `sticky?: boolean | null | undefined`
 - …plus the underlying element's standard props (279 inherited).
 
@@ -43,7 +43,7 @@ SKILL.md.
 
 ### Other exports
 
-- `bannerVariants(props?: ({ color?: "info" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined; sticky?: boolean | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `bannerVariants(props?: ({ color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined; sticky?: boolean | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

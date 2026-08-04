@@ -52,6 +52,22 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     version: "10.2.0",
     date: "2026-08-04",
     kind: "improved",
+    title: 'Alert and Banner accept color="error", like everything else',
+    detail:
+      "Button spelled the red slot error and Alert spelled it destructive, on a prop of the same name, so a value could not move between them. The tokens were only ever --zen-color-error, so error was already the truth. destructive still works and renders identically; it is deprecated, not removed.",
+  },
+  {
+    version: "10.2.0",
+    date: "2026-08-04",
+    kind: "improved",
+    title: "StatCard takes a description — a sub-line under the figure",
+    detail:
+      "For 'GRN completed / total' or 'Prompt + completion'. A trend could not stand in: its direction arrow is mandatory, which is wrong for a denominator. Also fixes trend.color being silently ignored in the vanilla and web-components bindings, where the shipped API docs said it worked.",
+  },
+  {
+    version: "10.2.0",
+    date: "2026-08-04",
+    kind: "improved",
     title: "Timeline items can hide their body behind a disclosure",
     detail:
       "A history where every entry carries a payload is unreadable fully expanded. Set collapsible on an item and its children go behind a native <details>, so in-page search still finds text inside a collapsed row. Solid first.",

@@ -5,13 +5,29 @@ import { Skeleton } from "../skeleton/skeleton";
 import { Icon } from "../icon/icon";
 
 export type StatCardColor = "primary" | "neutral" | "info" | "success" | "warning" | "error";
-export interface StatCardTrend { value: Child; direction: "up" | "down" | "flat" }
+export interface StatCardTrend {
+  value: Child;
+  direction: "up" | "down" | "flat";
+  /**
+   * Overrides the direction's default colour. Up is not universally good —
+   * churn, cost, error rate and response time all read the other way.
+   */
+  color?: StatCardColor;
+}
 
 export interface StatCardProps {
   label: Child;
   value: Child;
   /** Decorative: `label` is the meaning. */
   icon?: Child;
+  /**
+   * A line under the value, in the caller's own words — "GRN completed / total",
+   * "Prompt + completion". It is NOT a trend: a trend carries a mandatory
+   * direction arrow and a semantic colour, which is wrong for a denominator or
+   * a definition. Apps that needed this used to rebuild the card on Card, which
+   * is the drift this component exists to prevent.
+   */
+  description?: Child;
   color?: StatCardColor;
   trend?: StatCardTrend;
   onClick?: () => void;
@@ -37,7 +53,7 @@ export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
   const el = document.createElement(tag);
 
   const render = () => {
-    const { label, value, icon, color = "neutral", trend, onClick, href, loading, class: className } = current;
+    const { label, value, icon, description, color = "neutral", trend, onClick, href, loading, class: className } = current;
     const interactive = Boolean(href || onClick);
     el.className = cn(
       cardVariants({ variant: "outlined", padding: "md" }),
@@ -71,12 +87,19 @@ export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
 
     if (trend && !loading) {
       const t = document.createElement("span");
-      t.className = cn("zen-inline-flex zen-items-center zen-gap-1 zen-text-xs zen-font-medium", TEXT[TREND_COLOR[trend.direction]]);
+      t.className = cn("zen-inline-flex zen-items-center zen-gap-1 zen-text-xs zen-font-medium", TEXT[trend.color ?? TREND_COLOR[trend.direction]]);
       t.append(Icon({ name: TREND_ICON[trend.direction], size: 14, title: TREND_LABEL[trend.direction] }).el);
       const tv = document.createElement("span");
       tv.append(...toNodes(trend.value));
       t.append(tv);
       col.append(t);
+    }
+
+    if (description && !loading) {
+      const d = document.createElement("span");
+      d.className = "zen-text-xs zen-text-zen-muted-fg";
+      d.append(...toNodes(description));
+      col.append(d);
     }
     row.append(col);
 

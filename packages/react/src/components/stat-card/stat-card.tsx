@@ -54,6 +54,14 @@ export interface StatCardProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   value: React.ReactNode;
   /** Rendered bare, tinted by `color`. Decorative: `label` is the meaning. */
   icon?: React.ReactNode;
+  /**
+   * A line under the value, in the caller's own words — "GRN completed / total",
+   * "Prompt + completion". It is NOT a trend: a trend carries a mandatory
+   * direction arrow and a semantic colour, which is wrong for a denominator or
+   * a definition. Apps that needed this used to rebuild the card on Card, which
+   * is the drift this component exists to prevent.
+   */
+  description?: React.ReactNode;
   /** Default "neutral" — a statistic is not an alert. */
   color?: StatCardColor;
   trend?: StatCardTrend;
@@ -90,7 +98,7 @@ const TREND_LABEL = { up: "Trending up", down: "Trending down", flat: "Flat" } a
 
 export const StatCard = React.forwardRef<HTMLElement, StatCardProps>(
   (
-    { label, value, icon, color = "neutral", trend, onClick, href, loading, className, ...rest },
+    { label, value, icon, description, color = "neutral", trend, onClick, href, loading, className, ...rest },
     ref,
   ) => {
     const interactive = Boolean(href || onClick);
@@ -129,6 +137,9 @@ export const StatCard = React.forwardRef<HTMLElement, StatCardProps>(
               />
               {trend.value}
             </span>
+          ) : null}
+          {description && !loading ? (
+            <span className="zen-text-xs zen-text-zen-muted-fg">{description}</span>
           ) : null}
         </div>
         {icon ? (

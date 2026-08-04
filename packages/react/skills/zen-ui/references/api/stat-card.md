@@ -16,6 +16,7 @@ SKILL.md.
 - `label: React.ReactNode`
 - `value: React.ReactNode`
 - `icon?: React.ReactNode` — Rendered bare, tinted by `color`. Decorative: `label` is the meaning.
+- `description?: React.ReactNode` — A line under the value, in the caller's own words — "GRN completed / total", "Prompt + completion". It is NOT a trend: a trend carries a mandatory direction arrow and a semantic colour, which is wrong for a denominator or a definition. Apps that needed this used to rebuild the card on Card, which is the drift this component exists to prevent.
 - `color?: StatCardColor | undefined` — Default "neutral" — a statistic is not an alert.
 - `trend?: StatCardTrend | undefined`
 - `onClick?: (() => void) | undefined` — Renders the card as a button.

@@ -54,6 +54,14 @@ export interface StatCardProps extends Omit<JSX.HTMLAttributes<HTMLElement>, "on
   value: JSX.Element;
   /** Rendered bare, tinted by `color`. Decorative: `label` is the meaning. */
   icon?: JSX.Element;
+  /**
+   * A line under the value, in the caller's own words — "GRN completed / total",
+   * "Prompt + completion". It is NOT a trend: a trend carries a mandatory
+   * direction arrow and a semantic colour, which is wrong for a denominator or
+   * a definition. Apps that needed this used to rebuild the card on Card, which
+   * is the drift this component exists to prevent.
+   */
+  description?: JSX.Element;
   /** Default "neutral" — a statistic is not an alert. */
   color?: StatCardColor;
   trend?: StatCardTrend;
@@ -93,6 +101,7 @@ export const StatCard = (props: StatCardProps) => {
     "label",
     "value",
     "icon",
+    "description",
     "color",
     "trend",
     "onClick",
@@ -145,6 +154,9 @@ export const StatCard = (props: StatCardProps) => {
               </span>
             );
           })()}
+        </Show>
+        <Show when={local.description && !local.loading}>
+          <span class="zen-text-xs zen-text-zen-muted-fg">{local.description}</span>
         </Show>
       </div>
       <Show when={local.icon}>

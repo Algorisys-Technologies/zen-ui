@@ -16,7 +16,8 @@ const alertVariants = cva(
   "zen-relative zen-w-full zen-rounded-zen-md zen-p-3 zen-flex zen-items-start zen-gap-2",
   {
     variants: {
-      color: { neutral: "", primary: "", info: "", success: "", warning: "", destructive: "" },
+      // `destructive` is a deprecated alias for `error`; both render identically.
+      color: { neutral: "", primary: "", info: "", success: "", warning: "", error: "", destructive: "" },
       variant: { soft: "", outline: "zen-bg-zen-background" },
     },
     compoundVariants: [
@@ -25,12 +26,14 @@ const alertVariants = cva(
       { variant: "soft", color: "info", class: "zen-bg-zen-info-soft zen-text-zen-info-soft-fg zen-border zen-border-zen-info-soft" },
       { variant: "soft", color: "success", class: "zen-bg-zen-success-soft zen-text-zen-success-soft-fg zen-border zen-border-zen-success-soft" },
       { variant: "soft", color: "warning", class: "zen-bg-zen-warning-soft zen-text-zen-warning-soft-fg zen-border zen-border-zen-warning-soft" },
+      { variant: "soft", color: "error", class: "zen-bg-zen-error-soft zen-text-zen-error-soft-fg zen-border zen-border-zen-error-soft" },
       { variant: "soft", color: "destructive", class: "zen-bg-zen-error-soft zen-text-zen-error-soft-fg zen-border zen-border-zen-error-soft" },
       { variant: "outline", color: "neutral", class: "zen-border zen-border-zen-border zen-text-zen-foreground" },
       { variant: "outline", color: "primary", class: "zen-border zen-border-zen-primary zen-text-zen-foreground" },
       { variant: "outline", color: "info", class: "zen-border zen-border-zen-info zen-text-zen-foreground" },
       { variant: "outline", color: "success", class: "zen-border zen-border-zen-success zen-text-zen-foreground" },
       { variant: "outline", color: "warning", class: "zen-border zen-border-zen-warning zen-text-zen-foreground" },
+      { variant: "outline", color: "error", class: "zen-border zen-border-zen-error zen-text-zen-foreground" },
       { variant: "outline", color: "destructive", class: "zen-border zen-border-zen-error zen-text-zen-foreground" },
     ],
     defaultVariants: { variant: "soft", color: "info" },

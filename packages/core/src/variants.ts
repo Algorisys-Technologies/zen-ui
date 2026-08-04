@@ -35,6 +35,39 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
 /**
+ * The semantic palette, named once.
+ *
+ * Every component that takes a `color` draws from this list. It exists because
+ * they did not: Button spelled the red slot `error` and Alert spelled the same
+ * slot `destructive`, on a prop of the same name, so a value could not move
+ * between them without a translation table. Seven components said `error` and
+ * two said `destructive`; the TOKENS have only ever been `--zen-color-error`,
+ * with no `--zen-destructive` anywhere, so `error` was already the truth and
+ * `destructive` was a second name for it.
+ *
+ * `destructive` is still ACCEPTED by Alert and Banner and renders identically —
+ * nobody's code breaks — but it is deprecated and no longer the documented
+ * spelling. New components must use this type rather than inlining a list,
+ * which is how the divergence happened in the first place.
+ */
+export const ZEN_SEMANTIC_COLORS = [
+  "primary",
+  "neutral",
+  "info",
+  "success",
+  "warning",
+  "error",
+] as const;
+
+export type ZenSemanticColor = (typeof ZEN_SEMANTIC_COLORS)[number];
+
+/**
+ * @deprecated Spell it `error`. Accepted for compatibility; it maps to the same
+ * `--zen-color-error` tokens and renders identically.
+ */
+export type ZenDeprecatedColorAlias = "destructive";
+
+/**
  * Button — shadcn/radix-style.
  *
  * The base resets browser-default <button> chrome: UnoCSS's presetUno preflight

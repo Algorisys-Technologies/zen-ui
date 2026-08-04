@@ -13,7 +13,7 @@ SKILL.md.
 
 ### Alert
 
-- `color?: "info" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined`
+- `color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined`
 - `variant?: "outline" | "soft" | null | undefined`
 - …plus the underlying element's standard props (279 inherited).
 
@@ -43,7 +43,7 @@ SKILL.md.
 
 ### Other exports
 
-- `alertVariants(props?: ({ color?: "info" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined; variant?: "outline" | "soft" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `alertVariants(props?: ({ color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined; variant?: "outline" | "soft" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

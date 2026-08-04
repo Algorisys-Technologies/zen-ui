@@ -8,6 +8,6 @@ defineZenElement<StatCardProps>({
   tag: "zen-stat-card",
   factory: StatCard,
   attrs: { color: "string", href: "string", loading: "boolean" },
-  props: ["label", "value", "icon", "trend", "onClick"],
+  props: ["label", "value", "icon", "description", "trend", "onClick"],
   childrenProp: false,
 });

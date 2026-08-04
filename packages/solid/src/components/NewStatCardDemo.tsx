@@ -128,7 +128,27 @@ const NewStatCardDemo = () => {
       </DemoSection>
 
       <DemoSection
-        title="5. Loading"
+        title="5. A sub-line under the figure"
+        codeTitle="`description` — not a trend"
+        codeDescription="A line in your own words: what the figure is over, or what it counts. It is deliberately separate from trend, because a trend carries a mandatory direction arrow and a semantic colour — right for '+12% vs last week', wrong for 'GRN completed / total', which is a denominator and not a movement. Apps that wanted this used to rebuild the card on Card and drift away from the design system, which is the thing StatCard exists to prevent."
+        code={`<StatCard label="Goods receipts" value="1,284" description="GRN completed / total" />
+<StatCard label="Tokens" value="84.2k" description="Prompt + completion" />`}
+      >
+        <div class="zen-grid zen-gap-4 sm:zen-grid-cols-3">
+          <StatCard label="Goods receipts" value="1,284" description="GRN completed / total" />
+          <StatCard label="Tokens" value="84.2k" description="Prompt + completion" />
+          <StatCard
+            label="Rejections"
+            value="37"
+            color="error"
+            description="QR scan rejected at gate"
+            trend={{ value: "+4 vs last week", direction: "up", color: "error" }}
+          />
+        </div>
+      </DemoSection>
+
+      <DemoSection
+        title="6. Loading"
         codeTitle="The label stays; the figure is what you do not know yet"
         codeDescription="loading swaps the figure for a skeleton and marks the card aria-busy. The label is not a mystery, so it does not shimmer."
         code={`<StatCard label="Completion rate" value={rate} loading={isLoading} />`}

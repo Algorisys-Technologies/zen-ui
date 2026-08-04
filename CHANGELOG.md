@@ -105,6 +105,40 @@ text selection, in-document search and print, which an `<iframe>` provides free.
 That trade is deliberate — it is the only way to get a page count and rotation —
 but it is a downgrade for an app that only ever needed to look at one page.
 
+### Fixed — four items reported by consumers
+
+- **Colour vocabulary converged on `error`.** Alert and Banner now accept
+  `color="error"` in all four bindings; `destructive` still works, renders
+  identically and is marked `@deprecated`. Verified by comparing all 11
+  `error`/`destructive` pairs across the six files — 0 mismatches. New in
+  `packages/core/src/variants.ts`: `ZEN_SEMANTIC_COLORS` / `ZenSemanticColor`,
+  so the next component draws from one list instead of inlining its own.
+  Untouched, needing a rename decision: `Toast.variant` collides head-on with
+  `Button.variant` (same prop name, disjoint vocabularies), and
+  `DropdownMenuItem.variant` is `default | destructive` on what may be a
+  different axis entirely.
+- **`StatCard.description`** in all four bindings — a free-text sub-line under
+  the value. `trend` could not serve: its direction arrow is mandatory.
+  Destructured/split out of the rest-props in React and Solid, so it cannot leak
+  onto the DOM element; added to the web-components `props` list.
+- **`StatCardTrend.color` honoured in vanilla and web-components.** It existed
+  in React and Solid and was documented in the generated API reference shipped
+  inside the vanilla and web-components packages, but the render hardcoded
+  `TREND_COLOR[direction]` and dropped the override.
+- **Documented that the shipped stylesheet is a closed set** — in
+  `docs/css-interop.md` and, more importantly, in the generated agent guides
+  (`STYLING` in `scripts/gen-agent-guide.ts`, reaching all 15 files). A consumer
+  bulk-converted an app to `zen-` utilities, found 144 of them produced no CSS,
+  concluded the preset shipped no spacing scale and no arbitrary values, and
+  reverted two-thirds of their styles to inline `style` attributes. Measured
+  against the real generator, the preset emits all of it — `zen-p-7`, `zen-p-9`,
+  `zen-p-0.5`, `zen-py-3.5`, `zen-gap-1.5`, `zen-p-[10px]`, `zen-text-[0.7rem]`,
+  `zen-grid-cols-[1fr_1fr]`. The real cause is that `dist/style.css` contains
+  only what zen-ui's own source uses, so any class the consumer writes that
+  zen-ui does not already use is dead. Two of their findings WERE real bugs in
+  their markup: `muted-foreground` (the token is `muted-fg`) and `zen-bg-zen-card`
+  (no `card` colour exists).
+
 ### Verification
 
 - `bun run check` — 22 of 23 green; `check:parity` red as described above.
