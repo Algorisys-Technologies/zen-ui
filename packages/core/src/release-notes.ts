@@ -33,6 +33,22 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.7.0",
+    date: "2026-08-04",
+    kind: "new",
+    title: "Every component now exists in every binding",
+    detail:
+      "vanilla and web-components gain the fifteen components React and Solid already had — the assessment set, plus DocumentViewer, DiffView, Splitter, SortableList and Timeline's collapsible body. They behave the same rather than merely looking the same: the diff, the splitter geometry, the reorder reducer, the countdown, the chunk plan and the formula evaluator are one shared implementation in core, and a binding owns only its DOM.",
+  },
+  {
+    version: "10.7.0",
+    date: "2026-08-04",
+    kind: "fixed",
+    title: "<zen-input-otp> rendered nothing, and took the page with it",
+    detail:
+      "The element declared `style` as a property, which replaced the element's own style with one that was undefined, so it threw while connecting — once per OTP field on the page. define.ts now refuses to shadow a member it reads on the host.",
+  },
+  {
     version: "10.6.0",
     date: "2026-08-04",
     kind: "new",
