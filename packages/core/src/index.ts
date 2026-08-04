@@ -17,3 +17,5 @@ export * from "./production";
 export * from "./reschedule";
 export * from "./critical-path";
 export * from "./media";
+export * from "./diff";
+export * from "./document";

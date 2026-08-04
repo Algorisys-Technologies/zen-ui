@@ -147,7 +147,62 @@ const NewTimelineDemo = () => (
     </DemoSection>
 
     <DemoSection
-      title="5. Compact"
+      title="5. Collapsible bodies"
+      codeTitle="`collapsible` on the item"
+      codeDescription="A history where every entry carries a payload is unreadable fully expanded — the events stop being scannable, which is the one thing a timeline is for. Set collapsible and the body goes behind a disclosure; defaultOpen decides the starting state and the disclosure is uncontrolled after that. It is a native <details>, so it is keyboard-operable and the browser's in-page search can still find text inside a collapsed row — which matters, because an audit trail is exactly where someone hits Ctrl+F."
+      code={`{
+  id: "1",
+  title: "Approved",
+  timestamp: "09:14",
+  collapsible: true,
+  collapseLabel: "Payload",   // defaults to "Details"
+  children: <DiffView before={before} after={after} />,
+}`}
+    >
+      <Timeline
+        items={[
+          {
+            id: "c1",
+            title: "Approved",
+            timestamp: "09:14",
+            state: "success",
+            icon: "check-circle",
+            description: "R. Iyer · finance",
+            collapsible: true,
+            children: (
+              <div class="zen-flex zen-flex-wrap zen-gap-1">
+                <Badge variant="soft" color="success">
+                  amount 1200 → 1250
+                </Badge>
+                <Badge variant="soft" color="neutral">
+                  status pending → approved
+                </Badge>
+              </div>
+            ),
+          },
+          {
+            id: "c2",
+            title: "Amount corrected",
+            timestamp: "08:51",
+            state: "warning",
+            description: "S. Menon · gate",
+            collapsible: true,
+            defaultOpen: true,
+            collapseLabel: "Payload",
+            children: (
+              <div class="zen-flex zen-flex-wrap zen-gap-1">
+                <Badge variant="soft" color="warning">
+                  weight_kg 840 → 862
+                </Badge>
+              </div>
+            ),
+          },
+        ]}
+      />
+    </DemoSection>
+
+    <DemoSection
+      title="6. Compact"
       codeTitle="For a sidebar, where the timeline is context not subject"
       codeDescription="density='compact' tightens the spacing and drops the description and body, keeping the title and time. That is a deliberate omission rather than a smaller font: in a narrow column a two-line description wraps to five and the sequence stops being scannable, which is the only reason the timeline was there."
       code={`<Timeline items={items} density="compact" />`}
@@ -158,7 +213,7 @@ const NewTimelineDemo = () => (
     </DemoSection>
 
     <DemoSection
-      title="6. Empty"
+      title="7. Empty"
       codeTitle="`emptyMessage`"
       codeDescription="An empty timeline renders the message instead of a bare rail. A rail with no markers looks like a component that failed to load rather than a history with nothing in it yet."
       code={`<Timeline items={[]} emptyMessage="No activity on this order yet" />`}

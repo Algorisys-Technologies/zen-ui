@@ -121,7 +121,7 @@ const BINDINGS: Binding[] = [
   {
     name: "SolidJS",
     package: "@algorisys/zen-ui-solid",
-    status: "alpha",
+    status: "stable",
     blurb:
       "79 primitives on Kobalte, @modular-forms/solid, @tanstack/solid-table + virtual, @thisbeyond/solid-dnd. Signal-native, byte-for-byte the same theme.",
     features: [
@@ -472,7 +472,7 @@ const App = () => (
 │   │   ├── src/theme.ts            # DOM theme primitives
 │   │   └── src/uno-preset.ts       # zenUnoTheme + postprocess
 │   ├── react/                 # @algorisys/zen-ui-react (stable)
-│   └── solid/                 # @algorisys/zen-ui-solid (alpha)
+│   └── solid/                 # @algorisys/zen-ui-solid (stable)
 └── apps/
     └── landing/               # this page
 `}

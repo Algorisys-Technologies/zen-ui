@@ -56,6 +56,8 @@ import NewDataTableDemo from "./components/NewDataTableDemo";
 import NewTreeTableDemo from "./components/NewTreeTableDemo";
 import NewMicroChartDemo from "./components/NewMicroChartDemo";
 import NewTimelineDemo from "./components/NewTimelineDemo";
+import NewDiffViewDemo from "./components/NewDiffViewDemo";
+import NewDocumentViewerDemo from "./components/NewDocumentViewerDemo";
 import NewUploadCollectionDemo from "./components/NewUploadCollectionDemo";
 import NewPlanningCalendarDemo from "./components/NewPlanningCalendarDemo";
 import NewGanttDemo from "./components/NewGanttDemo";
@@ -174,6 +176,8 @@ render(
       <Route path="/tree-table" component={NewTreeTableDemo} />
       <Route path="/micro-chart" component={NewMicroChartDemo} />
       <Route path="/timeline" component={NewTimelineDemo} />
+      <Route path="/diff-view" component={NewDiffViewDemo} />
+      <Route path="/document-viewer" component={NewDocumentViewerDemo} />
       <Route path="/upload-collection" component={NewUploadCollectionDemo} />
       <Route path="/planning-calendar" component={NewPlanningCalendarDemo} />
       <Route path="/gantt" component={NewGanttDemo} />
