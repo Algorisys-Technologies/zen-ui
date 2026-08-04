@@ -13,23 +13,19 @@ SKILL.md.
 
 ### Popover
 
-- from `@radix-ui/react-popover`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `modal?`
+- from `.bun`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `modal?`
 
 ### PopoverTrigger
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### PopoverContent
 
-- from `@radix-ui/react-popper`: `align?`, `side?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-dismissable-layer`: `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`
-- from `@radix-ui/react-popover`: `onOpenAutoFocus?`, `onCloseAutoFocus?`, `forceMount?`
+- from `.bun`: `align?`, `asChild?`, `side?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`, `deferPointerDownOutside?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `onOpenAutoFocus?`, `onCloseAutoFocus?`, `forceMount?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### PopoverAnchor
 
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-popper`: `virtualRef?`
+- from `.bun`: `asChild?`, `virtualRef?`
 - …plus the underlying element's standard props (280 inherited).

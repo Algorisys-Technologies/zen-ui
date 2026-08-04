@@ -20,7 +20,7 @@ SKILL.md.
 
 ### Other exports
 
-- `spinnerVariants(props?: ({ size?: "sm" | "md" | "lg" | "xl" | null | undefined; color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | "current" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `spinnerVariants(…)`
 
 ### Types
 

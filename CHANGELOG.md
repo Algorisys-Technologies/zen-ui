@@ -11,6 +11,25 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.3.1] - 2026-08-04
+
+### Fixed
+
+- **`Splitter`: clicking the divider did not focus it, so the keyboard did
+  nothing and the page scrolled instead.** `onPointerDown` calls
+  `preventDefault()` to stop a drag selecting text across both panes, and that
+  same default is what moves focus to the clicked element — so focus stayed on
+  the body and the arrows were never the splitter's to claim. Focus is now moved
+  explicitly on pointer-down, before the drag starts, rather than on click,
+  because the arrow may be pressed before the pointer is released.
+
+  Worth recording why it shipped: the keyboard support was verified by TABBING
+  to the divider, which works, and a keyboard-only test never clicks. Re-verified
+  across all 8 dividers in the demo — every one focuses on click and moves on the
+  next arrow press, the three-panel cases move only their two neighbours
+  (25/50/25 → 26/49/25 for handle 0, → 26/50/24 for handle 1), and the disabled
+  splitter still correctly does nothing.
+
 ## [10.3.0] - 2026-08-04
 
 Two components in the **Solid binding only** — `Splitter` and `SortableList`.

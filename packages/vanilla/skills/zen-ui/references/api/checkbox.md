@@ -14,8 +14,7 @@ SKILL.md.
 ### Checkbox
 
 - `size?: CheckboxSize | undefined`
-- from `@radix-ui/react-checkbox`: `checked?`, `required?`, `defaultChecked?`, `onCheckedChange?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `checked?`, `required?`, `defaultChecked?`, `asChild?`, `onCheckedChange?`
 - …plus the underlying element's standard props (289 inherited).
 
 ### Other exports

@@ -22,7 +22,7 @@ SKILL.md.
 
 ### Other exports
 
-- `linkVariants(props?: ({ size?: "sm" | "md" | "lg" | null | undefined; inline?: boolean | null | undefined; disabled?: boolean | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `linkVariants(…)`
 
 ### Types
 

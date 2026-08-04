@@ -13,11 +13,11 @@ SKILL.md.
 
 ### Form
 
-- from `react-hook-form`: `children`, `watch`, `getValues`, `getFieldState`, `setError`, `clearErrors`, `setValue`, `trigger`, `formState`, `resetField`, `reset`, `handleSubmit`, `unregister`, `control`, `register`, `setFocus`, `subscribe`
+- from `.bun`: `children`, `watch`, `getValues`, `getFieldState`, `setError`, `clearErrors`, `setValue`, `setValues`, `trigger`, `formState`, `resetField`, `reset`, `resetDefaultValues`, `handleSubmit`, `unregister`, `control`, `register`, `setFocus`, `subscribe`
 
 ### FormField
 
-- from `react-hook-form`: `render`, `name`, `rules?`, `shouldUnregister?`, `defaultValue?`, `control?`, `disabled?`, `exact?`
+- from `.bun`: `render`, `name`, `rules?`, `shouldUnregister?`, `defaultValue?`, `control?`, `disabled?`, `exact?`
 
 ### FormItem
 
@@ -29,8 +29,7 @@ SKILL.md.
 
 ### FormControl
 
-- from `@radix-ui/react-slot`: `children?`
-- …plus the underlying element's standard props (279 inherited).
+- …plus the underlying element's standard props (280 inherited).
 
 ### FormDescription
 
@@ -42,4 +41,4 @@ SKILL.md.
 
 ### Other exports
 
-- `useFormField(): { invalid: boolean; isDirty: boolean; isTouched: boolean; isValidating: boolean; error?: import("/home/rajesh/work/algo/zen-ui/node_modules/react-hook-form/dist/index").FieldError; ... 4 more ...; formMessageId: string; }`
+- `useFormField(): { invalid: boolean; isDirty: boolean; isTouched: boolean; isValidating: boolean; error?: import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/react-hook-form@7.84.0+0f58469d5b3bd39f/node_modules/react-hook-form/dist/index").FieldError; ... 4 more ...; formMessageId: string; }`

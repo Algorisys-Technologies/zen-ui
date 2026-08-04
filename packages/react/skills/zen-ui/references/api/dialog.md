@@ -13,33 +13,30 @@ SKILL.md.
 
 ### Dialog
 
-- from `@radix-ui/react-dialog`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `modal?`
+- from `.bun`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `modal?`
 
 ### DialogTrigger
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### DialogPortal
 
-- from `@radix-ui/react-dialog`: `children?`, `container?`, `forceMount?`
+- from `.bun`: `children?`, `container?`, `forceMount?`
 
 ### DialogClose
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### DialogOverlay
 
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-dialog`: `forceMount?`
+- from `.bun`: `asChild?`, `forceMount?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### DialogContent
 
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-dismissable-layer`: `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`
-- from `@radix-ui/react-dialog`: `onOpenAutoFocus?`, `onCloseAutoFocus?`, `forceMount?`
+- from `.bun`: `asChild?`, `deferPointerDownOutside?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `onOpenAutoFocus?`, `onCloseAutoFocus?`, `forceMount?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### DialogHeader
@@ -52,10 +49,10 @@ SKILL.md.
 
 ### DialogTitle
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### DialogDescription
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).

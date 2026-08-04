@@ -14,17 +14,17 @@ SKILL.md.
 ### Avatar
 
 - `size?: AvatarSize | undefined`
-- from `@radix-ui/react-avatar`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### AvatarImage
 
-- from `@radix-ui/react-avatar`: `asChild?`, `onLoadingStatusChange?`
+- from `.bun`: `asChild?`, `onLoadingStatusChange?`
 - …plus the underlying element's standard props (292 inherited).
 
 ### AvatarFallback
 
-- from `@radix-ui/react-avatar`: `asChild?`, `delayMs?`
+- from `.bun`: `asChild?`, `delayMs?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### AvatarGroup

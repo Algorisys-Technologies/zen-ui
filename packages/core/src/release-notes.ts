@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.3.1",
+    date: "2026-08-04",
+    kind: "fixed",
+    title: "Splitter: clicking the divider now focuses it, so the arrows work",
+    detail:
+      "Clicking a divider and pressing an arrow scrolled the page instead of moving the divider. Suppressing the pointer default to stop a drag selecting text also suppressed focus-on-click, so the keys were never the splitter's to claim. Tabbing to it always worked, which is why a keyboard-only test missed it.",
+  },
+  {
     version: "10.3.0",
     date: "2026-08-04",
     kind: "new",

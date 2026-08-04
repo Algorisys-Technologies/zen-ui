@@ -13,28 +13,26 @@ SKILL.md.
 
 ### Tooltip
 
-- from `@radix-ui/react-tooltip`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `delayDuration?`, `disableHoverableContent?`
+- from `.bun`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `delayDuration?`, `disableHoverableContent?`
 
 ### TooltipTrigger
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### TooltipContent
 
 - `arrow?: boolean | undefined` — Render an arrow pointing at the trigger. Default false.
-- from `@radix-ui/react-tooltip`: `aria-label?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `forceMount?`
-- from `@radix-ui/react-popper`: `align?`, `side?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `aria-label?`, `align?`, `asChild?`, `side?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `forceMount?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### TooltipProvider
 
-- from `@radix-ui/react-tooltip`: `children`, `delayDuration?`, `skipDelayDuration?`, `disableHoverableContent?`
+- from `.bun`: `children`, `delayDuration?`, `skipDelayDuration?`, `disableHoverableContent?`
 
 ### TooltipPortal
 
-- from `@radix-ui/react-tooltip`: `children?`, `container?`, `forceMount?`
+- from `.bun`: `children?`, `container?`, `forceMount?`
 
 ### Types
 

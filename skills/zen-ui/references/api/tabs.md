@@ -13,35 +13,31 @@ SKILL.md.
 
 ### Tabs
 
-- from `@radix-ui/react-tabs`: `value?`, `defaultValue?`, `onValueChange?`, `orientation?`, `dir?`, `activationMode?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `value?`, `defaultValue?`, `onValueChange?`, `orientation?`, `dir?`, `activationMode?`, `asChild?`
 - …plus the underlying element's standard props (278 inherited).
 
 ### TabsList
 
 - `orientation?: "horizontal" | "vertical" | null | undefined`
 - `variant?: "underline" | "pills" | null | undefined`
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-tabs`: `loop?`
+- from `.bun`: `asChild?`, `loop?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### TabsTrigger
 
 - `variant?: "underline" | "pills" | null | undefined`
-- from `@radix-ui/react-tabs`: `value`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `value`, `asChild?`
 - …plus the underlying element's standard props (289 inherited).
 
 ### TabsContent
 
-- from `@radix-ui/react-tabs`: `value`, `forceMount?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `value`, `asChild?`, `forceMount?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### Other exports
 
-- `tabsListVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; orientation?: "horizontal" | "vertical" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
-- `tabsTriggerVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `tabsListVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; orientation?: "horizontal" | "vertical" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `tabsTriggerVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

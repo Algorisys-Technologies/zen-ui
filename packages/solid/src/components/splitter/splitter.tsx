@@ -272,7 +272,18 @@ export const SplitterHandle = (props: SplitterHandleProps) => {
 
   const onPointerDown = (e: PointerEvent) => {
     if (inert()) return;
+    /*
+     * preventDefault stops the drag selecting text — and it also suppresses the
+     * browser's focus-on-mousedown, so focus stays wherever it was. The effect
+     * is that clicking the divider and then pressing an arrow scrolls the PAGE:
+     * the keys are never ours because the handle was never focused. Tabbing to
+     * it works, which is exactly why a Tab-based test does not catch this.
+     *
+     * So focus is moved explicitly. It has to happen here rather than on click,
+     * because the arrow may well be pressed before the pointer is released.
+     */
     e.preventDefault();
+    el?.focus();
     try {
       el?.setPointerCapture(e.pointerId);
     } catch {
