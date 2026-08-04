@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev:all": "node scripts/dev-all.mjs",
-    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:media && bun run check:diff && bun run check:document && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:gantt && bun run check:production && bun run check:reschedule && bun run check:critical-path && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide && bun run check:skill-api",
+    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:media && bun run check:diff && bun run check:document && bun run check:sortable && bun run check:splitter && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:gantt && bun run check:production && bun run check:reschedule && bun run check:critical-path && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide && bun run check:skill-api",
     "gen:agent-guide": "bun run scripts/gen-agent-guide.ts",
     "check:agent-guide": "bun run scripts/gen-agent-guide.ts --check",
     "gen:skill-api": "bun run scripts/gen-skill-api.ts",
@@ -24,6 +24,8 @@
     "check:color": "bun run scripts/check-color.ts",
     "check:diff": "bun run scripts/check-diff.ts",
     "check:document": "bun run scripts/check-document.ts",
+    "check:sortable": "bun run scripts/check-sortable.ts",
+    "check:splitter": "bun run scripts/check-splitter.ts",
     "check:date-range": "bun run scripts/check-date-range.ts",
     "check:chart": "bun run scripts/check-chart.ts",
     "check:media": "bun run scripts/check-media.ts",

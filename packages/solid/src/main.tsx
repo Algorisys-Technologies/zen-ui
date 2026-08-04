@@ -58,6 +58,8 @@ import NewMicroChartDemo from "./components/NewMicroChartDemo";
 import NewTimelineDemo from "./components/NewTimelineDemo";
 import NewDiffViewDemo from "./components/NewDiffViewDemo";
 import NewDocumentViewerDemo from "./components/NewDocumentViewerDemo";
+import NewSplitterDemo from "./components/NewSplitterDemo";
+import NewSortableListDemo from "./components/NewSortableListDemo";
 import NewUploadCollectionDemo from "./components/NewUploadCollectionDemo";
 import NewPlanningCalendarDemo from "./components/NewPlanningCalendarDemo";
 import NewGanttDemo from "./components/NewGanttDemo";
@@ -178,6 +180,8 @@ render(
       <Route path="/timeline" component={NewTimelineDemo} />
       <Route path="/diff-view" component={NewDiffViewDemo} />
       <Route path="/document-viewer" component={NewDocumentViewerDemo} />
+      <Route path="/splitter" component={NewSplitterDemo} />
+      <Route path="/sortable-list" component={NewSortableListDemo} />
       <Route path="/upload-collection" component={NewUploadCollectionDemo} />
       <Route path="/planning-calendar" component={NewPlanningCalendarDemo} />
       <Route path="/gantt" component={NewGanttDemo} />

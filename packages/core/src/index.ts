@@ -19,3 +19,5 @@ export * from "./critical-path";
 export * from "./media";
 export * from "./diff";
 export * from "./document";
+export * from "./sortable";
+export * from "./splitter";

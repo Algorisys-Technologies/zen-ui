@@ -33,6 +33,22 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.3.0",
+    date: "2026-08-04",
+    kind: "new",
+    title: "Splitter — panes you can drag apart",
+    detail:
+      "The editor-shaped layout every writing, diffing and preview tool wants. Sizes are percentages, so the layout survives a window resize, and it writes to no storage of its own — onSizesCommit hands you the numbers to persist wherever you keep state. A real WAI-ARIA window splitter: arrow 1%, shift 10%, Home and End exactly to the bounds, with the announced range matching the reachable one. Solid first.",
+  },
+  {
+    version: "10.3.0",
+    date: "2026-08-04",
+    kind: "new",
+    title: "SortableList — reorder by drag, or entirely by keyboard",
+    detail:
+      "Space to pick up, arrows to move, Escape to put it back exactly. Every step announced to a screen reader. The drag machinery already reordered DataTable columns and Pivot fields; this exposes it, so an app that wants reorderable chapters stops rebuilding it. Solid first.",
+  },
+  {
     version: "10.2.0",
     date: "2026-08-04",
     kind: "new",
