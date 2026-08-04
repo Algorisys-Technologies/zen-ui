@@ -11,6 +11,114 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.2.0] - 2026-08-04
+
+Two new components and one additive prop group, built in the **Solid binding
+only**. Every published package bumps to keep one version number, but React,
+vanilla and web-components do not yet have `DiffView`, `DocumentViewer`, or
+`Timeline`'s disclosure props — the ports are the next piece of work.
+
+`check:parity` is RED for this release by construction and by agreement: it
+reports 11 names that exist only in Solid, which is exactly what it is for. It
+goes green when the three ports land.
+
+### Added
+
+- `packages/core/src/diff.ts` — `computeDiff(before, after, opts)` returning
+  `{key, label, kind, before, after}` rows. One level of keys; a nested
+  difference surfaces on the top-level key that contains it. Pinned by
+  `scripts/check-diff.ts` (34 assertions), wired into `bun run check` as
+  `check:diff`. Exported at `@algorisys/zen-ui-core/diff`.
+- `packages/core/src/document.ts` — `inferDocumentKind`, `clampZoom`,
+  `zoomStep`, `normalizeRotation`, `fitScale`, `DOCUMENT_ZOOM_MIN/MAX`. Pinned
+  by `scripts/check-document.ts` (45 assertions), wired in as `check:document`.
+  Exported at `@algorisys/zen-ui-core/document`.
+- `packages/solid` — `DiffView`, rendering a `<table>` with `<th scope="row">`
+  per field. Kind is signalled by strikethrough and a `zen-sr-only` "not set"
+  label, never colour alone.
+- `packages/solid` — `DocumentViewer`. Image via `<img>` sized by zoom (not a
+  CSS `scale()`, which leaves the layout box unchanged so the scroller never
+  learns the content grew and zooming past the frame just clips); PDF via
+  `pdfjs-dist` rendered to a canvas at `devicePixelRatio`.
+- `pdfjs-dist` declared as an **optional** `peerDependency` of
+  `@algorisys/zen-ui-solid` (`^5 || ^6`), plus a `devDependency` so the demo
+  runs. Lazily imported; images never touch it.
+- `TimelineItem.collapsible`, `.defaultOpen`, `.collapseLabel` — a native
+  `<details>` disclosure around `children`.
+- Demos, `nav.ts` entries and routes for `/diff-view` and `/document-viewer`;
+  a new "Collapsible bodies" section in the Timeline demo.
+
+### Changed
+
+- `apps/landing` — the SolidJS binding's status card reads **stable** rather
+  than alpha, in both the card and the repository tree listing. Vanilla and
+  web-components are unchanged.
+
+### Fixed (during development, never released)
+
+- `DiffView` rendered its "not set" placeholder in only one cell of the page. A
+  JSX value assigned to a `const` is a single DOM node in Solid, and a node
+  lives in exactly one parent, so every earlier cell silently rendered empty.
+  Measured: two of three placeholders vanished. It is a component now.
+- `DocumentViewer` collided on the canvas under rapid input — pdf.js allows one
+  `render()` per canvas and `cancel()` does not free it synchronously, so two
+  calls could both pass the cancel while awaiting `getPage`. Measured: five
+  collisions from six rapid zoom presses. Renders are serialised through a
+  promise chain and coalesced, so a held button produces one render of the final
+  state rather than one per press. Re-measured: zero errors from 8 rapid zooms
+  plus 9 mixed rotate/page presses.
+- `DocumentViewer` passed a string to `pdf.getDocument`, which pdf.js dropped in
+  favour of an options object; its error names three parameters rather than
+  saying the argument shape changed.
+
+### Changed after review against a real consumer
+
+The three components were reviewed against a Solid app that had hand-rolled all
+of them (a gate-entry/GRN system). Five gaps were real and are fixed here,
+before the API shipped:
+
+- `DocumentViewer` — `zoom`, `page` and `rotation` are now
+  controlled-or-uncontrolled per knob. The app drives zoom from a window-level
+  `+`/`-`/`0` keydown handler, which an uncontrolled component cannot express at
+  all; that would have forced a fork.
+- `DocumentViewer` — `minZoom`, `maxZoom`, `zoomStep`, and buttons that disable
+  at the bounds. The app uses 0.25–4.0 in 0.25 steps.
+- `DocumentViewer` — `resetOnSrcChange` (default `true`). The app resets zoom on
+  every open; with uncontrolled state, `defaultZoom` does not re-apply when
+  `src` changes, so switching documents carried the previous zoom over.
+- `DiffView` — `before`/`after` widened from `Record<string, unknown>` to
+  `unknown`, plus `parseSnapshot`/`isKeyed` in core and a `parse` prop. The real
+  column is `nvarchar` holding an object, a bare ARRAY, an ad-hoc map, arbitrary
+  prose, or empty; the previous signature rejected three of the five, and the
+  consumer had already been bitten by a bare `JSON.parse` taking down a panel.
+  Non-keyed payloads render as two whole-value panes with a per-side "not set",
+  so a creation and a deletion stay distinguishable.
+- `TimelineItem` — `open`/`onOpenChange`, and `collapseLabel` may be a function
+  of the open state. The app's audit panel is a single-open accordion and its
+  toggle reads "View ▼" / "Hide ▲"; per-item uncontrolled state cannot do
+  either.
+
+Confirmed unnecessary for that consumer but kept, because they are cheap and
+other apps will want them: `onDownload`, rotation, page navigation. Noted as a
+real risk for them: a pdf.js canvas gives up the native PDF viewer's built-in
+text selection, in-document search and print, which an `<iframe>` provides free.
+That trade is deliberate — it is the only way to get a page count and rotation —
+but it is a downgrade for an app that only ever needed to look at one page.
+
+### Verification
+
+- `bun run check` — 22 of 23 green; `check:parity` red as described above.
+- `bun run lint:solid` — 0 problems. Two `solid/reactivity` warnings were
+  triaged, not suppressed wholesale: both are deliberate untracked reads
+  (`defaultOpen` is an initial value; the render callback must read signals when
+  it runs, which is the coalescing mechanism) and each is disabled individually
+  with its reason at the site.
+- `node scripts/visual-check.mjs solid` — 97 routes, no runtime errors.
+- All three components driven in a browser: DiffView row kinds and the
+  screen-reader labels asserted in the DOM, the Timeline disclosure toggled in
+  both directions with the chevron tracking state, and the PDF verified by
+  counting non-blank canvas pixels at each zoom, page and rotation.
+
 ## [10.1.0] - 2026-08-01
 
 Two new components across all four bindings, and the pure-logic and browser

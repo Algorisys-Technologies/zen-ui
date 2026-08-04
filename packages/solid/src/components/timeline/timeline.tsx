@@ -1,4 +1,4 @@
-import { For, Show, createMemo, type JSX } from "solid-js";
+import { For, Show, createMemo, createSignal, type JSX } from "solid-js";
 import type { IconName } from "@algorisys/zen-ui-core";
 import { Icon } from "../icon/icon";
 import { cn } from "../../lib/cn";
@@ -59,6 +59,27 @@ export interface TimelineItem {
   group?: string;
   /** Anything richer than a description: a diff, a quote, an attachment. */
   children?: JSX.Element;
+  /**
+   * Put `children` behind a disclosure. A history where every entry carries a
+   * payload is unreadable fully expanded — the events stop being scannable,
+   * which is the one thing a timeline is for.
+   */
+  collapsible?: boolean;
+  /** Starting state when the disclosure is uncontrolled. */
+  defaultOpen?: boolean;
+  /**
+   * Controlled disclosure. Pass it with `onOpenChange` and the caller owns
+   * which items are open — the only way to build a single-open accordion,
+   * where opening one row closes the others.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /**
+   * The disclosure's label. Defaults to "Details". A function receives the
+   * current state, for a toggle that reads "Show" / "Hide" rather than one
+   * fixed word.
+   */
+  collapseLabel?: JSX.Element | ((open: boolean) => JSX.Element);
 }
 
 export interface TimelineProps {
@@ -72,6 +93,62 @@ export interface TimelineProps {
   emptyMessage?: JSX.Element;
   class?: string;
 }
+
+/**
+ * The body of one item, disclosed or not.
+ *
+ * A native `<details>` rather than the Accordion: it is keyboard-operable and
+ * findable by the browser's in-page search with no JS at all, and an audit
+ * trail is exactly the place someone hits Ctrl+F expecting to match text inside
+ * a collapsed row. The open state is mirrored into a signal only so the chevron
+ * can point the right way — the disclosure itself stays uncontrolled.
+ */
+const TimelineBody = (props: { item: TimelineItem }) => {
+  /* Read once, untracked, on purpose: `defaultOpen` is the INITIAL state of an
+     uncontrolled disclosure. Tracking it would drag the panel back open under a
+     user who just closed it, every time the parent re-rendered. */
+  // eslint-disable-next-line solid/reactivity
+  const [openState, setOpenState] = createSignal(!!props.item.defaultOpen);
+
+  const open = () => props.item.open ?? openState();
+  const toggle = (next: boolean) => {
+    setOpenState(next);
+    props.item.onOpenChange?.(next);
+  };
+
+  const label = () => {
+    const l = props.item.collapseLabel;
+    if (l === undefined) return "Details";
+    return typeof l === "function" ? l(open()) : l;
+  };
+
+  return (
+    <Show
+      when={props.item.collapsible}
+      fallback={<div class="zen-mt-1">{props.item.children}</div>}
+    >
+      <details
+        class="zen-mt-1"
+        open={open()}
+        onToggle={(e) => {
+          /* A controlled caller may refuse the change, so the element's own
+             state is not the truth — push it back if it drifted. */
+          if (e.currentTarget.open !== open()) toggle(e.currentTarget.open);
+        }}
+      >
+        <summary class="zen-inline-flex zen-cursor-pointer zen-list-none zen-items-center zen-gap-1 zen-rounded-zen-sm zen-text-xs zen-font-medium zen-text-zen-muted-fg hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring">
+          <Icon
+            name="chevron-down"
+            size={14}
+            class={cn("zen-transition-transform", open() ? "" : "-zen-rotate-90 rtl:zen-rotate-90")}
+          />
+          {label()}
+        </summary>
+        <div class="zen-mt-2">{props.item.children}</div>
+      </details>
+    </Show>
+  );
+};
 
 export const Timeline = (props: TimelineProps) => {
   /* Group boundaries are computed once per render rather than by comparing
@@ -167,7 +244,7 @@ export const Timeline = (props: TimelineProps) => {
                     </p>
                   </Show>
                   <Show when={!compact() && row.item.children}>
-                    <div class="zen-mt-1">{row.item.children}</div>
+                    <TimelineBody item={row.item} />
                   </Show>
                 </div>
               </li>

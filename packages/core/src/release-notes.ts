@@ -33,6 +33,30 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.2.0",
+    date: "2026-08-04",
+    kind: "new",
+    title: "DocumentViewer — put a scanned invoice on screen",
+    detail:
+      "Images and PDFs in one component, with zoom, fit, rotate and a page count. It does not fetch: hand it a signed URL or a Blob you already hold. PDFs draw to a canvas rather than an iframe, which is what makes the page count readable and rotation possible at all. PDF support is an optional peer dependency loaded only when a PDF appears. Solid first; the other bindings follow.",
+  },
+  {
+    version: "10.2.0",
+    date: "2026-08-04",
+    kind: "new",
+    title: "DiffView — what changed between two snapshots",
+    detail:
+      "For an audit payload or a revision. Unchanged fields drop out, because an audit entry is about what changed. It gets the awkward cases right: clearing a field to null is a change and a missing field is a removal, object key order is not a change but array order is. Kind is never colour alone, so the diff reads in greyscale. Solid first.",
+  },
+  {
+    version: "10.2.0",
+    date: "2026-08-04",
+    kind: "improved",
+    title: "Timeline items can hide their body behind a disclosure",
+    detail:
+      "A history where every entry carries a payload is unreadable fully expanded. Set collapsible on an item and its children go behind a native <details>, so in-page search still finds text inside a collapsed row. Solid first.",
+  },
+  {
     version: "10.1.0",
     date: "2026-08-01",
     kind: "new",

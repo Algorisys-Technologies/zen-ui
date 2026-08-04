@@ -636,6 +636,22 @@ export { UploadCollection } from "./components/upload-collection/upload-collecti
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";
 export { Timeline } from "./components/timeline/timeline";
 export type { TimelineProps, TimelineItem, TimelineState } from "./components/timeline/timeline";
+export { DocumentViewer } from "./components/document-viewer/document-viewer";
+export type { DocumentViewerProps } from "./components/document-viewer/document-viewer";
+export {
+  inferDocumentKind,
+  clampZoom,
+  zoomStep,
+  normalizeRotation,
+  fitScale,
+  DOCUMENT_ZOOM_MIN,
+  DOCUMENT_ZOOM_MAX,
+} from "@algorisys/zen-ui-core/document";
+export type { DocumentKind, DocumentFit, DocumentSize } from "@algorisys/zen-ui-core/document";
+export { DiffView } from "./components/diff-view/diff-view";
+export type { DiffViewProps } from "./components/diff-view/diff-view";
+export { computeDiff, parseSnapshot, isKeyed } from "@algorisys/zen-ui-core/diff";
+export type { DiffRow, DiffKind, DiffOptions, DiffSnapshot } from "@algorisys/zen-ui-core/diff";
 export {
   MicroLineChart,
   MicroBarChart,

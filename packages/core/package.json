@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-core",
-  "version": "10.1.0",
+  "version": "10.2.0",
   "license": "PolyForm-Noncommercial-1.0.0",
   "private": true,
   "type": "module",
@@ -25,6 +25,8 @@
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",
+    "./diff": "./src/diff.ts",
+    "./document": "./src/document.ts",
     "./variants": "./src/variants.ts",
     "./release-notes": "./src/release-notes.ts"
   },
