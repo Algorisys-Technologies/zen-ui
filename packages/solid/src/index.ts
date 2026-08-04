@@ -636,6 +636,49 @@ export { UploadCollection } from "./components/upload-collection/upload-collecti
 export type { UploadCollectionProps, UploadItem, UploadStatus } from "./components/upload-collection/upload-collection";
 export { Timeline } from "./components/timeline/timeline";
 export type { TimelineProps, TimelineItem, TimelineState } from "./components/timeline/timeline";
+export { Splitter, SplitterPanel, SplitterHandle } from "./components/splitter/splitter";
+export type {
+  SplitterProps,
+  SplitterPanelProps,
+  SplitterHandleProps,
+  SplitterOrientation,
+} from "./components/splitter/splitter";
+export {
+  normalizeSizes,
+  dragHandle,
+  splitterKeyDelta,
+  mirrorDelta,
+  handleBounds,
+  SPLITTER_STEP,
+  SPLITTER_STEP_LARGE,
+} from "@algorisys/zen-ui-core/splitter";
+export type { SplitterPanelConstraint } from "@algorisys/zen-ui-core/splitter";
+
+export {
+  SortableList,
+  SortableListItem,
+  SortableListHandle,
+} from "./components/sortable-list/sortable-list";
+export type {
+  SortableListProps,
+  SortableListItemProps,
+  SortableListHandleProps,
+} from "./components/sortable-list/sortable-list";
+export {
+  moveItem,
+  reduceReorder,
+  keyToReorderAction,
+  DEFAULT_REORDER_ANNOUNCEMENTS,
+} from "@algorisys/zen-ui-core/sortable";
+export type {
+  PickedUp,
+  ReorderAction,
+  ReorderIntent,
+  ReorderResult,
+  ReorderOrientation,
+  ReorderAnnouncements,
+} from "@algorisys/zen-ui-core/sortable";
+
 export { DocumentViewer } from "./components/document-viewer/document-viewer";
 export type { DocumentViewerProps } from "./components/document-viewer/document-viewer";
 export {

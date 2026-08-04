@@ -11,6 +11,76 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.3.0] - 2026-08-04
+
+Two components in the **Solid binding only** — `Splitter` and `SortableList`.
+Every published package bumps to keep one version number; the other three
+bindings do not have them yet. `check:parity` stays RED by the same standing
+exception as 10.2.0.
+
+### Added
+
+- `packages/core/src/splitter.ts` — `normalizeSizes`, `dragHandle`,
+  `handleBounds`, `splitterKeyDelta`, `mirrorDelta`. Pinned by
+  `scripts/check-splitter.ts` (68 assertions), wired into `check` as
+  `check:splitter`. Exported at `@algorisys/zen-ui-core/splitter`.
+  `react-resizable-panels` was rejected: no Solid equivalent, so the bindings
+  would diverge in behaviour rather than composition, which `check-parity`
+  compares names not behaviour and cannot see.
+- `packages/core/src/sortable.ts` — `moveItem`, `reduceReorder`,
+  `keyToReorderAction`, `DEFAULT_REORDER_ANNOUNCEMENTS`. Pinned by
+  `scripts/check-sortable.ts` (51 assertions), wired in as `check:sortable`.
+  The keyboard layer is in core because `@thisbeyond/solid-dnd@0.7.5` ships none
+  (measured: 0 files in its dist mention `keydown`; dnd-kit has 11) and vanilla
+  and web-components have no drag library — three of four need it hand-written
+  regardless, so dnd-kit's `KeyboardSensor` is deliberately NOT used in React.
+- `packages/solid` — `Splitter` / `SplitterPanel` / `SplitterHandle`, and
+  `SortableList` / `SortableListItem` / `SortableListHandle`, with demos,
+  `nav.ts` entries and routes.
+
+### Fixed (during development, never released)
+
+- **The divider was invisible.** `zen-w-px` on the handle set the TOTAL width
+  under `box-sizing: border-box`, so the 6px touch padding consumed it and
+  `bg-clip-content` painted a 0px line. Measured: 12px total, 0px content. The
+  line is its own child element now — the only arrangement where the visible
+  width and the grabbable width are independent.
+- **Collapse was unreachable by dragging.** Each `pointermove` applied its step
+  to the previous CLAMPED result, so the position could never travel below a
+  panel's min and the snap never fired — a 300px drag left the panel sitting at
+  min. Drags now accumulate from the layout at `pointerdown`.
+- **`aria-valuemin`/`aria-valuemax` were hardcoded 0/100** while the real range
+  was 20–70, so a screen reader announced twenty percent of travel that did not
+  exist. `handleBounds` is now shared between the ARIA range and `dragHandle`,
+  so the announced and reachable ranges cannot drift; verified in a browser that
+  Home and End land exactly on the announced bounds.
+- **Escape announced "Moved from position 3 to 1"** instead of "Reorder
+  cancelled" — cancelling does commit (the return trip), and the commit branch
+  was tested before the cancel branch.
+- **A failed `setPointerCapture` killed the handle.** `pointermove` was gated on
+  `hasPointerCapture`, and `setPointerCapture` throws for an inactive pointer id,
+  so one failed call turned the divider into a dead control. Capture is an
+  enhancement now; an explicit flag is the gate.
+
+### Verification
+
+- `bun run check` — 24 green; `check:parity` red by the standing exception.
+- `bun run lint:solid` — 0 problems. Two `solid/reactivity` warnings triaged as
+  the documented "the getter IS the tracked scope" false positive and disabled
+  individually with reasons; one dead directive removed. One of them had prose
+  between the directive and the reported line, which silently disables nothing —
+  the trap CLAUDE.md already warns about.
+- `node scripts/visual-check.mjs solid` — 99 routes, no runtime errors. The
+  first run reported **198** errors: `deploy.sh` had rebuilt the demos with the
+  `/zen-ui/` base and `dist-demo/index.html` still pointed there, so every asset
+  404'd. Rebuilt with `build:solid` before believing the result.
+- Both components driven with a REAL keyboard and a REAL mouse: Tab reaches the
+  divider (106 tabs into the page), arrow/shift-arrow/Home/End move it, a mouse
+  drag runs 30/70 → 44/56 and commits on release, a hard drag collapses to the
+  6% rail with `data-state="collapsed"` and drags back out to min. For the list:
+  pick up, move, Home/End, and Escape restoring the original order exactly —
+  and an arrow or Escape with nothing held is confirmed NOT to be swallowed.
+
 ## [10.2.0] - 2026-08-04
 
 Two new components and one additive prop group, built in the **Solid binding
