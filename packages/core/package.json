@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-core",
-  "version": "10.3.1",
+  "version": "10.4.0",
   "license": "PolyForm-Noncommercial-1.0.0",
   "private": true,
   "type": "module",
@@ -29,6 +29,9 @@
     "./document": "./src/document.ts",
     "./sortable": "./src/sortable.ts",
     "./splitter": "./src/splitter.ts",
+    "./countdown": "./src/countdown.ts",
+    "./chunk-upload": "./src/chunk-upload.ts",
+    "./spreadsheet": "./src/spreadsheet.ts",
     "./variants": "./src/variants.ts",
     "./release-notes": "./src/release-notes.ts"
   },

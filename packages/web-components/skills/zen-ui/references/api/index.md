@@ -108,6 +108,15 @@ real props; guessing prop names is how agents invent APIs.
 - [reschedule.md](reschedule.md) — `productionReschedule`, `ProductionMove`, `ProductionProposal`, `ProductionRescheduleOptions`, `ProductionShift`
 - [critical-path.md](critical-path.md) — `productionCriticalPath`, `ProductionCriticalPath`, `ProductionCriticalPathOptions`, `ProductionFloat`
 - [upload-collection.md](upload-collection.md) — `UploadCollection`, `UploadCollectionProps`, `UploadItem`, `UploadStatus`
+- [spreadsheet-grid.md](spreadsheet-grid.md) — `SpreadsheetGrid`, `SheetCalculator`, `SpreadsheetGridProps`, `SheetCalculatorProps`
+- [spreadsheet.md](spreadsheet.md) — `parseRef`, `formatRef`, `expandRange`, `evaluateFormula`, `formatCellValue`, `isCellError`, `CELL_ERRORS`, `CellMap`, `CellValue`, `CellFormat`, `CellRef`, `CellError`
+- [diagram-canvas.md](diagram-canvas.md) — `DiagramCanvas`, `ArchitectureDraw`, `DEFAULT_DIAGRAM_EMBED_URL`, `DEFAULT_YAPPYDRAW_EMBED_URL`, `DiagramCanvasProps`, `ArchitectureDrawProps`, `DiagramProvider`
+- [proctor.md](proctor.md) — `ProctorStreamGrid`, `ProctorFlagOverlay`, `ProctorStreamGridProps`, `ProctorFlagOverlayProps`, `ProctorParticipant`, `ProctorFlag`, `ProctorFlagLevel`
+- [code-editor.md](code-editor.md) — `CodeEditor`, `IDEWindow`, `CODE_LANGUAGES`, `CodeEditorProps`, `IDEWindowProps`, `CodeFile`, `CodeLanguage`
+- [chunk-uploader.md](chunk-uploader.md) — `ChunkUploader`, `ChunkUploaderProps`, `ChunkMeta`, `ChunkUploadStatus`
+- [chunk-upload.md](chunk-upload.md) — `planChunks`, `shouldRetry`, `nextAttemptDelay`, `uploadProgress`, `DEFAULT_CHUNK_SIZE`, `DEFAULT_MAX_ATTEMPTS`, `ChunkPlanItem`
+- [countdown-countdown.md](countdown-countdown.md) — `TimerBadge`, `TestCountdownBar`, `TimerBadgeProps`, `TestCountdownBarProps`, `CountdownLevel`
+- [zen-ui-core-countdown.md](zen-ui-core-countdown.md) — `remainingMs`, `formatCountdown`, `countdownLevel`, `crossedThresholds`, `DEFAULT_COUNTDOWN_THRESHOLDS`
 - [timeline.md](timeline.md) — `Timeline`, `TimelineProps`, `TimelineItem`, `TimelineState`
 - [micro-chart.md](micro-chart.md) — `MicroLineChart`, `MicroBarChart`, `MicroBulletChart`, `MicroDeltaChart`, `MicroRadialChart`, `MicroChartColor`, `MicroLineChartProps`, `MicroBarChartProps`, `MicroBulletChartProps`, `MicroDeltaChartProps`, `MicroRadialChartProps`
 - [virtualized-items.md](virtualized-items.md) — `VirtualizedItems`, `VirtualizedItemsProps`, `VirtualizedItemsDenseProps`, `VirtualizedItemsSparseProps`
@@ -119,7 +128,7 @@ real props; guessing prop names is how agents invent APIs.
 - [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
 - [chart-chart.md](chart-chart.md) — `Chart`, `ChartProps`, `ChartSeries`
 - [zen-ui-core-chart.md](zen-ui-core-chart.md) — `Slice`, `CHART_PALETTE`
-- [rich-text.md](rich-text.md) — `RichText`, `RichTextProps`
+- [rich-text.md](rich-text.md) — `renderMath`, `RichText`, `RichTextProps`
 - [map.md](map.md) — `Map`, `MapProps`, `MapMarker`
 - [camera.md](camera.md) — `Camera`, `CameraProps`
 - [filters.md](filters.md) — `FilterVariant`, `TextOp`, `TextFilterValue`, `NumberOp`, `NumberFilterValue`, `NumberRangeFilterValue`

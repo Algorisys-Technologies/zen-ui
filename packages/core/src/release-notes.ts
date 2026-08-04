@@ -33,6 +33,22 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.4.0",
+    date: "2026-08-04",
+    kind: "new",
+    title: "Seven components for assessment platforms",
+    detail:
+      "TimerBadge and TestCountdownBar (deadline-driven, so a throttled tab cannot gain a candidate time), CodeEditor and IDEWindow over Monaco, SpreadsheetGrid with a real formula evaluator that reports errors rather than plausible wrong numbers, ProctorStreamGrid that displays streams without detecting anything, ChunkUploader with bounded retries, and DiagramCanvas embedding either draw.io or YappyDraw. React first.",
+  },
+  {
+    version: "10.4.0",
+    date: "2026-08-04",
+    kind: "improved",
+    title: "RichText takes an image handler and renders maths",
+    detail:
+      "onImageUpload returns the URL to embed, instead of Jodit inlining a two-megabyte base64 string into the HTML you store. math renders $…$ through KaTeX, an optional peer; the editor keeps TeX source because that is the only form that survives a round trip through storage.",
+  },
+  {
     version: "10.3.1",
     date: "2026-08-04",
     kind: "fixed",

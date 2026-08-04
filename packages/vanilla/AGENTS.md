@@ -87,6 +87,12 @@ description, then import the name from your binding's package.
 - **DataTable** — TanStack Table + Virtual; sorting, filtering, grouping, pinning, resizing, windowing
 - **TreeTable** — Hierarchical rows; chevron indents inside the first column, filter keeps ancestors
 - **Micro charts** — Sparkline-sized trend marks for a table cell or card — line, bar, bullet, delta, radial
+- **TimerBadge / TestCountdownBar** — Exam clock from a deadline, not a decrementing number — colour thresholds, auto-expire hook, sticky bar
+- **CodeEditor / IDEWindow** — Monaco wrapper — language, theme, read-only, Ctrl+Enter run hook; file list beside it
+- **SpreadsheetGrid / SheetCalculator** — Editable cells with a real formula evaluator; errors render as errors, never a plausible number
+- **ProctorStreamGrid / ProctorFlagOverlay** — Live candidate tiles with violation flags; displays streams, does not detect anything
+- **ChunkUploader** — Large file in pieces — bounded retries, exponential backoff, pause and resume
+- **DiagramCanvas / ArchitectureDraw** — Embedded diagrams.net editor over postMessage; draw.io XML in and out
 - **Timeline** — Ordered list of events with a rail, markers, timestamps and date groups
 - **UploadCollection** — The list of uploaded files — progress, rename, delete, retry; the result FileUpload has no view for
 - **PlanningCalendar** — Resource-by-time grid — rows of people or rooms, appointments as blocks, day / week / month views

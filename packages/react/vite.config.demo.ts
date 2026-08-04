@@ -8,6 +8,18 @@ import UnoCSS from "unocss/vite";
 export default defineConfig({
   base: '/builder/',
   plugins: [react(), UnoCSS()],
+  resolve: {
+    // ONE React, whatever the hoisting did.
+    //
+    // Adding an optional peer that itself peer-depends on react (monaco) made
+    // bun install a nested copy under packages/react — 19.2.8 beside the root's
+    // 19.2.3. Monaco then resolved the nested one, so its hooks ran against a
+    // second React instance and every render threw "Cannot read properties of
+    // null (reading 'useState')". Nothing about that error names React
+    // duplication, and the library build was unaffected, so only the demo
+    // showed it. Deduping here fixes the class, not just monaco.
+    dedupe: ["react", "react-dom"],
+  },
   // Demo app entry point
   build: {
     copyPublicDir: true,
