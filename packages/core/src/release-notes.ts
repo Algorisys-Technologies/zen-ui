@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.4.1",
+    date: "2026-08-04",
+    kind: "fixed",
+    title: "DiagramCanvas: an embedded editor can now load its own assets",
+    detail:
+      "Sandboxing the frame without allow-same-origin gave it an opaque origin, so every asset it fetched from its own server was blocked for want of CORS headers — a blank editor the host page could not detect. draw.io hid the bug by serving its assets with CORS; YappyDraw did not, and did not work at all. Also stops the bridge probing before the frame has navigated, which filled the console with target-origin errors.",
+  },
+  {
     version: "10.4.0",
     date: "2026-08-04",
     kind: "new",

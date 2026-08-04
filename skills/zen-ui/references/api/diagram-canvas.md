@@ -20,6 +20,7 @@ SKILL.md.
 - `onReady?: (() => void) | undefined` — The editor is ready and has been given the initial value.
 - `src?: string | undefined` — Editor origin. Replace to self-host; the origin is also what messages are checked against.
 - `onError?: ((message: string) => void) | undefined` — The bridge failed — most often an origin the Yappy deployment has not allowlisted.
+- `sandbox?: string | undefined` — The frame's `sandbox`. Overriding it is an explicit security decision — read the note beside the default before narrowing it, because dropping `allow-same-origin` stops most editors loading their own assets.
 - `height?: string | undefined` — CSS height. Default `"32rem"`.
 - `title?: string | undefined` — Accessible name for the frame.
 - `className?: string | undefined`
@@ -35,6 +36,7 @@ SKILL.md.
 - `onReady?: (() => void) | undefined` — The editor is ready and has been given the initial value.
 - `src?: string | undefined` — Editor origin. Replace to self-host; the origin is also what messages are checked against.
 - `onError?: ((message: string) => void) | undefined` — The bridge failed — most often an origin the Yappy deployment has not allowlisted.
+- `sandbox?: string | undefined` — The frame's `sandbox`. Overriding it is an explicit security decision — read the note beside the default before narrowing it, because dropping `allow-same-origin` stops most editors loading their own assets.
 - `height?: string | undefined` — CSS height. Default `"32rem"`.
 - `title?: string | undefined` — Accessible name for the frame.
 - `className?: string | undefined`

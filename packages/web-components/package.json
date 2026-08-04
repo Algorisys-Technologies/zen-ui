@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-web-components",
-  "version": "10.4.0",
+  "version": "10.4.1",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "sideEffects": [
