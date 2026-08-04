@@ -29,6 +29,11 @@ SKILL.md.
 - `state?: TimelineState | undefined`
 - `group?: string | undefined` — A heading that starts a new run of items — "Today", "March".
 - `children?: React.ReactNode` — Anything richer than a description: a diff, a quote, an attachment.
+- `collapsible?: boolean | undefined` — Put `children` behind a disclosure. A history where every entry carries a payload is unreadable fully expanded — the events stop being scannable, which is the one thing a timeline is for.
+- `defaultOpen?: boolean | undefined` — Starting state when the disclosure is uncontrolled.
+- `open?: boolean | undefined` — Controlled disclosure. Pass it with `onOpenChange` and the caller owns which items are open — the only way to build a single-open accordion, where opening one row closes the others.
+- `onOpenChange?: ((open: boolean) => void) | undefined`
+- `collapseLabel?: React.ReactNode | ((open: boolean) => React.ReactNode)` — The disclosure's label. Defaults to "Details". A function receives the current state, for a toggle that reads "Show" / "Hide" rather than one fixed word.
 
 ### Other exports
 

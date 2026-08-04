@@ -44,6 +44,14 @@ export interface ElementDef<P> {
 
 const BASE_MEMBERS = new Set(["el", "update", "destroy"]);
 
+/**
+ * Host members the code in this file reads, and which a descriptor therefore may
+ * not turn into a `_bag`-backed property. See the guard in the prop loop for what
+ * happens when one of them is shadowed, and why the test is this list rather than
+ * "anything on HTMLElement.prototype".
+ */
+const RESERVED_MEMBERS = new Set(["style"]);
+
 /** Every custom-element tag registered, in registration order. */
 export const registeredTags: string[] = [];
 
@@ -264,6 +272,31 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
 
   // Object/array/callback props live in _bag behind an accessor.
   for (const prop of [...propNames, ...eventNames]) {
+    /*
+     * Never shadow a member THIS FILE reads on the host.
+     *
+     * These accessors read from `_bag`, which is empty until someone assigns, so
+     * shadowing such a member replaces it with one returning `undefined`.
+     * `<zen-input-otp>` declared `style` as a prop and connectedCallback's own
+     * `if (!this.style.display)` then threw "Cannot read properties of undefined
+     * (reading 'display')" — five times on the OTP demo, once per element, with
+     * the whole page dead behind it.
+     *
+     * The test is deliberately NOT "is it on HTMLElement.prototype". Several
+     * elements shadow `children` ON PURPOSE — it is the default childrenProp, and
+     * because Element.children is getter-only, the shadow is what makes
+     * `el.children = nodes` assignable at all. Measured: widening this guard to
+     * the whole prototype chain skipped that accessor and broke
+     * <zen-virtualized-items> with "Cannot set property children of #<Element>
+     * which has only a getter". Shadowing a native member is fine; shadowing one
+     * the machinery below depends on is not.
+     */
+    if (RESERVED_MEMBERS.has(prop)) {
+      console.warn(
+        `[zen-ui] ${def.tag}: "${prop}" is used by the element itself and was not exposed as a property.`,
+      );
+      continue;
+    }
     Object.defineProperty(ZenElement.prototype, prop, {
       configurable: true,
       get(this: ZenElement) {
