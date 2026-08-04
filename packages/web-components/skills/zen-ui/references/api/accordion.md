@@ -13,23 +13,20 @@ SKILL.md.
 
 ### Accordion
 
-- from `@radix-ui/react-accordion`: `type`, `value?`, `defaultValue?`, `onValueChange?`, `disabled?`, `orientation?`, `dir?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `type`, `value?`, `defaultValue?`, `onValueChange?`, `disabled?`, `orientation?`, `dir?`, `asChild?`
 - …plus the underlying element's standard props (278 inherited).
 
 ### AccordionItem
 
-- from `@radix-ui/react-accordion`: `disabled?`, `value`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `disabled?`, `value`, `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### AccordionTrigger
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### AccordionContent
 
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-collapsible`: `forceMount?`
+- from `.bun`: `asChild?`, `forceMount?`
 - …plus the underlying element's standard props (280 inherited).

@@ -43,7 +43,7 @@ SKILL.md.
 
 ### Other exports
 
-- `bannerVariants(props?: ({ color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined; sticky?: boolean | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `bannerVariants(…)`
 
 ### Types
 

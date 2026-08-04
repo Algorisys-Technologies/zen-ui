@@ -13,8 +13,7 @@ SKILL.md.
 
 ### Separator
 
-- from `@radix-ui/react-avatar`: `asChild?`
-- from `@radix-ui/react-separator`: `orientation?`, `decorative?`
+- from `.bun`: `asChild?`, `orientation?`, `decorative?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### Types

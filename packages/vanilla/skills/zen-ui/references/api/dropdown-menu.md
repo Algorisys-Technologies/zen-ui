@@ -13,49 +13,44 @@ SKILL.md.
 
 ### DropdownMenu
 
-- from `@radix-ui/react-dropdown-menu`: `children?`, `dir?`, `open?`, `defaultOpen?`, `onOpenChange?`, `modal?`
+- from `.bun`: `children?`, `dir?`, `open?`, `defaultOpen?`, `onOpenChange?`, `modal?`
 
 ### DropdownMenuTrigger
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### DropdownMenuContent
 
-- from `@radix-ui/react-popper`: `align?`, `side?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-menu`: `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `onCloseAutoFocus?`, `forceMount?`, `loop?`
+- from `.bun`: `align?`, `asChild?`, `side?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `onCloseAutoFocus?`, `forceMount?`, `loop?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### DropdownMenuItem
 
 - `inset?: boolean | undefined`
 - `variant?: "default" | "destructive" | undefined`
-- from `@radix-ui/react-menu`: `disabled?`, `onSelect?`, `textValue?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `disabled?`, `onSelect?`, `asChild?`, `textValue?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### DropdownMenuCheckboxItem
 
-- from `@radix-ui/react-menu`: `checked?`, `disabled?`, `onSelect?`, `onCheckedChange?`, `textValue?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `checked?`, `disabled?`, `onSelect?`, `asChild?`, `onCheckedChange?`, `textValue?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### DropdownMenuRadioItem
 
-- from `@radix-ui/react-menu`: `disabled?`, `value`, `onSelect?`, `textValue?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `disabled?`, `value`, `onSelect?`, `asChild?`, `textValue?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### DropdownMenuLabel
 
 - `inset?: boolean | undefined`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### DropdownMenuSeparator
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### DropdownMenuShortcut
@@ -64,33 +59,29 @@ SKILL.md.
 
 ### DropdownMenuGroup
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### DropdownMenuPortal
 
-- from `@radix-ui/react-menu`: `children?`, `container?`, `forceMount?`
+- from `.bun`: `children?`, `container?`, `forceMount?`
 
 ### DropdownMenuSub
 
-- from `@radix-ui/react-dropdown-menu`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`
+- from `.bun`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`
 
 ### DropdownMenuSubContent
 
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-popper`: `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`
-- from `@radix-ui/react-menu`: `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `forceMount?`, `loop?`
+- from `.bun`: `align?`, `asChild?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `forceMount?`, `loop?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### DropdownMenuSubTrigger
 
 - `inset?: boolean | undefined`
-- from `@radix-ui/react-menu`: `disabled?`, `textValue?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `disabled?`, `asChild?`, `textValue?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### DropdownMenuRadioGroup
 
-- from `@radix-ui/react-menu`: `value?`, `onValueChange?`
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `value?`, `onValueChange?`, `asChild?`
 - …plus the underlying element's standard props (280 inherited).

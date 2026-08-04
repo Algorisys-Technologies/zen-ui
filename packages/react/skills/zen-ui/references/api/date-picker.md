@@ -17,13 +17,13 @@ SKILL.md.
 - `defaultValue?: Date | undefined`
 - `onValueChange?: ((date: Date | undefined) => void) | undefined`
 - `placeholder?: string | undefined`
-- `disabled?: import("/home/rajesh/work/algo/zen-ui/node_modules/react-day-picker/dist/esm/index").Matcher | import("/home/rajesh/work/algo/zen-ui/node_modules/react-day-picker/dist/esm/index").Matcher[] | undefined`
+- `disabled?: import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/react-day-picker@10.0.1+03aa47d54245a271/node_modules/react-day-picker/dist/esm/index").Matcher | import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/react-day-picker@10.0.1+03aa47d54245a271/node_modules/react-day-picker/dist/esm/index").Matcher[] | undefined`
 - `className?: string | undefined`
 - `formatDate?: ((date: Date) => string) | undefined` — Format displayed in the trigger. Defaults to toLocaleDateString().
 
 ### Calendar
 
-- from `react-day-picker`: `mode?`, `required?`, `className?`, `classNames?`, `modifiersClassNames?`, `style?`, `styles?`, `modifiersStyles?`, `id?`, `defaultMonth?`, `month?`, `numberOfMonths?`, `startMonth?`, `endMonth?`, `pagedNavigation?`, `reverseMonths?`, `hideNavigation?`, `disableNavigation?`, `captionLayout?`, `reverseYears?`, `navLayout?`, `fixedWeeks?`, `hideWeekdays?`, `showOutsideDays?`, `showWeekNumber?`, `animate?`, `broadcastCalendar?`, `ISOWeek?`, `timeZone?`, `noonSafe?`, `components?`, `footer?`, `autoFocus?`, `disabled?`, `hidden?`, `today?`, `modifiers?`, `labels?`, `formatters?`, `dir?`, `aria-label?`, `aria-labelledby?`, `role?`, `nonce?`, `title?`, `lang?`, `locale?`, `numerals?`, `weekStartsOn?`, `firstWeekContainsDate?`, `useAdditionalWeekYearTokens?`, `useAdditionalDayOfYearTokens?`, `onMonthChange?`, `onNextClick?`, `onPrevClick?`, `onDayClick?`, `onDayFocus?`, `onDayBlur?`, `onDayKeyDown?`, `onDayMouseEnter?`, `onDayMouseLeave?`, `dateLib?`
+- from `.bun`: `mode?`, `required?`, `className?`, `classNames?`, `modifiersClassNames?`, `style?`, `styles?`, `modifiersStyles?`, `id?`, `defaultMonth?`, `month?`, `numberOfMonths?`, `startMonth?`, `endMonth?`, `pagedNavigation?`, `reverseMonths?`, `hideNavigation?`, `disableNavigation?`, `captionLayout?`, `reverseYears?`, `navLayout?`, `fixedWeeks?`, `hideWeekdays?`, `showOutsideDays?`, `showWeekNumber?`, `animate?`, `broadcastCalendar?`, `ISOWeek?`, `timeZone?`, `noonSafe?`, `components?`, `footer?`, `autoFocus?`, `disabled?`, `hidden?`, `today?`, `modifiers?`, `labels?`, `formatters?`, `dir?`, `aria-label?`, `aria-labelledby?`, `role?`, `nonce?`, `title?`, `lang?`, `locale?`, `numerals?`, `weekStartsOn?`, `firstWeekContainsDate?`, `useAdditionalWeekYearTokens?`, `useAdditionalDayOfYearTokens?`, `onMonthChange?`, `onNextClick?`, `onPrevClick?`, `onDayClick?`, `onDayFocus?`, `onDayBlur?`, `onDayKeyDown?`, `onDayMouseEnter?`, `onDayMouseLeave?`, `dateLib?`
 
 ### Types
 

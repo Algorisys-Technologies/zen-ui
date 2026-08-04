@@ -13,28 +13,25 @@ SKILL.md.
 
 ### AlertDialog
 
-- from `@radix-ui/react-dialog`: `children?`, `open?`, `onOpenChange?`, `defaultOpen?`
+- from `.bun`: `children?`, `open?`, `onOpenChange?`, `defaultOpen?`
 
 ### AlertDialogTrigger
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### AlertDialogPortal
 
-- from `@radix-ui/react-dialog`: `children?`, `container?`, `forceMount?`
+- from `.bun`: `children?`, `container?`, `forceMount?`
 
 ### AlertDialogOverlay
 
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-dialog`: `forceMount?`
+- from `.bun`: `asChild?`, `forceMount?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### AlertDialogContent
 
-- from `@radix-ui/react-primitive`: `asChild?`
-- from `@radix-ui/react-dismissable-layer`: `onEscapeKeyDown?`, `onFocusOutside?`
-- from `@radix-ui/react-dialog`: `onOpenAutoFocus?`, `onCloseAutoFocus?`, `forceMount?`
+- from `.bun`: `asChild?`, `deferPointerDownOutside?`, `onEscapeKeyDown?`, `onFocusOutside?`, `onOpenAutoFocus?`, `onCloseAutoFocus?`, `forceMount?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### AlertDialogHeader
@@ -47,20 +44,20 @@ SKILL.md.
 
 ### AlertDialogTitle
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### AlertDialogDescription
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### AlertDialogAction
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### AlertDialogCancel
 
-- from `@radix-ui/react-primitive`: `asChild?`
+- from `.bun`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).

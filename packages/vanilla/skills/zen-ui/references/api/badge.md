@@ -20,7 +20,7 @@ SKILL.md.
 
 ### Other exports
 
-- `badgeVariants(props?: ({ variant?: "solid" | "outline" | "soft" | null | undefined; color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `badgeVariants(…)`
 
 ### Types
 

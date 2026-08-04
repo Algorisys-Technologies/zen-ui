@@ -39,7 +39,7 @@ SKILL.md.
 
 ### Other exports
 
-- `cardVariants(props?: ({ variant?: "ghost" | "elevated" | "outlined" | null | undefined; padding?: "sm" | "md" | "lg" | "none" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `cardVariants(…)`
 
 ### Types
 
