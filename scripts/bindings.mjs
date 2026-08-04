@@ -43,6 +43,15 @@ const DATA_DRIVEN_DIVERGENT = [
   "SheetContent", "SheetDescription", "SheetFooter", "SheetHandle", "SheetHeader", "SheetOverlay",
   "SheetPortal", "SheetSide", "SheetTitle", "SheetTrigger", "SidebarContextValue", "SidebarProviderHandle",
   "SkipToContentHandle",
+  // Splitter and SortableList, same decision as every family above: React registers
+  // compound children through a context, and with no framework there is none, so the
+  // panels and the rows are DATA. `SplitterPanelSpec` / `SortableItemSpec` are what
+  // replace `SplitterPanel` / `SortableListItem`, and the dividers and grab handles
+  // are implied — n panels can only ever have n-1 dividers. `CountdownCore` is the
+  // shared clock props, named here because a factory takes one object where React
+  // spreads props across two components.
+  "CountdownCore", "SortableItemSpec", "SortableListHandle", "SortableListItem",
+  "SplitterHandle", "SplitterPanel", "SplitterPanelSpec",
   "SortingColumn", "SortingState", "SplitButtonMenuItem", "StepperApi", "StepperHandle", "StepperList",
   "StepperNavigation", "StepperNavigationOptions", "StepperPanel", "TEXTAREA_CLASS", "TabSpec", "TabsContent",
   "TabsList", "TabsTrigger", "TextareaHandle", "TimePickerHandle", "ToastVariant", "TooltipContent",

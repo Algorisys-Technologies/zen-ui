@@ -68,6 +68,106 @@ export interface TimelineItem {
   group?: string;
   /** Anything richer than a description: a diff, a quote, an attachment. */
   children?: Child;
+  /**
+   * Put `children` behind a disclosure. A history where every entry carries a
+   * payload is unreadable fully expanded — the events stop being scannable,
+   * which is the one thing a timeline is for.
+   */
+  collapsible?: boolean;
+  /** Starting state when the disclosure is uncontrolled. */
+  defaultOpen?: boolean;
+  /**
+   * Controlled disclosure. Pass it with `onOpenChange` and the caller owns which
+   * items are open — the only way to build a single-open accordion, where
+   * opening one row closes the others.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /**
+   * The disclosure's label. Defaults to "Details". A function receives the
+   * current state, for a toggle that reads "Show" / "Hide" rather than one fixed
+   * word.
+   */
+  collapseLabel?: Child | ((open: boolean) => Child);
+}
+
+/**
+ * The body of one item, disclosed or not.
+ *
+ * A native <details> rather than the Accordion: it is keyboard-operable and
+ * findable by the browser's in-page search with no JS at all, and an audit trail
+ * is exactly the place someone hits Ctrl+F expecting to match text inside a
+ * collapsed row.
+ */
+function bodyOf(item: TimelineItem): HTMLElement {
+  if (!item.collapsible) {
+    const plain = document.createElement("div");
+    plain.className = "zen-mt-1";
+    plain.append(...toNodes(item.children));
+    return plain;
+  }
+
+  const open = item.open ?? !!item.defaultOpen;
+  const details = document.createElement("details");
+  details.className = "zen-mt-1";
+  details.open = open;
+
+  const summary = document.createElement("summary");
+  summary.className =
+    "zen-inline-flex zen-cursor-pointer zen-list-none zen-items-center zen-gap-1 zen-rounded-zen-sm zen-text-xs zen-font-medium zen-text-zen-muted-fg hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring";
+  summary.append(
+    Icon({
+      name: "chevron-down",
+      size: 14,
+      class: cn("zen-transition-transform", open ? undefined : "-zen-rotate-90 rtl:zen-rotate-90"),
+    }).el,
+  );
+
+  const label =
+    item.collapseLabel === undefined
+      ? "Details"
+      : typeof item.collapseLabel === "function"
+        ? item.collapseLabel(open)
+        : item.collapseLabel;
+  summary.append(...toNodes(label));
+  details.append(summary);
+
+  const inner = document.createElement("div");
+  inner.className = "zen-mt-2";
+  inner.append(...toNodes(item.children));
+  details.append(inner);
+
+  /*
+   * What WE last put on the element, as opposed to what a user did to it.
+   *
+   * `toggle` does not distinguish the two: assigning `.open` fires it exactly
+   * like a click does — including the assignment above, on a freshly built
+   * element. Without this comparison a single-open Timeline never settles. Each
+   * rebuild opens the newly-active row, that assignment fires `toggle`, the
+   * handler reports it as a user action, the caller re-renders, and round it
+   * goes. Measured in the DiffView demo: clicking a second row left the first
+   * one open and spun the page until the next navigation timed out.
+   */
+  let rendered = open;
+
+  details.addEventListener("toggle", () => {
+    if (details.open === rendered) return;
+    rendered = details.open;
+    item.onOpenChange?.(details.open);
+
+    /*
+     * A CONTROLLED caller may refuse the change. The usual answer is that they
+     * re-render and this element is replaced, so there is nothing to correct —
+     * hence the isConnected test, which is what tells "replaced" apart from
+     * "refused". Only a still-mounted element that disagrees is pushed back.
+     */
+    if (item.open !== undefined && details.isConnected && details.open !== item.open) {
+      rendered = item.open;
+      details.open = item.open;
+    }
+  });
+
+  return details;
 }
 
 export interface TimelineProps extends BaseProps {
@@ -149,10 +249,7 @@ function entry(item: TimelineItem, isLast: boolean, compact: boolean): HTMLLIEle
   }
 
   if (!compact && item.children !== undefined && item.children !== null) {
-    const extra = document.createElement("div");
-    extra.className = "zen-mt-1";
-    extra.append(...toNodes(item.children));
-    body.append(extra);
+    body.append(bodyOf(item));
   }
 
   li.append(body);

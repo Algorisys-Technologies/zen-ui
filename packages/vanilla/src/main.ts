@@ -107,6 +107,16 @@ import FormDemo from "./components/FormDemo";
 import PivotDemo from "./components/PivotDemo";
 import MediaTimelineDemo from "./components/MediaTimelineDemo";
 import WaveformDemo from "./components/WaveformDemo";
+import CountdownDemo from "./components/CountdownDemo";
+import SpreadsheetGridDemo from "./components/SpreadsheetGridDemo";
+import ProctorDemo from "./components/ProctorDemo";
+import ChunkUploaderDemo from "./components/ChunkUploaderDemo";
+import DiffViewDemo from "./components/DiffViewDemo";
+import SplitterDemo from "./components/SplitterDemo";
+import SortableListDemo from "./components/SortableListDemo";
+import CodeEditorDemo from "./components/CodeEditorDemo";
+import DocumentViewerDemo from "./components/DocumentViewerDemo";
+import DiagramCanvasDemo from "./components/DiagramCanvasDemo";
 
 /**
  * The route table. `bun run check:nav` re-derives route -> component -> file from
@@ -209,6 +219,16 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/pivot": PivotDemo,
   "/media-timeline": MediaTimelineDemo,
   "/waveform": WaveformDemo,
+  "/countdown": CountdownDemo,
+  "/spreadsheet-grid": SpreadsheetGridDemo,
+  "/proctor": ProctorDemo,
+  "/chunk-uploader": ChunkUploaderDemo,
+  "/diff-view": DiffViewDemo,
+  "/splitter": SplitterDemo,
+  "/sortable-list": SortableListDemo,
+  "/code-editor": CodeEditorDemo,
+  "/document-viewer": DocumentViewerDemo,
+  "/diagram-canvas": DiagramCanvasDemo,
 };
 
 /**
