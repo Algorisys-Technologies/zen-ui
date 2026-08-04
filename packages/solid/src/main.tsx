@@ -55,6 +55,12 @@ import NewFileUploadDemo from "./components/NewFileUploadDemo";
 import NewDataTableDemo from "./components/NewDataTableDemo";
 import NewTreeTableDemo from "./components/NewTreeTableDemo";
 import NewMicroChartDemo from "./components/NewMicroChartDemo";
+import NewCountdownDemo from "./components/NewCountdownDemo";
+import NewCodeEditorDemo from "./components/NewCodeEditorDemo";
+import NewSpreadsheetGridDemo from "./components/NewSpreadsheetGridDemo";
+import NewProctorDemo from "./components/NewProctorDemo";
+import NewChunkUploaderDemo from "./components/NewChunkUploaderDemo";
+import NewDiagramCanvasDemo from "./components/NewDiagramCanvasDemo";
 import NewTimelineDemo from "./components/NewTimelineDemo";
 import NewDiffViewDemo from "./components/NewDiffViewDemo";
 import NewDocumentViewerDemo from "./components/NewDocumentViewerDemo";
@@ -177,6 +183,12 @@ render(
       <Route path="/data-table" component={NewDataTableDemo} />
       <Route path="/tree-table" component={NewTreeTableDemo} />
       <Route path="/micro-chart" component={NewMicroChartDemo} />
+      <Route path="/countdown" component={NewCountdownDemo} />
+      <Route path="/code-editor" component={NewCodeEditorDemo} />
+      <Route path="/spreadsheet-grid" component={NewSpreadsheetGridDemo} />
+      <Route path="/proctor" component={NewProctorDemo} />
+      <Route path="/chunk-uploader" component={NewChunkUploaderDemo} />
+      <Route path="/diagram-canvas" component={NewDiagramCanvasDemo} />
       <Route path="/timeline" component={NewTimelineDemo} />
       <Route path="/diff-view" component={NewDiffViewDemo} />
       <Route path="/document-viewer" component={NewDocumentViewerDemo} />

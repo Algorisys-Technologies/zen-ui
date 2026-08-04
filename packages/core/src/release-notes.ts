@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.5.0",
+    date: "2026-08-04",
+    kind: "new",
+    title: "The assessment components are now in Solid too",
+    detail:
+      "TimerBadge, TestCountdownBar, CodeEditor, IDEWindow, SpreadsheetGrid, SheetCalculator, ProctorStreamGrid, ProctorFlagOverlay, ChunkUploader, DiagramCanvas and ArchitectureDraw. Same props and the same behaviour, because the countdown maths, the chunk plan and the formula evaluator are one shared copy in core rather than two implementations that agree today.",
+  },
+  {
     version: "10.4.1",
     date: "2026-08-04",
     kind: "fixed",

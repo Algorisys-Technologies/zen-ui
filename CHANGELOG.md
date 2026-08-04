@@ -11,6 +11,58 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.5.0] - 2026-08-04
+
+The seven assessment components from 10.4.0, ported to **Solid**. The
+React↔Solid direction of `check:parity` now reports React-only as clean: the 31
+names that existed only in React are in both bindings.
+
+### Added
+
+- `packages/solid` — `TimerBadge`, `TestCountdownBar`, `CodeEditor`,
+  `IDEWindow`, `SpreadsheetGrid`, `SheetCalculator`, `ProctorStreamGrid`,
+  `ProctorFlagOverlay`, `ChunkUploader`, `DiagramCanvas`, `ArchitectureDraw`,
+  with demos, `nav.ts` entries and routes.
+- `@monaco-editor/loader` as an OPTIONAL peer of the Solid binding, plus a
+  `loaderConfig` prop for self-hosting Monaco.
+
+### Changed
+
+- **Solid's `CodeEditor` loads Monaco through `@monaco-editor/loader`** rather
+  than importing `monaco-editor` directly. `@monaco-editor/react` is React-only,
+  and the ESM build's own worker entry fails to resolve under Vite — measured:
+  "Failed to resolve module specifier
+  `../../../base/common/worker/webWorkerBootstrap.js`", which is not fixable from
+  inside a component. Wiring `MonacoEnvironment` with Vite's `?worker` imports
+  did NOT fix it either; that was tried first.
+
+  Using the same loader React's wrapper uses means both bindings fetch the same
+  Monaco the same way, so they behave the same rather than merely looking the
+  same. It also removes the worker problem, because the fetched build has its
+  workers wired.
+
+### Notes on the port
+
+Both bugs found in the React spreadsheet were carried across as fixes rather
+than rediscovered — the `preventDefault` that stops the first keystroke being
+doubled, and the `table-layout: fixed` + `<colgroup>` that stops a cell resizing
+on edit. Re-verified in Solid: 96×25 through an edit, `=1+2*3` → 7.
+
+Three `solid/reactivity` warnings were triaged, not suppressed wholesale — the
+initial countdown read, the Monaco event callbacks, and the Yappy poll interval
+are all deliberate untracked reads, each disabled individually with its reason
+at the site.
+
+### Verification
+
+- `bun run check` — 27 green. `check:parity` red only where expected: Solid-only
+  components (next phase) and vanilla/web-components (the phase after).
+- lint 0 problems across all four bindings.
+- `node scripts/visual-check.mjs solid` — **105 routes, no runtime errors**.
+- Driven in a browser: identical arithmetic to React (€1,260 / €2,095 /
+  €2,534.95), all five error values, cell geometry stable through an edit, and a
+  typed formula evaluating correctly.
+
 ## [10.4.1] - 2026-08-04
 
 ### Fixed
