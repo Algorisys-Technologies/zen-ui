@@ -115,6 +115,14 @@ real props; guessing prop names is how agents invent APIs.
 - [code-editor.md](code-editor.md) — `CodeEditor`, `IDEWindow`, `CODE_LANGUAGES`, `CodeEditorProps`, `IDEWindowProps`, `CodeFile`, `CodeLanguage`
 - [chunk-uploader.md](chunk-uploader.md) — `ChunkUploader`, `ChunkUploaderProps`, `ChunkMeta`, `ChunkUploadStatus`
 - [chunk-upload.md](chunk-upload.md) — `planChunks`, `shouldRetry`, `nextAttemptDelay`, `uploadProgress`, `DEFAULT_CHUNK_SIZE`, `DEFAULT_MAX_ATTEMPTS`, `ChunkPlanItem`
+- [sortable-list.md](sortable-list.md) — `SortableList`, `SortableListItem`, `SortableListHandle`, `SortableListProps`, `SortableListItemProps`, `SortableListHandleProps`
+- [sortable.md](sortable.md) — `moveItem`, `reduceReorder`, `keyToReorderAction`, `DEFAULT_REORDER_ANNOUNCEMENTS`, `PickedUp`, `ReorderAction`, `ReorderIntent`, `ReorderResult`, `ReorderOrientation`, `ReorderAnnouncements`
+- [splitter-splitter.md](splitter-splitter.md) — `Splitter`, `SplitterPanel`, `SplitterHandle`, `SplitterProps`, `SplitterPanelProps`, `SplitterHandleProps`, `SplitterOrientation`
+- [zen-ui-core-splitter.md](zen-ui-core-splitter.md) — `normalizeSizes`, `dragHandle`, `handleBounds`, `splitterKeyDelta`, `mirrorDelta`, `SPLITTER_STEP`, `SPLITTER_STEP_LARGE`, `SplitterPanelConstraint`
+- [document-viewer.md](document-viewer.md) — `DocumentViewer`, `DocumentViewerProps`
+- [document.md](document.md) — `inferDocumentKind`, `clampZoom`, `zoomStep`, `normalizeRotation`, `fitScale`, `DOCUMENT_ZOOM_MIN`, `DOCUMENT_ZOOM_MAX`, `DocumentKind`, `DocumentFit`, `DocumentSize`
+- [diff-view.md](diff-view.md) — `DiffView`, `DiffViewProps`
+- [diff.md](diff.md) — `computeDiff`, `parseSnapshot`, `isKeyed`, `DiffRow`, `DiffKind`, `DiffOptions`, `DiffSnapshot`
 - [countdown-countdown.md](countdown-countdown.md) — `TimerBadge`, `TestCountdownBar`, `TimerBadgeProps`, `TestCountdownBarProps`, `CountdownLevel`
 - [zen-ui-core-countdown.md](zen-ui-core-countdown.md) — `remainingMs`, `formatCountdown`, `countdownLevel`, `crossedThresholds`, `DEFAULT_COUNTDOWN_THRESHOLDS`
 - [timeline.md](timeline.md) — `Timeline`, `TimelineProps`, `TimelineItem`, `TimelineState`

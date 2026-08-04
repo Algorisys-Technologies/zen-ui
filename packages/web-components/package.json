@@ -52,6 +52,7 @@
     "@algorisys/zen-ui-core": "workspace:*",
     "@algorisys/zen-ui-vanilla": "workspace:*",
     "@eslint/js": "^9.36.0",
+    "@monaco-editor/loader": "^1.7.0",
     "@types/node": "^24.6.0",
     "@unocss/preset-uno": "^66.5.4",
     "eslint": "^9.36.0",
@@ -59,6 +60,7 @@
     "globals": "^16.4.0",
     "jodit": "^4.13.3",
     "leaflet": "^1.9.4",
+    "pdfjs-dist": "^6.2.108",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",
     "unocss": "^66.5.4",
@@ -66,13 +68,21 @@
   },
   "peerDependencies": {
     "leaflet": "^1.9.0",
-    "jodit": "^4.0.0"
+    "jodit": "^4.0.0",
+    "@monaco-editor/loader": "^1.7.0",
+    "pdfjs-dist": "^5.0.0 || ^6.0.0"
   },
   "peerDependenciesMeta": {
     "leaflet": {
       "optional": true
     },
     "jodit": {
+      "optional": true
+    },
+    "@monaco-editor/loader": {
+      "optional": true
+    },
+    "pdfjs-dist": {
       "optional": true
     }
   },

@@ -64,6 +64,17 @@ export {
   productionCriticalPath, productionLoad, productionPeakLoad, productionPlacement,
   productionReschedule, productionSequenceConflicts, productionSetupMinutes,
   productionSetupPlan,
+  ArchitectureDraw, CELL_ERRORS, CODE_LANGUAGES, ChunkUploader, CodeEditor, DEFAULT_CHUNK_SIZE,
+  DEFAULT_COUNTDOWN_THRESHOLDS, DEFAULT_DIAGRAM_EMBED_URL, DEFAULT_MAX_ATTEMPTS,
+  DEFAULT_REORDER_ANNOUNCEMENTS, DEFAULT_YAPPYDRAW_EMBED_URL, DOCUMENT_ZOOM_MAX, DOCUMENT_ZOOM_MIN,
+  DiagramCanvas, DiffView, DocumentViewer, IDEWindow, ProctorFlagOverlay, ProctorStreamGrid,
+  SPLITTER_STEP, SPLITTER_STEP_LARGE, SheetCalculator, SortableList, SpreadsheetGrid, Splitter,
+  TestCountdownBar, TimerBadge,
+  clampZoom, computeDiff, countdownLevel, crossedThresholds, dragHandle, evaluateFormula,
+  expandRange, fitScale, formatCellValue, formatCountdown, formatRef, handleBounds,
+  inferDocumentKind, isCellError, isKeyed, keyToReorderAction, mirrorDelta, moveItem,
+  nextAttemptDelay, normalizeRotation, normalizeSizes, parseRef, parseSnapshot, planChunks,
+  reduceReorder, remainingMs, shouldRetry, splitterKeyDelta, uploadProgress, zoomStep,
 } from "@algorisys/zen-ui-vanilla";
 
 export type {
@@ -135,6 +146,15 @@ export type {
   ProductionPaneColumn, ProductionPlacement, ProductionPlacementOptions, ProductionProposal,
   ProductionRescheduleOptions, ProductionResource, ProductionResourceNode, ProductionRow,
   ProductionScheduleProps, ProductionSetupMatrix, ProductionShift,
+  ArchitectureDrawProps, CellError, CellFormat, CellMap, CellRef, CellValue, ChunkMeta,
+  ChunkPlanItem, ChunkUploadStatus, ChunkUploaderProps, CodeEditorProps, CodeFile, CodeLanguage,
+  CountdownCore, CountdownLevel, DiagramCanvasProps, DiagramProvider, DiffKind, DiffOptions,
+  DiffRow, DiffSnapshot, DiffViewProps, DocumentFit, DocumentKind, DocumentSize,
+  DocumentViewerProps, IDEWindowProps, PickedUp, ProctorFlag, ProctorFlagLevel,
+  ProctorFlagOverlayProps, ProctorParticipant, ProctorStreamGridProps, ReorderAction,
+  ReorderAnnouncements, ReorderIntent, ReorderOrientation, ReorderResult, SheetCalculatorProps,
+  SortableItemSpec, SortableListProps, SplitterOrientation, SplitterPanelConstraint,
+  SplitterPanelSpec, SplitterProps, SpreadsheetGridProps, TestCountdownBarProps, TimerBadgeProps,
 } from "@algorisys/zen-ui-vanilla";
 
 // The custom-element layer's own surface.
