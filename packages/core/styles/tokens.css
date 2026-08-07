@@ -87,6 +87,13 @@
   --zen-radius-sm: 4px;
   --zen-radius-md: 6px;
   --zen-radius-lg: 8px;
+  /* xl/2xl exist because the scale stopped one step short of what real
+     surfaces need. Consumers were reaching past `lg` for card and panel
+     corners and landing on arbitrary values — a SkillsEngine audit found 10px,
+     12px, 20px and 1rem all hand-written, none of them themeable. 8 -> 12 -> 16
+     continues the existing 4 -> 6 -> 8 progression. */
+  --zen-radius-xl: 12px;
+  --zen-radius-2xl: 16px;
   --zen-radius-full: 9999px;
 
   --zen-border-width: 1px;
