@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.7.1",
+    date: "2026-08-07",
+    kind: "new",
+    title: "Radius scale gains xl and 2xl",
+    detail:
+      "The scale stopped at 8px, which is smaller than most card and panel corners want, so consumers reaching past lg hand-wrote the value. Measured in SkillsEngine across ~200 components: eleven distinct radii, every one above 8px arbitrary — 10px, 12px, 20px, 1rem — and none of them reachable by a theme override. --zen-radius-xl (12px) and --zen-radius-2xl (16px) continue the 4 → 6 → 8 progression and live in core, so every binding gets them without a per-binding change.",
+  },
+  {
     version: "10.7.0",
     date: "2026-08-04",
     kind: "new",

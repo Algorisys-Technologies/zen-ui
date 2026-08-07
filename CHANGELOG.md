@@ -11,6 +11,20 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.7.1] - 2026-08-07
+
+The radius scale gains two steps above `lg`.
+
+### Added
+
+- `--zen-radius-xl` (12px) and `--zen-radius-2xl` (16px), wired into the UnoCSS
+  theme as `rounded-zen-xl` / `rounded-zen-2xl`. The scale stopped at 8px, so
+  consumers reaching past `lg` for card and panel corners hand-wrote the value:
+  a SkillsEngine audit across ~200 components found eleven distinct radii and
+  every one above 8px arbitrary — 10px, 12px, 20px, 1rem — none themeable.
+  8 → 12 → 16 continues the existing 4 → 6 → 8 progression. The tokens live in
+  core, so every binding picks them up and parity is unaffected.
+
 ## [10.7.0] - 2026-08-04
 
 The port closes. `vanilla` and `web-components` gain both component sets, and
