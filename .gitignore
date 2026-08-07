@@ -120,3 +120,4 @@ dist-site/
 packages/*/public/previews/
 apps/landing/public/previews/
 .playwright-mcp/
+*.tgz
