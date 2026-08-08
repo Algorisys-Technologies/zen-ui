@@ -347,6 +347,17 @@ export type {
   AccordionContentProps,
 } from "./components/accordion/accordion";
 
+export {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "./components/collapsible/collapsible";
+export type {
+  CollapsibleProps,
+  CollapsibleTriggerProps,
+  CollapsibleContentProps,
+} from "./components/collapsible/collapsible";
+
 export { MaskInput } from "./components/form/mask-input/mask-input";
 export type { MaskInputProps } from "./components/form/mask-input/mask-input";
 export type { MaskRules } from "@algorisys/zen-ui-core/mask";
@@ -445,6 +456,8 @@ export { Toaster, toast } from "./components/toast/toaster";
 
 export { Input, Textarea } from "./components/form/input/input";
 export type { InputProps, TextareaProps } from "./components/form/input/input";
+export { Label } from "./components/form/label/label";
+export type { LabelProps } from "./components/form/label/label";
 export { DEFAULT_EMAIL_DOMAINS } from "./components/form/input/input.constants";
 export { Search } from "./components/form/search/search";
 export type { SearchProps, SearchSize } from "./components/form/search/search";
@@ -542,6 +555,20 @@ export type {
 } from "@algorisys/zen-ui-core/pivot";
 
 export { DataTable } from "./components/data-table/data-table";
+export {
+  UrlDataTable,
+  parseSortParam,
+  serializeSortParam,
+  parseFilterParam,
+  serializeFilterParam,
+} from "./components/url-data-table/url-data-table";
+export type {
+  UrlDataTableProps,
+  UrlDataTableColumn,
+  UrlDataTableFilter,
+  UrlDataTableFilterOption,
+  UrlDataTableParamNames,
+} from "./components/url-data-table/url-data-table";
 export type {
   DataTableProps,
   DataTableManualPagination,

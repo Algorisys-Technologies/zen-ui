@@ -67,6 +67,15 @@ import {
 export interface ComboboxOption {
   value: string;
   label: string;
+  /**
+   * Rich row content, rendered INSTEAD of `label`.
+   *
+   * `label` stays the string: it is what the filter matches, what the trigger
+   * shows once a value is picked, and what `creatable` compares against. This
+   * is only what the row looks like — a second line of metadata, a highlighted
+   * match, an avatar beside the name.
+   */
+  content?: React.ReactNode;
   /** Optional extra text used by cmdk's fuzzy match. */
   keywords?: string[];
   disabled?: boolean;
@@ -285,7 +294,7 @@ const Combobox: React.FC<ComboboxProps> = ({
                       marginRight: 6,
                     }}
                   />
-                  <span style={{ flex: 1 }}>{o.label}</span>
+                  <span style={{ flex: 1 }}>{o.content ?? o.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -48,7 +48,7 @@ SKILL.md.
 
 ### Other exports
 
-- `toastVariants(props?: ({ variant?: "info" | "default" | "success" | "warning" | "destructive" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `toastVariants(props?: ({ variant?: "info" | "default" | "success" | "warning" | "destructive" | null | undefined; } & import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

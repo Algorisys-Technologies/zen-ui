@@ -36,8 +36,8 @@ SKILL.md.
 
 ### Other exports
 
-- `tabsListVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; orientation?: "horizontal" | "vertical" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
-- `tabsTriggerVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `tabsListVariants(…)`
+- `tabsTriggerVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; } & import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

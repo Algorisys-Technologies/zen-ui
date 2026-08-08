@@ -61,7 +61,7 @@ SKILL.md.
 
 ### Other exports
 
-- `sheetContentVariants(props?: ({ side?: "right" | "left" | "top" | "bottom" | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `sheetContentVariants(props?: ({ side?: "right" | "left" | "top" | "bottom" | null | undefined; } & import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

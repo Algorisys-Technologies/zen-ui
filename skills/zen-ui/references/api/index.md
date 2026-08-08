@@ -10,6 +10,7 @@ real props; guessing prop names is how agents invent APIs.
 - [input.md](input.md) — `Input`, `InputProps`
 - [textarea.md](textarea.md) — `Textarea`, `TextareaProps`
 - [input.constants.md](input.constants.md) — `DEFAULT_EMAIL_DOMAINS`
+- [label.md](label.md) — `Label`, `labelVariants`, `LabelProps`
 - [search.md](search.md) — `Search`, `SearchProps`, `SearchSize`
 - [password-input.md](password-input.md) — `PasswordInput`, `PasswordInputProps`
 - [number-field.md](number-field.md) — `NumberField`, `NumberFieldProps`
@@ -90,6 +91,7 @@ real props; guessing prop names is how agents invent APIs.
 - [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
 - [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`
 - [accordion.md](accordion.md) — `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`
+- [collapsible.md](collapsible.md) — `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
 - [tabs.md](tabs.md) — `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`, `tabsListVariants`, `tabsTriggerVariants`, `TabsListProps`, `TabsTriggerProps`
 - [empty-state.md](empty-state.md) — `EmptyState`, `EmptyStateIcon`, `EmptyStateTitle`, `EmptyStateDescription`, `EmptyStateActions`, `emptyStateVariants`, `EmptyStateProps`
 - [banner.md](banner.md) — `Banner`, `BannerIcon`, `BannerContent`, `BannerTitle`, `BannerDescription`, `BannerActions`, `BannerClose`, `bannerVariants`, `BannerProps`, `BannerCloseProps`
@@ -98,6 +100,7 @@ real props; guessing prop names is how agents invent APIs.
 - [lib-theme.md](lib-theme.md) — `useTheme`, `applyTheme`, `getInitialTheme`, `THEMES`, `ThemeName`, `ThemeDescriptor`
 - [table.md](table.md) — `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableHead`, `TableRow`, `TableCell`, `TableCaption`, `TableProps`
 - [data-table.md](data-table.md) — `DataTable`, `DataTableProps`, `DataTableManualPagination`
+- [url-data-table.md](url-data-table.md) — `UrlDataTable`, `parseSortParam`, `serializeSortParam`, `parseFilterParam`, `serializeFilterParam`, `UrlDataTableProps`, `UrlDataTableColumn`, `UrlDataTableFilter`, `UrlDataTableFilterOption`, `UrlDataTableParamNames`
 - [tree-table.md](tree-table.md) — `TreeTable`, `TreeTableProps`
 - [planning-calendar.md](planning-calendar.md) — `PlanningCalendar`, `PlanningCalendarProps`, `PlanningRow`, `PlanningAppointment`, `PlanningAppointmentState`
 - [planning.md](planning.md) — `PlanningView`

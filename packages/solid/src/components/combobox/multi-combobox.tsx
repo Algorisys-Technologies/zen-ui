@@ -146,7 +146,9 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
           <KCombobox.ItemIndicator class="zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
             <CheckIcon />
           </KCombobox.ItemIndicator>
-          <KCombobox.ItemLabel>{itemProps.item.rawValue.label}</KCombobox.ItemLabel>
+          <KCombobox.ItemLabel>
+            {itemProps.item.rawValue.content ?? itemProps.item.rawValue.label}
+          </KCombobox.ItemLabel>
         </KCombobox.Item>
       )}
       class={props.class}

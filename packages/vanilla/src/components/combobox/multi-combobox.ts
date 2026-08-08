@@ -35,6 +35,14 @@ import { Popover } from "../popover/popover";
 export interface ComboboxOption {
   value: string;
   label: string;
+  /**
+   * Rich row content, rendered INSTEAD of `label`.
+   *
+   * `label` stays the string: it is what the filter matches and what the
+   * selected chip shows. This is only what the row looks like. A Node here,
+   * not JSX.
+   */
+  content?: Node;
   /** Optional extra text used by the fuzzy match. */
   keywords?: string[];
   disabled?: boolean;
@@ -319,7 +327,9 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
     check.style.marginRight = "6px";
     const text = document.createElement("span");
     text.className = "zen-flex-1";
-    text.textContent = o.label;
+    // content wins for the ROW; the chip below stays on the string label.
+    if (o.content) text.append(o.content.cloneNode(true));
+    else text.textContent = o.label;
     row.append(check, text);
 
     if (o.disabled) {

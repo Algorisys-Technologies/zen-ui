@@ -75,6 +75,8 @@ export const zenUnoTheme = {
     "zen-sm": "var(--zen-radius-sm)",
     "zen-md": "var(--zen-radius-md)",
     "zen-lg": "var(--zen-radius-lg)",
+    "zen-xl": "var(--zen-radius-xl)",
+    "zen-2xl": "var(--zen-radius-2xl)",
     "zen-full": "var(--zen-radius-full)",
   },
   boxShadow: {

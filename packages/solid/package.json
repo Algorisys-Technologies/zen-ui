@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-solid",
-  "version": "10.7.0",
+  "version": "10.7.1",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "sideEffects": [
@@ -75,6 +75,7 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-solid": "^0.14.4",
     "globals": "^16.4.0",
+    "leaflet": "^1.9.4",
     "monaco-editor": "^0.56.0",
     "pdfjs-dist": "^6.2.108",
     "solid-js": "^1.9.0",

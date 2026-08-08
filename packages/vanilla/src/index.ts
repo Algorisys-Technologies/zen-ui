@@ -14,6 +14,8 @@ export { Icon, ZEN_ICON_NAMES } from "./components/icon/icon";
 export type { IconProps, IconHandle, IconName } from "./components/icon/icon";
 
 export { Accordion } from "./components/accordion/accordion";
+export { Collapsible } from "./components/collapsible/collapsible";
+export type { CollapsibleProps } from "./components/collapsible/collapsible";
 export type { AccordionProps, AccordionItemSpec } from "./components/accordion/accordion";
 
 export { Tabs, tabsListVariants, tabsTriggerVariants } from "./components/tabs/tabs";
@@ -22,6 +24,8 @@ export type { TabsProps, TabSpec } from "./components/tabs/tabs";
 export { Dialog } from "./components/dialog/dialog";
 export type { DialogProps, DialogHandle } from "./components/dialog/dialog";
 
+export { Label } from "./components/form/label/label";
+export type { LabelProps } from "./components/form/label/label";
 export { Input, INPUT_CLASS } from "./components/form/input/input";
 export type { InputProps, InputHandle } from "./components/form/input/input";
 export { Search } from "./components/form/search/search";
@@ -208,6 +212,21 @@ export type { ChartProps, ChartSeries } from "./components/chart/chart";
 export type { Slice } from "@algorisys/zen-ui-core/chart";
 export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
 export { DataTable } from "./components/data-table/data-table";
+export {
+  UrlDataTable,
+  parseSortParam,
+  serializeSortParam,
+  parseFilterParam,
+  serializeFilterParam,
+} from "./components/url-data-table/url-data-table";
+export type {
+  UrlDataTableProps,
+  UrlDataTableColumn,
+  UrlDataTableFilter,
+  UrlDataTableFilterOption,
+  UrlDataTableParamNames,
+} from "./components/url-data-table/url-data-table";
+
 export { TreeTable } from "./components/tree-table/tree-table";
 export {
   MicroLineChart,
