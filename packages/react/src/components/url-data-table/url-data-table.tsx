@@ -421,10 +421,20 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
           onPageChange: handlePageChange,
         }}
         enableSorting={hasSortableColumn}
-        enableMultiSort={hasSortableColumn}
+        /* Single-column sort. Multi-sort renders a priority number beside each
+           header, which reads as data in a table full of numbers; one arrow is
+           unambiguous. The URL format still carries a list, so a multi-sort
+           caller keeps working. */
+        enableMultiSort={false}
         enablePagination
         enableColumnFilters={hasPerColumnFilters}
         enablePerColumnFilters={hasPerColumnFilters}
+        /* The server owns the predicate here, so there is no client-side
+           operator to choose. It also keeps the filter value a plain string,
+           which is what the active-filter chip renders — with the operator
+           select on, an operator picked before a value was typed produced
+           `{ op, value: "" }` and the chip showed "[object Object]". */
+        enableFilterOperators={false}
         sorting={sorting}
         onSortingChange={handleSortingChange}
         columnFilters={filtersDraft}

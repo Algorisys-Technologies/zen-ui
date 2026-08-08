@@ -197,20 +197,39 @@ function OpSelect<T extends string>({
   );
 }
 
-function TextFilter({ column }: { column: Column<unknown> }) {
-  const raw = column.getFilterValue() as TextFilterValue | undefined;
-  const op = raw?.op ?? "contains";
-  const value = raw?.value ?? "";
+function TextFilter({
+  column,
+  operators = true,
+}: {
+  column: Column<unknown>;
+  operators?: boolean;
+}) {
+  const raw = column.getFilterValue() as TextFilterValue | string | undefined;
+  const isObj = typeof raw === "object" && raw !== null;
+  const op = isObj ? (raw as TextFilterValue).op : "contains";
+  const value = isObj ? (raw as TextFilterValue).value ?? "" : (raw as string) ?? "";
+
+  /**
+   * Without the operator select the filter value is a bare string, not
+   * `{ op, value }`. That is not cosmetic: the operator is a client-side
+   * predicate, and a server-filtered table has already made that decision. An
+   * operator the server ignores is a control that lies about what it does.
+   */
   const setNext = (next: Partial<TextFilterValue>) =>
-    column.setFilterValue({ op, value, ...next });
+    operators
+      ? column.setFilterValue({ op, value, ...next })
+      : column.setFilterValue(next.value ?? value);
+
   return (
     <div className="zen-flex zen-items-center zen-gap-1">
-      <OpSelect
-        value={op}
-        onChange={(o) => setNext({ op: o })}
-        options={TEXT_OPS}
-        ariaLabel={`${headerLabel(column)} filter operator`}
-      />
+      {operators ? (
+        <OpSelect
+          value={op}
+          onChange={(o) => setNext({ op: o })}
+          options={TEXT_OPS}
+          ariaLabel={`${headerLabel(column)} filter operator`}
+        />
+      ) : null}
       <Input
         value={value}
         onChange={(e) => setNext({ value: e.target.value })}
@@ -350,8 +369,11 @@ function BooleanFilter({ column }: { column: Column<unknown> }) {
 
 export function FilterCell<TData>({
   column,
+  operators = true,
 }: {
   column: Column<TData, unknown>;
+  /** Render the per-column operator select. Off for server-filtered tables. */
+  operators?: boolean;
 }) {
   if (!column.getCanFilter()) return null;
   const meta = column.columnDef.meta as
@@ -374,6 +396,6 @@ export function FilterCell<TData>({
       return <BooleanFilter column={c} />;
     case "text":
     default:
-      return <TextFilter column={c} />;
+      return <TextFilter column={c} operators={operators} />;
   }
 }
