@@ -78,6 +78,14 @@ export interface DataTableColumn<TData> {
   size?: number;
   /** Custom comparator for this column. Defaults to numeric / locale-string compare of the accessor value. */
   sortingFn?: (a: TData, b: TData) => number;
+  /**
+   * Footer cell for this column — a column total, typically.
+   *
+   * Declaring it on ANY column gives the table a <tfoot>; columns without one
+   * render an empty cell so the row stays aligned. Receives the rows currently
+   * in the table so the total reflects filtering.
+   */
+  footer?: (rows: TData[]) => Child;
 }
 
 export interface SortingColumn {
@@ -607,7 +615,26 @@ export function DataTable<TData>(
       }
     }
 
-    table.append(thead, tbody);
+    /* tfoot — only when a column declares a footer, so every existing table
+     * keeps its exact markup. */
+    const footerCols = current.columns.filter((c) => c.footer);
+    if (footerCols.length) {
+      const tfoot = h("tfoot", "zen-border-t zen-bg-zen-muted/50 zen-font-medium");
+      const tr = h("tr", "");
+      for (const col of current.columns) {
+        const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+        if (col.footer) {
+          const content = col.footer(display.map((r: (typeof display)[number]) => r.row));
+          collectInto(content, mounted);
+          td.append(...toNodes(content));
+        }
+        tr.append(td);
+      }
+      tfoot.append(tr);
+      table.append(thead, tbody, tfoot);
+    } else {
+      table.append(thead, tbody);
+    }
     wrapper.append(table);
     return wrapper;
   }

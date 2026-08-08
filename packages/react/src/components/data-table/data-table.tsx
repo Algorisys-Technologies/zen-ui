@@ -68,6 +68,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -1010,6 +1011,12 @@ export function DataTable<TData, TValue = unknown>({
     return { ...ps, background: headerStickyBg };
   };
 
+  /* Any column declaring a footer opts the whole table into a <tfoot>. */
+  const hasFooter = React.useMemo(
+    () => columns.some((c) => (c as { footer?: unknown }).footer !== undefined),
+    [columns],
+  );
+
   const headerRows = (
     <TableHeader className={headerVariantThClass}>
       {table.getHeaderGroups().map((hg) => (
@@ -1205,6 +1212,30 @@ export function DataTable<TData, TValue = unknown>({
           )
         )}
       </TableBody>
+      {/* A footer row, but only when a column actually declares one.
+       *
+       * TanStack has carried `footer` on every ColumnDef since v8 and this
+       * rendered none of them, so a column total had nowhere to go — the one
+       * thing a financial table always needs. Rendered only when at least one
+       * column defines it, so every existing table keeps its exact markup. */}
+      {hasFooter ? (
+        <TableFooter>
+          {table.getFooterGroups().map((fg) => (
+            <TableRow key={fg.id}>
+              {fg.headers.map((header) => (
+                <TableCell key={header.id} colSpan={header.colSpan}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.footer,
+                        header.getContext(),
+                      )}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableFooter>
+      ) : null}
     </Table>
   );
 
