@@ -46,28 +46,34 @@ export interface NativeSelectProps extends BaseProps {
 }
 
 export const NATIVE_SELECT_CLASS = [
-  // Matches INPUT_CLASS exactly, so the two line up in a form.
-  "zen-flex zen-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2 zen-text-sm",
+  // Everything INPUT_CLASS has except the width: a text field filling its
+  // container is right, a select changing width with its options is not.
+  "zen-h-10 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2 zen-text-sm",
   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
   "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
-  // The platform arrow ignores the theme, so it is replaced by the chevron.
+  // The platform arrow ignores the theme, so it is suppressed and redrawn as
+  // a background image — one element, so the caller's layout classes land on
+  // the control itself.
   "zen-appearance-none zen-pe-9",
 ].join(" ");
 
-const CHEVRON = `<svg aria-hidden="true" class="zen-pointer-events-none zen-absolute zen-end-3 zen-top-1/2 zen--translate-y-1/2 zen-text-zen-muted-fg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+/** Inline so it needs no network request and no icon dependency. */
+const CHEVRON_URL =
+  "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e\")";
 
 export function NativeSelect(
   props: NativeSelectProps,
 ): ZenComponent<NativeSelectProps> {
   let current: NativeSelectProps = { ...props };
-  const el = document.createElement("div");
   const select = document.createElement("select");
+  const el = select;
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
-  el.className = "zen-relative zen-w-full";
-  el.append(select);
-  el.insertAdjacentHTML("beforeend", CHEVRON);
+  select.style.backgroundImage = CHEVRON_URL;
+  select.style.backgroundRepeat = "no-repeat";
+  select.style.backgroundPosition = "right 0.75rem center";
+  select.style.backgroundSize = "1rem";
 
   const onChange = () => current.onChange?.(select.value);
   select.addEventListener("change", onChange);
