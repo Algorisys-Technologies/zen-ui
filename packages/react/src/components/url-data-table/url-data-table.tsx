@@ -3,6 +3,7 @@ import type { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/reac
 import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
 import { DataTable } from "../data-table/data-table";
+import { Search } from "../form/search/search";
 
 /**
  * UrlDataTable — a DataTable whose entire state lives in the URL.
@@ -376,9 +377,24 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
 
   return (
     <div className={cn("zen-flex zen-flex-col zen-gap-3", className)}>
-      {filters && filters.length > 0 && (
-        <div className="zen-flex zen-flex-wrap zen-items-center zen-gap-2">
-          {filters.map((filter) => {
+      {/**
+        * One toolbar row, owned here.
+        *
+        * DataTable renders its own search box inside its own toolbar block, so
+        * leaving it on stacked the dropdowns above the search with no way to
+        * align them from outside — `display: contents` on the wrapper puts them
+        * on one line but promotes the TABLE to a flex item, which centres and
+        * shrinks it. Owning the row is the fix: the search is zen-ui's Search
+        * (magnifier + clear button), and DataTable is not given a global filter
+        * at all, so it renders no toolbar to compete with this one.
+        *
+        * `zen-p-px` is not decoration: the focus ring is drawn outside the
+        * control's box, and with the row flush against the block above it the
+        * top of the ring was clipped.
+        */}
+      {(search || (filters && filters.length > 0)) && (
+        <div className="zen-flex zen-flex-wrap zen-items-center zen-gap-2 zen-p-px">
+          {filters?.map((filter) => {
             const current =
               filtersDraft.find((f) => f.id === filter.key)?.value ?? "";
             return (
@@ -403,6 +419,17 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
               </label>
             );
           })}
+
+          {search && (
+            <Search
+              value={searchDraft}
+              onValueChange={setSearchDraft}
+              onClear={() => setSearchDraft("")}
+              placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
+              className="zen-w-64"
+            />
+          )}
         </div>
       )}
 
@@ -439,9 +466,6 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
         onSortingChange={handleSortingChange}
         columnFilters={filtersDraft}
         onColumnFiltersChange={setFiltersDraft}
-        globalFilter={search ? searchDraft : undefined}
-        onGlobalFilterChange={search ? setSearchDraft : undefined}
-        globalFilterPlaceholder={searchPlaceholder}
         emptyMessage={emptyMessage}
         loading={loading}
       />

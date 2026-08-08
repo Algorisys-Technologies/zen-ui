@@ -3,6 +3,7 @@ import type { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/soli
 import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
 import { DataTable } from "../data-table/data-table";
+import { Search } from "../form/search/search";
 
 /**
  * UrlDataTable — a DataTable whose entire state lives in the URL.
@@ -261,8 +262,11 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
 
   return (
     <div class={cn("zen-flex zen-flex-col zen-gap-3", props.class)}>
-      <Show when={props.filters && props.filters.length > 0}>
-        <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2">
+      {/* One toolbar row, owned here — see the React binding for why DataTable
+          is not given a global filter. `zen-p-px` keeps the focus ring, which is
+          drawn outside the control's box, from being clipped by the block above. */}
+      <Show when={props.search || (props.filters && props.filters.length > 0)}>
+        <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2 zen-p-px">
           <For each={props.filters}>
             {(filter) => (
               <label class="zen-flex zen-items-center zen-gap-1.5">
@@ -288,6 +292,19 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
               </label>
             )}
           </For>
+          <Show when={props.search}>
+            <Search
+              value={globalFilter()}
+              onValueChange={(v: string) =>
+                commit((next) => setOrDelete(next, names().search, v.trim()))
+              }
+              onClear={() =>
+                commit((next) => setOrDelete(next, names().search, ""))
+              }
+              placeholder={props.searchPlaceholder ?? "Search…"}
+              class="zen-w-64"
+            />
+          </Show>
         </div>
       </Show>
 
@@ -323,14 +340,6 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
             setOrDelete(next, names().filters, serializeFilterParam(state)),
           )
         }
-        globalFilter={props.search ? globalFilter() : undefined}
-        onGlobalFilterChange={
-          props.search
-            ? (value: string) =>
-                commit((next) => setOrDelete(next, names().search, value.trim()))
-            : undefined
-        }
-        globalFilterPlaceholder={props.searchPlaceholder ?? "Search…"}
         emptyMessage={props.emptyMessage}
         loading={props.loading}
       />
