@@ -21,6 +21,10 @@ export { Textarea } from "./components/form/input/textarea";
 export type { TextareaProps } from "./components/form/input/textarea";
 export { DEFAULT_EMAIL_DOMAINS } from "./components/form/input/input.constants";
 
+// Form Components - NativeSelect (the platform <select>, styled to match Input)
+export { NativeSelect } from "./components/form/native-select/native-select";
+export type { NativeSelectProps } from "./components/form/native-select/native-select";
+
 // Form Components - Label (the standalone <label>; FormLabel is the in-Form one)
 export { Label, labelVariants } from "./components/form/label/label";
 export type { LabelProps } from "./components/form/label/label";

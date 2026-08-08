@@ -10,6 +10,7 @@ real props; guessing prop names is how agents invent APIs.
 - [input.md](input.md) — `Input`, `InputProps`
 - [textarea.md](textarea.md) — `Textarea`, `TextareaProps`
 - [input.constants.md](input.constants.md) — `DEFAULT_EMAIL_DOMAINS`
+- [native-select.md](native-select.md) — `NativeSelect`, `NativeSelectProps`
 - [label.md](label.md) — `Label`, `labelVariants`, `LabelProps`
 - [search.md](search.md) — `Search`, `SearchProps`, `SearchSize`
 - [password-input.md](password-input.md) — `PasswordInput`, `PasswordInputProps`

@@ -37,6 +37,7 @@ const DATA_DRIVEN_DIVERGENT = [
   "DropdownMenuShortcut", "DropdownMenuSide", "DropdownMenuSub", "DropdownMenuSubContent", "DropdownMenuSubSpec", "DropdownMenuSubTrigger",
   "DropdownMenuTrigger", "FieldApi", "FieldState", "Form", "FormControl", "FormController",
   "FormErrors", "FormFieldConfig", "FormOptions", "FormSchema", "INPUT_CLASS", "IconHandle",
+  "NATIVE_SELECT_CLASS", "NativeSelectOption",
   "InputHandle", "InputOTPGroup", "InputOTPSeparator", "InputOTPSlot", "MaskInputHandle", "NotificationsInboxHandle",
   "NumberFieldHandle", "PasswordInputHandle", "PopoverAlign", "PopoverAnchor", "PopoverContent", "PopoverHandle", "PopoverSide",
   "PopoverTrigger", "RatingSize", "SearchHandle", "SelectDialogHandle", "SelectableCard", "SelectableCardItemSpec", "SheetClose",
