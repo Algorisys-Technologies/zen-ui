@@ -122,6 +122,7 @@ export const NAV: NavGroup[] = [
       { to: "/tabs", label: "Tabs", description: "Radix-backed tabbed navigation; underline + pills variants, horizontal / vertical", source: "packages/react/src/components/NewTabsDemo.tsx" },
       { to: "/accordion", label: "Accordion", description: "Radix-backed collapsible sections; single + multiple expand modes", source: "packages/react/src/components/NewAccordionDemo.tsx" },
       { to: "/collapsible", label: "Collapsible", description: "One region that shows and hides — the single disclosure Accordion overserves", source: "packages/react/src/components/NewCollapsibleDemo.tsx" },
+      { to: "/native-select", label: "NativeSelect", description: "The platform <select>, styled to match Input — submits with no hidden input, opens as the OS picker on a phone", source: "packages/react/src/components/NewNativeSelectDemo.tsx" },
       { to: "/label", label: "Label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/react/src/components/NewLabelDemo.tsx" },
       { to: "/card", label: "Card", description: "Surface primitive + SelectableCard variant for goal pickers / plan selectors", source: "packages/react/src/components/NewCardDemo.tsx" },
       { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/react/src/components/NewStatCardDemo.tsx" },

@@ -456,6 +456,8 @@ export { Toaster, toast } from "./components/toast/toaster";
 
 export { Input, Textarea } from "./components/form/input/input";
 export type { InputProps, TextareaProps } from "./components/form/input/input";
+export { NativeSelect } from "./components/form/native-select/native-select";
+export type { NativeSelectProps } from "./components/form/native-select/native-select";
 export { Label } from "./components/form/label/label";
 export type { LabelProps } from "./components/form/label/label";
 export { DEFAULT_EMAIL_DOMAINS } from "./components/form/input/input.constants";
