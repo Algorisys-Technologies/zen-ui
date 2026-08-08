@@ -1,0 +1,146 @@
+<!-- GENERATED FILE — do not edit by hand.
+     Source: packages/react/src types (via scripts/gen-skill-api.ts)
+     Regenerate: bun run gen:skill-api  (checked by `bun run check`) -->
+
+# zen-ui API index — which file has which export
+
+One file per source family. Before using a component, read its file for the
+real props; guessing prop names is how agents invent APIs.
+
+- [input.md](input.md) — `Input`, `InputProps`
+- [textarea.md](textarea.md) — `Textarea`, `TextareaProps`
+- [input.constants.md](input.constants.md) — `DEFAULT_EMAIL_DOMAINS`
+- [label.md](label.md) — `Label`, `labelVariants`, `LabelProps`
+- [search.md](search.md) — `Search`, `SearchProps`, `SearchSize`
+- [password-input.md](password-input.md) — `PasswordInput`, `PasswordInputProps`
+- [number-field.md](number-field.md) — `NumberField`, `NumberFieldProps`
+- [date-picker.md](date-picker.md) — `DatePicker`, `Calendar`, `DatePickerProps`, `CalendarProps`
+- [rating.md](rating.md) — `Rating`, `RatingProps`
+- [nps.md](nps.md) — `NPS`, `NPSProps`
+- [likert.md](likert.md) — `Likert`, `LikertProps`, `LikertOption`
+- [tag-input.md](tag-input.md) — `TagInput`, `TagInputProps`
+- [date-range-picker.md](date-range-picker.md) — `DateRangePicker`, `DateRangePickerProps`, `DateRange`
+- [time-picker.md](time-picker.md) — `TimePicker`, `TimePickerProps`
+- [date-time-picker.md](date-time-picker.md) — `DateTimePicker`, `DateTimePickerProps`
+- [qr-scanner.md](qr-scanner.md) — `QRScanner`, `QRScannerProps`, `QRScannerScan`
+- [notifications-inbox.md](notifications-inbox.md) — `NotificationsInbox`, `NotificationsInboxProps`, `Notification`
+- [color-picker.md](color-picker.md) — `ColorPicker`, `ColorPickerProps`
+- [color-palette.md](color-palette.md) — `ColorPalette`, `ColorPaletteProps`
+- [color.md](color.md) — `ColorOption`
+- [dynamic-date-range.md](dynamic-date-range.md) — `DynamicDateRange`, `DynamicDateRangeProps`
+- [date-range.md](date-range.md) — `DateRangeValue`, `DateRangeOperator`, `ResolvedRange`, `OperatorMeta`, `resolveDateRange`, `formatDateRangeValue`, `DATE_RANGE_OPERATORS`, `parseISODate`, `toISODate`
+- [components-pivot.md](components-pivot.md) — `PivotWorkbench`, `PivotGrid`, `PivotDropZone`, `PivotFieldChip`, `PivotFilterMenu`, `PivotWorkbenchProps`, `PivotGridProps`, `PivotDropZoneProps`, `PivotFieldChipProps`, `PivotFilterMenuProps`
+- [zen-ui-core-pivot.md](zen-ui-core-pivot.md) — `createEmptyLayout`, `moveFieldToZone`, `removeFieldFromLayout`, `updateValueAggregation`, `zoneOf`, `zoneLabel`, `fieldLabel`, `availableFields`, `isLayoutRenderable`, `defaultAggregationForField`, `normalizeFilterSelection`, `isFilterActive`, `isValueSelected`, `hasActiveFilters`, `describeFilterSelection`, `describeMove`, `PIVOT_ZONES`, `PIVOT_AGGREGATIONS`, `PivotLayout`, `PivotField`, `PivotFieldType`, `PivotValueField`, `PivotZone`, `PivotAggregation`, `PivotFilters`, `PivotFilterSelection`, `PivotFilterOptionsBody`, `PivotMembersRequest`, `PivotMembersResult`, `PivotSort`, `SortDirection`
+- [carousel.md](carousel.md) — `Carousel`, `CarouselProps`
+- [media-timeline.md](media-timeline.md) — `MediaTimeline`, `MediaTimelineProps`
+- [waveform.md](waveform.md) — `Waveform`, `WaveformProps`
+- [media.md](media.md) — `formatMediaTime`, `MIN_MEDIA_RANGE`, `MediaRange`, `MediaRangeMode`, `WaveformClip`
+- [link.md](link.md) — `Link`, `linkVariants`, `LinkProps`
+- [popover.md](popover.md) — `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverAnchor`
+- [checkbox.md](checkbox.md) — `Checkbox`, `CheckboxProps`, `CheckboxSize`
+- [radio-group.md](radio-group.md) — `RadioGroup`, `RadioGroupItem`, `RadioGroupItemProps`, `RadioSize`
+- [switch.md](switch.md) — `Switch`, `SwitchProps`, `SwitchSize`
+- [select.md](select.md) — `Select`, `SelectGroup`, `SelectValue`, `SelectTrigger`, `SelectContent`, `SelectLabel`, `SelectItem`, `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`
+- [phone-input.md](phone-input.md) — `PhoneInput`, `PhoneInputProps`, `PhoneValue`
+- [phone-input.constants.md](phone-input.constants.md) — `COUNTRY_CODES`, `COUNTRY_NAMES`
+- [slider.md](slider.md) — `Slider`, `SliderProps`, `SliderMark`
+- [mask-input.md](mask-input.md) — `MaskInput`, `MaskInputProps`
+- [mask.md](mask.md) — `MaskRules`
+- [otp.md](otp.md) — `InputOTP`, `InputOTPGroup`, `InputOTPSlot`, `InputOTPSeparator`, `InputOTPProps`
+- [avatar.md](avatar.md) — `Avatar`, `AvatarImage`, `AvatarFallback`, `AvatarGroup`, `AvatarProps`, `AvatarGroupProps`, `AvatarSize`
+- [page.md](page.md) — `Page`, `Bar`, `PageProps`, `BarProps`
+- [page-header.md](page-header.md) — `PageHeader`, `PageHeaderProps`
+- [toolbar.md](toolbar.md) — `Toolbar`, `ToolbarProps`, `ToolbarAction`
+- [skip-to-content.md](skip-to-content.md) — `SkipToContent`, `SKIP_TO_CONTENT_CLASS`, `SkipToContentProps`
+- [shellbar.md](shellbar.md) — `ShellBar`, `ShellBarProps`, `ShellBarItem`, `ShellBarMenuItem`, `ShellBarProfile`
+- [flexible-column-layout.md](flexible-column-layout.md) — `FlexibleColumnLayout`, `FlexibleColumnLayoutProps`, `FlexibleColumnLayoutType`, `FlexibleColumnLayoutChangeDetail`, `FlexibleColumnName`
+- [dynamic-page.md](dynamic-page.md) — `DynamicPage`, `DynamicPageTitle`, `DynamicPageHeader`, `DynamicPageFooter`, `DynamicPageProps`, `DynamicPageTitleProps`, `DynamicPageHeaderProps`, `DynamicPageFooterProps`
+- [view-settings-dialog.md](view-settings-dialog.md) — `ViewSettingsDialog`, `ViewSettingsDialogProps`, `ViewSettingsValue`, `ViewSettingsItem`, `ViewSettingsFilterGroup`
+- [filter-bar.md](filter-bar.md) — `FilterBar`, `FilterBarProps`, `FilterBarField`
+- [value-help.md](value-help.md) — `ValueHelp`, `ValueHelpProps`, `ValueHelpCondition`, `ValueHelpOperator`, `ValueHelpResult`
+- [select-dialog.md](select-dialog.md) — `SelectDialog`, `SelectDialogProps`, `SelectDialogItem`
+- [object-page.md](object-page.md) — `ObjectPageLayout`, `ObjectPageLayoutProps`, `ObjectPageSection`, `ObjectPageSubSection`
+- [tree.md](tree.md) — `Tree`, `TreeProps`, `TreeNode`
+- [object.md](object.md) — `ObjectStatus`, `ObjectNumber`, `ObjectIdentifier`, `ObjectMarker`, `objectStatusVariants`, `ObjectStatusProps`, `ObjectNumberProps`, `ObjectIdentifierProps`, `ObjectMarkerProps`, `ObjectState`, `ObjectMarkerType`
+- [icon.md](icon.md) — `Icon`, `ZEN_ICON_NAMES`, `IconProps`, `IconName`
+- [badge.md](badge.md) — `Badge`, `badgeVariants`, `BadgeProps`
+- [divider.md](divider.md) — `Separator`, `SeparatorProps`
+- [progress.md](progress.md) — `Progress`, `ProgressProps`, `ProgressSize`, `ProgressColor`
+- [loading.md](loading.md) — `Loading`, `spinnerVariants`, `LoadingProps`
+- [skeleton.md](skeleton.md) — `Skeleton`, `SkeletonProps`
+- [scroll-area.md](scroll-area.md) — `ScrollArea`, `ScrollBar`
+- [button-family.md](button-family.md) — `ToggleButton`, `SegmentedButton`, `SegmentedButtonItem`, `SplitButton`, `ToggleButtonProps`, `SegmentedButtonProps`, `SegmentedButtonItemProps`, `SplitButtonProps`
+- [button.md](button.md) — `Button`, `buttonVariants`, `ButtonProps`
+- [tooltip.md](tooltip.md) — `Tooltip`, `TooltipTrigger`, `TooltipContent`, `TooltipProvider`, `TooltipPortal`, `TooltipContentProps`
+- [dropdown-menu.md](dropdown-menu.md) — `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuCheckboxItem`, `DropdownMenuRadioItem`, `DropdownMenuLabel`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuGroup`, `DropdownMenuPortal`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuRadioGroup`
+- [fab.md](fab.md) — `FAB`, `FABProps`
+- [form.md](form.md) — `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage`, `useFormField`
+- [bound-fields.md](bound-fields.md) — `BoundInput`, `BoundTextarea`, `BoundSelect`, `BoundCheckbox`, `BoundSwitch`, `BoundRadioGroup`, `BoundSlider`, `BoundInputProps`, `BoundTextareaProps`, `BoundSelectProps`, `BoundCheckboxProps`, `BoundSwitchProps`, `BoundRadioGroupProps`, `BoundSliderProps`, `BoundSelectOption`, `SelectOption`
+- [dialog.md](dialog.md) — `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogClose`, `DialogOverlay`, `DialogContent`, `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription`
+- [alert-dialog.md](alert-dialog.md) — `AlertDialog`, `AlertDialogTrigger`, `AlertDialogPortal`, `AlertDialogOverlay`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogFooter`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogAction`, `AlertDialogCancel`
+- [file-upload.md](file-upload.md) — `FileUpload`, `FileUploadProps`, `FileRejection`
+- [toast.md](toast.md) — `Toast`, `ToastProvider`, `ToastViewport`, `ToastTitle`, `ToastDescription`, `ToastAction`, `ToastClose`, `toastVariants`, `ToastProps`
+- [toaster.md](toaster.md) — `Toaster`
+- [use-toast.md](use-toast.md) — `useToast`, `toast`, `ToastDescriptor`, `ToastInput`
+- [sheet.md](sheet.md) — `Sheet`, `SheetTrigger`, `SheetClose`, `SheetPortal`, `SheetOverlay`, `SheetContent`, `SheetHeader`, `SheetFooter`, `SheetTitle`, `SheetDescription`, `sheetContentVariants`, `SheetContentProps`
+- [stack.md](stack.md) — `Stack`, `StackProps`
+- [theme-theme.md](theme-theme.md) — `Theme`, `ThemeProps`
+- [message-popover.md](message-popover.md) — `MessagePopover`, `Message`, `MessageType`, `MessagePopoverProps`
+- [direction.md](direction.md) — `DirectionProvider`, `Direction`, `DirectionProviderProps`
+- [card.md](card.md) — `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `cardVariants`, `CardProps`
+- [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
+- [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`
+- [accordion.md](accordion.md) — `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`
+- [collapsible.md](collapsible.md) — `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
+- [tabs.md](tabs.md) — `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`, `tabsListVariants`, `tabsTriggerVariants`, `TabsListProps`, `TabsTriggerProps`
+- [empty-state.md](empty-state.md) — `EmptyState`, `EmptyStateIcon`, `EmptyStateTitle`, `EmptyStateDescription`, `EmptyStateActions`, `emptyStateVariants`, `EmptyStateProps`
+- [banner.md](banner.md) — `Banner`, `BannerIcon`, `BannerContent`, `BannerTitle`, `BannerDescription`, `BannerActions`, `BannerClose`, `bannerVariants`, `BannerProps`, `BannerCloseProps`
+- [stepper.md](stepper.md) — `Stepper`, `StepperList`, `StepperPanel`, `StepperNavigation`, `useStepper`, `StepperProps`, `StepperListProps`, `StepperPanelProps`, `StepperNavigationProps`, `StepperStep`, `StepStatus`
+- [alert.md](alert.md) — `Alert`, `AlertIcon`, `AlertContent`, `AlertTitle`, `AlertDescription`, `AlertActions`, `AlertClose`, `alertVariants`, `AlertProps`, `AlertCloseProps`
+- [lib-theme.md](lib-theme.md) — `useTheme`, `applyTheme`, `getInitialTheme`, `THEMES`, `ThemeName`, `ThemeDescriptor`
+- [table.md](table.md) — `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableHead`, `TableRow`, `TableCell`, `TableCaption`, `TableProps`
+- [data-table.md](data-table.md) — `DataTable`, `DataTableProps`, `DataTableManualPagination`
+- [url-data-table.md](url-data-table.md) — `UrlDataTable`, `parseSortParam`, `serializeSortParam`, `parseFilterParam`, `serializeFilterParam`, `UrlDataTableProps`, `UrlDataTableColumn`, `UrlDataTableFilter`, `UrlDataTableFilterOption`, `UrlDataTableParamNames`
+- [tree-table.md](tree-table.md) — `TreeTable`, `TreeTableProps`
+- [planning-calendar.md](planning-calendar.md) — `PlanningCalendar`, `PlanningCalendarProps`, `PlanningRow`, `PlanningAppointment`, `PlanningAppointmentState`
+- [planning.md](planning.md) — `PlanningView`
+- [gantt-gantt.md](gantt-gantt.md) — `Gantt`, `GanttProps`, `GanttTask`, `GanttAssignee`
+- [zen-ui-core-gantt.md](zen-ui-core-gantt.md) — `GanttAnchoredView`, `GanttBarAnchor`, `GanttCalendar`, `GanttCalendarException`, `GanttColumnUnit`, `GanttConnector`, `GanttDependency`, `GanttDependencyType`, `GanttFitOptions`, `GanttFlattenOptions`, `GanttPaneColumn`, `GanttRow`, `GanttSegmentOptions`, `GanttSpan`, `GanttTaskNode`, `GanttTaskStatus`, `GanttView`, `GanttWorkingPeriod`, `GANTT_CALENDAR_24_7`, `GANTT_PANE_COLUMNS`, `ganttAddWorkingMs`, `ganttFitRange`, `ganttFitUnit`, `ganttIsWorking`, `ganttSubWorkingMs`, `ganttPaneColumns`, `ganttRangeColumns`, `ganttSpanLabel`, `ganttWorkingMs`, `ganttWorkingPeriodsOn`, `ganttWorkingSegments`
+- [production-schedule.md](production-schedule.md) — `ProductionSchedule`, `ProductionScheduleProps`, `ProductionResource`, `ProductionOperation`, `ProductionPaneColumn`
+- [production.md](production.md) — `ProductionConflict`, `ProductionConflictKind`, `ProductionFlatten`, `ProductionFlattenOptions`, `ProductionLoadBucket`, `ProductionLoadOptions`, `ProductionOperationNode`, `ProductionPlacement`, `ProductionPlacementOptions`, `ProductionResourceNode`, `ProductionRow`, `ProductionSetupMatrix`, `flattenProductionResources`, `packProductionLanes`, `productionConflicts`, `productionLoad`, `productionPeakLoad`, `productionPlacement`, `productionSequenceConflicts`, `productionSetupMinutes`, `productionSetupPlan`
+- [reschedule.md](reschedule.md) — `productionReschedule`, `ProductionMove`, `ProductionProposal`, `ProductionRescheduleOptions`, `ProductionShift`
+- [critical-path.md](critical-path.md) — `productionCriticalPath`, `ProductionCriticalPath`, `ProductionCriticalPathOptions`, `ProductionFloat`
+- [upload-collection.md](upload-collection.md) — `UploadCollection`, `UploadCollectionProps`, `UploadItem`, `UploadStatus`
+- [spreadsheet-grid.md](spreadsheet-grid.md) — `SpreadsheetGrid`, `SheetCalculator`, `SpreadsheetGridProps`, `SheetCalculatorProps`
+- [spreadsheet.md](spreadsheet.md) — `parseRef`, `formatRef`, `expandRange`, `evaluateFormula`, `formatCellValue`, `isCellError`, `CELL_ERRORS`, `CellMap`, `CellValue`, `CellFormat`, `CellRef`, `CellError`
+- [diagram-canvas.md](diagram-canvas.md) — `DiagramCanvas`, `ArchitectureDraw`, `DEFAULT_DIAGRAM_EMBED_URL`, `DEFAULT_YAPPYDRAW_EMBED_URL`, `DiagramCanvasProps`, `ArchitectureDrawProps`, `DiagramProvider`
+- [proctor.md](proctor.md) — `ProctorStreamGrid`, `ProctorFlagOverlay`, `ProctorStreamGridProps`, `ProctorFlagOverlayProps`, `ProctorParticipant`, `ProctorFlag`, `ProctorFlagLevel`
+- [code-editor.md](code-editor.md) — `CodeEditor`, `IDEWindow`, `CODE_LANGUAGES`, `CodeEditorProps`, `IDEWindowProps`, `CodeFile`, `CodeLanguage`
+- [chunk-uploader.md](chunk-uploader.md) — `ChunkUploader`, `ChunkUploaderProps`, `ChunkMeta`, `ChunkUploadStatus`
+- [chunk-upload.md](chunk-upload.md) — `planChunks`, `shouldRetry`, `nextAttemptDelay`, `uploadProgress`, `DEFAULT_CHUNK_SIZE`, `DEFAULT_MAX_ATTEMPTS`, `ChunkPlanItem`
+- [sortable-list.md](sortable-list.md) — `SortableList`, `SortableListItem`, `SortableListHandle`, `SortableListProps`, `SortableListItemProps`, `SortableListHandleProps`
+- [sortable.md](sortable.md) — `moveItem`, `reduceReorder`, `keyToReorderAction`, `DEFAULT_REORDER_ANNOUNCEMENTS`, `PickedUp`, `ReorderAction`, `ReorderIntent`, `ReorderResult`, `ReorderOrientation`, `ReorderAnnouncements`
+- [splitter-splitter.md](splitter-splitter.md) — `Splitter`, `SplitterPanel`, `SplitterHandle`, `SplitterProps`, `SplitterPanelProps`, `SplitterHandleProps`, `SplitterOrientation`
+- [zen-ui-core-splitter.md](zen-ui-core-splitter.md) — `normalizeSizes`, `dragHandle`, `handleBounds`, `splitterKeyDelta`, `mirrorDelta`, `SPLITTER_STEP`, `SPLITTER_STEP_LARGE`, `SplitterPanelConstraint`
+- [document-viewer.md](document-viewer.md) — `DocumentViewer`, `DocumentViewerProps`
+- [document.md](document.md) — `inferDocumentKind`, `clampZoom`, `zoomStep`, `normalizeRotation`, `fitScale`, `DOCUMENT_ZOOM_MIN`, `DOCUMENT_ZOOM_MAX`, `DocumentKind`, `DocumentFit`, `DocumentSize`
+- [diff-view.md](diff-view.md) — `DiffView`, `DiffViewProps`
+- [diff.md](diff.md) — `computeDiff`, `parseSnapshot`, `isKeyed`, `DiffRow`, `DiffKind`, `DiffOptions`, `DiffSnapshot`
+- [countdown-countdown.md](countdown-countdown.md) — `TimerBadge`, `TestCountdownBar`, `TimerBadgeProps`, `TestCountdownBarProps`, `CountdownLevel`
+- [zen-ui-core-countdown.md](zen-ui-core-countdown.md) — `remainingMs`, `formatCountdown`, `countdownLevel`, `crossedThresholds`, `DEFAULT_COUNTDOWN_THRESHOLDS`
+- [timeline.md](timeline.md) — `Timeline`, `TimelineProps`, `TimelineItem`, `TimelineState`
+- [micro-chart.md](micro-chart.md) — `MicroLineChart`, `MicroBarChart`, `MicroBulletChart`, `MicroDeltaChart`, `MicroRadialChart`, `MicroChartColor`, `MicroLineChartProps`, `MicroBarChartProps`, `MicroBulletChartProps`, `MicroDeltaChartProps`, `MicroRadialChartProps`
+- [virtualized-items.md](virtualized-items.md) — `VirtualizedItems`, `VirtualizedItemsProps`, `VirtualizedItemsDenseProps`, `VirtualizedItemsSparseProps`
+- [combobox.md](combobox.md) — `Combobox`, `ComboboxOption`, `ComboboxProps`
+- [multi-combobox.md](multi-combobox.md) — `MultiCombobox`, `MultiComboboxProps`
+- [command.md](command.md) — `Command`, `CommandInput`, `CommandList`, `CommandEmpty`, `CommandLoading`, `CommandGroup`, `CommandItem`, `CommandSeparator`
+- [breadcrumb.md](breadcrumb.md) — `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`, `BreadcrumbSeparator`, `BreadcrumbEllipsis`
+- [pagination.md](pagination.md) — `Pagination`, `usePaginationRange`, `PaginationProps`
+- [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
+- [chart-chart.md](chart-chart.md) — `Chart`, `ChartProps`, `ChartSeries`
+- [zen-ui-core-chart.md](zen-ui-core-chart.md) — `Slice`, `CHART_PALETTE`
+- [rich-text.md](rich-text.md) — `renderMath`, `RichText`, `RichTextProps`
+- [map.md](map.md) — `Map`, `MapProps`, `MapMarker`
+- [camera.md](camera.md) — `Camera`, `CameraProps`
+- [filters.md](filters.md) — `FilterVariant`, `TextOp`, `TextFilterValue`, `NumberOp`, `NumberFilterValue`, `NumberRangeFilterValue`
+- [edit-cell.md](edit-cell.md) — `EditVariant`, `CellEditPayload`
