@@ -49,6 +49,15 @@ import { Button } from "../button/button";
 export interface ComboboxOption {
   value: string;
   label: string;
+  /**
+   * Rich row content, rendered INSTEAD of `label`.
+   *
+   * `label` stays the string: it is what the filter matches, what the trigger
+   * shows once a value is picked, and what `creatable` compares against. This
+   * is only what the row looks like — a second line of metadata, a highlighted
+   * match, an avatar beside the name. A Node here, not JSX.
+   */
+  content?: Node;
   /** Optional extra text used by the fuzzy match. */
   keywords?: string[];
   disabled?: boolean;
@@ -314,7 +323,10 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
         check.style.marginRight = "6px";
         const text = document.createElement("span");
         text.style.flex = "1";
-        text.textContent = o.label;
+        // `content` wins over `label` for the ROW only; label is still what the
+        // filter matches and what the trigger shows once a value is picked.
+        if (o.content) text.append(o.content.cloneNode(true));
+        else text.textContent = o.label;
         item.append(check, text);
 
         if (o.disabled) {

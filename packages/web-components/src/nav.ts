@@ -50,8 +50,10 @@ export const NAV: NavGroup[] = [
     items: [
       { to: "/button", label: "Button", description: "Variant × color × size × shape, polymorphic via `as`, loading state", source: "packages/web-components/src/components/ButtonDemo.ts" },
       { to: "/badge", label: "Badge", description: "Styled span; the whole component is variants, cn() and the prefix", source: "packages/web-components/src/components/BadgeDemo.ts" },
+      { to: "/collapsible", label: "Collapsible", description: "One region that shows and hides — the single disclosure Accordion overserves", source: "packages/web-components/src/components/CollapsibleDemo.ts" },
       { to: "/accordion", label: "Accordion", description: "Collapsible sections; single + multiple, keyboard nav, real height animation", source: "packages/web-components/src/components/AccordionDemo.ts" },
       { to: "/tabs", label: "Tabs", description: "Roving focus, underline + pills, controlled and uncontrolled", source: "packages/web-components/src/components/TabsDemo.ts" },
+      { to: "/label", label: "Label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/web-components/src/components/LabelDemo.ts" },
       { to: "/input", label: "Input + MaskInput", description: "MaskInput drives core's mask engine — the same applyMask() React and Solid call", source: "packages/web-components/src/components/InputDemo.ts" },
       { to: "/search", label: "Search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/web-components/src/components/SearchDemo.ts" },
       { to: "/password-input", label: "PasswordInput", description: "Password field with a show / hide toggle; every native input prop passes through", source: "packages/web-components/src/components/PasswordInputDemo.ts" },

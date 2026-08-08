@@ -72,6 +72,9 @@
     "preview:wc": "bun --filter @algorisys/zen-ui-web-components preview"
   },
   "devDependencies": {
+    "@types/node": "^24.6.0",
+    "@unocss/core": "^66.5.4",
+    "@unocss/preset-uno": "^66.5.4",
     "jodit": "^4.13.3",
     "playwright": "^1.61.1",
     "repograph": "github:algorisys-oss/repograph"

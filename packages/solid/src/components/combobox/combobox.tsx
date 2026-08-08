@@ -1,4 +1,5 @@
 import {
+  type JSX,
   Show,
   createEffect,
   createMemo,
@@ -37,6 +38,15 @@ import { cn } from "../../lib/cn";
 export interface ComboboxOption {
   value: string;
   label: string;
+  /**
+   * Rich row content, rendered INSTEAD of `label`.
+   *
+   * `label` stays the string: it is what the filter matches, what the trigger
+   * shows once a value is picked, and what `creatable` compares against. This
+   * is only what the row looks like — a second line of metadata, a highlighted
+   * match, an avatar beside the name.
+   */
+  content?: JSX.Element;
   keywords?: string[];
   disabled?: boolean;
 }
@@ -215,7 +225,9 @@ export const Combobox = (rawProps: ComboboxProps) => {
           <KCombobox.ItemIndicator class="zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
             <CheckIcon />
           </KCombobox.ItemIndicator>
-          <KCombobox.ItemLabel>{itemProps.item.rawValue.label}</KCombobox.ItemLabel>
+          <KCombobox.ItemLabel>
+            {itemProps.item.rawValue.content ?? itemProps.item.rawValue.label}
+          </KCombobox.ItemLabel>
         </KCombobox.Item>
       )}
       class={props.class}

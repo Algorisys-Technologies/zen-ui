@@ -17,6 +17,8 @@ import ButtonDemo from "./components/ButtonDemo";
 import BadgeDemo from "./components/BadgeDemo";
 import IconDemo from "./components/IconDemo";
 import AccordionDemo from "./components/AccordionDemo";
+import CollapsibleDemo from "./components/CollapsibleDemo";
+import LabelDemo from "./components/LabelDemo";
 import TabsDemo from "./components/TabsDemo";
 import DialogDemo from "./components/DialogDemo";
 import InputDemo from "./components/InputDemo";
@@ -129,6 +131,8 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/badge": BadgeDemo,
   "/icon": IconDemo,
   "/accordion": AccordionDemo,
+  "/collapsible": CollapsibleDemo,
+  "/label": LabelDemo,
   "/tabs": TabsDemo,
   "/dialog": DialogDemo,
   "/input": InputDemo,
