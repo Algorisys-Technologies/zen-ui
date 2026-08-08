@@ -21,6 +21,10 @@ export { Textarea } from "./components/form/input/textarea";
 export type { TextareaProps } from "./components/form/input/textarea";
 export { DEFAULT_EMAIL_DOMAINS } from "./components/form/input/input.constants";
 
+// Form Components - Label (the standalone <label>; FormLabel is the in-Form one)
+export { Label, labelVariants } from "./components/form/label/label";
+export type { LabelProps } from "./components/form/label/label";
+
 // Form Components - Search (magnifier + clear button; type=search / role=searchbox)
 export { Search } from "./components/form/search/search";
 export type { SearchProps, SearchSize } from "./components/form/search/search";
@@ -615,6 +619,13 @@ export {
   AccordionTrigger,
   AccordionContent,
 } from "./components/accordion/accordion";
+
+// UI Components - Collapsible (Radix-backed single disclosure region)
+export {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "./components/collapsible/collapsible";
 
 // UI Components - Tabs (Radix-backed; underline + pills variants)
 export {

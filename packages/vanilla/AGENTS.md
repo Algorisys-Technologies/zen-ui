@@ -117,6 +117,8 @@ description, then import the name from your binding's package.
 - **EmptyState** — First-run / no-data / no-results surface; icon + title + description + actions
 - **Tabs** — Radix-backed tabbed navigation; underline + pills variants, horizontal / vertical
 - **Accordion** — Radix-backed collapsible sections; single + multiple expand modes
+- **Collapsible** — One region that shows and hides — the single disclosure Accordion overserves
+- **Label** — The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming
 - **Card** — Surface primitive + SelectableCard variant for goal pickers / plan selectors
 - **StatCard** — A labelled figure — icon, delta, and somewhere to go
 - **Sheet / Drawer** — Slide-in side panel on Radix Dialog; right / left / top / bottom

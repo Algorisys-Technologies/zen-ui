@@ -27,7 +27,7 @@ const DATA_DRIVEN_DIVERGENT = [
   "AlertDialogCancel", "AlertDialogContent", "AlertDialogDescription", "AlertDialogFooter", "AlertDialogHandle", "AlertDialogHeader",
   "AlertDialogOverlay", "AlertDialogPortal", "AlertDialogTitle", "AlertDialogTrigger", "BAR_DESIGN", "BannerClose",
   "BannerDescription", "BannerTitle", "CalendarMode", "CalendarSelected", "CameraHandle", "CheckboxHandle",
-  "CheckedState", "Child", "Command", "CommandEmpty", "CommandGroup", "CommandInput",
+  "CheckedState", "Child", "CollapsibleContent", "CollapsibleTrigger", "Command", "CommandEmpty", "CommandGroup", "CommandInput",
   "CommandItem", "CommandList", "CommandLoading", "CommandSeparator", "DEFAULT_EMAIL_DOMAINS", "DataTableCellContext",
   "DataTableColumn", "DateTimePickerHandle", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter",
   "DialogHandle", "DialogHeader", "DialogOverlay", "DialogPortal", "DialogTitle", "DialogTrigger",
