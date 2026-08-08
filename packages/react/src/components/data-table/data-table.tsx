@@ -148,6 +148,12 @@ export interface DataTableProps<TData, TValue = unknown> {
   enableColumnResizing?: boolean;
   /** Render a per-column filter row under the header. Inputs are <Input>s by default. */
   enablePerColumnFilters?: boolean;
+  /**
+   * Render the operator select beside each per-column filter input. Default
+   * true. Turn it off when the server owns the predicate — an operator the
+   * backend ignores is a control that lies about what it does.
+   */
+  enableFilterOperators?: boolean;
   /** Show an "Export" button in the toolbar with CSV / JSON options. */
   enableExport?: boolean;
   /** Filename (without extension) for exports. Default "data-table". */
@@ -439,6 +445,7 @@ export function DataTable<TData, TValue = unknown>({
   onColumnOrderChange,
   enableColumnResizing = false,
   enablePerColumnFilters = false,
+  enableFilterOperators = true,
   enableExport = false,
   exportFilename = "data-table",
   exportOnlySelected = false,
@@ -622,7 +629,7 @@ export function DataTable<TData, TValue = unknown>({
               row.getIsExpanded() && "zen-rotate-90",
             )}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <polyline points="9 6 15 12 9 18" />
             </svg>
           </button>
@@ -1046,7 +1053,7 @@ export function DataTable<TData, TValue = unknown>({
                 >
                   {header.column.getCanFilter() &&
                   !header.id.startsWith("__") ? (
-                    <FilterCell column={header.column} />
+                    <FilterCell column={header.column} operators={enableFilterOperators} />
                   ) : null}
                 </TableHead>
               );
@@ -1472,7 +1479,7 @@ function BulkActionBar<TData>({
             "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
           )}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -2137,18 +2144,18 @@ function SortableHeader({
 const SortIndicator = ({ state }: { state: false | "asc" | "desc" }) => {
   if (state === "asc")
     return (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <polyline points="18 15 12 9 6 15" />
       </svg>
     );
   if (state === "desc")
     return (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <polyline points="6 9 12 15 18 9" />
       </svg>
     );
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="zen-opacity-30" aria-hidden>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="zen-opacity-60" aria-hidden>
       <polyline points="8 9 12 5 16 9" />
       <polyline points="16 15 12 19 8 15" />
     </svg>
