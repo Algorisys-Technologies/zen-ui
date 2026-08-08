@@ -189,6 +189,11 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
 
         const value = row[col.key];
 
+        // A cell value may already be rendered content rather than data — a
+        // status pill, a link, an icon. Coercing that with String() yields
+        // "[object Object]", so anything renderable passes straight through.
+        if (value instanceof Node || typeof value === "function") return value as JSX.Element;
+
         // A boolean column is a state, not a value: rendering `false` as empty
         // makes "no" indistinguishable from "not answered".
         if (typeof value === "boolean") {
