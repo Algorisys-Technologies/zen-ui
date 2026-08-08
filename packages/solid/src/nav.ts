@@ -118,6 +118,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Tabs", path: "/tabs", description: "Tabbed navigation; underline + pills variants", source: "packages/solid/src/components/NewTabsDemo.tsx" },
       { label: "Accordion", path: "/accordion", description: "Collapsible sections; single + multiple expand modes", source: "packages/solid/src/components/NewAccordionDemo.tsx" },
+      { label: "Collapsible", path: "/collapsible", description: "One region that shows and hides — the single disclosure Accordion overserves", source: "packages/solid/src/components/NewCollapsibleDemo.tsx" },
     ],
   },
   {
@@ -147,6 +148,7 @@ export const NAV: NavGroup[] = [
     group: "Form (custom)",
     items: [
       { label: "Input", path: "/input", description: "Styled input + textarea; all native attributes pass through", source: "packages/solid/src/components/NewInputDemo.tsx" },
+      { label: "Label", path: "/label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/solid/src/components/NewLabelDemo.tsx" },
       { label: "Search", path: "/search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/solid/src/components/SearchDemo.tsx" },
       { label: "PasswordInput", path: "/password-input", description: "Password field with a show / hide toggle; every native input attribute passes through", source: "packages/solid/src/components/PasswordInputDemo.tsx" },
       { label: "NumberField", path: "/number-field", description: "Number input with \u2212/+ stepper, clamping, decimal step", source: "packages/solid/src/components/NewNumberFieldDemo.tsx" },

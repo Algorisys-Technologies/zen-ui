@@ -64,7 +64,8 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",
     "unocss": "^66.5.4",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "leaflet": "^1.9.0",

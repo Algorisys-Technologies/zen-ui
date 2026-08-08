@@ -11,6 +11,7 @@
 import { registeredTags } from "../lib/define";
 
 import "./accordion";
+import "./collapsible";
 import "./alert";
 import "./alert-dialog";
 import "./avatar";
@@ -62,6 +63,7 @@ import "./gantt";
 import "./icon";
 import "./input";
 import "./likert";
+import "./label";
 import "./link";
 import "./loading";
 import "./map";

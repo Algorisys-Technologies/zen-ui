@@ -36,6 +36,8 @@ import NewRadioGroupDemo from "./components/NewRadioGroupDemo";
 import NewTooltipDemo from "./components/NewTooltipDemo";
 import NewTabsDemo from "./components/NewTabsDemo";
 import NewAccordionDemo from "./components/NewAccordionDemo";
+import NewCollapsibleDemo from "./components/NewCollapsibleDemo";
+import NewLabelDemo from "./components/NewLabelDemo";
 import NewSliderDemo from "./components/NewSliderDemo";
 import NewPopoverDemo from "./components/NewPopoverDemo";
 import NewDialogDemo from "./components/NewDialogDemo";
@@ -164,6 +166,8 @@ render(
       <Route path="/tooltip" component={NewTooltipDemo} />
       <Route path="/tabs" component={NewTabsDemo} />
       <Route path="/accordion" component={NewAccordionDemo} />
+      <Route path="/collapsible" component={NewCollapsibleDemo} />
+      <Route path="/label" component={NewLabelDemo} />
       <Route path="/slider" component={NewSliderDemo} />
       <Route path="/popover" component={NewPopoverDemo} />
       <Route path="/dialog" component={NewDialogDemo} />
