@@ -123,6 +123,8 @@ import NewBannerDemo from "./components/NewBannerDemo";
 import NewEmptyStateDemo from "./components/NewEmptyStateDemo";
 import NewTabsDemo from "./components/NewTabsDemo";
 import NewAccordionDemo from "./components/NewAccordionDemo";
+import NewCollapsibleDemo from "./components/NewCollapsibleDemo";
+import NewLabelDemo from "./components/NewLabelDemo";
 import NewCardDemo from "./components/NewCardDemo";
 import NewSheetDemo from "./components/NewSheetDemo";
 import NewDateRangePickerDemo from "./components/NewDateRangePickerDemo";
@@ -379,6 +381,8 @@ const App: React.FC = () => {
             <Route path="/empty-state" element={<NewEmptyStateDemo />} />
             <Route path="/tabs" element={<NewTabsDemo />} />
             <Route path="/accordion" element={<NewAccordionDemo />} />
+            <Route path="/collapsible" element={<NewCollapsibleDemo />} />
+            <Route path="/label" element={<NewLabelDemo />} />
             <Route path="/card" element={<NewCardDemo />} />
             <Route path="/sheet" element={<NewSheetDemo />} />
             <Route path="/date-range-picker" element={<NewDateRangePickerDemo />} />

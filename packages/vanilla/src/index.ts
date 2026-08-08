@@ -14,6 +14,8 @@ export { Icon, ZEN_ICON_NAMES } from "./components/icon/icon";
 export type { IconProps, IconHandle, IconName } from "./components/icon/icon";
 
 export { Accordion } from "./components/accordion/accordion";
+export { Collapsible } from "./components/collapsible/collapsible";
+export type { CollapsibleProps } from "./components/collapsible/collapsible";
 export type { AccordionProps, AccordionItemSpec } from "./components/accordion/accordion";
 
 export { Tabs, tabsListVariants, tabsTriggerVariants } from "./components/tabs/tabs";
@@ -22,6 +24,8 @@ export type { TabsProps, TabSpec } from "./components/tabs/tabs";
 export { Dialog } from "./components/dialog/dialog";
 export type { DialogProps, DialogHandle } from "./components/dialog/dialog";
 
+export { Label } from "./components/form/label/label";
+export type { LabelProps } from "./components/form/label/label";
 export { Input, INPUT_CLASS } from "./components/form/input/input";
 export type { InputProps, InputHandle } from "./components/form/input/input";
 export { Search } from "./components/form/search/search";

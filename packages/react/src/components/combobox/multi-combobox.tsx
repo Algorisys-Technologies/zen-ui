@@ -289,7 +289,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
                         marginRight: 6,
                       }}
                     />
-                    <span className="zen-flex-1">{o.label}</span>
+                    <span className="zen-flex-1">{o.content ?? o.label}</span>
                   </CommandItem>
                 );
               })}

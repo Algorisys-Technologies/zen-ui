@@ -3,6 +3,7 @@ import type { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/soli
 import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
 import { DataTable } from "../data-table/data-table";
+import { Search } from "../form/search/search";
 
 /**
  * UrlDataTable — a DataTable whose entire state lives in the URL.
@@ -114,25 +115,45 @@ export function serializeSortParam(sorting: SortingState): string {
   return sorting.map((s) => `${s.id}:${s.desc ? "desc" : "asc"}`).join(",");
 }
 
+const KNOWN_OPS = new Set([
+  "contains", "equals", "starts", "ends",
+  "eq", "ne", "gt", "lt", "gte", "lte",
+]);
+
 export function parseFilterParam(raw: string | null): ColumnFiltersState {
   if (!raw) return [];
   const out: ColumnFiltersState = [];
   for (const part of raw.split(",")) {
-    // Only the FIRST colon separates key from value, so values may contain one.
     const i = part.indexOf(":");
     if (i <= 0) continue;
     const id = part.slice(0, i);
-    const value = part.slice(i + 1);
-    if (id && value) out.push({ id, value });
+    const rest = part.slice(i + 1);
+    if (!id || !rest) continue;
+    const j = rest.indexOf(":");
+    if (j > 0 && KNOWN_OPS.has(rest.slice(0, j))) {
+      out.push({ id, value: { op: rest.slice(0, j), value: rest.slice(j + 1) } });
+      continue;
+    }
+    out.push({ id, value: rest });
   }
   return out;
 }
 
 export function serializeFilterParam(filters: ColumnFiltersState): string {
-  return filters
-    .filter((f) => f.value != null && String(f.value).trim() !== "")
-    .map((f) => `${f.id}:${String(f.value)}`)
-    .join(",");
+  const parts: string[] = [];
+  for (const f of filters) {
+    const v = f.value as unknown;
+    if (v == null) continue;
+    if (typeof v === "object") {
+      const { op, value } = v as { op?: string; value?: unknown };
+      if (value == null || String(value).trim() === "") continue;
+      parts.push(op ? `${f.id}:${op}:${value}` : `${f.id}:${value}`);
+      continue;
+    }
+    if (String(v).trim() === "") continue;
+    parts.push(`${f.id}:${v}`);
+  }
+  return parts.join(",");
 }
 
 function setOrDelete(params: URLSearchParams, key: string, value: string) {
@@ -241,8 +262,11 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
 
   return (
     <div class={cn("zen-flex zen-flex-col zen-gap-3", props.class)}>
-      <Show when={props.filters && props.filters.length > 0}>
-        <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2">
+      {/* One toolbar row, owned here — see the React binding for why DataTable
+          is not given a global filter. `zen-p-px` keeps the focus ring, which is
+          drawn outside the control's box, from being clipped by the block above. */}
+      <Show when={props.search || (props.filters && props.filters.length > 0)}>
+        <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2 zen-p-px">
           <For each={props.filters}>
             {(filter) => (
               <label class="zen-flex zen-items-center zen-gap-1.5">
@@ -268,6 +292,19 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
               </label>
             )}
           </For>
+          <Show when={props.search}>
+            <Search
+              value={globalFilter()}
+              onValueChange={(v: string) =>
+                commit((next) => setOrDelete(next, names().search, v.trim()))
+              }
+              onClear={() =>
+                commit((next) => setOrDelete(next, names().search, ""))
+              }
+              placeholder={props.searchPlaceholder ?? "Search…"}
+              class="zen-w-64"
+            />
+          </Show>
         </div>
       </Show>
 
@@ -291,7 +328,8 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
         enableSorting={hasSortableColumn()}
         enableMultiSort={hasSortableColumn()}
         enablePagination
-        enableColumnFilters={hasPerColumnFilters()}
+        /* Off deliberately — see the React binding. */
+        enableColumnFilters={false}
         enablePerColumnFilters={hasPerColumnFilters()}
         sorting={sorting()}
         onSortingChange={(state) =>
@@ -303,14 +341,6 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
             setOrDelete(next, names().filters, serializeFilterParam(state)),
           )
         }
-        globalFilter={props.search ? globalFilter() : undefined}
-        onGlobalFilterChange={
-          props.search
-            ? (value: string) =>
-                commit((next) => setOrDelete(next, names().search, value.trim()))
-            : undefined
-        }
-        globalFilterPlaceholder={props.searchPlaceholder ?? "Search…"}
         emptyMessage={props.emptyMessage}
         loading={props.loading}
       />

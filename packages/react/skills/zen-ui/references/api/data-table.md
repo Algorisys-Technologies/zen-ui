@@ -26,6 +26,7 @@ SKILL.md.
 - `onColumnOrderChange?: ((order: string[]) => void) | undefined`
 - `enableColumnResizing?: boolean | undefined` — Drag column dividers to resize.
 - `enablePerColumnFilters?: boolean | undefined` — Render a per-column filter row under the header. Inputs are <Input>s by default.
+- `enableFilterOperators?: boolean | undefined` — Render the operator select beside each per-column filter input. Default true. Turn it off when the server owns the predicate — an operator the backend ignores is a control that lies about what it does.
 - `enableExport?: boolean | undefined` — Show an "Export" button in the toolbar with CSV / JSON options.
 - `exportFilename?: string | undefined` — Filename (without extension) for exports. Default "data-table".
 - `exportOnlySelected?: boolean | undefined` — When true, export only selected rows (requires enableRowSelection).
