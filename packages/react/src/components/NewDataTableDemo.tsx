@@ -877,7 +877,47 @@ const columns = [
       </section>
 
       <section className="demo-section">
-        <h2>24. Everything together</h2>
+        <h2>24. Column footers</h2>
+        <CodeExample
+          title="`footer` on a ColumnDef"
+          description="Declaring footer on any column gives the table a <tfoot>. Columns without one render an empty cell, so the row stays aligned. This is where a column total goes — the thing every financial table needs and TanStack has always carried."
+          code={`const columns = [
+  { accessorKey: "name", header: "Name", footer: "TOTALS" },
+  {
+    accessorKey: "salary",
+    header: "Salary",
+    cell: (i) => money(i.getValue()),
+    footer: ({ table }) =>
+      money(
+        table
+          .getFilteredRowModel()
+          .rows.reduce((sum, r) => sum + r.original.salary, 0),
+      ),
+  },
+]`}
+        >
+          <DataTable
+            data={SMALL}
+            columns={[
+              { accessorKey: "name", header: "Name", footer: () => "TOTALS" },
+              { accessorKey: "role", header: "Role" },
+              {
+                accessorKey: "salary",
+                header: "Salary",
+                cell: (info) => `$${(info.getValue() as number).toLocaleString()}`,
+                footer: ({ table }) =>
+                  `$${table
+                    .getFilteredRowModel()
+                    .rows.reduce((sum, r) => sum + r.original.salary, 0)
+                    .toLocaleString()}`,
+              },
+            ]}
+          />
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>25. Everything together</h2>
         <CodeExample
           title="All toggles on, virtualization off (uses pagination instead)"
           code={`<DataTable

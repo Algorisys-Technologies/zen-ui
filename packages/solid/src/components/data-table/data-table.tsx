@@ -63,6 +63,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -1560,6 +1561,30 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
           </For>
         </Show>
       </TableBody>
+      {/* A footer row, but only when a column actually declares one.
+        * TanStack has carried `footer` on every ColumnDef since v8 and this
+        * rendered none of them, so a column total had nowhere to go — the one
+        * thing a financial table always needs. Rendered only when at least one
+        * column defines it, so every existing table keeps its exact markup. */}
+      <Show when={props.table.getAllColumns().some((c) => c.columnDef.footer !== undefined)}>
+        <TableFooter>
+          <For each={props.table.getFooterGroups()}>
+            {(fg) => (
+              <TableRow>
+                <For each={fg.headers}>
+                  {(header) => (
+                    <TableCell colSpan={header.colSpan}>
+                      <Show when={!header.isPlaceholder}>
+                        {flexRender(header.column.columnDef.footer, header.getContext())}
+                      </Show>
+                    </TableCell>
+                  )}
+                </For>
+              </TableRow>
+            )}
+          </For>
+        </TableFooter>
+      </Show>
     </Table>
   );
 }
