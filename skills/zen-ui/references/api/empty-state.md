@@ -35,7 +35,7 @@ SKILL.md.
 
 ### Other exports
 
-- `emptyStateVariants(props?: ({ size?: "sm" | "md" | "lg" | null | undefined; bordered?: boolean | null | undefined; } & import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `emptyStateVariants(props?: ({ size?: "sm" | "md" | "lg" | null | undefined; bordered?: boolean | null | undefined; } & import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

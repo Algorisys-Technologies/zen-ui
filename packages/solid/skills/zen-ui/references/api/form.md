@@ -41,4 +41,4 @@ SKILL.md.
 
 ### Other exports
 
-- `useFormField(): { invalid: boolean; isDirty: boolean; isTouched: boolean; isValidating: boolean; error?: import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/react-hook-form@7.84.0+0f58469d5b3bd39f/node_modules/react-hook-form/dist/index").FieldError; ... 4 more ...; formMessageId: string; }`
+- `useFormField(…)`

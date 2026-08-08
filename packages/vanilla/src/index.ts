@@ -208,6 +208,21 @@ export type { ChartProps, ChartSeries } from "./components/chart/chart";
 export type { Slice } from "@algorisys/zen-ui-core/chart";
 export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
 export { DataTable } from "./components/data-table/data-table";
+export {
+  UrlDataTable,
+  parseSortParam,
+  serializeSortParam,
+  parseFilterParam,
+  serializeFilterParam,
+} from "./components/url-data-table/url-data-table";
+export type {
+  UrlDataTableProps,
+  UrlDataTableColumn,
+  UrlDataTableFilter,
+  UrlDataTableFilterOption,
+  UrlDataTableParamNames,
+} from "./components/url-data-table/url-data-table";
+
 export { TreeTable } from "./components/tree-table/tree-table";
 export {
   MicroLineChart,

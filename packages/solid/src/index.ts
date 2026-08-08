@@ -542,6 +542,20 @@ export type {
 } from "@algorisys/zen-ui-core/pivot";
 
 export { DataTable } from "./components/data-table/data-table";
+export {
+  UrlDataTable,
+  parseSortParam,
+  serializeSortParam,
+  parseFilterParam,
+  serializeFilterParam,
+} from "./components/url-data-table/url-data-table";
+export type {
+  UrlDataTableProps,
+  UrlDataTableColumn,
+  UrlDataTableFilter,
+  UrlDataTableFilterOption,
+  UrlDataTableParamNames,
+} from "./components/url-data-table/url-data-table";
 export type {
   DataTableProps,
   DataTableManualPagination,

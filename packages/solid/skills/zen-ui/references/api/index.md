@@ -98,6 +98,7 @@ real props; guessing prop names is how agents invent APIs.
 - [lib-theme.md](lib-theme.md) — `useTheme`, `applyTheme`, `getInitialTheme`, `THEMES`, `ThemeName`, `ThemeDescriptor`
 - [table.md](table.md) — `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableHead`, `TableRow`, `TableCell`, `TableCaption`, `TableProps`
 - [data-table.md](data-table.md) — `DataTable`, `DataTableProps`, `DataTableManualPagination`
+- [url-data-table.md](url-data-table.md) — `UrlDataTable`, `parseSortParam`, `serializeSortParam`, `parseFilterParam`, `serializeFilterParam`, `UrlDataTableProps`, `UrlDataTableColumn`, `UrlDataTableFilter`, `UrlDataTableFilterOption`, `UrlDataTableParamNames`
 - [tree-table.md](tree-table.md) — `TreeTable`, `TreeTableProps`
 - [planning-calendar.md](planning-calendar.md) — `PlanningCalendar`, `PlanningCalendarProps`, `PlanningRow`, `PlanningAppointment`, `PlanningAppointmentState`
 - [planning.md](planning.md) — `PlanningView`

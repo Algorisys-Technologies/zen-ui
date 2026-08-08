@@ -17,7 +17,7 @@ SKILL.md.
 - `defaultValue?: DateRange | undefined`
 - `onValueChange?: ((range: DateRange | undefined) => void) | undefined`
 - `placeholder?: string | undefined`
-- `disabled?: import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/react-day-picker@10.0.1+03aa47d54245a271/node_modules/react-day-picker/dist/esm/index").Matcher | import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/react-day-picker@10.0.1+03aa47d54245a271/node_modules/react-day-picker/dist/esm/index").Matcher[] | undefined`
+- `disabled?: import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/react-day-picker@10.0.1+e14d3f224186685e/node_modules/react-day-picker/dist/esm/index").Matcher | import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/react-day-picker@10.0.1+e14d3f224186685e/node_modules/react-day-picker/dist/esm/index").Matcher[] | undefined`
 - `className?: string | undefined`
 - `numberOfMonths?: number | undefined` — How many months to show side-by-side. Default 2.
 - `formatDate?: ((date: Date) => string) | undefined` — Format used in the trigger label for each side. Defaults to toLocaleDateString().

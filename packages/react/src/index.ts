@@ -708,6 +708,20 @@ export type {
   DataTableProps,
   DataTableManualPagination,
 } from "./components/data-table/data-table";
+export {
+  UrlDataTable,
+  parseSortParam,
+  serializeSortParam,
+  parseFilterParam,
+  serializeFilterParam,
+} from "./components/url-data-table/url-data-table";
+export type {
+  UrlDataTableProps,
+  UrlDataTableColumn,
+  UrlDataTableFilter,
+  UrlDataTableFilterOption,
+  UrlDataTableParamNames,
+} from "./components/url-data-table/url-data-table";
 export { TreeTable } from "./components/tree-table/tree-table";
 export { PlanningCalendar } from "./components/planning-calendar/planning-calendar";
 export type { PlanningView } from "@algorisys/zen-ui-core/planning";
