@@ -1229,7 +1229,7 @@
 
     "regexp-tree": ["regexp-tree@0.1.27", "", { "bin": { "regexp-tree": "bin/regexp-tree" } }, "sha512-iETxpjK6YoRWJG5o6hXLwvjYAoW+FEZn9os0PD/b6AP6xQwsa/Y7lCVgIixBbUPMfhu+i2LtdeAqVTgGlQarfA=="],
 
-    "repograph": ["repograph@github:algorisys-oss/repograph#a0a94691ffc69cd21cb6f6ed2bf5dac98c440f37", {}, ""],
+    "repograph": ["repograph@github:algorisys-oss/repograph#397ecf7", { "bin": { "repograph": "bin/repograph.js", "repograph-mcp": "bin/repograph-mcp.js" } }, "algorisys-oss-repograph-397ecf7", "sha512-D9QzTveozVzHVAGpeEwitfP+nuaotf6gNYm6wOG/WiemNql9Klu0ieghEMbupgVBHGVJin1JHtHEhgOV1MThrw=="],
 
     "reselect": ["reselect@5.2.0", "", {}, "sha512-AgZ3UOZm3YndfrJ4OYjgrT7bmCm/1iqkjvEfH/oYjzh6PD2qw4QuT3jjnXIrpdt4MTpMXclMT3lXbmRY+XRakw=="],
 
