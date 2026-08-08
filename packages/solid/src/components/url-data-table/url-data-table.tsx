@@ -328,7 +328,8 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
         enableSorting={hasSortableColumn()}
         enableMultiSort={hasSortableColumn()}
         enablePagination
-        enableColumnFilters={hasPerColumnFilters()}
+        /* Off deliberately — see the React binding. */
+        enableColumnFilters={false}
         enablePerColumnFilters={hasPerColumnFilters()}
         sorting={sorting()}
         onSortingChange={(state) =>

@@ -454,7 +454,11 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
            caller keeps working. */
         enableMultiSort={false}
         enablePagination
-        enableColumnFilters={hasPerColumnFilters}
+        /* Off deliberately: this flag is what renders DataTable's own global
+           search box, and this component owns that control now. The filter row
+           still works — DataTable turns the filter model on for
+           enablePerColumnFilters independently. */
+        enableColumnFilters={false}
         enablePerColumnFilters={hasPerColumnFilters}
         /* The server owns the predicate here, so there is no client-side
            operator to choose. It also keeps the filter value a plain string,
