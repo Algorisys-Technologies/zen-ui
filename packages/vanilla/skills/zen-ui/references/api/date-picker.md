@@ -17,7 +17,7 @@ SKILL.md.
 - `defaultValue?: Date | undefined`
 - `onValueChange?: ((date: Date | undefined) => void) | undefined`
 - `placeholder?: string | undefined`
-- `disabled?: import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/react-day-picker@10.0.1+03aa47d54245a271/node_modules/react-day-picker/dist/esm/index").Matcher | import("/home/rajesh/work/algo/zen-ui/node_modules/.bun/react-day-picker@10.0.1+03aa47d54245a271/node_modules/react-day-picker/dist/esm/index").Matcher[] | undefined`
+- `disabled?: import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/react-day-picker@10.0.1+e14d3f224186685e/node_modules/react-day-picker/dist/esm/index").Matcher | import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/react-day-picker@10.0.1+e14d3f224186685e/node_modules/react-day-picker/dist/esm/index").Matcher[] | undefined`
 - `className?: string | undefined`
 - `formatDate?: ((date: Date) => string) | undefined` — Format displayed in the trigger. Defaults to toLocaleDateString().
 
