@@ -220,6 +220,45 @@ const NewComboboxDemo: React.FC = () => {
       <section className="demo-section">
         <h2>6. Disabled trigger</h2>
         <CodeExample
+          title="Rich rows with `content`"
+          description="`label` stays the string the filter matches and the trigger shows; `content` is only what the ROW looks like. Use it for a second line of metadata, an avatar, or a highlighted match."
+          code={`<Combobox
+  options={people.map((p) => ({
+    value: p.id,
+    label: p.name,                    // still what search matches
+    content: (
+      <div className="zen-flex zen-flex-col">
+        <span className="zen-font-medium">{p.name}</span>
+        <span className="zen-text-xs zen-text-zen-muted-fg">
+          {p.role} · {p.years} years
+        </span>
+      </div>
+    ),
+  }))}
+/>`}
+        >
+          <Combobox
+            placeholder="Assign a reviewer"
+            options={[
+              { id: "ada", name: "Ada Lovelace", role: "Engineering", years: 9 },
+              { id: "grace", name: "Grace Hopper", role: "Engineering", years: 12 },
+              { id: "katherine", name: "Katherine Johnson", role: "Research", years: 7 },
+            ].map((p) => ({
+              value: p.id,
+              label: p.name,
+              content: (
+                <div className="zen-flex zen-flex-col">
+                  <span className="zen-font-medium">{p.name}</span>
+                  <span className="zen-text-xs zen-text-zen-muted-fg">
+                    {p.role} · {p.years} years
+                  </span>
+                </div>
+              ),
+            }))}
+          />
+        </CodeExample>
+
+        <CodeExample
           title="Whole combobox disabled"
           code={`<Combobox options={...} disabled />`}
         >
