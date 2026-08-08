@@ -33,6 +33,7 @@ SKILL.md.
 
 - `value: string`
 - `label: string`
+- `content?: React.ReactNode` — Rich row content, rendered INSTEAD of `label`. `label` stays the string: it is what the filter matches, what the trigger shows once a value is picked, and what `creatable` compares against. This is only what the row looks like — a second line of metadata, a highlighted match, an avatar beside the name.
 - `keywords?: string[] | undefined` — Optional extra text used by cmdk's fuzzy match.
 - `disabled?: boolean | undefined`
 
