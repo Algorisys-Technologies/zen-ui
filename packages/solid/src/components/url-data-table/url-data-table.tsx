@@ -114,25 +114,45 @@ export function serializeSortParam(sorting: SortingState): string {
   return sorting.map((s) => `${s.id}:${s.desc ? "desc" : "asc"}`).join(",");
 }
 
+const KNOWN_OPS = new Set([
+  "contains", "equals", "starts", "ends",
+  "eq", "ne", "gt", "lt", "gte", "lte",
+]);
+
 export function parseFilterParam(raw: string | null): ColumnFiltersState {
   if (!raw) return [];
   const out: ColumnFiltersState = [];
   for (const part of raw.split(",")) {
-    // Only the FIRST colon separates key from value, so values may contain one.
     const i = part.indexOf(":");
     if (i <= 0) continue;
     const id = part.slice(0, i);
-    const value = part.slice(i + 1);
-    if (id && value) out.push({ id, value });
+    const rest = part.slice(i + 1);
+    if (!id || !rest) continue;
+    const j = rest.indexOf(":");
+    if (j > 0 && KNOWN_OPS.has(rest.slice(0, j))) {
+      out.push({ id, value: { op: rest.slice(0, j), value: rest.slice(j + 1) } });
+      continue;
+    }
+    out.push({ id, value: rest });
   }
   return out;
 }
 
 export function serializeFilterParam(filters: ColumnFiltersState): string {
-  return filters
-    .filter((f) => f.value != null && String(f.value).trim() !== "")
-    .map((f) => `${f.id}:${String(f.value)}`)
-    .join(",");
+  const parts: string[] = [];
+  for (const f of filters) {
+    const v = f.value as unknown;
+    if (v == null) continue;
+    if (typeof v === "object") {
+      const { op, value } = v as { op?: string; value?: unknown };
+      if (value == null || String(value).trim() === "") continue;
+      parts.push(op ? `${f.id}:${op}:${value}` : `${f.id}:${value}`);
+      continue;
+    }
+    if (String(v).trim() === "") continue;
+    parts.push(`${f.id}:${v}`);
+  }
+  return parts.join(",");
 }
 
 function setOrDelete(params: URLSearchParams, key: string, value: string) {
