@@ -24,6 +24,8 @@ export type { TabsProps, TabSpec } from "./components/tabs/tabs";
 export { Dialog } from "./components/dialog/dialog";
 export type { DialogProps, DialogHandle } from "./components/dialog/dialog";
 
+export { NativeSelect, NATIVE_SELECT_CLASS } from "./components/form/native-select/native-select";
+export type { NativeSelectProps, NativeSelectOption } from "./components/form/native-select/native-select";
 export { Label } from "./components/form/label/label";
 export type { LabelProps } from "./components/form/label/label";
 export { Input, INPUT_CLASS } from "./components/form/input/input";

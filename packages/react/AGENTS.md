@@ -117,6 +117,7 @@ description, then import the name from your binding's package.
 - **Tabs** — Radix-backed tabbed navigation; underline + pills variants, horizontal / vertical
 - **Accordion** — Radix-backed collapsible sections; single + multiple expand modes
 - **Collapsible** — One region that shows and hides — the single disclosure Accordion overserves
+- **NativeSelect** — The platform <select>, styled to match Input — submits with no hidden input, opens as the OS picker on a phone
 - **Label** — The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming
 - **Card** — Surface primitive + SelectableCard variant for goal pickers / plan selectors
 - **StatCard** — A labelled figure — icon, delta, and somewhere to go

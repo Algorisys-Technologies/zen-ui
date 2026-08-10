@@ -37,7 +37,7 @@ export {
   DynamicPageHeader, DynamicPageTitle, EmptyState, EmptyStateActions, EmptyStateDescription,
   EmptyStateIcon, EmptyStateTitle, FAB, FileUpload, FilterBar, FlexibleColumnLayout,
   FormDescription, FormField, FormItem, FormLabel, FormMessage, INPUT_CLASS, Icon, Input,
-  InputOTP, Label, Likert, Link, Loading, Map, MaskInput, MultiCombobox, NPS, NotificationsInbox,
+  InputOTP, Label, Likert, NativeSelect, Link, Loading, Map, MaskInput, MultiCombobox, NPS, NotificationsInbox,
   NumberField, ObjectIdentifier, ObjectMarker, ObjectNumber, ObjectPageLayout, ObjectStatus,
   PIVOT_AGGREGATIONS, PIVOT_ZONES, Page, PageHeader, Pagination, PasswordInput, PhoneInput,
   PivotDropZone, PivotFieldChip, PivotFilterMenu, PivotGrid, PivotWorkbench, Popover, Progress,

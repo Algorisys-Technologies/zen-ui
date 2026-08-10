@@ -125,6 +125,7 @@ import NewTabsDemo from "./components/NewTabsDemo";
 import NewAccordionDemo from "./components/NewAccordionDemo";
 import NewCollapsibleDemo from "./components/NewCollapsibleDemo";
 import NewLabelDemo from "./components/NewLabelDemo";
+import NewNativeSelectDemo from "./components/NewNativeSelectDemo";
 import NewCardDemo from "./components/NewCardDemo";
 import NewSheetDemo from "./components/NewSheetDemo";
 import NewDateRangePickerDemo from "./components/NewDateRangePickerDemo";
@@ -383,6 +384,7 @@ const App: React.FC = () => {
             <Route path="/accordion" element={<NewAccordionDemo />} />
             <Route path="/collapsible" element={<NewCollapsibleDemo />} />
             <Route path="/label" element={<NewLabelDemo />} />
+            <Route path="/native-select" element={<NewNativeSelectDemo />} />
             <Route path="/card" element={<NewCardDemo />} />
             <Route path="/sheet" element={<NewSheetDemo />} />
             <Route path="/date-range-picker" element={<NewDateRangePickerDemo />} />
