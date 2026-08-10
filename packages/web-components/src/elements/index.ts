@@ -64,6 +64,7 @@ import "./icon";
 import "./input";
 import "./likert";
 import "./label";
+import "./native-select";
 import "./link";
 import "./loading";
 import "./map";
