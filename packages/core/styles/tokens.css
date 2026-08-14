@@ -359,6 +359,39 @@
   --zen-color-accent-light-blue: #B1C7D7;
   --zen-color-accent-magenta: #E55BA8;
   --zen-color-accent-cream: #3E2C12;
+
+  /* --------------------------------------------------------------------- *
+   * Elevation — dark needs its OWN shadows, and had none.                 *
+   *                                                                       *
+   * This block used to stop above, so dark inherited the default scale —  *
+   * a near-black tint, `rgba(19, 26, 37, …)`, at alphas of 0.08 to 0.20.  *
+   * You cannot darken an already-dark ground with it. Measured on the     *
+   * muted ground #1F2937: `shadow-sm` and `shadow-lg` both shifted the    *
+   * pixel by 2 of 255, against 23 and 27 for the same tokens on the light *
+   * ground. Elevation was not subtle in dark mode, it was absent — every  *
+   * Card, Dialog, Popover, Sheet and DropdownMenu included, not just the  *
+   * one that happened to show three of them side by side.                 *
+   *                                                                       *
+   * Pure black rather than a tint, because a dark-mode shadow reads as    *
+   * absence of light rather than a colour, and at much higher alpha: the  *
+   * ground is dark, so the same visible step costs far more opacity.      *
+   * Geometry (offset, blur, spread) is deliberately identical to the      *
+   * default scale, so only the colour changes between themes and a        *
+   * component's elevation keeps its shape.                                *
+   *                                                                       *
+   * Alphas chosen to land on the light theme's measured deltas rather     *
+   * than by eye — 14 to 36 of 255 across the scale.                       *
+   *                                                                       *
+   * NOTE this does NOT fix the `raised` vs `lifted` steps being close     *
+   * together; that is the shared alpha scale, and pulling it apart        *
+   * restyles every elevated component in every theme. Deliberately left.  *
+   * --------------------------------------------------------------------- */
+  --zen-shadow-xs:  0 1px 4px 0 rgba(0, 0, 0, 0.25);
+  --zen-shadow-sm:  0 4px 8px 0 rgba(0, 0, 0, 0.40);
+  --zen-shadow-md:  0 6px 8px 2px rgba(0, 0, 0, 0.45);
+  --zen-shadow-lg:  0 8px 12px 0 rgba(0, 0, 0, 0.50);
+  --zen-shadow-xl:  0 12px 24px 0 rgba(0, 0, 0, 0.55);
+  --zen-shadow-2xl: 0 20px 40px 0 rgba(0, 0, 0, 0.65);
 }
 
 /* ===================================================================== *
@@ -439,14 +472,24 @@
  * carry that and only one of them is colour:                            *
  *                                                                       *
  *   1. Ground vs sheet. --zen-color-background is the paper (#FDFBF6);  *
- *      --zen-color-muted is the desk under it (#F0EBE0). Muted is       *
- *      already the darker of the two in every theme; what changes here  *
- *      is that the step widens (measured 1.09:1 in default, 1.15:1      *
- *      here) and both sides carry the same warm cast, so it reads as a  *
- *      different MATERIAL rather than a slightly grey panel. There is   *
- *      no separate "ground" token, so a shell painting `bg-zen-muted`   *
- *      behind `bg-zen-background` panels is what makes the sheet read   *
- *      as lying on something; paint both `background` and it is flat.   *
+ *      --zen-color-muted is the desk under it (#F0EBE0). Muted is the   *
+ *      darker of the two here, as it is in `default` (#ffffff over      *
+ *      #F5F5F5); what changes is that the step widens — measured        *
+ *      1.09:1 in default, 1.15:1 here — and both sides carry the same   *
+ *      warm cast, so it reads as a different MATERIAL rather than a     *
+ *      slightly grey panel. There is no separate "ground" token, so a   *
+ *      shell painting `bg-zen-muted` behind `bg-zen-background` panels  *
+ *      is what makes the sheet read as lying on something; paint both   *
+ *      `background` and it is flat.                                     *
+ *                                                                       *
+ *      This does NOT hold in `dark`, and an earlier version of this     *
+ *      note claimed it held "in every theme", which was simply wrong.   *
+ *      Dark inverts the pair — background #0F172A against muted #1F2937 *
+ *      — so the ground is LIGHTER than the sheet and a surface on it    *
+ *      reads as a hole punched in the desk rather than paper lying on   *
+ *      it. Nothing here depends on the relationship, so it is recorded  *
+ *      rather than fixed: correcting it means restyling dark's two most *
+ *      used surface tokens, which moves every component.                *
  *   2. Directional shadow. Every elevation is y-offset with a negative   *
  *      spread from `lg` up, so the blur stays UNDER the sheet instead of *
  *      haloing it. Paper does not glow; an all-around shadow is the      *
