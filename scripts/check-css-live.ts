@@ -198,8 +198,20 @@ const { matched: hits } = await uno.generate(new Set(probes), { preflights: fals
 for (const p of probes) t(hits.has(p), `${p} generates CSS`);
 
 /* Negative control: if an unknown name also "generated CSS", every assertion
- * above would be matching everything and proving nothing. */
-for (const bogus of ["zen-anim-not-a-real-animation", "zen-transition-[grid-template-rows]"]) {
+ * above would be matching everything and proving nothing.
+ *
+ * `zen-transition-[grid-template-rows]` used to be the second control, chosen
+ * because Uno had no `transition-[<property>]` rule — which is why the source
+ * uses the `zen-[transition-property:…]` form probed above. Uno 66.7 added
+ * that rule, so the control started GENERATING and this check failed on any
+ * fresh install: the committed lockfile was already ahead of the node_modules
+ * the assertion was written against, so it only surfaced when someone resynced.
+ * Not a zen-ui regression — a dependency gaining a feature. Replaced with a
+ * name that keeps the arbitrary-value SHAPE (so it still exercises the same
+ * matching path) but names a property namespace Uno cannot ever own. Verified
+ * against this Uno: it generates nothing, as do the other two candidates that
+ * were considered. Re-verify if this ever starts passing suspiciously. */
+for (const bogus of ["zen-anim-not-a-real-animation", "zen-notautility-[grid-template-rows]"]) {
   const { matched } = await uno.generate(new Set([bogus]), { preflights: false });
   t(!matched.has(bogus), `${bogus} correctly generates nothing`);
 }
