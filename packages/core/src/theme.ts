@@ -13,7 +13,7 @@
  * (`zen:theme-change`) is dispatched so multiple listeners stay in sync.
  */
 
-export type ThemeName = "default" | "zen-theme" | "dark";
+export type ThemeName = "default" | "zen-theme" | "dark" | "paper";
 
 export interface ThemeDescriptor {
   name: ThemeName;
@@ -41,13 +41,19 @@ export const THEMES: ThemeDescriptor[] = [
     description: "Inverted surfaces for low-light environments",
     preview: ["#6B8FE8", "#F26464", "#0F172A"],
   },
+  {
+    name: "paper",
+    label: "Paper",
+    description: "Warm ink-on-paper — sheets on a desk, loose leading, cut corners",
+    preview: ["#2C5282", "#C9911F", "#F0EBE0"],
+  },
 ];
 
 export const THEME_STORAGE_KEY = "zen-ui-theme";
 export const THEME_EVENT_NAME = "zen:theme-change";
 
 export const isThemeName = (v: unknown): v is ThemeName =>
-  v === "default" || v === "zen-theme" || v === "dark";
+  v === "default" || v === "zen-theme" || v === "dark" || v === "paper";
 
 export function getInitialTheme(): ThemeName {
   if (typeof window === "undefined") return "default";

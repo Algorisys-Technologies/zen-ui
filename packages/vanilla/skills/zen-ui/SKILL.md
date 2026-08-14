@@ -122,8 +122,9 @@ document.body.append(btn.el);
 ## Theming and styling
 
 - **Theming is `--zen-*` custom properties — that is the whole public
-  surface.** Override them in the consuming app's CSS. Three built-in themes
-  switch via `data-theme` on any ancestor: `default`, `zen-theme`, `dark`.
+  surface.** Override them in the consuming app's CSS. Four built-in themes
+  switch via `data-theme` on any ancestor: `default`, `zen-theme`, `dark`,
+  `paper`.
   Do not fork component source or patch generated CSS to restyle.
 - **zen-ui's utilities are prefixed `zen-`** (`zen-p-4`,
   `hover:zen-bg-zen-primary`). The consuming app's Tailwind/UnoCSS does NOT
