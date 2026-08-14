@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.0.0",
+    date: "2026-08-14",
+    kind: "breaking",
+    title: "The paper theme's elevation steps are now tellable apart",
+    detail:
+      "Every step of the paper theme's shadow scale sat within a few pixels of the next, so a raised card and a lifted one looked like the same surface. Measured against the theme's own ground, the scale ran 11/13/15/20/24/33 of 255 — six steps inside a range of 22 — and now runs 6/12/19/30/44/61, with raised-to-lifted going from 7 apart to 18. `xs` gets FAINTER rather than darker: spreading a scale means dropping the bottom so the top has room. Geometry is unchanged, and only consumers using data-theme=\"paper\" are affected. The shared scale still has the same complaint (default is 23 vs 27) and is deliberately left alone, because widening it would restyle every theme.",
+  },
+  {
     version: "11.0.0",
     date: "2026-08-14",
     kind: "breaking",

@@ -13,6 +13,31 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2026-08-14
+
+### Breaking
+
+- **The `paper` theme's elevation steps are now distinguishable.** Every step of
+  its shadow scale sat within a few pixels of the next, so `raised` and `lifted`
+  read as the same surface. Measured as the peak pixel shift each shadow makes
+  against the theme's own ground (#F0EBE0), the scale ran
+  **11 / 13 / 15 / 20 / 24 / 33** of 255 — six steps inside a range of 22 — and
+  now runs **6 / 12 / 19 / 30 / 44 / 61**. `raised` to `lifted` goes from 7
+  apart to 18. Note `xs` gets FAINTER (11 → 6): spreading a scale means dropping
+  the bottom so the top has room, otherwise every step moves up together and
+  stays equally crowded. Geometry is untouched — the offsets, blurs and the
+  negative spread from `lg` up that keeps the shadow under the sheet rather than
+  around it are the 11.0.0 values. Affects only consumers using
+  `data-theme="paper"`; alphas are tokens, so the old weights can be restored by
+  overriding `--zen-shadow-*` under that selector.
+
+### Known
+
+- The SHARED scale still has the same complaint — default measures 23 vs 27
+  (4 apart), dark 22 vs 27 (5). Widening it restyles every elevated component in
+  every theme for every consumer, where this change reaches only what opts into
+  the paper theme. Deliberately left as a separate decision.
+
 ## [11.0.0] - 2026-08-14
 
 Paper, a document surface — and two fixes that alter what existing apps render.
