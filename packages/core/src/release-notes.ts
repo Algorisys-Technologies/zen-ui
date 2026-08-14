@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.8.1",
+    date: "2026-08-14",
+    kind: "fixed",
+    title: "Virtualized TreeTable rows were never really measured (Solid)",
+    detail:
+      "The Solid binding kept almost every virtualized row at the rowEstimatedHeight estimate instead of the height it actually rendered at. With uniform rows that only skews the scrollbar; with rows of varying height, positions are computed from sizes that were never corrected and the drift accumulates as you scroll. Measured on a 1240-row tree with 45px rows against a 44px estimate, Solid now tracks React to within 2px. React, vanilla and web-components were never affected.",
+  },
+  {
     version: "10.8.0",
     date: "2026-08-14",
     kind: "fixed",

@@ -32,7 +32,7 @@
     },
     "packages/core": {
       "name": "@algorisys/zen-ui-core",
-      "version": "10.8.0",
+      "version": "10.8.1",
       "dependencies": {
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -41,7 +41,7 @@
     },
     "packages/react": {
       "name": "@algorisys/zen-ui-react",
-      "version": "10.8.0",
+      "version": "10.8.1",
       "dependencies": {
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/sortable": "^10.0.0",
@@ -136,7 +136,7 @@
     },
     "packages/solid": {
       "name": "@algorisys/zen-ui-solid",
-      "version": "10.8.0",
+      "version": "10.8.1",
       "dependencies": {
         "@kobalte/core": "^0.13.7",
         "@modular-forms/solid": "^0.25.0",
@@ -182,7 +182,7 @@
     },
     "packages/vanilla": {
       "name": "@algorisys/zen-ui-vanilla",
-      "version": "10.8.0",
+      "version": "10.8.1",
       "dependencies": {
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -220,7 +220,7 @@
     },
     "packages/web-components": {
       "name": "@algorisys/zen-ui-web-components",
-      "version": "10.8.0",
+      "version": "10.8.1",
       "dependencies": {
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",

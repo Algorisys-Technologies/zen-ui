@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-react",
-  "version": "10.8.0",
+  "version": "10.8.1",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "sideEffects": [

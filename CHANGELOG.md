@@ -13,6 +13,46 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.8.1] - 2026-08-14
+
+### Fixed
+
+- **Solid's virtualized TreeTable discarded almost every row measurement**, so
+  the virtualizer stayed on `rowEstimatedHeight` rather than the height rows
+  actually render at. Two Solid-specific ordering problems, and fixing only the
+  first makes it worse. Solid applies JSX attributes AFTER running a ref, so
+  `data-index` was absent when `measureElement` ran: `indexFromElement` returns
+  -1, `resizeItem` looks up `measurementsCache[-1]`, finds nothing and returns,
+  and the node is additionally cached against a bogus key so the ResizeObserver
+  bookkeeping is wrong too. It warns rather than throwing. Stamping the
+  attribute in the ref then COLLAPSED the total from ~54,600 to 4,810, because
+  Solid also runs the ref BEFORE inserting the node — it has no layout and
+  measures 0, and those zeros had previously been discarded along with the bad
+  index. The measurement is now deferred to a microtask, guarded on
+  `isConnected`. Measured over a 1240-row scroll with 45px rows against a 44px
+  estimate: React 54617 → 54718 retained, Solid was 54617 → 54629 → 54621, now
+  54616 → 54716 retained. All 34 `data-index` warnings are gone.
+
+### Internal
+
+- **Solid TreeTable** replaces two `rows().findIndex()` scans per row with the
+  memoised id → index map the React binding already carried — a quadratic scan
+  in the one component whose purpose is rendering long lists.
+- **`check:schedule-dom` failed on the network rather than the code**, roughly
+  three runs in four, always on the assertion named "no runtime errors". It is
+  in the ship checklist, so a release was gated on network conditions — and the
+  honest response to that flake is to re-run until green, which means it had
+  stopped being a gate. The demos load Plus Jakarta Sans from fonts.gstatic.com
+  and that request fails often enough to trip it. Third-party resource failures
+  no longer count, discriminated by the message's LOCATION rather than its text:
+  the text is the generic "Failed to load resource: … 404 ()" for every failed
+  request, so matching on it would also swallow a same-origin asset 404 — the
+  failure that renders a blank page inside a working shell. Same-origin
+  failures, and console errors with no location, still fail. The first attempt
+  excused `/favicon.ico` and the flake survived it; a probe printing each
+  message's location named the real culprit. Verified 5/5 consecutive green
+  runs, plus five discriminator cases so the filter cannot excuse everything.
+
 ## [10.8.0] - 2026-08-14
 
 Four new components, a table bound to the URL, and a TreeTable that can open.
