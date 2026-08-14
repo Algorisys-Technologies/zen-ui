@@ -33,6 +33,62 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "10.8.0",
+    date: "2026-08-14",
+    kind: "fixed",
+    title: "TreeTable could not expand at all",
+    detail:
+      "In React and Solid, a TreeTable without enablePagination could not be opened — not by chevron, not by keyboard, not via defaultExpanded. Every root row and every chevron rendered, so it read as a dead control rather than an error. If you turned pagination on to work around it, you can turn it back off. Paging is unchanged: a page still holds whole roots and an expanded row keeps its children with it.",
+  },
+  {
+    version: "10.8.0",
+    date: "2026-08-14",
+    kind: "new",
+    title: "UrlDataTable — a table whose state lives in the URL",
+    detail:
+      "Sort, filters, search and page read from `params` and write back through `onParamsChange`, so a link to a filtered, sorted, third page is just the URL. It owns no state and imports no router, so Remix, Next, TanStack Router and plain history.pushState wire in identically. The format is meant to be read: ?sort=name:asc&filters=status:active&search=acme&page=2.",
+  },
+  {
+    version: "10.8.0",
+    date: "2026-08-14",
+    kind: "new",
+    title: "NativeSelect — the platform <select>, styled to match Input",
+    detail:
+      "For fields whose options are plain text. It submits inside a plain <form> with no hidden input, opens as the OS picker on a phone, and costs nothing to render for a long list. Same 40px height and border as Input, so the two line up in a form.",
+  },
+  {
+    version: "10.8.0",
+    date: "2026-08-14",
+    kind: "new",
+    title: "Label and Collapsible",
+    detail:
+      "Two primitives that existed in no binding and were being open-coded everywhere — a bare styled <label>, and a single-item Accordion standing in for a collapsible region that has nothing to coordinate with.",
+  },
+  {
+    version: "10.8.0",
+    date: "2026-08-14",
+    kind: "new",
+    title: "Combobox rows can be richer than one line of text",
+    detail:
+      "A new `content` field renders the row — a name over a line of metadata, an avatar, a highlighted match — while `label` keeps every job it already had: what filtering matches, what the trigger shows, what `creatable` compares, and what a chip renders.",
+  },
+  {
+    version: "10.8.0",
+    date: "2026-08-14",
+    kind: "new",
+    title: "DataTable renders column footers",
+    detail:
+      "Declare `footer` on any column and the table grows a <tfoot> — the column total a financial table always needs, and which previously meant dropping out of DataTable entirely. Tables that declare none are untouched.",
+  },
+  {
+    version: "10.8.0",
+    date: "2026-08-14",
+    kind: "improved",
+    title: "Filter operators can be handed to the server",
+    detail:
+      "New enableFilterOperators (default true, so nothing changes unless you ask). The operator select is a client-side predicate, so against a server-filtered table it offered a choice nothing acted on — and made the active-filter chip read \"[object Object]\". Sort arrows also went 12px → 14px and the unsorted hint 30% → 60% opacity, which was invisible before unless you knew to look.",
+  },
+  {
     version: "10.7.1",
     date: "2026-08-07",
     kind: "new",

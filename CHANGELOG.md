@@ -1,7 +1,9 @@
 # Changelog
 
-All three published packages — `@algorisys/zen-ui-core`, `@algorisys/zen-ui-react`
-and `@algorisys/zen-ui-solid` — share one version.
+All five published packages — `@algorisys/zen-ui-core`, `@algorisys/zen-ui-react`,
+`@algorisys/zen-ui-solid`, `@algorisys/zen-ui-vanilla` and
+`@algorisys/zen-ui-web-components` — share one version. The canonical list is
+[scripts/bindings.mjs](scripts/bindings.mjs); `check:release` drives from it.
 
 They ship the same API by construction: a component that exists in one binding
 and not the other is a bug here, not a roadmap item (see the parity rule in
@@ -10,6 +12,102 @@ diverge and force every question to name a binding first.
 
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [10.8.0] - 2026-08-14
+
+Four new components, a table bound to the URL, and a TreeTable that can open.
+
+### Added
+
+- **`UrlDataTable`** — a `DataTable` whose sort, filters, search and page live in
+  the querystring. `params` in, `onParamsChange` out; no state of its own and no
+  router import, so Remix `useSearchParams`, Next, TanStack Router and plain
+  `history.pushState` wire in identically. Composes `DataTable` rather than
+  forking it, so the 98 KB original stays the single implementation. Wire format
+  is human-readable because these URLs get pasted into tickets:
+  `?sort=name:asc,createdAt:desc&filters=status:active&search=acme&page=2`.
+  Multi-sort order is precedence; a filter value may contain a colon and only the
+  first splits key from value; half-written pairs are dropped rather than guessed.
+  Every mutation resets to page 1 except a page change, or filtering on page 7 of
+  7 requests page 7 of a two-page result and returns nothing.
+- **`NativeSelect`** — the platform `<select>` carrying `Input`'s class list.
+  Measured at Input's 40px with an identical border, native arrow suppressed,
+  `optgroup` and disabled options intact. No `size` prop: on a `<select>` that is
+  the number of visible rows, and shadowing it would break a caller passing it.
+  vanilla and web-components take `options` as data, per those bindings' idiom.
+- **`Label`** and **`Collapsible`** — two primitives that existed in no binding.
+  Built Solid-first then ported React → vanilla → web-components; verified in a
+  browser per binding (Solid 13/13, React 14/14, vanilla 14/14, wc 14/14
+  behavioural checks). The peer-disabled dimming is a real divergence, not an
+  oversight: React's Checkbox IS the `zen-peer` and is a Radix `<button>`, while
+  Kobalte nests the control in a `<div>` that is never a sibling and never
+  matches `:disabled`. `disabled` on the label is the portable route.
+- **`content` on Combobox / MultiCombobox options** — a renderable row alongside
+  the string `label`, which keeps matching, trigger display, `creatable`
+  comparison and chip rendering. Widening `label` would have broken all four:
+  `alreadyExists` calls `.trim().toLowerCase()` on it unconditionally. Data, not
+  a render prop, so it ports — React and Solid take a node, vanilla and
+  web-components a DOM `Node`, cloned per row.
+- **DataTable column footers** — `footer` on any column gives the table a
+  `<tfoot>`; columns without one render an empty cell to keep the row aligned.
+  TanStack has carried `footer` since v8 and DataTable rendered none, so a column
+  total meant hand-rolling the table. Verified: exactly 1 of 26 demo tables grew
+  a `tfoot`. vanilla takes `footer?: (rows) => Child`, matching how its
+  `DataTableColumn` already diverges from `ColumnDef`.
+- **`enableFilterOperators`** on DataTable, default `true`.
+
+### Fixed
+
+- **TreeTable could not expand at all** in React and Solid without
+  `enablePagination` — not by chevron, keyboard, or `defaultExpanded`. Both
+  bindings pinned TanStack's `paginateExpandedRows` to `false`, but
+  `getExpandedRowModel` returns the pre-expanded model untouched when that is
+  false ("Only expand rows at this point if they are being paginated"), because
+  the flattening, `expandRows()`, is delegated to `getPaginationRowModel` — which
+  was only supplied when pagination was on. Nothing ever called it. The flag now
+  tracks `enablePagination`, as a getter in Solid so it cannot freeze at setup.
+  Silent failure: `row.subRows` was populated, so every chevron drew and the row
+  reported `aria-expanded="false"` after a click. vanilla and web-components were
+  never affected — their TreeTable walks the tree against its own `expanded` Set
+  and never touches TanStack.
+- **Filter operators offered a choice nothing acted on** in server-filtered
+  tables. With operators on, a filter value is `{ op, value }`, so selecting an
+  operator before typing made the active-filter chip render
+  `Question: [object Object]`, and the URL carried an operator no loader honoured.
+  `UrlDataTable` sets `enableFilterOperators={false}`.
+- **`UrlDataTable` rendered two search boxes** — its own toolbar plus DataTable's
+  global filter.
+- **`UrlDataTable` coerced renderable cell values** with `String()`, so a status
+  pill or link in a cell rendered `[object Object]`.
+- **`UrlDataTable` dropped the filter operator from the URL** and issued a
+  request per keystroke; typing is now debounced.
+- **`NativeSelect` rendered a second element and claimed a width of its own.**
+
+### Changed
+
+- Sort arrows 12px → 14px, and the unsorted hint 30% → 60% opacity. At 12px and
+  30% on a header it was invisible unless you knew to look.
+- `UrlDataTable` uses single-column sort. Multi-sort renders a priority number
+  beside the header — "Question ⌄ 1" — which reads as data in a table of numbers.
+  The URL format still carries an ordered list, so multi-sort callers of
+  `DataTable` are unaffected.
+
+### Internal
+
+- **`check:skill-api` was machine-dependent** and failed on every checkout but
+  the one that last ran the generator. tsc writes the full resolved path into an
+  inline `import(…)` type for structurally-reached symbols, so the committed
+  reference carried a contributor's home directory. Measured: 110 changed lines,
+  every one a path, zero that were not. Paths now normalise to the tail after the
+  *last* `node_modules/` — bun nests a second inside `.bun/<pkg>@<version>/` — and
+  before the 400-char truncation, or a long home directory would move the cut.
+- **Solid lint back to 0.** 14 problems in `url-data-table.tsx`: two real
+  (`cell: (info: any)` → `CellContext<TRow, unknown>`), twelve false positives
+  disabled at the site with the reason — TanStack `ColumnDef` renderers are not
+  Solid components, and mutators handed to `commit` run synchronously from event
+  handlers, so reading `names()` is a snapshot by design. All four bindings are
+  again 0 problems.
+- CHANGELOG header said "all three published packages"; there are five.
 
 ## [10.7.1] - 2026-08-07
 
