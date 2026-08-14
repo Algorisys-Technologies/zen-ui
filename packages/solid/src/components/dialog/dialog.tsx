@@ -1,4 +1,4 @@
-import { type JSX, splitProps } from "solid-js";
+import { type JSX, Show, splitProps } from "solid-js";
 import * as KDialog from "@kobalte/core/dialog";
 import { cn } from "../../lib/cn";
 
@@ -66,21 +66,67 @@ export type DialogContentProps = Omit<
   children?: JSX.Element;
   /** Render the ✕ close affordance in the top-right corner. Default true. */
   showCloseButton?: boolean;
+  /**
+   * `paper` turns the panel into a document sheet — see <Paper>. Default
+   * `default`, so existing dialogs are byte-identical.
+   *
+   * It is not a restyle, and that is why it is a variant rather than a class
+   * you could pass yourself. A document is TOP-ANCHORED: centring a long sheet
+   * vertically and then scrolling it inside 85vh puts the first line somewhere
+   * different on every screen, and the reader's eye has nowhere to rest. Paper
+   * mode drops the vertical centring, scrolls the VIEWPORT rather than the
+   * panel, and widens the cap so the measure has room to do its work.
+   */
+  variant?: "default" | "paper";
 };
 
 export const DialogContent = (props: DialogContentProps) => {
-  const [local, rest] = splitProps(props, ["class", "children", "showCloseButton"]);
+  const [local, rest] = splitProps(props, ["class", "children", "showCloseButton", "variant"]);
   const showClose = () => local.showCloseButton ?? true;
+  const paper = () => local.variant === "paper";
   return (
     <KDialog.Portal>
       <DialogOverlay />
+      {/*
+       * Paper mode needs a scroll CONTAINER, and it has to be a real element
+       * rather than `overflow-y-auto` on the overlay: Kobalte renders Overlay
+       * and Content as SIBLINGS, so the panel is not inside the overlay and
+       * scrolling it does nothing. Measured before this wrapper existed — the
+       * panel had no scrollable ancestor at all, so a document taller than the
+       * viewport simply hung off the bottom, unreachable. The default branch
+       * keeps its own `max-h-[85vh] overflow-y-auto` and needs no wrapper.
+       *
+       * `content()` is called in both branches rather than duplicated, so the
+       * two cannot drift; only one ever renders.
+       */}
+      <Show when={paper()} fallback={content()}>
+        <div class="zen-fixed zen-inset-0 zen-z-50 zen-overflow-y-auto">{content()}</div>
+      </Show>
+    </KDialog.Portal>
+  );
+
+  function content() {
+    return (
       <KDialog.Content
         {...rest}
         class={cn(
-          "zen-fixed zen-left-1/2 zen-top-1/2 zen-z-50 -zen-translate-x-1/2 -zen-translate-y-1/2",
-          "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
-          "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
-          "focus:zen-outline-none",
+          "zen-z-50 focus:zen-outline-none",
+          paper()
+            ? [
+                /* Relative inside the scroll container, so it flows with the
+                   scroll rather than being pinned to the viewport. `mx-auto`
+                   centres it horizontally and `my-` is the sheet's margin on
+                   the desk — which is also what makes the bottom edge visible
+                   when you reach the end, instead of the document being clipped
+                   against the viewport. */
+                "zen-relative zen-mx-auto zen-my-12 zen-w-full zen-max-w-3xl",
+                "zen-rounded-zen-sm zen-bg-zen-background zen-text-zen-foreground zen-p-12 zen-shadow-zen-xl",
+              ]
+            : [
+                "zen-fixed zen-left-1/2 zen-top-1/2 -zen-translate-x-1/2 -zen-translate-y-1/2",
+                "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
+                "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
+              ],
           local.class,
         )}
       >
@@ -99,8 +145,8 @@ export const DialogContent = (props: DialogContentProps) => {
           </KDialog.CloseButton>
         ) : null}
       </KDialog.Content>
-    </KDialog.Portal>
-  );
+    );
+  }
 };
 
 export type DialogHeaderProps = Omit<

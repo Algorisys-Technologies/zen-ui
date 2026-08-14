@@ -37,6 +37,7 @@ import NewTooltipDemo from "./components/NewTooltipDemo";
 import NewTabsDemo from "./components/NewTabsDemo";
 import NewAccordionDemo from "./components/NewAccordionDemo";
 import NewCollapsibleDemo from "./components/NewCollapsibleDemo";
+import NewPaperDemo from "./components/NewPaperDemo";
 import NewLabelDemo from "./components/NewLabelDemo";
 import NewSliderDemo from "./components/NewSliderDemo";
 import NewPopoverDemo from "./components/NewPopoverDemo";
@@ -167,6 +168,7 @@ render(
       <Route path="/tabs" component={NewTabsDemo} />
       <Route path="/accordion" component={NewAccordionDemo} />
       <Route path="/collapsible" component={NewCollapsibleDemo} />
+      <Route path="/paper" component={NewPaperDemo} />
       <Route path="/label" component={NewLabelDemo} />
       <Route path="/slider" component={NewSliderDemo} />
       <Route path="/popover" component={NewPopoverDemo} />

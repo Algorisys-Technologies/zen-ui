@@ -66,6 +66,7 @@ export const NAV: NavGroup[] = [
       { label: "ColorPicker", path: "/color-picker", description: "Swatch palette + the platform picker; hex in, hex out", source: "packages/solid/src/components/NewColorPickerDemo.tsx" },
       { label: "Carousel", path: "/carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/solid/src/components/NewCarouselDemo.tsx" },
       { label: "Card", path: "/card", description: "Surface primitive + SelectableCard for goal pickers / plan selectors", source: "packages/solid/src/components/NewCardDemo.tsx" },
+      { label: "Paper", path: "/paper", description: "Document surface — reading measure, document typography, and a paper Dialog variant", source: "packages/solid/src/components/NewPaperDemo.tsx" },
       { label: "StatCard", path: "/stat-card", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/solid/src/components/NewStatCardDemo.tsx" },
       { label: "Skeleton", path: "/skeleton", description: "Animated muted-box placeholder; size it with utility classes", source: "packages/solid/src/components/NewSkeletonDemo.tsx" },
       { label: "Loading", path: "/loading", description: "Animated spinner with sr-only label; colour=current inside buttons", source: "packages/solid/src/components/NewLoadingDemo.tsx" },

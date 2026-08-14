@@ -358,6 +358,16 @@ export type {
   CollapsibleContentProps,
 } from "./components/collapsible/collapsible";
 
+export {
+  Paper,
+  PaperHeader,
+  PaperTitle,
+  PaperDescription,
+  PaperContent,
+  PaperFooter,
+} from "./components/paper/paper";
+export type { PaperProps, PaperTitleProps } from "./components/paper/paper";
+
 export { MaskInput } from "./components/form/mask-input/mask-input";
 export type { MaskInputProps } from "./components/form/mask-input/mask-input";
 export type { MaskRules } from "@algorisys/zen-ui-core/mask";
