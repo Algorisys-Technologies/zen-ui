@@ -1,5 +1,10 @@
 import { type JSX, For, Show, createMemo } from "solid-js";
-import type { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/solid-table";
+import type {
+  CellContext,
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+} from "@tanstack/solid-table";
 import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
 import { DataTable } from "../data-table/data-table";
@@ -187,7 +192,16 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
     props.onParamsChange(next);
   };
 
+  /*
+   * Every mutator below reads `names()` inside the callback handed to `commit`,
+   * and `solid/reactivity` flags each one as reactivity outside a tracked scope.
+   * It is a false positive of the shape CLAUDE.md already records for
+   * tree-table: `commit` invokes the mutator SYNCHRONOUSLY, and every caller is
+   * an event handler, so the read is a snapshot at event time — which is what a
+   * URL mutation wants. Deferring it would be the bug.
+   */
   const handleDropdownFilter = (key: string, value: string) =>
+    // eslint-disable-next-line solid/reactivity
     commit((next) => {
       const current = parseFilterParam(next.get(names().filters)).filter(
         (f) => f.id !== key,
@@ -196,6 +210,16 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
       setOrDelete(next, names().filters, serializeFilterParam(current));
     });
 
+  /*
+   * eslint-disable solid/components-return-once -- these are TanStack ColumnDef
+   * renderers, not Solid components. A `cell` renderer is a plain function
+   * TanStack calls per render via flexRender, so an early return is how you
+   * branch on the cell's VALUE; the rule cannot tell it from a component,
+   * because both are "a function returning JSX". Same false positive, and same
+   * remedy, as the `solid/no-destructure` block around DataTable's column
+   * factory. Scoped to this factory and re-enabled straight after.
+   */
+  /* eslint-disable solid/components-return-once */
   const tableColumns = createMemo<ColumnDef<TRow, unknown>[]>(() => {
     const defs: ColumnDef<TRow, unknown>[] = props.columns.map((col) => ({
       id: col.key,
@@ -204,8 +228,8 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
       size: col.width,
       enableSorting: !!col.sort,
       enableColumnFilter: !!col.search,
-      cell: (info: any) => {
-        const row = info.row.original as TRow;
+      cell: (info: CellContext<TRow, unknown>) => {
+        const row = info.row.original;
         if (col.render) return col.render(row);
 
         const value = row[col.key];
@@ -246,9 +270,9 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
         header: () => <div class="zen-text-center">{props.actionsLabel ?? "Actions"}</div>,
         enableSorting: false,
         enableColumnFilter: false,
-        cell: (info: any) => (
+        cell: (info: CellContext<TRow, unknown>) => (
           <div class="zen-whitespace-nowrap zen-text-center">
-            {props.actions!(info.row.original as TRow)}
+            {props.actions!(info.row.original)}
           </div>
         ),
       });
@@ -256,10 +280,22 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
 
     return defs;
   });
+  /* eslint-enable solid/components-return-once */
 
   const hasPerColumnFilters = createMemo(() => props.columns.some((c) => c.search));
   const hasSortableColumn = createMemo(() => props.columns.some((c) => c.sort));
 
+  /*
+   * eslint-disable solid/reactivity -- every handler below hands `commit` a
+   * mutator that reads `names()`. Same false positive as `handleDropdownFilter`
+   * above: `commit` runs the mutator synchronously and the caller is always an
+   * event handler, so the read is a snapshot taken at event time, which is
+   * exactly what writing a URL wants. A block rather than five line directives
+   * because these sit in JSX ATTRIBUTE position, where a line comment cannot be
+   * placed on the line before the one reported. Scoped to the return and
+   * re-enabled after it.
+   */
+  /* eslint-disable solid/reactivity */
   return (
     <div class={cn("zen-flex zen-flex-col zen-gap-3", props.class)}>
       {/* One toolbar row, owned here — see the React binding for why DataTable
@@ -352,4 +388,5 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
       </Show>
     </div>
   );
+  /* eslint-enable solid/reactivity */
 }
