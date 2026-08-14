@@ -48,6 +48,16 @@ export type { ComboboxProps, ComboboxOption } from "./components/combobox/combob
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants } from "./components/card/card";
 export type { CardProps } from "./components/card/card";
 
+export {
+  Paper,
+  PaperHeader,
+  PaperTitle,
+  PaperDescription,
+  PaperContent,
+  PaperFooter,
+} from "./components/paper/paper";
+export type { PaperProps } from "./components/paper/paper";
+
 export { Alert, AlertIcon, AlertContent, AlertTitle, AlertDescription, AlertActions, alertVariants } from "./components/alert/alert";
 export type { AlertProps } from "./components/alert/alert";
 

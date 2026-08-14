@@ -154,6 +154,7 @@ description, then import the name from your binding's package.
 - **NativeSelect** — The platform <select>, styled to match Input — submits with no hidden input, opens as the OS picker on a phone
 - **Label** — The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming
 - **Card** — Surface primitive + SelectableCard variant for goal pickers / plan selectors
+- **Paper** — Document surface — reading measure, document typography, and a paper Dialog variant
 - **StatCard** — A labelled figure — icon, delta, and somewhere to go
 - **Sheet / Drawer** — Slide-in side panel on Radix Dialog; right / left / top / bottom
 - **DateRangePicker** — Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled

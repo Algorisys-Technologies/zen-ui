@@ -29,6 +29,7 @@ export {
   BoundSelect, BoundSlider, BoundSwitch, BoundTextarea, Breadcrumb, BreadcrumbEllipsis,
   BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, Button,
   CHART_PALETTE, COUNTRY_CODES, COUNTRY_NAMES, Calendar, Camera, Card, CardContent,
+  Paper, PaperHeader, PaperTitle, PaperDescription, PaperContent, PaperFooter,
   CardDescription, CardFooter, CardHeader, CardTitle, Carousel, Chart, Checkbox, Collapsible, ColorPalette,
   MIN_MEDIA_RANGE, MediaTimeline, Waveform, formatMediaTime,
   ColorPicker, Combobox, DATE_RANGE_OPERATORS, DataTable, DatePicker, DateRangePicker,

@@ -50,6 +50,18 @@ export interface DialogProps extends BaseProps {
   showCloseButton?: boolean;
   /** Allow Escape and click-outside. Default true. False = AlertDialog semantics. */
   dismissable?: boolean;
+  /**
+   * `paper` turns the panel into a document sheet — see Paper. Default
+   * `default`, so existing dialogs are byte-identical.
+   *
+   * It is not a restyle, and that is why it is a variant rather than a class
+   * you could pass yourself. A document is TOP-ANCHORED: centring a long sheet
+   * vertically and then scrolling it inside 85vh puts the first line somewhere
+   * different on every screen. Paper mode drops the vertical centring, scrolls
+   * the VIEWPORT rather than the panel, and widens the cap so the measure has
+   * room to do its work.
+   */
+  variant?: "default" | "paper";
   onOpenChange?: (open: boolean) => void;
 }
 
@@ -78,6 +90,19 @@ export function Dialog(props: DialogProps): DialogHandle {
     "data-[state=open]:zen-anim-fade-in data-[state=closed]:zen-anim-fade-out",
   );
 
+  /*
+   * Paper mode needs a scroll CONTAINER, and it has to be a real element rather
+   * than `overflow-y-auto` on the overlay: the overlay and the panel are
+   * SIBLINGS in the portal, so the panel is not inside the overlay and
+   * scrolling it does nothing. Measured in the Solid binding before this
+   * existed — the panel had no scrollable ancestor at all, so a document taller
+   * than the viewport hung off the bottom, unreachable. Created eagerly and
+   * mounted only in paper mode; the default branch keeps its own
+   * `max-h-[85vh] overflow-y-auto` and never sees this node.
+   */
+  const scroller = document.createElement("div");
+  scroller.className = "zen-fixed zen-inset-0 zen-z-50 zen-overflow-y-auto";
+
   const content = document.createElement("div");
   content.id = id;
   content.setAttribute("role", "dialog");
@@ -95,14 +120,27 @@ export function Dialog(props: DialogProps): DialogHandle {
     } = current;
 
     content.className = cn(
-      "zen-fixed zen-left-1/2 zen-top-1/2 zen-z-50 -zen-translate-x-1/2 -zen-translate-y-1/2",
-      "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
-      // A surface that paints its own background MUST paint its own foreground.
-      // This is portalled to <body>, so "inherit" means the consumer's body
-      // colour, not the app's — with a dark theme the panel went dark and the
-      // text stayed black, at about 1.2:1. The React binding shipped exactly that.
-      "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
-      "focus:zen-outline-none",
+      "zen-z-50 focus:zen-outline-none",
+      current.variant === "paper"
+        ? [
+            /* Relative inside the scroll container, so it flows with the scroll
+               rather than being pinned to the viewport. `mx-auto` centres it and
+               `my-` is the sheet's margin on the desk — which is also what makes
+               the bottom edge visible when you reach the end, instead of the
+               document being clipped against the viewport. */
+            "zen-relative zen-mx-auto zen-my-12 zen-w-full zen-max-w-3xl",
+            "zen-rounded-zen-sm zen-bg-zen-background zen-text-zen-foreground zen-p-12 zen-shadow-zen-xl",
+          ]
+        : [
+            "zen-fixed zen-left-1/2 zen-top-1/2 -zen-translate-x-1/2 -zen-translate-y-1/2",
+            "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
+            // A surface that paints its own background MUST paint its own
+            // foreground. This is portalled to <body>, so "inherit" means the
+            // consumer's body colour, not the app's — with a dark theme the panel
+            // went dark and the text stayed black, at about 1.2:1. The React
+            // binding shipped exactly that.
+            "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
+          ],
       "data-[state=open]:zen-anim-fade-in data-[state=closed]:zen-anim-fade-out",
       className,
     );
@@ -169,7 +207,12 @@ export function Dialog(props: DialogProps): DialogHandle {
       render();
 
       p.mount(overlay);
-      p.mount(content);
+      if (current.variant === "paper") {
+        scroller.append(content);
+        p.mount(scroller);
+      } else {
+        p.mount(content);
+      }
       // Set state AFTER mounting: the entrance animation is a CSS rule keyed on
       // data-state, and an element that is not in the document has no animation
       // to run.
@@ -198,7 +241,12 @@ export function Dialog(props: DialogProps): DialogHandle {
       session = null;
 
       setPresence(overlay, "closed", () => overlay.remove());
-      setPresence(content, "closed", () => content.remove());
+      setPresence(content, "closed", () => {
+        content.remove();
+        // The wrapper is ours, so it leaves with the panel rather than being
+        // left behind as a full-screen invisible scroll trap over the page.
+        scroller.remove();
+      });
       current.onOpenChange?.(false);
     },
     update(next) {

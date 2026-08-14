@@ -77,7 +77,7 @@ real props; guessing prop names is how agents invent APIs.
 - [fab.md](fab.md) — `FAB`, `FABProps`
 - [form.md](form.md) — `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage`, `useFormField`
 - [bound-fields.md](bound-fields.md) — `BoundInput`, `BoundTextarea`, `BoundSelect`, `BoundCheckbox`, `BoundSwitch`, `BoundRadioGroup`, `BoundSlider`, `BoundInputProps`, `BoundTextareaProps`, `BoundSelectProps`, `BoundCheckboxProps`, `BoundSwitchProps`, `BoundRadioGroupProps`, `BoundSliderProps`, `BoundSelectOption`, `SelectOption`
-- [dialog.md](dialog.md) — `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogClose`, `DialogOverlay`, `DialogContent`, `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription`
+- [dialog.md](dialog.md) — `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogClose`, `DialogOverlay`, `DialogContent`, `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription`, `DialogContentProps`
 - [alert-dialog.md](alert-dialog.md) — `AlertDialog`, `AlertDialogTrigger`, `AlertDialogPortal`, `AlertDialogOverlay`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogFooter`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogAction`, `AlertDialogCancel`
 - [file-upload.md](file-upload.md) — `FileUpload`, `FileUploadProps`, `FileRejection`
 - [toast.md](toast.md) — `Toast`, `ToastProvider`, `ToastViewport`, `ToastTitle`, `ToastDescription`, `ToastAction`, `ToastClose`, `toastVariants`, `ToastProps`
@@ -91,6 +91,7 @@ real props; guessing prop names is how agents invent APIs.
 - [card.md](card.md) — `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `cardVariants`, `CardProps`
 - [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
 - [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`
+- [paper.md](paper.md) — `Paper`, `PaperHeader`, `PaperTitle`, `PaperDescription`, `PaperContent`, `PaperFooter`, `PaperProps`, `PaperTitleProps`
 - [accordion.md](accordion.md) — `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`
 - [collapsible.md](collapsible.md) — `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
 - [tabs.md](tabs.md) — `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`, `tabsListVariants`, `tabsTriggerVariants`, `TabsListProps`, `TabsTriggerProps`

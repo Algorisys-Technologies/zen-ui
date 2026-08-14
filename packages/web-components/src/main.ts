@@ -38,6 +38,7 @@ import MessagePopoverDemo from "./components/MessagePopoverDemo";
 import StackDemo from "./components/StackDemo";
 import StatCardDemo from "./components/StatCardDemo";
 import CardDemo from "./components/CardDemo";
+import PaperDemo from "./components/PaperDemo";
 import EmptyStateDemo from "./components/EmptyStateDemo";
 import AlertDemo from "./components/AlertDemo";
 import FABDemo from "./components/FABDemo";
@@ -152,6 +153,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/stack": StackDemo,
   "/stat-card": StatCardDemo,
   "/card": CardDemo,
+  "/paper": PaperDemo,
   "/empty-state": EmptyStateDemo,
   "/alert": AlertDemo,
   "/fab": FABDemo,

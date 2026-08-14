@@ -124,6 +124,7 @@ import NewEmptyStateDemo from "./components/NewEmptyStateDemo";
 import NewTabsDemo from "./components/NewTabsDemo";
 import NewAccordionDemo from "./components/NewAccordionDemo";
 import NewCollapsibleDemo from "./components/NewCollapsibleDemo";
+import NewPaperDemo from "./components/NewPaperDemo";
 import NewLabelDemo from "./components/NewLabelDemo";
 import NewNativeSelectDemo from "./components/NewNativeSelectDemo";
 import NewCardDemo from "./components/NewCardDemo";
@@ -383,6 +384,7 @@ const App: React.FC = () => {
             <Route path="/tabs" element={<NewTabsDemo />} />
             <Route path="/accordion" element={<NewAccordionDemo />} />
             <Route path="/collapsible" element={<NewCollapsibleDemo />} />
+            <Route path="/paper" element={<NewPaperDemo />} />
             <Route path="/label" element={<NewLabelDemo />} />
             <Route path="/native-select" element={<NewNativeSelectDemo />} />
             <Route path="/card" element={<NewCardDemo />} />
