@@ -17,12 +17,14 @@ SKILL.md.
 - `icon?: React.ReactNode`
 - `badge?: React.ReactNode` — Trailing badge slot (top-right) — typically a Badge with "Most popular" / "Best value" / "5+ users" style copy.
 - `children?: React.ReactNode`
-- from `.bun`: `checked?`, `required?`, `value`, `asChild?`
+- from `@radix-ui/react-radio-group`: `checked?`, `required?`, `value`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (286 inherited).
 
 ### SelectableCardGroup
 
-- from `.bun`: `disabled?`, `form?`, `name?`, `required?`, `value?`, `defaultValue?`, `dir?`, `onValueChange?`, `asChild?`, `orientation?`, `loop?`
+- from `@radix-ui/react-radio-group`: `disabled?`, `form?`, `name?`, `required?`, `value?`, `defaultValue?`, `dir?`, `onValueChange?`, `orientation?`, `loop?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (278 inherited).
 
 ### Types

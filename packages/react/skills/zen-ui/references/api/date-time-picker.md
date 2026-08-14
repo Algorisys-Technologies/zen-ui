@@ -17,7 +17,7 @@ SKILL.md.
 - `defaultValue?: Date | undefined`
 - `onValueChange?: ((date: Date | undefined) => void) | undefined`
 - `placeholder?: string | undefined`
-- `disabled?: import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/react-day-picker@10.0.1+e14d3f224186685e/node_modules/react-day-picker/dist/esm/index").Matcher | import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/react-day-picker@10.0.1+e14d3f224186685e/node_modules/react-day-picker/dist/esm/index").Matcher[] | undefined`
+- `disabled?: import("react-day-picker/dist/esm/index").Matcher | import("react-day-picker/dist/esm/index").Matcher[] | undefined`
 - `className?: string | undefined`
 - `format?: Format | undefined` — "24h" (default) or "12h" — controls only the displayed time format.
 - `showSeconds?: boolean | undefined` — Show seconds segment in the time picker.

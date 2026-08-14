@@ -43,7 +43,7 @@ SKILL.md.
 
 ### Other exports
 
-- `bannerVariants(…)`
+- `bannerVariants(props?: ({ color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined; sticky?: boolean | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

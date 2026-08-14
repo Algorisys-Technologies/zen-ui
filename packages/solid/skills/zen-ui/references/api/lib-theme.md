@@ -20,7 +20,7 @@ SKILL.md.
 
 ### Other exports
 
-- `useTheme(): { theme: ThemeName; setTheme: (next: ThemeName) => void; themes: import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/packages/core/src/theme").ThemeDescriptor[]; }`
+- `useTheme(): { theme: ThemeName; setTheme: (next: ThemeName) => void; themes: import("packages/core/src/theme").ThemeDescriptor[]; }`
 - `applyTheme(name: ThemeName): void`
 - `getInitialTheme(): ThemeName`
 - `THEMES: ThemeDescriptor[]`

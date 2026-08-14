@@ -22,7 +22,7 @@ SKILL.md.
 
 ### Other exports
 
-- `linkVariants(…)`
+- `linkVariants(props?: ({ size?: "sm" | "md" | "lg" | null | undefined; inline?: boolean | null | undefined; disabled?: boolean | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

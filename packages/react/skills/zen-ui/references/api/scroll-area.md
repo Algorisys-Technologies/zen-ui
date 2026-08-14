@@ -13,10 +13,12 @@ SKILL.md.
 
 ### ScrollArea
 
-- from `.bun`: `type?`, `dir?`, `asChild?`, `scrollHideDelay?`
+- from `@radix-ui/react-scroll-area`: `type?`, `dir?`, `scrollHideDelay?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### ScrollBar
 
-- from `.bun`: `asChild?`, `forceMount?`, `orientation?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-scroll-area`: `forceMount?`, `orientation?`
 - …plus the underlying element's standard props (280 inherited).

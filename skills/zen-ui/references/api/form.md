@@ -13,11 +13,11 @@ SKILL.md.
 
 ### Form
 
-- from `.bun`: `children`, `watch`, `getValues`, `getFieldState`, `setError`, `clearErrors`, `setValue`, `setValues`, `trigger`, `formState`, `resetField`, `reset`, `resetDefaultValues`, `handleSubmit`, `unregister`, `control`, `register`, `setFocus`, `subscribe`
+- from `react-hook-form`: `children`, `watch`, `getValues`, `getFieldState`, `setError`, `clearErrors`, `setValue`, `setValues`, `trigger`, `formState`, `resetField`, `reset`, `resetDefaultValues`, `handleSubmit`, `unregister`, `control`, `register`, `setFocus`, `subscribe`
 
 ### FormField
 
-- from `.bun`: `render`, `name`, `rules?`, `shouldUnregister?`, `defaultValue?`, `control?`, `disabled?`, `exact?`
+- from `react-hook-form`: `render`, `name`, `rules?`, `shouldUnregister?`, `defaultValue?`, `control?`, `disabled?`, `exact?`
 
 ### FormItem
 
@@ -41,4 +41,4 @@ SKILL.md.
 
 ### Other exports
 
-- `useFormField(…)`
+- `useFormField(): { invalid: boolean; isDirty: boolean; isTouched: boolean; isValidating: boolean; error?: import("react-hook-form/dist/index").FieldError; ... 4 more ...; formMessageId: string; }`

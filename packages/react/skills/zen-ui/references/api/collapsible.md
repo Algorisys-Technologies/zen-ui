@@ -13,15 +13,17 @@ SKILL.md.
 
 ### Collapsible
 
-- from `.bun`: `defaultOpen?`, `open?`, `disabled?`, `onOpenChange?`, `asChild?`
+- from `@radix-ui/react-collapsible`: `defaultOpen?`, `open?`, `disabled?`, `onOpenChange?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### CollapsibleTrigger
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### CollapsibleContent
 
-- from `.bun`: `asChild?`, `forceMount?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-collapsible`: `forceMount?`
 - …plus the underlying element's standard props (280 inherited).

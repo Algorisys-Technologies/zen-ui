@@ -13,40 +13,40 @@ SKILL.md.
 
 ### Command
 
-- from `.bun`: `value?`, `children?`, `onValueChange?`, `label?`, `filter?`, `asChild?`, `loop?`, `shouldFilter?`, `disablePointerSelection?`, `vimBindings?`
+- from `cmdk`: `value?`, `children?`, `onValueChange?`, `label?`, `filter?`, `asChild?`, `loop?`, `shouldFilter?`, `disablePointerSelection?`, `vimBindings?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### CommandInput
 
-- from `.bun`: `value?`, `onValueChange?`, `asChild?`
+- from `cmdk`: `value?`, `onValueChange?`, `asChild?`
 - …plus the underlying element's standard props (307 inherited).
 
 ### CommandList
 
-- from `.bun`: `children?`, `label?`, `asChild?`
+- from `cmdk`: `children?`, `label?`, `asChild?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### CommandEmpty
 
-- from `.bun`: `children?`, `asChild?`
+- from `cmdk`: `children?`, `asChild?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### CommandLoading
 
-- from `.bun`: `children?`, `label?`, `asChild?`, `progress?`
+- from `cmdk`: `children?`, `label?`, `asChild?`, `progress?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### CommandGroup
 
-- from `.bun`: `value?`, `children?`, `asChild?`, `heading?`, `forceMount?`
+- from `cmdk`: `value?`, `children?`, `asChild?`, `heading?`, `forceMount?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### CommandItem
 
-- from `.bun`: `disabled?`, `value?`, `children?`, `onSelect?`, `asChild?`, `forceMount?`, `keywords?`
+- from `cmdk`: `disabled?`, `value?`, `children?`, `onSelect?`, `asChild?`, `forceMount?`, `keywords?`
 - …plus the underlying element's standard props (278 inherited).
 
 ### CommandSeparator
 
-- from `.bun`: `asChild?`, `alwaysRender?`
+- from `cmdk`: `asChild?`, `alwaysRender?`
 - …plus the underlying element's standard props (280 inherited).

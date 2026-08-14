@@ -13,13 +13,15 @@ SKILL.md.
 
 ### RadioGroup
 
-- from `.bun`: `disabled?`, `form?`, `name?`, `required?`, `value?`, `defaultValue?`, `dir?`, `onValueChange?`, `asChild?`, `orientation?`, `loop?`
+- from `@radix-ui/react-radio-group`: `disabled?`, `form?`, `name?`, `required?`, `value?`, `defaultValue?`, `dir?`, `onValueChange?`, `orientation?`, `loop?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (278 inherited).
 
 ### RadioGroupItem
 
 - `size?: RadioSize | undefined`
-- from `.bun`: `checked?`, `required?`, `value`, `asChild?`
+- from `@radix-ui/react-radio-group`: `checked?`, `required?`, `value`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (288 inherited).
 
 ### Other exports

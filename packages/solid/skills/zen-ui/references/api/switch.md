@@ -14,7 +14,8 @@ SKILL.md.
 ### Switch
 
 - `size?: SwitchSize | undefined`
-- from `.bun`: `checked?`, `required?`, `defaultChecked?`, `asChild?`, `onCheckedChange?`
+- from `@radix-ui/react-switch`: `checked?`, `required?`, `defaultChecked?`, `onCheckedChange?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (289 inherited).
 
 ### Other exports
