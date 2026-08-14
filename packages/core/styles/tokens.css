@@ -577,13 +577,35 @@
 
   /* Warm-tinted and directional. The negative spread from `lg` up is the *
    * point: it pulls the blur back under the sheet so the shadow reads as *
-   * contact with the desk rather than a glow around a floating box.      */
-  --zen-shadow-xs:  0 1px 2px 0 rgba(64, 54, 38, 0.06);
-  --zen-shadow-sm:  0 2px 4px 0 rgba(64, 54, 38, 0.07);
-  --zen-shadow-md:  0 3px 6px 0 rgba(64, 54, 38, 0.08);
-  --zen-shadow-lg:  0 6px 14px -2px rgba(64, 54, 38, 0.11);
-  --zen-shadow-xl:  0 12px 28px -4px rgba(64, 54, 38, 0.13);
-  --zen-shadow-2xl: 0 24px 48px -8px rgba(64, 54, 38, 0.18);
+   * contact with the desk rather than a glow around a floating box.      *
+   *                                                                      *
+   * The ALPHAS are spread far wider than the shared scale, because the   *
+   * steps have to be tellable apart and originally were not. Measured as *
+   * the peak pixel shift each shadow makes against this theme's own      *
+   * ground (#F0EBE0), the scale ran 11 / 13 / 15 / 20 / 24 / 33 of 255 — *
+   * six steps inside a range of 22, so `raised` and `lifted` sat 7 apart *
+   * and read as the same surface. It now runs 6 / 12 / 19 / 30 / 44 / 61,*
+   * and raised-to-lifted is 18.                                          *
+   *                                                                      *
+   * Note `xs` gets FAINTER (11 -> 6). That is the point of spreading a   *
+   * scale rather than darkening it: the bottom has to drop for the top   *
+   * to have somewhere to go, or every step just moves up together.       *
+   *                                                                      *
+   * Geometry is untouched. A heavier shadow here is a sheet lifted       *
+   * higher off the desk, which is what the alpha is for; the y-offset    *
+   * and negative spread are what keep it from becoming a glow, and those *
+   * are the same values as before.                                       *
+   *                                                                      *
+   * This is theme-local on purpose. The SHARED scale has the same        *
+   * complaint — default is 23 vs 27, only 4 apart — but widening that    *
+   * restyles every elevated component in every theme, where this reaches *
+   * only what opts into `data-theme="paper"`.                            */
+  --zen-shadow-xs:  0 1px 2px 0 rgba(64, 54, 38, 0.03);
+  --zen-shadow-sm:  0 2px 4px 0 rgba(64, 54, 38, 0.065);
+  --zen-shadow-md:  0 3px 6px 0 rgba(64, 54, 38, 0.10);
+  --zen-shadow-lg:  0 6px 14px -2px rgba(64, 54, 38, 0.16);
+  --zen-shadow-xl:  0 12px 28px -4px rgba(64, 54, 38, 0.235);
+  --zen-shadow-2xl: 0 24px 48px -8px rgba(64, 54, 38, 0.33);
 
   /* ---- Type — see note 3, and the placement note above --------------- *
    * A humanist face, resolved entirely from what is already installed:   *
