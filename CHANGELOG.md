@@ -13,6 +13,83 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2026-08-14
+
+Paper, a document surface — and two fixes that alter what existing apps render.
+
+### Breaking
+
+- **Dark mode now has shadows.** The `[data-theme="dark"]` block defined zero
+  shadow tokens, so it inherited the light scale — a near-black TINT,
+  `rgba(19, 26, 37, …)` at alphas of 0.08–0.20 — which cannot darken an already
+  dark ground. Measured as peak pixel shift against the surface behind:
+  `raised`/`lifted` were **2/2** of 255 in dark against **23/27** in light; they
+  are now **22/27**. Elevation was not subtle in dark mode, it was absent, and
+  every step looked identical. Affects Card, Dialog, Popover, Sheet and
+  DropdownMenu. Black rather than a tint (a dark shadow reads as absence of
+  light) at much higher alpha; offsets, blurs and spreads are deliberately
+  unchanged so a component's elevation keeps its shape across themes. Consumers
+  who want the flat look back override `--zen-shadow-*` under `[data-theme="dark"]`.
+- **Arbitrary shadow overrides now win.** `cn("zen-shadow-zen-sm",
+  "zen-shadow-[…]")` emitted BOTH classes, so the winner fell to stylesheet
+  order — where Uno emits the named utility later, meaning a component's shadow
+  silently beat the caller's. Named-against-named already deduped, which is why
+  it survived; only named-against-ARBITRARY failed, because `zen-sm` is not a
+  value tailwind-merge knows, so it read `shadow-zen-sm` as a shadow COLOUR and
+  `shadow-[…]` as a shadow SIZE — two groups that never conflict. `cn` now
+  teaches tailwind-merge the shadow scale exactly as it already did for radius,
+  keyed off `zenUnoTheme` so a shadow added to the generator cannot go missing.
+  Four regression cases in `check:cn`, including the arbitrary pair both ways.
+
+### Added
+
+- **`Paper`** — a document surface, in all four bindings. `measure`
+  (`prose` 65ch / `wide` 80ch / `full`), `elevation`, `padding`, and the compound
+  Header/Title/Description/Content/Footer shape mirroring Card's. The measure is
+  in `ch` because the target is a line length, not a box; verified in a browser
+  that the prose sheet renders 761px where a 65-character string measures 761px.
+  Document typography is set by the component rather than inherited, so it reads
+  the same under every theme.
+- **`stack={1 | 2}`** on Paper — one or two sheet edges behind the top sheet,
+  composing with `elevation`. Layered box-shadows: two techniques were built and
+  rejected by measurement first. Pseudo-elements at `z-index: -1` had every
+  computed property correct and rendered nothing, because a negative z-index goes
+  behind the nearest stacking-context ROOT rather than behind its parent; real
+  child divs paint ABOVE the sheet and draw borders across its face. The
+  (stack × elevation) combinations are enumerated literally because UnoCSS scans
+  source text, so a class assembled from template pieces generates no CSS.
+- **`DialogContent variant="paper"`** — top-anchored document mode, in all four
+  bindings. Needs a real scroll CONTAINER rather than `overflow-y-auto` on the
+  overlay: Radix and Kobalte both render Overlay and Content as SIBLINGS, so the
+  panel is not inside the overlay. Measured before the wrapper existed — the
+  panel had no scrollable ancestor and a document taller than the viewport hung
+  off the bottom unreachable. Default mode is byte-identical: fixed, `max-w-lg`,
+  85vh, its own overflow, centred, no wrapper.
+- **`paper` theme** — a fourth `data-theme`. Its block sits AFTER the bare
+  `:root` type block rather than beside the other palettes, and that placement is
+  load-bearing: both selectors are (0,1,0), so from the usual position every
+  line-height and font override is swallowed by source order and paper renders as
+  a recoloured default. Measured across the flip: `zen-text-base` 24px → 27.2px.
+  Contrast AA throughout (body 12.7:1, muted-fg 5.65:1, primary 7.7:1).
+- React exports `DialogContentProps`, which `check:parity` caught as defined but
+  unexported — the new `variant` prop lives on it.
+
+### Fixed
+
+- The paper theme's ground-vs-sheet note claimed muted "is already the darker of
+  the two in every theme". True for `default` and `paper`; wrong for `dark`,
+  which inverts the pair (`background` #0F172A against `muted` #1F2937), so the
+  ground is lighter than the sheet and a surface reads as a hole punched in the
+  desk. Recorded rather than fixed — correcting it restyles dark's two most used
+  surface tokens.
+
+### Known
+
+- `raised` and `lifted` are 0.10 vs 0.12 alpha, 4/255 apart in the default theme
+  and 7/255 in paper, so the two steps are hard to distinguish at small sizes.
+  Unchanged here: pulling the scale apart restyles every elevated component in
+  every theme.
+
 ## [10.8.1] - 2026-08-14
 
 ### Fixed

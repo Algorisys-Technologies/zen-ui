@@ -33,6 +33,38 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "11.0.0",
+    date: "2026-08-14",
+    kind: "breaking",
+    title: "Dark mode gets the shadows it never had",
+    detail:
+      "The dark theme defined no shadow tokens, so it inherited the light theme's near-black tint — and you cannot darken an already-dark background with a dark colour. Measured as peak pixel shift against the surface behind, raised and lifted were 2 and 2 of 255 in dark, against 23 and 27 in light; they are now 22 and 27. Elevation in dark mode was not subtle, it was absent, and every step of the scale looked identical. Cards, Dialogs, Popovers, Sheets and DropdownMenus all change. Override --zen-shadow-* under [data-theme=\"dark\"] to get the flat look back.",
+  },
+  {
+    version: "11.0.0",
+    date: "2026-08-14",
+    kind: "breaking",
+    title: "Your arbitrary shadow overrides now actually apply",
+    detail:
+      "`<Card className=\"zen-shadow-[...]\">` used to do nothing: cn() emitted both your class and the component's own, and the winner fell to stylesheet order, where the component's always came later. Overriding one NAMED shadow with another already worked, which is why it survived — only named-against-arbitrary failed. If a component looks different after upgrading, check whether you had a shadow override that was previously being ignored.",
+  },
+  {
+    version: "11.0.0",
+    date: "2026-08-14",
+    kind: "new",
+    title: "Paper — a document surface",
+    detail:
+      "A sheet you read, rather than a box you put things in. Card stays the generic surface; reach for Paper when the content is prose. It brings the two things Card cannot express: a reading measure (65ch / 80ch / full, in ch because the target is a line length rather than a box) and document typography set by the component rather than inherited. `stack={1|2}` draws sheet edges behind it for a pile, and DialogContent gains variant=\"paper\" — top-anchored, because centring a long document and scrolling it inside 85vh puts the first line somewhere different on every screen.",
+  },
+  {
+    version: "11.0.0",
+    date: "2026-08-14",
+    kind: "new",
+    title: "A paper theme",
+    detail:
+      "A fourth data-theme alongside default, zen-theme and dark: warm ink-on-paper surfaces, cut corners, a contact shadow rather than a glow, and looser body leading. It pairs with Paper but neither needs the other — the theme reaches colour, radius, shadow and type, and cannot reach width or spacing, which is exactly the gap the component fills.",
+  },
+  {
     version: "10.8.1",
     date: "2026-08-14",
     kind: "fixed",
