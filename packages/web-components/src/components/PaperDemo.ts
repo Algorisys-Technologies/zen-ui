@@ -108,7 +108,8 @@ export default function PaperDemo(): HTMLElement {
       },
       {
         title: "3. Elevation",
-        codeTitle: "`raised` and `lifted` have no border — the shadow is the edge",
+        codeTitle:
+          "`raised` and `lifted` have no border — the shadow is the edge",
         codeDescription:
           "A hairline plus a shadow reads as a bordered card, which is the look this is trying not to be. `flat` is the opposite trade: a border and no shadow, for when sheets sit adjacent and a shadow between them would read as a gap.",
         code: `<zen-paper elevation="flat">…</zen-paper>
@@ -118,7 +119,10 @@ export default function PaperDemo(): HTMLElement {
           const d = desk("zen-grid zen-gap-6 sm:zen-grid-cols-3");
           for (const e of ["flat", "raised", "lifted"]) {
             d.append(
-              paper({ elevation: e, measure: "full", padding: "sm" }, part("zen-paper-content", e)),
+              paper(
+                { elevation: e, measure: "full", padding: "sm" },
+                part("zen-paper-content", e),
+              ),
             );
           }
           return d;
@@ -137,7 +141,10 @@ export default function PaperDemo(): HTMLElement {
             d.append(
               paper(
                 { padding: pad, measure: "full" },
-                part("zen-paper-content", pad === "md" ? "md — the default" : pad),
+                part(
+                  "zen-paper-content",
+                  pad === "md" ? "md — the default" : pad,
+                ),
               ),
             );
           }
@@ -145,7 +152,41 @@ export default function PaperDemo(): HTMLElement {
         },
       },
       {
-        title: "5. A dialog that is a document",
+        title: "5. A pile, not a sheet",
+        codeTitle: "`stack` draws 1 or 2 sheet edges behind this one",
+        codeDescription:
+          "The affordance a column of separate Papers cannot express: this is a thread, and there are more. Decorative by construction — the edges are box-shadows, so nothing enters the DOM or the accessibility tree and a reader is never told the pile holds three documents when you rendered one. It composes with elevation: both live in one box-shadow list, because elevation already owns that property and a second utility would replace it rather than merge.",
+        code: `<zen-paper stack="1">…</zen-paper>
+<zen-paper stack="2">…</zen-paper>
+
+<!-- composes with elevation -->
+<zen-paper stack="2" elevation="lifted">…</zen-paper>`,
+        render: () => {
+          const d = desk("zen-grid zen-gap-8 sm:zen-grid-cols-3");
+          d.append(
+            paper(
+              { measure: "full", padding: "sm" },
+              part("zen-paper-content", "no stack"),
+            ),
+            paper(
+              { measure: "full", padding: "sm", stack: "1" },
+              part("zen-paper-content", "stack=1"),
+            ),
+            paper(
+              {
+                measure: "full",
+                padding: "sm",
+                stack: "2",
+                elevation: "lifted",
+              },
+              part("zen-paper-content", "stack=2 + lifted"),
+            ),
+          );
+          return d;
+        },
+      },
+      {
+        title: "6. A dialog that is a document",
         codeTitle: '<zen-dialog variant="paper">',
         codeDescription:
           "Not a restyle: a document is top-anchored. Centring a long sheet vertically and scrolling it inside 85vh puts the first line somewhere different on every screen. Paper mode drops the vertical centring, scrolls the viewport rather than the panel, and widens the cap. Pass nothing and Dialog is byte-identical to before.",
@@ -169,9 +210,16 @@ export default function PaperDemo(): HTMLElement {
 
           const plainDialog = document.createElement("zen-dialog") as ZenDialog;
           plainDialog.setAttribute("title", "Settings");
-          plainDialog.setAttribute("description", "Update your profile information.");
+          plainDialog.setAttribute(
+            "description",
+            "Update your profile information.",
+          );
           plainDialog.append(
-            el("p", "zen-text-sm", "Centred, capped at max-w-lg, scrolls inside itself."),
+            el(
+              "p",
+              "zen-text-sm",
+              "Centred, capped at max-w-lg, scrolls inside itself.",
+            ),
           );
 
           const open = (label: string, dlg: ZenDialog, variant?: string) => {
@@ -192,7 +240,7 @@ export default function PaperDemo(): HTMLElement {
         },
       },
       {
-        title: "6. Pairs with the paper theme, but does not need it",
+        title: "7. Pairs with the paper theme, but does not need it",
         codeTitle: 'data-theme="paper" on any ancestor',
         codeDescription:
           "Paper sets its own leading and measure, so it reads the same under every theme. The paper THEME supplies what a component cannot reach globally: warm ground and sheet, cut corners, a contact shadow, and looser body leading. The two compound — that is the intended pairing, not a requirement.",
@@ -200,7 +248,10 @@ export default function PaperDemo(): HTMLElement {
   <zen-paper>…</zen-paper>
 </div>`,
         render: () => {
-          const grid = el("div", "zen-w-full zen-grid zen-gap-6 sm:zen-grid-cols-2");
+          const grid = el(
+            "div",
+            "zen-w-full zen-grid zen-gap-6 sm:zen-grid-cols-2",
+          );
           for (const theme of [null, "paper"]) {
             const cell = el("div", "zen-bg-zen-muted zen-p-6");
             if (theme) cell.setAttribute("data-theme", theme);
@@ -209,7 +260,10 @@ export default function PaperDemo(): HTMLElement {
                 { measure: "full", padding: "sm" },
                 part(
                   "zen-paper-header",
-                  part("zen-paper-title", theme ? "Paper theme" : "Default theme"),
+                  part(
+                    "zen-paper-title",
+                    theme ? "Paper theme" : "Default theme",
+                  ),
                 ),
                 part("zen-paper-content", el("p", "zen-m-0", BODY)),
               ),

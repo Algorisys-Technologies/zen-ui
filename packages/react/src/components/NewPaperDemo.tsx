@@ -147,7 +147,32 @@ const NewPaperDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>5. A dialog that is a document</h2>
+      <h2>5. A pile, not a sheet</h2>
+      <CodeExample
+        title="`stack` draws 1 or 2 sheet edges behind this one"
+        description="The affordance a column of separate Papers cannot express: this is a thread, and there are more. Decorative by construction — the edges are box-shadows, so nothing enters the DOM or the accessibility tree and a reader is never told the pile holds three documents when you rendered one. It composes with elevation: both live in one box-shadow list, because elevation already owns that property and a second utility would replace it rather than merge."
+        code={`<Paper stack={1}>…</Paper>
+<Paper stack={2}>…</Paper>
+
+{/* composes with elevation */}
+<Paper stack={2} elevation="lifted">…</Paper>`}
+      >
+        <div className="zen-w-full zen-grid zen-gap-8 zen-bg-zen-muted zen-p-8 sm:zen-grid-cols-3">
+          <Paper measure="full" padding="sm">
+            <PaperContent>no stack</PaperContent>
+          </Paper>
+          <Paper measure="full" padding="sm" stack={1}>
+            <PaperContent>stack={"{1}"}</PaperContent>
+          </Paper>
+          <Paper measure="full" padding="sm" stack={2} elevation="lifted">
+            <PaperContent>stack={"{2}"} + lifted</PaperContent>
+          </Paper>
+        </div>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>6. A dialog that is a document</h2>
       <CodeExample
         title='DialogContent variant="paper"'
         description="Not a restyle: a document is top-anchored. Centring a long sheet vertically and scrolling it inside 85vh puts the first line somewhere different on every screen. Paper mode drops the vertical centring, scrolls the viewport rather than the panel, and widens the cap. Pass nothing and Dialog is byte-identical to before."
@@ -213,7 +238,7 @@ const NewPaperDemo = () => (
     </section>
 
     <section className="demo-section">
-      <h2>6. Pairs with the paper theme, but does not need it</h2>
+      <h2>7. Pairs with the paper theme, but does not need it</h2>
       <CodeExample
         title='data-theme="paper" on any ancestor'
         description="Paper sets its own leading and measure, so it reads the same under every theme. The paper THEME supplies what a component cannot reach globally: warm ground and sheet, cut corners, a contact shadow, and looser body leading. The two compound — that is the intended pairing, not a requirement."

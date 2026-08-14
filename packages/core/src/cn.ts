@@ -42,8 +42,30 @@ const basePattern = new RegExp(`^(-?)${ZEN_PREFIX}(.*)$`);
  */
 const zenRadii = Object.keys(zenUnoTheme.borderRadius);
 
+/**
+ * The shadow scale has the same disease, one step subtler, and it went
+ * unnoticed because the obvious test passes: `cn("zen-shadow-zen-sm",
+ * "zen-shadow-zen-lg")` correctly returns one class. What fails is named
+ * against ARBITRARY — `cn("zen-shadow-zen-sm", "zen-shadow-[6px_6px_0_0_#ccc]")`
+ * emitted BOTH.
+ *
+ * The reason is that `zen-sm` is not a value tailwind-merge knows, so it reads
+ * `shadow-zen-sm` as a shadow COLOUR and `shadow-[…]` as a shadow SIZE. Two
+ * different groups never conflict, so both survive and the winner falls to
+ * stylesheet order — where Uno happens to emit the named utility later, so the
+ * component's shadow silently beat the caller's override.
+ *
+ * Found by Paper's `stack`, which layers sheet edges into one arbitrary
+ * box-shadow and needs it to replace `elevation`'s. Anything a consumer writes
+ * as `class="zen-shadow-[…]"` over a component that sets a shadow hits it too.
+ *
+ * Keys come from `zenUnoTheme`, like the radii, so a shadow added to the
+ * generator cannot go missing here.
+ */
+const zenShadows = Object.keys(zenUnoTheme.boxShadow);
+
 const twMerge = extendTailwindMerge({
-  extend: { theme: { radius: zenRadii } },
+  extend: { theme: { radius: zenRadii, shadow: zenShadows } },
   experimentalParseClassName({ className, parseClassName }) {
     const parsed = parseClassName(className);
     const m = basePattern.exec(parsed.baseClassName);

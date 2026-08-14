@@ -12,7 +12,10 @@ import { defineZenElement } from "../lib/define";
 defineZenElement<PaperProps>({
   tag: "zen-paper",
   factory: Paper,
-  attrs: { measure: "string", elevation: "string", padding: "string" },
+  // `stack` is numeric (1 or 2), so it coerces rather than staying a string —
+  // `stack="2"` in markup has to reach the factory as the number 2 or the
+  // shadow lookup misses and the pile silently does not draw.
+  attrs: { measure: "string", elevation: "string", padding: "string", stack: "number" },
 });
 
 // Parts carry no props of their own — they only slot children.
