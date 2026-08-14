@@ -205,7 +205,34 @@ for (const id of wanted) {
       const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
       const errors = [];
       page.on("pageerror", (e) => errors.push(String(e)));
-      page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+      /*
+       * The demos load Plus Jakarta Sans from fonts.gstatic.com, and that
+       * request fails often enough to have made this check fail roughly three
+       * runs in four — on an assertion named "no runtime errors", which is the
+       * worst possible flake: the honest response is to re-run until green, and
+       * a gate that gets re-run until green has stopped being a gate.
+       *
+       * So a THIRD-PARTY resource failure is not a runtime error of ours. The
+       * discriminator is the origin, taken from the message's location rather
+       * than its text — the text is the generic "Failed to load resource: … 404
+       * ()" for every failed request, so matching on that would also swallow a
+       * same-origin asset 404, which is exactly the failure CLAUDE.md records as
+       * rendering a blank page inside a working shell with no other symptom.
+       * Anything served from the preview origin still fails the check, as does
+       * any console error with no location at all.
+       *
+       * Measured, not assumed: the first version of this filter excused
+       * /favicon.ico, on the reasoning that no demo ships one. The flake
+       * survived it. A probe printing each message's location named the real
+       * culprit on the first hit.
+       */
+      const sameOrigin = new URL(origin).origin;
+      page.on("console", (m) => {
+        if (m.type() !== "error") return;
+        const url = m.location()?.url ?? "";
+        if (url && !url.startsWith(sameOrigin)) return;
+        errors.push(m.text());
+      });
       await page.goto(`${origin}${route}`, { waitUntil: "networkidle" });
       if (direction === "rtl") {
         await page.evaluate(() => {
