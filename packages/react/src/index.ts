@@ -513,6 +513,7 @@ export {
   DialogTitle,
   DialogDescription,
 } from "./components/dialog/dialog";
+export type { DialogContentProps } from "./components/dialog/dialog";
 
 // UI Components - AlertDialog (destructive-confirm variant)
 export {
@@ -615,6 +616,16 @@ export {
   SelectableCardGroup,
 } from "./components/card/card.selectable";
 export type { SelectableCardProps } from "./components/card/card.selectable";
+
+export {
+  Paper,
+  PaperHeader,
+  PaperTitle,
+  PaperDescription,
+  PaperContent,
+  PaperFooter,
+} from "./components/paper/paper";
+export type { PaperProps, PaperTitleProps } from "./components/paper/paper";
 
 // UI Components - Accordion (Radix-backed collapsible-section list)
 export {

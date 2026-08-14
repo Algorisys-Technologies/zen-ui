@@ -45,24 +45,53 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+export interface DialogContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  /**
+   * `paper` turns the panel into a document sheet — see <Paper>. Default
+   * `default`, so existing dialogs are byte-identical.
+   *
+   * It is not a restyle, and that is why it is a variant rather than a class
+   * you could pass yourself. A document is TOP-ANCHORED: centring a long sheet
+   * vertically and then scrolling it inside 85vh puts the first line somewhere
+   * different on every screen, and the reader's eye has nowhere to rest. Paper
+   * mode drops the vertical centring, scrolls the VIEWPORT rather than the
+   * panel, and widens the cap so the measure has room to do its work.
+   */
+  variant?: "default" | "paper";
+}
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
+  DialogContentProps
+>(({ className, children, variant = "default", ...props }, ref) => {
+  const paper = variant === "paper";
+  const content = (
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "zen-fixed zen-left-1/2 zen-top-1/2 zen-z-50 -zen-translate-x-1/2 -zen-translate-y-1/2",
-        "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
-        // A surface that paints its own background MUST paint its own
-        // foreground. This is portalled to <body>, so "inherit" means the
-        // consumer's body colour, not the app's — with a dark theme the panel
-        // went dark and the text stayed black, at about 1.2:1. The token was
-        // right the whole time; nothing read it.
-        "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
-        "focus:zen-outline-none",
+        "zen-z-50 focus:zen-outline-none",
+        paper
+          ? [
+              /* Relative inside the scroll container, so it flows with the
+                 scroll rather than being pinned to the viewport. `mx-auto`
+                 centres it horizontally and `my-` is the sheet's margin on the
+                 desk — which is also what makes the bottom edge visible when
+                 you reach the end, instead of the document being clipped
+                 against the viewport. */
+              "zen-relative zen-mx-auto zen-my-12 zen-w-full zen-max-w-3xl",
+              "zen-rounded-zen-sm zen-bg-zen-background zen-text-zen-foreground zen-p-12 zen-shadow-zen-xl",
+            ]
+          : [
+              "zen-fixed zen-left-1/2 zen-top-1/2 -zen-translate-x-1/2 -zen-translate-y-1/2",
+              "zen-w-full zen-max-w-lg zen-max-h-[85vh] zen-overflow-y-auto",
+              // A surface that paints its own background MUST paint its own
+              // foreground. This is portalled to <body>, so "inherit" means the
+              // consumer's body colour, not the app's — with a dark theme the
+              // panel went dark and the text stayed black, at about 1.2:1. The
+              // token was right the whole time; nothing read it.
+              "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-p-6 zen-shadow-zen-lg",
+            ],
         className,
       )}
       {...props}
@@ -80,8 +109,29 @@ const DialogContent = React.forwardRef<
         <XIcon />
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
-  </DialogPortal>
-));
+  );
+
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      {/*
+       * Paper mode needs a scroll CONTAINER, and it has to be a real element
+       * rather than `overflow-y-auto` on the overlay: Radix, like Kobalte,
+       * renders Overlay and Content as SIBLINGS, so the panel is not inside the
+       * overlay and scrolling it does nothing. Measured in the Solid binding
+       * before this wrapper existed — the panel had no scrollable ancestor at
+       * all, so a document taller than the viewport hung off the bottom,
+       * unreachable. The default branch keeps its own `max-h-[85vh]
+       * overflow-y-auto` and needs no wrapper.
+       */}
+      {paper ? (
+        <div className="zen-fixed zen-inset-0 zen-z-50 zen-overflow-y-auto">{content}</div>
+      ) : (
+        content
+      )}
+    </DialogPortal>
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({

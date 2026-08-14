@@ -12,6 +12,10 @@ defineZenElement<DialogProps>({
   attrs: {
     title: "string",
     description: "string",
+    // `variant="paper"` turns the panel into a document sheet — top-anchored,
+    // wider, and scrolling the viewport rather than the panel. A plain string
+    // attribute because it is authored declaratively and defaults to "default".
+    variant: "string",
   },
   props: ["footer", "dismissable", "showCloseButton"],
   events: { onOpenChange: "zen-open-change" },

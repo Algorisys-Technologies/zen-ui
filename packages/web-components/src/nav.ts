@@ -72,6 +72,7 @@ export const NAV: NavGroup[] = [
       { to: "/stack", label: "Stack", description: "Minimal flexbox layout primitive — a thin div laying children out in a row or column with configurable alignment, wrapping, gap and padding.", source: "packages/web-components/src/components/StackDemo.ts" },
       { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/web-components/src/components/StatCardDemo.ts" },
       { to: "/card", label: "Card", description: "Generic surface primitive with a compound Header / Content / Footer API and three variants (elevated · outlined · ghost)", source: "packages/web-components/src/components/CardDemo.ts" },
+      { to: "/paper", label: "Paper", description: "Document surface — reading measure, document typography, and a paper Dialog variant", source: "packages/web-components/src/components/PaperDemo.ts" },
       { to: "/empty-state", label: "EmptyState", description: "First-run / no-data / no-results surface; icon + title + description + actions", source: "packages/web-components/src/components/EmptyStateDemo.ts" },
       { to: "/alert", label: "Alert", description: "Inline semantic callout; compound Icon / Title / Description / Actions API", source: "packages/web-components/src/components/AlertDemo.ts" },
       { to: "/fab", label: "FAB", description: "Fixed-position Button wrapper for a floating action button, with speed-dial composition", source: "packages/web-components/src/components/FABDemo.ts" },

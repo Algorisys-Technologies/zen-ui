@@ -125,6 +125,7 @@ export const NAV: NavGroup[] = [
       { to: "/native-select", label: "NativeSelect", description: "The platform <select>, styled to match Input — submits with no hidden input, opens as the OS picker on a phone", source: "packages/react/src/components/NewNativeSelectDemo.tsx" },
       { to: "/label", label: "Label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/react/src/components/NewLabelDemo.tsx" },
       { to: "/card", label: "Card", description: "Surface primitive + SelectableCard variant for goal pickers / plan selectors", source: "packages/react/src/components/NewCardDemo.tsx" },
+      { to: "/paper", label: "Paper", description: "Document surface — reading measure, document typography, and a paper Dialog variant", source: "packages/react/src/components/NewPaperDemo.tsx" },
       { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/react/src/components/NewStatCardDemo.tsx" },
       { to: "/sheet", label: "Sheet / Drawer", description: "Slide-in side panel on Radix Dialog; right / left / top / bottom", source: "packages/react/src/components/NewSheetDemo.tsx" },
       { to: "/date-range-picker", label: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled", source: "packages/react/src/components/NewDateRangePickerDemo.tsx" },

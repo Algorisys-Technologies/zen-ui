@@ -12,6 +12,7 @@ import { registeredTags } from "../lib/define";
 
 import "./accordion";
 import "./collapsible";
+import "./paper";
 import "./alert";
 import "./alert-dialog";
 import "./avatar";
