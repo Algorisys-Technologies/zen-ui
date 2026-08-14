@@ -435,6 +435,18 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
     return info;
   });
 
+  /**
+   * Row id -> its index in the FULL visible set, for `data-index` and
+   * `aria-rowindex`. React's binding already carries this map; Solid was calling
+   * `rows().findIndex()` twice per row, which is a quadratic scan on the one
+   * component whose whole point is rendering long lists.
+   */
+  const indexOf = createMemo(() => {
+    const m = new Map<string, number>();
+    rows().forEach((r, i) => m.set(r.id, i));
+    return m;
+  });
+
   /* ---- roving focus, the WAI-ARIA treegrid row pattern ---- */
   const rowRefs = new Map<string, HTMLTableRowElement>();
   const [focusedId, setFocusedId] = createSignal<string | null>(null);
@@ -722,9 +734,40 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                       rowRefs.set(row.id, el);
                       // Let real heights replace the estimate; rows are in
                       // normal flow, so this measures without a second pass.
-                      if (virtualEnabled()) virtualizer.measureElement(el);
+                      //
+                      // Two Solid-specific ordering problems here, and fixing
+                      // only the first makes things WORSE. Both were measured.
+                      //
+                      // 1. Solid applies JSX attributes AFTER running the ref,
+                      //    so `data-index` is not on the node yet — and the
+                      //    virtualizer reads it to know which row it measured.
+                      //    Absent, `indexFromElement` returns -1, `resizeItem`
+                      //    looks up `measurementsCache[-1]`, finds nothing and
+                      //    returns; the measurement is dropped, and the element
+                      //    is cached against a bogus key so the ResizeObserver
+                      //    bookkeeping is wrong too. It warns rather than
+                      //    throwing, so it looks like nothing at all. Over a
+                      //    1240-row scroll React's total grew +101px and kept
+                      //    it; Solid's grew +12 and fell back to +4, sitting on
+                      //    the 44px estimate while the rows are really 45px.
+                      //    Hence the explicit stamp, before measuring.
+                      //
+                      // 2. Solid also runs the ref BEFORE inserting the node,
+                      //    so it has no layout yet and measures 0. While the
+                      //    index was -1 those zeros were harmlessly discarded;
+                      //    stamping the index made them land, and the total
+                      //    COLLAPSED from ~54,600 to 4,810. So the measure is
+                      //    deferred to a microtask, by which point the
+                      //    synchronous insert has happened. The `isConnected`
+                      //    guard covers a row unmounted before it ever ran.
+                      if (virtualEnabled()) {
+                        el.setAttribute("data-index", String(indexOf().get(row.id) ?? 0));
+                        queueMicrotask(() => {
+                          if (el.isConnected) virtualizer.measureElement(el);
+                        });
+                      }
                     }}
-                    data-index={virtualEnabled() ? rows().findIndex((r) => r.id === row.id) : undefined}
+                    data-index={virtualEnabled() ? indexOf().get(row.id) : undefined}
                     data-state={row.getIsSelected() ? "selected" : undefined}
                     data-depth={row.depth}
                     class={cn(
@@ -736,7 +779,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                     aria-level={row.depth + 1}
                     aria-expanded={row.getCanExpand() ? row.getIsExpanded() : undefined}
                     aria-rowindex={
-                      virtualEnabled() ? rows().findIndex((r) => r.id === row.id) + 1 : undefined
+                      virtualEnabled() ? (indexOf().get(row.id) ?? 0) + 1 : undefined
                     }
                     aria-posinset={info()?.pos}
                     aria-setsize={info()?.size}
