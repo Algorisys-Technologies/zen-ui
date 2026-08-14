@@ -362,8 +362,21 @@ export function TreeTable<TData, TValue = unknown>({
      * pages the ROOT rows and keeps every expanded descendant on the same page
      * as its parent. Left at its default (true) it pages the flattened list,
      * which puts half a subtree on page 2 under no parent at all.
+     *
+     * It MUST track `enablePagination` rather than being pinned false, and the
+     * reason is buried in table-core: `getExpandedRowModel` returns the
+     * PRE-expanded model untouched when this is false ("Only expand rows at
+     * this point if they are being paginated"), because the flattening —
+     * `expandRows()` — is deliberately delegated to `getPaginationRowModel`.
+     * Pinned false with no pagination row model supplied, nothing calls it, so
+     * no subtree ever enters the row model and the tree cannot open AT ALL: not
+     * by chevron, not by keyboard, not by `defaultExpanded`. It shipped that
+     * way. The failure is silent and reads as a dead control — every root row
+     * still renders, still has a chevron (`row.subRows` is populated; only the
+     * row MODEL is short), and still reports aria-expanded="false" after a
+     * click.
      */
-    paginateExpandedRows: false,
+    paginateExpandedRows: !enablePagination,
     onPaginationChange: (updater) => {
       const next = typeof updater === "function" ? updater(pagination) : updater;
       setPagination(next);
