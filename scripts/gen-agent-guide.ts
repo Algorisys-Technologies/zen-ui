@@ -180,8 +180,8 @@ const RULES = `## Rules that apply in every binding
   rarely write these as a consumer, but if you extend a component's class, keep
   the prefix.
 - **Theming is \`--zen-*\` custom properties — that is the whole public surface.**
-  Override them in your own CSS. Three built-in themes switch via
-  \`data-theme\`: \`default\`, \`zen-theme\`, \`dark\`.
+  Override them in your own CSS. Four built-in themes switch via
+  \`data-theme\`: \`default\`, \`zen-theme\`, \`dark\`, \`paper\`.
 - **Heavy components need an optional peer dep.** Chart wants \`recharts\`,
   RichText wants jodit, Map wants \`leaflet\`, Camera wants \`react-webcam\`. They
   lazy-load it; install it when you use one.`;
@@ -283,8 +283,9 @@ document.body.append(btn.el);
 ## Theming and styling
 
 - **Theming is \`--zen-*\` custom properties — that is the whole public
-  surface.** Override them in the consuming app's CSS. Three built-in themes
-  switch via \`data-theme\` on any ancestor: \`default\`, \`zen-theme\`, \`dark\`.
+  surface.** Override them in the consuming app's CSS. Four built-in themes
+  switch via \`data-theme\` on any ancestor: \`default\`, \`zen-theme\`, \`dark\`,
+  \`paper\`.
   Do not fork component source or patch generated CSS to restyle.
 - **zen-ui's utilities are prefixed \`zen-\`** (\`zen-p-4\`,
   \`hover:zen-bg-zen-primary\`). The consuming app's Tailwind/UnoCSS does NOT

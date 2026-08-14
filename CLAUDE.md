@@ -692,7 +692,11 @@ description, and no other check in this repo can see either mistake.
 ## Theming
 
 Override `--zen-*` custom properties; that is the whole public theming surface.
-Three built-in themes via `data-theme`: `default`, `zen-theme`, `dark`. Token
+Four built-in themes via `data-theme`: `default`, `zen-theme`, `dark`, `paper`.
+`paper` is the one whose block sits *after* the `:root` type block in
+`tokens.css` rather than beside the other palettes — it overrides line heights
+and the font stack, and those are lost to source order from the usual position.
+Token
 reference is in the [README](README.md#token-reference).
 
 ## Other references

@@ -281,8 +281,8 @@ is the supported theming surface and it needs no build step.
   rarely write these as a consumer, but if you extend a component's class, keep
   the prefix.
 - **Theming is `--zen-*` custom properties — that is the whole public surface.**
-  Override them in your own CSS. Three built-in themes switch via
-  `data-theme`: `default`, `zen-theme`, `dark`.
+  Override them in your own CSS. Four built-in themes switch via
+  `data-theme`: `default`, `zen-theme`, `dark`, `paper`.
 - **Heavy components need an optional peer dep.** Chart wants `recharts`,
   RichText wants jodit, Map wants `leaflet`, Camera wants `react-webcam`. They
   lazy-load it; install it when you use one.

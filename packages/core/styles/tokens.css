@@ -433,6 +433,148 @@
 }
 
 /* ===================================================================== *
+ * PAPER — warm ink-on-paper surfaces                                    *
+ *                                                                       *
+ * A sheet lying on a desk, not a card floating in a void. Three things  *
+ * carry that and only one of them is colour:                            *
+ *                                                                       *
+ *   1. Ground vs sheet. --zen-color-background is the paper (#FDFBF6);  *
+ *      --zen-color-muted is the desk under it (#F0EBE0). Muted is       *
+ *      already the darker of the two in every theme; what changes here  *
+ *      is that the step widens (measured 1.09:1 in default, 1.15:1      *
+ *      here) and both sides carry the same warm cast, so it reads as a  *
+ *      different MATERIAL rather than a slightly grey panel. There is   *
+ *      no separate "ground" token, so a shell painting `bg-zen-muted`   *
+ *      behind `bg-zen-background` panels is what makes the sheet read   *
+ *      as lying on something; paint both `background` and it is flat.   *
+ *   2. Directional shadow. Every elevation is y-offset with a negative   *
+ *      spread from `lg` up, so the blur stays UNDER the sheet instead of *
+ *      haloing it. Paper does not glow; an all-around shadow is the      *
+ *      single tell that reads as "web card" rather than "paper".         *
+ *   3. Type. Loose body leading, tight headings, a humanist face. This   *
+ *      is most of the effect — a cream background at the default 1.5rem  *
+ *      base leading is just a beige app.                                 *
+ *                                                                       *
+ * PLACEMENT IS LOAD-BEARING: this block sits AFTER the bare `:root` type *
+ * and motion blocks above, unlike the other three themes, which sit      *
+ * before them. `[data-theme="x"]` and `:root` are both (0,1,0), so       *
+ * source order decides — a paper block up with the palettes would have    *
+ * every one of its font and line-height overrides silently lost to the   *
+ * `:root` type block below it, and would render as a recoloured default. *
+ * The palette half works from either position; the type half does not.   *
+ * Do not "tidy" this up beside the others. Conversely, do not declare    *
+ * --zen-duration-* here: this block is after the reduced-motion media    *
+ * query, so it would override a user's OS setting rather than defer.     *
+ * ===================================================================== */
+[data-theme="paper"] {
+  /* Ink blue — a fountain pen, not a link colour. 8.0:1 on paper. */
+  --zen-color-primary: #2C5282;
+  --zen-color-primary-fg: #FDFBF6;
+  --zen-color-primary-soft: #E6EBF3;
+  --zen-color-primary-soft-fg: #24487A;
+
+  --zen-color-neutral: #3D3831;
+  --zen-color-neutral-fg: #FDFBF6;
+  --zen-color-neutral-soft: #EFEAE0;
+  --zen-color-neutral-soft-fg: #3D3831;
+
+  --zen-color-info: #3A6B8C;
+  --zen-color-info-fg: #FDFBF6;
+  --zen-color-info-soft: #E6EDF2;
+  --zen-color-info-soft-fg: #2A4F68;
+
+  --zen-color-success: #2F6B45;
+  --zen-color-success-fg: #FDFBF6;
+  --zen-color-success-soft: #E4EDE6;
+  --zen-color-success-soft-fg: #245235;
+
+  /* Gold takes dark ink as its foreground — the one colour here that     *
+   * cannot carry white text. */
+  --zen-color-warning: #C9911F;
+  --zen-color-warning-fg: #33302B;
+  --zen-color-warning-soft: #F7EEDA;
+  --zen-color-warning-soft-fg: #7A5606;
+
+  --zen-color-error: #A93226;
+  --zen-color-error-fg: #FDFBF6;
+  --zen-color-error-soft: #F5E4E0;
+  --zen-color-error-soft-fg: #8C291E;
+
+  /* The sheet, the desk, and the ink. See note 1 above — `muted` being   *
+   * darker than `background` is deliberate and is the whole illusion.    */
+  --zen-color-background: #FDFBF6;
+  --zen-color-foreground: #33302B;
+  --zen-color-muted: #F0EBE0;
+  --zen-color-muted-fg: #6B6459;
+  --zen-color-border: #E0D8C8;
+  --zen-color-ring: #2C5282;
+
+  --zen-status-online: #2F6B45;
+  --zen-status-offline: #6B6459;
+  --zen-status-away: #C9911F;
+  --zen-status-busy: #A93226;
+
+  --zen-color-accent-orange: #C2622E;
+  --zen-color-accent-purple: #5B4B7C;
+  --zen-color-accent-light-blue: #A8BCCB;
+  --zen-color-accent-magenta: #A8437A;
+  --zen-color-accent-cream: #F2E8D5;
+
+  /* Paper corners are cut, not moulded. The whole scale drops roughly a  *
+   * half-step; `2xl` keeps enough curve to stay useful for the few       *
+   * surfaces that reach for it. */
+  --zen-radius-sm: 2px;
+  --zen-radius-md: 3px;
+  --zen-radius-lg: 4px;
+  --zen-radius-xl: 6px;
+  --zen-radius-2xl: 10px;
+  --zen-radius-full: 9999px;
+
+  --zen-border-width: 1px;
+
+  /* Warm-tinted and directional. The negative spread from `lg` up is the *
+   * point: it pulls the blur back under the sheet so the shadow reads as *
+   * contact with the desk rather than a glow around a floating box.      */
+  --zen-shadow-xs:  0 1px 2px 0 rgba(64, 54, 38, 0.06);
+  --zen-shadow-sm:  0 2px 4px 0 rgba(64, 54, 38, 0.07);
+  --zen-shadow-md:  0 3px 6px 0 rgba(64, 54, 38, 0.08);
+  --zen-shadow-lg:  0 6px 14px -2px rgba(64, 54, 38, 0.11);
+  --zen-shadow-xl:  0 12px 28px -4px rgba(64, 54, 38, 0.13);
+  --zen-shadow-2xl: 0 24px 48px -8px rgba(64, 54, 38, 0.18);
+
+  /* ---- Type — see note 3, and the placement note above --------------- *
+   * A humanist face, resolved entirely from what is already installed:   *
+   * a published stylesheet must not fetch a font, and every fallback     *
+   * here degrades to the same system-ui the default theme uses.          *
+   *                                                                      *
+   * This token alone changes nothing on screen, and the demos are the    *
+   * proof: they set `body { font-family: … }` in their own index.css, so *
+   * every component inherits THAT and the theme's stack is never         *
+   * consulted. Measured under data-theme="paper": --zen-font-sans reads  *
+   * "Seravek", rendered text stays on the demo's own face. Reaching it   *
+   * takes a `zen-font-sans` utility on the element, or the consuming app *
+   * pointing its own body font at var(--zen-font-sans). Kept because     *
+   * that indirection IS the documented theming contract — but do not     *
+   * read a screenshot as evidence this line works or doesn't.            */
+  --zen-font-sans: Seravek, "Gill Sans Nova", Ubuntu, Calibri, "DejaVu Sans",
+    source-sans-pro, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+
+  /* Body leading opens up, heading leading tightens. Sizes are unchanged *
+   * — this is spacing between lines, not a bigger type scale, so nothing *
+   * reflows horizontally. Rows DO get taller: anything measuring its own *
+   * row height (Gantt, DataTable) stays uniform but is not pixel-        *
+   * identical to the default theme. That is the intended trade.          */
+  --zen-line-height-xs: 1.1rem;
+  --zen-line-height-sm: 1.45rem;
+  --zen-line-height-base: 1.7rem;
+  --zen-line-height-lg: 1.9rem;
+  --zen-line-height-xl: 1.85rem;
+  --zen-line-height-2xl: 1.95rem;
+  --zen-line-height-3xl: 2.2rem;
+}
+
+/* ===================================================================== *
  * Animations                                                            *
  *                                                                       *
  * Keyframes only. The `zen-anim-*` classes that used to live here are   *
