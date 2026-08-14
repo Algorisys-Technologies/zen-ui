@@ -1,5 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { styled } from "../../lib/styled";
+import { cn } from "../../lib/cn";
 import type { BaseProps, ZenComponent } from "../../lib/component";
 
 /**
@@ -33,11 +34,62 @@ import type { BaseProps, ZenComponent } from "../../lib/component";
  * it. Put it on a `bg-zen-muted` ground to get the contact the shadow implies;
  * see the note in tokens.css about ground vs sheet.
  */
+/**
+ * The pile. One or two sheet edges peeking out behind the top sheet — the
+ * affordance for "this is a thread / there are more of these", which a column of
+ * separate Papers cannot say.
+ *
+ * Layered box-shadows, and the two techniques that DON'T work are worth
+ * recording, because both look obviously right:
+ *
+ *  - **Absolutely-positioned pseudo-elements at `z-index: -1`.** Built and
+ *    measured: the pseudos were correct in every computed property — `content:
+ *    ""`, `absolute`, offsets of 6px and 12px — and nothing appeared on screen.
+ *    A negative z-index does not go behind its PARENT's background, it goes
+ *    behind the nearest stacking-context ROOT's content, so the edges landed
+ *    under the surrounding page background as well and were painted over. It
+ *    only works if an ancestor isolates, which is the consumer's element and
+ *    not ours to require.
+ *  - **Real child divs.** Same overlap problem in reverse: they paint ABOVE the
+ *    sheet's background, so their borders draw lines across its face. They would
+ *    also need `aria-hidden`, where pseudo-elements are simply not in the
+ *    accessibility tree — a reader is never told the pile has three documents
+ *    when you rendered one.
+ *
+ * A box-shadow paints strictly behind the element's own background and outside
+ * its box, which is exactly a sheet underneath. Two shadows per edge: a filled
+ * one inset by 1px for the sheet's face, and a flush one for its hairline.
+ *
+ * The cost is that `elevation` also owns `box-shadow`, so the combinations are
+ * enumerated LITERALLY here rather than composed at runtime. That is not
+ * verbosity for its own sake — UnoCSS scans source text, so a class assembled
+ * from template pieces generates no CSS at all and the whole feature silently
+ * renders nothing.
+ */
+const STACK_SHADOW = {
+  "1-flat":
+    "zen-shadow-[6px_6px_0_-1px_var(--zen-color-background),6px_6px_0_0_var(--zen-color-border)]",
+  "1-raised":
+    "zen-shadow-[6px_6px_0_-1px_var(--zen-color-background),6px_6px_0_0_var(--zen-color-border),var(--zen-shadow-sm)]",
+  "1-lifted":
+    "zen-shadow-[6px_6px_0_-1px_var(--zen-color-background),6px_6px_0_0_var(--zen-color-border),var(--zen-shadow-lg)]",
+  "2-flat":
+    "zen-shadow-[6px_6px_0_-1px_var(--zen-color-background),6px_6px_0_0_var(--zen-color-border),12px_12px_0_-1px_var(--zen-color-background),12px_12px_0_0_var(--zen-color-border)]",
+  "2-raised":
+    "zen-shadow-[6px_6px_0_-1px_var(--zen-color-background),6px_6px_0_0_var(--zen-color-border),12px_12px_0_-1px_var(--zen-color-background),12px_12px_0_0_var(--zen-color-border),var(--zen-shadow-sm)]",
+  "2-lifted":
+    "zen-shadow-[6px_6px_0_-1px_var(--zen-color-background),6px_6px_0_0_var(--zen-color-border),12px_12px_0_-1px_var(--zen-color-background),12px_12px_0_0_var(--zen-color-border),var(--zen-shadow-lg)]",
+} as const;
+
 const paperVariants = cva(
   [
     // Centring is part of `measure`: a capped width that hugs the left edge
     // reads as a broken layout rather than a page.
     "zen-mx-auto zen-w-full",
+    // Nothing structural depends on this now that the pile is a box-shadow, but
+    // it keeps Paper a positioning context for anything a caller absolutely
+    // places inside it.
+    "zen-relative",
     "zen-bg-zen-background zen-text-zen-foreground",
     // Paper corners are cut, not moulded. `sm` is 4px by default and 2px under
     // the paper theme, so this tracks the theme without hardcoding either.
@@ -78,13 +130,29 @@ const paperVariants = cva(
   },
 );
 
-export type PaperProps = BaseProps & VariantProps<typeof paperVariants>;
+export type PaperProps = BaseProps &
+  VariantProps<typeof paperVariants> & {
+    /**
+     * Draw 1 or 2 sheet edges behind this one — a pile rather than a sheet.
+     * Purely decorative: the edges are box-shadows, so nothing enters the DOM
+     * or the accessibility tree and a reader is never told the pile holds more
+     * documents than the one you rendered.
+     */
+    stack?: 1 | 2;
+  };
 
 export const Paper = styled<PaperProps>({
   tag: "div",
-  own: ["measure", "elevation", "padding"],
+  own: ["measure", "elevation", "padding", "stack"],
   className: (p) =>
-    paperVariants({ measure: p.measure, elevation: p.elevation, padding: p.padding }),
+    // The stack class goes second so tailwind-merge drops the plain elevation
+    // shadow in favour of the combined one, which already carries it.
+    cn(
+      paperVariants({ measure: p.measure, elevation: p.elevation, padding: p.padding }),
+      p.stack
+        ? STACK_SHADOW[`${p.stack}-${p.elevation ?? "raised"}` as keyof typeof STACK_SHADOW]
+        : undefined,
+    ),
 }) as (props?: PaperProps) => ZenComponent<PaperProps>;
 
 export const PaperHeader = styled({

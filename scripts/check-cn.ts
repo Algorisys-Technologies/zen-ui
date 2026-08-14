@@ -43,6 +43,28 @@ check(cn("zen-shadow-zen-sm", "zen-shadow-zen-lg"), "zen-shadow-zen-lg", "shadow
 check(cn("zen-rounded-zen-md", "zen-rounded-zen-full"), "zen-rounded-zen-full", "radius md -> full");
 check(cn("zen-rounded-zen-full", "zen-rounded-zen-sm"), "zen-rounded-zen-sm", "radius full -> sm");
 check(cn("zen-rounded-zen-md", "zen-rounded-none"), "zen-rounded-none", "radius zen key -> stock key");
+
+/*
+ * Shadows, same disease one step subtler. Named-against-named already worked,
+ * which is why nobody looked: it is named-against-ARBITRARY that emitted both,
+ * because `zen-sm` is not a value tailwind-merge knows, so it read
+ * `shadow-zen-sm` as a shadow COLOUR and `shadow-[…]` as a shadow SIZE — two
+ * groups that never conflict. The winner then fell to stylesheet order, where
+ * Uno emits the named utility later, so a component's shadow silently beat the
+ * caller's override. Found via Paper's `stack`.
+ */
+check(cn("zen-shadow-zen-sm", "zen-shadow-zen-lg"), "zen-shadow-zen-lg", "shadow sm -> lg");
+check(
+  cn("zen-shadow-zen-sm", "zen-shadow-[6px_6px_0_0_#ccc]"),
+  "zen-shadow-[6px_6px_0_0_#ccc]",
+  "shadow named -> arbitrary",
+);
+check(
+  cn("zen-shadow-[6px_6px_0_0_#ccc]", "zen-shadow-zen-lg"),
+  "zen-shadow-zen-lg",
+  "shadow arbitrary -> named",
+);
+check(cn("zen-shadow-zen-md", "zen-shadow-none"), "zen-shadow-none", "shadow zen key -> stock key");
 check(cn("zen-rounded-l-zen-md", "zen-rounded-l-zen-full"), "zen-rounded-l-zen-full", "radius, one side");
 
 console.log("  the consumer's own classes");

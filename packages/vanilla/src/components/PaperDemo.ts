@@ -60,7 +60,11 @@ export default function PaperDemo(): HTMLElement {
                 PaperFooter({
                   children: [
                     Button({ children: "Reply", size: "sm" }).el,
-                    Button({ children: "Archive", size: "sm", variant: "ghost" }).el,
+                    Button({
+                      children: "Archive",
+                      size: "sm",
+                      variant: "ghost",
+                    }).el,
                   ],
                 }).el,
               ],
@@ -92,7 +96,8 @@ Paper({ measure: "full" })    // fills its container`,
       },
       {
         title: "3. Elevation",
-        codeTitle: "`raised` and `lifted` have no border — the shadow is the edge",
+        codeTitle:
+          "`raised` and `lifted` have no border — the shadow is the edge",
         codeDescription:
           "A hairline plus a shadow reads as a bordered card, which is the look this is trying not to be. `flat` is the opposite trade: a border and no shadow, for when sheets sit adjacent and a shadow between them would read as a gap.",
         code: `Paper({ elevation: "flat" })
@@ -129,7 +134,9 @@ Paper({ padding: "lg" })`,
               Paper({
                 padding: pad,
                 measure: "full",
-                children: PaperContent({ children: pad === "md" ? "md — the default" : pad }).el,
+                children: PaperContent({
+                  children: pad === "md" ? "md — the default" : pad,
+                }).el,
               }).el,
             );
           }
@@ -137,7 +144,43 @@ Paper({ padding: "lg" })`,
         },
       },
       {
-        title: "5. A dialog that is a document",
+        title: "5. A pile, not a sheet",
+        codeTitle: "`stack` draws 1 or 2 sheet edges behind this one",
+        codeDescription:
+          "The affordance a column of separate Papers cannot express: this is a thread, and there are more. Decorative by construction — the edges are box-shadows, so nothing enters the DOM or the accessibility tree and a reader is never told the pile holds three documents when you rendered one. It composes with elevation: both live in one box-shadow list, because elevation already owns that property and a second utility would replace it rather than merge.",
+        code: `Paper({ stack: 1 })
+Paper({ stack: 2 })
+
+// composes with elevation
+Paper({ stack: 2, elevation: "lifted" })`,
+        render: () => {
+          const wrap = desk();
+          wrap.className += " zen-grid zen-gap-8 sm:zen-grid-cols-3";
+          wrap.append(
+            Paper({
+              measure: "full",
+              padding: "sm",
+              children: PaperContent({ children: "no stack" }).el,
+            }).el,
+            Paper({
+              measure: "full",
+              padding: "sm",
+              stack: 1,
+              children: PaperContent({ children: "stack: 1" }).el,
+            }).el,
+            Paper({
+              measure: "full",
+              padding: "sm",
+              stack: 2,
+              elevation: "lifted",
+              children: PaperContent({ children: "stack: 2 + lifted" }).el,
+            }).el,
+          );
+          return wrap;
+        },
+      },
+      {
+        title: "6. A dialog that is a document",
         codeTitle: 'Dialog({ variant: "paper" })',
         codeDescription:
           "Not a restyle: a document is top-anchored. Centring a long sheet vertically and scrolling it inside 85vh puts the first line somewhere different on every screen. Paper mode drops the vertical centring, scrolls the viewport rather than the panel, and widens the cap. Pass nothing and Dialog is byte-identical to before.",
@@ -178,7 +221,10 @@ doc.open();`,
           });
 
           row.append(
-            Button({ children: "Open a paper dialog", onClick: () => paperDialog.open() }).el,
+            Button({
+              children: "Open a paper dialog",
+              onClick: () => paperDialog.open(),
+            }).el,
             Button({
               children: "…and the default, unchanged",
               variant: "outline",
@@ -189,7 +235,7 @@ doc.open();`,
         },
       },
       {
-        title: "6. Pairs with the paper theme, but does not need it",
+        title: "7. Pairs with the paper theme, but does not need it",
         codeTitle: 'data-theme="paper" on any ancestor',
         codeDescription:
           "Paper sets its own leading and measure, so it reads the same under every theme. The paper THEME supplies what a component cannot reach globally: warm ground and sheet, cut corners, a contact shadow, and looser body leading. The two compound — that is the intended pairing, not a requirement.",
