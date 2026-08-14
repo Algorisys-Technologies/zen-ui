@@ -13,32 +13,35 @@ SKILL.md.
 
 ### Sheet
 
-- from `.bun`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `modal?`
+- from `@radix-ui/react-dialog`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `modal?`
 
 ### SheetTrigger
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### SheetClose
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### SheetPortal
 
-- from `.bun`: `children?`, `container?`, `forceMount?`
+- from `@radix-ui/react-dialog`: `children?`, `container?`, `forceMount?`
 
 ### SheetOverlay
 
-- from `.bun`: `asChild?`, `forceMount?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-dialog`: `forceMount?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SheetContent
 
 - `showCloseButton?: boolean | undefined` — Show a built-in close ✕ in the top-right. Default true.
 - `side?: "right" | "left" | "top" | "bottom" | null | undefined`
-- from `.bun`: `asChild?`, `deferPointerDownOutside?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `onOpenAutoFocus?`, `onCloseAutoFocus?`, `forceMount?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-dismissable-layer`: `deferPointerDownOutside?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`
+- from `@radix-ui/react-dialog`: `onOpenAutoFocus?`, `onCloseAutoFocus?`, `forceMount?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SheetHeader
@@ -51,17 +54,17 @@ SKILL.md.
 
 ### SheetTitle
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SheetDescription
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### Other exports
 
-- `sheetContentVariants(props?: ({ side?: "right" | "left" | "top" | "bottom" | null | undefined; } & import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `sheetContentVariants(props?: ({ side?: "right" | "left" | "top" | "bottom" | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

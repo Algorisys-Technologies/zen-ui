@@ -13,31 +13,35 @@ SKILL.md.
 
 ### Tabs
 
-- from `.bun`: `value?`, `defaultValue?`, `onValueChange?`, `orientation?`, `dir?`, `activationMode?`, `asChild?`
+- from `@radix-ui/react-tabs`: `value?`, `defaultValue?`, `onValueChange?`, `orientation?`, `dir?`, `activationMode?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (278 inherited).
 
 ### TabsList
 
 - `orientation?: "horizontal" | "vertical" | null | undefined`
 - `variant?: "underline" | "pills" | null | undefined`
-- from `.bun`: `asChild?`, `loop?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-tabs`: `loop?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### TabsTrigger
 
 - `variant?: "underline" | "pills" | null | undefined`
-- from `.bun`: `value`, `asChild?`
+- from `@radix-ui/react-tabs`: `value`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (289 inherited).
 
 ### TabsContent
 
-- from `.bun`: `value`, `asChild?`, `forceMount?`
+- from `@radix-ui/react-tabs`: `value`, `forceMount?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### Other exports
 
-- `tabsListVariants(…)`
-- `tabsTriggerVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; } & import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `tabsListVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; orientation?: "horizontal" | "vertical" | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `tabsTriggerVariants(props?: ({ variant?: "underline" | "pills" | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

@@ -14,41 +14,44 @@ SKILL.md.
 ### Toast
 
 - `variant?: "info" | "default" | "success" | "warning" | "destructive" | null | undefined`
-- from `.bun`: `type?`, `onPause?`, `open?`, `onOpenChange?`, `duration?`, `asChild?`, `onEscapeKeyDown?`, `forceMount?`, `defaultOpen?`, `onResume?`, `onSwipeStart?`, `onSwipeMove?`, `onSwipeCancel?`, `onSwipeEnd?`
+- from `@radix-ui/react-toast`: `type?`, `onPause?`, `open?`, `onOpenChange?`, `duration?`, `onEscapeKeyDown?`, `forceMount?`, `defaultOpen?`, `onResume?`, `onSwipeStart?`, `onSwipeMove?`, `onSwipeCancel?`, `onSwipeEnd?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### ToastProvider
 
-- from `.bun`: `children?`, `label?`, `duration?`, `swipeDirection?`, `swipeThreshold?`, `announcerContainer?`
+- from `@radix-ui/react-toast`: `children?`, `label?`, `duration?`, `swipeDirection?`, `swipeThreshold?`, `announcerContainer?`
 
 ### ToastViewport
 
-- from `.bun`: `label?`, `asChild?`, `hotkey?`
+- from `@radix-ui/react-toast`: `label?`, `hotkey?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (283 inherited).
 
 ### ToastTitle
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### ToastDescription
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### ToastAction
 
-- from `.bun`: `asChild?`, `altText`
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-toast`: `altText`
 - …plus the underlying element's standard props (290 inherited).
 
 ### ToastClose
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### Other exports
 
-- `toastVariants(props?: ({ variant?: "info" | "default" | "success" | "warning" | "destructive" | null | undefined; } & import("/home/jaiprakash/jaiprakash/algorisys/code/zen-ui/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types").ClassProp) | undefined): string`
+- `toastVariants(props?: ({ variant?: "info" | "default" | "success" | "warning" | "destructive" | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

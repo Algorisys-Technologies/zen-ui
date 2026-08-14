@@ -20,7 +20,7 @@ SKILL.md.
 
 ### Other exports
 
-- `badgeVariants(…)`
+- `badgeVariants(props?: ({ variant?: "solid" | "outline" | "soft" | null | undefined; color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

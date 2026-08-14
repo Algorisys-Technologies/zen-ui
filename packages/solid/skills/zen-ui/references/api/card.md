@@ -39,7 +39,7 @@ SKILL.md.
 
 ### Other exports
 
-- `cardVariants(…)`
+- `cardVariants(props?: ({ variant?: "ghost" | "elevated" | "outlined" | null | undefined; padding?: "sm" | "md" | "lg" | "none" | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 

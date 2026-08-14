@@ -115,7 +115,19 @@ const originOf = (s: ts.Symbol): Origin => {
   const p = declPathOf(s);
   if (p.includes("node_modules/@types/react") || p.includes("node_modules/csstype") || /typescript\/lib\//.test(p))
     return "dom";
-  const m = p.match(/node_modules\/(@?[^/]+(?:\/[^/]+)?)/);
+  /*
+   * The LAST `node_modules/`, not the first. bun's store nests the real package
+   * inside `node_modules/.bun/<pkg>@<version>/node_modules/<pkg>`, so anchoring
+   * on the first match names every dependency `.bun` — which is what this file
+   * generated the moment a resync moved packages out of the hoisted layout, and
+   * it is a plausible-looking wrong answer rather than a crash: "from `.bun`:
+   * defaultOpen?, open?" reads like a package name to anyone skimming. It also
+   * silently MERGES provenance groups that were previously distinct
+   * (@radix-ui/react-collapsible and @radix-ui/react-primitive became one).
+   * Same trap, and same remedy, as `stripAbsolutePaths` below.
+   */
+  const i = p.lastIndexOf("node_modules/");
+  const m = i === -1 ? null : p.slice(i).match(/node_modules\/(@?[^/]+(?:\/[^/]+)?)/);
   if (m) return { pkg: m[1].startsWith("@") ? m[1] : m[1].split("/")[0] };
   return "repo";
 };
@@ -124,8 +136,40 @@ const originOf = (s: ts.Symbol): Origin => {
 const docOf = (s: ts.Symbol): string =>
   ts.displayPartsToString(s.getDocumentationComment(checker)).replace(/\s+/g, " ").trim();
 
+/**
+ * Strip machine-specific absolute paths out of a rendered type.
+ *
+ * tsc writes the FULL resolved path into an inline `import(…)` type when a
+ * symbol is only reachable structurally — under bun that is a monster like
+ * `/home/<user>/<...>/node_modules/.bun/class-variance-authority@0.7.1/node_modules/class-variance-authority/dist/types`.
+ * Baking that into a committed file makes the output a function of who ran the
+ * generator, so `check:skill-api` passes only on the machine that last ran it
+ * and reports every other developer's checkout as 60 stale files. Measured
+ * before this existed: 110 changed lines, every one of them a path, and ZERO
+ * changed lines that were not — the whole diff was one contributor's home
+ * directory being swapped for another's.
+ *
+ * Keep the tail after the LAST `node_modules/`, because bun nests a second one
+ * inside `.bun/<pkg>@<version>/`; anchoring on the first would leave the
+ * version-stamped segment in and break again on a dependency bump. In-repo
+ * paths become repo-relative against the same `root` the writer uses.
+ */
+const stripAbsolutePaths = (text: string): string =>
+  text.replace(/"([^"]*\/)?([^"]*)"/g, (whole, dir: string | undefined, tail: string) => {
+    if (!dir?.startsWith("/")) return whole;
+    const full = dir + tail;
+    const i = full.lastIndexOf("node_modules/");
+    if (i !== -1) return `"${full.slice(i + "node_modules/".length)}"`;
+    return full.startsWith(`${root}/`) ? `"${full.slice(root.length + 1)}"` : whole;
+  });
+
 const typeText = (type: ts.Type, at: ts.Node): string => {
-  const text = checker.typeToString(type, at, ts.TypeFormatFlags.NoTruncation);
+  // Normalise BEFORE truncating. A 60-character home directory inside the
+  // budget would otherwise move the cut, so the ellipsis itself would land in a
+  // different place per machine — the same bug one level down.
+  const text = stripAbsolutePaths(
+    checker.typeToString(type, at, ts.TypeFormatFlags.NoTruncation),
+  );
   // Variant unions are the point of this file, so no 100-char default
   // truncation — but a 2,000-char inline object type helps nobody.
   return text.length > 400 ? `${text.slice(0, 400)}…` : text;
@@ -219,7 +263,9 @@ const renderExport = (name: string): string | null => {
   const type = checker.getTypeOfSymbol(sym);
   const sig = type.getCallSignatures()[0];
   if (sig) {
-    const text = checker.signatureToString(sig, at);
+    // Same normalisation as typeText, and for the same reason: a signature
+    // renders `import("…")` for a structurally-reached parameter type too.
+    const text = stripAbsolutePaths(checker.signatureToString(sig, at));
     return `\`${name}${text.length > 300 ? "(…)" : text}\``;
   }
   return `\`${name}: ${typeText(type, at)}\``;

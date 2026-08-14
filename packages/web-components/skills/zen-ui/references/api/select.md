@@ -13,49 +13,53 @@ SKILL.md.
 
 ### Select
 
-- from `.bun`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `dir?`, `name?`, `autoComplete?`, `disabled?`, `required?`, `form?`, `value?`, `defaultValue?`, `onValueChange?`
+- from `@radix-ui/react-select`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `dir?`, `name?`, `autoComplete?`, `disabled?`, `required?`, `form?`, `value?`, `defaultValue?`, `onValueChange?`
 
 ### SelectGroup
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SelectValue
 
-- from `.bun`: `placeholder?`, `asChild?`
+- from `@radix-ui/react-select`: `placeholder?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SelectTrigger
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 
 ### SelectContent
 
-- from `.bun`: `align?`, `asChild?`, `side?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `onCloseAutoFocus?`, `forceMount?`, `position?`
+- from `@radix-ui/react-popper`: `align?`, `side?`, `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-select`: `onEscapeKeyDown?`, `onPointerDownOutside?`, `onCloseAutoFocus?`, `forceMount?`, `position?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SelectLabel
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SelectItem
 
-- from `.bun`: `disabled?`, `value`, `asChild?`, `textValue?`
+- from `@radix-ui/react-select`: `disabled?`, `value`, `textValue?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SelectSeparator
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SelectScrollUpButton
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
 
 ### SelectScrollDownButton
 
-- from `.bun`: `asChild?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).

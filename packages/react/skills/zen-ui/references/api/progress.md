@@ -15,7 +15,8 @@ SKILL.md.
 
 - `size?: ProgressSize | undefined`
 - `color?: ProgressColor | undefined`
-- from `.bun`: `max?`, `value?`, `asChild?`, `getValueLabel?`
+- from `@radix-ui/react-progress`: `max?`, `value?`, `getValueLabel?`
+- from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (279 inherited).
 
 ### Other exports

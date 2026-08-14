@@ -43,7 +43,7 @@ SKILL.md.
 
 ### Other exports
 
-- `alertVariants(…)`
+- `alertVariants(props?: ({ color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | "destructive" | null | undefined; variant?: "outline" | "soft" | null | undefined; } & import("class-variance-authority/dist/types").ClassProp) | undefined): string`
 
 ### Types
 
