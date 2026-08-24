@@ -41,6 +41,19 @@ prepped for release. Decide each of these before any merge / publish.
       (~10 MB), `raygun4js`, `regenerator-runtime`, `react-flags-select`
       should move to `peerDependencies` / `optionalDependencies` or be
       removed.
+- [ ] **`visual-check` never opens anything, so overlay content is unverified.**
+      It loads each route and screenshots it. Every overlay family — DropdownMenu,
+      Select, Popover, Dialog, Sheet, Tooltip, ContextMenu — mounts its content
+      only on open, so none of that markup is ever rendered during the check.
+      12.0.1 is the proof: a Solid DropdownMenu threw the moment its trigger was
+      clicked, and the harness reported "108 routes, no runtime errors" against
+      that exact build, honestly, because it never clicked. The route count made
+      it read as broad coverage. Smallest useful version: per route, click each
+      element with `aria-haspopup` or a known trigger `data-` attribute, wait for
+      the overlay, and fail on any page error — reporting the COUNT of triggers
+      opened, so a zero denominator cannot pass (the trap already documented in
+      CLAUDE.md). `check:schedule-dom` is the precedent for driving the DOM
+      rather than photographing it.
 
 ---
 
