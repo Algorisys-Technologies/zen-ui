@@ -1,11 +1,15 @@
 import {
+  type ComponentProps,
   type JSX,
+  Show,
+  type ValidComponent,
   createContext,
   createRenderEffect,
   createSignal,
   splitProps,
   useContext,
 } from "solid-js";
+import type { PolymorphicProps } from "../../lib/polymorphic";
 import { DropdownMenu as KDropdown, type DropdownMenuRootProps } from "@kobalte/core/dropdown-menu";
 import { cn } from "../../lib/cn";
 
@@ -39,10 +43,55 @@ import { cn } from "../../lib/cn";
  */
 
 export const DropdownMenuTrigger = KDropdown.Trigger;
-export const DropdownMenuGroup = KDropdown.Group;
 export const DropdownMenuPortal = KDropdown.Portal;
 export const DropdownMenuSub = KDropdown.Sub;
-export const DropdownMenuRadioGroup = KDropdown.RadioGroup;
+
+/**
+ * Kobalte's `GroupLabel` throws outside a `Menu.Group` — it reads a context only
+ * `Menu.Group` provides — but React/Radix's `Label` needs no group, and a bare
+ * <DropdownMenuLabel> heading a menu is the common case in both bindings. Group
+ * and RadioGroup mark their subtree here so Label can tell the two apart:
+ * inside one it labels the group, standalone it is just a heading.
+ */
+const InMenuGroupContext = createContext(false);
+
+// Both wrappers stay polymorphic: they used to BE Kobalte's components, which take
+// `as`, and a wrapper that quietly dropped it would narrow a published API.
+type DropdownMenuGroupProps<T extends ValidComponent = "div"> = PolymorphicProps<
+  T,
+  { children?: JSX.Element }
+>;
+
+export const DropdownMenuGroup = <T extends ValidComponent = "div">(
+  props: DropdownMenuGroupProps<T>,
+) => (
+  <InMenuGroupContext.Provider value={true}>
+    <KDropdown.Group {...(props as ComponentProps<typeof KDropdown.Group>)} />
+  </InMenuGroupContext.Provider>
+);
+
+// `onChange` is omitted from the DOM attributes: Kobalte's RadioGroup reports the
+// newly selected value, which collides with the DOM's change event.
+type DropdownMenuRadioGroupProps<T extends ValidComponent = "div"> = PolymorphicProps<
+  T,
+  {
+    children?: JSX.Element;
+    value?: string;
+    defaultValue?: string;
+    onChange?: (value: string) => void;
+    disabled?: boolean;
+  }
+>;
+
+// Kobalte's RadioGroup renders a Menu.Group internally, so a Label inside one
+// labels it exactly as it would inside DropdownMenuGroup.
+export const DropdownMenuRadioGroup = <T extends ValidComponent = "div">(
+  props: DropdownMenuRadioGroupProps<T>,
+) => (
+  <InMenuGroupContext.Provider value={true}>
+    <KDropdown.RadioGroup {...(props as ComponentProps<typeof KDropdown.RadioGroup>)} />
+  </InMenuGroupContext.Provider>
+);
 
 /** Mirrors React/Radix's `align` on DropdownMenuContent. */
 export type DropdownMenuAlign = "start" | "center" | "end";
@@ -304,17 +353,29 @@ export type DropdownMenuLabelProps = Omit<
 
 export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => {
   const [local, rest] = splitProps(props, ["class", "inset", "children"]);
+  const inGroup = useContext(InMenuGroupContext);
+  const labelClass = () =>
+    cn(
+      "zen-px-2 zen-py-1.5 zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
+      local.inset && "zen-pl-8",
+      local.class,
+    );
+  // Standalone, there is no group for GroupLabel's `aria-hidden` + `aria-labelledby`
+  // pairing to name, and hiding it would leave the heading unreadable to a screen
+  // reader. Radix's Label is a plain element for the same reason.
   return (
-    <KDropdown.GroupLabel
-      {...rest}
-      class={cn(
-        "zen-px-2 zen-py-1.5 zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
-        local.inset && "zen-pl-8",
-        local.class,
-      )}
+    <Show
+      when={inGroup}
+      fallback={
+        <span {...rest} class={labelClass()}>
+          {local.children}
+        </span>
+      }
     >
-      {local.children}
-    </KDropdown.GroupLabel>
+      <KDropdown.GroupLabel {...rest} class={labelClass()}>
+        {local.children}
+      </KDropdown.GroupLabel>
+    </Show>
   );
 };
 

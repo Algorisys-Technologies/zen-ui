@@ -13,6 +13,35 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.1] - 2026-08-24
+
+### Fixed
+
+- **Solid: opening a menu whose `DropdownMenuLabel` was not inside a
+  `DropdownMenuGroup` threw** (`[kobalte]: useMenuGroupContext must be used
+  within a Menu.Group component`), taking the subtree down through the nearest
+  error boundary — the Solid demo's `/dropdown-menu` route replaced the section
+  with the error card as soon as the trigger was clicked. The content does not
+  mount until the menu opens, so the ROUTE loads clean: `visual-check` reported
+  "108 routes, no runtime errors" against the broken build, because it never
+  opens anything. That is the gap that let this ship, not a stale build. The
+  binding
+  mapped `DropdownMenuLabel` onto Kobalte's `Menu.GroupLabel`, which reads a
+  context only `Menu.Group` provides; React's Radix `Label` has no such
+  requirement, so the identical markup — the one both demos ship — worked in one
+  binding and crashed the other. `DropdownMenuGroup` and `DropdownMenuRadioGroup`
+  now mark their subtree with a context flag (Kobalte's `RadioGroup` renders a
+  `Menu.Group` internally, so it counts as one) and `DropdownMenuLabel` reads it:
+  inside a group it renders `Menu.GroupLabel` and keeps the group's
+  `aria-labelledby` association; standalone it renders the same span. Standalone
+  it must NOT be `Menu.GroupLabel` — that primitive sets `aria-hidden="true"`
+  because the group's accessible name carries the text, so with no group the
+  heading would be unreadable to a screen reader. Radix's `Label` is a plain
+  element for the same reason.
+- Both group wrappers stay polymorphic (`PolymorphicProps`, so `as` still
+  typechecks). They previously WERE Kobalte's components; a wrapper typed to a
+  fixed `div` would have narrowed a published API in a patch release.
+
 ## [12.0.0] - 2026-08-14
 
 ### Breaking

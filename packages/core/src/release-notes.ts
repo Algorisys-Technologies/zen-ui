@@ -33,6 +33,14 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.0.1",
+    date: "2026-08-24",
+    kind: "fixed",
+    title: "Solid: opening a dropdown menu with a label in it no longer throws",
+    detail:
+      "A <DropdownMenuLabel> not wrapped in a <DropdownMenuGroup> threw when the menu was opened in the Solid binding — the shape both bindings' docs show — and took the subtree down through the nearest error boundary. The page loaded clean, because a menu's content does not mount until it opens. Kobalte's group label requires a menu group; Radix's, which React wraps, does not. A label inside a group still names that group; standalone it is now a plain heading, and readable to a screen reader rather than aria-hidden. React, vanilla and web-components were never affected.",
+  },
+  {
     version: "12.0.0",
     date: "2026-08-14",
     kind: "breaking",
