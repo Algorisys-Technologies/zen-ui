@@ -21,6 +21,10 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and an Inter-first type stack, from Algorisys' InterGold PPC app. Pick it with
   `data-theme="blue"` or `applyTheme("blue")`; it is listed in `THEMES`, so
   every binding's theme switcher offers it.
+- **`PasswordInput` `autoHideMs`** (every binding; `auto-hide-ms` on
+  `<zen-password-input>`): a revealed password re-masks itself after that many
+  milliseconds, so it cannot be left on screen in plain text. Each reveal
+  restarts the countdown; unset keeps today's behaviour.
 
 ## [12.0.1] - 2026-08-24
 

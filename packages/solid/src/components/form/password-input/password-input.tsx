@@ -1,4 +1,4 @@
-import { type JSX, splitProps, createSignal, Show } from "solid-js";
+import { type JSX, splitProps, createSignal, createEffect, onCleanup, Show } from "solid-js";
 import { cn } from "../../../lib/cn";
 
 /**
@@ -18,11 +18,23 @@ export interface PasswordInputProps
   /** Label for the reveal toggle, announced with its pressed state. */
   showLabel?: string;
   hideLabel?: string;
+  /**
+   * Re-mask the password this many milliseconds after it is revealed, so it
+   * cannot be left on screen in plain text. Unset (or 0) keeps it until toggled.
+   */
+  autoHideMs?: number;
 }
 
 export const PasswordInput = (props: PasswordInputProps) => {
-  const [local, rest] = splitProps(props, ["class", "showLabel", "hideLabel", "disabled"]);
+  const [local, rest] = splitProps(props, ["class", "showLabel", "hideLabel", "disabled", "autoHideMs"]);
   const [visible, setVisible] = createSignal(false);
+  // Each reveal starts its own countdown; hiding (or unmounting) clears it.
+  createEffect(() => {
+    const ms = local.autoHideMs ?? 0;
+    if (!visible() || ms <= 0) return;
+    const t = setTimeout(() => setVisible(false), ms);
+    onCleanup(() => clearTimeout(t));
+  });
 
   return (
     <div class="zen-relative zen-w-full">

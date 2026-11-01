@@ -26,6 +26,11 @@ export interface PasswordInputProps {
   class?: string;
   showLabel?: string;
   hideLabel?: string;
+  /**
+   * Re-mask the password this many milliseconds after it is revealed, so it
+   * cannot be left on screen in plain text. Unset (or 0) keeps it until toggled.
+   */
+  autoHideMs?: number;
   onInput?: (e: Event) => void;
   onChange?: (e: Event) => void;
   [key: `data-${string}`]: unknown;
@@ -59,8 +64,23 @@ export function PasswordInput(props: PasswordInputProps): PasswordInputHandle {
     "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
     "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
   );
+  // Each reveal starts its own countdown; hiding (or destroy) clears it.
+  let hideTimer: ReturnType<typeof setTimeout> | undefined;
+  const clearHide = () => {
+    if (hideTimer !== undefined) clearTimeout(hideTimer);
+    hideTimer = undefined;
+  };
   toggle.addEventListener("click", () => {
     visible = !visible;
+    clearHide();
+    const ms = current.autoHideMs ?? 0;
+    if (visible && ms > 0) {
+      hideTimer = setTimeout(() => {
+        hideTimer = undefined;
+        visible = false;
+        render();
+      }, ms);
+    }
     render();
     input.focus();
   });
@@ -90,6 +110,7 @@ export function PasswordInput(props: PasswordInputProps): PasswordInputHandle {
       required: _r,
       showLabel: _sl,
       hideLabel: _hl,
+      autoHideMs: _ah,
       ...rest
     } = current;
     removeProps?.();
@@ -99,6 +120,7 @@ export function PasswordInput(props: PasswordInputProps): PasswordInputHandle {
   el.append(input, toggle);
   render();
   disposer.add(() => removeProps?.());
+  disposer.add(clearHide);
 
   return {
     el,

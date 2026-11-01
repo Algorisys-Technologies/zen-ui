@@ -16,6 +16,7 @@ defineZenElement<PasswordInputProps>({
     autocomplete: "string",
     "show-label": "string",
     "hide-label": "string",
+    "auto-hide-ms": "number",
   },
   events: { onInput: "zen-input", onChange: "zen-change" },
   childrenProp: false,

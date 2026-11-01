@@ -22,11 +22,22 @@ export interface PasswordInputProps
   /** Label for the reveal toggle, announced with its pressed state. */
   showLabel?: string;
   hideLabel?: string;
+  /**
+   * Re-mask the password this many milliseconds after it is revealed, so it
+   * cannot be left on screen in plain text. Unset (or 0) keeps it until toggled.
+   */
+  autoHideMs?: number;
 }
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, showLabel = "Show password", hideLabel = "Hide password", disabled, ...props }, ref) => {
+  ({ className, showLabel = "Show password", hideLabel = "Hide password", disabled, autoHideMs, ...props }, ref) => {
     const [visible, setVisible] = React.useState(false);
+    // Each reveal starts its own countdown; hiding (or unmounting) clears it.
+    React.useEffect(() => {
+      if (!visible || !autoHideMs || autoHideMs <= 0) return;
+      const t = setTimeout(() => setVisible(false), autoHideMs);
+      return () => clearTimeout(t);
+    }, [visible, autoHideMs]);
 
     return (
       <div className="zen-relative zen-w-full">
