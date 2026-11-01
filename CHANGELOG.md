@@ -13,6 +13,15 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`blue` theme** — indigo-blue (#4F46E5) on cool slate, 6 / 8 / 12px corners
+  and an Inter-first type stack, from Algorisys' InterGold PPC app. Pick it with
+  `data-theme="blue"` or `applyTheme("blue")`; it is listed in `THEMES`, so
+  every binding's theme switcher offers it.
+
 ## [12.0.1] - 2026-08-24
 
 ### Fixed
