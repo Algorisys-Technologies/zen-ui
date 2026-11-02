@@ -15,6 +15,20 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.1.1] - 2026-11-02
+
+### Fixed
+
+- **`ObjectPageLayout` section jumps scroll only the layout's content scroller**
+  (all four bindings). `scrollIntoView` also scrolled every scrollable ancestor,
+  including `overflow: hidden` ones (still scriptable), so a consuming app's shell
+  slid its header off screen. Replaced with a `scrollTo` on the scroller that
+  honours the section's `scroll-margin-top`. Verified in each binding's demo: the
+  surrounding page moved before and does not now, and the section lands at the bar
+  edge (0px). Found in Algorisys One's forms.
+- **Solid `ObjectPageLayout` debug logging removed**: five `console.log("DBG …")`
+  calls left in the 12.1.0 build.
+
 ## [12.1.0] - 2026-11-02
 
 ### Added

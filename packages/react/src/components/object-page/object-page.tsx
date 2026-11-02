@@ -95,6 +95,20 @@ export interface ObjectPageLayoutProps
 const headingTag = (level: number) =>
   `h${Math.min(Math.max(level, 1), 6)}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
+/**
+ * Scroll the content scroller to a section, and nothing else. scrollIntoView
+ * also scrolls every scrollable ancestor, and a box with overflow: hidden is
+ * still scrollable by script: in an app whose shell clips its overflow, a
+ * section jump scrolled the whole shell (header and all) off screen. The
+ * target honours the section's scroll-margin-top, as scrollIntoView did, so
+ * it still lands just under the sticky bar.
+ */
+const scrollWithin = (root: HTMLElement, el: HTMLElement, behavior: ScrollBehavior) => {
+  const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  const top = el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop - margin;
+  root.scrollTo({ top, behavior });
+};
+
 /** A jump the user asked for should not also be an animation they didn't. */
 const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -308,10 +322,7 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
         // Release rather than stay muted forever.
         timer = window.setTimeout(release, 1000);
 
-        el.scrollIntoView({
-          block: "start",
-          behavior: animate && !reducedMotion() ? "smooth" : "auto",
-        });
+        scrollWithin(root, el, animate && !reducedMotion() ? "smooth" : "auto");
       },
       [commit],
     );

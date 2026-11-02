@@ -65,6 +65,20 @@ export type ObjectPageLayoutProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "ti
 /** h1–h6 for a level, clamped: a sub-section under an h4 title is an h6. */
 const headingTag = (level: number) => `h${Math.min(Math.max(level, 1), 6)}`;
 
+/**
+ * Scroll the content scroller to a section, and nothing else. scrollIntoView
+ * also scrolls every scrollable ancestor, and a box with overflow: hidden is
+ * still scrollable by script: in an app whose shell clips its overflow, a
+ * section jump scrolled the whole shell (header and all) off screen. The
+ * target honours the section's scroll-margin-top, as scrollIntoView did, so
+ * it still lands just under the sticky bar.
+ */
+const scrollWithin = (root: HTMLElement, el: HTMLElement, behavior: ScrollBehavior) => {
+  const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  const top = el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop - margin;
+  root.scrollTo({ top, behavior });
+};
+
 /** A jump the user asked for should not also be an animation they didn't. */
 const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -163,7 +177,6 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
   createEffect(
     on([() => local.sections, barHeight], () => {
       const root = scrollRef;
-      console.log("DBG io effect root?", !!root);
       if (!root || typeof IntersectionObserver === "undefined") return;
       const sections = local.sections;
       const els = sections
@@ -193,7 +206,6 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
           if (suppressed) return;
           const next = sections.find((s) => below.has(s.id))?.id;
           if (!next || next === spyId) return;
-          console.log("DBG spy commit:", next, "was", spyId);
           spyId = next;
           commit(next);
         },
@@ -233,7 +245,6 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
   const goToSection = (id: string, opts: { animate: boolean; notify: boolean }) => {
     const el = sectionRefs.get(id);
     const root = scrollRef;
-    console.log("DBG goTo", id, "el?", !!el, "root?", !!root, "keys", [...sectionRefs.keys()].join(","));
     if (!el || !root) return;
 
     spyId = id;
@@ -264,10 +275,7 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
     // Release rather than stay muted forever.
     timer = window.setTimeout(release, 1000);
 
-    el.scrollIntoView({
-      block: "start",
-      behavior: opts.animate && !reducedMotion() ? "smooth" : "auto",
-    });
+    scrollWithin(root, el, opts.animate && !reducedMotion() ? "smooth" : "auto");
   };
 
   // The initial selection is a scroll position, not just a highlight: an anchor
@@ -277,12 +285,10 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
   let didInit = false;
   createEffect(
     on(barHeight, (h) => {
-      console.log("DBG init run: h=", h, "didInit=", didInit, "sel=", local.selectedSectionId, "spyId=", spyId);
       if (didInit) return;
       if (showAnchorBar() && h === 0) return;
       didInit = true;
       const id = local.selectedSectionId ?? local.defaultSelectedSectionId;
-      console.log("DBG init deciding: id=", id, "firstId=", firstId());
       if (!id || id === firstId()) return;
       goToSection(id, { animate: false, notify: false });
     }),
