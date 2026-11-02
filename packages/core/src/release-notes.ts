@@ -33,6 +33,30 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.1.0",
+    date: "2026-11-02",
+    kind: "new",
+    title: "An object page can be the page's h1",
+    detail:
+      "ObjectPageLayout takes headingLevel (heading-level on the custom element). The title takes that level, sections one below, sub-sections two below, so the outline never skips. The default, 2, renders the same h2 / h3 / h4 as before; pass 1 when the object page is the page itself.",
+  },
+  {
+    version: "12.1.0",
+    date: "2026-11-02",
+    kind: "new",
+    title: "A revealed password hides itself again",
+    detail:
+      "PasswordInput takes autoHideMs (auto-hide-ms): a revealed password re-masks after that many milliseconds, so it is not left on screen in plain text. Each reveal restarts the countdown; unset keeps today's behaviour.",
+  },
+  {
+    version: "12.1.0",
+    date: "2026-11-02",
+    kind: "new",
+    title: "A fifth theme: blue",
+    detail:
+      "data-theme=\"blue\": an indigo-blue primary on cool slate, 6 / 8 / 12px corners and an Inter-first type stack. Listed in THEMES, so every theme switcher offers it.",
+  },
+  {
     version: "12.0.1",
     date: "2026-08-24",
     kind: "fixed",

@@ -80,7 +80,17 @@ export interface ObjectPageLayoutProps extends Omit<BaseProps, "title"> {
   showAnchorBar?: boolean;
   /** Accessible name for the anchor bar's nav landmark. */
   anchorBarLabel?: string;
+  /**
+   * The title's heading level. Sections sit one level below it and
+   * sub-sections two below, so the outline never skips. Default 2 (h2 / h3 /
+   * h4). Pass 1 when the object page IS the page and nothing above it carries
+   * the h1.
+   */
+  headingLevel?: 1 | 2 | 3 | 4;
 }
+
+/** h1–h6 for a level, clamped: a sub-section under an h4 title is an h6. */
+const headingTag = (level: number) => `h${Math.min(Math.max(level, 1), 6)}`;
 
 /** A jump the user asked for should not also be an animation they didn't. */
 const reducedMotion = () =>
@@ -353,6 +363,7 @@ export function ObjectPageLayout(
       title,
       showAnchorBar = true,
       anchorBarLabel = "Object page sections",
+      headingLevel = 2,
       class: className,
       children,
       ...rest
@@ -373,10 +384,10 @@ export function ObjectPageLayout(
       titleBar.className =
         "zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-6 zen-py-3";
       if (hasTitle) {
-        const h2 = document.createElement("h2");
-        h2.className = "zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold";
-        h2.replaceChildren(...toNodes(title as Child));
-        titleBar.append(h2);
+        const heading = document.createElement(headingTag(headingLevel));
+        heading.className = "zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold";
+        heading.replaceChildren(...toNodes(title as Child));
+        titleBar.append(heading);
       }
       if (hasChildren) {
         const actions = document.createElement("div");
@@ -442,12 +453,12 @@ export function ObjectPageLayout(
       section.setAttribute("aria-labelledby", `${s.id}-title`);
       section.className = "zen-border-b zen-border-zen-border zen-px-6 zen-py-5";
 
-      const h3 = document.createElement("h3");
-      h3.id = `${s.id}-title`;
-      h3.className =
+      const sectionHeading = document.createElement(headingTag(headingLevel + 1));
+      sectionHeading.id = `${s.id}-title`;
+      sectionHeading.className =
         "zen-m-0 zen-mb-3 zen-text-sm zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg";
-      h3.append(...toNodes(s.title));
-      section.append(h3);
+      sectionHeading.append(...toNodes(s.title));
+      section.append(sectionHeading);
 
       if (s.content !== undefined && s.content !== null && s.content !== false) {
         section.append(...toNodes(s.content));
@@ -459,11 +470,11 @@ export function ObjectPageLayout(
         subSection.setAttribute("aria-labelledby", `${sub.id}-title`);
         subSection.className =
           "zen-mt-4 zen-border-t zen-border-zen-border zen-pt-4 first:zen-mt-0 first:zen-border-t-0 first:zen-pt-0";
-        const h4 = document.createElement("h4");
-        h4.id = `${sub.id}-title`;
-        h4.className = "zen-m-0 zen-mb-2 zen-text-sm zen-font-semibold";
-        h4.append(...toNodes(sub.title));
-        subSection.append(h4);
+        const subHeading = document.createElement(headingTag(headingLevel + 2));
+        subHeading.id = `${sub.id}-title`;
+        subHeading.className = "zen-m-0 zen-mb-2 zen-text-sm zen-font-semibold";
+        subHeading.append(...toNodes(sub.title));
+        subSection.append(subHeading);
         subSection.append(...toNodes(sub.content));
         section.append(subSection);
       });
@@ -527,6 +538,7 @@ export function ObjectPageLayout(
         next.header !== undefined ||
         next.showAnchorBar !== undefined ||
         next.anchorBarLabel !== undefined ||
+        next.headingLevel !== undefined ||
         next.children !== undefined ||
         next.class !== undefined;
       current = { ...current, ...next };

@@ -194,13 +194,14 @@ const makeSections = (p: string): Section[] => [
   },
 ];
 
-const makeSubSections = (): Section[] => [
+// `prefix` keeps ids unique when the same sections appear twice on one page.
+const makeSubSections = (prefix = ""): Section[] => [
   {
-    id: "sub-general",
+    id: `${prefix}sub-general`,
     title: "General Information",
     subSections: [
       {
-        id: "sub-general-basic",
+        id: `${prefix}sub-general-basic`,
         title: "Basic data",
         content: Grid([
           Field("Order number", "SO-4711"),
@@ -209,7 +210,7 @@ const makeSubSections = (): Section[] => [
         ]),
       },
       {
-        id: "sub-general-org",
+        id: `${prefix}sub-general-org`,
         title: "Organisational data",
         content: Grid([
           Field("Sales organisation", "1000 — Germany"),
@@ -220,23 +221,23 @@ const makeSubSections = (): Section[] => [
     ],
   },
   {
-    id: "sub-partners",
+    id: `${prefix}sub-partners`,
     title: "Business Partners",
     subSections: [
       {
-        id: "sub-partners-sold",
+        id: `${prefix}sub-partners-sold`,
         title: "Sold-to party",
         content: Field("Customer", "Nordwind Logistik GmbH (0000102345)"),
       },
       {
-        id: "sub-partners-ship",
+        id: `${prefix}sub-partners-ship`,
         title: "Ship-to party",
         content: Field("Customer", "Nordwind Oslo Terminal (0000102377)"),
       },
     ],
   },
   {
-    id: "sub-history",
+    id: `${prefix}sub-history`,
     title: "History",
     content: (() => {
       const ol = document.createElement("ol");
@@ -268,6 +269,7 @@ interface LayoutOpts {
   header?: Node;
   children?: Node;
   showAnchorBar?: boolean;
+  headingLevel?: number;
   selectedSectionId?: string;
   onChange?: (id: string) => void;
 }
@@ -279,6 +281,7 @@ function objectPage(opts: LayoutOpts): HTMLElement {
   set.sections = opts.sections;
   if (opts.header) set.header = opts.header;
   if (opts.showAnchorBar === false) set.showAnchorBar = false;
+  if (opts.headingLevel) host.setAttribute("heading-level", String(opts.headingLevel));
   if (opts.selectedSectionId) host.setAttribute("selected-section-id", opts.selectedSectionId);
   if (opts.onChange) {
     host.addEventListener("zen-selected-section-change", (e) =>
@@ -445,6 +448,23 @@ layout.showAnchorBar = false;`,
               sections: makeSections("bare-"),
               showAnchorBar: false,
             }),
+          ),
+      },
+      {
+        title: "5. Heading level",
+        codeTitle: 'heading-level="1"',
+        codeDescription:
+          "When the object page IS the page, its title is the page's h1, sections are h2 and sub-sections h3, so the outline starts at the top and never skips. The default, 2, suits an object page inside a page that already has its h1.",
+        code: `<zen-object-page-layout heading-level="1"></zen-object-page-layout>
+<script>
+  const layout = document.querySelector("zen-object-page-layout");
+  layout.title = "SO-4711";
+  layout.sections = SUB_SECTIONS;
+</script>`,
+        render: () =>
+          framed(
+            360,
+            objectPage({ title: "SO-4711", sections: makeSubSections("level-"), headingLevel: 1 }),
           ),
       },
     ],

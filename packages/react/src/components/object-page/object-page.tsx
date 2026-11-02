@@ -82,7 +82,18 @@ export interface ObjectPageLayoutProps
   showAnchorBar?: boolean;
   /** Accessible name for the anchor bar's nav landmark. */
   anchorBarLabel?: string;
+  /**
+   * The title's heading level. Sections sit one level below it and
+   * sub-sections two below, so the outline never skips. Default 2 (h2 / h3 /
+   * h4). Pass 1 when the object page IS the page and nothing above it carries
+   * the h1.
+   */
+  headingLevel?: 1 | 2 | 3 | 4;
 }
+
+/** h1–h6 for a level, clamped: a sub-section under an h4 title is an h6. */
+const headingTag = (level: number) =>
+  `h${Math.min(Math.max(level, 1), 6)}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
 /** A jump the user asked for should not also be an animation they didn't. */
 const reducedMotion = () =>
@@ -101,12 +112,16 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
       title,
       showAnchorBar = true,
       anchorBarLabel = "Object page sections",
+      headingLevel = 2,
       className,
       children,
       ...props
     },
     ref,
   ) => {
+    const TitleTag = headingTag(headingLevel);
+    const SectionTag = headingTag(headingLevel + 1);
+    const SubTag = headingTag(headingLevel + 2);
     const scrollRef = React.useRef<HTMLDivElement>(null);
     const barRef = React.useRef<HTMLElement>(null);
     const sectionRefs = React.useRef(new Map<string, HTMLElement>());
@@ -364,9 +379,9 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
         {title || children ? (
           <div className="zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-6 zen-py-3">
             {title ? (
-              <h2 className="zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold">
+              <TitleTag className="zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold">
                 {title}
-              </h2>
+              </TitleTag>
             ) : null}
             {children ? (
               <div className="zen-ml-auto zen-flex zen-shrink-0 zen-items-center zen-gap-2">
@@ -440,12 +455,12 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
               style={{ scrollMarginTop: barHeight }}
               className="zen-border-b zen-border-zen-border zen-px-6 zen-py-5"
             >
-              <h3
+              <SectionTag
                 id={`${s.id}-title`}
                 className="zen-m-0 zen-mb-3 zen-text-sm zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg"
               >
                 {s.title}
-              </h3>
+              </SectionTag>
               {s.content}
               {s.subSections?.map((sub) => (
                 <section
@@ -454,9 +469,9 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
                   aria-labelledby={`${sub.id}-title`}
                   className="zen-mt-4 zen-border-t zen-border-zen-border zen-pt-4 first:zen-mt-0 first:zen-border-t-0 first:zen-pt-0"
                 >
-                  <h4 id={`${sub.id}-title`} className="zen-m-0 zen-mb-2 zen-text-sm zen-font-semibold">
+                  <SubTag id={`${sub.id}-title`} className="zen-m-0 zen-mb-2 zen-text-sm zen-font-semibold">
                     {sub.title}
-                  </h4>
+                  </SubTag>
                   {sub.content}
                 </section>
               ))}

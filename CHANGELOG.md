@@ -13,6 +13,28 @@ diverge and force every question to name a binding first.
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [12.1.0] - 2026-11-02
+
+### Added
+
+- **`ObjectPageLayout` `headingLevel`** (all four bindings; `heading-level` on
+  `<zen-object-page-layout>`). Sets the title's heading level; sections sit one
+  below and sub-sections two below, so the outline never skips. The default, 2,
+  renders the same h2 / h3 / h4 as before, so existing pages are unchanged. Pass 1
+  when the object page is the page itself: a document screen in an app had no
+  h1 at all. The demo gains section 5; the sub-section demo data takes an id
+  prefix so the two layouts on one page don't share DOM ids.
+- **`blue` theme** — indigo-blue (#4F46E5) on cool slate, 6 / 8 / 12px corners
+  and an Inter-first type stack, from Algorisys' InterGold PPC app. Pick it with
+  `data-theme="blue"` or `applyTheme("blue")`; it is listed in `THEMES`, so
+  every binding's theme switcher offers it.
+- **`PasswordInput` `autoHideMs`** (every binding; `auto-hide-ms` on
+  `<zen-password-input>`): a revealed password re-masks itself after that many
+  milliseconds, so it cannot be left on screen in plain text. Each reveal
+  restarts the countdown; unset keeps today's behaviour.
+
 ## [12.0.1] - 2026-08-24
 
 ### Fixed

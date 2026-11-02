@@ -214,6 +214,14 @@ const SUB_SECTIONS: ObjectPageSection[] = [
     ),
   },
 ];
+// The same sub-sections under their own ids: a section id is its DOM id, and two
+// layouts on one demo page must not share them.
+const LEVEL_SECTIONS: ObjectPageSection[] = SUB_SECTIONS.map((s) => ({
+  ...s,
+  id: `level-${s.id}`,
+  subSections: s.subSections?.map((sub) => ({ ...sub, id: `level-${sub.id}` })),
+}));
+
 
 /**
  * A section's `id` lands on the DOM as-is so it can be linked to, which means it
@@ -376,6 +384,25 @@ const NewObjectPageDemo = () => (
           sections={BARE_SECTIONS}
           showAnchorBar={false}
         />
+      </div>
+    </DemoSection>
+
+    <DemoSection
+      title="5. Heading level"
+      codeTitle="headingLevel={1}"
+      codeDescription="When the object page IS the page, its title is the page's h1, sections are h2 and sub-sections h3, so the outline starts at the top and never skips. The default, 2, suits an object page inside a page that already has its h1."
+      previewStyle={{ display: "block" }}
+      code={`<ObjectPageLayout
+  title="SO-4711"
+  sections={SUB_SECTIONS}
+  headingLevel={1}
+/>`}
+    >
+      <div
+        class="zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border"
+        style={{ height: "360px" }}
+      >
+        <ObjectPageLayout title="SO-4711" sections={LEVEL_SECTIONS} headingLevel={1} />
       </div>
     </DemoSection>
   </DemoPage>

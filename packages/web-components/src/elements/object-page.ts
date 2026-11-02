@@ -5,7 +5,8 @@ import { defineZenElement } from "../lib/define";
 // scroll-spy anchor bar. `sections` is the primary collection — inline as JSON, or
 // set `el.sections = [...]` for node-valued titles/content. `selected-section-id`
 // is the controlled active section (setting it scrolls there); `header`/`title`
-// are Child slots; `showAnchorBar` defaults TRUE → JS property. `children` is the
+// are Child slots; `showAnchorBar` defaults TRUE → JS property. `heading-level`
+// sets the title's heading level (default 2; sections one below, sub-sections two). `children` is the
 // title bar's trailing content, so the slot stays on.
 defineZenElement<ObjectPageLayoutProps>({
   tag: "zen-object-page-layout",
@@ -14,6 +15,7 @@ defineZenElement<ObjectPageLayoutProps>({
     "selected-section-id": "string",
     "default-selected-section-id": "string",
     "anchor-bar-label": "string",
+    "heading-level": "number",
     sections: "json",
   },
   props: ["sections", "header", "title", "showAnchorBar"],

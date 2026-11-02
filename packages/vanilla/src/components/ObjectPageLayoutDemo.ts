@@ -179,13 +179,14 @@ const makeSections = (p: string): ObjectPageSection[] => [
   },
 ];
 
-const makeSubSections = (): ObjectPageSection[] => [
+// `prefix` keeps ids unique when the same sections appear twice on one page.
+const makeSubSections = (prefix = ""): ObjectPageSection[] => [
   {
-    id: "sub-general",
+    id: `${prefix}sub-general`,
     title: "General Information",
     subSections: [
       {
-        id: "sub-general-basic",
+        id: `${prefix}sub-general-basic`,
         title: "Basic data",
         content: Grid([
           Field("Order number", "SO-4711"),
@@ -194,7 +195,7 @@ const makeSubSections = (): ObjectPageSection[] => [
         ]),
       },
       {
-        id: "sub-general-org",
+        id: `${prefix}sub-general-org`,
         title: "Organisational data",
         content: Grid([
           Field("Sales organisation", "1000 — Germany"),
@@ -205,23 +206,23 @@ const makeSubSections = (): ObjectPageSection[] => [
     ],
   },
   {
-    id: "sub-partners",
+    id: `${prefix}sub-partners`,
     title: "Business Partners",
     subSections: [
       {
-        id: "sub-partners-sold",
+        id: `${prefix}sub-partners-sold`,
         title: "Sold-to party",
         content: Field("Customer", "Nordwind Logistik GmbH (0000102345)"),
       },
       {
-        id: "sub-partners-ship",
+        id: `${prefix}sub-partners-ship`,
         title: "Ship-to party",
         content: Field("Customer", "Nordwind Oslo Terminal (0000102377)"),
       },
     ],
   },
   {
-    id: "sub-history",
+    id: `${prefix}sub-history`,
     title: "History",
     content: (() => {
       const ol = document.createElement("ol");
@@ -411,6 +412,22 @@ const page = ObjectPageLayout({
               sections: makeSections("bare-"),
               showAnchorBar: false,
             }).el,
+          ),
+      },
+      {
+        title: "5. Heading level",
+        codeTitle: "headingLevel: 1",
+        codeDescription:
+          "When the object page IS the page, its title is the page's h1, sections are h2 and sub-sections h3, so the outline starts at the top and never skips. The default, 2, suits an object page inside a page that already has its h1.",
+        code: `ObjectPageLayout({
+  title: "SO-4711",
+  sections: SUB_SECTIONS,
+  headingLevel: 1,
+});`,
+        render: () =>
+          framed(
+            360,
+            ObjectPageLayout({ title: "SO-4711", sections: makeSubSections("level-"), headingLevel: 1 }).el,
           ),
       },
     ],
