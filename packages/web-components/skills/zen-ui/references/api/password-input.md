@@ -15,6 +15,7 @@ SKILL.md.
 
 - `showLabel?: string | undefined` — Label for the reveal toggle, announced with its pressed state.
 - `hideLabel?: string | undefined`
+- `autoHideMs?: number | undefined` — Re-mask the password this many milliseconds after it is revealed, so it cannot be left on screen in plain text. Unset (or 0) keeps it until toggled.
 - …plus the underlying element's standard props (309 inherited).
 
 ### Types

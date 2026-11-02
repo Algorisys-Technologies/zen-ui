@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.1.0] - 2026-11-02
+
 ### Added
 
 - **`ObjectPageLayout` `headingLevel`** (all four bindings; `heading-level` on

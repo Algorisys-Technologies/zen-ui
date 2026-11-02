@@ -24,4 +24,4 @@ SKILL.md.
 - `applyTheme(name: ThemeName): void`
 - `getInitialTheme(): ThemeName`
 - `THEMES: ThemeDescriptor[]`
-- `ThemeName` = `"default" | "paper" | "zen-theme" | "dark"`
+- `ThemeName` = `"default" | "paper" | "zen-theme" | "dark" | "blue"`
