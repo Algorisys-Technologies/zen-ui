@@ -92,6 +92,20 @@ export interface ObjectPageLayoutProps extends Omit<BaseProps, "title"> {
 /** h1–h6 for a level, clamped: a sub-section under an h4 title is an h6. */
 const headingTag = (level: number) => `h${Math.min(Math.max(level, 1), 6)}`;
 
+/**
+ * Scroll the content scroller to a section, and nothing else. scrollIntoView
+ * also scrolls every scrollable ancestor, and a box with overflow: hidden is
+ * still scrollable by script: in an app whose shell clips its overflow, a
+ * section jump scrolled the whole shell (header and all) off screen. The
+ * target honours the section's scroll-margin-top, as scrollIntoView did, so
+ * it still lands just under the sticky bar.
+ */
+const scrollWithin = (root: HTMLElement, el: HTMLElement, behavior: ScrollBehavior) => {
+  const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  const top = el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop - margin;
+  root.scrollTo({ top, behavior });
+};
+
 /** A jump the user asked for should not also be an animation they didn't. */
 const reducedMotion = () =>
   typeof window !== "undefined" &&
@@ -222,10 +236,7 @@ export function ObjectPageLayout(
     // stay muted forever.
     timer = window.setTimeout(release, 1000);
 
-    target.scrollIntoView({
-      block: "start",
-      behavior: animate && !reducedMotion() ? "smooth" : "auto",
-    });
+    scrollWithin(root, target, animate && !reducedMotion() ? "smooth" : "auto");
   };
 
   const tryInit = () => {

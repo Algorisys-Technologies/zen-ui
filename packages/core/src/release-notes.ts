@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.1.1",
+    date: "2026-11-02",
+    kind: "fixed",
+    title: "Jumping to a section no longer scrolls the page around an object page",
+    detail: "Clicking an anchor in ObjectPageLayout's section bar also scrolled every scrollable box around it (the page, an app shell's panels), so an app's header could slide off screen. The jump now scrolls only the layout's own content, landing the section under the bar as before. The Solid binding's leftover debug console lines are gone too.",
+  },
+  {
     version: "12.1.0",
     date: "2026-11-02",
     kind: "new",
