@@ -9,6 +9,7 @@ import {
   splitProps,
   untrack,
 } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import { cn } from "../../lib/cn";
 import { arrowStep } from "@algorisys/zen-ui-core";
 
@@ -52,7 +53,17 @@ export type ObjectPageLayoutProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "ti
   showAnchorBar?: boolean;
   /** Accessible name for the anchor bar's nav landmark. */
   anchorBarLabel?: string;
+  /**
+   * The title's heading level. Sections sit one level below it and
+   * sub-sections two below, so the outline never skips. Default 2 (h2 / h3 /
+   * h4). Pass 1 when the object page IS the page and nothing above it carries
+   * the h1.
+   */
+  headingLevel?: 1 | 2 | 3 | 4;
 };
+
+/** h1–h6 for a level, clamped: a sub-section under an h4 title is an h6. */
+const headingTag = (level: number) => `h${Math.min(Math.max(level, 1), 6)}`;
 
 /** A jump the user asked for should not also be an animation they didn't. */
 const reducedMotion = () =>
@@ -70,9 +81,11 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
     "title",
     "showAnchorBar",
     "anchorBarLabel",
+    "headingLevel",
     "class",
     "children",
   ]);
+  const level = () => local.headingLevel ?? 2;
 
   let scrollRef: HTMLDivElement | undefined;
   let barRef: HTMLElement | undefined;
@@ -328,9 +341,9 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
       <Show when={local.title || local.children}>
         <div class="zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-6 zen-py-3">
           <Show when={local.title}>
-            <h2 class="zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold">
+            <Dynamic component={headingTag(level())} class="zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold">
               {local.title}
-            </h2>
+            </Dynamic>
           </Show>
           <Show when={local.children}>
             <div class="zen-ml-auto zen-flex zen-shrink-0 zen-items-center zen-gap-2">
@@ -413,12 +426,13 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
               style={{ "scroll-margin-top": `${barHeight()}px` }}
               class="zen-border-b zen-border-zen-border zen-px-6 zen-py-5"
             >
-              <h3
+              <Dynamic
+                component={headingTag(level() + 1)}
                 id={`${s.id}-title`}
                 class="zen-m-0 zen-mb-3 zen-text-sm zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg"
               >
                 {s.title}
-              </h3>
+              </Dynamic>
               {s.content}
               <For each={s.subSections}>
                 {(sub) => (
@@ -427,9 +441,9 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
                     aria-labelledby={`${sub.id}-title`}
                     class="zen-mt-4 zen-border-t zen-border-zen-border zen-pt-4 first:zen-mt-0 first:zen-border-t-0 first:zen-pt-0"
                   >
-                    <h4 id={`${sub.id}-title`} class="zen-m-0 zen-mb-2 zen-text-sm zen-font-semibold">
+                    <Dynamic component={headingTag(level() + 2)} id={`${sub.id}-title`} class="zen-m-0 zen-mb-2 zen-text-sm zen-font-semibold">
                       {sub.title}
-                    </h4>
+                    </Dynamic>
                     {sub.content}
                   </section>
                 )}
