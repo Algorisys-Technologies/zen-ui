@@ -6,6 +6,19 @@ issue / PR when its turn comes.
 
 ---
 
+## Parity: DocumentTabs (Solid only, 2026-11-03)
+
+- [ ] **Port DocumentTabs to React, then vanilla, then web-components**, from
+      `packages/solid/src/components/document-tabs/document-tabs.tsx` (the
+      reference for behaviour: manual activation, Delete closes, middle-click
+      closes, strip-only scrolling, per-tab ResizeObserver so a font load or a
+      label change keeps the active tab in view, cleanup of refs and observers
+      per tab). Then React's shape becomes the API reference (CLAUDE.md, binding
+      parity), the demos match, the React nav.ts entry is added and
+      `bun run gen:agent-guide` and `gen:skill-api` are rerun.
+      `check:parity` stays red until all four land. Built Solid-first for
+      Algorisys One's workspace (its docs/UI-DESKTOP-PLAN.md, phase 2).
+
 ## Housekeeping / release readiness
 
 The migration on `ui-refactor` is feature-complete but hasn't been

@@ -15,6 +15,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **DocumentTabs** (Solid; the React, vanilla and web-components ports follow, see
+  todo.md — `check:parity` reports it until they land). A workspace's open
+  documents as closable, pinnable tabs, marked when they hold unsaved changes.
+  The consumer owns the panels, so a hidden document keeps its state.
+  - Keyboard: WAI-ARIA tabs with manual activation (←/→ Home/End, Enter, Delete
+    closes); middle-click closes.
+  - Overflow: the strip scrolls (only the strip, never the page) to keep the
+    active tab in view, and an all-tabs menu appears at its end.
+- **`pin` icon** (a thumbtack), used by DocumentTabs. Skill API docs regenerated:
+  every `IconName` list now includes it.
+
 ## [12.1.1] - 2026-11-02
 
 ### Fixed

@@ -98,6 +98,7 @@ import NewObjectDemo from "./components/NewObjectDemo";
 import NewButtonFamilyDemo from "./components/NewButtonFamilyDemo";
 import NewTreeDemo from "./components/NewTreeDemo";
 import NewToolbarDemo from "./components/NewToolbarDemo";
+import NewDocumentTabsDemo from "./components/NewDocumentTabsDemo";
 import NewShellBarDemo from "./components/NewShellBarDemo";
 import SkipToContentDemo from "./components/SkipToContentDemo";
 import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDemo";
@@ -229,6 +230,7 @@ render(
       <Route path="/button-family" component={NewButtonFamilyDemo} />
       <Route path="/tree" component={NewTreeDemo} />
       <Route path="/toolbar" component={NewToolbarDemo} />
+      <Route path="/document-tabs" component={NewDocumentTabsDemo} />
       <Route path="/skip-to-content" component={SkipToContentDemo} />
       <Route path="/shellbar" component={NewShellBarDemo} />
       <Route

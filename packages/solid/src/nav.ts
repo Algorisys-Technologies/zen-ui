@@ -233,6 +233,7 @@ export const NAV: NavGroup[] = [
       { label: "Icon", path: "/icon", description: "zen-ui icon set (48 glyphs); inherits text colour, decorative by default", source: "packages/solid/src/components/NewIconDemo.tsx" },
       { label: "Object atoms", path: "/object", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/solid/src/components/NewObjectDemo.tsx" },
       { label: "Button family", path: "/button-family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/solid/src/components/NewButtonFamilyDemo.tsx" },
+      { label: "Document tabs", path: "/document-tabs", description: "A workspace's open documents as closable, pinnable tabs with an all-tabs menu", source: "packages/solid/src/components/NewDocumentTabsDemo.tsx" },
       { label: "Toolbar", path: "/toolbar", description: "Actions that collapse into an overflow menu when they do not fit", source: "packages/solid/src/components/NewToolbarDemo.tsx" },
       { label: "Tree", path: "/tree", description: "Hierarchical expandable list with full ARIA keyboard navigation", source: "packages/solid/src/components/NewTreeDemo.tsx" },
     ],

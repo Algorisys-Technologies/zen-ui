@@ -45,6 +45,8 @@ export { PageHeader } from "./components/page-header/page-header";
 export type { PageHeaderProps } from "./components/page-header/page-header";
 
 export { Toolbar } from "./components/toolbar/toolbar";
+export { DocumentTabs } from "./components/document-tabs/document-tabs";
+export type { DocumentTabsProps, DocumentTab } from "./components/document-tabs/document-tabs";
 export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
 
 export { Tree } from "./components/tree/tree";
