@@ -65,7 +65,9 @@ const zenRadii = Object.keys(zenUnoTheme.borderRadius);
 const zenShadows = Object.keys(zenUnoTheme.boxShadow);
 
 const twMerge = extendTailwindMerge({
-  extend: { theme: { radius: zenRadii, shadow: zenShadows } },
+  // The density keys are spacing, so `zen-h-zen-control` and a caller's
+  // `zen-h-8` are one conflict group and the caller's wins.
+  extend: { theme: { radius: zenRadii, shadow: zenShadows, spacing: Object.keys(zenUnoTheme.spacing) } },
   experimentalParseClassName({ className, parseClassName }) {
     const parsed = parseClassName(className);
     const m = basePattern.exec(parsed.baseClassName);

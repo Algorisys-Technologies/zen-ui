@@ -749,3 +749,43 @@
 @keyframes zen-slide-out-top   { from { transform: translateY(0); } to { transform: translateY(-100%); } }
 @keyframes zen-slide-in-bottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes zen-slide-out-bottom{ from { transform: translateY(0); } to { transform: translateY(100%); } }
+
+/* ===================================================================== *
+ * Density — how much room controls, rows and sections take              *
+ *                                                                       *
+ * Comfortable is the default and is exactly the sizes the components    *
+ * always had, so nothing moves unless a page asks. Set                  *
+ * `data-density="compact"` on any element (usually <html>) and          *
+ * everything inside tightens: shorter controls and rows, less padding   *
+ * around sections and cards. Type does not shrink — compact is for      *
+ * people working all day, and they still have to read it.               *
+ *                                                                       *
+ * Unanchored like the theme selectors, so a compact panel can sit in a  *
+ * comfortable page. The compact block comes after the defaults: both    *
+ * are (0,1,0), so source order decides. Keep it last.                   *
+ * ===================================================================== */
+:root {
+  --zen-control-height: 2.5rem;          /* inputs, selects, md buttons */
+  --zen-control-padding-x: 0.75rem;
+  --zen-table-head-height: 2.5rem;
+  --zen-table-cell-padding-y: 0.75rem;
+  --zen-section-padding-x: 1.5rem;       /* object page sections */
+  --zen-section-padding-y: 1.25rem;
+  --zen-anchor-bar-height: 2.75rem;
+  --zen-bar-padding-y: 0.75rem;          /* filter bars, title bars */
+  --zen-card-padding: 1.25rem;
+  --zen-menu-item-padding-y: 0.375rem;   /* menu, select and combobox items */
+}
+
+[data-density="compact"] {
+  --zen-control-height: 2rem;
+  --zen-control-padding-x: 0.5rem;
+  --zen-table-head-height: 2rem;
+  --zen-table-cell-padding-y: 0.375rem;
+  --zen-section-padding-x: 1rem;
+  --zen-section-padding-y: 0.75rem;
+  --zen-anchor-bar-height: 2.25rem;
+  --zen-bar-padding-y: 0.5rem;
+  --zen-card-padding: 0.75rem;
+  --zen-menu-item-padding-y: 0.25rem;
+}

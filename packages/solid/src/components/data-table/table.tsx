@@ -96,7 +96,7 @@ export const TableHead = (
   return (
     <th
       class={cn(
-        "zen-h-10 zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs",
+        "zen-h-zen-head zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs",
         "zen-text-zen-muted-fg",
         local.class,
       )}
@@ -111,7 +111,7 @@ export const TableCell = (
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <td
-      class={cn("zen-px-2 zen-py-3 zen-align-middle zen-text-sm zen-text-zen-foreground", local.class)}
+      class={cn("zen-px-2 zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground", local.class)}
       {...rest}
     />
   );

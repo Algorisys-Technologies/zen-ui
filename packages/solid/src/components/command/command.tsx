@@ -665,7 +665,7 @@ export const CommandItem = (props: CommandItemProps) => {
         ctx.setValue(itemValue());
       }}
       class={cn(
-        "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-sm zen-outline-none",
+        "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-zen-menu-y zen-text-sm zen-outline-none",
         "data-[selected=true]:zen-bg-zen-muted",
         "data-[disabled=true]:zen-pointer-events-none data-[disabled=true]:zen-opacity-50",
         local.class,

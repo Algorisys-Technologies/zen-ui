@@ -28,6 +28,23 @@ export const ZEN_PREFIX = "zen-";
  * to `var(--zen-color-*)` and consumers can retheme by overriding those
  * vars.
  */
+const ZEN_DENSITY_SIZES = {
+  "zen-control": "var(--zen-control-height)",
+  "zen-head": "var(--zen-table-head-height)",
+  "zen-anchor-bar": "var(--zen-anchor-bar-height)",
+} as const;
+
+const ZEN_DENSITY_SPACING = {
+  ...ZEN_DENSITY_SIZES,
+  "zen-control-x": "var(--zen-control-padding-x)",
+  "zen-cell-y": "var(--zen-table-cell-padding-y)",
+  "zen-section-x": "var(--zen-section-padding-x)",
+  "zen-section-y": "var(--zen-section-padding-y)",
+  "zen-bar-y": "var(--zen-bar-padding-y)",
+  "zen-card": "var(--zen-card-padding)",
+  "zen-menu-y": "var(--zen-menu-item-padding-y)",
+} as const;
+
 export const zenUnoTheme = {
   colors: {
     zen: {
@@ -99,6 +116,13 @@ export const zenUnoTheme = {
     serif: "var(--zen-font-serif)",
     mono: "var(--zen-font-mono)",
   },
+  // Density keys (tokens.css "Density"): `zen-h-zen-control`,
+  // `zen-px-zen-control-x`, `zen-py-zen-cell-y`, … resolve to the density
+  // tokens, so `data-density="compact"` reaches every component that uses them.
+  // Heights read `height`/`minHeight`; padding reads `spacing`.
+  spacing: ZEN_DENSITY_SPACING,
+  height: ZEN_DENSITY_SIZES,
+  minHeight: ZEN_DENSITY_SIZES,
   fontSize: {
     xs: ["var(--zen-font-size-xs)", "var(--zen-line-height-xs)"],
     sm: ["var(--zen-font-size-sm)", "var(--zen-line-height-sm)"],

@@ -217,7 +217,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
         <KCombobox.Item
           item={itemProps.item}
           class={cn(
-            "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+            "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
             "data-[highlighted]:zen-bg-zen-muted",
             "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
           )}
@@ -234,7 +234,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
     >
       <KCombobox.Control<ComboboxOption>
         class={cn(
-          "zen-inline-flex zen-items-center zen-gap-2 zen-h-10 zen-px-3",
+          "zen-inline-flex zen-items-center zen-gap-2 zen-h-zen-control zen-px-zen-control-x",
           "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background",
           "focus-within:zen-outline-none focus-within:zen-ring-2 focus-within:zen-ring-zen-ring focus-within:zen-ring-offset-2",
         )}

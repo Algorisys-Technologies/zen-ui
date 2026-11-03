@@ -179,7 +179,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     }
     trigger.disabled = Boolean(disabled);
     trigger.className = cn(
-      "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-10 zen-px-3 zen-w-full",
+      "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-zen-control zen-px-zen-control-x zen-w-full",
       "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-sm zen-text-zen-foreground",
       "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
       "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
@@ -222,7 +222,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
       item.tabIndex = -1;
       if (o.disabled) item.setAttribute("aria-disabled", "true");
       item.className = cn(
-        "zen-relative zen-flex zen-w-full zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+        "zen-relative zen-flex zen-w-full zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
         "focus:zen-bg-zen-muted hover:zen-bg-zen-muted",
         "aria-disabled:zen-pointer-events-none aria-disabled:zen-opacity-50",
       );

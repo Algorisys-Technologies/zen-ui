@@ -31,7 +31,7 @@ export interface SearchProps
 
 const sizes: Record<SearchSize, { field: string; pad: string; icon: string }> = {
   sm: { field: "zen-h-9 zen-text-sm", pad: "zen-ps-9 zen-pe-9", icon: "zen-left-2.5" },
-  md: { field: "zen-h-10 zen-text-sm", pad: "zen-ps-10 zen-pe-10", icon: "zen-left-3" },
+  md: { field: "zen-h-zen-control zen-text-sm", pad: "zen-ps-10 zen-pe-10", icon: "zen-left-3" },
   lg: { field: "zen-h-11 zen-text-base", pad: "zen-ps-11 zen-pe-11", icon: "zen-left-3.5" },
 };
 

@@ -16,6 +16,25 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **Density: Comfortable or Compact** (core tokens; all four bindings). Set
+  `data-density="compact"` on any element, usually `<html>`, and what is inside
+  tightens: inputs, selects, comboboxes, number fields, search and md buttons go
+  from 40px to 32px; table heads and cells, menu, select and command items,
+  object-page sections and its anchor bar, filter bars and cards lose padding.
+  Type does not shrink. Comfortable is the default and is exactly the old sizes,
+  so nothing moves for a consumer who does not opt in (measured in all four demos:
+  40px comfortable, 32px compact).
+  - Tokens: `--zen-control-height`, `--zen-control-padding-x`,
+    `--zen-table-head-height`, `--zen-table-cell-padding-y`,
+    `--zen-section-padding-{x,y}`, `--zen-anchor-bar-height`,
+    `--zen-bar-padding-y`, `--zen-card-padding`, `--zen-menu-item-padding-y`
+    (tokens.css "Density", the last block, so compact wins by source order).
+  - Utilities: the Uno theme maps them as spacing and height keys
+    (`zen-h-zen-control`, `zen-px-zen-control-x`, `zen-py-zen-cell-y`, …), and
+    `cn()` knows them as spacing, so a caller's `zen-h-8` still overrides.
+  - Demo: Theme, section 5, in every binding.
+  - Sizes other than md (button xs/sm/lg/xl, search sm/lg) stay fixed: a size
+    asked for by name is kept.
 - **DocumentTabs** (Solid; the React, vanilla and web-components ports follow, see
   todo.md — `check:parity` reports it until they land). A workspace's open
   documents as closable, pinnable tabs, marked when they hold unsaved changes.

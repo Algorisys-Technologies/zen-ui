@@ -70,7 +70,7 @@ export const NumberField = (props: NumberFieldProps) => {
   return (
     <div
       class={cn(
-        "zen-inline-flex zen-h-10 zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-overflow-hidden",
+        "zen-inline-flex zen-h-zen-control zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-overflow-hidden",
         local.disabled && "zen-opacity-50 zen-cursor-not-allowed",
         local.class,
       )}

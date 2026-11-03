@@ -19,7 +19,7 @@ const cardVariants = cva("zen-rounded-zen-md zen-border zen-bg-zen-background ze
       outlined: "zen-border-zen-border",
       ghost: "zen-border-transparent",
     },
-    padding: { none: "", sm: "zen-p-3", md: "zen-p-5", lg: "zen-p-6" },
+    padding: { none: "", sm: "zen-p-3", md: "zen-p-zen-card", lg: "zen-p-6" },
   },
   defaultVariants: { variant: "outlined", padding: "none" },
 });
@@ -34,7 +34,7 @@ export const Card = styled<CardProps>({
 
 export const CardHeader = styled({
   tag: "div",
-  className: "zen-flex zen-flex-col zen-gap-1 zen-p-5 zen-pb-3",
+  className: "zen-flex zen-flex-col zen-gap-1 zen-p-zen-card zen-pb-3",
 });
 
 export const CardTitle = styled({
@@ -47,11 +47,11 @@ export const CardDescription = styled({
   className: "zen-text-sm zen-text-zen-muted-fg zen-m-0",
 });
 
-export const CardContent = styled({ tag: "div", className: "zen-p-5 zen-pt-0" });
+export const CardContent = styled({ tag: "div", className: "zen-p-zen-card zen-pt-0" });
 
 export const CardFooter = styled({
   tag: "div",
-  className: "zen-flex zen-items-center zen-gap-2 zen-p-5 zen-pt-3 zen-border-t zen-border-zen-border",
+  className: "zen-flex zen-items-center zen-gap-2 zen-p-zen-card zen-pt-3 zen-border-t zen-border-zen-border",
 });
 
 export { cardVariants };

@@ -393,7 +393,7 @@ export function ObjectPageLayout(
     if (hasTitle || hasChildren) {
       const titleBar = document.createElement("div");
       titleBar.className =
-        "zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-6 zen-py-3";
+        "zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-zen-bar-y";
       if (hasTitle) {
         const heading = document.createElement(headingTag(headingLevel));
         heading.className = "zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold";
@@ -415,7 +415,7 @@ export function ObjectPageLayout(
 
     if (header !== undefined && header !== null && header !== false) {
       const headerBox = document.createElement("div");
-      headerBox.className = "zen-border-b zen-border-zen-border zen-px-6 zen-py-4";
+      headerBox.className = "zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-4";
       headerBox.replaceChildren(...toNodes(header as Child));
       scroller.append(headerBox);
     }
@@ -424,7 +424,7 @@ export function ObjectPageLayout(
       const nav = document.createElement("nav");
       nav.setAttribute("aria-label", anchorBarLabel);
       nav.className =
-        "zen-sticky zen-top-0 zen-z-10 zen-flex zen-h-11 zen-items-stretch zen-gap-1 zen-overflow-x-auto zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-4";
+        "zen-sticky zen-top-0 zen-z-10 zen-flex zen-h-zen-anchor-bar zen-items-stretch zen-gap-1 zen-overflow-x-auto zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-4";
 
       sections.forEach((s, i) => {
         const btn = document.createElement("button");
@@ -462,7 +462,7 @@ export function ObjectPageLayout(
       section.id = s.id;
       section.dataset.sectionId = s.id;
       section.setAttribute("aria-labelledby", `${s.id}-title`);
-      section.className = "zen-border-b zen-border-zen-border zen-px-6 zen-py-5";
+      section.className = "zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-zen-section-y";
 
       const sectionHeading = document.createElement(headingTag(headingLevel + 1));
       sectionHeading.id = `${s.id}-title`;

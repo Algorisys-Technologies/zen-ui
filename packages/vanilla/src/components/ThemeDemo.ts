@@ -2,6 +2,7 @@ import { Theme } from "./theme/theme";
 import { Card, CardContent, CardHeader, CardTitle } from "./card/card";
 import { Button } from "./button/button";
 import { Badge } from "./badge/badge";
+import { Input } from "./form/input/input";
 import { DemoPage } from "./demo-helpers";
 
 /** A column of gapped children. */
@@ -51,6 +52,18 @@ function sample(label: string): HTMLElement {
       CardContent({ children: [note, actions] }),
     ],
   }).el;
+}
+
+/** Comfortable or compact: an input, a default button and a card. */
+function densitySample(label: string): HTMLElement {
+  const title = document.createElement("p");
+  title.className = "zen-m-0 zen-text-sm zen-font-semibold";
+  title.textContent = label;
+  const row = document.createElement("div");
+  row.style.display = "flex";
+  row.style.gap = "0.5rem";
+  row.append(Input({ placeholder: "Customer" }).el, Button({ children: "Save" }).el);
+  return column(false, title, row, sample("A card"));
 }
 
 export default function ThemeDemo(): HTMLElement {
@@ -127,6 +140,20 @@ Theme({ name: "dark", transparent: true, children: [Card({ … }), Card({ … })
           note.textContent =
             "This panel is dark. Anything it appends to <body> — a dialog, a popover, a tooltip — is not.";
           return [Theme({ name: "dark", children: column(true, note) }).el];
+        },
+      },
+      {
+        title: "5. Density",
+        codeTitle: "Comfortable, or compact for people working all day",
+        codeDescription: `Comfortable is the default and is the size every component always had. Set data-density="compact" on any element (usually <html>) and what is inside tightens: inputs, selects and md buttons drop from 40px to 32px, table rows, menu items, cards and object-page sections lose padding. Type does not shrink. Like a theme it is a block of custom properties (tokens.css, "Density"), so it scopes to a subtree and needs no JavaScript; menus and popovers portalled to <body> follow the density on <html>.`,
+        code: `<html data-density="compact">  <!-- or any element: a compact panel -->`,
+        render: () => {
+          const compact = document.createElement("div");
+          compact.dataset.density = "compact";
+          compact.append(densitySample("compact"));
+          const g = grid("1fr 1fr", densitySample("comfortable"), compact);
+          g.style.gap = "1.5rem";
+          return [g];
         },
       },
     ],

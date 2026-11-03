@@ -357,7 +357,7 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
   // --- painters -------------------------------------------------------------
   const paintHeader = () => {
     root.className = cn(
-      "zen-flex zen-flex-col zen-gap-3 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-4 zen-py-3",
+      "zen-flex zen-flex-col zen-gap-zen-bar-y zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-4 zen-py-zen-bar-y",
       current.class,
     );
 

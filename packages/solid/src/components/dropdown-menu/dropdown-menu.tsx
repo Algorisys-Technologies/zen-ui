@@ -185,7 +185,7 @@ export const DropdownMenuSubTrigger = (props: DropdownMenuSubTriggerProps) => {
     <KDropdown.SubTrigger
       {...rest}
       class={cn(
-        "zen-flex zen-cursor-default zen-items-center zen-gap-2 zen-select-none zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-sm zen-outline-none",
+        "zen-flex zen-cursor-default zen-items-center zen-gap-2 zen-select-none zen-rounded-zen-sm zen-px-2 zen-py-zen-menu-y zen-text-sm zen-outline-none",
         "data-[expanded]:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted",
         local.inset && "zen-pl-8",
         local.class,
@@ -251,7 +251,7 @@ export const DropdownMenuItem = (props: DropdownMenuItemProps) => {
       disabled={local.disabled}
       onSelect={local.onSelect}
       class={cn(
-        "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-sm zen-outline-none",
+        "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-zen-menu-y zen-text-sm zen-outline-none",
         "data-[highlighted]:zen-bg-zen-muted",
         "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
         local.variant === "destructive" &&
@@ -289,7 +289,7 @@ export const DropdownMenuCheckboxItem = (props: DropdownMenuCheckboxItemProps) =
       onChange={local.onChange}
       disabled={local.disabled}
       class={cn(
-        "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+        "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
         "data-[highlighted]:zen-bg-zen-muted",
         "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
         local.class,
@@ -325,7 +325,7 @@ export const DropdownMenuRadioItem = (props: DropdownMenuRadioItemProps) => {
       value={local.value}
       disabled={local.disabled}
       class={cn(
-        "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+        "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
         "data-[highlighted]:zen-bg-zen-muted",
         "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
         local.class,

@@ -3,6 +3,7 @@ import { Theme } from "./theme/theme";
 import { Card, CardContent, CardHeader, CardTitle } from "./card/card";
 import { Button } from "./button/button";
 import { Badge } from "./badge/badge";
+import { Input } from "./form/input/input";
 import { DemoPage, DemoSection } from "./demo-helpers";
 
 const PANEL: JSX.CSSProperties = {
@@ -26,6 +27,17 @@ const Sample = (props: { label: string }) => (
       </div>
     </CardContent>
   </Card>
+);
+
+const DensitySample = (props: { label: string }) => (
+  <div style={PANEL}>
+    <p class="zen-m-0 zen-text-sm zen-font-semibold">{props.label}</p>
+    <div style={{ display: "flex", gap: "8px" }}>
+      <Input placeholder="Customer" />
+      <Button>Save</Button>
+    </div>
+    <Sample label="A card" />
+  </div>
 );
 
 const NewThemeDemo = () => (
@@ -123,6 +135,20 @@ const NewThemeDemo = () => (
           </p>
         </div>
       </Theme>
+    </DemoSection>
+
+    <DemoSection
+      title="5. Density"
+      codeTitle="Comfortable, or compact for people working all day"
+      codeDescription={`Comfortable is the default and is the size every component always had. Set data-density="compact" on any element (usually <html>) and what is inside tightens: inputs, selects and md buttons drop from 40px to 32px, table rows, menu items, cards and object-page sections lose padding. Type does not shrink. Like a theme it is a block of custom properties (tokens.css, "Density"), so it scopes to a subtree and needs no JavaScript; menus and popovers portalled to <body> follow the density on <html>.`}
+      code={`<html data-density="compact">  <!-- or any element: a compact panel -->`}
+    >
+      <div class="zen-grid zen-grid-cols-1 zen-gap-6 sm:zen-grid-cols-2">
+        <DensitySample label="comfortable" />
+        <div data-density="compact">
+          <DensitySample label="compact" />
+        </div>
+      </div>
     </DemoSection>
   </DemoPage>
 );

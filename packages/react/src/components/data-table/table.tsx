@@ -110,7 +110,7 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       // Zen theme header: 8px padding, Paragraph XSmall Medium, Neutral/200 (muted-fg)
-      "zen-h-10 zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs",
+      "zen-h-zen-head zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs",
       "zen-text-zen-muted-fg",
       className,
     )}
@@ -127,7 +127,7 @@ const TableCell = React.forwardRef<
     ref={ref}
     className={cn(
       // Zen theme cell: 8px horizontal, 12px vertical
-      "zen-px-2 zen-py-3 zen-align-middle zen-text-sm zen-text-zen-foreground",
+      "zen-px-2 zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground",
       className,
     )}
     {...props}

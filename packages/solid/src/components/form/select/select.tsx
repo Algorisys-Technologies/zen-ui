@@ -87,7 +87,7 @@ export const Select = (props: SelectProps) => {
         <KSelect.Item
           item={itemProps.item}
           class={cn(
-            "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+            "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
             "data-[highlighted]:zen-bg-zen-muted",
             "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
           )}
@@ -111,7 +111,7 @@ export const Select = (props: SelectProps) => {
       <KSelect.Trigger
         id={local.id}
         class={cn(
-          "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-10 zen-px-3 zen-w-full",
+          "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-zen-control zen-px-zen-control-x zen-w-full",
           "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-sm zen-text-zen-foreground",
           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
           "data-[disabled]:zen-cursor-not-allowed data-[disabled]:zen-opacity-50",

@@ -388,7 +388,7 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
         {/* `children` are the title bar's trailing content — actions, a status.
             They are not sections, and they do not scroll away. */}
         {title || children ? (
-          <div className="zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-6 zen-py-3">
+          <div className="zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-zen-bar-y">
             {title ? (
               <TitleTag className="zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold">
                 {title}
@@ -404,14 +404,14 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
 
         <div ref={scrollRef} className="zen-min-h-0 zen-flex-1 zen-overflow-y-auto">
           {header ? (
-            <div className="zen-border-b zen-border-zen-border zen-px-6 zen-py-4">{header}</div>
+            <div className="zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-4">{header}</div>
           ) : null}
 
           {showAnchorBar ? (
             <nav
               ref={barRef}
               aria-label={anchorBarLabel}
-              className="zen-sticky zen-top-0 zen-z-10 zen-flex zen-h-11 zen-items-stretch zen-gap-1 zen-overflow-x-auto zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-4"
+              className="zen-sticky zen-top-0 zen-z-10 zen-flex zen-h-zen-anchor-bar zen-items-stretch zen-gap-1 zen-overflow-x-auto zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-4"
             >
               {sections.map((s, i) => {
                 const isActive = activeId === s.id;
@@ -464,7 +464,7 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
               // otherwise scroll underneath. Inline because the bar is measured,
               // not fixed by a class.
               style={{ scrollMarginTop: barHeight }}
-              className="zen-border-b zen-border-zen-border zen-px-6 zen-py-5"
+              className="zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-zen-section-y"
             >
               <SectionTag
                 id={`${s.id}-title`}

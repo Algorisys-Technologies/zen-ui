@@ -35,7 +35,7 @@ export interface NumberFieldProps {
 }
 
 const WRAPPER_CLASS =
-  "zen-inline-flex zen-h-10 zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-overflow-hidden";
+  "zen-inline-flex zen-h-zen-control zen-items-stretch zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-overflow-hidden";
 
 const BUTTON_CLASS = [
   "zen-px-3 zen-text-base zen-text-zen-foreground zen-bg-transparent",

@@ -46,7 +46,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           type={visible ? "text" : "password"}
           disabled={disabled}
           className={cn(
-            "zen-flex zen-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-ps-3 zen-pe-10 zen-py-2 zen-text-sm",
+            "zen-flex zen-h-zen-control zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-ps-zen-control-x zen-pe-10 zen-py-2 zen-text-sm",
             "placeholder:zen-text-zen-muted-fg",
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
             "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",

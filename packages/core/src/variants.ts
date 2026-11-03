@@ -104,7 +104,7 @@ export const buttonVariants = cva(
       size: {
         xs: "zen-h-7 zen-px-2 zen-text-xs zen-rounded-zen-sm",
         sm: "zen-h-8 zen-px-3 zen-text-sm zen-rounded-zen-sm",
-        md: "zen-h-10 zen-px-4 zen-text-sm zen-rounded-zen-md",
+        md: "zen-h-zen-control zen-px-4 zen-text-sm zen-rounded-zen-md",
         lg: "zen-h-11 zen-px-6 zen-text-base zen-rounded-zen-md",
         xl: "zen-h-12 zen-px-8 zen-text-base zen-rounded-zen-lg",
       },
@@ -121,7 +121,7 @@ export const buttonVariants = cva(
       // the two sat inconsistent until the RTL audit, so the label alignment
       // did not flip with the direction while the flex alignment did.
       multiline: {
-        true: "!zen-whitespace-normal !zen-h-auto zen-min-h-10 !zen-items-start !zen-justify-start zen-text-start zen-py-2",
+        true: "!zen-whitespace-normal !zen-h-auto zen-min-h-zen-control !zen-items-start !zen-justify-start zen-text-start zen-py-2",
         false: "",
       },
     },

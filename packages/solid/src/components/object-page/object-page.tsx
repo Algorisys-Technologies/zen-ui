@@ -345,7 +345,7 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
       {/* `children` are the title bar's trailing content — actions, a status.
           They are not sections, and they do not scroll away. */}
       <Show when={local.title || local.children}>
-        <div class="zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-6 zen-py-3">
+        <div class="zen-flex zen-shrink-0 zen-items-center zen-gap-3 zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-zen-bar-y">
           <Show when={local.title}>
             <Dynamic component={headingTag(level())} class="zen-m-0 zen-min-w-0 zen-truncate zen-text-base zen-font-semibold">
               {local.title}
@@ -361,7 +361,7 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
 
       <div ref={scrollRef} class="zen-min-h-0 zen-flex-1 zen-overflow-y-auto">
         <Show when={local.header}>
-          <div class="zen-border-b zen-border-zen-border zen-px-6 zen-py-4">{local.header}</div>
+          <div class="zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-4">{local.header}</div>
         </Show>
 
         <Show when={showAnchorBar()}>
@@ -373,7 +373,7 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
               });
             }}
             aria-label={local.anchorBarLabel ?? "Object page sections"}
-            class="zen-sticky zen-top-0 zen-z-10 zen-flex zen-h-11 zen-items-stretch zen-gap-1 zen-overflow-x-auto zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-4"
+            class="zen-sticky zen-top-0 zen-z-10 zen-flex zen-h-zen-anchor-bar zen-items-stretch zen-gap-1 zen-overflow-x-auto zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-4"
           >
             <For each={local.sections}>
               {(s, i) => {
@@ -430,7 +430,7 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
               // otherwise scroll underneath. Inline because the bar is measured,
               // not fixed by a class.
               style={{ "scroll-margin-top": `${barHeight()}px` }}
-              class="zen-border-b zen-border-zen-border zen-px-6 zen-py-5"
+              class="zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-zen-section-y"
             >
               <Dynamic
                 component={headingTag(level() + 1)}

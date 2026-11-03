@@ -159,16 +159,16 @@ const CONTENT_CLASS =
   "zen-z-50 zen-min-w-32 zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md zen-outline-none data-[state=open]:zen-anim-fade-in data-[state=closed]:zen-anim-fade-out";
 
 const ITEM_CLASS =
-  "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-sm zen-outline-none focus:zen-bg-zen-muted hover:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted aria-disabled:zen-pointer-events-none aria-disabled:zen-opacity-50";
+  "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-zen-menu-y zen-text-sm zen-outline-none focus:zen-bg-zen-muted hover:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted aria-disabled:zen-pointer-events-none aria-disabled:zen-opacity-50";
 
 const ITEM_DESTRUCTIVE =
   "zen-text-zen-error focus:zen-bg-zen-error-soft focus:zen-text-zen-error-soft-fg hover:zen-bg-zen-error-soft hover:zen-text-zen-error-soft-fg data-[highlighted]:zen-bg-zen-error-soft data-[highlighted]:zen-text-zen-error-soft-fg";
 
 const CHECK_ITEM_CLASS =
-  "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none focus:zen-bg-zen-muted hover:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted aria-disabled:zen-pointer-events-none aria-disabled:zen-opacity-50";
+  "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none focus:zen-bg-zen-muted hover:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted aria-disabled:zen-pointer-events-none aria-disabled:zen-opacity-50";
 
 const SUB_TRIGGER_CLASS =
-  "zen-flex zen-cursor-default zen-items-center zen-gap-2 zen-select-none zen-rounded-zen-sm zen-px-2 zen-py-1.5 zen-text-sm zen-outline-none focus:zen-bg-zen-muted hover:zen-bg-zen-muted data-[state=open]:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted";
+  "zen-flex zen-cursor-default zen-items-center zen-gap-2 zen-select-none zen-rounded-zen-sm zen-px-2 zen-py-zen-menu-y zen-text-sm zen-outline-none focus:zen-bg-zen-muted hover:zen-bg-zen-muted data-[state=open]:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted";
 
 const LABEL_CLASS = "zen-px-2 zen-py-1.5 zen-text-xs zen-font-semibold zen-text-zen-muted-fg";
 const SEPARATOR_CLASS = "-zen-mx-1 zen-my-1 zen-h-px zen-bg-zen-border";
