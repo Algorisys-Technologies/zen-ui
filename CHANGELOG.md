@@ -27,6 +27,16 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **`pin` icon** (a thumbtack), used by DocumentTabs. Skill API docs regenerated:
   every `IconName` list now includes it.
 
+- **DataTable keyboard rows** (Solid; the other bindings follow, see todo.md):
+  `enableKeyboardNavigation` gives the table one tab stop and moves focus a row
+  at a time (↑/↓, PageUp/PageDown, Home/End); `onRowActivate(row, event)` runs
+  on Enter, with the modifiers, so Ctrl+Enter can mean "elsewhere"; with
+  `enableRowSelection`, Space toggles a row and Ctrl/Cmd+A the page. Keys with
+  Alt, and anything typed in a field inside a row, are left alone. `rowLabel`
+  names each row for a screen reader. The plain body only for now. The key
+  logic is in core (`@algorisys/zen-ui-core/row-keys`) with
+  `check:row-keys`, 2,724 assertions.
+
 ### Fixed
 - **FlexibleColumnLayout left a blank gap when a layout named a column the
   caller did not fill.** A three-column layout with no start column drew mid

@@ -19,6 +19,17 @@ issue / PR when its turn comes.
       `check:parity` stays red until all four land. Built Solid-first for
       Algorisys One's workspace (its docs/UI-DESKTOP-PLAN.md, phase 2).
 
+## Parity: DataTable keyboard rows (Solid only, 2026-11-03)
+
+- [ ] **Port `enableKeyboardNavigation` / `onRowActivate` / `rowLabel` to React,
+      then vanilla, then web-components**, from the Solid DataTable's plain
+      body (`BodyTable`): roving tabindex on rows, the index clamped as rows
+      change, keys from `@algorisys/zen-ui-core/row-keys` (`rowKeyTarget`,
+      `ownsArrowKeys`), Alt left alone, Enter/Space/Ctrl+A on the row itself
+      only, the focus-visible outline. Add the "5b. Keyboard rows" demo
+      section to each. Then extend all four to the virtualized and
+      row-ordering bodies, which ignore the flag today.
+
 ## Housekeeping / release readiness
 
 The migration on `ui-refactor` is feature-complete but hasn't been

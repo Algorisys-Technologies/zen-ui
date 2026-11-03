@@ -5,6 +5,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  onCleanup,
   onMount,
   splitProps,
 } from "solid-js";
@@ -45,6 +46,7 @@ import {
   type DragEvent,
 } from "@thisbeyond/solid-dnd";
 
+import { ownsArrowKeys, rowKeyTarget } from "@algorisys/zen-ui-core/row-keys";
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Checkbox } from "../form/checkbox/checkbox";
@@ -133,6 +135,23 @@ export interface DataTableProps<TData, TValue = unknown> {
   }) => JSX.Element;
 
   onCellEdit?: (payload: CellEditPayload) => void;
+
+  /**
+   * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
+   * Home/End and PageUp/PageDown move between rows (the key logic is
+   * @algorisys/zen-ui-core/row-keys); Enter calls `onRowActivate`; with
+   * `enableRowSelection`, Space toggles the row and Ctrl/Cmd+A every row on
+   * the page. Keys with Alt are left alone (an app's own shortcuts), and so is
+   * anything typed in a field, select or combobox inside a row.
+   *
+   * The plain body only, for now: a virtualized or row-ordering table ignores
+   * it.
+   */
+  enableKeyboardNavigation?: boolean;
+  /** Enter on a focused row. The event carries its modifiers, so Ctrl+Enter can mean something else. */
+  onRowActivate?: (row: Row<TData>, event: KeyboardEvent) => void;
+  /** A row's accessible name, read as focus moves onto it. */
+  rowLabel?: (row: Row<TData>) => string;
 
   stickyHeader?: boolean;
   enableColumnPinning?: boolean;
@@ -233,6 +252,9 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "enablePagination",
     "enableColumnFilters",
     "enableRowSelection",
+    "enableKeyboardNavigation",
+    "onRowActivate",
+    "rowLabel",
     "enableColumnVisibility",
     "enableVirtualization",
     "enableColumnSeparators",
@@ -821,6 +843,10 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
                   renderCell={renderCellContent}
                   expansionEnabled={expansionEnabled()}
                   renderSubRow={props.renderSubRow}
+                  keyboard={!!props.enableKeyboardNavigation}
+                  selectable={!!props.enableRowSelection}
+                  onRowActivate={props.onRowActivate}
+                  rowLabel={props.rowLabel}
                 />
               }
             >
@@ -1370,11 +1396,48 @@ interface BodyTableProps<TData> {
   expansionEnabled: boolean;
   renderSubRow?: (row: Row<TData>) => JSX.Element;
   rowOrderingActive?: boolean;
+  keyboard?: boolean;
+  selectable?: boolean;
+  onRowActivate?: (row: Row<TData>, event: KeyboardEvent) => void;
+  rowLabel?: (row: Row<TData>) => string;
 }
 
 function BodyTable<TData>(props: BodyTableProps<TData>) {
   const rows = () => props.table.getRowModel().rows;
   const colCount = () => props.table.getAllLeafColumns().length;
+
+  // Keyboard rows: a roving tabindex, so the table is one tab stop and the
+  // arrows move within it. The index is clamped when the rows change under
+  // it (a new page, a filter), so there is always exactly one tab stop.
+  const [focusIndex, setFocusIndex] = createSignal(0);
+  const tabStop = () => Math.min(focusIndex(), Math.max(rows().length - 1, 0));
+  const rowRefs = new Map<string, HTMLTableRowElement>();
+  const onRowKeyDown = (e: KeyboardEvent, row: Row<TData>, index: number) => {
+    if (e.altKey || ownsArrowKeys(e.target)) return;
+    const onRow = e.target === e.currentTarget;
+    const to = rowKeyTarget(e.key, index, rows().length);
+    if (to !== null) {
+      e.preventDefault();
+      const next = rows()[to];
+      if (!next) return;
+      setFocusIndex(to);
+      rowRefs.get(next.id)?.focus();
+      return;
+    }
+    // The rest act on the row itself: on a link or a button inside it, Enter
+    // and Space are that control's.
+    if (!onRow) return;
+    if (e.key === "Enter" && props.onRowActivate) {
+      e.preventDefault();
+      props.onRowActivate(row, e);
+    } else if (e.key === " " && props.selectable && row.getCanSelect()) {
+      e.preventDefault();
+      row.toggleSelected();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a" && props.selectable) {
+      e.preventDefault();
+      props.table.toggleAllPageRowsSelected(!props.table.getIsAllPageRowsSelected());
+    }
+  };
 
   // HeaderRows is rendered as a sub-component (not a pre-evaluated JSX
   // expression) so its child HeaderCell → SortableHeaderTh → createSortable()
@@ -1475,16 +1538,28 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
           }
         >
           <For each={rows()}>
-            {(row) => (
+            {(row, index) => (
               <Show
                 when={props.rowOrderingActive}
                 fallback={
                   <>
                     <TableRow
+                      ref={(el: HTMLTableRowElement) => {
+                        if (!props.keyboard) return;
+                        rowRefs.set(row.id, el);
+                        onCleanup(() => { if (rowRefs.get(row.id) === el) rowRefs.delete(row.id); });
+                      }}
+                      tabIndex={props.keyboard ? (index() === tabStop() ? 0 : -1) : undefined}
+                      aria-label={props.keyboard ? props.rowLabel?.(row) : undefined}
+                      aria-selected={props.keyboard && props.selectable ? (row.getIsSelected() ? "true" : "false") : undefined}
+                      onKeyDown={props.keyboard ? (e: KeyboardEvent) => onRowKeyDown(e, row, index()) : undefined}
+                      onFocusIn={props.keyboard ? () => setFocusIndex(index()) : undefined}
                       data-state={row.getIsSelected() ? "selected" : undefined}
                       data-grouped={row.getIsGrouped() ? "true" : undefined}
                       class={cn(
                         row.getIsGrouped() && "zen-bg-zen-muted/40 zen-font-medium",
+                        props.keyboard &&
+                          "focus-visible:zen-outline focus-visible:zen-outline-2 focus-visible:-zen-outline-offset-2 focus-visible:zen-outline-zen-ring",
                         props.rowClassName?.(row),
                       )}
                     >

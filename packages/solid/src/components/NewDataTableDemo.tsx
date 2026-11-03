@@ -208,6 +208,7 @@ const NewDataTableDemo = () => {
   };
 
   const [editRows, setEditRows] = createSignal<Person[]>(makePeople(8));
+  const [activated, setActivated] = createSignal("");
 
   return (
     <div class="zen-space-y-8">
@@ -317,6 +318,34 @@ const NewDataTableDemo = () => {
             enableRowSelection
             enablePagination
           />
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">5b. Keyboard rows</h2>
+        <CodeExample
+          title="enableKeyboardNavigation + onRowActivate"
+          description="Tab into the table once, then ↑/↓, Home/End and PageUp/PageDown move between rows. Enter opens the row (Ctrl+Enter reports the modifier); Space selects it and Ctrl+A selects the page."
+          code={`<DataTable
+  data={small}
+  columns={columns}
+  enableRowSelection
+  enableKeyboardNavigation
+  onRowActivate={(row, e) => open(row.original, { newTab: e.ctrlKey || e.metaKey })}
+  rowLabel={(row) => row.original.name}
+/>`}
+        >
+          <DataTable
+            data={SMALL}
+            columns={columns}
+            enableRowSelection
+            enableKeyboardNavigation
+            onRowActivate={(row, e) => setActivated(`${row.original.name}${e.ctrlKey || e.metaKey ? " (Ctrl+Enter)" : ""}`)}
+            rowLabel={(row) => row.original.name}
+          />
+          <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            Opened: <span data-testid="kb-activated">{activated() || "nothing yet"}</span>
+          </p>
         </CodeExample>
       </section>
 
