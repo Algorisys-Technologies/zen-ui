@@ -23,6 +23,8 @@ import { cn } from "../../../lib/cn";
  * SelectGroup, SelectItemPrimitive, etc. (advanced users).
  */
 
+const EMPTY_OPTION_KEY = "\u0000zen-empty";
+
 export interface SelectOption {
   value: string;
   label: string;
@@ -67,7 +69,10 @@ export const Select = (props: SelectProps) => {
     <KSelect<SelectOption>
       {...rest}
       options={local.options}
-      optionValue="value"
+      // Kobalte keys options by value, and an empty key is dropped: a "" option
+      // ("All", "None") rendered blank and could not be re-selected. It is keyed
+      // by a private sentinel instead; callers still see "".
+      optionValue={(o) => (o.value === "" ? EMPTY_OPTION_KEY : o.value)}
       optionTextValue="label"
       optionDisabled="disabled"
       value={local.options.find((o) => o.value === local.value) ?? null}
