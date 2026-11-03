@@ -29,6 +29,7 @@
     "./document": "./src/document.ts",
     "./sortable": "./src/sortable.ts",
     "./splitter": "./src/splitter.ts",
+    "./flexible-column-layout": "./src/flexible-column-layout.ts",
     "./countdown": "./src/countdown.ts",
     "./chunk-upload": "./src/chunk-upload.ts",
     "./spreadsheet": "./src/spreadsheet.ts",

@@ -27,6 +27,27 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **`pin` icon** (a thumbtack), used by DocumentTabs. Skill API docs regenerated:
   every `IconName` list now includes it.
 
+### Fixed
+- **FlexibleColumnLayout left a blank gap when a layout named a column the
+  caller did not fill.** A three-column layout with no start column drew mid
+  and end at three quarters of the width and left the last quarter empty; the
+  doc comment already promised an absent column "must not reserve room". The
+  present columns now share the whole row in their layout's proportions
+  (ThreeColumnsMidExpanded without start: mid 2/3, end 1/3). It matters to a
+  consumer that keeps the detail in `mid` so that showing or hiding the list
+  never remounts it. Every binding; layouts with all their columns filled
+  render exactly as before.
+
+### Changed
+- **FlexibleColumnLayout's arithmetic moved to core**
+  (`@algorisys/zen-ui-core/flexible-column-layout`): the tiers, the ratio
+  tables and the re-spreading were three identical copies, one per binding.
+  The bindings keep the `zen-basis-*` classes, mapped from a share token, since
+  UnoCSS generates only the classes in each binding's own source. New
+  `check:flexible-column-layout` (part of `bun run check`): 254 assertions,
+  including that the rendered shares fill the row for every layout, tier and
+  combination of present columns.
+
 ## [12.1.1] - 2026-11-02
 
 ### Fixed
