@@ -77,6 +77,7 @@ export {
   inferDocumentKind, isCellError, isKeyed, keyToReorderAction, mirrorDelta, moveItem,
   nextAttemptDelay, normalizeRotation, normalizeSizes, parseRef, parseSnapshot, planChunks,
   reduceReorder, remainingMs, shouldRetry, splitterKeyDelta, uploadProgress, zoomStep,
+  ROW_PAGE_STEP, cellKeyTarget, ownsArrowKeys, rowKeyTarget,
 } from "@algorisys/zen-ui-vanilla";
 
 export type {
@@ -159,6 +160,7 @@ export type {
   ReorderAnnouncements, ReorderIntent, ReorderOrientation, ReorderResult, SheetCalculatorProps,
   SortableItemSpec, SortableListProps, SplitterOrientation, SplitterPanelConstraint,
   SplitterPanelSpec, SplitterProps, SpreadsheetGridProps, TestCountdownBarProps, TimerBadgeProps,
+  GridCell,
 } from "@algorisys/zen-ui-vanilla";
 
 // The custom-element layer's own surface.

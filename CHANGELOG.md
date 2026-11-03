@@ -37,6 +37,13 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   logic is in core (`@algorisys/zen-ui-core/row-keys`) with
   `check:row-keys`, 2,724 assertions.
 
+- **`cellKeyTarget`** (core `row-keys`, re-exported by every binding with
+  `rowKeyTarget`, `ownsArrowKeys`, `ROW_PAGE_STEP` and the `GridCell` type):
+  the cell a key moves to in an editable grid, as in a spreadsheet. Arrows move
+  one cell, Home/End go to the row's ends, and Ctrl+Home/End to the grid's.
+  Movement stops at the edges. `check:row-keys` covers it (15,937 assertions in
+  all).
+
 ### Fixed
 - **FlexibleColumnLayout left a blank gap when a layout named a column the
   caller did not fill.** A three-column layout with no start column drew mid

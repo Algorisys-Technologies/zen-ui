@@ -46,3 +46,32 @@ export function ownsArrowKeys(target: EventTarget | null): boolean {
   const role = el.getAttribute?.("role");
   return role === "combobox" || role === "listbox" || role === "slider" || role === "spinbutton" || role === "menu";
 }
+
+/** A cell of a grid, by row and column index. */
+export interface GridCell { row: number; col: number }
+
+/**
+ * The cell `key` moves focus to in a grid of `rows` × `cols`, from `at`, or
+ * null when the key is not a movement key. As in a spreadsheet: arrows move
+ * one cell; Home and End go to the row's first and last cell; with Ctrl (or
+ * Cmd), Home and End go to the grid's first and last cell. Movement stops at
+ * the edges; it does not wrap to the next row (Tab does that, natively).
+ */
+export function cellKeyTarget(
+  key: string, at: GridCell, rows: number, cols: number, ctrl = false,
+): GridCell | null {
+  if (rows <= 0 || cols <= 0) return null;
+  const row = Math.min(Math.max(at.row, 0), rows - 1);
+  const col = Math.min(Math.max(at.col, 0), cols - 1);
+  switch (key) {
+    case "ArrowDown": return { row: Math.min(row + 1, rows - 1), col };
+    case "ArrowUp": return { row: Math.max(row - 1, 0), col };
+    case "ArrowRight": return { row, col: Math.min(col + 1, cols - 1) };
+    case "ArrowLeft": return { row, col: Math.max(col - 1, 0) };
+    case "Home": return ctrl ? { row: 0, col: 0 } : { row, col: 0 };
+    case "End": return ctrl ? { row: rows - 1, col: cols - 1 } : { row, col: cols - 1 };
+    case "PageDown": return { row: Math.min(row + ROW_PAGE_STEP, rows - 1), col };
+    case "PageUp": return { row: Math.max(row - ROW_PAGE_STEP, 0), col };
+    default: return null;
+  }
+}

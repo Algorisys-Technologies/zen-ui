@@ -919,6 +919,11 @@ export {
 } from "@algorisys/zen-ui-core/splitter";
 export type { SplitterPanelConstraint } from "@algorisys/zen-ui-core/splitter";
 
+// Keyboard movement through rows and grid cells (DataTable's keyboard rows;
+// any editable grid a consumer builds). Pure; shared by every binding.
+export { rowKeyTarget, cellKeyTarget, ownsArrowKeys, ROW_PAGE_STEP } from "@algorisys/zen-ui-core/row-keys";
+export type { GridCell } from "@algorisys/zen-ui-core/row-keys";
+
 export { DocumentViewer } from "./components/document-viewer/document-viewer";
 export type { DocumentViewerProps } from "./components/document-viewer/document-viewer";
 export {
