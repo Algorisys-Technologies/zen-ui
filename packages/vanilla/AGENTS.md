@@ -112,6 +112,7 @@ description, then import the name from your binding's package.
 - **Lazy options** — VirtualizedItems — drop-in windowing for huge option lists inside Combobox / Select
 - **Combobox + Async** — cmdk-backed; sync `options` or async `onSearch` with debounced loading
 - **TreeSelect** — Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors
+- **LookupField** — Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search
 - **Alert** — Inline semantic callout; compound Icon / Title / Description / Actions API
 - **Dialog + AlertDialog** — Radix Dialog modal surface, plus AlertDialog for destructive confirmations
 - **Shortcuts** — Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform
