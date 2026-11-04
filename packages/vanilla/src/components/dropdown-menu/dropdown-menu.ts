@@ -90,6 +90,12 @@ export interface DropdownMenuCheckboxItemSpec {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   disabled?: boolean;
+  /**
+   * Default true. False keeps the menu open and toggles the row in place: a
+   * scope picked before an action in the same menu (React's CheckboxItem with
+   * `onSelect={(e) => e.preventDefault()}`).
+   */
+  closeOnSelect?: boolean;
 }
 
 export interface DropdownMenuRadioOption {
@@ -358,9 +364,17 @@ export function DropdownMenu(props: DropdownMenuProps): DropdownMenuHandle {
       item.append(indicator);
       item.append(...toNodes(s.label));
       if (!s.disabled) {
+        let checked = Boolean(s.checked);
         const select = () => {
-          s.onCheckedChange?.(!s.checked);
-          closeAll();
+          s.onCheckedChange?.(!checked);
+          if (s.closeOnSelect !== false) {
+            closeAll();
+            return;
+          }
+          checked = !checked;
+          item.setAttribute("aria-checked", String(checked));
+          item.setAttribute("data-state", checked ? "checked" : "unchecked");
+          indicator.style.visibility = checked ? "" : "hidden";
         };
         wireRow(item, select, disposer, openSubFor, null);
       }

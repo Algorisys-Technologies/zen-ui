@@ -15,6 +15,15 @@ import { useLocale } from "../locale/locale";
 import { ownsArrowKeys, rowKeyTarget } from "@algorisys/zen-ui-core/row-keys";
 import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
 import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
+import {
+  buildExportRequest,
+  EXPORT_FILE,
+  type ExportColumn,
+  type ExportColumnFormat,
+  type ExportFormat,
+  type ExportRequest,
+} from "@algorisys/zen-ui-core/export-request";
+import { DropdownMenu, type DropdownMenuHandle, type DropdownMenuItemSpec } from "../dropdown-menu/dropdown-menu";
 
 /**
  * DataTable — the headless data grid, hand-written for the vanilla binding.
@@ -82,6 +91,11 @@ export interface DataTableColumnMeta {
   aggregate?: AggregateKind | ((values: unknown[], rows: unknown[]) => unknown);
   /** How the total reads. Default: the locale's number, at the precision of the values. */
   formatTotal?: (value: unknown) => Child;
+  /**
+   * How a server export writes this column (`onExport`'s ExportRequest).
+   * Default: a number for a column with a total, text otherwise.
+   */
+  exportFormat?: ExportColumnFormat;
 }
 
 export interface DataTableColumn<TData> {
@@ -107,7 +121,7 @@ export interface DataTableColumn<TData> {
    * in the table so the total reflects filtering.
    */
   footer?: (rows: TData[]) => Child;
-  /** Per-column extras: totals (`aggregate`, `formatTotal`). */
+  /** Per-column extras: totals (`aggregate`, `formatTotal`), server export (`exportFormat`). */
   meta?: DataTableColumnMeta;
 }
 
@@ -176,6 +190,35 @@ export interface DataTableProps<TData> {
   onRowActivate?: (row: TData, event: KeyboardEvent) => void;
   /** A row's accessible name, read as focus moves onto it. */
   rowLabel?: (row: TData, index: number) => string;
+
+  /**
+   * Export on the SERVER: for data too large to be in the browser (a table
+   * showing one page of a million rows). The toolbar gets an Export menu that
+   * offers `exportFormats` and hands your server an ExportRequest
+   * (@algorisys/zen-ui-core/export-request): exactly what the user is looking
+   * at (the columns in order with header, width, format and total; search and
+   * sort; locale; all matching rows, or the selected ids, even ones on pages
+   * never loaded). Your endpoint queries the full data and renders the file.
+   * Return a Blob (downloaded as `exportFilename`), a `{ url }` (opened as a
+   * download), or nothing (you handled it). A rejected Promise is shown as the
+   * reason.
+   */
+  onExport?: (
+    format: ExportFormat,
+    request: ExportRequest,
+  ) =>
+    | void
+    | Blob
+    | { url: string; filename?: string }
+    | Promise<void | Blob | { url: string; filename?: string }>;
+  /** The formats the server export offers, in menu order. Default xlsx, pdf, csv. */
+  exportFormats?: ExportFormat[];
+  /** Extra state for the server (a FilterBuilder tree, a saved view's id): sent as `request.context`. */
+  exportContext?: Record<string, unknown>;
+  /** A title for the exported document (a report heading). */
+  exportTitle?: string;
+  /** Filename (without extension) for exports. Default "data-table". */
+  exportFilename?: string;
 
   /**
    * Which rows a column's `meta.aggregate` totals: every row the filters let
@@ -338,6 +381,7 @@ export function DataTable<TData>(
   /* Persistent global-filter input — created ONCE so typing keeps focus across the
    * body repaints its onInput triggers. */
   let filterInput: InputHandle | null = null;
+  if (current.enableColumnFilters || current.onExport) el.append(toolbarEl);
   if (current.enableColumnFilters) {
     filterInput = Input({
       value: globalFilterInner,
@@ -353,7 +397,6 @@ export function DataTable<TData>(
     });
     disposer.add(() => filterInput?.destroy());
     toolbarEl.append(filterInput.el);
-    el.append(toolbarEl);
   }
   el.append(containerEl);
   disposer.add(() => {
@@ -593,6 +636,163 @@ export function DataTable<TData>(
       return formatNumber(value, { locale: loc.locale, precision: totalPrecision(values, kind) });
     if (value instanceof Date) return value.toLocaleDateString(validLocale(loc.locale));
     return String(value);
+  }
+
+  /* ----- server export (onExport) ----- */
+  /* The Export menu, its live status and its error: built once, the first
+   * time the table has an onExport, and kept across repaints (it lives in the
+   * toolbar, which the body's repaint does not touch). */
+  let exporter: {
+    menu: DropdownMenuHandle;
+    button: ReturnType<typeof Button>;
+    status: HTMLElement;
+    error: HTMLElement;
+    signature: string;
+  } | null = null;
+  let exportBusy = false;
+  let exportOnlySelected = false;
+
+  /** The columns as the server should write them: what the user sees, in order. */
+  const exportColumns = (): ExportColumn[] =>
+    leafColumns().map((c) => {
+      const meta = c.meta ?? {};
+      const format: ExportColumn["format"] =
+        meta.exportFormat ?? (meta.aggregate ? { kind: "number" } : { kind: "text" });
+      const numeric =
+        format.kind !== "text" && format.kind !== "date" && format.kind !== "datetime" && format.kind !== "boolean";
+      return {
+        id: colId(c),
+        header: headerText(c),
+        // React reads TanStack's column size, which is 150 when a column sets none.
+        width: Math.round(c.size ?? 150),
+        align: numeric ? "end" : "start",
+        format,
+        ...(meta.aggregate
+          ? { total: typeof meta.aggregate === "string" ? (meta.aggregate as ExportColumn["total"]) : "custom" }
+          : {}),
+      };
+    });
+
+  const exportFilename = (): string => current.exportFilename ?? "data-table";
+
+  function downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function runExport(format: ExportFormat): Promise<void> {
+    const onExport = current.onExport;
+    if (exportBusy || !onExport || !exporter) return;
+    exportBusy = true;
+    const ui = exporter;
+    ui.error.replaceChildren();
+    ui.error.hidden = true;
+    ui.status.textContent = loc.t("dataTable.exportPreparing");
+    ui.button.update({ loading: true, children: loc.t("dataTable.exportPreparing") });
+    // Selection is kept by id, so rows selected on pages never loaded count too.
+    const selectedIds = [...effSelection()];
+    const request = buildExportRequest({
+      format,
+      filename: exportFilename(),
+      title: current.exportTitle,
+      locale: loc.locale ?? (typeof navigator !== "undefined" ? navigator.language : undefined),
+      selectedIds: exportOnlySelected ? selectedIds : null,
+      columns: exportColumns(),
+      sort: effSorting(),
+      search: effGlobalFilter(),
+      columnFilters: [],
+      grouping: [],
+      context: current.exportContext,
+    });
+    try {
+      const result = await onExport(format, request);
+      const name = `${exportFilename()}.${EXPORT_FILE[format].extension}`;
+      if (result instanceof Blob) downloadBlob(result, name);
+      else if (result && typeof result === "object" && "url" in result) {
+        const a = document.createElement("a");
+        a.href = result.url;
+        a.download = result.filename ?? name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      ui.status.textContent = loc.t("dataTable.exportReady");
+    } catch (e) {
+      ui.error.textContent = loc.t("dataTable.exportFailed", { error: String((e as Error)?.message ?? e) });
+      ui.error.hidden = false;
+      ui.status.textContent = "";
+    } finally {
+      exportBusy = false;
+      ui.button.update({ loading: false, children: loc.t("dataTable.export") });
+    }
+  }
+
+  function exportItems(): { items: DropdownMenuItemSpec[]; signature: string } {
+    const formats = current.exportFormats ?? ["xlsx", "pdf", "csv"];
+    const selected = effSelection().size;
+    if (selected === 0) exportOnlySelected = false;
+    const label = (f: ExportFormat) =>
+      loc.t(f === "xlsx" ? "dataTable.exportExcel" : f === "pdf" ? "dataTable.exportPdf" : "dataTable.exportCsv");
+    const items: DropdownMenuItemSpec[] = [
+      { type: "label", label: loc.t("dataTable.exportTo") },
+      ...formats.map((f): DropdownMenuItemSpec => ({ label: label(f), onSelect: () => void runExport(f) })),
+    ];
+    if (selected > 0) {
+      items.push(
+        { type: "separator" },
+        {
+          type: "checkbox",
+          label: loc.t("dataTable.exportOnlySelected", { count: selected }),
+          checked: exportOnlySelected,
+          onCheckedChange: (v) => (exportOnlySelected = v),
+          // A scope, not an action: the menu stays open to pick the format.
+          closeOnSelect: false,
+        },
+      );
+    }
+    return { items, signature: `${formats.join(",")}|${selected}|${exportOnlySelected}` };
+  }
+
+  function paintExport(): void {
+    if (!current.onExport) {
+      if (exporter) exporter.menu.el.parentElement?.remove();
+      return;
+    }
+    if (!toolbarEl.isConnected) el.prepend(toolbarEl);
+    const { items, signature } = exportItems();
+    if (!exporter) {
+      const right = h("div", "zen-ml-auto zen-flex zen-items-center zen-gap-2");
+      const error = h("span", "zen-text-sm zen-text-zen-error");
+      error.setAttribute("role", "alert");
+      error.setAttribute("data-export-error", "");
+      error.hidden = true;
+      const status = h("span", "zen-sr-only");
+      status.setAttribute("role", "status");
+      const button = Button({ variant: "outline", color: "neutral", size: "sm", children: loc.t("dataTable.export") });
+      const menu = DropdownMenu({ trigger: button, items, align: "end", class: "zen-min-w-52" });
+      right.append(error, status, menu.el);
+      toolbarEl.append(right);
+      exporter = { menu, button, status, error, signature };
+      disposer.add(() => {
+        exporter?.menu.destroy();
+        exporter?.button.destroy();
+      });
+    } else {
+      if (!exporter.menu.el.isConnected) toolbarEl.append(exporter.menu.el.parentElement!);
+      // Only when what the menu offers changed: an update while it is open
+      // rebuilds it, which would move focus under the user.
+      if (signature !== exporter.signature) {
+        exporter.signature = signature;
+        exporter.menu.update({ items });
+      }
+    }
   }
 
   /* ----- keyboard rows ----- */
@@ -1074,6 +1274,7 @@ export function DataTable<TData>(
     else containerEl.removeAttribute("aria-busy");
 
     paintPagination(processed);
+    paintExport();
     restoreFocus(focusMark);
   }
 
