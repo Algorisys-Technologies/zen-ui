@@ -15,6 +15,42 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **Parity: 12.2.0's Solid-only work is in React, vanilla and web components.**
+  `check:parity` is green across all four bindings for the first time since
+  12.1. Each port was driven in a browser against the same scripts that
+  verified the Solid original (tracker and numbers: docs/parity-pass.md).
+  - **LocaleProvider / useLocale** in React and vanilla (web components
+    re-export vanilla's). Vanilla's takes `children` as a FUNCTION and runs it
+    as the current locale, so factories read it with `useLocale()` when called,
+    as React and Solid components read context; `localeOf(node)` for words
+    rendered after mount.
+  - **New components** in React, vanilla and web components: AmountField,
+    QuantityField, Shortcuts (Kbd, ShortcutProvider, useShortcut, ShortcutHelp;
+    web components: `<zen-kbd>`, `<zen-shortcut>`, `<zen-shortcut-help>` over
+    one document registry), ContextMenu (vanilla / web components data-driven,
+    like their DropdownMenu), DocumentTabs, Tile and TileGrid, QRCode and
+    Barcode, DateInput, TreeSelect, LookupField, FilterBuilder, ViewManager.
+  - **Additions to existing components**, everywhere: ObjectNumber
+    `number` / `currency` / `precision` / `locale`; DatePicker `initialFocus`;
+    the Calendar's arrow keys (vanilla's had none; React's did not mirror in a
+    right-to-left page); Sidebar `collapseMode`, `overlay`, `SidebarMenuBadge`,
+    `SidebarHeaderLabel`, `SidebarMenuSub badge`; ShellBar `search`;
+    SegmentedButton item `count`; StatCard `size="lg"` and `chart`;
+    MicroBarChart `baseline`; ObjectStatus `stamp`; Combobox / Select
+    `invalid`; the table, ObjectPage section-title and warning-text tokens;
+    DropdownMenu radio (and vanilla checkbox) items `closeOnSelect`, default
+    unchanged in each binding.
+  - **DataTable** in React: keyboard rows, cell navigation, row virtualization
+    with row drag, totals, server export (the ExportRequest is byte-identical
+    across Solid, React, vanilla and web components for the same table state)
+    and `contextMenu`. In vanilla and web components: keyboard rows, totals,
+    server export and `contextMenu`; cell navigation and row virtualization
+    follow once vanilla's DataTable has inline editing.
+  - React's DropdownMenu and ContextMenu share their item classes
+    (`menu-parts.tsx`); vanilla's share their drawing code (`menu-engine.ts`).
+    DropdownMenu output measured identical in both.
+
 ### Fixed
 - **Built-in strings in 18 places were still hard-coded after 12.2.0's "every string
   can be translated"** (Solid), which overstated it: `check:strings` could
@@ -31,6 +67,26 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   count. Two developer install notices (Map, RichText) are marked
   `i18n-ignore-next-line`. English unchanged: all 120 Solid demo routes
   snapshot identical before and after.
+- **React: the inline select editor never saved a pick** (Radix reported it
+  after the close had cancelled the edit), **a per-column filter on a column
+  without `filterVariant` matched nothing**, the number editor opened without
+  focus, a lone sorted column showed a 16px "1", and a group row opened
+  `renderSubRow`. Found and fixed by the DataTable port.
+- **React: MultiCombobox showed raw values as chips** ("engineer", and
+  "Remove engineer" to a screen reader) on first paint, until something else
+  re-rendered it.
+- **React: the Calendar's ← → were not mirrored in a right-to-left page**
+  unless `dir` was passed to it.
+- **React and vanilla: lists without the opt-in preflight** (Breadcrumb,
+  Stepper, FileUpload showed browser markers and indents), a linked StatCard
+  was underlined, the Sidebar header's text spilled out of the collapsed rail,
+  and a menu button rendered as a link was link-blue and underlined.
+- **Vanilla: a Select ignored every pick after its first close** (opening and
+  rendering shared one cleanup list), and reopening during the close
+  animation hid the list again.
+- **Vanilla DataTable: a repaint dropped keyboard focus and scrolled a
+  scrolled table back to its first row**; its sort-priority number was 16px
+  beside 12px header text.
 - **Vanilla (and web components) leaked document listeners on every opening
   after the first** of Combobox, TreeSelect and every other component that
   reuses a cleanup list per opening (about 25): `Disposer.dispose()` latched
@@ -46,6 +102,13 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   grew 8px taller. The size class comes first again; measured on the demo: 17
   figures back to 24px / 24px, one `lg` at 36px. Found by the React port of
   the same feature.
+- **`scripts/visual-check.mjs` could report on another session's build**: its
+  fixed ports were held by other previews, `--strictPort` made its own server
+  exit quietly, and the health check got an answer from theirs. It takes a
+  free port and checks its own server is alive, and stops the whole process
+  group (it used to leave vite running). `scripts/snapshot-routes.mjs` read
+  only Solid's nav and found zero routes in the other bindings; it reads all
+  four and fails on zero.
 - **`build:lib` vendored no core declarations in a checkout under a dotted
   path** (`scripts/vendor-core-types.mjs` treated "no dot in the path" as "a
   directory"), so every binding's build failed its own assertion there.
