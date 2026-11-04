@@ -37,6 +37,7 @@ import DirectionDemo from "./components/DirectionDemo";
 import MessagePopoverDemo from "./components/MessagePopoverDemo";
 import StackDemo from "./components/StackDemo";
 import StatCardDemo from "./components/StatCardDemo";
+import TileDemo from "./components/TileDemo";
 import CardDemo from "./components/CardDemo";
 import PaperDemo from "./components/PaperDemo";
 import EmptyStateDemo from "./components/EmptyStateDemo";
@@ -96,6 +97,7 @@ import ToastDemo from "./components/ToastDemo";
 import RichTextDemo from "./components/RichTextDemo";
 import CameraDemo from "./components/CameraDemo";
 import QRScannerDemo from "./components/QRScannerDemo";
+import BarcodeDemo from "./components/BarcodeDemo";
 import MapDemo from "./components/MapDemo";
 import ChartDemo from "./components/ChartDemo";
 import DataTableDemo from "./components/DataTableDemo";
@@ -152,6 +154,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/message-popover": MessagePopoverDemo,
   "/stack": StackDemo,
   "/stat-card": StatCardDemo,
+  "/tile": TileDemo,
   "/card": CardDemo,
   "/paper": PaperDemo,
   "/empty-state": EmptyStateDemo,
@@ -210,6 +213,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/toast": ToastDemo,
   "/rich-text": RichTextDemo,
   "/camera": CameraDemo,
+  "/barcode": BarcodeDemo,
   "/qr-scanner": QRScannerDemo,
   "/map": MapDemo,
   "/chart": ChartDemo,
