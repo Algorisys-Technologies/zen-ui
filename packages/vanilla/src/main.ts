@@ -52,6 +52,7 @@ import SwitchDemo from "./components/SwitchDemo";
 import PageHeaderDemo from "./components/PageHeaderDemo";
 import NumberFieldDemo from "./components/NumberFieldDemo";
 import AmountFieldDemo from "./components/AmountFieldDemo";
+import ShortcutsDemo from "./components/ShortcutsDemo";
 import TextareaDemo from "./components/TextareaDemo";
 import SliderDemo from "./components/SliderDemo";
 import CheckboxDemo from "./components/CheckboxDemo";
@@ -215,6 +216,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/object-page": ObjectPageLayoutDemo,
   "/dynamic-date-range": DynamicDateRangeDemo,
   "/toast": ToastDemo,
+  "/shortcuts": ShortcutsDemo,
   "/rich-text": RichTextDemo,
   "/camera": CameraDemo,
   "/barcode": BarcodeDemo,

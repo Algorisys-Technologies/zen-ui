@@ -467,3 +467,23 @@ export { DiffView } from "./components/diff-view/diff-view";
 export type { DiffViewProps } from "./components/diff-view/diff-view";
 export { computeDiff, parseSnapshot, isKeyed } from "@algorisys/zen-ui-core/diff";
 export type { DiffRow, DiffKind, DiffOptions, DiffSnapshot } from "@algorisys/zen-ui-core/diff";
+// Keyboard shortcuts: key caps, a registry with scopes, and the "?" overlay
+export {
+  ShortcutProvider,
+  ShortcutHelp,
+  Kbd,
+  useShortcut,
+  useShortcuts,
+  keyshortcut,
+  shortcutLabel,
+  detectPlatform,
+} from "./components/shortcuts/shortcuts";
+export type {
+  ShortcutOptions,
+  ShortcutProviderProps,
+  ShortcutHelpProps,
+  ShortcutHelpGroup,
+  ShortcutHelpHandle,
+  KbdProps,
+  ShortcutRegistry,
+} from "./components/shortcuts/shortcuts";
