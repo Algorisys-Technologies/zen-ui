@@ -1,4 +1,5 @@
-import { DataTable, type DataTableColumn } from "./data-table/data-table";
+import { DataTable, type DataTableColumn, type SortingState } from "./data-table/data-table";
+import type { ExportFormat, ExportRequest } from "@algorisys/zen-ui-core/export-request";
 import { Badge } from "./badge/badge";
 import { Button } from "./button/button";
 import { DemoPage } from "./demo-helpers";
@@ -65,6 +66,7 @@ const makePeople = (count: number): Person[] =>
 const SMALL = makePeople(8);
 const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
+const MENU_PEOPLE = makePeople(1000);
 
 const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
@@ -82,6 +84,224 @@ const columns: DataTableColumn<Person>[] = [
   },
   { accessorKey: "lastSeen", header: "Last seen" },
 ];
+
+/* -------------------------- section 26: totals --------------------- */
+type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
+const TOTAL_CUSTOMERS = ["Acme Traders", "Bharat Steels", "Coastal Agencies"];
+const TOTAL_ITEMS = ["Hex Bolt M8", "MS Sheet 2mm", "Cutting Oil", "Bearing 6204", "V-Belt B-48", "SS Rod 12mm"];
+// Rates in paise-precise rupees: summing them as doubles drifts; the totals here do not.
+const LINES: TotalLine[] = Array.from({ length: 60 }, (_, i) => {
+  const qty = 1 + ((i * 7) % 23);
+  const rate = Math.round((10.1 + ((i * 37) % 900) * 1.37) * 100) / 100;
+  return {
+    item: TOTAL_ITEMS[i % TOTAL_ITEMS.length],
+    customer: TOTAL_CUSTOMERS[(i * 5) % 3],
+    qty,
+    rate,
+    amount: Math.round(qty * rate * 100) / 100,
+    due: `2026-${String(10 + (i % 3)).padStart(2, "0")}-${String(1 + ((i * 3) % 28)).padStart(2, "0")}`,
+  };
+});
+const inrTotal = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const endAligned = (text: string): HTMLElement => {
+  const span = document.createElement("span");
+  span.className = "zen-block zen-text-end zen-tabular-nums";
+  span.textContent = text;
+  return span;
+};
+const totalColumns: DataTableColumn<TotalLine>[] = [
+  { accessorKey: "item", header: "Item" },
+  { accessorKey: "customer", header: "Customer" },
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" }, cell: ({ row }) => endAligned(String(row.qty)) },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" }, cell: ({ row }) => endAligned(inrTotal.format(row.rate)) },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    meta: { aggregate: "sum", formatTotal: (v) => `₹${inrTotal.format(v as number)}` },
+    cell: ({ row }) => endAligned(inrTotal.format(row.amount)),
+  },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+/* -------------------------- section 27: export on the server ------- */
+// A stand-in for your server: 100,000 ledger lines that never come to the browser.
+// The table asks it for one page at a time; Export hands it an ExportRequest.
+type Entry = { id: string; date: string; account: string; party: string; amount: number };
+const LEDGER_SIZE = 100_000;
+const ACCOUNTS = ["Sales", "Purchases", "Bank", "Cash", "Debtors", "Creditors"];
+const PARTIES = ["Acme Traders", "Bharat Steels", "Coastal Agencies", "Deccan Engineering", "Eastern Mills"];
+const entryAt = (i: number): Entry => ({
+  id: `GL-${String(i + 1).padStart(6, "0")}`,
+  date: `2026-${String(1 + (i % 12)).padStart(2, "0")}-${String(1 + ((i * 7) % 28)).padStart(2, "0")}`,
+  account: ACCOUNTS[(i * 13) % ACCOUNTS.length],
+  party: PARTIES[(i * 7) % PARTIES.length],
+  amount: Math.round(((i * 7919) % 2_500_000) + 99) / 100,
+});
+const mockServer = {
+  /** The rows matching a search, column filters and sort: what a SQL query would select. */
+  match(search: string, filters: { id: string; value: unknown }[], sort: { id: string; desc: boolean }[]) {
+    const s = search.trim().toLowerCase();
+    const textOf = (v: unknown) =>
+      (v && typeof v === "object" && "value" in (v as object) ? String((v as { value: unknown }).value ?? "") : String(v ?? "")).toLowerCase();
+    const idx: number[] = [];
+    for (let i = 0; i < LEDGER_SIZE; i++) {
+      const e = entryAt(i);
+      if (s && !`${e.id} ${e.account} ${e.party}`.toLowerCase().includes(s)) continue;
+      if (filters.some((f) => !String(e[f.id as keyof Entry]).toLowerCase().includes(textOf(f.value)))) continue;
+      idx.push(i);
+    }
+    const [first] = sort;
+    if (first) {
+      const k = first.id as keyof Entry;
+      idx.sort((a, b) => {
+        const x = entryAt(a)[k], y = entryAt(b)[k];
+        return (x < y ? -1 : x > y ? 1 : 0) * (first.desc ? -1 : 1);
+      });
+    }
+    return idx;
+  },
+};
+const entryColumns: DataTableColumn<Entry>[] = [
+  { accessorKey: "id", header: "Entry" },
+  { accessorKey: "date", header: "Date", meta: { exportFormat: { kind: "date" } } },
+  { accessorKey: "account", header: "Account" },
+  { accessorKey: "party", header: "Party" },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    meta: { exportFormat: { kind: "amount", currency: "INR", precision: 2 } },
+    cell: ({ row }) => endAligned(inrTotal.format(row.amount)),
+  },
+];
+const LEDGER_CONTEXT = { ledger: "FY 2026-27" };
+
+/** Section 27's table, wired to the mock server. */
+function ServerLedger(): HTMLElement {
+  const pageSize = 25;
+  let page = 0;
+  let sorting: SortingState = [];
+  let search = "";
+  let selection: string[] = [];
+  let failNext = false;
+  const fmt = new Intl.NumberFormat("en-IN");
+  let matching = mockServer.match(search, [], sorting);
+  const pageRows = () => matching.slice(page * pageSize, (page + 1) * pageSize).map(entryAt);
+
+  const wrap = document.createElement("div");
+  wrap.className = "zen-flex zen-w-full zen-flex-col zen-gap-3";
+  const counts = document.createElement("p");
+  counts.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+  counts.dataset.testid = "ledger-counts";
+  const paintCounts = () => {
+    const total = document.createElement("strong");
+    total.textContent = fmt.format(LEDGER_SIZE);
+    const here = document.createElement("strong");
+    here.textContent = String(pageRows().length);
+    counts.replaceChildren("The server holds ", total, ` entries; ${fmt.format(matching.length)} match; the browser has `, here, ".");
+  };
+  paintCounts();
+
+  const said = document.createElement("p");
+  said.className = "zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-sm";
+  said.dataset.testid = "server-said";
+  const details = document.createElement("details");
+  details.open = true;
+  const summary = document.createElement("summary");
+  summary.className = "zen-cursor-pointer zen-text-sm zen-text-zen-muted-fg";
+  summary.textContent = "What your server received";
+  const pre = document.createElement("pre");
+  pre.className = "zen-m-0 zen-mt-2 zen-max-h-72 zen-overflow-auto zen-rounded-zen-md zen-bg-zen-muted zen-p-3 zen-text-xs";
+  pre.dataset.testid = "export-request";
+  details.append(summary, pre);
+
+  const failBox = document.createElement("input");
+  failBox.type = "checkbox";
+  failBox.addEventListener("change", () => (failNext = failBox.checked));
+  const failLabel = document.createElement("label");
+  failLabel.className = "zen-flex zen-items-center zen-gap-2 zen-text-sm";
+  failLabel.append(failBox, " Make the next export fail (to see the error)");
+
+  /** The mock server's export endpoint. */
+  const serve = async (format: ExportFormat, request: ExportRequest): Promise<Blob | void> => {
+    pre.textContent = JSON.stringify(request, null, 2);
+    if (!details.isConnected) wrap.append(details);
+    await new Promise((r) => setTimeout(r, 700)); // the server at work
+    if (failNext) {
+      failNext = false;
+      failBox.checked = false;
+      throw new Error("the server is busy, try again");
+    }
+    const all = () => mockServer.match(request.filters.search ?? "", request.filters.columns, request.sort);
+    const rows = request.scope.kind === "selected" ? request.scope.ids.length : all().length;
+    const say = (text: string) => {
+      said.textContent = text;
+      if (!said.isConnected) wrap.insertBefore(said, details.isConnected ? details : null);
+    };
+    if (format !== "csv") {
+      say(`Your server would now build ledger.${format} from this request: ${fmt.format(rows)} rows. (This demo has no ${format} writer; CSV below is real.)`);
+      return;
+    }
+    // CSV: built from ALL the matching rows, not the page.
+    const ids = request.scope.kind === "selected" ? request.scope.ids : all().map((i) => entryAt(i).id);
+    const byId = (id: string) => entryAt(Number(id.slice(3)) - 1);
+    const cols = request.columns;
+    const lines = [cols.map((c) => c.header).join(","), ...ids.map((id) => cols.map((c) => String(byId(id)[c.id as keyof Entry])).join(","))];
+    say(`The server built ledger.csv: ${fmt.format(ids.length)} rows.`);
+    return new Blob([lines.join("\n")], { type: "text/csv" });
+  };
+
+  const manual = () => ({
+    pageIndex: page,
+    pageCount: Math.max(1, Math.ceil(matching.length / pageSize)),
+    pageSize,
+    onPageChange: (next: number) => {
+      page = next;
+      refresh();
+    },
+  });
+  const requery = () => {
+    matching = mockServer.match(search, [], sorting);
+    page = 0;
+  };
+  const table = DataTable<Entry>({
+    data: pageRows(),
+    columns: entryColumns,
+    getRowId: (e) => e.id,
+    enableSorting: true,
+    sorting,
+    onSortingChange: (next) => {
+      sorting = next;
+      requery();
+      refresh();
+    },
+    enableColumnFilters: true,
+    globalFilter: search,
+    onGlobalFilterChange: (v) => {
+      search = v;
+      requery();
+      refresh();
+    },
+    enableRowSelection: true,
+    rowSelection: selection,
+    onRowSelectionChange: (ids) => {
+      selection = ids;
+      refresh();
+    },
+    enablePagination: true,
+    pageSize,
+    manualPagination: manual(),
+    exportFilename: "ledger",
+    exportTitle: "General ledger",
+    exportContext: LEDGER_CONTEXT,
+    onExport: serve,
+  });
+  function refresh(): void {
+    table.update({ data: pageRows(), sorting, globalFilter: search, rowSelection: selection, manualPagination: manual() });
+    paintCounts();
+  }
+  wrap.append(counts, table.el, failLabel);
+  return wrap;
+}
 
 const labeled = (text: string, node: Node): HTMLElement => {
   const wrap = document.createElement("div");
@@ -177,6 +397,42 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
           }).el,
       },
       {
+        title: "5b. Keyboard rows",
+        codeTitle: "enableKeyboardNavigation + onRowActivate",
+        codeDescription:
+          "Tab into the table once, then ↑/↓, Home/End and PageUp/PageDown move between rows. Enter opens the row (Ctrl+Enter reports the modifier); Space selects it and Ctrl+A selects the page.",
+        code: `DataTable({
+  data: small,
+  columns,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  onRowActivate: (row, e) => open(row, { newTab: e.ctrlKey || e.metaKey }),
+  rowLabel: (row) => row.name,
+});`,
+        render: () => {
+          const opened = document.createElement("span");
+          opened.dataset.testid = "kb-activated";
+          opened.textContent = "nothing yet";
+          const note = document.createElement("p");
+          note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+          note.setAttribute("aria-live", "polite");
+          note.append("Opened: ", opened);
+          const table = DataTable({
+            data: SMALL,
+            columns,
+            enableRowSelection: true,
+            enableKeyboardNavigation: true,
+            onRowActivate: (row, e) => {
+              opened.textContent = `${row.name}${e.ctrlKey || e.metaKey ? " (Ctrl+Enter)" : ""}`;
+            },
+            rowLabel: (row) => row.name,
+          });
+          const wrap = document.createElement("div");
+          wrap.append(table.el, note);
+          return wrap;
+        },
+      },
+      {
         title: "6. Virtualized — 2 000 rows, no pagination",
         codeTitle: "enableVirtualization renders only the visible window",
         codeDescription: "Scroll the table body. The header stays in view above the viewport.",
@@ -195,6 +451,65 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
             enableVirtualization: true,
             maxBodyHeight: 400,
           }).el,
+      },
+      {
+        title: "6d. Context menu on rows",
+        codeTitle: "contextMenu: a right-click menu for the row, or the selected rows",
+        codeDescription:
+          "Right-click a row, or focus one (click it, then use the arrows) and press the menu key or Shift+F10. The row becomes the focused one and the menu is for it; select a few rows first and a right-click on one of them acts on all of them. The header keeps the browser's own menu.",
+        code: `DataTable({
+  data: people,
+  columns,
+  getRowId: (p) => p.id,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  contextMenu: ({ row, selection }) => [
+    { type: "label", label: selection.length > 1 ? \`\${selection.length} rows\` : row.name },
+    { label: "Open in new tab", onSelect: () => openInNewTab(row) },
+    { label: "Copy name", onSelect: () => copy(selection) },
+    { type: "separator" },
+    { label: "Delete…", variant: "destructive", onSelect: () => remove(selection) },
+  ],
+  fillHeight: true,
+});`,
+        render: () => {
+          const action = document.createElement("span");
+          action.dataset.testid = "menu-action";
+          action.textContent = "Nothing chosen yet.";
+          const note = document.createElement("p");
+          note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+          note.setAttribute("aria-live", "polite");
+          note.append(action);
+          const say = (text: string) => (action.textContent = text);
+          const frame = document.createElement("div");
+          frame.className = "zen-flex zen-h-[360px] zen-flex-col";
+          frame.append(
+            DataTable({
+              data: MENU_PEOPLE,
+              columns,
+              getRowId: (p) => p.id,
+              enableRowSelection: true,
+              enableKeyboardNavigation: true,
+              rowLabel: (row) => row.name,
+              contextMenu: ({ row, selection }) => [
+                { type: "label", label: selection.length > 1 ? `${selection.length} rows` : row.name },
+                { label: "Open in new tab", shortcut: "Ctrl+Enter", onSelect: () => say(`Opened ${row.name} in a new tab`) },
+                { label: "Copy name", onSelect: () => say(`Copied ${selection.map((r) => r.name).join(", ")}`) },
+                { label: "Duplicate", onSelect: () => say(`Duplicated ${row.name}`) },
+                { type: "separator" },
+                {
+                  label: "Delete…",
+                  variant: "destructive",
+                  onSelect: () => say(`Asked to delete ${selection.length} row${selection.length === 1 ? "" : "s"}`),
+                },
+              ],
+              fillHeight: true,
+            }).el,
+          );
+          const wrap = document.createElement("div");
+          wrap.append(frame, note);
+          return wrap;
+        },
       },
       {
         title: "7. Server-driven pagination (manual)",
@@ -355,6 +670,56 @@ const table = DataTable({
                   ? "zen-bg-zen-info-soft/30"
                   : undefined,
           }).el,
+      },
+      {
+        title: "26. Totals",
+        codeTitle: "meta.aggregate: a total that computes itself, exact in decimal",
+        codeDescription:
+          'Sum, count, avg, min, max or your own function, per column. The footer totals every row the filters let through (across pages; totalsOver: "page" for this page only) and stays in view as the rows scroll. Search for a customer and watch the totals follow.',
+        code: `const columns: DataTableColumn<Line>[] = [
+  { accessorKey: "item", header: "Item" },                       // "Total" goes here
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" } },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" } },
+  { accessorKey: "amount", header: "Amount",
+    meta: { aggregate: "sum", formatTotal: (v) => \`₹\${inr.format(v)}\` } },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true });`,
+        render: () => {
+          const frame = document.createElement("div");
+          frame.className = "zen-flex zen-h-80 zen-flex-col";
+          frame.dataset.testid = "totals-table";
+          frame.append(
+            DataTable({ data: LINES, columns: totalColumns, fillHeight: true, enableColumnFilters: true }).el,
+          );
+          return frame;
+        },
+      },
+      {
+        title: "27. Export on the server",
+        codeTitle: "onExport: the browser describes, the server builds",
+        codeDescription:
+          "For data too large for the browser. Export hands your server an ExportRequest: the columns (header, width, format, total), search, sort, locale, and all matching rows or the selected ids (even on pages never loaded). Your endpoint queries the full data and returns the file. Try a search, a sort, or selecting rows on two pages, then Export.",
+        code: `DataTable({
+  data: page.rows, manualPagination: { … }, sorting, globalFilter, // the server's page
+  getRowId: (e) => e.id, enableRowSelection: true,
+  exportFilename: "ledger", exportTitle: "General ledger",
+  onExport: (format, request) =>
+    fetch("/api/method/myapp.export_ledger", {
+      method: "POST", body: JSON.stringify(request),
+    }).then((r) => (r.ok ? r.blob() : Promise.reject(new Error(r.statusText)))),
+});
+
+// The server (yours): read request.columns / filters / sort / scope,
+// query the full ledger, write the .xlsx / .pdf / .csv, send it back.`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "server-ledger";
+          box.append(ServerLedger());
+          return box;
+        },
       },
     ],
   });

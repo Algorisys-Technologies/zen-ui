@@ -11,6 +11,20 @@ import { Button } from "../button/button";
 import { Input, type InputHandle } from "../form/input/input";
 import { Select } from "../form/select/select";
 import { VirtualizedItems } from "../listbox/virtualized-items";
+import { useLocale } from "../locale/locale";
+import { ownsArrowKeys, rowKeyTarget } from "@algorisys/zen-ui-core/row-keys";
+import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
+import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
+import {
+  buildExportRequest,
+  EXPORT_FILE,
+  type ExportColumn,
+  type ExportColumnFormat,
+  type ExportFormat,
+  type ExportRequest,
+} from "@algorisys/zen-ui-core/export-request";
+import { DropdownMenu, type DropdownMenuHandle, type DropdownMenuItemSpec } from "../dropdown-menu/dropdown-menu";
+import { ContextMenu, type ContextMenuHandle } from "../context-menu/context-menu";
 
 /**
  * DataTable — the headless data grid, hand-written for the vanilla binding.
@@ -63,6 +77,28 @@ export interface DataTableCellContext<TData> {
   index: number;
 }
 
+/**
+ * Per-column extras, React's `columnDef.meta` in this binding's shape.
+ */
+export interface DataTableColumnMeta {
+  /**
+   * A total for this column, computed by the table: "sum", "count", "avg",
+   * "min", "max" (exact in decimal, @algorisys/zen-ui-core/aggregate), or your
+   * own function of the column's values and rows. The table gets a footer with
+   * the total (right-aligned, kept in view while the rows scroll in a
+   * stickyHeader / fillHeight table) and "Total" in the first column that has
+   * no total and no footer of its own. A hand-written `footer` is kept.
+   */
+  aggregate?: AggregateKind | ((values: unknown[], rows: unknown[]) => unknown);
+  /** How the total reads. Default: the locale's number, at the precision of the values. */
+  formatTotal?: (value: unknown) => Child;
+  /**
+   * How a server export writes this column (`onExport`'s ExportRequest).
+   * Default: a number for a column with a total, text otherwise.
+   */
+  exportFormat?: ExportColumnFormat;
+}
+
 export interface DataTableColumn<TData> {
   /** Stable column id. Defaults to `accessorKey`. */
   id?: string;
@@ -86,6 +122,18 @@ export interface DataTableColumn<TData> {
    * in the table so the total reflects filtering.
    */
   footer?: (rows: TData[]) => Child;
+  /** Per-column extras: totals (`aggregate`, `formatTotal`), server export (`exportFormat`). */
+  meta?: DataTableColumnMeta;
+}
+
+/** What a DataTable context menu is for: see DataTableProps.contextMenu. */
+export interface DataTableMenuTarget<TData> {
+  /** The row right-clicked, or focused when the menu key was pressed. */
+  row: TData;
+  /** The cell's column, when a cell was the target. */
+  column?: DataTableColumn<TData>;
+  /** The rows the action is for: the selected rows when the target row is selected, else just the row. */
+  selection: TData[];
 }
 
 export interface SortingColumn {
@@ -138,6 +186,74 @@ export interface DataTableProps<TData> {
   emptyMessage?: string;
   loading?: boolean;
 
+  /**
+   * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
+   * Home/End and PageUp/PageDown move between rows (the key logic is
+   * @algorisys/zen-ui-core/row-keys); Enter calls `onRowActivate`; with
+   * `enableRowSelection`, Space toggles the row and Ctrl/Cmd+A every row on
+   * the page. Keys with Alt are left alone (an app's own shortcuts), and so is
+   * anything typed in a field, select or combobox inside a row.
+   *
+   * The plain body only: the `enableVirtualization` grid ignores it.
+   */
+  enableKeyboardNavigation?: boolean;
+  /** Enter on a focused row. The event carries its modifiers, so Ctrl+Enter can mean something else. */
+  onRowActivate?: (row: TData, event: KeyboardEvent) => void;
+  /** A row's accessible name, read as focus moves onto it. */
+  rowLabel?: (row: TData, index: number) => string;
+
+  /**
+   * Export on the SERVER: for data too large to be in the browser (a table
+   * showing one page of a million rows). The toolbar gets an Export menu that
+   * offers `exportFormats` and hands your server an ExportRequest
+   * (@algorisys/zen-ui-core/export-request): exactly what the user is looking
+   * at (the columns in order with header, width, format and total; search and
+   * sort; locale; all matching rows, or the selected ids, even ones on pages
+   * never loaded). Your endpoint queries the full data and renders the file.
+   * Return a Blob (downloaded as `exportFilename`), a `{ url }` (opened as a
+   * download), or nothing (you handled it). A rejected Promise is shown as the
+   * reason.
+   */
+  onExport?: (
+    format: ExportFormat,
+    request: ExportRequest,
+  ) =>
+    | void
+    | Blob
+    | { url: string; filename?: string }
+    | Promise<void | Blob | { url: string; filename?: string }>;
+  /** The formats the server export offers, in menu order. Default xlsx, pdf, csv. */
+  exportFormats?: ExportFormat[];
+  /** Extra state for the server (a FilterBuilder tree, a saved view's id): sent as `request.context`. */
+  exportContext?: Record<string, unknown>;
+  /** A title for the exported document (a report heading). */
+  exportTitle?: string;
+  /** Filename (without extension) for exports. Default "data-table". */
+  exportFilename?: string;
+
+  /**
+   * Which rows a column's `meta.aggregate` totals: every row the filters let
+   * through, across pages (default), or the rows on this page.
+   */
+  totalsOver?: "filtered" | "page";
+
+  /**
+   * A right-click menu for the rows: return ContextMenu items (the specs
+   * DropdownMenu and ContextMenu take) for the target: the row, the cell's
+   * column, and the selection it acts on. Right-clicking a row focuses it (with
+   * enableKeyboardNavigation), as on a desktop; the menu key and Shift+F10 open
+   * the menu for the focused row; focus returns there when it closes. Outside
+   * the rows (the header, the footer) the browser keeps its own menu.
+   *
+   *   contextMenu: ({ row, selection }) => [
+   *     { label: "Open in new tab", onSelect: () => openInNewTab(row) },
+   *     { label: "Delete…", variant: "destructive", onSelect: () => remove(selection) },
+   *   ],
+   *
+   * The plain body only: the `enableVirtualization` grid ignores it.
+   */
+  contextMenu?: (target: DataTableMenuTarget<TData>) => DropdownMenuItemSpec[];
+
   /** Stable row-id resolver. Defaults to the row's array index. */
   getRowId?: (row: TData, index: number) => string;
   /** Per-row class hook; merged after the built-in row classes. */
@@ -169,6 +285,12 @@ const TABLE_ROW_CLASS = cn(
   "data-[state=selected]:zen-[box-shadow:0_4px_12px_0_var(--zen-color-primary-soft)]",
   "data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1 data-[state=selected]:-zen-outline-offset-1 data-[state=selected]:zen-outline-zen-primary",
 );
+const ROW_FOCUS_CLASS = [
+  "focus-visible:zen-outline",
+  "focus-visible:zen-outline-2",
+  "focus-visible:-zen-outline-offset-2",
+  "focus-visible:zen-outline-zen-ring",
+];
 const TABLE_HEAD_CLASS =
   "zen-h-zen-head zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-text-start zen-align-middle zen-[font-size:var(--zen-table-head-font-size)] zen-[line-height:var(--zen-line-height-xs)] zen-[font-weight:var(--zen-table-head-font-weight)] zen-[text-transform:var(--zen-table-head-text-transform)] zen-[letter-spacing:var(--zen-table-head-letter-spacing)] zen-text-zen-muted-fg";
 const TABLE_CELL_CLASS =
@@ -221,6 +343,8 @@ export function DataTable<TData>(
   props: DataTableProps<TData>,
 ): ZenComponent<DataTableProps<TData>> {
   let current: DataTableProps<TData> = { ...props };
+  // The LocaleProvider building this table, read now (see locale.ts).
+  const loc = useLocale();
 
   /* internal (uncontrolled) state */
   let sortingInner: SortingState = current.sorting ? [...current.sorting] : [];
@@ -228,6 +352,18 @@ export function DataTable<TData>(
   let globalFilterInner = current.globalFilter ?? "";
   let pageIndexInner = 0;
   let pageSizeInner = current.pageSize ?? 10;
+
+  /* Keyboard rows: a roving tabindex, so the table is one tab stop and the
+   * arrows move within it. The index is clamped to the rows on screen when
+   * they change under it (a new page, a filter), so there is always exactly
+   * one tab stop. */
+  let focusIndex = 0;
+  /* The body rows as last painted, by position and by row id, so a key moves
+   * focus without a repaint and a repaint can put focus back where it was. */
+  let rowEls: HTMLElement[] = [];
+  let rowElById = new Map<string, HTMLElement>();
+  let displayById = new Map<string, DisplayRow>();
+  const rowIdOfEl = new WeakMap<Element, string>();
 
   const disposer = new Disposer();
   /* ZenComponents this file creates directly (header + non-virt body checkboxes,
@@ -274,6 +410,7 @@ export function DataTable<TData>(
   /* Persistent global-filter input — created ONCE so typing keeps focus across the
    * body repaints its onInput triggers. */
   let filterInput: InputHandle | null = null;
+  if (current.enableColumnFilters || current.onExport) el.append(toolbarEl);
   if (current.enableColumnFilters) {
     filterInput = Input({
       value: globalFilterInner,
@@ -289,7 +426,6 @@ export function DataTable<TData>(
     });
     disposer.add(() => filterInput?.destroy());
     toolbarEl.append(filterInput.el);
-    el.append(toolbarEl);
   }
   el.append(containerEl);
   disposer.add(() => {
@@ -466,12 +602,10 @@ export function DataTable<TData>(
     btn.append(document.createTextNode(headerText(col)), sortIndicator(sorted));
     const idx = sortIndexOf(id);
     if (idx !== null) {
-      const badge = h(
-        "span",
-        "zen-text-[1rem] zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5",
-      );
+      // At the header's own size (it was a 16px raw-rem literal beside 12px text).
+      const badge = h("span", "zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5");
       badge.setAttribute("aria-hidden", "true");
-      badge.title = `Sort priority ${idx}`;
+      badge.title = loc.t("dataTable.sortPriority", { n: idx });
       badge.textContent = String(idx);
       btn.append(badge);
     }
@@ -516,6 +650,314 @@ export function DataTable<TData>(
       ? "[&>th]:zen-border-r [&>th]:zen-border-zen-border [&>th:last-child]:zen-border-r-0"
       : "";
 
+  /* ----- totals (a column's meta.aggregate) ----- */
+  function totalOf(col: DataTableColumn<TData>, rows: DisplayRow[]): Child {
+    const meta = col.meta!;
+    const values = rows.map((r) => getValue(col, r.row));
+    const value =
+      typeof meta.aggregate === "function"
+        ? meta.aggregate(values, rows.map((r) => r.row))
+        : aggregateValues(values, meta.aggregate!);
+    if (meta.formatTotal) return meta.formatTotal(value);
+    if (value === null || value === undefined) return "";
+    const kind = typeof meta.aggregate === "string" ? meta.aggregate : "sum";
+    if (typeof value === "number")
+      return formatNumber(value, { locale: loc.locale, precision: totalPrecision(values, kind) });
+    if (value instanceof Date) return value.toLocaleDateString(validLocale(loc.locale));
+    return String(value);
+  }
+
+  /* ----- server export (onExport) ----- */
+  /* The Export menu, its live status and its error: built once, the first
+   * time the table has an onExport, and kept across repaints (it lives in the
+   * toolbar, which the body's repaint does not touch). */
+  let exporter: {
+    menu: DropdownMenuHandle;
+    button: ReturnType<typeof Button>;
+    status: HTMLElement;
+    error: HTMLElement;
+    signature: string;
+  } | null = null;
+  let exportBusy = false;
+  let exportOnlySelected = false;
+
+  /** The columns as the server should write them: what the user sees, in order. */
+  const exportColumns = (): ExportColumn[] =>
+    leafColumns().map((c) => {
+      const meta = c.meta ?? {};
+      const format: ExportColumn["format"] =
+        meta.exportFormat ?? (meta.aggregate ? { kind: "number" } : { kind: "text" });
+      const numeric =
+        format.kind !== "text" && format.kind !== "date" && format.kind !== "datetime" && format.kind !== "boolean";
+      return {
+        id: colId(c),
+        header: headerText(c),
+        // React reads TanStack's column size, which is 150 when a column sets none.
+        width: Math.round(c.size ?? 150),
+        align: numeric ? "end" : "start",
+        format,
+        ...(meta.aggregate
+          ? { total: typeof meta.aggregate === "string" ? (meta.aggregate as ExportColumn["total"]) : "custom" }
+          : {}),
+      };
+    });
+
+  const exportFilename = (): string => current.exportFilename ?? "data-table";
+
+  function downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function runExport(format: ExportFormat): Promise<void> {
+    const onExport = current.onExport;
+    if (exportBusy || !onExport || !exporter) return;
+    exportBusy = true;
+    const ui = exporter;
+    ui.error.replaceChildren();
+    ui.error.hidden = true;
+    ui.status.textContent = loc.t("dataTable.exportPreparing");
+    ui.button.update({ loading: true, children: loc.t("dataTable.exportPreparing") });
+    // Selection is kept by id, so rows selected on pages never loaded count too.
+    const selectedIds = [...effSelection()];
+    const request = buildExportRequest({
+      format,
+      filename: exportFilename(),
+      title: current.exportTitle,
+      locale: loc.locale ?? (typeof navigator !== "undefined" ? navigator.language : undefined),
+      selectedIds: exportOnlySelected ? selectedIds : null,
+      columns: exportColumns(),
+      sort: effSorting(),
+      search: effGlobalFilter(),
+      columnFilters: [],
+      grouping: [],
+      context: current.exportContext,
+    });
+    try {
+      const result = await onExport(format, request);
+      const name = `${exportFilename()}.${EXPORT_FILE[format].extension}`;
+      if (result instanceof Blob) downloadBlob(result, name);
+      else if (result && typeof result === "object" && "url" in result) {
+        const a = document.createElement("a");
+        a.href = result.url;
+        a.download = result.filename ?? name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      ui.status.textContent = loc.t("dataTable.exportReady");
+    } catch (e) {
+      ui.error.textContent = loc.t("dataTable.exportFailed", { error: String((e as Error)?.message ?? e) });
+      ui.error.hidden = false;
+      ui.status.textContent = "";
+    } finally {
+      exportBusy = false;
+      ui.button.update({ loading: false, children: loc.t("dataTable.export") });
+    }
+  }
+
+  function exportItems(): { items: DropdownMenuItemSpec[]; signature: string } {
+    const formats = current.exportFormats ?? ["xlsx", "pdf", "csv"];
+    const selected = effSelection().size;
+    if (selected === 0) exportOnlySelected = false;
+    const label = (f: ExportFormat) =>
+      loc.t(f === "xlsx" ? "dataTable.exportExcel" : f === "pdf" ? "dataTable.exportPdf" : "dataTable.exportCsv");
+    const items: DropdownMenuItemSpec[] = [
+      { type: "label", label: loc.t("dataTable.exportTo") },
+      ...formats.map((f): DropdownMenuItemSpec => ({ label: label(f), onSelect: () => void runExport(f) })),
+    ];
+    if (selected > 0) {
+      items.push(
+        { type: "separator" },
+        {
+          type: "checkbox",
+          label: loc.t("dataTable.exportOnlySelected", { count: selected }),
+          checked: exportOnlySelected,
+          onCheckedChange: (v) => (exportOnlySelected = v),
+          // A scope, not an action: the menu stays open to pick the format.
+          closeOnSelect: false,
+        },
+      );
+    }
+    return { items, signature: `${formats.join(",")}|${selected}|${exportOnlySelected}` };
+  }
+
+  function paintExport(): void {
+    if (!current.onExport) {
+      if (exporter) exporter.menu.el.parentElement?.remove();
+      return;
+    }
+    if (!toolbarEl.isConnected) el.prepend(toolbarEl);
+    const { items, signature } = exportItems();
+    if (!exporter) {
+      const right = h("div", "zen-ml-auto zen-flex zen-items-center zen-gap-2");
+      const error = h("span", "zen-text-sm zen-text-zen-error");
+      error.setAttribute("role", "alert");
+      error.setAttribute("data-export-error", "");
+      error.hidden = true;
+      const status = h("span", "zen-sr-only");
+      status.setAttribute("role", "status");
+      const button = Button({ variant: "outline", color: "neutral", size: "sm", children: loc.t("dataTable.export") });
+      const menu = DropdownMenu({ trigger: button, items, align: "end", class: "zen-min-w-52" });
+      right.append(error, status, menu.el);
+      toolbarEl.append(right);
+      exporter = { menu, button, status, error, signature };
+      disposer.add(() => {
+        exporter?.menu.destroy();
+        exporter?.button.destroy();
+      });
+    } else {
+      if (!exporter.menu.el.isConnected) toolbarEl.append(exporter.menu.el.parentElement!);
+      // Only when what the menu offers changed: an update while it is open
+      // rebuilds it, which would move focus under the user.
+      if (signature !== exporter.signature) {
+        exporter.signature = signature;
+        exporter.menu.update({ items });
+      }
+    }
+  }
+
+  /* ----- context menu ----- */
+  /* contextMenu: a right-click on a row or cell, or the menu key / Shift+F10
+   * on a focused one, opens the caller's items for it. Anywhere else (the
+   * header, the footer, empty space) the browser keeps its own menu: the
+   * ContextMenu is disabled while there is no target, which is what leaves the
+   * browser its menu. The target is read before ContextMenu decides: in its
+   * onContextMenu hook for a right-click, and in a capture listener for the
+   * keys (ContextMenu checks `disabled` before it handles the key). */
+  let cm: ContextMenuHandle | null = null;
+  const menuActive = (): boolean => !!current.contextMenu && !isVirt();
+
+  function menuTargetFrom(node: EventTarget | null): DataTableMenuTarget<TData> | null {
+    const tr = (node as Element | null)?.closest?.("tr[data-row-id]") as HTMLElement | null;
+    if (!tr || !containerEl.contains(tr)) return null;
+    const id = tr.dataset.rowId ?? "";
+    const r = displayById.get(id);
+    if (!r) return null;
+    const colKey = ((node as Element).closest("td[data-column]") as HTMLElement | null)?.dataset.column;
+    const column = colKey !== undefined ? colById(colKey) : undefined;
+    // A right-click on a selected row acts on the whole selection, as in a file manager.
+    const sel = effSelection();
+    const selection = sel.has(id)
+      ? current.data.filter((row, index) => sel.has(rowIdOf(row, index)))
+      : [r.row];
+    return { row: r.row, column, selection };
+  }
+
+  /** Point the menu at what the event is for, or disable it (the browser's menu) when nothing. */
+  function takeMenuTarget(node: EventTarget | null): DataTableMenuTarget<TData> | null {
+    const target = current.contextMenu ? menuTargetFrom(node) : null;
+    cm?.update(target ? { disabled: false, items: current.contextMenu!(target) } : { disabled: true });
+    return target;
+  }
+
+  function ensureContextMenu(): void {
+    if (cm || !menuActive()) return;
+    cm = ContextMenu({
+      class: "zen-contents",
+      contentClass: "zen-min-w-48",
+      items: [],
+      disabled: true,
+      onContextMenu: (e) => {
+        const target = takeMenuTarget(e.target);
+        // A right-click makes its row the focused one, as on a desktop, so the
+        // menu is for it and focus returns there.
+        if (target && keyboardActive()) {
+          const tr = (e.target as Element).closest("tr[data-row-id]") as HTMLElement | null;
+          const i = tr ? rowEls.indexOf(tr) : -1;
+          if (tr && i >= 0) {
+            setTabStop(i);
+            tr.focus({ preventScroll: true });
+          }
+        }
+      },
+    });
+    const onKeyCapture = (e: KeyboardEvent) => {
+      if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) takeMenuTarget(document.activeElement);
+    };
+    const handle = cm;
+    handle.el.addEventListener("keydown", onKeyCapture, true);
+    disposer.add(() => {
+      handle.el.removeEventListener("keydown", onKeyCapture, true);
+      handle.destroy();
+    });
+  }
+
+  /* ----- keyboard rows ----- */
+  const keyboardActive = (): boolean => !!current.enableKeyboardNavigation && !isVirt();
+
+  function setTabStop(index: number): void {
+    focusIndex = index;
+    rowEls.forEach((tr, i) => tr.setAttribute("tabindex", i === index ? "0" : "-1"));
+  }
+
+  function onRowKeyDown(e: KeyboardEvent, tr: HTMLElement, r: DisplayRow, index: number): void {
+    if (e.altKey || ownsArrowKeys(e.target)) return;
+    const to = rowKeyTarget(e.key, index, rowEls.length);
+    if (to !== null) {
+      e.preventDefault();
+      const next = rowEls[to];
+      if (!next) return;
+      setTabStop(to);
+      next.focus();
+      return;
+    }
+    // The rest act on the row itself: on a link or a button inside it, Enter
+    // and Space are that control's.
+    if (e.target !== tr) return;
+    if (e.key === "Enter" && current.onRowActivate) {
+      e.preventDefault();
+      current.onRowActivate(r.row, e);
+    } else if (e.key === " " && current.enableRowSelection) {
+      e.preventDefault();
+      toggleRow(rowIdOf(r.row, r.index));
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a" && current.enableRowSelection) {
+      e.preventDefault();
+      toggleAll(lastDisplay);
+    }
+  }
+
+  /* Every state change repaints the body, which would drop focus to the page.
+   * Where focus was in the table, it is put back: on the same row (by id, so a
+   * sort or new data that moves the row is followed), on the same control
+   * inside it, or, when that row has gone, on the keyboard's tab-stop row. */
+  const FOCUSABLE = "button, input, select, textarea, a[href], [tabindex]";
+  type FocusMark =
+    | { kind: "row"; id: string; sub: number }
+    | { kind: "other"; index: number };
+  function captureFocus(): FocusMark | null {
+    const active = document.activeElement;
+    if (!active || !containerEl.contains(active)) return null;
+    const tr = active.closest("tr");
+    const id = tr ? rowIdOfEl.get(tr) : undefined;
+    if (tr && id !== undefined) {
+      const sub = active === tr ? -1 : Array.from(tr.querySelectorAll(FOCUSABLE)).indexOf(active);
+      return { kind: "row", id, sub };
+    }
+    return { kind: "other", index: Array.from(containerEl.querySelectorAll(FOCUSABLE)).indexOf(active) };
+  }
+  function restoreFocus(mark: FocusMark | null): void {
+    if (!mark) return;
+    const active = document.activeElement;
+    if (active && active !== document.body && containerEl.contains(active)) return;
+    let target: Element | undefined;
+    if (mark.kind === "row") {
+      const tr = rowElById.get(mark.id);
+      if (tr) target = mark.sub < 0 ? tr : tr.querySelectorAll(FOCUSABLE)[mark.sub] ?? tr;
+      else if (keyboardActive()) target = rowEls[Math.min(focusIndex, rowEls.length - 1)];
+    } else if (mark.index >= 0) {
+      target = containerEl.querySelectorAll(FOCUSABLE)[mark.index];
+    }
+    (target as HTMLElement | undefined)?.focus({ preventScroll: true });
+  }
+
   /* ----- non-virtualized table ----- */
   function totalColumnCount(): number {
     return leafColumns().length + (current.enableRowSelection ? 1 : 0);
@@ -537,6 +979,7 @@ export function DataTable<TData>(
       cn("zen-relative zen-w-full zen-overflow-auto", current.fillHeight && "zen-min-h-0 zen-flex-1"),
     );
     if (stickyActive && !current.fillHeight) wrapper.style.maxHeight = `${bodyHeight()}px`;
+    tableWrapper = wrapper;
 
     const table = h(
       "table",
@@ -605,14 +1048,36 @@ export function DataTable<TData>(
     } else if (display.length === 0) {
       tbody.append(messageRow(current.emptyMessage ?? "No results."));
     } else {
-      for (const r of display) {
+      const keyboard = keyboardActive();
+      const tabStop = Math.min(focusIndex, Math.max(display.length - 1, 0));
+      display.forEach((r, i) => {
         const id = rowIdOf(r.row, r.index);
         const selected = effSelection().has(id);
         const tr = h(
           "tr",
           cn(TABLE_ROW_CLASS, current.rowClassName?.(r.row, r.index)),
         );
+        // Added past cn(): its merge reads `outline` and `outline-2` as one
+        // conflict and would keep only the width, leaving the browser's ring.
+        if (keyboard) tr.classList.add(...ROW_FOCUS_CLASS);
         if (selected) tr.setAttribute("data-state", "selected");
+        rowEls.push(tr);
+        rowElById.set(id, tr);
+        rowIdOfEl.set(tr, id);
+        displayById.set(id, r);
+        // A context menu is attached: rows and cells say which they are.
+        if (menuActive()) tr.setAttribute("data-row-id", id);
+        if (keyboard) {
+          tr.setAttribute("tabindex", i === tabStop ? "0" : "-1");
+          const label = current.rowLabel?.(r.row, r.index);
+          if (label !== undefined) tr.setAttribute("aria-label", label);
+          if (current.enableRowSelection) tr.setAttribute("aria-selected", selected ? "true" : "false");
+          tr.addEventListener("keydown", (e) => onRowKeyDown(e, tr, r, i));
+          // focusin, not focus: a control inside the row makes it the tab stop too.
+          tr.addEventListener("focusin", () => {
+            if (focusIndex !== i || tr.getAttribute("tabindex") !== "0") setTabStop(i);
+          });
+        }
 
         if (current.enableRowSelection) {
           const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
@@ -628,27 +1093,55 @@ export function DataTable<TData>(
 
         for (const col of leafColumns()) {
           const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+          if (menuActive()) td.setAttribute("data-column", colId(col));
           const content = renderCell(col, r.row, r.index);
           collectInto(content, mounted);
           td.append(...toNodes(content));
           tr.append(td);
         }
         tbody.append(tr);
-      }
+      });
     }
 
-    /* tfoot — only when a column declares a footer, so every existing table
-     * keeps its exact markup. */
+    /* tfoot — only when a column declares a footer or a total, so every
+     * existing table keeps its exact markup. */
     const footerCols = current.columns.filter((c) => c.footer);
-    if (footerCols.length) {
+    const hasTotals = current.columns.some((c) => c.meta?.aggregate);
+    if (footerCols.length || hasTotals) {
       const tfoot = h("tfoot", "zen-border-t zen-bg-zen-muted/50 zen-font-medium");
       const tr = h("tr", "");
+      // Totals: right-aligned figures, kept in view at the bottom while the
+      // rows scroll under them. A footer without totals renders exactly as it
+      // always has.
+      const totalCellClass = (isTotal: boolean): string =>
+        cn(
+          TABLE_CELL_CLASS,
+          sepCellClass(),
+          isTotal && "zen-text-end zen-tabular-nums",
+          stickyActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
+        );
+      if (hasTotals) {
+        tfoot.setAttribute("data-totals", "");
+        // The select column's cell, so the totals sit under their columns.
+        if (current.enableRowSelection) tr.append(h("td", totalCellClass(false)));
+      }
+      const labelCol = hasTotals
+        ? current.columns.find((c) => !c.meta?.aggregate && !c.footer)
+        : undefined;
+      // The filtered rows (every page), or this page's own rows.
+      const totalRows = current.totalsOver === "page" ? display : processed;
       for (const col of current.columns) {
-        const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+        const td = h("td", hasTotals ? totalCellClass(!!col.meta?.aggregate) : cn(TABLE_CELL_CLASS, sepCellClass()));
         if (col.footer) {
           const content = col.footer(display.map((r: (typeof display)[number]) => r.row));
           collectInto(content, mounted);
           td.append(...toNodes(content));
+        } else if (col.meta?.aggregate) {
+          const content = totalOf(col, totalRows);
+          collectInto(content, mounted);
+          td.append(...toNodes(content));
+        } else if (col === labelCol) {
+          td.textContent = loc.t("dataTable.total");
         }
         tr.append(td);
       }
@@ -834,10 +1327,23 @@ export function DataTable<TData>(
   }
 
   /* ----- the single render pass ----- */
+  let lastDisplay: DisplayRow[] = [];
+  /* The table's own scroller, as last painted. A repaint builds a new one, which
+   * would start at the top: a row selected far down a scrolling table would
+   * jump the list back to its first row under the user. */
+  let tableWrapper: HTMLElement | null = null;
   function sync(): void {
+    const focusMark = captureFocus();
+    const scrolled = tableWrapper?.isConnected
+      ? { top: tableWrapper.scrollTop, left: tableWrapper.scrollLeft }
+      : null;
     clearMounted();
     const processed = processRows();
     const display = computeDisplay(processed);
+    lastDisplay = display;
+    rowEls = [];
+    rowElById = new Map();
+    displayById = new Map();
 
     const mode: "virt" | "table" = isVirt() ? "virt" : "table";
     if (mode !== builtMode) {
@@ -862,7 +1368,14 @@ export function DataTable<TData>(
     }
 
     if (mode === "table") {
-      containerEl.replaceChildren(buildTable(processed, display));
+      ensureContextMenu();
+      if (cm && menuActive()) {
+        // The rows live inside the ContextMenu's area (display: contents).
+        cm.el.replaceChildren(buildTable(processed, display));
+        if (cm.el.parentElement !== containerEl) containerEl.replaceChildren(cm.el);
+      } else {
+        containerEl.replaceChildren(buildTable(processed, display));
+      }
     } else {
       paintVirtHeader(processed);
       virt!.update({
@@ -872,10 +1385,17 @@ export function DataTable<TData>(
       } as Partial<{ items: DisplayRow[] }>);
     }
 
+    if (mode === "table" && scrolled && tableWrapper && (scrolled.top || scrolled.left)) {
+      tableWrapper.scrollTop = scrolled.top;
+      tableWrapper.scrollLeft = scrolled.left;
+    }
+
     if (current.loading) containerEl.setAttribute("aria-busy", "true");
     else containerEl.removeAttribute("aria-busy");
 
     paintPagination(processed);
+    paintExport();
+    restoreFocus(focusMark);
   }
 
   sync();

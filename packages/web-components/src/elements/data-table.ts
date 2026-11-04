@@ -8,6 +8,12 @@ import { defineZenElement } from "../lib/define";
 //
 // Data-driven: `columns` (carries cell/sortingFn render fns) and `data` are JS
 // properties. `data` also gets a json attr so a pure-HTML author can seed rows.
+//
+// A callback whose RETURN VALUE the table uses is a JS property, not an event
+// (an event's listener returns nothing): `rowLabel` (a string), `contextMenu`
+// (the menu's items) and `onExport` (the Blob / { url } / Promise the download
+// waits on). Callbacks that only report are events: `zen-row-activate`
+// (detail: [row, keyboardEvent]).
 defineZenElement<DataTableProps<Record<string, unknown>>>({
   tag: "zen-data-table",
   factory: DataTable,
@@ -19,6 +25,11 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "enable-row-selection": "boolean",
     "enable-virtualization": "boolean",
     "enable-column-separators": "boolean",
+    "enable-keyboard-navigation": "boolean",
+    "fill-height": "boolean",
+    "totals-over": "string",
+    "export-title": "string",
+    "export-filename": "string",
     "header-variant": "string",
     "sticky-header": "boolean",
     "page-size": "number",
@@ -39,11 +50,17 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "manualPagination",
     "sorting",
     "rowSelection",
+    "rowLabel",
+    "contextMenu",
+    "onExport",
+    "exportFormats",
+    "exportContext",
   ],
   events: {
     onSortingChange: "zen-sorting-change",
     onRowSelectionChange: "zen-row-selection-change",
     onGlobalFilterChange: "zen-global-filter-change",
+    onRowActivate: "zen-row-activate",
   },
   childrenProp: false,
 });

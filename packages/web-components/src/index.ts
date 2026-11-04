@@ -95,7 +95,7 @@ export type {
   CardProps, CarouselProps, ChartProps, ChartSeries, CheckboxHandle, CheckboxProps, CheckboxSize,
   MediaRange, MediaRangeMode, MediaTimelineProps, WaveformClip, WaveformProps,
   CheckedState, Child, ColorOption, ColorPaletteProps, ColorPickerProps, ComboboxOption,
-  ComboboxProps, DataTableCellContext, DataTableColumn, DataTableManualPagination,
+  ComboboxProps, DataTableCellContext, DataTableColumn, DataTableColumnMeta, DataTableManualPagination, DataTableMenuTarget,
   DataTableProps, DateInputProps, DateOrder, DatePickerProps, DateRange, DateRangeOperator, DateRangePickerProps,
   UrlDataTableProps, UrlDataTableColumn, UrlDataTableFilter, UrlDataTableFilterOption,
   UrlDataTableParamNames,
