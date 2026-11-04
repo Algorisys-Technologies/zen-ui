@@ -11,6 +11,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Progress } from "../progress/progress";
+import { useLocale } from "../locale/locale";
 
 /**
  * ChunkUploader — a large file, sent in pieces, with progress you can pause and
@@ -74,6 +75,7 @@ const formatBytes = (n: number): string => {
 };
 
 export const ChunkUploader = (props: ChunkUploaderProps) => {
+  const loc = useLocale();
   const [status, setStatus] = createSignal<ChunkUploadStatus>("idle");
   const [done, setDone] = createSignal(0);
   const [error, setError] = createSignal("");
@@ -184,7 +186,7 @@ export const ChunkUploader = (props: ChunkUploaderProps) => {
       when={props.file}
       fallback={
         <p class={cn("zen-m-0 zen-text-sm zen-text-zen-muted-fg", props.class)}>
-          No file selected.
+          {loc.t("chunkUploader.noFileSelected")}
         </p>
       }
     >
@@ -231,7 +233,7 @@ export const ChunkUploader = (props: ChunkUploaderProps) => {
             <span class="zen-ms-auto zen-flex zen-gap-2">
               <Show when={status() === "uploading"}>
                 <Button size="sm" variant="outline" onClick={() => (paused = true)}>
-                  Pause
+                  {loc.t("chunkUploader.pause")}
                 </Button>
               </Show>
               <Show

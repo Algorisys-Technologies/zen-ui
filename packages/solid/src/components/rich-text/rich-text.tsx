@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createEffect, createMemo, createSignal, on, onCleanup, onMount, Show } from "solid-js";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * RichText — WYSIWYG editor wrapping `jodit` (an OPTIONAL peer dependency).
@@ -30,6 +31,7 @@ export interface RichTextProps {
 }
 
 export const RichText = (props: RichTextProps) => {
+  const loc = useLocale();
   const [status, setStatus] = createSignal<"loading" | "jodit" | "fallback">("loading");
 
   let mountPoint: HTMLDivElement | undefined;
@@ -115,7 +117,7 @@ export const RichText = (props: RichTextProps) => {
       </Show>
 
       <Show when={status() === "loading"}>
-        <div class="zen-text-sm zen-text-zen-muted-fg">Loading editor…</div>
+        <div class="zen-text-sm zen-text-zen-muted-fg">{loc.t("richText.loadingEditor")}</div>
       </Show>
 
       {/*

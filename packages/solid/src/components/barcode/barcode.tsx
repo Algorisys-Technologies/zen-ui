@@ -5,14 +5,16 @@ import {
   qrPath,
   type BarcodeFormat,
   type QrEcc,
+  type CodeError as CodeErrorResult,
 } from "@algorisys/zen-ui-core/barcode";
 import { cn } from "../../lib/cn";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 export type { BarcodeFormat, QrEcc };
 
-type Encoded<T> = (T & { ok: true }) | { ok: false; error: string };
+type Encoded<T> = (T & { ok: true }) | CodeErrorResult;
 const drawn = <T,>(c: Encoded<T>) => (c.ok ? c : undefined);
-const whyNot = <T,>(c: Encoded<T>) => (c.ok ? "" : c.error);
+const whyNot = <T,>(c: Encoded<T>): CodeErrorResult | undefined => (c.ok ? undefined : c);
 
 /**
  * QRCode and Barcode — codes drawn as SVG, for screens and for print: the
@@ -48,20 +50,21 @@ export type QRCodeProps = {
 
 export const QRCode = (props: QRCodeProps) => {
   const [local] = splitProps(props, ["value", "ecc", "size", "quietZone", "minVersion", "label", "class"]);
+  const loc = useLocale();
   const code = createMemo(() => encodeQr(local.value, { ecc: local.ecc, minVersion: local.minVersion }));
   const quiet = () => local.quietZone ?? 4;
   const size = () => local.size ?? 128;
   return (
     <Show
       when={drawn(code())}
-      fallback={<CodeError size={`${size()}px`} message={whyNot(code())} what="QR code" class={local.class} />}
+      fallback={<CodeError size={`${size()}px`} message={whyNot(code())} what={loc.t("barcode.qrCode")} class={local.class} />}
     >
       {(c) => {
         const n = () => c().size + quiet() * 2;
         return (
           <svg
             role="img"
-            aria-label={local.label ?? "QR code"}
+            aria-label={local.label ?? loc.t("barcode.qrCode")}
             data-version={c().version}
             data-ecc={c().ecc}
             width={size()}
@@ -157,17 +160,27 @@ export const Barcode = (props: BarcodeProps) => {
 };
 
 /** In place of a code that cannot be drawn: why, where the code would be. */
-const CodeError = (props: { size: string; message: string; what: string; class?: string }) => (
+const CodeError = (props: { size: string; message: CodeErrorResult | undefined; what: string; class?: string }) => {
+  const loc = useLocale();
+  // The catalogue's sentence for core's error code; core's English when it has none.
+  const message = () => {
+    const m = props.message;
+    if (!m) return "";
+    return m.code ? loc.t(`barcode.error.${m.code}` as MessageKey, m.values) : m.error;
+  };
+  const text = () => loc.t("barcode.noCode", { what: props.what, message: message() });
+  return (
   <span
     role="img"
-    aria-label={`No ${props.what}: ${props.message}`}
-    title={props.message}
+    aria-label={text()}
+    title={message()}
     style={{ "min-height": props.size }}
     class={cn(
       "zen-inline-flex zen-max-w-full zen-items-center zen-justify-center zen-rounded-zen-sm zen-border zen-border-dashed zen-border-zen-error zen-p-2 zen-text-center zen-text-xs zen-text-zen-error",
       props.class,
     )}
   >
-    {`No ${props.what}: ${props.message}`}
+    {text()}
   </span>
-);
+  );
+};

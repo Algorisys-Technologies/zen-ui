@@ -23,6 +23,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * ScheduleGrid — the chrome every schedule chart needs, and none of what any
@@ -390,6 +391,7 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
 }
 
 export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProps<R>) {
+  const loc = useLocale();
   const rowHeight = () => props.rowHeight ?? ROW_PX;
   const marker = createMemo(() => nowPct(props.axis.range(), props.now));
   const bodyHeight = () => props.rows.length * rowHeight();
@@ -628,19 +630,19 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
             <Button
               variant="outline"
               size="sm"
-              aria-label="Previous"
+              aria-label={loc.t("scheduleGrid.previous")}
               onClick={() => props.onDateChange(shiftGanttAnchor(props.axis.anchoredView(), props.anchor, -1))}
             >
               {/* Logical, not physical: under RTL the axis runs the other way. */}
               <Icon name="chevron-left" size={14} class="rtl:zen-rotate-180" />
             </Button>
             <Button variant="outline" size="sm" onClick={() => props.onDateChange(props.now)}>
-              Today
+              {loc.t("scheduleGrid.today")}
             </Button>
             <Button
               variant="outline"
               size="sm"
-              aria-label="Next"
+              aria-label={loc.t("scheduleGrid.next")}
               onClick={() => props.onDateChange(shiftGanttAnchor(props.axis.anchoredView(), props.anchor, 1))}
             >
               <Icon name="chevron-right" size={14} class="rtl:zen-rotate-180" />
@@ -661,7 +663,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
               : ganttRangeLabel(props.axis.anchoredView(), props.anchor)}
           </span>
 
-          <div class="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label="View">
+          <div class="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label={loc.t("scheduleGrid.view")}>
             <For each={props.views ?? ALL_VIEWS}>
               {(v) => (
                 <Button
@@ -733,7 +735,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
             <div
               role="columnheader"
               aria-colindex={props.timelineColIndex}
-              aria-label="Timeline"
+              aria-label={loc.t("scheduleGrid.timeline")}
               class="zen-flex"
               style={{ width: `${props.axis.axisWidth()}px` }}
             >

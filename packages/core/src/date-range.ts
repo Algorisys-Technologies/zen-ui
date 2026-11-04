@@ -456,34 +456,45 @@ const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
 export const formatDateRangeValue = (
   value: DateRangeValue | null | undefined,
   formatDate: (d: Date) => string = (d) => d.toLocaleDateString(),
+  t?: DateRangeTranslate,
 ): string => {
   if (!value) return "";
   const meta = META.get(value.operator);
+  // Each phrase by catalogue key when a translator is given, else the English;
+  // `bun run check:messages` asserts the two agree for every operator.
+  const say = (key: string, english: string, values?: Record<string, string | number>) => (t ? t(key, values) : english);
+  const name = () => (meta ? say(`dateRange.op.${value.operator}`, meta.label) : "");
 
   if (value.operator === "BETWEEN") {
     const a = parseISODate(value.from);
     const b = parseISODate(value.to);
-    if (!a || !b) return meta?.label ?? "";
+    if (!a || !b) return name();
     const [lo, hi] = a <= b ? [a, b] : [b, a];
-    return `${formatDate(lo)} – ${formatDate(hi)}`;
+    const from = formatDate(lo), to = formatDate(hi);
+    return say("dateRange.span", `${from} – ${to}`, { from, to });
   }
 
   if (value.operator === "DATE" || value.operator === "FROM" || value.operator === "TO") {
     const d = parseISODate(value.date);
-    if (!d) return meta?.label ?? "";
-    return `${meta?.label} ${formatDate(d)}`;
+    if (!d) return name();
+    const date = formatDate(d);
+    return say(`dateRange.at.${value.operator}`, `${meta?.label} ${date}`, { date });
   }
 
   if (isCountOperator(value.operator)) {
     const v = value as { operator: CountOperator; count: number; includeCurrent?: boolean };
     const m = META.get(v.operator);
     const dir = v.operator.startsWith("LAST") ? "Last" : "Next";
-    const base = `${dir} ${plural(Math.max(0, Math.floor(v.count)), m?.unit ?? "day")}`;
+    const count = Math.max(0, Math.floor(v.count));
+    const base = say(`dateRange.count.${v.operator}`, `${dir} ${plural(count, m?.unit ?? "day")}`, { count });
     // Surfaced in the label because it changes which dates you get, and a
     // difference you cannot see in the trigger is a difference you will not
     // notice is wrong.
-    return v.includeCurrent ? `${base}, incl. current` : base;
+    return v.includeCurrent ? say("dateRange.inclCurrent", `${base}, incl. current`, { range: base }) : base;
   }
 
-  return meta?.label ?? "";
+  return name();
 };
+
+/** A message lookup (LocaleProvider's `t`): the key and its values in, the sentence out. */
+export type DateRangeTranslate = (key: string, values?: Record<string, string | number>) => string;

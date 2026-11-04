@@ -12,6 +12,7 @@ import { Dynamic } from "solid-js/web";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
 import { Skeleton } from "../skeleton/skeleton";
+import { useLocale } from "../locale/locale";
 
 /**
  * Tile and TileGrid — a launchpad: the apps, modules or records a person
@@ -65,6 +66,7 @@ const INTERACTIVE =
   "zen-cursor-pointer zen-transition-colors hover:zen-border-zen-primary hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2";
 
 export const Tile = (props: TileProps) => {
+  const loc = useLocale();
   const [local] = splitProps(props, [
     "title",
     "subtitle",
@@ -112,7 +114,7 @@ export const Tile = (props: TileProps) => {
         >
           <Show when={local.locked || local.subtitle !== undefined}>
             <span class="zen-truncate zen-text-xs zen-text-zen-muted-fg">
-              {local.locked ? (local.lockedLabel ?? "Locked") : local.subtitle}
+              {local.locked ? (local.lockedLabel ?? loc.t("tile.locked")) : local.subtitle}
             </span>
           </Show>
         </Show>

@@ -10,6 +10,7 @@ import {
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * MediaTimeline — a filmstrip trim track: draggable ranges over optional
@@ -113,6 +114,7 @@ export type MediaTimelineProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class
 };
 
 export const MediaTimeline = (props: MediaTimelineProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "duration",
     "ranges",
@@ -308,7 +310,7 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
         <div
           ref={trackRef}
           role="group"
-          aria-label={local.label ?? "Media timeline"}
+          aria-label={local.label ?? loc.t("mediaTimeline.mediaTimeline")}
           // Time axes read left-to-right even in RTL locales — every editor's.
           dir="ltr"
           class={cn(
@@ -444,7 +446,7 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
                         role="slider"
                         tabIndex={0}
                         aria-orientation="horizontal"
-                        aria-label={`Range ${i + 1} ${edge}`}
+                        aria-label={loc.t(edge === "start" ? "mediaTimeline.rangeStart" : "mediaTimeline.rangeEnd", { n: i + 1 })}
                         aria-valuemin={0}
                         aria-valuemax={local.duration}
                         aria-valuenow={range()[edge]}
@@ -469,7 +471,7 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
                   <Show when={active() && local.onRangeRemove}>
                     <button
                       type="button"
-                      aria-label={`Remove range ${i + 1}`}
+                      aria-label={loc.t("mediaTimeline.removeRange", { n: i + 1 })}
                       class={cn(
                         "zen-absolute zen-top-1 zen-left-1/2 -zen-translate-x-1/2 zen-z-10",
                         "zen-flex zen-h-4 zen-w-4 zen-cursor-pointer zen-items-center zen-justify-center",

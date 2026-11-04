@@ -12,6 +12,7 @@ import {
 import { Dynamic } from "solid-js/web";
 import { cn } from "../../lib/cn";
 import { arrowStep } from "@algorisys/zen-ui-core";
+import { useLocale } from "../locale/locale";
 
 /**
  * ObjectPageLayout — Solid binding. Mirrors
@@ -86,6 +87,7 @@ const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "sections",
     "selectedSectionId",
@@ -379,7 +381,7 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
                 barRef = undefined;
               });
             }}
-            aria-label={local.anchorBarLabel ?? "Object page sections"}
+            aria-label={local.anchorBarLabel ?? loc.t("objectPage.objectPageSections")}
             class="zen-sticky zen-top-0 zen-z-10 zen-flex zen-h-zen-anchor-bar zen-items-stretch zen-gap-1 zen-overflow-x-auto zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-4"
           >
             <For each={local.sections}>

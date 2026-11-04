@@ -122,18 +122,21 @@ issue / PR when its turn comes.
 
 ## B1: translatable strings — batches 2 and 3 (2026-11-04)
 
-- [ ] Batch 2: tables and data (DataTable, url-data-table, tree-table,
+- [x] Batch 2: tables and data (DataTable, url-data-table, tree-table,
       Pagination, Pivot*, SpreadsheetGrid, Chart, MicroChart).
-- [ ] Batch 3: everything else on check:strings' NOT_YET_SWEPT list, plus
+- [x] Batch 3: everything else on check:strings' NOT_YET_SWEPT list, plus
       words generated in CORE (FilterBuilder's operator words and summary
       sentence from core filter.ts; DynamicDateRange's period names from core
       date-range.ts; Barcode/QR error reasons from core barcode.ts). Core
       functions take English today; give them a message lookup (same keys), so
-      describeFilter etc. translate too.
+      describeFilter etc. translate too. Done: optional `t` on
+      formatDateRangeValue / operatorLabel / describeFilter, barcode error
+      `code` + `values`; NOT_YET_SWEPT is empty (135 of 135 clean).
 - [x] Combobox takes `id` and `aria-label` (on its input): `<label for>` names
       and focuses it (measured).
-- [ ] Each batch: route snapshots must be identical to the baseline for every
-      pre-existing route (see "Regression proof" above). Batch 1 measured.
+- [x] Each batch: route snapshots must be identical to the baseline for every
+      pre-existing route (see "Regression proof" above). Batches 1, 2 and 3
+      measured: 120 of 120 identical after batch 3.
 - [ ] Parity: React / vanilla / web-components read the same core catalogue;
       check:strings to be extended to each binding in the parity pass.
 

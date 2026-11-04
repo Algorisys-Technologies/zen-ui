@@ -2,6 +2,7 @@ import { createEffect, For, Show, type JSX } from "solid-js";
 import { Dynamic } from "solid-js/web";
 import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
+import { useLocale } from "../locale/locale";
 
 /**
  * ProctorStreamGrid and ProctorFlagOverlay — many live candidates on one screen,
@@ -103,6 +104,7 @@ const StreamVideo = (props: {
   muted?: boolean;
   label: string;
 }) => {
+  const loc = useLocale();
   let el: HTMLVideoElement | undefined;
 
   createEffect(() => {
@@ -120,7 +122,7 @@ const StreamVideo = (props: {
         <div class="zen-flex zen-h-full zen-w-full zen-items-center zen-justify-center zen-bg-zen-muted">
           <Show
             when={props.poster}
-            fallback={<span class="zen-text-xs zen-text-zen-muted-fg">No video</span>}
+            fallback={<span class="zen-text-xs zen-text-zen-muted-fg">{loc.t("proctor.noVideo")}</span>}
           >
             <img src={props.poster} alt="" class="zen-h-full zen-w-full zen-object-cover" />
           </Show>
@@ -159,6 +161,7 @@ export interface ProctorStreamGridProps {
 }
 
 export const ProctorStreamGrid = (props: ProctorStreamGridProps) => {
+  const loc = useLocale();
   const shown = () => (props.max ? props.participants.slice(0, props.max) : props.participants);
   const hidden = () => props.participants.length - shown().length;
 
@@ -167,7 +170,7 @@ export const ProctorStreamGrid = (props: ProctorStreamGridProps) => {
       when={props.participants.length > 0}
       fallback={
         <p class="zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-          {props.emptyMessage ?? "Nobody is connected."}
+          {props.emptyMessage ?? loc.t("proctor.nobodyIsConnected")}
         </p>
       }
     >

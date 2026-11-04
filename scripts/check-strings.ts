@@ -20,54 +20,7 @@ import { join, relative } from "node:path";
 
 const ROOT = "packages/solid/src/components";
 // Swept in later batches (B1, 2026-11-04). Delete a line when its component is swept.
-const NOT_YET_SWEPT = new Set<string>([
-  "alert/alert.tsx",
-  "banner/banner.tsx",
-  "barcode/barcode.tsx",
-  "breadcrumb/breadcrumb.tsx",
-  "button/button-family.tsx",
-  "carousel/carousel.tsx",
-  "chunk-uploader/chunk-uploader.tsx",
-  "code-editor/code-editor.tsx",
-  "color-picker/color-picker.tsx",
-  "command/command.tsx",
-  "countdown/countdown.tsx",
-  "diagram-canvas/diagram-canvas.tsx",
-  "diff-view/diff-view.tsx",
-  "document-tabs/document-tabs.tsx",
-  "document-viewer/document-viewer.tsx",
-  "dynamic-page/dynamic-page.tsx",
-  "file-upload/file-upload.tsx",
-  "flexible-column-layout/flexible-column-layout.tsx",
-  "form/dynamic-date-range/dynamic-date-range.tsx",
-  "form/otp/otp.tsx",
-  "gantt/gantt.tsx",
-  "gantt/schedule-grid.tsx",
-  "media-timeline/media-timeline.tsx",
-  "message-popover/message-popover.tsx",
-  "notifications-inbox/notifications-inbox.tsx",
-  "object-page/object-page.tsx",
-  "page-header/page-header.tsx",
-  "planning-calendar/planning-calendar.tsx",
-  "proctor/proctor.tsx",
-  "production-schedule/production-schedule.tsx",
-  "qr-scanner/qr-scanner.tsx",
-  "rich-text/rich-text.tsx",
-  "sheet/sheet.tsx",
-  "shellbar/shellbar.tsx",
-  "shortcuts/shortcuts.tsx",
-  "sidebar/sidebar.tsx",
-  "skip-to-content/skip-to-content.tsx",
-  "sortable-list/sortable-list.tsx",
-  "splitter/splitter.tsx",
-  "stepper/stepper.tsx",
-  "survey/nps.tsx",
-  "tile/tile.tsx",
-  "timeline/timeline.tsx",
-  "toolbar/toolbar.tsx",
-  "upload-collection/upload-collection.tsx",
-  "waveform/waveform.tsx",
-]);
+const NOT_YET_SWEPT = new Set<string>([]);
 
 const PATTERNS: [string, RegExp][] = [
   ["text attribute", /\b(aria-label|aria-description|aria-roledescription|title|placeholder|label|description|emptyText|emptyMessage|alt)="[^"]*[A-Za-z]{2}[^"]*"/],
@@ -115,5 +68,6 @@ for (const file of files.sort()) {
 const stale = [...NOT_YET_SWEPT].filter((f) => !files.some((p) => relative(ROOT, p) === f));
 for (const r of report) console.error(`FAIL ${r}`);
 for (const s of stale) console.error(`FAIL NOT_YET_SWEPT names a file that does not exist: ${s}`);
-console.log(`${swept} components clean of hard-coded strings; ${NOT_YET_SWEPT.size} not yet swept (${pending} strings waiting)`);
+const dirty = new Set(report.map((r) => r.split(":")[0])).size;
+console.log(`${swept - dirty} of ${swept} components clean of hard-coded strings${dirty ? ` (${offences} strings in ${dirty})` : ""}; ${NOT_YET_SWEPT.size} not yet swept (${pending} strings waiting)`);
 process.exit(offences || stale.length ? 1 : 0);

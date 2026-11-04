@@ -3,6 +3,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { Icon } from "../icon/icon";
 import type { IconName } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * MessagePopover — the aggregated validation summary a long form owes its user.
@@ -74,6 +75,7 @@ const navigateTo = (targetId: string) => {
 };
 
 export const MessagePopover = (props: MessagePopoverProps) => {
+  const loc = useLocale();
   const [open, setOpen] = createSignal(false);
   const [filter, setFilter] = createSignal<MessageType | "all">("all");
 
@@ -157,7 +159,7 @@ export const MessagePopover = (props: MessagePopoverProps) => {
         <Show when={present().length > 1}>
           <div
             role="group"
-            aria-label="Filter by severity"
+            aria-label={loc.t("messagePopover.filterBySeverity")}
             class="zen-flex zen-flex-wrap zen-gap-1 zen-border-b zen-border-zen-border zen-p-2"
           >
             <FilterChip active={filter() === "all"} onClick={() => setFilter("all")}>
@@ -179,7 +181,7 @@ export const MessagePopover = (props: MessagePopoverProps) => {
             when={shown().length > 0}
             fallback={
               <p class="zen-m-0 zen-px-4 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-                {props.emptyMessage ?? "No messages"}
+                {props.emptyMessage ?? loc.t("messagePopover.noMessages")}
               </p>
             }
           >

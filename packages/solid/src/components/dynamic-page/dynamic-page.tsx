@@ -15,6 +15,7 @@ import {
 } from "solid-js";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * DynamicPage — Solid binding. Mirrors
@@ -259,6 +260,7 @@ export type DynamicPageHeaderProps = ComponentProps<"div"> & {
 };
 
 export const DynamicPageHeader = (props: DynamicPageHeaderProps) => {
+  const loc = useLocale();
   const { headerExpanded, pinned, setPinned, headerPinnable, headerId, setHeaderEl } =
     useDynamicPage("DynamicPageHeader");
   const [local, rest] = splitProps(props, ["class", "children", "aria-label", "pinLabel", "unpinLabel"]);
@@ -268,7 +270,7 @@ export const DynamicPageHeader = (props: DynamicPageHeaderProps) => {
       ref={(el) => setHeaderEl(el)}
       id={headerId}
       role="region"
-      aria-label={local["aria-label"] ?? "Page header"}
+      aria-label={local["aria-label"] ?? loc.t("dynamicPage.pageHeader")}
       data-state={headerExpanded() ? "expanded" : "collapsed"}
       class={cn(
         // 1fr → 0fr on a grid row collapses to zero without anyone measuring the
@@ -303,7 +305,7 @@ export const DynamicPageHeader = (props: DynamicPageHeaderProps) => {
             <button
               type="button"
               aria-pressed={pinned()}
-              aria-label={pinned() ? (local.unpinLabel ?? "Unpin header") : (local.pinLabel ?? "Pin header")}
+              aria-label={pinned() ? (local.unpinLabel ?? loc.t("dynamicPage.unpinHeader")) : (local.pinLabel ?? loc.t("dynamicPage.pinHeader"))}
               onClick={() => setPinned(!pinned())}
               class={cn(
                 "zen-inline-flex zen-h-7 zen-w-7 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-md zen-bg-transparent zen-text-zen-muted-fg zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

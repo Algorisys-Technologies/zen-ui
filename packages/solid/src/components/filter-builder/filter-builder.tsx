@@ -26,7 +26,7 @@ import { Select } from "../form/select/select";
 import { DateInput } from "../form/date-picker/date-input";
 import { MultiCombobox } from "../combobox/multi-combobox";
 import { Icon } from "../icon/icon";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 export type { FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator };
 
@@ -157,7 +157,9 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
     else focusLater(neighbour.kind === "condition" ? controlId(neighbour.id, "field") : controlId(neighbour.id, "match"));
   };
 
-  const summary = () => describeFilter(root(), local.fields, local.formatValue);
+  // Core builds the words by catalogue key through `say`, so a translation reaches the summary and the operator menu.
+  const say = (key: string, values?: Record<string, string | number>) => loc.t(key as MessageKey, values);
+  const summary = () => describeFilter(root(), local.fields, local.formatValue, say);
   // Option lists are built once per input, not per render: Kobalte reports the
   // selection again when its options change identity, and an edit answering that
   // report rebuilt the options, which reported again (a stack overflow, measured).
@@ -166,7 +168,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
   const opOptions = new Map<string, { value: string; label: string }[]>();
   const operatorOptions = (type: FilterField["type"]) => {
     let list = opOptions.get(type);
-    if (!list) opOptions.set(type, (list = operatorsFor(type).map((op) => ({ value: op, label: operatorLabel(op, type) }))));
+    if (!list) opOptions.set(type, (list = operatorsFor(type).map((op) => ({ value: op, label: operatorLabel(op, type, say) }))));
     return list;
   };
 

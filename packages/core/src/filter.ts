@@ -90,9 +90,19 @@ const DATE_LABELS: Partial<Record<FilterOperator, string>> = {
 };
 
 /** An operator as words, for a menu or a summary. Dates read as days: "is before", not "<". */
-export function operatorLabel(op: FilterOperator, type?: FilterFieldType): string {
-  return (type === "date" && DATE_LABELS[op]) || LABELS[op];
+export function operatorLabel(op: FilterOperator, type?: FilterFieldType, t?: FilterTranslate): string {
+  const date = type === "date" && DATE_LABELS[op];
+  if (!t) return date || LABELS[op];
+  return date ? t(`filter.dateOp.${op}`) : t(`filter.op.${op}`);
 }
+
+/**
+ * A message lookup (LocaleProvider's `t`): the key and its values in, the
+ * sentence out. Given one, operatorLabel and describeFilter build every phrase
+ * by catalogue key (`filter.*`); `bun run check:messages` asserts the English
+ * reads exactly as without it.
+ */
+export type FilterTranslate = (key: string, values?: Record<string, string | number>) => string;
 
 /** How many values an operator takes: 0, 1, 2 (between) or a list (in, not in). */
 export function operatorArity(op: FilterOperator): 0 | 1 | 2 | "list" {
@@ -221,33 +231,47 @@ export function describeFilter(
   node: FilterNode | null | undefined,
   fields: readonly FilterField[],
   format: (value: string | number, field: FilterField) => string = (v) => String(v),
+  t?: FilterTranslate,
 ): string {
+  const w = (key: string, english: string, values?: Record<string, string | number>) => (t ? t(key, values) : english);
   const pruned = node ? pruneFilter(node, fields) : null;
   if (!pruned) return "";
   const byId = new Map(fields.map((f) => [f.id, f]));
   const spell = (f: FilterField, v: string | number) => {
     if (f.type === "enum") return f.options?.find((o) => o.value === v)?.label ?? String(v);
-    if (f.type === "text") return `“${String(v).trim()}”`;
+    if (f.type === "text") return w("filter.quoted", `“${String(v).trim()}”`, { text: String(v).trim() });
     return format(v, f);
   };
   const say = (n: FilterNode, nested: boolean): string => {
     if (n.kind === "condition") {
       const f = byId.get(n.field)!;
-      const op = operatorLabel(n.op, f.type);
+      const op = operatorLabel(n.op, f.type, t);
       const arity = operatorArity(n.op);
-      if (arity === 0) return `${f.label} ${op}`;
+      const field = f.label;
+      if (arity === 0) return w("filter.say.none", `${field} ${op}`, { field, op });
       if (arity === "list") {
         // Commas, never "or": "or" is the groups' word, and "is A or B or Amount > 5" reads two ways.
         const vs = (n.value as string[]).map((v) => spell(f, v));
-        return vs.length === 1 ? `${f.label} ${n.op === "in" ? "is" : "is not"} ${vs[0]}` : `${f.label} ${op} ${vs.join(", ")}`;
+        if (vs.length === 1)
+          return n.op === "in"
+            ? w("filter.say.isOne", `${field} is ${vs[0]}`, { field, value: vs[0] })
+            : w("filter.say.isNotOne", `${field} is not ${vs[0]}`, { field, value: vs[0] });
+        const value = vs.join(w("filter.listSeparator", ", "));
+        return w("filter.say.one", `${field} ${op} ${value}`, { field, op, value });
       }
-      if (arity === 2) return `${f.label} ${op} ${spell(f, n.value as string | number)} and ${spell(f, n.valueTo as string | number)}`;
-      return `${f.label} ${op} ${spell(f, n.value as string | number)}`;
+      if (arity === 2) {
+        const value = spell(f, n.value as string | number), valueTo = spell(f, n.valueTo as string | number);
+        return w("filter.say.two", `${field} ${op} ${value} and ${valueTo}`, { field, op, value, valueTo });
+      }
+      const value = spell(f, n.value as string | number);
+      return w("filter.say.one", `${field} ${op} ${value}`, { field, op, value });
     }
     // Brackets only where a group sits beside something: alone, it needs none.
     const parts = n.children.map((c) => say(c, n.children.length > 1));
-    const joined = parts.join(n.join === "and" ? " and " : " or ");
-    const text = n.not ? `not (${joined})` : parts.length > 1 && nested ? `(${joined})` : joined;
+    const joined = parts.reduce((a, b) =>
+      n.join === "and" ? w("filter.say.and", `${a} and ${b}`, { a, b }) : w("filter.say.or", `${a} or ${b}`, { a, b }),
+    );
+    const text = n.not ? w("filter.say.not", `not (${joined})`, { clause: joined }) : parts.length > 1 && nested ? `(${joined})` : joined;
     return text;
   };
   return say(pruned, false);

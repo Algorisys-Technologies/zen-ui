@@ -1,5 +1,6 @@
 import { createEffect, createMemo, onCleanup, Show, type JSX } from "solid-js";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * DiagramCanvas — an embedded diagram editor, for a system-design answer.
@@ -68,6 +69,7 @@ export interface DiagramCanvasProps {
 }
 
 export const DiagramCanvas = (props: DiagramCanvasProps) => {
+  const loc = useLocale();
   let frame: HTMLIFrameElement | undefined;
 
   const provider = () => props.provider ?? "drawio";
@@ -214,7 +216,7 @@ export const DiagramCanvas = (props: DiagramCanvasProps) => {
     <iframe
       ref={frame}
       src={url()}
-      title={props.title ?? "Diagram editor"}
+      title={props.title ?? loc.t("diagramCanvas.diagramEditor")}
       style={{ height: props.height ?? "32rem" }}
       /*
        * `allow-same-origin` is required, and it is safe HERE — but only because
@@ -257,16 +259,19 @@ export interface ArchitectureDrawProps extends DiagramCanvasProps {
  * The composition an assessment actually renders, rather than a bare frame the
  * caller has to wrap every time.
  */
-export const ArchitectureDraw = (props: ArchitectureDrawProps) => (
-  <div class={cn("zen-flex zen-w-full zen-flex-col zen-gap-2", props.class)}>
-    <div class="zen-flex zen-items-center zen-gap-2">
-      <span class="zen-text-sm zen-font-medium zen-text-zen-foreground">
-        {props.label ?? "System design"}
-      </span>
-      <Show when={props.actions}>
-        <span class="zen-ms-auto zen-flex zen-gap-2">{props.actions}</span>
-      </Show>
+export const ArchitectureDraw = (props: ArchitectureDrawProps) => {
+  const loc = useLocale();
+  return (
+    <div class={cn("zen-flex zen-w-full zen-flex-col zen-gap-2", props.class)}>
+      <div class="zen-flex zen-items-center zen-gap-2">
+        <span class="zen-text-sm zen-font-medium zen-text-zen-foreground">
+          {props.label ?? loc.t("diagramCanvas.systemDesign")}
+        </span>
+        <Show when={props.actions}>
+          <span class="zen-ms-auto zen-flex zen-gap-2">{props.actions}</span>
+        </Show>
+      </div>
+      <DiagramCanvas {...props} class="" />
     </div>
-    <DiagramCanvas {...props} class="" />
-  </div>
-);
+  );
+};

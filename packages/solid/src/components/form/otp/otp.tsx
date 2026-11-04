@@ -12,6 +12,7 @@ import {
 import { cn } from "../../../lib/cn";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import "./otp.css";
+import { useLocale } from "../../locale/locale";
 
 /**
  * InputOTP — Solid port. One `<input>` per digit, zero dependencies.
@@ -259,6 +260,7 @@ export type InputOTPSlotProps = Omit<JSX.InputHTMLAttributes<HTMLInputElement>, 
 };
 
 export const InputOTPSlot = (rawProps: InputOTPSlotProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(rawProps, ["index", "class", "disabled"]);
   const ctx = useOTPContext();
   const char = () => ctx.value()[local.index] ?? "";
@@ -330,7 +332,7 @@ export const InputOTPSlot = (rawProps: InputOTPSlotProps) => {
       type="text"
       inputmode="numeric"
       autocomplete={local.index === 0 ? "one-time-code" : "off"}
-      aria-label={`Digit ${local.index + 1} of ${ctx.maxLength()}`}
+      aria-label={loc.t("otp.digit", { n: local.index + 1, count: ctx.maxLength() })}
       disabled={isDisabled()}
       value={char()}
       class={cn(slotBaseClass, ctx.slotClass(), local.class)}

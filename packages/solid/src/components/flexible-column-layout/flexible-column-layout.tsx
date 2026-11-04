@@ -137,7 +137,7 @@ export const FlexibleColumnLayout = (props: FlexibleColumnLayoutProps) => {
   const midContent = children(() => local.midColumn);
   const endContent = children(() => local.endColumn);
 
-  const layout = () => local.layout ?? "OneColumn";
+  const layout = () => local.layout ?? "OneColumn"; // i18n-ignore (a layout value, not text)
 
   const present = createMemo(() => ({
     start: startContent.toArray().length > 0,

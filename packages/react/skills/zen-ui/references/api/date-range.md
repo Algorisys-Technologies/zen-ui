@@ -32,7 +32,7 @@ SKILL.md.
 
 - `DateRangeOperator` = `FixedOperator | CountOperator | DateOperator | "BETWEEN"`
 - `resolveDateRange(value: DateRangeValue | null | undefined, now?: Date, options?: ResolveOptions): ResolvedRange`
-- `formatDateRangeValue(value: DateRangeValue | null | undefined, formatDate?: (d: Date) => string): string`
+- `formatDateRangeValue(value: DateRangeValue | null | undefined, formatDate?: (d: Date) => string, t?: DateRangeTranslate): string`
 - `DATE_RANGE_OPERATORS: OperatorMeta[]`
 - `parseISODate(s: string): Date | null`
 - `toISODate(d: Date): string`

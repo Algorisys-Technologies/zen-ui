@@ -20,6 +20,7 @@ import { Dynamic } from "solid-js/web";
 import { cn } from "../../lib/cn";
 import type { PolymorphicProps } from "../../lib/polymorphic";
 import { Popover, PopoverTrigger, PopoverContent } from "../popover/popover";
+import { useLocale } from "../locale/locale";
 
 /**
  * Sidebar — collapsible navigation shell. A lightweight, context-driven app
@@ -614,6 +615,7 @@ function callClickHandler<T extends HTMLElement>(
 export const SidebarTrigger = <T extends ValidComponent = "button">(
   rawProps: SidebarTriggerProps<T>,
 ) => {
+  const loc = useLocale();
   const { toggle } = useSidebar();
   const props = mergeProps({ as: "button" as ValidComponent }, rawProps);
   const [local, rest] = splitProps(
@@ -624,7 +626,7 @@ export const SidebarTrigger = <T extends ValidComponent = "button">(
   return (
     <Dynamic
       component={local.as}
-      aria-label="Toggle sidebar"
+      aria-label={loc.t("sidebar.toggleSidebar")}
       data-sidebar-trigger=""
       onClick={(e: Parameters<JSX.EventHandler<HTMLButtonElement, MouseEvent>>[0]) => {
         callClickHandler(local.onClick, e);

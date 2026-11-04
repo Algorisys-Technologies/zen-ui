@@ -1,6 +1,7 @@
 import { type JSX, splitProps, mergeProps } from "solid-js";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Alert — feedback / message banner. Compound API:
@@ -157,11 +158,12 @@ export type AlertCloseProps = Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, 
 };
 
 export const AlertClose = (props: AlertCloseProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <button
       type="button"
-      aria-label="Dismiss"
+      aria-label={loc.t("alert.dismiss")}
       class={cn(
         "zen-shrink-0 zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
         "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-current zen-opacity-70",

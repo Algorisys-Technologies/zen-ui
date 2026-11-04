@@ -18,6 +18,7 @@ import {
 } from "@algorisys/zen-ui-core/splitter";
 import { directionOf } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Splitter — panes a user can resize by dragging the divider between them.
@@ -244,6 +245,7 @@ export interface SplitterHandleProps {
  * PRECEDING panel so a screen-reader user knows which pane the arrows move.
  */
 export const SplitterHandle = (props: SplitterHandleProps) => {
+  const loc = useLocale();
   const ctx = useSplitter();
   const id = createUniqueId();
   /* A handle sits between panel n and n+1. It asks the root which boundary it
@@ -338,7 +340,7 @@ export const SplitterHandle = (props: SplitterHandleProps) => {
       role="separator"
       tabIndex={inert() ? -1 : 0}
       aria-orientation={horizontal() ? "vertical" : "horizontal"}
-      aria-label={props.label ?? "Resize panels"}
+      aria-label={props.label ?? loc.t("splitter.resizePanels")}
       aria-controls={ctx.panelId(handleIndex)}
       aria-valuenow={Math.round(precedingSize())}
       aria-valuemin={Math.round(ctx.boundsOf(handleIndex).min)}

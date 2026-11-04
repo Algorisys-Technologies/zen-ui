@@ -75,6 +75,21 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   QuantityField, LookupField, TreeSelect, FilterBar, SelectList, SelectDialog,
   ValueHelp (its operator names too), ViewSettingsDialog, FilterBuilder and
   ViewManager. A demo page, Localization, shows a partial Hindi translation.
+- **Every built-in string can be translated: batches 2 and 3 of 3** (Solid).
+  Batch 2: the tables and data (DataTable incl. its export menu and totals,
+  UrlDataTable, TreeTable, Pagination, Pivot, SpreadsheetGrid, Chart,
+  MicroChart). Batch 3: every remaining component, 135 in all, so
+  `check:strings` now has no exemptions. Composite labels are whole messages
+  ("Range {n} start", "{label}, step {n} of {count}, {status}"), never English
+  glued to a translated word. Words CORE generates translate too:
+  `formatDateRangeValue`, `operatorLabel` and `describeFilter` take an optional
+  message lookup (`t`) and build every phrase by catalogue key
+  (`dateRange.*`, `filter.*`); Barcode/QR errors carry a `code` and `values`
+  (`barcode.error.*`). All additive: called as before they return the same
+  English, and `check:messages` asserts the catalogue path reads identically
+  for every date-range operator (166 values), every filter operator and each
+  summary shape, and every barcode error. Route snapshots: 120 of 120 routes
+  identical before and after.
 - `bun run check:strings` fails on a hard-coded user-visible string in any
   swept component, and in any NEW component (components still to sweep are
   listed, and the list only shrinks). `bun run check:messages` checks the

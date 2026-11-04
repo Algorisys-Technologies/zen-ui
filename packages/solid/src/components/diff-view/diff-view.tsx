@@ -6,6 +6,7 @@ import {
   type DiffKind,
 } from "@algorisys/zen-ui-core/diff";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * DiffView — what changed between two snapshots of the same record.
@@ -82,6 +83,7 @@ const defaultFormat = (value: unknown): JSX.Element => {
 };
 
 export const DiffView = (props: DiffViewProps) => {
+  const loc = useLocale();
   const parse = (raw: unknown) =>
     typeof raw === "string" && props.parse ? props.parse(raw) : parseSnapshot(raw);
 
@@ -175,14 +177,14 @@ export const DiffView = (props: DiffViewProps) => {
       when={!empty()}
       fallback={
         <p class="zen-m-0 zen-py-3 zen-text-sm zen-text-zen-muted-fg">
-          {props.emptyMessage ?? "No changes"}
+          {props.emptyMessage ?? loc.t("diffView.noChanges")}
         </p>
       }
     >
       <Show when={keyed()} fallback={
         <div class={cn("zen-flex zen-w-full zen-flex-wrap zen-gap-4", props.class)}>
-          <Pane heading={props.headings?.before ?? "Before"} value={before()} tone="zen-text-zen-muted-fg" />
-          <Pane heading={props.headings?.after ?? "After"} value={after()} tone="zen-text-zen-foreground" />
+          <Pane heading={props.headings?.before ?? loc.t("diffView.before")} value={before()} tone="zen-text-zen-muted-fg" />
+          <Pane heading={props.headings?.after ?? loc.t("diffView.after")} value={after()} tone="zen-text-zen-foreground" />
         </div>
       }>
       {/* Its own scroller: a long value must not widen the page, and a diff
@@ -197,13 +199,13 @@ export const DiffView = (props: DiffViewProps) => {
           <thead>
             <tr class="zen-border-b zen-border-zen-border zen-bg-zen-muted">
               <th scope="col" class={cn(cell(), "zen-text-start zen-font-medium zen-text-zen-muted-fg")}>
-                {props.headings?.key ?? "Field"}
+                {props.headings?.key ?? loc.t("diffView.field")}
               </th>
               <th scope="col" class={cn(cell(), "zen-text-start zen-font-medium zen-text-zen-muted-fg")}>
-                {props.headings?.before ?? "Before"}
+                {props.headings?.before ?? loc.t("diffView.before")}
               </th>
               <th scope="col" class={cn(cell(), "zen-text-start zen-font-medium zen-text-zen-muted-fg")}>
-                {props.headings?.after ?? "After"}
+                {props.headings?.after ?? loc.t("diffView.after")}
               </th>
             </tr>
           </thead>

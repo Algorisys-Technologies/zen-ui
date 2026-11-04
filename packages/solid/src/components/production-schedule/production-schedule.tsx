@@ -43,6 +43,7 @@ import {
   createScrollerMetrics,
   type ScheduleColumn,
 } from "../gantt/schedule-grid";
+import { useLocale } from "../locale/locale";
 
 /**
  * ProductionSchedule — what each machine is doing, and whether it can.
@@ -268,6 +269,7 @@ const formatFloat = (minutes: number): string => {
 };
 
 export const ProductionSchedule = (props: ProductionScheduleProps) => {
+  const loc = useLocale();
   const [innerView, setInnerView] = createSignal<GanttView>(props.defaultView ?? "fit");
   const [innerDate, setInnerDate] = createSignal<Date>(props.defaultDate ?? new Date());
   const [innerExpanded, setInnerExpanded] = createSignal<string[] | null>(props.defaultExpanded ?? null);
@@ -581,7 +583,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
             props.class,
           )}
           role="status"
-          aria-label="Loading production schedule"
+          aria-label={loc.t("productionSchedule.loadingProductionSchedule")}
         >
           <For each={Array.from({ length: props.loadingRows ?? 6 }, (_, i) => i)}>
             {(i) => (
@@ -613,9 +615,9 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
                 <EmptyStateIcon>
                   <Icon name="cog" size={22} />
                 </EmptyStateIcon>
-                <EmptyStateTitle>No resources</EmptyStateTitle>
+                <EmptyStateTitle>{loc.t("productionSchedule.noResources")}</EmptyStateTitle>
                 <EmptyStateDescription>
-                  Add a work centre and book an operation on it, and the schedule will appear here.
+                  {loc.t("productionSchedule.addAWorkCentreAnd")}
                 </EmptyStateDescription>
               </EmptyState>
             )}
@@ -682,6 +684,7 @@ const ProductionPaneCell = (props: {
   float?: ProductionFloat;
   onToggle: (id: string) => void;
 }) => {
+  const loc = useLocale();
   const resource = () => props.row.resource;
   const jobCount = () => props.row.subtree.length;
 
@@ -735,7 +738,7 @@ const ProductionPaneCell = (props: {
             name="warn"
             size={13}
             class="zen-ms-auto zen-shrink-0 zen-text-zen-error"
-            title="Over capacity"
+            title={loc.t("productionSchedule.overCapacity")}
           />
         </Show>
       </Show>
@@ -1106,55 +1109,58 @@ const ProductionLoadStrip = (props: {
   axisWidth: number;
   paneWidth: number;
   buckets: ProductionLoadBucket[];
-}) => (
-  <>
-    <div
-      class="zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-3 zen-text-xs zen-font-semibold zen-text-zen-muted-fg"
-      style={{ width: `${props.paneWidth}px`, "inset-inline-start": "0", height: `${FOOTER_PX}px` }}
-    >
-      Load
-    </div>
-    <div class="zen-flex" style={{ width: `${props.axisWidth}px`, height: `${FOOTER_PX}px` }}>
-      <Index each={props.columns}>
-        {(_column, i) => {
-          const bucket = () => props.buckets[i];
-          const utilisation = () => bucket()?.utilisation ?? null;
-          /* Null is not zero. A shut day has no utilisation to draw, and an
-             empty bar there would say the plant was idle rather than closed. */
-          const height = () => (utilisation() === null ? 0 : Math.min(1, utilisation()!));
-          const over = () => (utilisation() === null ? 0 : Math.max(0, Math.min(1, utilisation()! - 1)));
-          return (
-            <div
-              class={cn(
-                "zen-relative zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0",
-                utilisation() === null && "zen-bg-zen-muted",
-              )}
-              style={{ width: `${props.columnWidths[i]}px` }}
-              title={
-                utilisation() === null
-                  ? "Closed"
-                  : `${pct(utilisation()!)} of capacity${bucket()?.overloaded ? " — over" : ""}`
-              }
-            >
-              <span
-                aria-hidden="true"
+}) => {
+  const loc = useLocale();
+  return (
+    <>
+      <div
+        class="zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-3 zen-text-xs zen-font-semibold zen-text-zen-muted-fg"
+        style={{ width: `${props.paneWidth}px`, "inset-inline-start": "0", height: `${FOOTER_PX}px` }}
+      >
+        {loc.t("productionSchedule.load")}
+      </div>
+      <div class="zen-flex" style={{ width: `${props.axisWidth}px`, height: `${FOOTER_PX}px` }}>
+        <Index each={props.columns}>
+          {(_column, i) => {
+            const bucket = () => props.buckets[i];
+            const utilisation = () => bucket()?.utilisation ?? null;
+            /* Null is not zero. A shut day has no utilisation to draw, and an
+               empty bar there would say the plant was idle rather than closed. */
+            const height = () => (utilisation() === null ? 0 : Math.min(1, utilisation()!));
+            const over = () => (utilisation() === null ? 0 : Math.max(0, Math.min(1, utilisation()! - 1)));
+            return (
+              <div
                 class={cn(
-                  "zen-absolute zen-bottom-0 zen-start-0 zen-end-0",
-                  bucket()?.overloaded ? "zen-bg-zen-error/70" : "zen-bg-zen-info/70",
+                  "zen-relative zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0",
+                  utilisation() === null && "zen-bg-zen-muted",
                 )}
-                style={{ height: `${height() * 100}%` }}
-              />
-              <Show when={over() > 0}>
+                style={{ width: `${props.columnWidths[i]}px` }}
+                title={
+                  utilisation() === null
+                    ? "Closed"
+                    : `${pct(utilisation()!)} of capacity${bucket()?.overloaded ? " — over" : ""}`
+                }
+              >
                 <span
                   aria-hidden="true"
-                  class="zen-absolute zen-start-0 zen-end-0 zen-top-0 zen-bg-zen-error"
-                  style={{ height: `${Math.max(3, over() * 100)}%` }}
+                  class={cn(
+                    "zen-absolute zen-bottom-0 zen-start-0 zen-end-0",
+                    bucket()?.overloaded ? "zen-bg-zen-error/70" : "zen-bg-zen-info/70",
+                  )}
+                  style={{ height: `${height() * 100}%` }}
                 />
-              </Show>
-            </div>
-          );
-        }}
-      </Index>
-    </div>
-  </>
-);
+                <Show when={over() > 0}>
+                  <span
+                    aria-hidden="true"
+                    class="zen-absolute zen-start-0 zen-end-0 zen-top-0 zen-bg-zen-error"
+                    style={{ height: `${Math.max(3, over() * 100)}%` }}
+                  />
+                </Show>
+              </div>
+            );
+          }}
+        </Index>
+      </div>
+    </>
+  );
+};

@@ -3,6 +3,7 @@ import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
 import { Progress } from "../progress/progress";
+import { useLocale } from "../locale/locale";
 
 /**
  * UploadCollection — the list of files that have been uploaded, or are on their
@@ -111,6 +112,7 @@ const Row = (props: {
   onRetry?: (item: UploadItem) => void;
   onRename?: (item: UploadItem, name: string) => void;
 }) => {
+  const loc = useLocale();
   const [editing, setEditing] = createSignal(false);
   let inputRef: HTMLInputElement | undefined;
   /* Escape closes the editor, which unmounts the input, which fires BLUR — and
@@ -196,7 +198,7 @@ const Row = (props: {
           <input
             ref={inputRef}
             value={props.item.name}
-            aria-label={`Rename ${props.item.name}`}
+            aria-label={loc.t("uploadCollection.rename", { name: props.item.name })}
             class="zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -220,7 +222,7 @@ const Row = (props: {
           }
         >
           <span class="zen-text-xs zen-text-zen-error">
-            {props.item.error ?? "Upload failed"}
+            {props.item.error ?? loc.t("uploadCollection.uploadFailed")}
           </span>
         </Show>
 
@@ -228,7 +230,7 @@ const Row = (props: {
           <Progress
             size="sm"
             value={props.item.progress}
-            aria-label={`Uploading ${props.item.name}`}
+            aria-label={loc.t("uploadCollection.uploading", { name: props.item.name })}
           />
         </Show>
       </div>
@@ -243,7 +245,7 @@ const Row = (props: {
             disabled={props.disabled}
             onClick={() => props.onRetry?.(props.item)}
           >
-            Retry
+            {loc.t("uploadCollection.retry")}
           </Button>
         </Show>
         <Show when={props.onRename && !busy()}>
@@ -251,7 +253,7 @@ const Row = (props: {
             variant="ghost"
             color="neutral"
             size="sm"
-            aria-label={`Rename ${props.item.name}`}
+            aria-label={loc.t("uploadCollection.rename", { name: props.item.name })}
             disabled={props.disabled}
             onClick={() => {
               setEditing(true);
@@ -271,7 +273,7 @@ const Row = (props: {
             variant="ghost"
             color="neutral"
             size="sm"
-            aria-label={`Remove ${props.item.name}`}
+            aria-label={loc.t("uploadCollection.remove", { name: props.item.name })}
             disabled={props.disabled}
             onClick={() => props.onRemove?.(props.item)}
           >
@@ -283,36 +285,39 @@ const Row = (props: {
   );
 };
 
-export const UploadCollection = (props: UploadCollectionProps) => (
-  <Show
-    when={(props.items ?? []).length > 0}
-    fallback={
-      /* `class` reaches the empty state too. A caller who sized the list — a
-         width, a max-width, a border — meant the box the files live in, and a
-         message that ignored it would jump the layout the moment the last file
-         was removed. */
-      <p
-        class={cn(
-          "zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg",
-          props.class,
-        )}
-      >
-        {props.emptyMessage ?? "No files yet"}
-      </p>
-    }
-  >
-    <ul class={cn("zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-2 zen-p-0", props.class)}>
-      <For each={props.items}>
-        {(item) => (
-          <Row
-            item={item}
-            disabled={props.disabled}
-            onRemove={props.onRemove}
-            onRetry={props.onRetry}
-            onRename={props.onRename}
-          />
-        )}
-      </For>
-    </ul>
-  </Show>
-);
+export const UploadCollection = (props: UploadCollectionProps) => {
+  const loc = useLocale();
+  return (
+    <Show
+      when={(props.items ?? []).length > 0}
+      fallback={
+        /* `class` reaches the empty state too. A caller who sized the list — a
+           width, a max-width, a border — meant the box the files live in, and a
+           message that ignored it would jump the layout the moment the last file
+           was removed. */
+        <p
+          class={cn(
+            "zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg",
+            props.class,
+          )}
+        >
+          {props.emptyMessage ?? loc.t("uploadCollection.noFilesYet")}
+        </p>
+      }
+    >
+      <ul class={cn("zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-2 zen-p-0", props.class)}>
+        <For each={props.items}>
+          {(item) => (
+            <Row
+              item={item}
+              disabled={props.disabled}
+              onRemove={props.onRemove}
+              onRetry={props.onRetry}
+              onRename={props.onRename}
+            />
+          )}
+        </For>
+      </ul>
+    </Show>
+  );
+};

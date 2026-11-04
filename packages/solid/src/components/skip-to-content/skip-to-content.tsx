@@ -1,5 +1,6 @@
 import { type JSX, splitProps } from "solid-js";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * SkipToContent — the keyboard bypass every app frame owes its users. Solid port
@@ -26,10 +27,11 @@ export const SKIP_TO_CONTENT_CLASS = [
 ].join(" ");
 
 export const SkipToContent = (props: SkipToContentProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["class", "href", "children"]);
   return (
     <a href={local.href ?? "#main-content"} class={cn(SKIP_TO_CONTENT_CLASS, local.class)} {...rest}>
-      {local.children ?? "Skip to main content"}
+      {local.children ?? loc.t("skipToContent.skipToMainContent")}
     </a>
   );
 };

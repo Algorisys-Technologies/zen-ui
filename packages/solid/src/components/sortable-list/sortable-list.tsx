@@ -23,6 +23,7 @@ import {
   type ReorderAnnouncements,
 } from "@algorisys/zen-ui-core/sortable";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * SortableList — a list whose order the user can change.
@@ -207,6 +208,7 @@ export interface SortableListItemProps {
 }
 
 export const SortableListItem = (props: SortableListItemProps) => {
+  const loc = useLocale();
   const ctx = useSortableList();
   /* Registered once for the item's life: solid-dnd registers the sortable on
      creation and a reactive read would re-register it mid-drag. */
@@ -222,7 +224,7 @@ export const SortableListItem = (props: SortableListItemProps) => {
       use:sortable
       data-dragging={sortable.isActiveDraggable ? "" : undefined}
       data-picked={isPicked() ? "" : undefined}
-      aria-roledescription="sortable item"
+      aria-roledescription={loc.t("sortableList.itemRoleDescription")}
       class={cn(
         "zen-flex zen-items-center zen-gap-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1.5",
         "zen-transition-shadow",
@@ -277,13 +279,14 @@ const GripIcon = () => (
  * whether the item is currently picked up.
  */
 export const SortableListHandle = (props: SortableListHandleProps) => {
+  const loc = useLocale();
   const ctx = useSortableList();
   const item = useContext(SortableItemIdContext);
 
   return (
     <button
       type="button"
-      aria-label={props.label ?? "Reorder"}
+      aria-label={props.label ?? loc.t("sortableList.reorder")}
       aria-pressed={ctx.picked()?.id === item?.() ? "true" : "false"}
       disabled={ctx.disabled()}
       class={cn(

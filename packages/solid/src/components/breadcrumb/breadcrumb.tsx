@@ -8,6 +8,7 @@ import {
 import { Dynamic } from "solid-js/web";
 import { cn } from "../../lib/cn";
 import type { PolymorphicProps } from "../../lib/polymorphic";
+import { useLocale } from "../locale/locale";
 
 /**
  * Breadcrumb — navigation trail primitive. Kobalte has no Breadcrumb, so this
@@ -43,9 +44,10 @@ export type BreadcrumbProps = Omit<JSX.HTMLAttributes<HTMLElement>, "class"> & {
 };
 
 export const Breadcrumb = (props: BreadcrumbProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["separator", "children"]);
   return (
-    <nav aria-label="breadcrumb" {...rest}>
+    <nav aria-label={loc.t("breadcrumb.label")} {...rest}>
       {local.children}
     </nav>
   );
@@ -187,6 +189,7 @@ export type BreadcrumbEllipsisProps = Omit<
 };
 
 export const BreadcrumbEllipsis = (props: BreadcrumbEllipsisProps) => {
+  const loc = useLocale();
   // `children` is split off and ignored: React's Ellipsis renders fixed content
   // as JSX children, which always win over a spread `children` prop.
   const [local, rest] = splitProps(props, ["class", "children"]);
@@ -201,7 +204,7 @@ export const BreadcrumbEllipsis = (props: BreadcrumbEllipsisProps) => {
       {...rest}
     >
       {"…"}
-      <span class="zen-sr-only">More</span>
+      <span class="zen-sr-only">{loc.t("breadcrumb.more")}</span>
     </span>
   );
 };

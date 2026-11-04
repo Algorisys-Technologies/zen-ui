@@ -12,6 +12,7 @@ import {
 import { Icon } from "../icon/icon";
 import { Button } from "../button/button";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * DocumentViewer — show a scanned document.
@@ -166,6 +167,7 @@ const FileIcon = () => (
 );
 
 export const DocumentViewer = (props: DocumentViewerProps) => {
+  const loc = useLocale();
   /*
    * Controlled-or-uncontrolled, per knob. The internal signal is the fallback;
    * when the matching prop is supplied it wins and the setter only reports out.
@@ -433,7 +435,7 @@ export const DocumentViewer = (props: DocumentViewerProps) => {
           <Button
             variant="ghost"
             size="sm"
-            aria-label="Zoom out"
+            aria-label={loc.t("documentViewer.zoomOut")}
             disabled={zoom() <= minZoom()}
             onClick={() => stepZoom(-1)}
           >
@@ -450,16 +452,16 @@ export const DocumentViewer = (props: DocumentViewerProps) => {
           <Button
             variant="ghost"
             size="sm"
-            aria-label="Zoom in"
+            aria-label={loc.t("documentViewer.zoomIn")}
             disabled={zoom() >= maxZoom()}
             onClick={() => stepZoom(1)}
           >
             <PlusIcon />
           </Button>
           <Button variant="ghost" size="sm" onClick={fitNow}>
-            Fit
+            {loc.t("documentViewer.fit")}
           </Button>
-          <Button variant="ghost" size="sm" aria-label="Rotate 90 degrees" onClick={rotate}>
+          <Button variant="ghost" size="sm" aria-label={loc.t("documentViewer.rotate")} onClick={rotate}>
             <RotateIcon />
           </Button>
 
@@ -468,7 +470,7 @@ export const DocumentViewer = (props: DocumentViewerProps) => {
             <Button
               variant="ghost"
               size="sm"
-              aria-label="Previous page"
+              aria-label={loc.t("documentViewer.previousPage")}
               disabled={page() <= 1}
               onClick={() => setPageTo(page() - 1)}
             >
@@ -480,7 +482,7 @@ export const DocumentViewer = (props: DocumentViewerProps) => {
             <Button
               variant="ghost"
               size="sm"
-              aria-label="Next page"
+              aria-label={loc.t("documentViewer.nextPage")}
               disabled={page() >= pageCount()}
               onClick={() => setPageTo(page() + 1)}
             >
@@ -493,7 +495,7 @@ export const DocumentViewer = (props: DocumentViewerProps) => {
             <Button
               variant="ghost"
               size="sm"
-              aria-label="Download"
+              aria-label={loc.t("documentViewer.download")}
               onClick={() => props.onDownload?.(src(), props.name)}
             >
               <DownloadIcon />
@@ -511,7 +513,7 @@ export const DocumentViewer = (props: DocumentViewerProps) => {
           <Match when={kind() === "image"}>
             <img
               src={src()}
-              alt={props.name ?? "Document"}
+              alt={props.name ?? loc.t("documentViewer.document")}
               onLoad={(e) => {
                 setNaturalSize({
                   width: e.currentTarget.naturalWidth,
@@ -544,11 +546,11 @@ export const DocumentViewer = (props: DocumentViewerProps) => {
             <div class="zen-m-auto zen-flex zen-flex-col zen-items-center zen-gap-2 zen-text-center">
               <FileIcon />
               <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
-                {props.unsupportedMessage ?? "No preview for this file type."}
+                {props.unsupportedMessage ?? loc.t("documentViewer.noPreviewForThisFile")}
               </p>
               <Show when={props.onDownload}>
                 <Button variant="outline" size="sm" onClick={() => props.onDownload?.(src(), props.name)}>
-                  Download
+                  {loc.t("documentViewer.download")}
                 </Button>
               </Show>
             </div>

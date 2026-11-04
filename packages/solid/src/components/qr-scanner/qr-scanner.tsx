@@ -1,5 +1,6 @@
 import { type JSX, Show, createEffect, createSignal, onCleanup } from "solid-js";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * QRScanner — camera-based barcode / QR scanner. Solid port.
@@ -56,6 +57,7 @@ export type QRScannerProps = {
 type Status = "idle" | "starting" | "scanning" | "blocked" | "no-camera" | "no-decoder";
 
 export const QRScanner = (props: QRScannerProps) => {
+  const loc = useLocale();
   let videoEl: HTMLVideoElement | undefined;
   let stream: MediaStream | null = null;
   let rafId: number | null = null;
@@ -212,7 +214,7 @@ export const QRScanner = (props: QRScannerProps) => {
 
       <Show when={status() === "starting"}>
         <div class="zen-absolute zen-inset-x-0 zen-bottom-2 zen-text-center zen-text-xs zen-text-white/80">
-          Starting camera…
+          {loc.t("qrScanner.startingCamera")}
         </div>
       </Show>
     </div>
@@ -241,32 +243,35 @@ const Viewfinder = () => (
   </svg>
 );
 
-const DefaultFallback = (props: { status: Status }) => (
-  <Show
-    when={props.status === "blocked"}
-    fallback={
-      <Show
-        when={props.status === "no-camera"}
-        fallback={
-          <Show
-            when={props.status === "no-decoder"}
-            fallback={<span>Scanner idle.</span>}
-          >
-            <span>
-              This browser does not support the BarcodeDetector API. Pass a{" "}
-              <code>decode</code> prop (e.g. powered by jsQR) to enable
-              scanning.
-            </span>
-          </Show>
-        }
-      >
-        <span>No camera was found on this device.</span>
-      </Show>
-    }
-  >
-    <span>
-      Camera access was blocked. Allow camera permission in your browser
-      settings, then reload.
-    </span>
-  </Show>
-);
+const DefaultFallback = (props: { status: Status }) => {
+  const loc = useLocale();
+  return (
+    <Show
+      when={props.status === "blocked"}
+      fallback={
+        <Show
+          when={props.status === "no-camera"}
+          fallback={
+            <Show
+              when={props.status === "no-decoder"}
+              fallback={<span>{loc.t("qrScanner.scannerIdle")}</span>}
+            >
+              <span>
+                This browser does not support the BarcodeDetector API. Pass a{" "}
+                <code>decode</code> prop (e.g. powered by jsQR) to enable
+                scanning.
+              </span>
+            </Show>
+          }
+        >
+          <span>{loc.t("qrScanner.noCameraWasFoundOn")}</span>
+        </Show>
+      }
+    >
+      <span>
+        Camera access was blocked. Allow camera permission in your browser
+        settings, then reload.
+      </span>
+    </Show>
+  );
+};

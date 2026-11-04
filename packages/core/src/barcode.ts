@@ -28,7 +28,18 @@ export interface QrCode {
   modules: boolean[][];
 }
 
-export type CodeError = { ok: false; error: string };
+/**
+ * Why a value has no code. `error` is the English sentence; `code` and `values`
+ * name the same reason for a message catalogue (`barcode.error.<code>`), so a
+ * translated UI need not parse the English.
+ */
+export type CodeError = {
+  ok: false;
+  error: string;
+  code?: CodeErrorCode;
+  values?: Record<string, string | number>;
+};
+export type CodeErrorCode = "qrTooLongBytes" | "qrTooLongChars" | "empty" | "code128Ascii" | "ean13Digits" | "ean13Check" | "code39Char";
 
 // --- QR tables (index 0 unused) ------------------------------------------------
 
@@ -183,7 +194,7 @@ export function encodeQr(text: string, options: QrOptions = {}): QrCode | CodeEr
       break;
     }
   }
-  if (!version) return { ok: false, error: `too long for a QR code at level ${ecc} (${count} ${mode === "byte" ? "bytes" : "characters"})` };
+  if (!version) return { ok: false, error: `too long for a QR code at level ${ecc} (${count} ${mode === "byte" ? "bytes" : "characters"})`, code: mode === "byte" ? "qrTooLongBytes" : "qrTooLongChars", values: { level: ecc, count } };
 
   // Data codewords: mode, count, data, terminator, byte padding, pad bytes.
   const bits: number[] = [];
@@ -514,17 +525,17 @@ export const CODE39_PATTERNS: Readonly<Record<string, string>> = C39;
 
 /** The bars for a value, or why there are none. */
 export function encodeBarcode(value: string, format: BarcodeFormat): LinearBarcode | CodeError {
-  if (value === "") return { ok: false, error: "nothing to encode" };
+  if (value === "") return { ok: false, error: "nothing to encode", code: "empty" };
   if (format === "code128") {
     const values = code128Values(value);
-    if (!values) return { ok: false, error: "Code 128 holds ASCII only" };
+    if (!values) return { ok: false, error: "Code 128 holds ASCII only", code: "code128Ascii" };
     const widths = values.flatMap((v) => [...C128[v]].map(Number));
     return { ok: true, format, text: value, widths, length: widths.reduce((a, b) => a + b, 0) };
   }
   if (format === "ean13") {
-    if (!/^\d{12,13}$/.test(value)) return { ok: false, error: "EAN-13 is 12 digits (the check digit is added) or 13" };
+    if (!/^\d{12,13}$/.test(value)) return { ok: false, error: "EAN-13 is 12 digits (the check digit is added) or 13", code: "ean13Digits" };
     const check = eanCheckDigit(value);
-    if (value.length === 13 && Number(value[12]) !== check) return { ok: false, error: `the check digit should be ${check}` };
+    if (value.length === 13 && Number(value[12]) !== check) return { ok: false, error: `the check digit should be ${check}`, code: "ean13Check", values: { check } };
     const digits = value.slice(0, 12) + check;
     const parity = EAN_PARITY[Number(digits[0])];
     let bits = "101";
@@ -535,7 +546,7 @@ export function encodeBarcode(value: string, format: BarcodeFormat): LinearBarco
     return { ok: true, format, text: digits, widths: runs(bits), length: bits.length };
   }
   const bad = [...value].find((c) => !(c in C39) || c === "*");
-  if (bad !== undefined) return { ok: false, error: `Code 39 has no “${bad}” (it holds 0–9, A–Z, space and - . $ / + %)` };
+  if (bad !== undefined) return { ok: false, error: `Code 39 has no “${bad}” (it holds 0–9, A–Z, space and - . $ / + %)`, code: "code39Char", values: { char: bad } };
   const widths: number[] = [];
   const chars = `*${value}*`;
   for (let k = 0; k < chars.length; k++) {

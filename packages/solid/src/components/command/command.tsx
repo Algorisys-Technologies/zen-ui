@@ -15,6 +15,7 @@ import {
 } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Command primitives — command-palette / autocomplete engine: filtering,
@@ -423,6 +424,7 @@ export interface CommandListProps extends Omit<JSX.HTMLAttributes<HTMLDivElement
 }
 
 export const CommandList = (props: CommandListProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["label", "class", "children"]);
   const ctx = useCommand();
   return (
@@ -430,7 +432,7 @@ export const CommandList = (props: CommandListProps) => {
       cmdk-list=""
       id={ctx.listId}
       role="listbox"
-      aria-label={local.label ?? "Suggestions"}
+      aria-label={local.label ?? loc.t("command.suggestions")}
       class={cn("zen-max-h-72 zen-overflow-y-auto zen-overflow-x-hidden", local.class)}
       {...rest}
     >
@@ -478,6 +480,7 @@ export interface CommandLoadingProps extends Omit<JSX.HTMLAttributes<HTMLDivElem
 }
 
 export const CommandLoading = (props: CommandLoadingProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["progress", "label", "class", "children"]);
   return (
     <div
@@ -486,7 +489,7 @@ export const CommandLoading = (props: CommandLoadingProps) => {
       aria-valuenow={local.progress}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label={local.label ?? "Loading…"}
+      aria-label={local.label ?? loc.t("command.loading")}
       class={cn("zen-py-4 zen-text-center zen-text-sm zen-text-zen-muted-fg", local.class)}
       {...rest}
     >

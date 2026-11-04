@@ -25,6 +25,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * ShellBar — Solid binding. Mirrors packages/react/src/components/shellbar/:
@@ -113,6 +114,7 @@ const initialsFrom = (name: string) =>
     .join("");
 
 export const ShellBar = (props: ShellBarProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "logo",
     "primaryTitle",
@@ -146,7 +148,7 @@ export const ShellBar = (props: ShellBarProps) => {
   const [searchOpen, setSearchOpen] = createSignal(false);
 
   const allItems = createMemo(() => local.items ?? []);
-  const searchLabel = () => local.searchPlaceholder ?? "Search";
+  const searchLabel = () => local.searchPlaceholder ?? loc.t("shellbar.search");
 
   // Starts at "all" so the first paint is the common case (everything fits)
   // rather than an empty bar. `untrack` because this is a seed read, seen once
@@ -282,7 +284,7 @@ export const ShellBar = (props: ShellBarProps) => {
 
   return (
     <header
-      aria-label={local["aria-label"] ?? local.primaryTitle ?? "Application header"}
+      aria-label={local["aria-label"] ?? local.primaryTitle ?? loc.t("shellbar.applicationHeader")}
       class={cn(
         "zen-w-full zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-3",
         local.class,
@@ -306,7 +308,7 @@ export const ShellBar = (props: ShellBarProps) => {
                 color="neutral"
                 size="sm"
                 shape="square"
-                aria-label="Home"
+                aria-label={loc.t("shellbar.home")}
                 onClick={() => local.onLogoClick?.()}
               >
                 {local.logo}
@@ -352,7 +354,7 @@ export const ShellBar = (props: ShellBarProps) => {
                     color="neutral"
                     size="sm"
                     shape="square"
-                    aria-label={local.overflowLabel ?? "More actions"}
+                    aria-label={local.overflowLabel ?? loc.t("shellbar.moreActions")}
                   >
                     <Icon name="more" size={16} />
                   </DropdownMenuTrigger>
@@ -549,7 +551,7 @@ export const ShellBar = (props: ShellBarProps) => {
               color="neutral"
               size="sm"
               shape="square"
-              aria-label="Close search"
+              aria-label={loc.t("shellbar.closeSearch")}
               onClick={closeSearch}
             >
               <Icon name="x" size={16} />

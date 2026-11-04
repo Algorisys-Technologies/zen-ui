@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * Button family — Solid binding. Mirrors packages/react/src/components/button/
@@ -194,6 +195,7 @@ export type SplitButtonProps = ButtonProps & {
 };
 
 export const SplitButton = (props: SplitButtonProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "menu",
     "menuLabel",
@@ -232,7 +234,7 @@ export const SplitButton = (props: SplitButtonProps) => {
           color={color()}
           size={size()}
           disabled={local.disabled}
-          aria-label={local.menuLabel ?? "More actions"}
+          aria-label={local.menuLabel ?? loc.t("buttonFamily.moreActions")}
           class="zen-rounded-l-none zen-border-l zen-border-l-zen-border zen-px-2"
         >
           <Icon name="chevron-down" size={14} />

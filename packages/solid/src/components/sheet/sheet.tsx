@@ -2,6 +2,7 @@ import { type JSX, splitProps } from "solid-js";
 import * as KDialog from "@kobalte/core/dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Sheet — slide-in side panel built on Kobalte Dialog. Use when a Dialog
@@ -108,6 +109,7 @@ export type SheetContentProps = Omit<
   };
 
 export const SheetContent = (props: SheetContentProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["class", "side", "showCloseButton", "children"]);
   const showClose = () => local.showCloseButton ?? true;
   return (
@@ -120,7 +122,7 @@ export const SheetContent = (props: SheetContentProps) => {
         {local.children}
         {showClose() ? (
           <KDialog.CloseButton
-            aria-label="Close sheet"
+            aria-label={loc.t("sheet.closeSheet")}
             class={cn(
               "zen-absolute zen-top-3 zen-end-3 zen-inline-flex zen-items-center zen-justify-center",
               "zen-h-7 zen-w-7 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",

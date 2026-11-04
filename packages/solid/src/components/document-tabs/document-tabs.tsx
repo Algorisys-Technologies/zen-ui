@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * DocumentTabs — a workspace's open documents, as closable, pinnable tabs.
@@ -70,6 +71,7 @@ export type DocumentTabsProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "onSele
 };
 
 export const DocumentTabs = (props: DocumentTabsProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "tabs",
     "activeId",
@@ -164,7 +166,7 @@ export const DocumentTabs = (props: DocumentTabsProps) => {
       <div
         ref={scroller}
         role="tablist"
-        aria-label={local.label ?? "Open documents"}
+        aria-label={local.label ?? loc.t("documentTabs.openDocuments")}
         aria-orientation="horizontal"
         // relative: tabs' offsetLeft is measured from the strip (reveal).
         class="zen-relative zen-flex zen-min-w-0 zen-flex-1 zen-items-stretch zen-overflow-x-auto"
@@ -248,8 +250,8 @@ export const DocumentTabs = (props: DocumentTabsProps) => {
                   <button
                     type="button"
                     tabIndex={-1}
-                    aria-label={`Close ${t.label}`}
-                    title={local.closeLabel?.(t) ?? "Close"}
+                    aria-label={loc.t("documentTabs.closeTab", { label: t.label })}
+                    title={local.closeLabel?.(t) ?? loc.t("documentTabs.close")}
                     class={cn(iconButton, !active() && !t.dirty && "zen-opacity-0 group-hover:zen-opacity-100 group-focus-within:zen-opacity-100")}
                     onClick={() => close(t)}
                   >
@@ -266,7 +268,7 @@ export const DocumentTabs = (props: DocumentTabsProps) => {
           <DropdownMenuTrigger
             type="button"
             aria-label={local.allTabsLabel ?? `All open documents (${local.tabs.length})`}
-            title={local.allTabsLabel ?? "All open documents"}
+            title={local.allTabsLabel ?? loc.t("documentTabs.allOpenDocuments")}
             class={cn(iconButton, "zen-h-auto zen-w-8 zen-rounded-none zen-border-l zen-border-zen-border")}
           >
             <Icon name="chevron-down" size={14} />

@@ -25,6 +25,7 @@ import {
 } from "@algorisys/zen-ui-core/keys";
 import { cn } from "../../lib/cn";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../dialog/dialog";
+import { useLocale } from "../locale/locale";
 
 /**
  * Keyboard shortcuts as a system: one list of every key the app answers, so
@@ -234,6 +235,7 @@ export type ShortcutHelpProps = {
  * registry: a key added with useShortcut shows up here by itself.
  */
 export const ShortcutHelp = (props: ShortcutHelpProps) => {
+  const loc = useLocale();
   const registry = useContext(ShortcutContext);
   const [internal, setInternal] = createSignal(false);
   const open = () => props.open ?? internal();
@@ -249,7 +251,7 @@ export const ShortcutHelp = (props: ShortcutHelpProps) => {
     const byGroup = new Map<string, { keys: string[]; description: string }[]>();
     for (const r of registry?.list() ?? []) {
       if (r.hidden || !r.description) continue;
-      const g = r.group ?? "General";
+      const g = r.group ?? loc.t("shortcuts.general");
       if (!byGroup.has(g)) byGroup.set(g, []);
       const list = byGroup.get(g)!;
       // The same action on two chords is one line with both.
@@ -265,7 +267,7 @@ export const ShortcutHelp = (props: ShortcutHelpProps) => {
     <Dialog open={open()} onOpenChange={setOpen}>
       <DialogContent class="zen-max-w-xl">
         <DialogHeader>
-          <DialogTitle>{props.title ?? "Keyboard shortcuts"}</DialogTitle>
+          <DialogTitle>{props.title ?? loc.t("shortcuts.keyboardShortcuts")}</DialogTitle>
         </DialogHeader>
         <div class="zen-flex zen-max-h-[60vh] zen-flex-col zen-gap-5 zen-overflow-y-auto" data-shortcut-help="">
           <For each={groups()}>
