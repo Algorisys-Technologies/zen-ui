@@ -10,7 +10,7 @@ import {
 } from "@algorisys/zen-ui-core/date-input";
 import { cn } from "../../../lib/cn";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "../../popover/popover";
-import { Calendar } from "./date-picker";
+import { Calendar, focusableDay } from "./date-picker";
 import { useLocale } from "../../locale/locale";
 
 export type { DateOrder };
@@ -249,13 +249,6 @@ export const DateInput = ({
   );
 };
 
-/**
- * The day a calendar panel should open on: the chosen one, else today — the
- * cell react-day-picker marks, not a label, so it holds in any language.
- */
-const focusableDay = (panel: HTMLElement) =>
-  panel.querySelector<HTMLButtonElement>("[data-selected]:not([data-outside]) button:not(:disabled)") ??
-  panel.querySelector<HTMLButtonElement>("[data-today]:not([data-outside]) button:not(:disabled)");
 
 /** Whether a date-input's text reads as a date: for a form's own validation. */
 export const isTypedDate = (text: string, order: DateOrder = orderForLocale()) =>
