@@ -7,11 +7,12 @@ import { DemoPage } from "./demo-helpers";
 /**
  * DataTableDemo — mirrors React's NewDataTableDemo for the features the vanilla
  * binding ships: header variants, sorting, pagination, global filter, row
- * selection, virtualization, server-driven (manual) pagination, column
- * separators, multi-sort, sticky header, and per-row styling.
+ * selection, keyboard rows, virtualization, server-driven (manual) pagination,
+ * column separators, multi-sort, sticky header, per-row styling, inline
+ * editing, totals and server export.
  *
  * React's TanStack/Radix-only sections (column visibility menu, per-column
- * filters, grouping, pinning, resizing, drag reorder, inline edit, export,
+ * filters, grouping, pinning, resizing, drag reorder, client export,
  * expandable rows) are not part of this binding and are omitted.
  */
 
@@ -301,6 +302,48 @@ function ServerLedger(): HTMLElement {
   }
   wrap.append(counts, table.el, failLabel);
   return wrap;
+}
+
+/* -------------------------- section 19: inline editing ------------ */
+const editColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", meta: { editable: true } },
+  { accessorKey: "email", header: "Email", meta: { editable: true } },
+  {
+    accessorKey: "role",
+    header: "Role",
+    meta: {
+      editable: true,
+      editVariant: "select",
+      editOptions: ROLES.map((r) => ({ label: r, value: r })),
+    },
+  },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) =>
+      typeof row.salary === "number" ? row.salary.toLocaleString("en-IN") : String(row.salary ?? ""),
+    meta: { editable: true, editVariant: "number" },
+  },
+  { accessorKey: "lastSeen", header: "Last seen" },
+];
+
+/** Section 19's table: the caller owns the rows and applies each commit. */
+function InlineEditDemo(): HTMLElement {
+  let rows = makePeople(8);
+  const table = DataTable<Person>({
+    data: rows,
+    columns: editColumns,
+    getRowId: (row) => row.id,
+    onCellEdit: ({ rowId, columnId, value }) => {
+      rows = rows.map((r) =>
+        r.id === rowId
+          ? { ...r, [columnId]: columnId === "salary" ? Number(value ?? 0) : value }
+          : r,
+      );
+      table.update({ data: rows });
+    },
+  });
+  return table.el;
 }
 
 const labeled = (text: string, node: Node): HTMLElement => {
@@ -670,6 +713,34 @@ const table = DataTable({
                   ? "zen-bg-zen-info-soft/30"
                   : undefined,
           }).el,
+      },
+      {
+        title: "19. Inline cell editing",
+        codeTitle: "meta.editable opts a column in; onCellEdit gets the commit",
+        codeDescription:
+          "Double-click (or focus + Enter / Space) any editable cell. Text columns get an Input, number columns get a NumberField (with ± steppers), select columns open a list of their options. Enter or blur commits, Esc cancels. The caller owns the data array — onCellEdit hands you the new value and you decide how to apply it.",
+        code: `let rows = makePeople(8);
+
+const columns: DataTableColumn<Person>[] = [
+  { accessorKey: "name",   header: "Name",   meta: { editable: true } },
+  { accessorKey: "email",  header: "Email",  meta: { editable: true } },
+  { accessorKey: "role",   header: "Role",
+    meta: { editable: true, editVariant: "select",
+            editOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "salary", header: "Salary",
+    meta: { editable: true, editVariant: "number" } },
+];
+
+const table = DataTable({
+  data: rows,
+  columns,
+  getRowId: (r) => r.id,
+  onCellEdit: ({ rowId, columnId, value }) => {
+    rows = rows.map((r) => (r.id === rowId ? { ...r, [columnId]: value } : r));
+    table.update({ data: rows });
+  },
+});`,
+        render: () => InlineEditDemo(),
       },
       {
         title: "26. Totals",
