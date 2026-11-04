@@ -226,7 +226,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1
 const beforeOverlay = new WeakMap<SidebarContextValue, boolean>();
 
 export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
-  const ctx = requireCtx(props.sidebar, "Sidebar");
+  const ctx = requireCtx(props.sidebar, "Sidebar"); // i18n-ignore (a component name in a developer error)
   let current = { ...props };
   const el = document.createElement("aside");
   const disposer = new Disposer();

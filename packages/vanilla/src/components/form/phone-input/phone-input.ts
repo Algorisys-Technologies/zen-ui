@@ -4,6 +4,7 @@ import { controllable } from "../../../lib/state";
 import { Input } from "../input/input";
 import { Select } from "../select/select";
 import { COUNTRY_CODES, COUNTRY_NAMES } from "./phone-input.constants";
+import { useLocale } from "../../locale/locale";
 
 /**
  * PhoneInput — composition of the vanilla Select (country dial-code) and Input
@@ -62,6 +63,7 @@ const sameValue = (a: PhoneValue, b: PhoneValue) =>
 
 export function PhoneInput(props: PhoneInputProps): ZenComponent<PhoneInputProps> {
   let current: PhoneInputProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
@@ -97,7 +99,7 @@ export function PhoneInput(props: PhoneInputProps): ZenComponent<PhoneInputProps
   const input = Input({
     type: "tel",
     inputMode: "numeric",
-    placeholder: current.placeholder ?? "Phone number",
+    placeholder: current.placeholder ?? loc.t("phoneInput.placeholder"),
     value: state.get().number,
     disabled: current.disabled,
     name: current.name,
@@ -165,7 +167,7 @@ export function PhoneInput(props: PhoneInputProps): ZenComponent<PhoneInputProps
         input.update({ disabled: current.disabled });
       }
       if (next.placeholder !== undefined) {
-        input.update({ placeholder: current.placeholder ?? "Phone number" });
+        input.update({ placeholder: current.placeholder ?? loc.t("phoneInput.placeholder") });
       }
       if (next.name !== undefined) input.update({ name: current.name });
 

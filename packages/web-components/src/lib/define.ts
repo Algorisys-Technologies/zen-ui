@@ -1,4 +1,4 @@
-import type { Child, ZenComponent } from "@algorisys/zen-ui-vanilla";
+import { localeOf, withLocale, type Child, type ZenComponent } from "@algorisys/zen-ui-vanilla";
 import { camel, coerce, kebab, type AttrType } from "./coerce";
 import { captureChildren } from "./children";
 
@@ -54,6 +54,13 @@ const RESERVED_MEMBERS = new Set(["style"]);
 
 /** Every custom-element tag registered, in registration order. */
 export const registeredTags: string[] = [];
+
+/**
+ * Every zen element answers this: build your component again. A
+ * <zen-locale-provider> calls it on the elements inside it when its words
+ * change, because a factory reads its words once, when it is built.
+ */
+export const REBUILD = Symbol("zen-ui rebuild");
 
 /**
  * Copy a handle's extra members (Dialog's open/close/isOpen, Input's focus/…)
@@ -148,7 +155,24 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
       // prototype accessor. Re-assign it THROUGH the accessor so it reaches _bag.
       for (const name of [...propNames, ...eventNames]) this.upgradeProperty(name);
 
-      this._children = childrenProp ? captureChildren(this) : (this.replaceChildren(), []);
+      const fresh = childrenProp ? captureChildren(this) : (this.replaceChildren(), []);
+      /* A RE-connect after a teardown finds the host empty: the children went out
+         with the destroyed component's element, which is where the factory had
+         moved them. They are still the ones captured the first time, so keep
+         those rather than building with none. Every nested zen element is
+         re-connected when the element around it builds (its factory moves them
+         into its own element), and this is what kept <zen-alert-title> inside
+         <zen-alert-content>, the avatar's fallback and the theme's card from
+         rendering empty on the demo pages. */
+      if (fresh.length || !childrenProp) this._children = fresh;
+      this.tryCreate();
+    }
+
+    /** See REBUILD. Inner zen elements rebuild themselves: they are re-connected. */
+    [REBUILD](): void {
+      if (!this._comp) return;
+      this._comp.destroy();
+      this._comp = undefined;
       this.tryCreate();
     }
 
@@ -176,7 +200,10 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
       if (this._comp) return;
       let comp: ZenComponent<P, Element>;
       try {
-        comp = def.factory(this.buildProps());
+        /* Built inside the words of the <zen-locale-provider> (or vanilla
+           LocaleProvider) around the element, if any: a factory reads them with
+           useLocale() while it is being called, and this is that moment. */
+        comp = withLocale(localeOf(this), () => def.factory(this.buildProps()));
       } catch {
         return;
       }

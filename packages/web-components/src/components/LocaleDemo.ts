@@ -5,11 +5,11 @@ import { DemoPage } from "./demo-helpers";
 /**
  * Localization demo — the web-components port.
  *
- * There is no <zen-locale-provider> element yet: a custom element builds its
- * field when it connects, which is after (and outside) any provider's
- * `children` function, so it could not read one. This package re-exports the
- * vanilla factories, LocaleProvider among them, and that is what this page
- * uses: the factories called inside a provider's `children` function read it.
+ * Sections 1 and 2 use the LocaleProvider factory this package re-exports:
+ * the factories called inside a provider's `children` function read it.
+ * Section 3 is the element: <zen-locale-provider>, which every zen element
+ * inside it builds its component in (lib/define.ts), and which rebuilds them
+ * when its `locale`, `currency` or `messages` change.
  */
 
 /**
@@ -97,6 +97,66 @@ function translated(): Node {
   return wrap;
 }
 
+/** Section 3's translation: the shared sample, plus the words of the elements it shows. */
+const HINDI_ELEMENTS: Partial<ZenMessages> = {
+  ...HINDI,
+  "datePicker.placeholder": "तारीख चुनें",
+  "tagInput.placeholder": "टैग जोड़ें…",
+};
+
+/** The same four elements, inside a provider or not: only the provider changes their words. */
+function elementSet(testid: string): HTMLElement {
+  const grid = document.createElement("div");
+  grid.className = "zen-grid zen-max-w-3xl zen-grid-cols-1 zen-gap-4 md:zen-grid-cols-2";
+  grid.dataset.testid = testid;
+  const combo = document.createElement("zen-combobox") as HTMLElement & { options: { value: string; label: string }[] };
+  combo.options = [
+    { value: "mum", label: "Mumbai" },
+    { value: "del", label: "Delhi" },
+  ];
+  grid.append(
+    combo,
+    document.createElement("zen-date-picker"),
+    document.createElement("zen-password-input"),
+    document.createElement("zen-tag-input"),
+  );
+  return grid;
+}
+
+function elementProvider(): Node {
+  const provider = document.createElement("zen-locale-provider") as HTMLElement & {
+    messages?: Partial<ZenMessages>;
+  };
+  provider.setAttribute("locale", "hi-IN");
+  provider.setAttribute("currency", "INR");
+  provider.messages = HINDI_ELEMENTS;
+  provider.append(elementSet("inside-provider"));
+
+  const picker = document.createElement("zen-segmented-button") as HTMLElement & {
+    items: { value: string; label: string }[];
+  };
+  picker.setAttribute("default-value", "hi");
+  picker.setAttribute("aria-label", "Provider language");
+  picker.items = [
+    { value: "hi", label: "हिन्दी" },
+    { value: "en", label: "English" },
+  ];
+  // Setting `messages` (or `locale`) rebuilds the elements inside with the new words.
+  picker.addEventListener("zen-value-change", (e) => {
+    const hi = (e as CustomEvent).detail === "hi";
+    provider.setAttribute("locale", hi ? "hi-IN" : "en-IN");
+    provider.messages = hi ? HINDI_ELEMENTS : undefined;
+  });
+
+  const outside = document.createElement("p");
+  outside.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+  outside.textContent = "Outside the provider:";
+  const wrap = document.createElement("div");
+  wrap.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+  wrap.append(picker, provider, outside, elementSet("outside-provider"));
+  return wrap;
+}
+
 export default function LocaleDemo(): HTMLElement {
   return DemoPage({
     title: "Localization",
@@ -107,7 +167,7 @@ export default function LocaleDemo(): HTMLElement {
         title: "1. Translating the built-in strings",
         codeTitle: "A partial Hindi translation, through LocaleProvider",
         codeDescription:
-          "Switch the language. The amount's hint, which a screen reader reads with the field, comes from the catalogue, the currency named in the chosen language. In this binding the rest of the built-in strings are still moving onto the catalogue; each component joins this page as it does. Strings a translation leaves out fall back to English, so a translation can be done a screen at a time. There is no <zen-locale-provider> element yet: this page uses the LocaleProvider factory this package re-exports, with the factories it builds inside.",
+          "Switch the language. The amount's hint, which a screen reader reads with the field, comes from the catalogue, the currency named in the chosen language. Strings a translation leaves out fall back to English, so a translation can be done a screen at a time. This section uses the LocaleProvider factory this package re-exports, with the factories it builds inside; section 3 is the same thing as an element, <zen-locale-provider>.",
         code: `import { LocaleProvider, AmountField } from "@algorisys/zen-ui-web-components";
 import type { ZenMessages } from "@algorisys/zen-ui-core/messages";
 
@@ -134,6 +194,29 @@ document.body.append(app.el);`,
         codeDescription: "English, the browser's locale: what every existing app sees, unchanged.",
         code: `<zen-combobox></zen-combobox>   <!-- "Select…", as it always was -->`,
         render: () => controls("b"),
+      },
+      {
+        title: "3. <zen-locale-provider>",
+        codeTitle: "The provider as an element: the zen elements inside it take its words",
+        codeDescription:
+          "Every zen element inside builds in the provider's locale and words; the same elements below it, outside, stay English. `messages` is a property, `locale` and `currency` are attributes, and changing any of them rebuilds the elements inside with the new words. A nested provider takes what it leaves out from the one around it.",
+        code: `<zen-locale-provider id="app" locale="hi-IN" currency="INR">
+  <zen-combobox></zen-combobox>
+  <zen-date-picker></zen-date-picker>
+  <zen-password-input></zen-password-input>
+  <zen-tag-input></zen-tag-input>
+</zen-locale-provider>
+
+<script type="module">
+  // Any subset of the catalogue; the rest stays English.
+  document.getElementById("app").messages = {
+    "combobox.placeholder": "चुनें…",
+    "datePicker.placeholder": "तारीख चुनें",
+    "passwordInput.show": "पासवर्ड दिखाएँ",
+    "tagInput.placeholder": "टैग जोड़ें…",
+  };
+</script>`,
+        render: elementProvider,
       },
     ],
   });

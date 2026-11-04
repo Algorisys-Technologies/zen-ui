@@ -11,7 +11,7 @@ import { cn } from "../../../lib/cn";
 import { Disposer, type ZenComponent } from "../../../lib/component";
 import { controllable } from "../../../lib/state";
 import { Popover } from "../../popover/popover";
-import { useLocale } from "../../locale/locale";
+import { useLocale, withLocale } from "../../locale/locale";
 import { Calendar, focusableDay, type CalendarProps } from "./date-picker";
 
 export type { DateOrder };
@@ -185,7 +185,9 @@ export function DateInput(props: DateInputProps = {}): ZenComponent<DateInputPro
   let open = false;
   let calendar: ZenComponent<CalendarProps> | null = null;
 
-  const setOpen = (o: boolean): void => {
+  // Built later than the factory call, so inside the locale it was built in (see withLocale).
+  const setOpen = (o: boolean): void => withLocale(loc, () => setOpenNow(o));
+  const setOpenNow = (o: boolean): void => {
     if (o === open) return;
     open = o;
     if (o) {

@@ -9,6 +9,7 @@ import {
 } from "../../lib/component";
 import { controllable } from "../../lib/state";
 import { Button } from "../button/button";
+import { useLocale } from "../locale/locale";
 
 /**
  * FileUpload — drag-and-drop zone wrapping a native <input type="file">.
@@ -133,6 +134,7 @@ const OWN_KEYS = new Set<string>([
 ]);
 
 export function FileUpload(props: FileUploadProps = {}): ZenComponent<FileUploadProps> {
+  const loc = useLocale();
   let current: FileUploadProps = { ...props };
   const disposer = new Disposer();
 
@@ -191,10 +193,10 @@ export function FileUpload(props: FileUploadProps = {}): ZenComponent<FileUpload
     const frag = document.createDocumentFragment();
     const strong = document.createElement("span");
     strong.className = "zen-font-medium";
-    strong.textContent = "Click to upload";
+    strong.textContent = loc.t("fileUpload.clickToUpload");
     const rest = document.createElement("span");
     rest.className = "zen-text-zen-muted-fg";
-    rest.textContent = " or drag and drop";
+    rest.textContent = ` ${loc.t("fileUpload.orDragAndDrop")}`;
     frag.append(strong, rest);
     return frag;
   };
@@ -225,8 +227,8 @@ export function FileUpload(props: FileUploadProps = {}): ZenComponent<FileUpload
     } else if (typeof current.maxSize === "number") {
       const max = effectiveMax();
       const suffix =
-        current.multiple && max !== Infinity ? ` · up to ${max} files` : "";
-      helperEl.textContent = `Max ${formatBytes(current.maxSize)} per file${suffix}`;
+        current.multiple && max !== Infinity ? loc.t("fileUpload.upToFiles", { max }) : "";
+      helperEl.textContent = loc.t("fileUpload.maxPerFile", { size: formatBytes(current.maxSize), suffix });
       helperEl.style.display = "";
     } else {
       helperEl.replaceChildren();
@@ -276,7 +278,7 @@ export function FileUpload(props: FileUploadProps = {}): ZenComponent<FileUpload
           color: "neutral",
           size: "sm",
           disabled: current.disabled,
-          "aria-label": `Remove ${file.name}`,
+          "aria-label": loc.t("fileUpload.removeFile", { name: file.name }),
           children: xIcon(),
           onClick: (e: MouseEvent) => {
             e.stopPropagation();
@@ -301,7 +303,7 @@ export function FileUpload(props: FileUploadProps = {}): ZenComponent<FileUpload
         rejected.push({
           file: f,
           reason: "size",
-          message: `"${f.name}" exceeds ${formatBytes(current.maxSize)}`,
+          message: loc.t("fileUpload.rejectSize", { name: f.name, size: formatBytes(current.maxSize) }),
         });
         continue;
       }
@@ -309,7 +311,7 @@ export function FileUpload(props: FileUploadProps = {}): ZenComponent<FileUpload
         rejected.push({
           file: f,
           reason: "type",
-          message: `"${f.name}" is not an accepted file type`,
+          message: loc.t("fileUpload.rejectType", { name: f.name }),
         });
         continue;
       }
@@ -327,7 +329,7 @@ export function FileUpload(props: FileUploadProps = {}): ZenComponent<FileUpload
         rejected.push({
           file: f,
           reason: "max-files",
-          message: `Maximum ${max} file(s); "${f.name}" dropped`,
+          message: loc.t("fileUpload.rejectMaxFiles", { max, name: f.name }),
         }),
       );
       nextFiles = nextFiles.slice(0, max);

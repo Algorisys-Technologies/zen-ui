@@ -14,6 +14,7 @@ import { rovingFocus } from "../../lib/roving-focus";
 import { setPresence } from "../../lib/presence";
 import { Button, type ButtonProps } from "./button";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * Button family — the three Fiori-shaped button forms zen-ui was missing, ported
@@ -305,6 +306,7 @@ let splitUid = 0;
 
 export function SplitButton(props: SplitButtonProps): ZenComponent<SplitButtonProps> {
   let current: SplitButtonProps = { ...props };
+  const loc = useLocale();
   const id = `zen-split-${++splitUid}`;
   const el = document.createElement("div");
   const disposer = new Disposer();
@@ -362,7 +364,7 @@ export function SplitButton(props: SplitButtonProps): ZenComponent<SplitButtonPr
   const render = () => {
     const {
       menu: items,
-      menuLabel = "More actions",
+      menuLabel = loc.t("buttonFamily.moreActions"),
       menuAlign = "end",
       variant = "solid",
       color = "primary",

@@ -38,11 +38,15 @@ export interface LocaleContextValue {
   t: (key: MessageKey, values?: Record<string, string | number>) => string;
 }
 
-export interface LocaleProviderProps extends Omit<BaseProps, "children"> {
+/** What a provider sets: LocaleProvider's props without its children, and <zen-locale-provider>'s attributes. */
+export interface LocaleSettings {
   locale?: string;
   currency?: string;
   /** Translations for any of the built-in strings. */
   messages?: Partial<ZenMessages>;
+}
+
+export interface LocaleProviderProps extends Omit<BaseProps, "children">, LocaleSettings {
   /** Prefer a function: the components it builds read this provider. */
   children?: Child | (() => Child);
 }
@@ -62,13 +66,67 @@ export function useLocale(): LocaleContextValue {
   return current ?? NONE;
 }
 
-/** The nearest provider around a node in the document (the defaults without one). */
-export function localeOf(node: Node | null | undefined): LocaleContextValue {
+/**
+ * Run `fn` with `value` as the current locale, so every factory it calls reads
+ * it through useLocale(). For a component that builds a part LATER (a calendar
+ * on open, a dialog on click, a grid on update): it captured its own locale
+ * when it was built, and builds the part inside it. Also how the web-component
+ * elements give a factory the words of the <zen-locale-provider> around them.
+ */
+export function withLocale<T>(value: LocaleContextValue, fn: () => T): T {
+  const prev = current;
+  current = value;
+  try {
+    return fn();
+  } finally {
+    current = prev;
+  }
+}
+
+const findLocale = (node: Node | null | undefined): LocaleContextValue | undefined => {
   for (let n: Node | null | undefined = node; n; n = n.parentNode ?? (n as ShadowRoot).host) {
     const v = n instanceof Element ? byElement.get(n) : undefined;
     if (v) return v;
   }
-  return NONE;
+  return undefined;
+};
+
+/** The nearest provider around a node in the document (the defaults without one). */
+export function localeOf(node: Node | null | undefined): LocaleContextValue {
+  return findLocale(node) ?? NONE;
+}
+
+/** A provider's value: its own settings, and the outer provider's for whatever it leaves out. */
+const localeValue = (settings: LocaleSettings, outer: LocaleContextValue | undefined): LocaleContextValue => {
+  const { locale, currency, messages } = settings;
+  const effective = locale ?? outer?.locale;
+  return {
+    locale: effective,
+    currency: currency ?? outer?.currency,
+    t: (key, values) => {
+      const own = messages?.[key];
+      if (own === undefined && outer) return outer.t(key, values);
+      return formatMessage(own ?? DEFAULT_MESSAGES[key], values, effective);
+    },
+  };
+};
+
+/**
+ * Make an element in the document a provider for everything inside it, the way
+ * LocaleProvider's own element is: `localeOf()` finds it, and the provider
+ * around IT (found now, through the DOM) fills in what `settings` leaves out.
+ * Returns the value; `undefined` settings stop it providing. This is what
+ * <zen-locale-provider> is built on; call it again after the settings change,
+ * then rebuild what is inside (a factory reads its words when it is built).
+ */
+export function provideLocale(el: Element, settings: LocaleSettings | undefined): LocaleContextValue | undefined {
+  if (!settings) {
+    byElement.delete(el);
+    return undefined;
+  }
+  const v = localeValue(settings, findLocale(el.parentNode ?? (el as unknown as ShadowRoot).host));
+  byElement.set(el, v);
+  return v;
 }
 
 const isComponent = (v: unknown): v is ZenComponent<never, Element> =>
@@ -87,19 +145,7 @@ export function LocaleProvider(props: LocaleProviderProps = {}): ZenComponent<Lo
   let removeProps: (() => void) | undefined;
   let built: ZenComponent<never, Element>[] = [];
 
-  const value = (): LocaleContextValue => {
-    const { locale, currency, messages } = state;
-    const effective = locale ?? outer?.locale;
-    return {
-      locale: effective,
-      currency: currency ?? outer?.currency,
-      t: (key, values) => {
-        const own = messages?.[key];
-        if (own === undefined && outer) return outer.t(key, values);
-        return formatMessage(own ?? DEFAULT_MESSAGES[key], values, effective);
-      },
-    };
-  };
+  const value = (): LocaleContextValue => localeValue(state, outer);
 
   const render = () => {
     const { locale: _l, currency: _c, messages: _m, children, ...rest } = state;
@@ -108,13 +154,7 @@ export function LocaleProvider(props: LocaleProviderProps = {}): ZenComponent<Lo
     let nodes: Child;
     if (typeof children === "function") {
       for (const c of built) c.destroy();
-      const prev = current;
-      current = v;
-      try {
-        nodes = children();
-      } finally {
-        current = prev;
-      }
+      nodes = withLocale(v, children);
       built = componentsIn(nodes);
     } else {
       nodes = children;

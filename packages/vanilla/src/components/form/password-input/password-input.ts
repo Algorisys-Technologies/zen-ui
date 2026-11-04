@@ -1,5 +1,6 @@
 import { cn } from "../../../lib/cn";
 import { applyProps, Disposer, type ZenComponent } from "../../../lib/component";
+import { useLocale } from "../../locale/locale";
 
 /**
  * PasswordInput — a password field with a show/hide toggle. Vanilla port of the
@@ -47,6 +48,7 @@ const FIELD_BASE =
 
 export function PasswordInput(props: PasswordInputProps): PasswordInputHandle {
   let current: PasswordInputProps = { ...props };
+  const loc = useLocale();
   let visible = false;
 
   const el = document.createElement("div");
@@ -98,7 +100,7 @@ export function PasswordInput(props: PasswordInputProps): PasswordInputHandle {
     input.required = Boolean(required);
 
     toggle.disabled = Boolean(disabled);
-    toggle.setAttribute("aria-label", visible ? hideLabel ?? "Hide password" : showLabel ?? "Show password");
+    toggle.setAttribute("aria-label", visible ? hideLabel ?? loc.t("passwordInput.hide") : showLabel ?? loc.t("passwordInput.show"));
     toggle.setAttribute("aria-pressed", String(visible));
     toggle.innerHTML = visible ? EYE_OFF : EYE;
 

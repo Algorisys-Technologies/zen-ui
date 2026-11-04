@@ -8,6 +8,7 @@ import {
 } from "@algorisys/zen-ui-core/chart";
 import { cn } from "../../lib/cn";
 import { Disposer, type ZenComponent } from "../../lib/component";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * Chart — line / area / bar / pie / donut rendered as plain SVG. No dependency.
@@ -152,16 +153,16 @@ const valueAt = (row: Record<string, unknown> | undefined, key: string): number 
  * come back to one. A table they can. This is the difference between a pie chart
  * being described and being readable. Mirrors the React and Solid bindings.
  */
-function sliceTable(slices: Slice[], labelHeader: string): HTMLTableElement {
+function sliceTable(slices: Slice[], labelHeader: string, loc: LocaleContextValue): HTMLTableElement {
   const table = document.createElement("table");
   table.className = "zen-sr-only";
 
   const caption = document.createElement("caption");
-  caption.textContent = "Chart data";
+  caption.textContent = loc.t("chart.data");
 
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
-  for (const text of [labelHeader, "Value", "Share"]) {
+  for (const text of [labelHeader, loc.t("chart.value"), loc.t("chart.share")]) {
     const th = document.createElement("th");
     th.setAttribute("scope", "col");
     th.textContent = text;
@@ -216,6 +217,7 @@ function axisLegend(items: Array<[string, string]>): HTMLElement {
 }
 
 export function Chart(props: ChartProps): ZenComponent<ChartProps> {
+  const loc = useLocale();
   // Defaults live here, so every read below sees a concrete type/height. React
   // defaults these in its parameter list; there is no equivalent, so it is done
   // once on the way in and re-pinned in update().
@@ -502,7 +504,7 @@ export function Chart(props: ChartProps): ZenComponent<ChartProps> {
         width,
         height: svgH(),
         role: "img",
-        "aria-label": `${current.type} chart`,
+        "aria-label": loc.t("chart.label", { type: current.type }),
       },
       kids,
     );
@@ -563,7 +565,7 @@ export function Chart(props: ChartProps): ZenComponent<ChartProps> {
     const slices = current.series[0]
       ? toSlices(current.data, current.xKey, current.series[0].key, current.colors ?? PALETTE)
       : [];
-    const label = current.type === "donut" ? "Donut chart" : "Pie chart";
+    const label = loc.t(current.type === "donut" ? "chart.donut" : "chart.pie");
 
     const paths: SVGPathElement[] = [];
     slices.forEach((s, i) => {
@@ -638,7 +640,7 @@ export function Chart(props: ChartProps): ZenComponent<ChartProps> {
     });
     el.append(legendEl);
 
-    el.append(sliceTable(slices, current.xKey));
+    el.append(sliceTable(slices, current.xKey, loc));
 
     // A pie's hover only dims arcs and moves a tooltip — a whole rebuild would be
     // wasteful and would fight the mouse. Mutate the existing nodes instead.

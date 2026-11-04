@@ -12,6 +12,7 @@ import { Icon, type IconName } from "../icon/icon";
 import { Input, type InputHandle } from "../form/input/input";
 import { Checkbox } from "../form/checkbox/checkbox";
 import { Select } from "../form/select/select";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * ValueHelp — the vanilla port of the React reference: the F4 lookup dialog.
@@ -124,16 +125,16 @@ export interface ValueHelpProps {
   class?: string;
 }
 
-const OPERATOR_LABELS: Record<ValueHelpOperator, string> = {
-  EQ: "equals",
-  Contains: "contains",
-  StartsWith: "starts with",
-  EndsWith: "ends with",
-  BT: "between",
-  LT: "less than",
-  LE: "less or equal",
-  GT: "greater than",
-  GE: "greater or equal",
+const OPERATOR_LABELS: Record<ValueHelpOperator, MessageKey> = {
+  EQ: "valueHelp.op.EQ",
+  Contains: "valueHelp.op.Contains",
+  StartsWith: "valueHelp.op.StartsWith",
+  EndsWith: "valueHelp.op.EndsWith",
+  BT: "valueHelp.op.BT",
+  LT: "valueHelp.op.LT",
+  LE: "valueHelp.op.LE",
+  GT: "valueHelp.op.GT",
+  GE: "valueHelp.op.GE",
 };
 
 const OPERATORS = Object.keys(OPERATOR_LABELS) as ValueHelpOperator[];
@@ -186,6 +187,7 @@ const rowBody = (item: ValueHelpItem): Node[] => {
 
 export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
   let current: ValueHelpProps = { ...props };
+  const loc = useLocale();
   const id = `zen-value-help-${++uid}`;
 
   /** Internal draft state — reset from the seed each time the dialog opens. */
@@ -335,7 +337,7 @@ export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
     if (visible.length === 0) {
       const empty = document.createElement("p");
       empty.className = "zen-m-0 zen-px-4 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      empty.textContent = current.emptyText ?? "No matching items";
+      empty.textContent = current.emptyText ?? loc.t("selectList.empty");
       scroller.append(empty);
       return;
     }
@@ -401,7 +403,7 @@ export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
 
   const emptyRules = document.createElement("p");
   emptyRules.className = "zen-m-0 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-  emptyRules.textContent = "No conditions yet.";
+  emptyRules.textContent = loc.t("valueHelp.noConditions");
 
   const rulesList = document.createElement("ul");
   rulesList.className = "zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-2 zen-p-0";
@@ -437,16 +439,16 @@ export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
       "zen-flex zen-shrink-0 zen-items-center zen-gap-1.5 zen-text-xs zen-text-zen-muted-fg";
     const cb = Checkbox({
       checked: c.exclude,
-      "aria-label": `Exclude condition ${c.id}`,
+      "aria-label": loc.t("valueHelp.exclude", { id: c.id }),
       onCheckedChange: (v) => patch(c.id, { exclude: v === true }),
     });
     rowDisposer.add(() => cb.destroy());
-    excludeLabel.append(cb.el, document.createTextNode("Exclude"));
+    excludeLabel.append(cb.el, document.createTextNode(loc.t("valueHelp.excludeLabel")));
 
     // operator
     const sel = Select({
       value: c.operator,
-      options: OPERATORS.map((op) => ({ value: op, label: OPERATOR_LABELS[op] })),
+      options: OPERATORS.map((op) => ({ value: op, label: loc.t(OPERATOR_LABELS[op]) })),
       class: "zen-w-40 zen-shrink-0",
       onValueChange: (v) => {
         patch(c.id, { operator: v as ValueHelpOperator });
@@ -454,14 +456,14 @@ export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
       },
     });
     // Radix put aria-label on the trigger; the vanilla Select's trigger is internal.
-    sel.el.querySelector('button[role="combobox"]')?.setAttribute("aria-label", "Operator");
+    sel.el.querySelector('button[role="combobox"]')?.setAttribute("aria-label", loc.t("valueHelp.operator"));
     rowDisposer.add(() => sel.destroy());
 
     // value
     const valueInput = Input({
       value: c.value,
-      placeholder: "Value",
-      "aria-label": "Value",
+      placeholder: loc.t("valueHelp.value"),
+      "aria-label": loc.t("valueHelp.value"),
       onInput: (e) => patch(c.id, { value: (e.target as HTMLInputElement).value }),
     });
     rowDisposer.add(() => valueInput.destroy());
@@ -472,7 +474,7 @@ export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
       variant: "ghost",
       color: "neutral",
       size: "sm",
-      "aria-label": "Remove condition",
+      "aria-label": loc.t("valueHelp.removeCondition"),
       children: "✕",
       onClick: () => removeCondition(c.id),
     });
@@ -487,8 +489,8 @@ export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
       if (need && !toInput) {
         toInput = Input({
           value: cond?.valueTo ?? "",
-          placeholder: "To",
-          "aria-label": "To value",
+          placeholder: loc.t("valueHelp.to"),
+          "aria-label": loc.t("valueHelp.toValue"),
           onInput: (e) => patch(c.id, { valueTo: (e.target as HTMLInputElement).value }),
         });
         valueInput.el.after(toInput.el);
@@ -636,17 +638,17 @@ export function ValueHelp(props: ValueHelpProps): ZenComponent<ValueHelpProps> {
     }
 
     searchField.hidden = current.searchable === false;
-    searchInput.update({ placeholder: current.searchPlaceholder ?? "Search" });
-    searchInput.el.setAttribute("aria-label", current.searchPlaceholder ?? "Search");
+    searchInput.update({ placeholder: current.searchPlaceholder ?? loc.t("common.search") });
+    searchInput.el.setAttribute("aria-label", current.searchPlaceholder ?? loc.t("common.search"));
 
-    selectTrigger.textContent = current.selectTabLabel ?? "Select from list";
-    conditionsLabelText.textContent = current.conditionsTabLabel ?? "Define conditions";
+    selectTrigger.textContent = current.selectTabLabel ?? loc.t("valueHelp.selectTab");
+    conditionsLabelText.textContent = current.conditionsTabLabel ?? loc.t("valueHelp.conditionsTab");
     // Re-append the badge: setting the label text above replaced it.
     if (!conditionsBadge.isConnected) conditionsTrigger.append(conditionsBadge);
 
-    addBtn.update({ children: current.addConditionLabel ?? "Add condition" });
-    cancelBtn.update({ children: current.cancelLabel ?? "Cancel" });
-    okBtn.update({ children: current.confirmLabel ?? "OK" });
+    addBtn.update({ children: current.addConditionLabel ?? loc.t("valueHelp.addCondition") });
+    cancelBtn.update({ children: current.cancelLabel ?? loc.t("common.cancel") });
+    okBtn.update({ children: current.confirmLabel ?? loc.t("common.ok") });
   };
 
   /* --------------------------- open / close ----------------------------- */

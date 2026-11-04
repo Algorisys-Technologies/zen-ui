@@ -15,6 +15,7 @@ import { Icon, type IconName } from "../icon/icon";
 import { Input } from "../form/input/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar/avatar";
 import { DropdownMenu, type DropdownMenuItemSpec } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * ShellBar — the global application header: logo, product title, search,
@@ -335,6 +336,7 @@ function createMenu(opts: {
 
 export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps> {
   let current: ShellBarProps = { ...props };
+  const loc = useLocale();
   const uid = `zen-shellbar-${++idCounter}`;
 
   const disposer = new Disposer();
@@ -437,7 +439,7 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
     inputWidthClass: string,
     track: Disposer,
   ) => {
-    const placeholder = current.searchPlaceholder ?? "Search";
+    const placeholder = current.searchPlaceholder ?? loc.t("shellbar.search");
     const form = document.createElement("form");
     form.setAttribute("role", "search");
     form.className = formClass;
@@ -549,7 +551,7 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
       color: "neutral",
       size: "sm",
       shape: "square",
-      "aria-label": "Close search",
+      "aria-label": loc.t("shellbar.closeSearch"),
       onClick: closeSearch,
       children: Icon({ name: "x", size: 16 }),
     });
@@ -596,7 +598,7 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
     if (hidden.length > 0) {
       overflowMenu.trigger.el.setAttribute(
         "aria-label",
-        current.overflowLabel ?? "More actions",
+        current.overflowLabel ?? loc.t("shellbar.moreActions"),
       );
       overflowMenu.setItems(
         hidden.map((i) => ({
@@ -700,7 +702,7 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
       menuItems,
       searchable = false,
       search,
-      searchPlaceholder = "Search",
+      searchPlaceholder = loc.t("shellbar.search"),
       notificationCount,
       onNotificationsClick,
       profile,
@@ -729,7 +731,7 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
     measureRow.replaceChildren(...measureButtons.map((b) => b.el));
 
     // ---- root ----
-    el.setAttribute("aria-label", ariaLabel ?? primaryTitle ?? "Application header");
+    el.setAttribute("aria-label", ariaLabel ?? primaryTitle ?? loc.t("shellbar.applicationHeader"));
     el.className = cn(
       "zen-w-full zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-3",
       className,
@@ -745,7 +747,7 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
           color: "neutral",
           size: "sm",
           shape: "square",
-          "aria-label": "Home",
+          "aria-label": loc.t("shellbar.home"),
           onClick: onLogoClick,
           children: logo,
         });
@@ -832,8 +834,8 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
         size: "sm",
         shape: "square",
         "aria-label": notificationCount
-          ? `Notifications, ${notificationCount} unread`
-          : "Notifications",
+          ? loc.t("shellbar.notificationsUnread", { count: notificationCount })
+          : loc.t("shellbar.notifications"),
         onClick: onNotificationsClick,
         children: Icon({ name: "bell", size: 16 }),
       });

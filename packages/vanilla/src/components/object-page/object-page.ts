@@ -9,6 +9,7 @@ import {
   type ZenComponent,
 } from "../../lib/component";
 import { controllable } from "../../lib/state";
+import { useLocale } from "../locale/locale";
 
 /**
  * ObjectPageLayout — the vanilla port of the React reference.
@@ -131,6 +132,7 @@ export function ObjectPageLayout(
   props: ObjectPageLayoutProps,
 ): ZenComponent<ObjectPageLayoutProps> {
   let current: ObjectPageLayoutProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
 
@@ -376,7 +378,7 @@ export function ObjectPageLayout(
       header,
       title,
       showAnchorBar = true,
-      anchorBarLabel = "Object page sections",
+      anchorBarLabel = loc.t("objectPage.objectPageSections"),
       headingLevel = 2,
       class: className,
       children,

@@ -2,8 +2,6 @@ import {
   availableFields as availableFieldsIn,
   createEmptyLayout,
   defaultAggregationForField,
-  describeFilterSelection,
-  describeMove,
   fieldLabel,
   hasActiveFilters,
   isFilterActive,
@@ -12,7 +10,6 @@ import {
   moveFieldToZone,
   PIVOT_ZONES,
   updateValueAggregation,
-  zoneLabel,
   type PivotAggregation,
   type PivotField,
   type PivotFilterOptionsBody,
@@ -54,6 +51,7 @@ import {
   VirtualizedItems,
   type VirtualizedItemsSparseProps,
 } from "../listbox/virtualized-items";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * Pivot — drag fields into zones, press View Data, get a layout; then a grid that
@@ -127,8 +125,22 @@ const DROP_ZONE_OVER =
  * for `drop` on this element and reads the model — never parsing a zone out of a
  * DOM id, the bug the core model's comments warn against.
  */
+/** A zone's name, from the catalogue (core's zoneLabel is English). */
+const zoneName = (loc: LocaleContextValue, zone: PivotZone): string =>
+  loc.t(zone === "available" ? "pivot.zoneAvailable" : zone === "rows" ? "pivot.zoneRows" : zone === "columns" ? "pivot.zoneColumns" : "pivot.zoneValues");
+
+/** How a chip summarises its filter: core's describeFilterSelection, in the catalogue's words. */
+const filterSummary = (loc: LocaleContextValue, selection: PivotFilterSelection | undefined): string => {
+  if (!isFilterActive(selection) || !selection) return "";
+  if (selection.kind === "include") {
+    return selection.values.length === 1 ? selection.values[0] : loc.t("pivot.nSelected", { count: selection.values.length });
+  }
+  return selection.exclude.length ? loc.t("pivot.allExcept", { count: selection.exclude.length }) : loc.t("pivot.all");
+};
+
 export function PivotDropZone(props: PivotDropZoneProps): ZenComponent<PivotDropZoneProps> {
   let current: PivotDropZoneProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const root = h("div");
@@ -173,7 +185,7 @@ export function PivotDropZone(props: PivotDropZoneProps): ZenComponent<PivotDrop
         "div",
         "zen-pointer-events-none zen-select-none zen-py-0.5 zen-text-xs zen-italic zen-text-zen-muted-fg/50",
       );
-      hint.textContent = "Drop fields here";
+      hint.textContent = loc.t("pivot.dropHere");
       body.append(hint);
     }
     root.append(body);
@@ -401,6 +413,7 @@ function createOptionPages(config: {
  */
 export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<PivotFilterMenuProps> {
   let current: PivotFilterMenuProps = { ...props };
+  const loc = useLocale();
   let selection: PivotFilterSelection | undefined = current.selection;
   const disposer = new Disposer();
 
@@ -416,7 +429,7 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
   const trigger = document.createElement("button");
   trigger.type = "button";
   trigger.dataset.noDrag = "";
-  trigger.setAttribute("aria-label", `Filter ${current.label}`);
+  trigger.setAttribute("aria-label", loc.t("pivot.filterLabel", { label: current.label }));
   const triggerIcon = Icon({ name: "chevron-down", class: "zen-h-3.5 zen-w-3.5" });
   disposer.add(() => triggerIcon.destroy());
   if (current.triggerChildren) trigger.append(...toNodes(current.triggerChildren));
@@ -430,8 +443,8 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
   const panel = h("div", "zen-flex zen-flex-col zen-gap-2");
 
   const searchInput = Input({
-    placeholder: `Search ${current.label}`,
-    "aria-label": `Search ${current.label} values`,
+    placeholder: loc.t("pivot.searchLabel", { label: current.label }),
+    "aria-label": loc.t("pivot.searchValues", { label: current.label }),
     class: "zen-h-8",
     onInput: () => pages.setSearch(searchInput.el.value),
   });
@@ -487,7 +500,7 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
   const loadingNode = (): HTMLElement => {
     const wrap = h("div", "zen-flex zen-items-center zen-justify-center zen-py-6");
     wrap.setAttribute("aria-busy", "true");
-    const spinner = Loading({ size: "sm", label: "Loading values…" });
+    const spinner = Loading({ size: "sm", label: loc.t("pivot.loadingValues") });
     wrap.append(spinner.el);
     return wrap;
   };
@@ -498,12 +511,12 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
     const wrap = h("div", "zen-flex zen-flex-col zen-items-start zen-gap-1 zen-px-2 zen-py-3");
     wrap.setAttribute("role", "alert");
     const p = h("p", "zen-m-0 zen-text-sm zen-text-zen-error");
-    p.textContent = "Could not load values.";
+    p.textContent = loc.t("pivot.loadFailed");
     const retry = document.createElement("button");
     retry.type = "button";
     retry.className =
       "zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-0 zen-text-xs zen-text-zen-primary hover:zen-underline";
-    retry.textContent = "Try again";
+    retry.textContent = loc.t("pivot.tryAgain");
     retry.addEventListener("click", () => pages.openPanelFetch());
     wrap.append(p, retry);
     return wrap;
@@ -511,7 +524,7 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
 
   const emptyNode = (): HTMLElement => {
     const p = h("p", "zen-m-0 zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-fg");
-    p.textContent = "No matching values";
+    p.textContent = loc.t("pivot.noMatchingValues");
     return p;
   };
 
@@ -522,7 +535,7 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
     clear.type = "button";
     clear.className =
       "zen-cursor-pointer zen-self-start zen-border-0 zen-bg-transparent zen-p-0 zen-text-xs zen-text-zen-primary hover:zen-underline";
-    clear.textContent = "Clear filter";
+    clear.textContent = loc.t("pivot.clearFilter");
     clear.addEventListener("click", () => {
       selection = undefined;
       current.onChange(null);
@@ -566,7 +579,7 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
       });
       const ul = document.createElement("ul");
       ul.setAttribute("role", "listbox");
-      ul.setAttribute("aria-label", `${current.label} values`);
+      ul.setAttribute("aria-label", loc.t("pivot.values", { label: current.label }));
       ul.className = "zen-m-0 zen-list-none zen-p-0";
       ul.append(list.el);
       bodyEl.replaceChildren(ul);
@@ -694,6 +707,7 @@ const AGGREGATIONS: readonly PivotAggregation[] = ["sum", "count", "avg", "min",
  */
 export function PivotFieldChip(props: PivotFieldChipProps): ZenComponent<PivotFieldChipProps> {
   let current: PivotFieldChipProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let parts: AnyZenComponent[] = [];
 
@@ -729,7 +743,7 @@ export function PivotFieldChip(props: PivotFieldChipProps): ZenComponent<PivotFi
     const field = fields.find((f) => f.key === fieldKey);
     const isMeasure = field?.type === "measure";
     const filtered = hasActiveFilter ?? isFilterActive(selection);
-    const summary = describeFilterSelection(selection);
+    const summary = filterSummary(loc, selection);
 
     const children: Child[] = [];
 
@@ -738,20 +752,20 @@ export function PivotFieldChip(props: PivotFieldChipProps): ZenComponent<PivotFi
       const menuBtn = document.createElement("button");
       menuBtn.type = "button";
       menuBtn.dataset.noDrag = "";
-      menuBtn.setAttribute("aria-label", `Move ${label}`);
+      menuBtn.setAttribute("aria-label", loc.t("pivot.move", { label }));
       if (disabled) menuBtn.disabled = true;
       menuBtn.className =
         "zen-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-p-0 zen-text-zen-muted-fg hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring";
       menuBtn.append(track(Icon({ name: "more-vertical", class: "zen-h-3 zen-w-3" })).el);
 
-      const items: DropdownMenuItemSpec[] = [{ type: "label", label: `Move ${label} to` }];
+      const items: DropdownMenuItemSpec[] = [{ type: "label", label: loc.t("pivot.moveTo", { label }) }];
       for (const z of PIVOT_ZONES) {
         if (z === "available" || z === zone) continue;
-        items.push({ label: zoneLabel(z), onSelect: () => onMoveToZone(z) });
+        items.push({ label: zoneName(loc, z), onSelect: () => onMoveToZone(z) });
       }
       if (zone !== "available") {
         items.push({ type: "separator" });
-        items.push({ label: "Remove from layout", onSelect: () => onMoveToZone("available") });
+        items.push({ label: loc.t("pivot.removeFromLayout"), onSelect: () => onMoveToZone("available") });
       }
       const menu = track(DropdownMenu({ trigger: menuBtn, items, align: "start" }));
       children.push(menu.el);
@@ -789,7 +803,7 @@ export function PivotFieldChip(props: PivotFieldChipProps): ZenComponent<PivotFi
       const aggWrap = h("span", "zen-inline-block zen-shrink-0 zen-text-xs");
       const lab = h("label", "zen-sr-only");
       lab.htmlFor = `agg-${fieldKey}`;
-      lab.textContent = `Aggregation for ${label}`;
+      lab.textContent = loc.t("pivot.aggregationFor", { label });
       const select = document.createElement("select");
       select.id = `agg-${fieldKey}`;
       select.dataset.noDrag = "";
@@ -846,7 +860,7 @@ export function PivotFieldChip(props: PivotFieldChipProps): ZenComponent<PivotFi
       removeBtn.dataset.noDrag = "";
       removeBtn.className =
         "zen-ml-1 zen-cursor-pointer zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-p-1 zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring";
-      removeBtn.setAttribute("aria-label", `Remove ${label} from ${zoneLabel(zone ?? "available")}`);
+      removeBtn.setAttribute("aria-label", loc.t("pivot.removeFrom", { label, zone: zoneName(loc, zone ?? "available") }));
       removeBtn.append(track(Icon({ name: "x", class: "zen-h-3.5 zen-w-3.5" })).el);
       removeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -934,6 +948,7 @@ const STICKY_ROW_LABEL =
  */
 export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
   let current: PivotGridProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const el = h(
@@ -945,7 +960,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
     "zen-min-h-0 zen-w-full zen-min-w-0 zen-flex-1 zen-overflow-auto zen-overscroll-contain zen-border-l zen-border-t zen-border-zen-border zen-bg-zen-background",
   );
   scrollEl.setAttribute("role", "region");
-  scrollEl.setAttribute("aria-label", current.label ?? "Pivot grid");
+  scrollEl.setAttribute("aria-label", current.label ?? loc.t("pivot.grid"));
   scrollEl.tabIndex = 0;
 
   const table = h(
@@ -1227,7 +1242,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
     el,
     update(next) {
       current = { ...current, ...next };
-      if (next.label !== undefined) scrollEl.setAttribute("aria-label", current.label ?? "Pivot grid");
+      if (next.label !== undefined) scrollEl.setAttribute("aria-label", current.label ?? loc.t("pivot.grid"));
       render(true);
     },
     destroy() {
@@ -1291,6 +1306,7 @@ function withFilter(
  */
 export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWorkbenchProps> {
   let current: PivotWorkbenchProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   let draft: PivotLayout = current.initialLayout ?? createEmptyLayout();
@@ -1330,7 +1346,15 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
 
   const moveField = (fieldId: string, zone: PivotZone, index?: number) => {
     draft = moveFieldToZone(draft, fieldId, zone, { index });
-    announce(describeMove(current.fields, fieldId, zone, index));
+    // The catalogue's sentences (core's describeMove is English), one per shape.
+    const field = fieldLabel(current.fields, fieldId);
+    announce(
+      zone === "available"
+        ? loc.t("pivot.removedFromLayout", { field })
+        : index === undefined
+          ? loc.t("pivot.movedTo", { field, zone: zoneName(loc, zone) })
+          : loc.t("pivot.movedToAt", { field, zone: zoneName(loc, zone), position: index + 1 }),
+    );
     renderBuilder();
   };
 
@@ -1369,7 +1393,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
       wrap.classList.remove("zen-relative", "zen-z-50", "zen-opacity-50");
       // A cancelled drag (Escape, or a drop that went nowhere) leaves dropEffect
       // "none". Match React's onDragCancel announcement.
-      if (dragging && e.dataTransfer?.dropEffect === "none") announce("Move cancelled.");
+      if (dragging && e.dataTransfer?.dropEffect === "none") announce(loc.t("pivot.moveCancelled"));
       dragging = null;
     };
     wrap.addEventListener("dragstart", onDragStart);
@@ -1439,7 +1463,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
     /* header: counts, clear filters, View Data */
     const header = h("div", "zen-flex zen-items-center zen-justify-between zen-gap-2");
     const counts = h("span", "zen-text-xs zen-text-zen-muted-fg");
-    counts.textContent = `${(current.totalRows ?? 0).toLocaleString()} rows · ${(current.totalCols ?? 0).toLocaleString()} cols`;
+    counts.textContent = loc.t("pivot.counts", { rows: (current.totalRows ?? 0).toLocaleString(), cols: (current.totalCols ?? 0).toLocaleString() });
     header.append(counts);
 
     const actions = h("div", "zen-flex zen-items-center zen-gap-2");
@@ -1448,7 +1472,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
       clear.type = "button";
       clear.className =
         "-zen-m-1 zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-1 zen-text-sm zen-text-zen-muted-fg hover:zen-text-zen-foreground";
-      clear.textContent = "Clear filters";
+      clear.textContent = loc.t("pivot.clearFilters");
       clear.addEventListener("click", () => {
         if (current.onClearFilters) current.onClearFilters();
         else {
@@ -1460,7 +1484,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
     }
     const viewData = Button({
       size: "sm",
-      children: "View Data",
+      children: loc.t("pivot.viewData"),
       onClick: () => {
         applied = draft;
         current.onLayoutApply?.(draft);
@@ -1478,7 +1502,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
     );
     const availableZone = PivotDropZone({
       id: "available",
-      title: "Available Fields",
+      title: loc.t("pivot.availableFields"),
       horizontal: true,
       isEmpty: available.length === 0,
       children: availableChips,
@@ -1500,7 +1524,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
     });
     const valuesZone = PivotDropZone({
       id: "values",
-      title: "Values",
+      title: loc.t("pivot.valuesZone"),
       isEmpty: draft.values.length === 0,
       children: valuesChips,
     });
@@ -1510,7 +1534,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
     const rowsChips = draft.rows.map((id) => sortableChip(id, "rows", chipProps(id, "rows")));
     const rowsZone = PivotDropZone({
       id: "rows",
-      title: "Rows",
+      title: loc.t("pivot.rowsZone"),
       isEmpty: draft.rows.length === 0,
       children: rowsChips,
     });
@@ -1522,7 +1546,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
     );
     const columnsZone = PivotDropZone({
       id: "columns",
-      title: "Columns",
+      title: loc.t("pivot.columnsZone"),
       isEmpty: draft.columns.length === 0,
       children: columnsChips,
     });
@@ -1556,10 +1580,10 @@ export function PivotWorkbench(props: PivotWorkbenchProps): ZenComponent<PivotWo
       return a.el;
     };
     if (applied.values.length === 0) {
-      stack.append(alert("Value field required", "Drop at least one field into Values to calculate data."));
+      stack.append(alert(loc.t("pivot.valueRequired"), loc.t("pivot.valueRequiredHelp")));
     }
     if (applied.rows.length === 0 && applied.columns.length === 0) {
-      stack.append(alert("Dimension required", "Drop at least one field into Rows or Columns."));
+      stack.append(alert(loc.t("pivot.dimensionRequired"), loc.t("pivot.dimensionRequiredHelp")));
     }
     gridWrap.append(stack);
   };

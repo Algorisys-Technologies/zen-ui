@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
 import { Disposer, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 const spinnerVariants = cva("zen-animate-spin", {
   variants: {
@@ -23,10 +24,11 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 export function Loading(props: LoadingProps = {}): ZenComponent<LoadingProps> {
   let current = { ...props };
+  const loc = useLocale();
   const el = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
   const disposer = new Disposer();
   const render = () => {
-    const { size, color, label = "Loading", class: className } = current;
+    const { size, color, label = loc.t("loading.label"), class: className } = current;
     el.setAttribute("viewBox", "0 0 24 24");
     el.setAttribute("fill", "none");
     el.setAttribute("class", cn(spinnerVariants({ size, color }), className));

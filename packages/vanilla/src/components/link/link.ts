@@ -2,6 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, toNodes, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 const linkVariants = cva(
   "zen-rounded-zen-sm zen-transition-colors focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
@@ -35,6 +36,7 @@ export type LinkProps = BaseProps &
 
 export function Link(props: LinkProps = {}): ZenComponent<LinkProps> {
   let current = { ...props };
+  const loc = useLocale();
   // Always an <a>, so the handle's `el` is stable. React swaps to <span> when
   // disabled; here removing href already makes the anchor non-navigable and
   // unfocusable, and aria-disabled carries the meaning — same result, stable node.
@@ -56,7 +58,7 @@ export function Link(props: LinkProps = {}): ZenComponent<LinkProps> {
       if (href) el.href = href;
       else el.removeAttribute("href");
       const t = external ? (target ?? "_blank") : target;
-      const r = external ? (rel ?? "noopener noreferrer") : rel;
+      const r = external ? (rel ?? "noopener noreferrer") : rel; // i18n-ignore (a rel value, not words)
       if (t) el.target = t;
       else el.removeAttribute("target");
       if (r) el.rel = r;
@@ -69,7 +71,7 @@ export function Link(props: LinkProps = {}): ZenComponent<LinkProps> {
       const sr = document.createElement("span");
       sr.className = "zen-sr-only";
       // The icon is decorative, so "leaves the page" has to be said in words.
-      sr.textContent = "(opens in a new tab)";
+      sr.textContent = loc.t("link.opensInNewTab");
       kids.push(sr);
     }
     el.replaceChildren(...kids);

@@ -37,6 +37,7 @@ import {
   type ScheduleColumn,
   type ScheduleGridHandle,
 } from "./schedule-grid";
+import { useLocale, withLocale, type MessageKey } from "../locale/locale";
 
 /**
  * Gantt — what the project is doing, and what is waiting on what.
@@ -166,11 +167,11 @@ const PANE_PX: Record<GanttPaneColumn, number> = {
   variance: 72,
 };
 
-const PANE_LABEL: Record<GanttPaneColumn, string> = {
-  name: "Task",
-  assignees: "Assignees",
-  status: "Status",
-  variance: "Variance",
+const PANE_LABEL: Record<GanttPaneColumn, MessageKey> = {
+  name: "gantt.column.name",
+  assignees: "gantt.column.assignees",
+  status: "gantt.column.status",
+  variance: "gantt.column.variance",
 };
 
 /** Each column's place in the FULL set — fixed, not renumbered when one drops. */
@@ -225,11 +226,11 @@ const STATUS_COLOR: Record<GanttTaskStatus, "neutral" | "info" | "error" | "succ
   complete: "success",
 };
 
-const STATUS_LABEL: Record<GanttTaskStatus, string> = {
-  "not-started": "Not started",
-  "on-track": "On track",
-  delayed: "Delayed",
-  complete: "Complete",
+const STATUS_LABEL: Record<GanttTaskStatus, MessageKey> = {
+  "not-started": "gantt.status.notStarted",
+  "on-track": "gantt.status.onTrack",
+  delayed: "gantt.status.delayed",
+  complete: "gantt.status.complete",
 };
 
 const initialsOf = (assignee: GanttAssignee): string =>
@@ -275,6 +276,7 @@ type Row = GanttRow<GanttTask>;
 
 export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
   let current: GanttProps = { ...props };
+  const loc = useLocale();
 
   /* The factory owns the uncontrolled view, date and expansion, because there
      is no state hook here — `update({ view })` is how a caller takes control.
@@ -343,7 +345,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
   const paneColumns = (): ScheduleColumn<Row>[] =>
     requestedPane().map((key) => ({
       key,
-      label: PANE_LABEL[key],
+      label: loc.t(PANE_LABEL[key]),
       width: PANE_PX[key],
       colIndex: COL_INDEX[key],
       class: key === "name" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
@@ -380,7 +382,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
         chevron.tabIndex = -1;
         chevron.setAttribute(
           "aria-label",
-          row.expanded ? `Collapse ${task.name}` : `Expand ${task.name}`,
+          loc.t(row.expanded ? "gantt.collapseTask" : "gantt.expandTask", { name: task.name }),
         );
         chevron.addEventListener("click", () => toggle(task.id));
         const icon = Icon({
@@ -447,7 +449,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
           variant: "soft",
           color: STATUS_COLOR[row.status],
           class: "zen-truncate",
-          children: task.statusLabel ?? STATUS_LABEL[row.status],
+          children: task.statusLabel ?? loc.t(STATUS_LABEL[row.status]),
         }),
       ];
     }
@@ -483,7 +485,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
          with no data and wrong for THIS one: the reader arrowed to the timeline
          expecting a bar, and "blank" does not distinguish "no dates" from
          "starts after the range you are looking at". */
-      return [el("span", "zen-sr-only", row.span ? "Not scheduled in this range" : "No dates")];
+      return [el("span", "zen-sr-only", loc.t(row.span ? "gantt.notInRange" : "gantt.noDates"))];
     }
 
     const progress = row.progress ?? 0;
@@ -566,9 +568,12 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       el(
         "span",
         "zen-sr-only",
-        `${formatDay(row.span!.start)} to ${formatDay(row.span!.end)}, ${STATUS_LABEL[row.status]}${
-          row.progress === null ? "" : `, ${Math.round(progress)} percent complete`
-        }`,
+        loc.t(row.progress === null ? "gantt.barSpan" : "gantt.barSpanProgress", {
+          start: formatDay(row.span!.start),
+          end: formatDay(row.span!.end),
+          status: loc.t(STATUS_LABEL[row.status]),
+          percent: Math.round(progress),
+        }),
       ),
     );
 
@@ -630,7 +635,11 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     return out;
   }
 
+  // Built later than the factory call, so inside the locale it was built in (see withLocale).
   function render(): void {
+    withLocale(loc, renderNow);
+  }
+  function renderNow(): void {
     for (const handle of owned) handle.destroy();
     owned = [];
 
@@ -669,7 +678,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
         current.class,
       );
       root.setAttribute("role", "status");
-      root.setAttribute("aria-label", "Loading schedule");
+      root.setAttribute("aria-label", loc.t("gantt.loadingSchedule"));
       root.replaceChildren();
       for (let i = 0; i < (current.loadingRows ?? 6); i++) {
         const line = el("div", "zen-flex zen-items-center zen-gap-3");
@@ -702,10 +711,9 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
             bordered: true,
             children: [
               EmptyStateIcon({ children: Icon({ name: "calendar", size: 22 }) }),
-              EmptyStateTitle({ children: "Nothing scheduled" }),
+              EmptyStateTitle({ children: loc.t("gantt.nothingScheduled") }),
               EmptyStateDescription({
-                children:
-                  "Add a task with a start and an end date and it will appear on the timeline.",
+                children: loc.t("gantt.addATaskWithA"),
               }),
             ],
           }),
@@ -768,7 +776,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       onToggle: (row: Row) => toggle(row.task.id),
       onActivate: (row: Row) => current.onTaskClick?.(row.task, row),
       onMetrics: () => render(),
-      ariaLabel: "Project schedule",
+      ariaLabel: loc.t("gantt.projectSchedule"),
       class: current.class,
     };
 

@@ -1,5 +1,6 @@
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * SkipToContent — the keyboard bypass every app frame owes its users. Vanilla
@@ -34,6 +35,7 @@ export type SkipToContentHandle = ZenComponent<SkipToContentProps, HTMLAnchorEle
 
 export function SkipToContent(props: SkipToContentProps): SkipToContentHandle {
   let current: SkipToContentProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("a");
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
@@ -42,7 +44,7 @@ export function SkipToContent(props: SkipToContentProps): SkipToContentHandle {
     const { href, children, class: className, ...rest } = current;
     el.href = href ?? "#main-content";
     el.className = cn(SKIP_TO_CONTENT_CLASS, className);
-    el.textContent = children ?? "Skip to main content";
+    el.textContent = children ?? loc.t("skipToContent.skipToMainContent");
     removeProps?.();
     removeProps = applyProps(el, rest as Record<string, unknown>);
   };

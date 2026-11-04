@@ -175,6 +175,7 @@ export function ShortcutProvider(props: ShortcutProviderProps = {}): ZenComponen
       );
       if (clash) {
         console.warn(
+          // i18n-ignore-next-line (a developer warning in the console)
           `[zen-ui shortcuts] "${r.text}" (${r.description ?? "no description"}) is already "${clash.description ?? clash.text}" in the same place; the first one keeps it.`,
         );
       }
@@ -482,7 +483,8 @@ export function ShortcutHelp(props: ShortcutHelpProps = {}): ShortcutHelpHandle 
   // The opening key is fixed for the overlay's life, as in React and Solid.
   const openKey = props.openKey === undefined ? "?" : props.openKey;
   if (openKey) {
-    const opener = { description: "Show these keys", group: "General" };
+    // The catalogue's "General", so the opener joins the group the overlay names with it.
+    const opener = { description: loc.t("shortcuts.showTheseKeys"), group: loc.t("shortcuts.general") };
     disposer.add(
       props.registry
         ? props.registry.register({ text: openKey, handler: () => setOpen(true), ...opener })

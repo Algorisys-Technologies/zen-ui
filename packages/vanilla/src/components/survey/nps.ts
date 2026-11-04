@@ -2,6 +2,7 @@ import { cn } from "../../lib/cn";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { applyProps, Disposer, type ZenComponent } from "../../lib/component";
 import { controllable } from "../../lib/state";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * NPS — Net Promoter Score input. The canonical "How likely are you to
@@ -48,10 +49,10 @@ type Bucket = "detractor" | "passive" | "promoter";
 
 const bucketOf = (n: number): Bucket => (n <= 6 ? "detractor" : n <= 8 ? "passive" : "promoter");
 
-const bucketLabel: Record<Bucket, string> = {
-  detractor: "Detractor",
-  passive: "Passive",
-  promoter: "Promoter",
+const bucketLabel: Record<Bucket, MessageKey> = {
+  detractor: "nps.detractor",
+  passive: "nps.passive",
+  promoter: "nps.promoter",
 };
 
 const buttonClass = (n: number, selected: boolean, disabled?: boolean, readOnly?: boolean): string => {
@@ -90,6 +91,7 @@ const captionClass = (value: number): string =>
 
 export function NPS(props: NPSProps = {}): ZenComponent<NPSProps> {
   let current: NPSProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -161,9 +163,9 @@ export function NPS(props: NPSProps = {}): ZenComponent<NPSProps> {
 
   const paintStatic = () => {
     const {
-      label = "How likely are you to recommend us?",
-      lowLabel = "Not at all likely",
-      highLabel = "Extremely likely",
+      label = loc.t("nps.howLikelyAreYouTo"),
+      lowLabel = loc.t("nps.notAtAllLikely"),
+      highLabel = loc.t("nps.extremelyLikely"),
       disabled,
       readOnly,
       class: className,
@@ -217,7 +219,7 @@ export function NPS(props: NPSProps = {}): ZenComponent<NPSProps> {
     // bucket caption — present only when a value is set and showBucket is on
     if (showBucket && value !== undefined) {
       caption.className = captionClass(value);
-      caption.textContent = `${value} · ${bucketLabel[bucketOf(value)]}`;
+      caption.textContent = `${value} · ${loc.t(bucketLabel[bucketOf(value)])}`;
       if (caption.parentNode !== el) el.append(caption);
     } else if (caption.parentNode === el) {
       caption.remove();

@@ -1,3 +1,4 @@
+// i18n-ignore-file (exported lookup tables, not UI: PhoneInput shows dial codes, and a country's name in another language is Intl.DisplayNames' job)
 // Country codes mapping
 export const COUNTRY_CODES: Record<string, string> = {
   AF: "+93",

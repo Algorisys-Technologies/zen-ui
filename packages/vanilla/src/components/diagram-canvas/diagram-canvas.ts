@@ -1,5 +1,6 @@
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, setChildren, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * DiagramCanvas — an embedded diagram editor, for a system-design answer.
@@ -93,6 +94,7 @@ export interface DiagramCanvasProps extends BaseProps {
 
 export function DiagramCanvas(props: DiagramCanvasProps): ZenComponent<DiagramCanvasProps, HTMLIFrameElement> {
   let current: DiagramCanvasProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -164,7 +166,7 @@ export function DiagramCanvas(props: DiagramCanvasProps): ZenComponent<DiagramCa
         /* A bridge that never answers is the normal failure when the origin is
            not allowlisted, so it must time out rather than hang forever. */
         setTimeout(() => {
-          if (pending.delete(id)) resolve({ ok: false, error: `Yappy.${method} timed out` });
+          if (pending.delete(id)) resolve({ ok: false, error: `Yappy.${method} timed out` }); // i18n-ignore (an API error for the caller, not shown)
         }, 4000);
       });
 
@@ -187,7 +189,7 @@ export function DiagramCanvas(props: DiagramCanvasProps): ZenComponent<DiagramCa
         if (pong.ok) break;
         if (i === 19) {
           current.onError?.(
-            "YappyDraw did not answer. Its deployment must allowlist this origin — see VITE_EMBED_ALLOWED_ORIGINS.",
+            "YappyDraw did not answer. Its deployment must allowlist this origin — see VITE_EMBED_ALLOWED_ORIGINS.", // i18n-ignore (a developer error for onError)
           );
           return;
         }
@@ -255,7 +257,7 @@ export function DiagramCanvas(props: DiagramCanvasProps): ZenComponent<DiagramCa
     origin = originOf(url);
 
     if (el.getAttribute("src") !== url) el.src = url;
-    el.title = current.title ?? "Diagram editor";
+    el.title = current.title ?? loc.t("diagramCanvas.diagramEditor");
     el.style.height = current.height ?? "32rem";
     /*
      * `allow-same-origin` is required, and it is safe HERE — but only because
@@ -334,6 +336,7 @@ export interface ArchitectureDrawProps extends DiagramCanvasProps {
  */
 export function ArchitectureDraw(props: ArchitectureDrawProps): ZenComponent<ArchitectureDrawProps> {
   let current: ArchitectureDrawProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -354,7 +357,7 @@ export function ArchitectureDraw(props: ArchitectureDrawProps): ZenComponent<Arc
     el.className = cn("zen-flex zen-w-full zen-flex-col zen-gap-2", current.class);
     head.className = "zen-flex zen-items-center zen-gap-2";
     labelEl.className = "zen-text-sm zen-font-medium zen-text-zen-foreground";
-    setChildren(labelEl, current.label ?? "System design");
+    setChildren(labelEl, current.label ?? loc.t("diagramCanvas.systemDesign"));
 
     head.replaceChildren(labelEl);
     if (current.actions !== undefined && current.actions !== null && current.actions !== false) {

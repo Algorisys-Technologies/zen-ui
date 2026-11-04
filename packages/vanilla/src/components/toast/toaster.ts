@@ -9,6 +9,7 @@ import {
   type ZenComponent,
 } from "../../lib/component";
 import { setPresence } from "../../lib/presence";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * Toast — the vanilla port of the React reference (@radix-ui/react-toast).
@@ -288,7 +289,7 @@ interface ToastItem {
   destroy(): void;
 }
 
-function createToastItem(initial: ToastDescriptor): ToastItem {
+function createToastItem(initial: ToastDescriptor, loc: LocaleContextValue): ToastItem {
   let desc = initial;
   let closed = false;
 
@@ -322,7 +323,7 @@ function createToastItem(initial: ToastDescriptor): ToastItem {
 
   const close = document.createElement("button");
   close.type = "button";
-  close.setAttribute("aria-label", "Close");
+  close.setAttribute("aria-label", loc.t("common.close"));
   close.className = cn(
     "zen-absolute zen-end-2 zen-top-2 zen-inline-flex zen-h-6 zen-w-6 zen-items-center zen-justify-center",
     "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-opacity-70",
@@ -495,9 +496,10 @@ export interface ToasterProps extends BaseProps {
  */
 export function Toaster(props: ToasterProps = {}): ZenComponent<ToasterProps> {
   let current: ToasterProps = { ...props };
+  const loc = useLocale();
   const viewport = document.createElement("div");
   viewport.setAttribute("role", "region");
-  viewport.setAttribute("aria-label", "Notifications");
+  viewport.setAttribute("aria-label", loc.t("toast.notifications"));
   viewport.setAttribute("tabindex", "-1");
 
   const applyClass = () => {
@@ -526,7 +528,7 @@ export function Toaster(props: ToasterProps = {}): ZenComponent<ToasterProps> {
     for (const desc of s.toasts) {
       let item = items.get(desc.id);
       if (!item) {
-        item = createToastItem(desc);
+        item = createToastItem(desc, loc);
         items.set(desc.id, item);
         viewport.prepend(item.el);
       } else {

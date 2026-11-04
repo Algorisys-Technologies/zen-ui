@@ -8,6 +8,7 @@ import {
   type ZenComponent,
 } from "../../lib/component";
 import { controllable } from "../../lib/state";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * Likert — the vanilla port of the React reference. An n-point agree/disagree
@@ -50,12 +51,12 @@ export interface LikertOption {
   renderOption?: () => Node | string | number;
 }
 
-const DEFAULT_OPTIONS: LikertOption[] = [
-  { value: "strongly_disagree", label: "Strongly disagree", shortLabel: "SD" },
-  { value: "disagree", label: "Disagree", shortLabel: "D" },
-  { value: "neutral", label: "Neutral", shortLabel: "N" },
-  { value: "agree", label: "Agree", shortLabel: "A" },
-  { value: "strongly_agree", label: "Strongly agree", shortLabel: "SA" },
+const defaultOptions = (loc: LocaleContextValue): LikertOption[] => [
+  { value: "strongly_disagree", label: loc.t("likert.stronglyDisagree"), shortLabel: loc.t("likert.stronglyDisagreeShort") },
+  { value: "disagree", label: loc.t("likert.disagree"), shortLabel: loc.t("likert.disagreeShort") },
+  { value: "neutral", label: loc.t("likert.neutral"), shortLabel: loc.t("likert.neutralShort") },
+  { value: "agree", label: loc.t("likert.agree"), shortLabel: loc.t("likert.agreeShort") },
+  { value: "strongly_agree", label: loc.t("likert.stronglyAgree"), shortLabel: loc.t("likert.stronglyAgreeShort") },
 ];
 
 export interface LikertProps extends BaseProps {
@@ -93,6 +94,7 @@ interface OptionRef {
 
 export function Likert(props: LikertProps): ZenComponent<LikertProps> {
   let current: LikertProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
   const cleanups = new Disposer();
@@ -108,7 +110,7 @@ export function Likert(props: LikertProps): ZenComponent<LikertProps> {
     },
   });
 
-  const optionsOf = () => current.options ?? DEFAULT_OPTIONS;
+  const optionsOf = () => current.options ?? defaultOptions(loc);
   const layoutOf = () => current.layout ?? "segmented";
 
   const onKeyDown = (e: KeyboardEvent) => {
