@@ -24,10 +24,10 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A5 | Tile, TileGrid | ok | ok | ok |
 | A6 | QRCode, Barcode | ok | ok | ok |
 | A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | ok | ok |
-| A8 | TreeSelect | ok | wip | wip |
-| A9 | LookupField | ok | — | — |
+| A8 | TreeSelect | ok | ok | ok |
+| A9 | LookupField | ok | ok | ok |
 | A10 | FilterBuilder | ok | wip | wip |
-| A11 | ViewManager | ok | wip | wip |
+| A11 | ViewManager | ok | ok | ok |
 | A12 | Sidebar collapseMode / overlay / badges / header label | ok | wip | wip |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | wip | wip |
 | D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | wip | wip |
@@ -168,3 +168,21 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   resting mouse loses first-item focus to the row under the cursor
   (ContextMenu uses pointermove and does not).
 - 2026-11-05: A11 and A13 vanilla+WC launched.
+- 2026-11-05: A8 vanilla+WC merged (TreeSelect 18/18 + 19/19 both; vanilla
+  `lib/anchored.ts` = `anchorPopup`, onPlace re-runs scroll after the cap).
+  It suspects React's TreeSelect re-scroll effect (depends on a style object
+  that changes on every scroll) could pull a wheeled list back; not
+  reproduced — noted, unconfirmed.
+- 2026-11-05: A11 vanilla+WC merged (ViewManager 25/25 + 21/21 both, WC
+  promise 4/4). Vanilla DropdownMenu radio `closeOnSelect` (default true,
+  6/6 identical). WC `lib/define.ts` now RETURNS an assigned callback's value
+  (so a Promise reaches the factory); no existing factory reads that value.
+- 2026-11-05: A9 vanilla+WC merged (LookupField 30/30 + 9/9 both, unchanged
+  oracles; flexible column 14 cells aligned).
+- 2026-11-05: found by the A9 port: vanilla `Disposer.dispose()` latched
+  "done" forever, so every Disposer reused per opening (Combobox's session,
+  TreeSelect's, ~25 others) ran its cleanups on the first close only; later
+  openings' document listeners stayed attached (since 7.0.0). Fix in
+  `lib/component.ts` (take the list, then run it; reusable; re-entrant safe),
+  being A/B-measured: listener counts over 5 cycles + all vanilla routes
+  snapshotted before/after.
