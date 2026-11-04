@@ -74,6 +74,7 @@ import "./multi-combobox";
 import "./notifications-inbox";
 import "./nps";
 import "./number-field";
+import "./amount-field";
 import "./object";
 import "./object-page";
 import "./otp";
