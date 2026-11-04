@@ -23,10 +23,10 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A4 | DocumentTabs | ok | ok | ok |
 | A5 | Tile, TileGrid | ok | ok | ok |
 | A6 | QRCode, Barcode | ok | ok | ok |
-| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | wip | wip |
+| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | ok | ok |
 | A8 | TreeSelect | ok | wip | wip |
 | A9 | LookupField | ok | — | — |
-| A10 | FilterBuilder | ok | — | — |
+| A10 | FilterBuilder | ok | wip | wip |
 | A11 | ViewManager | ok | — | — |
 | A12 | Sidebar collapseMode / overlay / badges / header label | ok | wip | wip |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | — | — |
@@ -147,3 +147,11 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 - 2026-11-05: A4 vanilla+WC merged (DocumentTabs 35/35 on both, results file
   byte-identical to React's; update({tabs}) reconciles by id and keeps focus).
 - 2026-11-05: D vanilla+WC, A8 vanilla+WC, A12 vanilla+WC launched.
+- 2026-11-05: A7 vanilla+WC merged (DateInput 28/28, calendar keys 31/31 on
+  both; 107/109 routes identical per binding, /date-picker extended, `/` count).
+  Vanilla's calendar had NO arrow keys before (measured); default DatePicker
+  focus (the panel) unchanged. Shift+arrows follow React; disabled days are
+  stepped over (react-day-picker does; Solid does not — noted). WC names the
+  inner input via `input-id` / `input-aria-label` (as <zen-tag-input>).
+  Known: vanilla Calendar/DatePicker hard-code "Previous month", "Next month",
+  "Pick a date" (unit S). A10 vanilla+WC launched.
