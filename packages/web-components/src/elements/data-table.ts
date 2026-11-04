@@ -13,7 +13,11 @@ import { defineZenElement } from "../lib/define";
 // (an event's listener returns nothing): `rowLabel` (a string), `contextMenu`
 // (the menu's items) and `onExport` (the Blob / { url } / Promise the download
 // waits on). Callbacks that only report are events: `zen-row-activate`
-// (detail: [row, keyboardEvent]).
+// (detail: [row, keyboardEvent]), `zen-cell-edit` (detail: { rowId, columnId,
+// value }), `zen-cells-edit` (detail: the edits, a paste or a Delete over a
+// range with enable-cell-navigation; when nobody listens for it, each edit
+// fires zen-cell-edit instead, as onCellsEdit absent does in the factory) and
+// `zen-row-order-change` (detail: the row ids in their new order).
 defineZenElement<DataTableProps<Record<string, unknown>>>({
   tag: "zen-data-table",
   factory: DataTable,
@@ -26,6 +30,9 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "enable-virtualization": "boolean",
     "enable-column-separators": "boolean",
     "enable-keyboard-navigation": "boolean",
+    "enable-cell-navigation": "boolean",
+    "enable-row-virtualization": "boolean",
+    "enable-row-ordering": "boolean",
     "fill-height": "boolean",
     "totals-over": "string",
     "export-title": "string",
@@ -61,6 +68,9 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     onRowSelectionChange: "zen-row-selection-change",
     onGlobalFilterChange: "zen-global-filter-change",
     onRowActivate: "zen-row-activate",
+    onCellEdit: "zen-cell-edit",
+    onCellsEdit: "zen-cells-edit",
+    onRowOrderChange: "zen-row-order-change",
   },
   childrenProp: false,
 });

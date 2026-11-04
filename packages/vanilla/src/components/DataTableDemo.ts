@@ -1,4 +1,5 @@
 import { DataTable, type DataTableColumn, type SortingState } from "./data-table/data-table";
+import type { CellEditPayload } from "./data-table/edit-cell";
 import type { ExportFormat, ExportRequest } from "@algorisys/zen-ui-core/export-request";
 import { Badge } from "./badge/badge";
 import { Button } from "./button/button";
@@ -7,11 +8,12 @@ import { DemoPage } from "./demo-helpers";
 /**
  * DataTableDemo — mirrors React's NewDataTableDemo for the features the vanilla
  * binding ships: header variants, sorting, pagination, global filter, row
- * selection, virtualization, server-driven (manual) pagination, column
- * separators, multi-sort, sticky header, and per-row styling.
+ * selection, keyboard rows, virtualization, server-driven (manual) pagination,
+ * column separators, multi-sort, sticky header, per-row styling, inline
+ * editing, totals and server export.
  *
  * React's TanStack/Radix-only sections (column visibility menu, per-column
- * filters, grouping, pinning, resizing, drag reorder, inline edit, export,
+ * filters, grouping, pinning, resizing, drag reorder, client export,
  * expandable rows) are not part of this binding and are omitted.
  */
 
@@ -67,6 +69,7 @@ const SMALL = makePeople(8);
 const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
 const MENU_PEOPLE = makePeople(1000);
+const HUGE = makePeople(10_000);
 
 const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
@@ -84,6 +87,121 @@ const columns: DataTableColumn<Person>[] = [
   },
   { accessorKey: "lastSeen", header: "Last seen" },
 ];
+
+/* -------------------------- section 6b: row virtualization -------- */
+/* React's grouped columns, without the group aggregates (this binding does
+ * not group rows). */
+const virtColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "role", header: "Role" },
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "email", header: "Email" },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) => row.salary.toLocaleString("en-IN"),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => Badge({ variant: "soft", color: statusColor(row.status), children: row.status }),
+  },
+];
+
+function RowVirtDemo(): HTMLElement {
+  const opened = document.createElement("span");
+  opened.dataset.testid = "virt-activated";
+  opened.textContent = "nothing yet";
+  // fillHeight: the table fills this frame, as a list that is a page's main pane.
+  const frame = document.createElement("div");
+  frame.className = "zen-flex zen-h-[440px] zen-flex-col";
+  frame.append(
+    DataTable<Person>({
+      data: HUGE,
+      columns: virtColumns,
+      getRowId: (p) => p.id,
+      enableRowVirtualization: true,
+      enableSorting: true,
+      enableRowSelection: true,
+      enableKeyboardNavigation: true,
+      rowLabel: (row) => row.name,
+      onRowActivate: (row) => (opened.textContent = row.name),
+      fillHeight: true,
+    }).el,
+  );
+  const note = document.createElement("p");
+  note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+  note.setAttribute("aria-live", "polite");
+  note.append("Opened: ", opened);
+  const wrap = document.createElement("div");
+  wrap.append(frame, note);
+  return wrap;
+}
+
+/* -------------------------- section 6c: cell navigation ----------- */
+/* An order's lines, for the cell-navigation grid. */
+type Line = { id: string; item: string; qty: number; rate: number; uom: string; note: string };
+const UOMS = ["Nos", "Kg", "Box", "Litre"];
+const makeLines = (count: number): Line[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `l-${i + 1}`,
+    item: `ITEM-${String(1000 + i)}`,
+    qty: 1 + (i % 12),
+    rate: 50 + ((i * 37) % 950),
+    uom: UOMS[i % UOMS.length],
+    note: "",
+  }));
+const lineColumns: DataTableColumn<Line>[] = [
+  { accessorKey: "item", header: "Item", meta: { editable: true } },
+  { accessorKey: "qty", header: "Qty", meta: { editable: true, editVariant: "number" } },
+  {
+    accessorKey: "uom",
+    header: "UOM",
+    meta: { editable: true, editVariant: "select", editOptions: UOMS.map((u) => ({ label: u, value: u })) },
+  },
+  { accessorKey: "rate", header: "Rate (₹)", meta: { editable: true, editVariant: "number" } },
+  {
+    id: "amount",
+    header: "Amount (₹)",
+    accessorFn: (l) => l.qty * l.rate,
+    cell: ({ value }) => (value as number).toLocaleString("en-IN"),
+  },
+  { accessorKey: "note", header: "Note", meta: { editable: true } },
+];
+
+/** Section 6c's grid: the caller owns the lines and applies each edit, or a block of them. */
+function CellNavDemo(): HTMLElement {
+  let lines = makeLines(2000);
+  const said = document.createElement("span");
+  said.dataset.testid = "cells-edited";
+  said.textContent = "No changes yet.";
+  const apply = (edits: CellEditPayload[]) => {
+    const byRow = new Map<string, Record<string, unknown>>();
+    for (const e of edits) byRow.set(e.rowId, { ...byRow.get(e.rowId), [e.columnId]: e.value });
+    lines = lines.map((l) => (byRow.has(l.id) ? { ...l, ...byRow.get(l.id) } : l));
+    table.update({ data: lines });
+    said.textContent = `${edits.length} cell${edits.length === 1 ? "" : "s"} changed`;
+  };
+  const table = DataTable<Line>({
+    data: lines,
+    columns: lineColumns,
+    getRowId: (l) => l.id,
+    enableCellNavigation: true,
+    enableRowVirtualization: true,
+    onCellEdit: (edit) => apply([edit]),
+    onCellsEdit: apply,
+    fillHeight: true,
+  });
+  const frame = document.createElement("div");
+  frame.className = "zen-flex zen-h-[420px] zen-flex-col";
+  frame.append(table.el);
+  const note = document.createElement("p");
+  note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+  note.setAttribute("aria-live", "polite");
+  note.append(said);
+  const wrap = document.createElement("div");
+  wrap.append(frame, note);
+  return wrap;
+}
 
 /* -------------------------- section 26: totals --------------------- */
 type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
@@ -303,6 +421,48 @@ function ServerLedger(): HTMLElement {
   return wrap;
 }
 
+/* -------------------------- section 19: inline editing ------------ */
+const editColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", meta: { editable: true } },
+  { accessorKey: "email", header: "Email", meta: { editable: true } },
+  {
+    accessorKey: "role",
+    header: "Role",
+    meta: {
+      editable: true,
+      editVariant: "select",
+      editOptions: ROLES.map((r) => ({ label: r, value: r })),
+    },
+  },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) =>
+      typeof row.salary === "number" ? row.salary.toLocaleString("en-IN") : String(row.salary ?? ""),
+    meta: { editable: true, editVariant: "number" },
+  },
+  { accessorKey: "lastSeen", header: "Last seen" },
+];
+
+/** Section 19's table: the caller owns the rows and applies each commit. */
+function InlineEditDemo(): HTMLElement {
+  let rows = makePeople(8);
+  const table = DataTable<Person>({
+    data: rows,
+    columns: editColumns,
+    getRowId: (row) => row.id,
+    onCellEdit: ({ rowId, columnId, value }) => {
+      rows = rows.map((r) =>
+        r.id === rowId
+          ? { ...r, [columnId]: columnId === "salary" ? Number(value ?? 0) : value }
+          : r,
+      );
+      table.update({ data: rows });
+    },
+  });
+  return table.el;
+}
+
 const labeled = (text: string, node: Node): HTMLElement => {
   const wrap = document.createElement("div");
   const h4 = document.createElement("h4");
@@ -451,6 +611,41 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
             enableVirtualization: true,
             maxBodyHeight: 400,
           }).el,
+      },
+      {
+        title: "6b. Row virtualization — 10 000 rows, every feature on",
+        codeTitle: "enableRowVirtualization keeps sorting, selection and the keyboard",
+        codeDescription:
+          "Only the rows in view are rendered, inside the regular table. Sort a column, select rows, or click a row and move with ↑/↓, PageUp/PageDown and Home/End: the focused row is scrolled into view and stays mounted while you scroll away. (React's version of this table also groups and expands rows, which this binding does not do yet.)",
+        code: `DataTable({
+  data: tenThousandPeople,
+  columns,
+  getRowId: (p) => p.id,
+  enableRowVirtualization: true,
+  enableSorting: true,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  onRowActivate: (row) => open(row),
+  fillHeight: true, // inside a frame with a height; or maxBodyHeight: 420
+});`,
+        render: () => RowVirtDemo(),
+      },
+      {
+        title: "6c. Cell navigation — work in it like a spreadsheet",
+        codeTitle: "enableCellNavigation: cell by cell, ranges, copy and paste",
+        codeDescription:
+          "Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. A cell takes only what its editor could produce: Amount is computed, so paste and Delete leave it alone, and UOM is a select with no empty option, so Delete leaves it as it is and a paste must match one of its options.",
+        code: `DataTable({
+  data: lines,
+  columns, // meta: { editable: true, editVariant: "number" | "select" }
+  getRowId: (l) => l.id,
+  enableCellNavigation: true,
+  enableRowVirtualization: true,
+  onCellEdit: (edit) => apply([edit]),
+  onCellsEdit: (edits) => apply(edits), // a paste, or Delete over a range
+  fillHeight: true,
+});`,
+        render: () => CellNavDemo(),
       },
       {
         title: "6d. Context menu on rows",
@@ -605,6 +800,40 @@ const table = DataTable({
           DataTable({ data: SMALL, columns, enableColumnSeparators: true }).el,
       },
       {
+        title: "9. Row reorder (drag handle)",
+        codeTitle: "enableRowOrdering + onRowOrderChange",
+        codeDescription:
+          "Grip-handle column appears as the leading column. Drag a row up or down — the callback fires with the new ID order; caller re-arranges the source data. Esc cancels a drag. Not compatible with enableVirtualization (mutually exclusive); with enableRowVirtualization the rows drag to anywhere in the table, which scrolls near its edges.",
+        code: `let data = initial;
+
+const table = DataTable({
+  data,
+  columns,
+  getRowId: (row) => row.id,   // stable identity across reorders
+  enableRowOrdering: true,
+  onRowOrderChange: (orderedIds) => {
+    const byId = new Map(data.map((d) => [d.id, d]));
+    data = orderedIds.map((id) => byId.get(id)!);
+    table.update({ data });
+  },
+});`,
+        render: () => {
+          let data = makePeople(6);
+          const table = DataTable<Person>({
+            data,
+            columns,
+            getRowId: (row) => row.id,
+            enableRowOrdering: true,
+            onRowOrderChange: (orderedIds) => {
+              const byId = new Map(data.map((d) => [d.id, d]));
+              data = orderedIds.map((id) => byId.get(id)).filter((d): d is Person => !!d);
+              table.update({ data });
+            },
+          });
+          return table.el;
+        },
+      },
+      {
         title: "9. Multi-sort (Shift-click a second header)",
         codeTitle: "enableSorting + enableMultiSort",
         codeDescription:
@@ -670,6 +899,34 @@ const table = DataTable({
                   ? "zen-bg-zen-info-soft/30"
                   : undefined,
           }).el,
+      },
+      {
+        title: "19. Inline cell editing",
+        codeTitle: "meta.editable opts a column in; onCellEdit gets the commit",
+        codeDescription:
+          "Double-click (or focus + Enter / Space) any editable cell. Text columns get an Input, number columns get a NumberField (with ± steppers), select columns open a list of their options. Enter or blur commits, Esc cancels. The caller owns the data array — onCellEdit hands you the new value and you decide how to apply it.",
+        code: `let rows = makePeople(8);
+
+const columns: DataTableColumn<Person>[] = [
+  { accessorKey: "name",   header: "Name",   meta: { editable: true } },
+  { accessorKey: "email",  header: "Email",  meta: { editable: true } },
+  { accessorKey: "role",   header: "Role",
+    meta: { editable: true, editVariant: "select",
+            editOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "salary", header: "Salary",
+    meta: { editable: true, editVariant: "number" } },
+];
+
+const table = DataTable({
+  data: rows,
+  columns,
+  getRowId: (r) => r.id,
+  onCellEdit: ({ rowId, columnId, value }) => {
+    rows = rows.map((r) => (r.id === rowId ? { ...r, [columnId]: value } : r));
+    table.update({ data: rows });
+  },
+});`,
+        render: () => InlineEditDemo(),
       },
       {
         title: "26. Totals",

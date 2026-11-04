@@ -380,6 +380,7 @@ export type {
   TreeTableCellContext,
 } from "./components/tree-table/tree-table";
 export type { DataTableProps, DataTableColumn, DataTableColumnMeta, DataTableCellContext, DataTableMenuTarget, SortingColumn, SortingState, DataTableManualPagination } from "./components/data-table/data-table";
+export type { CellEditPayload, EditVariant } from "./components/data-table/edit-cell";
 export { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption } from "./components/data-table/table";
 export type { TableProps } from "./components/data-table/table";
 export { createForm, FormItem, FormLabel, FormDescription, FormMessage, FormField } from "./components/form-builder/form";

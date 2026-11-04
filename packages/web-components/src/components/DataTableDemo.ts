@@ -1,4 +1,4 @@
-import type { DataTableColumn, DataTableMenuTarget, SortingState } from "@algorisys/zen-ui-vanilla";
+import type { CellEditPayload, DataTableColumn, DataTableMenuTarget, SortingState } from "@algorisys/zen-ui-vanilla";
 import type { ExportFormat, ExportRequest } from "@algorisys/zen-ui-core/export-request";
 import { DemoPage } from "./demo-helpers";
 
@@ -60,6 +60,7 @@ const SMALL = makePeople(8);
 const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
 const MENU_PEOPLE = makePeople(1000);
+const HUGE = makePeople(10_000);
 
 const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
@@ -102,6 +103,75 @@ function zenTable<T>(data: T[], cols: DataTableColumn<T>[], attrs: Record<string
   Object.assign(t, { columns: cols, data, ...props });
   return t;
 }
+
+/* -------------------------- section 6b: row virtualization -------- */
+/* React's grouped columns, without the group aggregates (this binding does
+ * not group rows). */
+const virtColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "role", header: "Role" },
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "email", header: "Email" },
+  { accessorKey: "salary", header: "Salary (₹)", cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const badge = el("zen-badge", { variant: "soft", color: statusColor(row.status) });
+      badge.textContent = row.status;
+      return badge;
+    },
+  },
+];
+
+/* -------------------------- section 6c: cell navigation ----------- */
+/* An order's lines, for the cell-navigation grid. */
+type Line = { id: string; item: string; qty: number; rate: number; uom: string; note: string };
+const UOMS = ["Nos", "Kg", "Box", "Litre"];
+const makeLines = (count: number): Line[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `l-${i + 1}`,
+    item: `ITEM-${String(1000 + i)}`,
+    qty: 1 + (i % 12),
+    rate: 50 + ((i * 37) % 950),
+    uom: UOMS[i % UOMS.length],
+    note: "",
+  }));
+const lineColumns: DataTableColumn<Line>[] = [
+  { accessorKey: "item", header: "Item", meta: { editable: true } },
+  { accessorKey: "qty", header: "Qty", meta: { editable: true, editVariant: "number" } },
+  {
+    accessorKey: "uom",
+    header: "UOM",
+    meta: { editable: true, editVariant: "select", editOptions: UOMS.map((u) => ({ label: u, value: u })) },
+  },
+  { accessorKey: "rate", header: "Rate (₹)", meta: { editable: true, editVariant: "number" } },
+  {
+    id: "amount",
+    header: "Amount (₹)",
+    accessorFn: (l) => l.qty * l.rate,
+    cell: ({ value }) => (value as number).toLocaleString("en-IN"),
+  },
+  { accessorKey: "note", header: "Note", meta: { editable: true } },
+];
+
+/* -------------------------- section 19: inline editing ------------ */
+const editColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", meta: { editable: true } },
+  { accessorKey: "email", header: "Email", meta: { editable: true } },
+  {
+    accessorKey: "role",
+    header: "Role",
+    meta: { editable: true, editVariant: "select", editOptions: ROLES.map((r) => ({ label: r, value: r })) },
+  },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) =>
+      typeof row.salary === "number" ? row.salary.toLocaleString("en-IN") : String(row.salary ?? ""),
+    meta: { editable: true, editVariant: "number" },
+  },
+  { accessorKey: "lastSeen", header: "Last seen" },
+];
 
 /* -------------------------- section 26: totals --------------------- */
 type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
@@ -465,6 +535,99 @@ table.data = largeDataset;   // 2 000 rows`,
           }),
       },
       {
+        title: "6b. Row virtualization — 10 000 rows, every feature on",
+        codeTitle: "enable-row-virtualization keeps sorting, selection and the keyboard",
+        codeDescription:
+          "Only the rows in view are rendered, inside the regular table. Sort a column, select rows, or click a row and move with ↑/↓, PageUp/PageDown and Home/End: the focused row is scrolled into view and stays mounted while you scroll away. (React's version of this table also groups and expands rows, which this binding does not do yet.)",
+        code: `<zen-data-table
+  enable-row-virtualization
+  enable-sorting
+  enable-row-selection
+  enable-keyboard-navigation
+  fill-height
+></zen-data-table>   <!-- inside a frame with a height; or max-body-height="420" -->
+
+table.data = tenThousandPeople;
+table.getRowId = (p) => p.id;
+table.addEventListener("zen-row-activate", (e) => open(e.detail[0]));`,
+        render: () => {
+          const opened = document.createElement("span");
+          opened.dataset.testid = "virt-activated";
+          opened.textContent = "nothing yet";
+          const dt = zenTable(
+            HUGE,
+            virtColumns,
+            {
+              "enable-row-virtualization": "",
+              "enable-sorting": "",
+              "enable-row-selection": "",
+              "enable-keyboard-navigation": "",
+              "fill-height": "",
+            },
+            { getRowId: (p: Person) => p.id, rowLabel: (row: Person) => row.name },
+          );
+          dt.addEventListener("zen-row-activate", (e) => {
+            const [row] = (e as CustomEvent<[Person, KeyboardEvent]>).detail;
+            opened.textContent = row.name;
+          });
+          // fill-height: the table fills this frame, as a list that is a page's main pane.
+          const frame = document.createElement("div");
+          frame.className = "zen-flex zen-h-[440px] zen-flex-col";
+          frame.append(dt);
+          const note = document.createElement("p");
+          note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+          note.setAttribute("aria-live", "polite");
+          note.append("Opened: ", opened);
+          const wrap = document.createElement("div");
+          wrap.append(frame, note);
+          return wrap;
+        },
+      },
+      {
+        title: "6c. Cell navigation — work in it like a spreadsheet",
+        codeTitle: "enable-cell-navigation: cell by cell, ranges, copy and paste",
+        codeDescription:
+          "Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. A cell takes only what its editor could produce: Amount is computed, so paste and Delete leave it alone, and UOM is a select with no empty option, so Delete leaves it as it is and a paste must match one of its options.",
+        code: `<zen-data-table enable-cell-navigation enable-row-virtualization fill-height></zen-data-table>
+
+table.columns = columns; // meta: { editable: true, editVariant: "number" | "select" }
+table.data = lines;
+table.getRowId = (l) => l.id;
+table.addEventListener("zen-cell-edit", (e) => apply([e.detail]));
+table.addEventListener("zen-cells-edit", (e) => apply(e.detail)); // a paste, or Delete over a range`,
+        render: () => {
+          let lines = makeLines(2000);
+          const said = document.createElement("span");
+          said.dataset.testid = "cells-edited";
+          said.textContent = "No changes yet.";
+          const dt = zenTable(
+            lines,
+            lineColumns,
+            { "enable-cell-navigation": "", "enable-row-virtualization": "", "fill-height": "" },
+            { getRowId: (l: Line) => l.id },
+          );
+          const apply = (edits: CellEditPayload[]) => {
+            const byRow = new Map<string, Record<string, unknown>>();
+            for (const e of edits) byRow.set(e.rowId, { ...byRow.get(e.rowId), [e.columnId]: e.value });
+            lines = lines.map((l) => (byRow.has(l.id) ? { ...l, ...byRow.get(l.id) } : l));
+            (dt as unknown as { data: Line[] }).data = lines;
+            said.textContent = `${edits.length} cell${edits.length === 1 ? "" : "s"} changed`;
+          };
+          dt.addEventListener("zen-cell-edit", (e) => apply([(e as CustomEvent<CellEditPayload>).detail]));
+          dt.addEventListener("zen-cells-edit", (e) => apply((e as CustomEvent<CellEditPayload[]>).detail));
+          const frame = document.createElement("div");
+          frame.className = "zen-flex zen-h-[420px] zen-flex-col";
+          frame.append(dt);
+          const note = document.createElement("p");
+          note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+          note.setAttribute("aria-live", "polite");
+          note.append(said);
+          const wrap = document.createElement("div");
+          wrap.append(frame, note);
+          return wrap;
+        },
+      },
+      {
         title: "6d. Context menu on rows",
         codeTitle: "contextMenu: a right-click menu for the row, or the selected rows",
         codeDescription:
@@ -593,6 +756,29 @@ table.contextMenu = ({ row, selection }) => [
         render: () => table(SMALL, { "enable-column-separators": "" }),
       },
       {
+        title: "9. Row reorder (drag handle)",
+        codeTitle: "enable-row-ordering + zen-row-order-change",
+        codeDescription:
+          "Grip-handle column appears as the leading column. Drag a row up or down — the event carries the new ID order; the caller re-arranges the source data. Esc cancels a drag. Not compatible with enable-virtualization (mutually exclusive); with enable-row-virtualization the rows drag to anywhere in the table, which scrolls near its edges.",
+        code: `<zen-data-table enable-row-ordering></zen-data-table>
+
+table.getRowId = (row) => row.id;   // stable identity across reorders
+table.addEventListener("zen-row-order-change", (e) => {
+  const byId = new Map(table.data.map((d) => [d.id, d]));
+  table.data = e.detail.map((id) => byId.get(id));
+});`,
+        render: () => {
+          let data = makePeople(6);
+          const dt = zenTable(data, columns, { "enable-row-ordering": "" }, { getRowId: (row: Person) => row.id });
+          dt.addEventListener("zen-row-order-change", (e) => {
+            const byId = new Map(data.map((d) => [d.id, d]));
+            data = (e as CustomEvent<string[]>).detail.map((id) => byId.get(id)).filter((d): d is Person => !!d);
+            (dt as unknown as { data: Person[] }).data = data;
+          });
+          return dt;
+        },
+      },
+      {
         title: "9. Multi-sort (Shift-click a second header)",
         codeTitle: "enable-sorting + enable-multi-sort",
         codeDescription:
@@ -635,6 +821,42 @@ table.contextMenu = ({ row, selection }) => [
               : row.status === "invited"
                 ? "zen-bg-zen-info-soft/30"
                 : undefined;
+          return dt;
+        },
+      },
+      {
+        title: "19. Inline cell editing",
+        codeTitle: "meta.editable opts a column in; zen-cell-edit carries the commit",
+        codeDescription:
+          "Double-click (or focus + Enter / Space) any editable cell. Text columns get an Input, number columns get a NumberField (with ± steppers), select columns open a list of their options. Enter or blur commits, Esc cancels. The caller owns the data array — zen-cell-edit hands you the new value and you decide how to apply it.",
+        code: `<zen-data-table></zen-data-table>
+
+table.columns = [
+  { accessorKey: "name",   header: "Name",   meta: { editable: true } },
+  { accessorKey: "email",  header: "Email",  meta: { editable: true } },
+  { accessorKey: "role",   header: "Role",
+    meta: { editable: true, editVariant: "select",
+            editOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "salary", header: "Salary",
+    meta: { editable: true, editVariant: "number" } },
+];
+table.data = rows;
+table.getRowId = (r) => r.id;
+table.addEventListener("zen-cell-edit", (e) => {
+  const { rowId, columnId, value } = e.detail;
+  rows = rows.map((r) => (r.id === rowId ? { ...r, [columnId]: value } : r));
+  table.data = rows;
+});`,
+        render: () => {
+          let rows = makePeople(8);
+          const dt = zenTable(rows, editColumns, {}, { getRowId: (row: Person) => row.id });
+          dt.addEventListener("zen-cell-edit", (e) => {
+            const { rowId, columnId, value } = (e as CustomEvent<CellEditPayload>).detail;
+            rows = rows.map((r) =>
+              r.id === rowId ? { ...r, [columnId]: columnId === "salary" ? Number(value ?? 0) : value } : r,
+            );
+            (dt as unknown as { data: Person[] }).data = rows;
+          });
           return dt;
         },
       },
