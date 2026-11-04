@@ -15,6 +15,7 @@ real props; guessing prop names is how agents invent APIs.
 - [search.md](search.md) — `Search`, `SearchProps`, `SearchSize`
 - [password-input.md](password-input.md) — `PasswordInput`, `PasswordInputProps`
 - [number-field.md](number-field.md) — `NumberField`, `NumberFieldProps`
+- [amount-field.md](amount-field.md) — `AmountField`, `QuantityField`, `AmountFieldProps`, `QuantityFieldProps`
 - [date-picker.md](date-picker.md) — `DatePicker`, `Calendar`, `DatePickerProps`, `CalendarProps`
 - [rating.md](rating.md) — `Rating`, `RatingProps`
 - [nps.md](nps.md) — `NPS`, `NPSProps`
@@ -88,6 +89,7 @@ real props; guessing prop names is how agents invent APIs.
 - [theme-theme.md](theme-theme.md) — `Theme`, `ThemeProps`
 - [message-popover.md](message-popover.md) — `MessagePopover`, `Message`, `MessageType`, `MessagePopoverProps`
 - [direction.md](direction.md) — `DirectionProvider`, `Direction`, `DirectionProviderProps`
+- [locale.md](locale.md) — `LocaleProvider`, `useLocale`, `LocaleProviderProps`, `LocaleContextValue`, `MessageKey`, `ZenMessages`
 - [card.md](card.md) — `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `cardVariants`, `CardProps`
 - [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
 - [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`

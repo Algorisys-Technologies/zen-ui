@@ -56,6 +56,7 @@ description, then import the name from your binding's package.
 - **Popover** — Anchored panel; asChild trigger, side/align, separate anchor
 - **Link** — Styled anchor; asChild for router links, external, disabled
 - **Theme** — Scopes a theme to a subtree — a dark panel inside a light page; nests, no JS
+- **Localization** — Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use
 - **DirectionProvider** — Right-to-left support — tells menus, tabs and sliders which way the page reads
 - **MessagePopover** — Aggregated form validation grouped by severity; click a message to land on the field
 - **Page + Bar** — The Page whole-screen container and the three-slot Bar row — the structural frame pieces
@@ -78,6 +79,7 @@ description, then import the name from your binding's package.
 - **Search** — Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times
 - **PasswordInput** — Password field with a show / hide toggle; every native input attribute passes through
 - **NumberField** — Number input with −/+ stepper, clamp, decimal step
+- **AmountField and QuantityField** — Amounts and quantities typed the way clerks do (1,25,000, 2.5L, 1.2Cr), formatted in the locale with the currency's own precision; LocaleProvider sets locale and currency once
 - **DatePicker** — react-day-picker in a Radix Popover; inline Calendar too
 - **InputOTP** — one input per digit, zero-dep; paste / autocomplete / a11y
 - **MaskInput** — Fixed-template input — 99-9999, aa-99; the mask decides what may be typed

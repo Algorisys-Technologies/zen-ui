@@ -1,6 +1,8 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { formatAmount, formatNumber } from "@algorisys/zen-ui-core/number-format";
+import { useLocale } from "../locale/locale";
 import { Icon, type IconName } from "../icon/icon";
 
 /**
@@ -111,8 +113,22 @@ ObjectStatus.displayName = "ObjectStatus";
 
 export interface ObjectNumberProps
   extends Omit<React.HTMLAttributes<HTMLSpanElement>, "color"> {
-  /** Pre-formatted for the user's locale — this component does not format. */
-  value: React.ReactNode;
+  /**
+   * Shown as given: pre-formatted for the user's locale. To have the number
+   * formatted here instead, pass `number` (and `currency`) and leave this out.
+   */
+  value?: React.ReactNode;
+  /**
+   * A number to format in the locale (the `locale` prop, else LocaleProvider's,
+   * else the browser's): at the currency's precision with `currency`, else at
+   * `precision`. Used only when `value` is not given.
+   */
+  number?: number;
+  /** ISO 4217. Sets the precision (INR 2, JPY 0) and, without a `unit`, is shown as the unit: 1,250.00 INR. */
+  currency?: string;
+  /** Decimal places for `number`. Default: the currency's, else as many as it has. */
+  precision?: number;
+  locale?: string;
   unit?: React.ReactNode;
   state?: ObjectState;
   /** Larger and bolder — for the headline figure on an object page. */
@@ -120,21 +136,34 @@ export interface ObjectNumberProps
 }
 
 export const ObjectNumber = React.forwardRef<HTMLSpanElement, ObjectNumberProps>(
-  ({ value, unit, state = "none", emphasized = false, className, ...props }, ref) => (
-    <span
-      ref={ref}
-      className={cn(
-        "zen-inline-flex zen-items-baseline zen-gap-1 zen-tabular-nums",
-        emphasized ? "zen-text-lg zen-font-semibold" : "zen-text-sm zen-font-medium",
-        STATE_TEXT[state],
-        className,
-      )}
-      {...props}
-    >
-      <span>{value}</span>
-      {unit ? <span className="zen-text-xs zen-font-normal zen-opacity-80">{unit}</span> : null}
-    </span>
-  ),
+  ({ value, number, currency, precision, locale, unit, state = "none", emphasized = false, className, ...props }, ref) => {
+    const ctx = useLocale();
+    // `value` as given (the original behaviour); else `number`, formatted here.
+    const formatting = value === undefined && number !== undefined;
+    let shown: React.ReactNode = value;
+    if (formatting) {
+      const loc = locale ?? ctx.locale;
+      shown = currency
+        ? formatAmount(number, currency, { locale: loc, display: "none", precision })
+        : formatNumber(number, { locale: loc, precision });
+    }
+    const shownUnit = unit ?? (formatting ? currency : undefined);
+    return (
+      <span
+        ref={ref}
+        className={cn(
+          "zen-inline-flex zen-items-baseline zen-gap-1 zen-tabular-nums",
+          emphasized ? "zen-text-lg zen-font-semibold" : "zen-text-sm zen-font-medium",
+          STATE_TEXT[state],
+          className,
+        )}
+        {...props}
+      >
+        <span>{shown}</span>
+        {shownUnit ? <span className="zen-text-xs zen-font-normal zen-opacity-80">{shownUnit}</span> : null}
+      </span>
+    );
+  },
 );
 ObjectNumber.displayName = "ObjectNumber";
 
