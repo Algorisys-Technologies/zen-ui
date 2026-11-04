@@ -8,7 +8,9 @@ import {
   type Child,
   type ZenComponent,
 } from "../../lib/component";
+import { formatAmount, formatNumber } from "@algorisys/zen-ui-core/number-format";
 import { Icon, type IconName } from "../icon/icon";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * Object atoms — the small, semantic display elements object pages, list
@@ -49,6 +51,9 @@ const STATE_ICON: Record<Exclude<ObjectState, "none">, IconName> = {
  * A tiny factory shell shared by all four atoms: it owns `current`, the
  * disposer and the applyProps lifecycle, and delegates the markup to `paint`.
  * `paint` writes className + children and returns the leftover props to apply.
+ * It is also handed the LocaleProvider that was building the atom when it was
+ * created (read once, at construction, as every factory reads it), for
+ * ObjectNumber's `number` formatting.
  *
  * These are pure display, so there is no behaviour to hand-write — only the
  * icon/state resolution that differs per atom. `styled` does not fit: each atom
@@ -57,16 +62,17 @@ const STATE_ICON: Record<Exclude<ObjectState, "none">, IconName> = {
  */
 function atom<P extends BaseProps, E extends HTMLElement>(
   tag: keyof HTMLElementTagNameMap,
-  paint: (el: E, current: P) => Record<string, unknown>,
+  paint: (el: E, current: P, loc: LocaleContextValue) => Record<string, unknown>,
 ): (props?: P) => ZenComponent<P, E> {
   return (props?: P) => {
+    const loc = useLocale();
     let current = { ...(props ?? {}) } as P;
     const el = document.createElement(tag) as unknown as E;
     const disposer = new Disposer();
     let removeProps: (() => void) | undefined;
 
     const render = () => {
-      const rest = paint(el, current);
+      const rest = paint(el, current, loc);
       removeProps?.();
       removeProps = applyProps(el as unknown as HTMLElement, rest);
     };
@@ -158,16 +164,40 @@ export const ObjectStatus = atom<ObjectStatusProps, HTMLSpanElement>("span", (el
 /* ---------------------------- ObjectNumber ----------------------------- */
 
 export interface ObjectNumberProps extends Omit<BaseProps, "children"> {
-  /** Pre-formatted for the user's locale — this component does not format. */
-  value: Child;
+  /**
+   * Shown as given: pre-formatted for the user's locale. To have the number
+   * formatted here instead, pass `number` (and `currency`) and leave this out.
+   */
+  value?: Child;
+  /**
+   * A number to format in the locale (the `locale` prop, else LocaleProvider's,
+   * else the browser's): at the currency's precision with `currency`, else at
+   * `precision`. Used only when `value` is not given.
+   */
+  number?: number;
+  /** ISO 4217. Sets the precision (INR 2, JPY 0) and, without a `unit`, is shown as the unit: 1,250.00 INR. */
+  currency?: string;
+  /** Decimal places for `number`. Default: the currency's, else as many as it has. */
+  precision?: number;
+  locale?: string;
   unit?: Child;
   state?: ObjectState;
   /** Larger and bolder — for the headline figure on an object page. */
   emphasized?: boolean;
 }
 
-export const ObjectNumber = atom<ObjectNumberProps, HTMLSpanElement>("span", (el, c) => {
-  const { value, unit, state = "none", emphasized = false, class: className, ...rest } = c;
+export const ObjectNumber = atom<ObjectNumberProps, HTMLSpanElement>("span", (el, c, loc) => {
+  const { value, number, currency, precision, locale, unit: unitProp, state = "none", emphasized = false, class: className, ...rest } = c;
+  // `value` as given (the original behaviour); else `number`, formatted here.
+  const formatting = value === undefined && number !== undefined;
+  let shown: Child = value;
+  if (formatting) {
+    const l = locale ?? loc.locale;
+    shown = currency
+      ? formatAmount(number, currency, { locale: l, display: "none", precision })
+      : formatNumber(number, { locale: l, precision });
+  }
+  const unit = unitProp ?? (formatting ? currency : undefined);
 
   el.className = cn(
     "zen-inline-flex zen-items-baseline zen-gap-1 zen-tabular-nums",
@@ -177,7 +207,7 @@ export const ObjectNumber = atom<ObjectNumberProps, HTMLSpanElement>("span", (el
   );
 
   const valueSpan = document.createElement("span");
-  valueSpan.replaceChildren(...toNodes(value));
+  valueSpan.replaceChildren(...toNodes(shown));
   const kids: Node[] = [valueSpan];
   if (unit !== undefined && unit !== null) {
     const unitSpan = document.createElement("span");

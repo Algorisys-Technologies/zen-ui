@@ -33,6 +33,7 @@ import SkeletonDemo from "./components/SkeletonDemo";
 import AvatarDemo from "./components/AvatarDemo";
 import LinkDemo from "./components/LinkDemo";
 import ThemeDemo from "./components/ThemeDemo";
+import LocaleDemo from "./components/LocaleDemo";
 import DirectionDemo from "./components/DirectionDemo";
 import MessagePopoverDemo from "./components/MessagePopoverDemo";
 import StackDemo from "./components/StackDemo";
@@ -49,6 +50,7 @@ import ObjectDemo from "./components/ObjectDemo";
 import SwitchDemo from "./components/SwitchDemo";
 import PageHeaderDemo from "./components/PageHeaderDemo";
 import NumberFieldDemo from "./components/NumberFieldDemo";
+import AmountFieldDemo from "./components/AmountFieldDemo";
 import TextareaDemo from "./components/TextareaDemo";
 import SliderDemo from "./components/SliderDemo";
 import CheckboxDemo from "./components/CheckboxDemo";
@@ -148,6 +150,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/avatar": AvatarDemo,
   "/link": LinkDemo,
   "/theme": ThemeDemo,
+  "/localization": LocaleDemo,
   "/direction": DirectionDemo,
   "/message-popover": MessagePopoverDemo,
   "/stack": StackDemo,
@@ -164,6 +167,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/switch": SwitchDemo,
   "/page-header": PageHeaderDemo,
   "/number-field": NumberFieldDemo,
+  "/amount-field": AmountFieldDemo,
   "/textarea": TextareaDemo,
   "/slider": SliderDemo,
   "/checkbox": CheckboxDemo,

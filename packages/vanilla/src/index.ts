@@ -114,6 +114,9 @@ export { PageHeader } from "./components/page-header/page-header";
 export type { PageHeaderProps } from "./components/page-header/page-header";
 export { NumberField } from "./components/form/number-field/number-field";
 export type { NumberFieldProps, NumberFieldHandle } from "./components/form/number-field/number-field";
+// AmountField / QuantityField (locale-formatted amounts and quantities)
+export { AmountField, QuantityField } from "./components/form/amount-field/amount-field";
+export type { AmountFieldProps, QuantityFieldProps, AmountFieldHandle, QuantityFieldHandle } from "./components/form/amount-field/amount-field";
 export { Textarea, TEXTAREA_CLASS } from "./components/form/input/textarea";
 export type { TextareaProps, TextareaHandle } from "./components/form/input/textarea";
 export { Slider } from "./components/form/slider/slider";
