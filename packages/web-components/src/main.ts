@@ -21,6 +21,7 @@ import CollapsibleDemo from "./components/CollapsibleDemo";
 import LabelDemo from "./components/LabelDemo";
 import TabsDemo from "./components/TabsDemo";
 import DialogDemo from "./components/DialogDemo";
+import ShortcutsDemo from "./components/ShortcutsDemo";
 import InputDemo from "./components/InputDemo";
 import SearchDemo from "./components/SearchDemo";
 import PasswordInputDemo from "./components/PasswordInputDemo";
@@ -215,6 +216,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/object-page": ObjectPageLayoutDemo,
   "/dynamic-date-range": DynamicDateRangeDemo,
   "/toast": ToastDemo,
+  "/shortcuts": ShortcutsDemo,
   "/rich-text": RichTextDemo,
   "/camera": CameraDemo,
   "/barcode": BarcodeDemo,
