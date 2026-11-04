@@ -53,6 +53,7 @@ SKILL.md.
 - `image?: string | undefined`
 - `initials?: string | undefined` — Falls back to initials derived from `name`.
 - `menuItems?: ShellBarMenuItem[] | undefined`
+- `menu?: (() => React.ReactNode) | undefined` — The menu's own body, in place of `menuItems`: DropdownMenu parts — labels, radio groups, checkbox items — for a menu that holds settings as well as actions (appearance, density, sign out). Rendered under the name heading. A function, called when the menu opens (the Solid binding needs that to build the parts inside the menu's context; the shape is kept the same here).
 - `onClick?: (() => void) | undefined`
 
 ### Types
