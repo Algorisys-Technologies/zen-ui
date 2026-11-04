@@ -11,6 +11,7 @@ import { Button } from "../button/button";
 import { Input, type InputHandle } from "../form/input/input";
 import { Select } from "../form/select/select";
 import { VirtualizedItems } from "../listbox/virtualized-items";
+import { ownsArrowKeys, rowKeyTarget } from "@algorisys/zen-ui-core/row-keys";
 
 /**
  * DataTable — the headless data grid, hand-written for the vanilla binding.
@@ -138,6 +139,22 @@ export interface DataTableProps<TData> {
   emptyMessage?: string;
   loading?: boolean;
 
+  /**
+   * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
+   * Home/End and PageUp/PageDown move between rows (the key logic is
+   * @algorisys/zen-ui-core/row-keys); Enter calls `onRowActivate`; with
+   * `enableRowSelection`, Space toggles the row and Ctrl/Cmd+A every row on
+   * the page. Keys with Alt are left alone (an app's own shortcuts), and so is
+   * anything typed in a field, select or combobox inside a row.
+   *
+   * The plain body only: the `enableVirtualization` grid ignores it.
+   */
+  enableKeyboardNavigation?: boolean;
+  /** Enter on a focused row. The event carries its modifiers, so Ctrl+Enter can mean something else. */
+  onRowActivate?: (row: TData, event: KeyboardEvent) => void;
+  /** A row's accessible name, read as focus moves onto it. */
+  rowLabel?: (row: TData, index: number) => string;
+
   /** Stable row-id resolver. Defaults to the row's array index. */
   getRowId?: (row: TData, index: number) => string;
   /** Per-row class hook; merged after the built-in row classes. */
@@ -169,6 +186,12 @@ const TABLE_ROW_CLASS = cn(
   "data-[state=selected]:zen-[box-shadow:0_4px_12px_0_var(--zen-color-primary-soft)]",
   "data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1 data-[state=selected]:-zen-outline-offset-1 data-[state=selected]:zen-outline-zen-primary",
 );
+const ROW_FOCUS_CLASS = [
+  "focus-visible:zen-outline",
+  "focus-visible:zen-outline-2",
+  "focus-visible:-zen-outline-offset-2",
+  "focus-visible:zen-outline-zen-ring",
+];
 const TABLE_HEAD_CLASS =
   "zen-h-zen-head zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs zen-text-zen-muted-fg";
 const TABLE_CELL_CLASS =
@@ -228,6 +251,17 @@ export function DataTable<TData>(
   let globalFilterInner = current.globalFilter ?? "";
   let pageIndexInner = 0;
   let pageSizeInner = current.pageSize ?? 10;
+
+  /* Keyboard rows: a roving tabindex, so the table is one tab stop and the
+   * arrows move within it. The index is clamped to the rows on screen when
+   * they change under it (a new page, a filter), so there is always exactly
+   * one tab stop. */
+  let focusIndex = 0;
+  /* The body rows as last painted, by position and by row id, so a key moves
+   * focus without a repaint and a repaint can put focus back where it was. */
+  let rowEls: HTMLElement[] = [];
+  let rowElById = new Map<string, HTMLElement>();
+  const rowIdOfEl = new WeakMap<Element, string>();
 
   const disposer = new Disposer();
   /* ZenComponents this file creates directly (header + non-virt body checkboxes,
@@ -516,6 +550,74 @@ export function DataTable<TData>(
       ? "[&>th]:zen-border-r [&>th]:zen-border-zen-border [&>th:last-child]:zen-border-r-0"
       : "";
 
+  /* ----- keyboard rows ----- */
+  const keyboardActive = (): boolean => !!current.enableKeyboardNavigation && !isVirt();
+
+  function setTabStop(index: number): void {
+    focusIndex = index;
+    rowEls.forEach((tr, i) => tr.setAttribute("tabindex", i === index ? "0" : "-1"));
+  }
+
+  function onRowKeyDown(e: KeyboardEvent, tr: HTMLElement, r: DisplayRow, index: number): void {
+    if (e.altKey || ownsArrowKeys(e.target)) return;
+    const to = rowKeyTarget(e.key, index, rowEls.length);
+    if (to !== null) {
+      e.preventDefault();
+      const next = rowEls[to];
+      if (!next) return;
+      setTabStop(to);
+      next.focus();
+      return;
+    }
+    // The rest act on the row itself: on a link or a button inside it, Enter
+    // and Space are that control's.
+    if (e.target !== tr) return;
+    if (e.key === "Enter" && current.onRowActivate) {
+      e.preventDefault();
+      current.onRowActivate(r.row, e);
+    } else if (e.key === " " && current.enableRowSelection) {
+      e.preventDefault();
+      toggleRow(rowIdOf(r.row, r.index));
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a" && current.enableRowSelection) {
+      e.preventDefault();
+      toggleAll(lastDisplay);
+    }
+  }
+
+  /* Every state change repaints the body, which would drop focus to the page.
+   * Where focus was in the table, it is put back: on the same row (by id, so a
+   * sort or new data that moves the row is followed), on the same control
+   * inside it, or, when that row has gone, on the keyboard's tab-stop row. */
+  const FOCUSABLE = "button, input, select, textarea, a[href], [tabindex]";
+  type FocusMark =
+    | { kind: "row"; id: string; sub: number }
+    | { kind: "other"; index: number };
+  function captureFocus(): FocusMark | null {
+    const active = document.activeElement;
+    if (!active || !containerEl.contains(active)) return null;
+    const tr = active.closest("tr");
+    const id = tr ? rowIdOfEl.get(tr) : undefined;
+    if (tr && id !== undefined) {
+      const sub = active === tr ? -1 : Array.from(tr.querySelectorAll(FOCUSABLE)).indexOf(active);
+      return { kind: "row", id, sub };
+    }
+    return { kind: "other", index: Array.from(containerEl.querySelectorAll(FOCUSABLE)).indexOf(active) };
+  }
+  function restoreFocus(mark: FocusMark | null): void {
+    if (!mark) return;
+    const active = document.activeElement;
+    if (active && active !== document.body && containerEl.contains(active)) return;
+    let target: Element | undefined;
+    if (mark.kind === "row") {
+      const tr = rowElById.get(mark.id);
+      if (tr) target = mark.sub < 0 ? tr : tr.querySelectorAll(FOCUSABLE)[mark.sub] ?? tr;
+      else if (keyboardActive()) target = rowEls[Math.min(focusIndex, rowEls.length - 1)];
+    } else if (mark.index >= 0) {
+      target = containerEl.querySelectorAll(FOCUSABLE)[mark.index];
+    }
+    (target as HTMLElement | undefined)?.focus({ preventScroll: true });
+  }
+
   /* ----- non-virtualized table ----- */
   function totalColumnCount(): number {
     return leafColumns().length + (current.enableRowSelection ? 1 : 0);
@@ -605,14 +707,33 @@ export function DataTable<TData>(
     } else if (display.length === 0) {
       tbody.append(messageRow(current.emptyMessage ?? "No results."));
     } else {
-      for (const r of display) {
+      const keyboard = keyboardActive();
+      const tabStop = Math.min(focusIndex, Math.max(display.length - 1, 0));
+      display.forEach((r, i) => {
         const id = rowIdOf(r.row, r.index);
         const selected = effSelection().has(id);
         const tr = h(
           "tr",
           cn(TABLE_ROW_CLASS, current.rowClassName?.(r.row, r.index)),
         );
+        // Added past cn(): its merge reads `outline` and `outline-2` as one
+        // conflict and would keep only the width, leaving the browser's ring.
+        if (keyboard) tr.classList.add(...ROW_FOCUS_CLASS);
         if (selected) tr.setAttribute("data-state", "selected");
+        rowEls.push(tr);
+        rowElById.set(id, tr);
+        rowIdOfEl.set(tr, id);
+        if (keyboard) {
+          tr.setAttribute("tabindex", i === tabStop ? "0" : "-1");
+          const label = current.rowLabel?.(r.row, r.index);
+          if (label !== undefined) tr.setAttribute("aria-label", label);
+          if (current.enableRowSelection) tr.setAttribute("aria-selected", selected ? "true" : "false");
+          tr.addEventListener("keydown", (e) => onRowKeyDown(e, tr, r, i));
+          // focusin, not focus: a control inside the row makes it the tab stop too.
+          tr.addEventListener("focusin", () => {
+            if (focusIndex !== i || tr.getAttribute("tabindex") !== "0") setTabStop(i);
+          });
+        }
 
         if (current.enableRowSelection) {
           const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
@@ -634,7 +755,7 @@ export function DataTable<TData>(
           tr.append(td);
         }
         tbody.append(tr);
-      }
+      });
     }
 
     /* tfoot — only when a column declares a footer, so every existing table
@@ -834,10 +955,15 @@ export function DataTable<TData>(
   }
 
   /* ----- the single render pass ----- */
+  let lastDisplay: DisplayRow[] = [];
   function sync(): void {
+    const focusMark = captureFocus();
     clearMounted();
     const processed = processRows();
     const display = computeDisplay(processed);
+    lastDisplay = display;
+    rowEls = [];
+    rowElById = new Map();
 
     const mode: "virt" | "table" = isVirt() ? "virt" : "table";
     if (mode !== builtMode) {
@@ -876,6 +1002,7 @@ export function DataTable<TData>(
     else containerEl.removeAttribute("aria-busy");
 
     paintPagination(processed);
+    restoreFocus(focusMark);
   }
 
   sync();

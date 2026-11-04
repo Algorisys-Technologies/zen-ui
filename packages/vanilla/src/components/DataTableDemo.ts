@@ -177,6 +177,42 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
           }).el,
       },
       {
+        title: "5b. Keyboard rows",
+        codeTitle: "enableKeyboardNavigation + onRowActivate",
+        codeDescription:
+          "Tab into the table once, then ↑/↓, Home/End and PageUp/PageDown move between rows. Enter opens the row (Ctrl+Enter reports the modifier); Space selects it and Ctrl+A selects the page.",
+        code: `DataTable({
+  data: small,
+  columns,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  onRowActivate: (row, e) => open(row, { newTab: e.ctrlKey || e.metaKey }),
+  rowLabel: (row) => row.name,
+});`,
+        render: () => {
+          const opened = document.createElement("span");
+          opened.dataset.testid = "kb-activated";
+          opened.textContent = "nothing yet";
+          const note = document.createElement("p");
+          note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+          note.setAttribute("aria-live", "polite");
+          note.append("Opened: ", opened);
+          const table = DataTable({
+            data: SMALL,
+            columns,
+            enableRowSelection: true,
+            enableKeyboardNavigation: true,
+            onRowActivate: (row, e) => {
+              opened.textContent = `${row.name}${e.ctrlKey || e.metaKey ? " (Ctrl+Enter)" : ""}`;
+            },
+            rowLabel: (row) => row.name,
+          });
+          const wrap = document.createElement("div");
+          wrap.append(table.el, note);
+          return wrap;
+        },
+      },
+      {
         title: "6. Virtualized — 2 000 rows, no pagination",
         codeTitle: "enableVirtualization renders only the visible window",
         codeDescription: "Scroll the table body. The header stays in view above the viewport.",
