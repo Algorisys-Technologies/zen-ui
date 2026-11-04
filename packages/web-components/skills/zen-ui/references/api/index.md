@@ -55,6 +55,7 @@ real props; guessing prop names is how agents invent APIs.
 - [page-header.md](page-header.md) — `PageHeader`, `PageHeaderProps`
 - [toolbar.md](toolbar.md) — `Toolbar`, `ToolbarProps`, `ToolbarAction`
 - [document-tabs.md](document-tabs.md) — `DocumentTabs`, `DocumentTabsProps`, `DocumentTab`
+- [view-manager.md](view-manager.md) — `ViewManager`, `ViewManagerProps`, `SavedView`
 - [skip-to-content.md](skip-to-content.md) — `SkipToContent`, `SKIP_TO_CONTENT_CLASS`, `SkipToContentProps`
 - [shellbar.md](shellbar.md) — `ShellBar`, `ShellBarProps`, `ShellBarItem`, `ShellBarMenuItem`, `ShellBarProfile`
 - [flexible-column-layout.md](flexible-column-layout.md) — `FlexibleColumnLayout`, `FlexibleColumnLayoutProps`, `FlexibleColumnLayoutType`, `FlexibleColumnLayoutChangeDetail`, `FlexibleColumnName`

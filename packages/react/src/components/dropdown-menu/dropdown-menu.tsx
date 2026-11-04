@@ -151,10 +151,27 @@ DropdownMenuCheckboxItem.displayName = DropdownMenuPrimitive.CheckboxItem.displa
 
 const DropdownMenuRadioItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem> & {
+    /**
+     * Close the menu when chosen. Default true, which is what Radix has always
+     * done here. Solid's default is false (Kobalte keeps radio items open); a
+     * picker that passes it explicitly behaves the same in both bindings.
+     */
+    closeOnSelect?: boolean;
+  }
+>(({ className, children, closeOnSelect = true, onSelect, ...props }, ref) => (
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
+    // Unchanged when closing: the caller's onSelect is passed through as is.
+    // Radix keeps the menu open when onSelect's event is default-prevented.
+    onSelect={
+      closeOnSelect
+        ? onSelect
+        : (event) => {
+            onSelect?.(event);
+            event.preventDefault();
+          }
+    }
     className={cn(
       "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
       "data-[highlighted]:zen-bg-zen-muted",

@@ -165,6 +165,7 @@ description, then import the name from your binding's package.
 - **SelectDialog** — Searchable list picker — single commits on click, multi commits on OK
 - **ValueHelp** — F4 lookup dialog — the list picker plus a condition builder
 - **ViewSettingsDialog** — Sort / group / filter settings; commits on OK
+- **ViewManager** — Saved views beside the page title: name, save, save as, set as default, manage and share a list screen's filters, sort and columns as one object; storage stays the app's
 - **FilterBar** — List Report filter area — fields, Go, and Adapt filters
 
 ### Zen app frame

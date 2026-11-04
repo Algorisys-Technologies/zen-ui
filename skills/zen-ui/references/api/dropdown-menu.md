@@ -43,6 +43,7 @@ SKILL.md.
 
 ### DropdownMenuRadioItem
 
+- `closeOnSelect?: boolean | undefined` — Close the menu when chosen. Default true, which is what Radix has always done here. Solid's default is false (Kobalte keeps radio items open); a picker that passes it explicitly behaves the same in both bindings.
 - from `@radix-ui/react-menu`: `disabled?`, `value`, `onSelect?`, `textValue?`
 - from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (279 inherited).
