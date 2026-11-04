@@ -1,4 +1,5 @@
 import * as React from "react";
+import { flushSync } from "react-dom";
 import {
   flexRender,
   getCoreRowModel,
@@ -88,6 +89,7 @@ import {
   type EditingState,
 } from "./edit-cell";
 import { BodyTable, RowDragContext } from "./body-table";
+import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "../context-menu/context-menu";
 
 /**
  * DataTable — headless via @tanstack/react-table, optionally virtualized
@@ -126,6 +128,16 @@ import { BodyTable, RowDragContext } from "./body-table";
  *     uncontrolled by default; pass the corresponding `state` +
  *     `onXChange` props to control them.
  */
+
+/** What a DataTable context menu is for: see DataTableProps.contextMenu. */
+export interface DataTableMenuTarget<TData> {
+  /** The row right-clicked, or focused when the menu key was pressed. */
+  row: Row<TData>;
+  /** The cell's column, when a cell was the target. */
+  column?: Column<TData, unknown>;
+  /** The rows the action is for: the selected rows when the target row is selected, else just the row. */
+  selection: Row<TData>[];
+}
 
 export interface DataTableManualPagination {
   pageIndex: number;
@@ -413,6 +425,20 @@ export interface DataTableProps<TData, TValue = unknown> {
   enableCellNavigation?: boolean;
 
   /**
+   * A right-click menu for the rows: return ContextMenu items for the target
+   * (the row, the cell's column, and the selection it acts on). Right-clicking
+   * a row or cell focuses it, as on a desktop; the menu key and Shift+F10 open
+   * the menu for the focused row or cell; focus returns there when it closes.
+   * Outside the rows (the header, the footer) the browser keeps its own menu.
+   *
+   *   contextMenu={({ row, selection }) => (<>
+   *     <ContextMenuItem onSelect={() => openInNewTab(row.original)}>Open in new tab</ContextMenuItem>
+   *     <ContextMenuItem variant="destructive" onSelect={() => remove(selection)}>Delete…</ContextMenuItem>
+   *   </>)}
+   */
+  contextMenu?: (target: DataTableMenuTarget<TData>) => React.ReactNode;
+
+  /**
    * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
    * Home/End and PageUp/PageDown move between rows (the key logic is
    * @algorisys/zen-ui-core/row-keys); Enter calls `onRowActivate`; with
@@ -573,6 +599,7 @@ export function DataTable<TData, TValue = unknown>({
   onCellEdit,
   onCellsEdit,
   enableCellNavigation = false,
+  contextMenu,
   headerVariant = "plain",
 
   pageSize = 10,
@@ -1300,7 +1327,77 @@ export function DataTable<TData, TValue = unknown>({
       selectable={enableRowSelection}
       onRowActivate={onRowActivate}
       rowLabel={rowLabel}
+      menuTargets={!!contextMenu}
     />
+  );
+
+  /* ------------------------------ context menu ------------------------------
+   * contextMenu: a right-click on a row or cell, or the menu key / Shift+F10
+   * on a focused one, opens the caller's items for it. Anywhere else (the
+   * header, the footer, empty space) the browser keeps its own menu.
+   *
+   * The trigger is disabled while there is no target, which is what leaves the
+   * browser its menu. The target is read in the CAPTURE phase and committed
+   * with flushSync: Radix reads `disabled` from the trigger's props when the
+   * same event reaches it in the bubble phase, so state set by an ordinary
+   * handler would arrive one event late (a header right-click after a row's
+   * would open the row's menu, and the first row's would open nothing). */
+  const menuTargetFrom = (el: EventTarget | null): DataTableMenuTarget<TData> | null => {
+    const node = el as Element | null;
+    const tr = node?.closest?.("tr[data-row-id], tr[data-expanded-of]") as HTMLElement | null;
+    const id = tr?.dataset.rowId ?? tr?.dataset.expandedOf;
+    if (!id) return null;
+    let row: Row<TData>;
+    try {
+      row = table.getRow(id);
+    } catch {
+      return null;
+    }
+    const colId = (node?.closest?.("td[data-column]") as HTMLElement | null)?.dataset.column;
+    const column = colId ? table.getColumn(colId) : undefined;
+    // A right-click on a selected row acts on the whole selection, as in a file manager.
+    const selection = row.getIsSelected() ? table.getSelectedRowModel().rows : [row];
+    return { row, column, selection };
+  };
+  const [menuTarget, setMenuTarget] = React.useState<DataTableMenuTarget<TData> | null>(null);
+  const takeMenuTarget = (el: EventTarget | null) => {
+    const next = menuTargetFrom(el);
+    flushSync(() => setMenuTarget(next));
+  };
+
+  const bodyArea = legacyVirtual ? (
+    <VirtualizedBody
+      table={table}
+      maxHeight={maxBodyHeight}
+      estimatedRowHeight={rowEstimatedHeight ?? 44}
+      emptyMessage={emptyMessage}
+      loading={loading}
+      enableColumnPinning={enableColumnPinning}
+      enableColumnResizing={enableColumnResizing}
+      enableColumnOrdering={enableColumnOrdering}
+      enablePerColumnFilters={enablePerColumnFilters}
+      visibleColumnIds={visibleColumnIds}
+      onColumnDragEnd={handleColumnDragEnd}
+      sensors={sensors}
+      editingCell={editingCell}
+      onStartEdit={startEdit}
+      onCommitEdit={commitEdit}
+      onCancelEdit={cancelEdit}
+      rowClassName={rowClassName}
+      headerVariant={headerVariant}
+    />
+  ) : sortableRows ? (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
+        {tableBody}
+      </SortableContext>
+    </DndContext>
+  ) : (
+    tableBody
   );
 
   return (
@@ -1350,39 +1447,24 @@ export function DataTable<TData, TValue = unknown>({
         )}
         aria-busy={loading || undefined}
       >
-        {legacyVirtual ? (
-          <VirtualizedBody
-            table={table}
-            maxHeight={maxBodyHeight}
-            estimatedRowHeight={rowEstimatedHeight ?? 44}
-            emptyMessage={emptyMessage}
-            loading={loading}
-            enableColumnPinning={enableColumnPinning}
-            enableColumnResizing={enableColumnResizing}
-            enableColumnOrdering={enableColumnOrdering}
-            enablePerColumnFilters={enablePerColumnFilters}
-            visibleColumnIds={visibleColumnIds}
-            onColumnDragEnd={handleColumnDragEnd}
-            sensors={sensors}
-            editingCell={editingCell}
-            onStartEdit={startEdit}
-            onCommitEdit={commitEdit}
-            onCancelEdit={cancelEdit}
-            rowClassName={rowClassName}
-            headerVariant={headerVariant}
-          />
-        ) : sortableRows ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={rowIds} strategy={verticalListSortingStrategy}>
-              {tableBody}
-            </SortableContext>
-          </DndContext>
+        {contextMenu ? (
+          <ContextMenu>
+            <ContextMenuTrigger
+              className="zen-contents"
+              disabled={!menuTarget}
+              onContextMenuCapture={(e) => takeMenuTarget(e.target)}
+              onKeyDownCapture={(e) => {
+                if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) {
+                  takeMenuTarget(document.activeElement);
+                }
+              }}
+            >
+              {bodyArea}
+            </ContextMenuTrigger>
+            <ContextMenuContent className="zen-min-w-48">{menuTarget && contextMenu(menuTarget)}</ContextMenuContent>
+          </ContextMenu>
         ) : (
-          tableBody
+          bodyArea
         )}
       </div>
 
