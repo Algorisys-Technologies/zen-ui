@@ -170,6 +170,7 @@ description, then import the name from your binding's package.
 - **ValueHelp** — F4 lookup dialog — the list picker plus a condition builder
 - **ViewSettingsDialog** — Sort / group / filter settings; commits on OK
 - **FilterBuilder** — Nested AND/OR conditions on any field as one serialisable object, for advanced list filters, report criteria and saved views; says in words what it filters
+- **ViewManager** — Saved views beside the page title: name, save, save as, set as default, manage and share a list screen's filters, sort and columns as one object; storage stays the app's
 - **FilterBar** — List Report filter area — fields, Go, and Adapt filters
 
 ### Zen app frame
