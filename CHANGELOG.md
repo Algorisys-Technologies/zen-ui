@@ -16,6 +16,29 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **AmountField and QuantityField** (Solid; new): amounts and quantities as
+  clerks type and read them. Raw digits while editing, formatted at rest in the
+  locale's grouping (1,25,000.00 in India, 1.250,00 in Germany, Arabic-Indic
+  digits in Egypt), an amount at its currency's own precision (INR 2, JPY 0,
+  KWD 3) with the symbol where the locale puts it, a quantity with its unit.
+  Typed 1,25,000, 125000, 2.5L, 1.2Cr or 15k all read; text that is not one
+  number in the locale, or is out of range (or negative, unless
+  allowNegative), is kept and marked aria-invalid, never quietly changed. Esc
+  undoes the typing. Rounding is half away from zero in decimal (1.005 is
+  1.01).
+- **LocaleProvider / useLocale** (Solid; new): the locale and default currency
+  zen-ui formats with, set once (nestable). Optional: without it nothing
+  changes. The built-in strings will come from it next (review B1).
+- **ObjectNumber formats a number it's given** (Solid): `number`, `currency`,
+  `precision`, `locale`. `value` is still shown as given and wins when present,
+  so existing uses render exactly as before (measured: every demo route
+  snapshots identical).
+- Core's new `@algorisys/zen-ui-core/number-format`: formatNumber,
+  formatAmount (accounting negatives, symbol / code / name / none),
+  formatQuantity, formatPercent (takes 18, not 0.18), parseNumber (strict:
+  ambiguous text is "invalid", never a guess), currencyPrecision, roundTo.
+  Checked by `bun run check:number-format`: 38145 assertions, 38080 of them
+  format→parse round trips across 14 locales.
 - **ViewManager** (Solid; new): saved views beside the page title ("My
   overdue invoices, this quarter, these columns"). Pick, Save, Save as (a free
   name offered; blank and duplicate names refused as a person reads them, case

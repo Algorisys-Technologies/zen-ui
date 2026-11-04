@@ -56,6 +56,7 @@ import NewInputDemo from "./components/NewInputDemo";
 import SearchDemo from "./components/SearchDemo";
 import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
+import NewAmountFieldDemo from "./components/NewAmountFieldDemo";
 import NewTagInputDemo from "./components/NewTagInputDemo";
 import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
@@ -197,6 +198,7 @@ render(
       <Route path="/search" component={SearchDemo} />
       <Route path="/password-input" component={PasswordInputDemo} />
       <Route path="/number-field" component={NewNumberFieldDemo} />
+      <Route path="/amount-field" component={NewAmountFieldDemo} />
       <Route path="/tag-input" component={NewTagInputDemo} />
       <Route path="/phone-input" component={NewPhoneInputDemo} />
       <Route path="/otp" component={NewOTPDemo} />

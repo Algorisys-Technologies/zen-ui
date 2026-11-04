@@ -188,6 +188,7 @@ export const NAV: NavGroup[] = [
       { label: "Search", path: "/search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/solid/src/components/SearchDemo.tsx" },
       { label: "PasswordInput", path: "/password-input", description: "Password field with a show / hide toggle; every native input attribute passes through", source: "packages/solid/src/components/PasswordInputDemo.tsx" },
       { label: "NumberField", path: "/number-field", description: "Number input with \u2212/+ stepper, clamping, decimal step", source: "packages/solid/src/components/NewNumberFieldDemo.tsx" },
+      { label: "AmountField and QuantityField", path: "/amount-field", description: "Amounts and quantities typed the way clerks do (1,25,000, 2.5L, 1.2Cr), formatted in the locale with the currency's own precision; LocaleProvider sets locale and currency once", source: "packages/solid/src/components/NewAmountFieldDemo.tsx", since: "12.2.0" },
       { label: "TagInput", path: "/tag-input", description: "Type + Enter chip input; comma-paste splits, per-tag validator", source: "packages/solid/src/components/NewTagInputDemo.tsx" },
       { label: "PhoneInput", path: "/phone-input", description: "Composition: Select (country) + Input (number)", source: "packages/solid/src/components/NewPhoneInputDemo.tsx" },
       { label: "InputOTP", path: "/otp", description: "One input per digit, zero-dep; paste / autocomplete / a11y", source: "packages/solid/src/components/NewOTPDemo.tsx" },

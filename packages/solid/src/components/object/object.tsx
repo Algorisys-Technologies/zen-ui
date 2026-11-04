@@ -1,6 +1,8 @@
 import { type JSX, Show, splitProps } from "solid-js";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { formatAmount, formatNumber } from "@algorisys/zen-ui-core/number-format";
+import { useLocale } from "../locale/locale";
 import { Icon, type IconName } from "../icon/icon";
 
 /**
@@ -132,8 +134,22 @@ export const ObjectStatus = (props: ObjectStatusProps) => {
 /* ---------------------------- ObjectNumber ----------------------------- */
 
 export type ObjectNumberProps = Omit<JSX.HTMLAttributes<HTMLSpanElement>, "color"> & {
-  /** Pre-formatted for the user's locale — this component does not format. */
-  value: JSX.Element;
+  /**
+   * Shown as given: pre-formatted for the user's locale. To have the number
+   * formatted here instead, pass `number` (and `currency`) and leave this out.
+   */
+  value?: JSX.Element;
+  /**
+   * A number to format in the locale (the `locale` prop, else LocaleProvider's,
+   * else the browser's): at the currency's precision with `currency`, else at
+   * `precision`. Used only when `value` is not given.
+   */
+  number?: number;
+  /** ISO 4217. Sets the precision (INR 2, JPY 0) and, without a `unit`, is shown as the unit: 1,250.00 INR. */
+  currency?: string;
+  /** Decimal places for `number`. Default: the currency's, else as many as it has. */
+  precision?: number;
+  locale?: string;
   unit?: JSX.Element;
   state?: ObjectState;
   /** Larger and bolder — for the headline figure on an object page. */
@@ -141,7 +157,17 @@ export type ObjectNumberProps = Omit<JSX.HTMLAttributes<HTMLSpanElement>, "color
 };
 
 export const ObjectNumber = (props: ObjectNumberProps) => {
-  const [local, rest] = splitProps(props, ["value", "unit", "state", "emphasized", "class"]);
+  const [local, rest] = splitProps(props, ["value", "number", "currency", "precision", "locale", "unit", "state", "emphasized", "class"]);
+  const ctx = useLocale();
+  // `value` as given (the original behaviour); else `number`, formatted here.
+  const shown = () => {
+    if (local.value !== undefined || local.number === undefined) return local.value;
+    const locale = local.locale ?? ctx.locale();
+    return local.currency
+      ? formatAmount(local.number, local.currency, { locale, display: "none", precision: local.precision })
+      : formatNumber(local.number, { locale, precision: local.precision });
+  };
+  const unit = () => local.unit ?? (local.value === undefined && local.number !== undefined ? local.currency : undefined);
   return (
     <span
       class={cn(
@@ -152,9 +178,9 @@ export const ObjectNumber = (props: ObjectNumberProps) => {
       )}
       {...rest}
     >
-      <span>{local.value}</span>
-      <Show when={local.unit}>
-        <span class="zen-text-xs zen-font-normal zen-opacity-80">{local.unit}</span>
+      <span>{shown()}</span>
+      <Show when={unit()}>
+        <span class="zen-text-xs zen-font-normal zen-opacity-80">{unit()}</span>
       </Show>
     </span>
   );

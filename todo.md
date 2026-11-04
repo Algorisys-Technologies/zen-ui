@@ -97,6 +97,28 @@ issue / PR when its turn comes.
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
 
+## Parity: AmountField, QuantityField, LocaleProvider, ObjectNumber number= (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `number-format` (shared already).
+      LocaleProvider is OPTIONAL everywhere: a component reads its own prop,
+      then the provider, then the old behaviour. Demo /amount-field.
+      ERPNext review B2.
+- [ ] The field hints ("Amount in Indian Rupee. You can type 2.5L…") are
+      English; they move to the message catalogue with B1.
+- [ ] Not in this cut: a DataTable amount column / cell editor on AmountField;
+      ↑↓ stepping in AmountField (NumberField has it).
+
+## Regression proof for sweeping changes: route snapshots (2026-11-04)
+
+The owner's rule: existing code must not break. For a change that touches
+many components (B1's strings), snapshot every demo route's accessibility
+tree before and after; every pre-existing route must be identical. Scripts
+(session scratchpad, worth promoting to scripts/): snapshot-routes.mjs (fixed
+clock and Math.random, masked generated ids) and compare-snaps.mjs. Two runs of
+unchanged code agree on 117 of 118 routes; the welcome page's lazy preview
+images are the only noise (bare "- img" lines, ignored). B2 measured: 117/118
+identical, the welcome catalogue the only change (the new entry).
+
 ## Parity: ViewManager (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass, on core's `views` (shared already). Kobalte
