@@ -27,6 +27,7 @@ import PasswordInputDemo from "./components/PasswordInputDemo";
 import SelectDemo from "./components/SelectDemo";
 import ComboboxDemo from "./components/ComboboxDemo";
 import TreeSelectDemo from "./components/TreeSelectDemo";
+import LookupFieldDemo from "./components/LookupFieldDemo";
 import SeparatorDemo from "./components/SeparatorDemo";
 import ProgressDemo from "./components/ProgressDemo";
 import LoadingDemo from "./components/LoadingDemo";
@@ -151,6 +152,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/select": SelectDemo,
   "/combobox": ComboboxDemo,
   "/tree-select": TreeSelectDemo,
+  "/lookup-field": LookupFieldDemo,
   "/separator": SeparatorDemo,
   "/progress": ProgressDemo,
   "/loading": LoadingDemo,

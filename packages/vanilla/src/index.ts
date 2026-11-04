@@ -46,6 +46,9 @@ export type { ComboboxProps, ComboboxOption } from "./components/combobox/combob
 // TreeSelect (pick one node from a hierarchy; tree logic in core)
 export { TreeSelect } from "./components/tree-select/tree-select";
 export type { TreeSelectProps, TreeSelectNode } from "./components/tree-select/tree-select";
+// LookupField (pick a row from a table of choices; search and ranking in core)
+export { LookupField } from "./components/lookup-field/lookup-field";
+export type { LookupFieldProps, LookupColumn } from "./components/lookup-field/lookup-field";
 
 // ---- Wave A: display primitives ------------------------------------------
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants } from "./components/card/card";
