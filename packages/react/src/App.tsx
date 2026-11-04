@@ -139,6 +139,7 @@ import NewNpsDemo from "./components/NewNpsDemo";
 import NewLikertDemo from "./components/NewLikertDemo";
 import NewTimePickerDemo from "./components/NewTimePickerDemo";
 import NewDateTimePickerDemo from "./components/NewDateTimePickerDemo";
+import NewBarcodeDemo from "./components/NewBarcodeDemo";
 import NewQRScannerDemo from "./components/NewQRScannerDemo";
 import NewNotificationsInboxDemo from "./components/NewNotificationsInboxDemo";
 import NewBreadcrumbDemo from "./components/NewBreadcrumbDemo";
@@ -164,6 +165,7 @@ import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
 import NewFilterBarDemo from "./components/NewFilterBarDemo";
 import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
 import NewStatCardDemo from "./components/NewStatCardDemo";
+import NewTileDemo from "./components/NewTileDemo";
 import NewCustomizingDemo from "./components/NewCustomizingDemo";
 import NewMaskInputDemo from "./components/NewMaskInputDemo";
 import NewPopoverDemo from "./components/NewPopoverDemo";
@@ -402,6 +404,7 @@ const App: React.FC = () => {
             <Route path="/likert" element={<NewLikertDemo />} />
             <Route path="/time-picker" element={<NewTimePickerDemo />} />
             <Route path="/date-time-picker" element={<NewDateTimePickerDemo />} />
+            <Route path="/barcode" element={<NewBarcodeDemo />} />
             <Route path="/qr-scanner" element={<NewQRScannerDemo />} />
             <Route path="/notifications-inbox" element={<NewNotificationsInboxDemo />} />
             <Route path="/breadcrumb" element={<NewBreadcrumbDemo />} />
@@ -430,6 +433,7 @@ const App: React.FC = () => {
             <Route path="/filter-bar" element={<NewFilterBarDemo />} />
             <Route path="/page-header" element={<NewPageHeaderDemo />} />
             <Route path="/stat-card" element={<NewStatCardDemo />} />
+            <Route path="/tile" element={<NewTileDemo />} />
             <Route path="/customizing" element={<NewCustomizingDemo />} />
             <Route path="/mask-input" element={<NewMaskInputDemo />} />
             <Route path="/popover" element={<NewPopoverDemo />} />

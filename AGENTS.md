@@ -159,6 +159,7 @@ description, then import the name from your binding's package.
 - **Card** — Surface primitive + SelectableCard variant for goal pickers / plan selectors
 - **Paper** — Document surface — reading measure, document typography, and a paper Dialog variant
 - **StatCard** — A labelled figure — icon, delta, and somewhere to go
+- **Tile** — A launchpad: tiles with a mark, a name and a live count, in a grid that is one tab stop with arrow keys
 - **Sheet / Drawer** — Slide-in side panel on Radix Dialog; right / left / top / bottom
 - **DateRangePicker** — Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled
 - **DynamicDateRange** — Semantic periods — "Last 7 days", "This quarter"; stores the question, not the answer
@@ -169,6 +170,7 @@ description, then import the name from your binding's package.
 - **Likert** — n-point attitudinal scale; segmented + stacked layouts, custom option sets
 - **TimePicker** — Segmented HH:MM(:SS) input, 12h / 24h, AM/PM, auto-advance + arrow stepping
 - **DateTimePicker** — Calendar + TimePicker in one Popover; preserves time-of-day on day changes
+- **QRCode and Barcode** — Draw codes as SVG for screens and print: QR (the e-invoice's signed QR, gate passes; error correction L to H), Code 128, EAN-13 and Code 39, dark on light in every theme
 - **QRScanner** — Camera-based QR / barcode scanner; native BarcodeDetector + custom-decoder escape hatch
 - **NotificationsInbox** — Bell icon + popover panel; day-grouped feed with unread badge + per-row actions
 - **Breadcrumb** — Hierarchical navigation path; collapsible ellipsis for deep trees

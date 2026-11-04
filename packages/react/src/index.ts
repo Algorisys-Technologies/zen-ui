@@ -85,6 +85,10 @@ export type { TimePickerProps } from "./components/form/time-picker/time-picker"
 export { DateTimePicker } from "./components/form/date-picker/date-time-picker";
 export type { DateTimePickerProps } from "./components/form/date-picker/date-time-picker";
 
+// QRCode and Barcode (codes drawn as SVG; the encoding is core's)
+export { QRCode, Barcode } from "./components/barcode/barcode";
+export type { QRCodeProps, BarcodeProps, BarcodeFormat, QrEcc } from "./components/barcode/barcode";
+
 // QR / Barcode scanner — native BarcodeDetector with custom-decoder escape hatch
 export { QRScanner } from "./components/qr-scanner/qr-scanner";
 export type {
@@ -644,6 +648,10 @@ export {
   SelectableCardGroup,
 } from "./components/card/card.selectable";
 export type { SelectableCardProps } from "./components/card/card.selectable";
+
+// Tile and TileGrid (a launchpad: one tab stop, arrows by the columns as laid out)
+export { Tile, TileGrid } from "./components/tile/tile";
+export type { TileProps, TileGridProps } from "./components/tile/tile";
 
 export {
   Paper,

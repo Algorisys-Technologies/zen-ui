@@ -27,7 +27,7 @@ SKILL.md.
 ### FlexibleColumnLayoutChangeDetail (type)
 
 - `layout: FlexibleColumnLayoutType` — The `layout` prop in effect. Deliberately NOT rewritten by responsive collapse — same as Fiori, whose `layoutChange` reports the requested layout alongside the visibility it actually resolved to.
-- `maxColumnsCount: 1 | 3 | 2` — How many columns the CONTAINER is wide enough for: 1, 2 or 3.
+- `maxColumnsCount: 1 | 2 | 3` — How many columns the CONTAINER is wide enough for: 1, 2 or 3.
 - `visibleColumns: FlexibleColumnName[]` — The columns actually rendered, in order.
 
 ### Other exports

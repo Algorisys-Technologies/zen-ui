@@ -21,7 +21,7 @@ SKILL.md.
 - `title?: React.ReactNode` — Stays put above the scroller.
 - `showAnchorBar?: boolean | undefined`
 - `anchorBarLabel?: string | undefined` — Accessible name for the anchor bar's nav landmark.
-- `headingLevel?: 1 | 3 | 4 | 2 | undefined` — The title's heading level. Sections sit one level below it and sub-sections two below, so the outline never skips. Default 2 (h2 / h3 / h4). Pass 1 when the object page IS the page and nothing above it carries the h1.
+- `headingLevel?: 1 | 4 | 2 | 3 | undefined` — The title's heading level. Sections sit one level below it and sub-sections two below, so the outline never skips. Default 2 (h2 / h3 / h4). Pass 1 when the object page IS the page and nothing above it carries the h1.
 - …plus the underlying element's standard props (279 inherited).
 
 ### ObjectPageSection (type)

@@ -24,6 +24,7 @@ real props; guessing prop names is how agents invent APIs.
 - [date-range-picker.md](date-range-picker.md) — `DateRangePicker`, `DateRangePickerProps`, `DateRange`
 - [time-picker.md](time-picker.md) — `TimePicker`, `TimePickerProps`
 - [date-time-picker.md](date-time-picker.md) — `DateTimePicker`, `DateTimePickerProps`
+- [barcode.md](barcode.md) — `QRCode`, `Barcode`, `QRCodeProps`, `BarcodeProps`, `BarcodeFormat`, `QrEcc`
 - [qr-scanner.md](qr-scanner.md) — `QRScanner`, `QRScannerProps`, `QRScannerScan`
 - [notifications-inbox.md](notifications-inbox.md) — `NotificationsInbox`, `NotificationsInboxProps`, `Notification`
 - [color-picker.md](color-picker.md) — `ColorPicker`, `ColorPickerProps`
@@ -94,6 +95,7 @@ real props; guessing prop names is how agents invent APIs.
 - [card.md](card.md) — `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `cardVariants`, `CardProps`
 - [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
 - [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`
+- [tile.md](tile.md) — `Tile`, `TileGrid`, `TileProps`, `TileGridProps`
 - [paper.md](paper.md) — `Paper`, `PaperHeader`, `PaperTitle`, `PaperDescription`, `PaperContent`, `PaperFooter`, `PaperProps`, `PaperTitleProps`
 - [accordion.md](accordion.md) — `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`
 - [collapsible.md](collapsible.md) — `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
