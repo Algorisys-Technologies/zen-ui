@@ -343,6 +343,17 @@ export interface DataTableProps<TData> {
    */
   enableCellNavigation?: boolean;
 
+  /**
+   * Drag rows by a grip in a leading column to reorder them; on a drop,
+   * `onRowOrderChange` gets the row ids in their new order and you
+   * re-arrange `data`. The table drags its rows itself: to anywhere in it
+   * (it scrolls near its top and bottom edges, a line shows where the row
+   * will land, Esc cancels), virtualized or not. Not with the older
+   * enableVirtualization.
+   */
+  enableRowOrdering?: boolean;
+  onRowOrderChange?: (orderedIds: string[]) => void;
+
   /** Stable row-id resolver. Defaults to the row's array index. */
   getRowId?: (row: TData, index: number) => string;
   /** Per-row class hook; merged after the built-in row classes. */
@@ -434,6 +445,14 @@ const EDIT_BUTTON_CLASS = cn(
   "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
 );
 const EDIT_NAV_CLASS = "zen-w-full zen-h-full zen-inline-flex zen-items-center zen-cursor-text";
+const DRAG_HANDLE_CLASS = cn(
+  "zen-cursor-grab active:zen-cursor-grabbing zen-inline-flex zen-items-center zen-justify-center",
+  "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0",
+  "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+  "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+  "zen-touch-none",
+);
+const GRIP = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>`;
 
 function compareValues(a: unknown, b: unknown): number {
   if (a == null && b == null) return 0;
@@ -1541,6 +1560,7 @@ export function DataTable<TData>(
     containerEl.removeEventListener("copy", onNavCopy);
     containerEl.removeEventListener("paste", onNavPaste);
     stopCellDrag?.();
+    stopRowDrag?.();
     const ed = editor;
     editor = null;
     editing = null;
@@ -1633,8 +1653,10 @@ export function DataTable<TData>(
   }
 
   /* ----- the regular table ----- */
+  const rowOrderingActive = (): boolean => !!current.enableRowOrdering && !isVirt();
+
   function totalColumnCount(): number {
-    return leafColumns().length + (current.enableRowSelection ? 1 : 0);
+    return leafColumns().length + (current.enableRowSelection ? 1 : 0) + (rowOrderingActive() ? 1 : 0);
   }
 
   function messageRow(text: string): HTMLElement {
@@ -1684,6 +1706,17 @@ export function DataTable<TData>(
       tr.setAttribute("aria-rowindex", String(i + 2));
     }
 
+    if (rowOrderingActive()) {
+      const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+      const grip = h("button", DRAG_HANDLE_CLASS) as HTMLButtonElement;
+      grip.type = "button";
+      grip.setAttribute("aria-label", loc.t("dataTable.dragRow"));
+      grip.append(svgNode(GRIP));
+      grip.addEventListener("pointerdown", (e) => startRowDrag(id, e));
+      td.append(grip);
+      tr.append(td);
+    }
+
     if (current.enableRowSelection) {
       const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
       const cb = Checkbox({
@@ -1714,7 +1747,137 @@ export function DataTable<TData>(
       tr.append(td);
     }
     rowComps.set(id, comps);
+    if (dragRowId !== null) paintDragRow(tr, i);
     return tr;
+  }
+
+  /* ----- row ordering (enableRowOrdering) -----
+   * The table drags its rows itself. Most rows of a virtualized table are not
+   * mounted, so the drop position comes from the row window's layout (or the
+   * mounted rows' boxes when every row is mounted), the table scrolls itself
+   * while the pointer is near its top or bottom edge, and the dragged row
+   * stays mounted. Esc cancels. Everything a drag adds to the window is
+   * removed when it ends, or when the table goes. */
+  function paintDragRow(tr: HTMLElement, index: number): void {
+    const id = rowIdOfEl.get(tr);
+    const dragging = dragRowId !== null && id === dragRowId;
+    if (dragging) tr.setAttribute("data-dragging", "true");
+    else tr.removeAttribute("data-dragging");
+    tr.classList.toggle("zen-opacity-50", dragging);
+    const n = lastDisplay.length;
+    const edge =
+      dropIndex === null ? undefined : dropIndex === index ? "before" : dropIndex === n && index === n - 1 ? "after" : undefined;
+    if (edge) tr.setAttribute("data-drop", edge);
+    else tr.removeAttribute("data-drop");
+    // The line is drawn on the cells: a row's own box-shadow is not painted
+    // in a collapsed-border table.
+    for (const td of Array.from(tr.children) as HTMLElement[]) {
+      td.style.boxShadow = edge ? `inset 0 ${edge === "before" ? 2 : -2}px 0 0 var(--zen-color-primary)` : "";
+    }
+  }
+  function paintDrag(): void {
+    for (const [id, tr] of rowElById) paintDragRow(tr, displayIndexById.get(id) ?? -1);
+  }
+
+  /** The row at a content offset in the scroller (header included). */
+  function rowAtOffset(scroller: HTMLElement, offset: number): { index: number; start: number; end: number } | undefined {
+    if (vw) return vw.itemAt(offset);
+    const box = scroller.getBoundingClientRect();
+    let best: { index: number; start: number; end: number } | undefined;
+    for (let i = 0; i < lastDisplay.length; i++) {
+      const tr = rowElAt(i);
+      if (!tr) continue;
+      const r = tr.getBoundingClientRect();
+      const start = r.top - box.top + scroller.scrollTop;
+      const end = start + r.height;
+      best = { index: i, start, end };
+      if (offset < end) break;
+    }
+    return best;
+  }
+
+  function startRowDrag(rowId: string, e: PointerEvent): void {
+    const scroller = tableWrapper;
+    const tableEl = scroller?.querySelector("table");
+    if (e.button !== 0 || !scroller || !tableEl) return;
+    e.preventDefault(); // no text selection, no compatibility mouse events
+    stopRowDrag?.();
+    let pointerY = e.clientY;
+    let frame = 0;
+    const band = () => {
+      const rect = scroller.getBoundingClientRect();
+      const top = tableEl.tHead?.getBoundingClientRect().bottom ?? rect.top;
+      return { rect, top, bottom: rect.top + scroller.clientHeight };
+    };
+    const locate = () => {
+      const { rect, top, bottom } = band();
+      const y = Math.min(Math.max(pointerY, top), bottom - 1);
+      const offset = scroller.scrollTop + (y - rect.top);
+      const hit = rowAtOffset(scroller, offset);
+      if (!hit) return;
+      const next = offset > (hit.start + hit.end) / 2 ? hit.index + 1 : hit.index;
+      if (next === dropIndex) return;
+      dropIndex = next;
+      paintDrag();
+    };
+    // Near an edge the table scrolls, faster the further past it the pointer is.
+    const EDGE = 40;
+    const tick = () => {
+      const { top, bottom } = band();
+      const over =
+        pointerY < top + EDGE ? pointerY - (top + EDGE) : pointerY > bottom - EDGE ? pointerY - (bottom - EDGE) : 0;
+      if (over) {
+        scroller.scrollTop += Math.max(-200, Math.min(200, Math.round(over / 3) || Math.sign(over)));
+        vw?.paint();
+        locate();
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    const finish = (commit: boolean) => {
+      const from = displayIndexById.get(rowId);
+      const to = dropIndex;
+      stop();
+      if (!commit || from === undefined || to === null) return;
+      const target = to > from ? to - 1 : to;
+      if (target === from) return;
+      const ids = lastDisplay.map((r) => rowIdOf(r.row, r.index));
+      const [moved] = ids.splice(from, 1);
+      ids.splice(target, 0, moved);
+      current.onRowOrderChange?.(ids);
+    };
+    const onMove = (ev: PointerEvent) => {
+      pointerY = ev.clientY;
+      locate();
+    };
+    const onUp = () => finish(true);
+    const onCancel = () => finish(false);
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key !== "Escape") return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      finish(false);
+    };
+    const stop = () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("keydown", onKey, true);
+      dragRowId = null;
+      dropIndex = null;
+      stopRowDrag = undefined;
+      paintDrag();
+      vw?.paint();
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    window.addEventListener("keydown", onKey, true);
+    stopRowDrag = stop;
+    dragRowId = rowId;
+    paintDrag();
+    locate();
+    frame = requestAnimationFrame(tick);
   }
 
   /** A row leaving the window: what it made is released. */
@@ -1769,8 +1932,12 @@ export function DataTable<TData>(
     destroy(): void;
   }
   let vw: RowWindow | null = null;
-  /* The row being dragged (enableRowOrdering), kept mounted while it is. */
-  const dragRowId: string | null = null;
+  /* The row being dragged (enableRowOrdering), kept mounted while it is;
+   * where it would land (before the row at this index; the row count: after
+   * the last); and the release of the drag in progress. */
+  let dragRowId: string | null = null;
+  let dropIndex: number | null = null;
+  let stopRowDrag: (() => void) | undefined;
   const rowSizes = new Map<string, number>();
   let estimate = 40;
   let learned = false;
@@ -1970,6 +2137,14 @@ export function DataTable<TData>(
     );
     if (virtual) htr.setAttribute("aria-rowindex", "1");
 
+    if (rowOrderingActive()) {
+      const th = h("th", cn(TABLE_HEAD_CLASS, "zen-w-8"));
+      const label = h("span", "zen-sr-only");
+      label.textContent = loc.t("dataTable.reorder");
+      th.append(label);
+      htr.append(th);
+    }
+
     if (current.enableRowSelection) {
       const th = h("th", cn(TABLE_HEAD_CLASS, "zen-w-9"));
       const cb = Checkbox({
@@ -2041,6 +2216,8 @@ export function DataTable<TData>(
           isTotal && "zen-text-end zen-tabular-nums",
           stickyActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
         );
+      // The drag column's cell, so the footer sits under its columns.
+      if (rowOrderingActive()) tr.append(h("td", hasTotals ? totalCellClass(false) : cn(TABLE_CELL_CLASS, sepCellClass())));
       if (hasTotals) {
         tfoot.setAttribute("data-totals", "");
         // The select column's cell, so the totals sit under their columns.

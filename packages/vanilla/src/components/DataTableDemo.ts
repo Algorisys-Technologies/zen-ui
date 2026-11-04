@@ -800,6 +800,40 @@ const table = DataTable({
           DataTable({ data: SMALL, columns, enableColumnSeparators: true }).el,
       },
       {
+        title: "9. Row reorder (drag handle)",
+        codeTitle: "enableRowOrdering + onRowOrderChange",
+        codeDescription:
+          "Grip-handle column appears as the leading column. Drag a row up or down — the callback fires with the new ID order; caller re-arranges the source data. Esc cancels a drag. Not compatible with enableVirtualization (mutually exclusive); with enableRowVirtualization the rows drag to anywhere in the table, which scrolls near its edges.",
+        code: `let data = initial;
+
+const table = DataTable({
+  data,
+  columns,
+  getRowId: (row) => row.id,   // stable identity across reorders
+  enableRowOrdering: true,
+  onRowOrderChange: (orderedIds) => {
+    const byId = new Map(data.map((d) => [d.id, d]));
+    data = orderedIds.map((id) => byId.get(id)!);
+    table.update({ data });
+  },
+});`,
+        render: () => {
+          let data = makePeople(6);
+          const table = DataTable<Person>({
+            data,
+            columns,
+            getRowId: (row) => row.id,
+            enableRowOrdering: true,
+            onRowOrderChange: (orderedIds) => {
+              const byId = new Map(data.map((d) => [d.id, d]));
+              data = orderedIds.map((id) => byId.get(id)).filter((d): d is Person => !!d);
+              table.update({ data });
+            },
+          });
+          return table.el;
+        },
+      },
+      {
         title: "9. Multi-sort (Shift-click a second header)",
         codeTitle: "enableSorting + enableMultiSort",
         codeDescription:
