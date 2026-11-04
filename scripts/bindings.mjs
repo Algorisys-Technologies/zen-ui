@@ -69,7 +69,7 @@ const DATA_DRIVEN_DIVERGENT = [
   "TabsList", "TabsTrigger", "TextareaHandle", "TimePickerHandle", "ToastVariant", "TooltipContent",
   "TooltipHandle", "TooltipPortal", "TooltipSide", "TooltipTrigger", "TreeTableCellContext",
   "TreeTableColumn", "ValidationMode", "Validator",
-  "ValueHelpItem", "ViewSettingsDialogHandle", "ZenComponent",
+  "ValueHelpItem", "ViewManagerHandle", "ViewSettingsDialogHandle", "ZenComponent",
 ];
 
 

@@ -97,6 +97,7 @@ import DateTimePickerDemo from "./components/DateTimePickerDemo";
 import DateRangePickerDemo from "./components/DateRangePickerDemo";
 import DynamicPageDemo from "./components/DynamicPageDemo";
 import ViewSettingsDemo from "./components/ViewSettingsDemo";
+import ViewManagerDemo from "./components/ViewManagerDemo";
 import SelectableCardDemo from "./components/SelectableCardDemo";
 import ObjectPageLayoutDemo from "./components/ObjectPageLayoutDemo";
 import DynamicDateRangeDemo from "./components/DynamicDateRangeDemo";
@@ -220,6 +221,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/date-range-picker": DateRangePickerDemo,
   "/dynamic-page": DynamicPageDemo,
   "/view-settings": ViewSettingsDemo,
+  "/view-manager": ViewManagerDemo,
   "/selectable-card": SelectableCardDemo,
   "/object-page": ObjectPageLayoutDemo,
   "/dynamic-date-range": DynamicDateRangeDemo,

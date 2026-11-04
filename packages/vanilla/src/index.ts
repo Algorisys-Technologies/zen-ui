@@ -221,6 +221,8 @@ export { DynamicPage, DynamicPageTitle, DynamicPageHeader, DynamicPageFooter } f
 export type { DynamicPageProps, DynamicPageTitleProps, DynamicPageHeaderProps, DynamicPageFooterProps } from "./components/dynamic-page/dynamic-page";
 export { ViewSettingsDialog } from "./components/view-settings/view-settings-dialog";
 export type { ViewSettingsDialogProps, ViewSettingsDialogHandle, ViewSettingsItem, ViewSettingsFilterGroup, ViewSettingsValue } from "./components/view-settings/view-settings-dialog";
+export { ViewManager } from "./components/view-manager/view-manager";
+export type { ViewManagerProps, ViewManagerHandle, SavedView } from "./components/view-manager/view-manager";
 export { SelectableCardGroup } from "./components/card/card.selectable";
 export type { SelectableCardGroupProps, SelectableCardItemSpec } from "./components/card/card.selectable";
 export { ObjectPageLayout } from "./components/object-page/object-page";

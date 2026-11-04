@@ -60,6 +60,15 @@ export interface DropdownMenuRadioOption {
   value: string;
   label: Child;
   disabled?: boolean;
+  /**
+   * Close the menu when this option is chosen. Default true, which is what this
+   * binding has always done and what React's DropdownMenuRadioItem does
+   * (Solid's default is false: Kobalte keeps radio items open). A picker that
+   * passes it explicitly behaves the same in every binding. With false, the menu
+   * stays open and the chosen row shows as checked at once, without the caller
+   * rebuilding `items`.
+   */
+  closeOnSelect?: boolean;
 }
 
 /** A mutually-exclusive set. React's DropdownMenuRadioGroup + DropdownMenuRadioItem. */
@@ -328,7 +337,18 @@ export function createMenuEngine({
         if (!opt.disabled) {
           const select = () => {
             s.onValueChange?.(opt.value);
-            closeAll();
+            if (opt.closeOnSelect !== false) {
+              closeAll();
+              return;
+            }
+            // Staying open: show the choice now. The rows are this group's own,
+            // so the caller's `items` is left as it was (and is what a reopen draws).
+            for (const row of group.children) {
+              const on = row === item;
+              row.setAttribute("aria-checked", String(on));
+              row.setAttribute("data-state", on ? "checked" : "unchecked");
+              (row.firstElementChild as HTMLElement).style.visibility = on ? "" : "hidden";
+            }
           };
           wireRow(item, select, disposer, openSubFor, null);
         }
