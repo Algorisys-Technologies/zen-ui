@@ -88,6 +88,10 @@ export type ComboboxProps = {
    * does with an errorMessage.
    */
   invalid?: boolean;
+  /** Lands on the input (the control that takes focus), so `<label for>` names it. */
+  id?: string;
+  /** Names the field for assistive tech when no visible label does. */
+  "aria-label"?: string;
   class?: string;
 };
 
@@ -118,6 +122,8 @@ export const Combobox = (rawProps: ComboboxProps) => {
     "disabled",
     "invalid",
     "class",
+    "id",
+    "aria-label",
   ]);
 
   const isAsync = () => typeof props.onSearch === "function";
@@ -252,6 +258,8 @@ export const Combobox = (rawProps: ComboboxProps) => {
         style={{ width: typeof props.width === "number" ? `${props.width}px` : (props.width ?? "240px") }}
       >
         <KCombobox.Input
+          id={props.id}
+          aria-label={props["aria-label"]}
           class="zen-flex-1 zen-min-w-0 zen-bg-transparent zen-border-0 zen-outline-none zen-text-sm placeholder:zen-text-zen-muted-fg"
           placeholder={props.searchPlaceholder ?? loc.t("combobox.searchPlaceholder")}
         />

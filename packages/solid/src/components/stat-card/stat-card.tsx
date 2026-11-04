@@ -87,7 +87,7 @@ const TEXT: Record<StatCardColor, string> = {
   neutral: "zen-text-zen-muted-fg",
   info: "zen-text-zen-info",
   success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   error: "zen-text-zen-error",
 };
 

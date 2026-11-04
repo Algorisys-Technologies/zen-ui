@@ -18,7 +18,7 @@ export type ObjectState = "none" | "success" | "warning" | "error" | "info";
 const STATE_TEXT: Record<ObjectState, string> = {
   none: "zen-text-zen-foreground",
   success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   error: "zen-text-zen-error",
   info: "zen-text-zen-info",
 };

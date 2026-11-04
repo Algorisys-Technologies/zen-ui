@@ -16,6 +16,21 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **Calendar: arrow keys between days** (Solid). ← → a day (mirrored right
+  to left), ↑ ↓ a week, Home / End the week's ends, PageUp / PageDown a month
+  (Shift: a year); crossing the visible months turns the page. These keys did
+  nothing before.
+- **DatePicker `initialFocus="selected"`** (Solid): opens on the chosen day
+  (else today) instead of "Previous month". Opt-in; the default is unchanged.
+- **`--zen-color-warning-text`**: warning text (ObjectStatus, ObjectNumber,
+  Countdown, StatCard's trend) reads it, falling back to the warning colour, so
+  nothing changes unless you set it. The plain warning colour is 1.77:1 on
+  white; `:root { --zen-color-warning-text: var(--zen-color-warning-soft-fg); }`
+  makes it 5.23:1.
+- **Combobox takes `id` and `aria-label`** (Solid), on its input, so
+  `<label for>` names and focuses it.
+- `scripts/snapshot-routes.mjs` and `scripts/compare-route-snapshots.mjs`: the
+  "nothing else moved" check for sweeping changes (see CLAUDE.md).
 - **Server-side export: DataTable `onExport`** (Solid). For data too large to
   be in the browser: the Export menu (Excel, PDF, CSV; "only the n selected
   rows" when there is a selection) hands the app an `ExportRequest`, a few KB
@@ -371,6 +386,14 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **`check:nav` passed on a nav.ts that does not compile** (it read it with
+  regexes). It parses it first now; a stray quote once blanked the Solid demo
+  while the check said ok.
+- **Two demo pages (DiffView, ObjectPage) warned "computations created outside
+  a `createRoot`"**: they built JSX at module level. Built inside the demo
+  components now; no warnings, every section still has its content.
+- The Solid demo's header and catalogue counted the components differently;
+  both count the same now.
 - **A per-column text filter matched nothing on a column without
   `filterVariant`** (Solid DataTable; a regression from the operator select
   added earlier in this release, never in a published version). The operator

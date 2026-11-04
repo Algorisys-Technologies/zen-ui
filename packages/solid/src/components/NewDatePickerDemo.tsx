@@ -35,6 +35,16 @@ const NewDatePickerDemo = () => {
       >
         <Calendar mode="single" />
       </DemoSection>
+      <DemoSection
+        title="Opening on the chosen day"
+        codeTitle={'initialFocus="selected"'}
+        codeDescription="By default the calendar opens with focus on its first control, Previous month (as it always has). With initialFocus=&quot;selected&quot; it opens on the chosen day, or today, so the arrow keys move between days at once. It becomes the default in the next major version."
+        code={`<DatePicker initialFocus="selected" value={d()} onValueChange={setD} />`}
+      >
+        <div data-testid="initial-focus">
+          <DatePicker initialFocus="selected" defaultValue={new Date(2026, 2, 15)} />
+        </div>
+      </DemoSection>
     </DemoPage>
   );
 };

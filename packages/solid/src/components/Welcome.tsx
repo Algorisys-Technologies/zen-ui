@@ -44,7 +44,9 @@ const CardPreview = (props: { route: string }) => {
 const Welcome = () => {
   const { themes } = useTheme();
   const groups = NAV.filter((g) => g.catalogue !== false);
-  const total = groups.reduce((n, g) => n + g.items.length, 0);
+  // Counted as the header counts: Patterns (components: false) are screens built from
+  // the components above, so counting them would count the same components twice.
+  const total = groups.filter((g) => g.components !== false).reduce((n, g) => n + g.items.length, 0);
 
   return (
     <div class="zen-mx-auto zen-max-w-5xl zen-px-6 zen-py-10">

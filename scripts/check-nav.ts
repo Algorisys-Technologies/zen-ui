@@ -29,6 +29,18 @@ for (const b of BINDINGS) {
   const router = readFileSync(b.router, "utf8");
   const nav = readFileSync(`${b.dir}/src/nav.ts`, "utf8");
 
+  // Parse it first: everything below reads nav.ts with regexes, which pass on a
+  // file that does not compile. A stray quote in nav.ts once blanked the whole
+  // Solid demo (Vite: "Transform failed") while this check said ok.
+  let parses = true, why = "";
+  try {
+    new Bun.Transpiler({ loader: "ts" }).transformSync(nav);
+  } catch (e) {
+    parses = false;
+    why = String((e as Error).message ?? e).split("\n")[0];
+  }
+  t(parses, "nav.ts parses", why);
+
   const imports = new Map<string, string>();
   for (const m of router.matchAll(b.importRe)) imports.set(m[1], m[2]);
 

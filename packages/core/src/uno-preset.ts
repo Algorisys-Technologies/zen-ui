@@ -68,6 +68,13 @@ export const zenUnoTheme = {
       "warning-fg": "var(--zen-color-warning-fg)",
       "warning-soft": "var(--zen-color-warning-soft)",
       "warning-soft-fg": "var(--zen-color-warning-soft-fg)",
+      // Warning as TEXT. Falls back to the warning colour itself, so nothing
+      // changes unless an app sets --zen-color-warning-text. That colour is
+      // 1.77:1 on white, too faint to read: set it to soft-fg (5.23:1) with
+      //   :root { --zen-color-warning-text: var(--zen-color-warning-soft-fg); }
+      // The fallback is resolved where it is used (not at :root), so a nested
+      // data-theme region keeps its own warning colour.
+      "warning-text": "var(--zen-color-warning-text, var(--zen-color-warning))",
       error: "var(--zen-color-error)",
       "error-fg": "var(--zen-color-error-fg)",
       "error-soft": "var(--zen-color-error-soft)",

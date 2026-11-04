@@ -60,8 +60,8 @@ const Controls = (p: { suffix: string }) => {
     <div class="zen-flex zen-flex-col zen-gap-4" data-testid={`controls-${p.suffix}`}>
       <div class="zen-grid zen-max-w-3xl zen-grid-cols-1 zen-gap-4 md:zen-grid-cols-2">
         <div class="zen-flex zen-flex-col zen-gap-1.5">
-          <span class="zen-text-sm zen-font-medium">Fruit</span>
-          <Combobox options={FRUITS} />
+          <Label for={`fruit-${p.suffix}`}>Fruit</Label>
+          <Combobox options={FRUITS} id={`fruit-${p.suffix}`} />
         </div>
         <div class="zen-flex zen-flex-col zen-gap-1.5">
           <Label for={`date-${p.suffix}`}>Date</Label>

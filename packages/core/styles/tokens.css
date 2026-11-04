@@ -777,6 +777,13 @@
   --zen-date-input-width: 10rem;
 }
 
+/* Warning as text (ObjectStatus, ObjectNumber, Countdown) uses
+ * --zen-color-warning-text, falling back to --zen-color-warning, which is
+ * 1.77:1 on white. To make warning text readable (5.23:1), set:
+ *   :root { --zen-color-warning-text: var(--zen-color-warning-soft-fg); }
+ * Left unset here so existing pages look exactly as before; the default
+ * changes in the next major version. */
+
 /* QRCode and Barcode: dark on light in every theme, on purpose. Scanners read
  * inverted codes badly and paper is light; a theme that overrides these takes
  * that on itself. */

@@ -130,8 +130,8 @@ issue / PR when its turn comes.
       date-range.ts; Barcode/QR error reasons from core barcode.ts). Core
       functions take English today; give them a message lookup (same keys), so
       describeFilter etc. translate too.
-- [ ] Combobox takes no `id` and no `aria-label`, so nothing names it except a
-      wrapping label (pre-existing; found writing the Localization demo).
+- [x] Combobox takes `id` and `aria-label` (on its input): `<label for>` names
+      and focuses it (measured).
 - [ ] Each batch: route snapshots must be identical to the baseline for every
       pre-existing route (see "Regression proof" above). Batch 1 measured.
 - [ ] Parity: React / vanilla / web-components read the same core catalogue;
@@ -224,7 +224,11 @@ identical, the welcome catalogue the only change (the new entry).
       (which is tabIndex -1). Demo /date-input. ERPNext review C1.
 - [ ] The same typed reading for DateRangePicker and DateTimePicker, and a
       DataTable date editor built on it.
-- [ ] Solid's Calendar opens focused on "Previous month" (DatePicker too);
+- [x] **Closed:** DatePicker `initialFocus="selected"` (opt-in; the default
+      stays "first" until the next major), and the Calendar's days now take the
+      arrow keys (← → ↑ ↓, Home / End, PageUp / PageDown, Shift for a year),
+      which did nothing before. Original note:
+      Solid's Calendar opens focused on "Previous month" (DatePicker too);
       DateInput works round it with onOpenAutoFocus. Fix it in Calendar itself
       once the owner agrees the change of focus is not breaking.
 
@@ -268,18 +272,28 @@ identical, the welcome catalogue the only change (the new entry).
       link styling to React, vanilla and web-components, with demo sections 3
       and 4. Gaps report item 1 (ERPNext docs/zen-ui-component-gaps.md).
 
-## Decide: MicroBarChart's default baseline (2026-11-04)
+## Decided: MicroBarChart's default baseline (2026-11-04)
 
-- [ ] MicroBarChart stretches the values' range over its height by default, so
+- [x] **Closed (owner: no breaking changes):** the default stays as it is;
+      `baseline="zero"` is the opt-in (Solid, shipped). Making it the default is
+      a next-major change. Original note:
+      MicroBarChart stretches the values' range over its height by default, so
       a bar's length is not its value (31 against 55 drew as a sliver against a
       full bar). Fine for a sparkline's shape, misleading for any figure read
       as an amount. `baseline="zero"` is opt-in now (Solid); making it the
       default is a visible change for every existing chart, so a major-version
       call for the owner. React's MicroBarChart likely shares the behaviour.
 
-## Decide: warning text contrast (found 2026-11-04)
+## Decided: warning text contrast (found 2026-11-04)
 
-- [ ] `--zen-color-warning` as text on white is 1.77:1 (body text needs 4.5:1);
+- [x] **Closed (owner: no breaking changes):** an opt-in token. Warning TEXT
+      (ObjectStatus, ObjectNumber, Countdown, StatCard's trend) now reads
+      `--zen-color-warning-text`, falling back to `--zen-color-warning`, so
+      every page looks exactly as before (measured: 21 elements, 3 themes,
+      identical computed colour); `:root { --zen-color-warning-text:
+      var(--zen-color-warning-soft-fg); }` makes it 5.23:1. The default
+      changes in the next major. Original note:
+      `--zen-color-warning` as text on white is 1.77:1 (body text needs 4.5:1);
       `--zen-color-warning-soft-fg` is 5.23:1. ObjectStatus (plain, `state="warning"`)
       and ObjectNumber use the plain colour for text, so warning statuses are
       hard to read. The new stamp uses soft-fg. Switching the existing text to
@@ -292,8 +306,9 @@ identical, the welcome catalogue the only change (the new entry).
       current release's minor or later, so the mark expires on its own. Mark
       every new component with `since`. Port the field and the pill to the
       React, vanilla and web-components demos with their components.
-- [ ] The Solid demo header says "107 components" and the catalogue heading
-      "COMPONENTS (108)": two counts of the same list disagree. Find which.
+- [x] The Solid demo header and the catalogue heading disagreed: the catalogue
+      counted the Patterns group (screens built from components). It counts as
+      the header does now (both 117).
 
 ## ERPNext review: section C (from the commercial suites, 2026-11-04)
 

@@ -145,7 +145,7 @@ const makeSections = (p: string): ObjectPageSection[] => [
   },
 ];
 
-const SUB_SECTIONS: ObjectPageSection[] = [
+const makeSubSections = (): ObjectPageSection[] => [
   {
     id: "sub-general",
     title: "General Information",
@@ -216,7 +216,7 @@ const SUB_SECTIONS: ObjectPageSection[] = [
 ];
 // The same sub-sections under their own ids: a section id is its DOM id, and two
 // layouts on one demo page must not share them.
-const LEVEL_SECTIONS: ObjectPageSection[] = SUB_SECTIONS.map((s) => ({
+const makeLevelSections = (): ObjectPageSection[] => makeSubSections().map((s) => ({
   ...s,
   id: `level-${s.id}`,
   subSections: s.subSections?.map((sub) => ({ ...sub, id: `level-${sub.id}` })),
@@ -235,11 +235,12 @@ const LEVEL_SECTIONS: ObjectPageSection[] = SUB_SECTIONS.map((s) => ({
  * would happily render the same element descriptor three times. Calling the
  * factory per page is the one shape that is correct in both bindings.
  */
-const SECTIONS = makeSections("");
-const CONTROLLED_SECTIONS = makeSections("ctl-");
-const BARE_SECTIONS = makeSections("bare-");
+// (Called inside the demo components below, not at module level: building
+// JSX at import time creates components outside any root, which Solid warns
+// about and never disposes.)
 
 const ControlledExample = () => {
+  const CONTROLLED_SECTIONS = makeSections("ctl-");
   const [section, setSection] = createSignal("ctl-delivery");
   return (
     <div class="zen-flex zen-flex-col zen-gap-3">
@@ -275,7 +276,12 @@ const ControlledExample = () => {
   );
 };
 
-const NewObjectPageDemo = () => (
+const NewObjectPageDemo = () => {
+  const SECTIONS = makeSections("");
+  const BARE_SECTIONS = makeSections("bare-");
+  const SUB_SECTIONS = makeSubSections();
+  const LEVEL_SECTIONS = makeLevelSections();
+  return (
   <DemoPage
     title="ObjectPageLayout"
     description={
@@ -406,6 +412,7 @@ const NewObjectPageDemo = () => (
       </div>
     </DemoSection>
   </DemoPage>
-);
+  );
+};
 
 export default NewObjectPageDemo;
