@@ -33,7 +33,7 @@ export type { CountdownLevel };
 
 const LEVEL_TEXT: Record<CountdownLevel, string> = {
   normal: "zen-text-zen-foreground",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   critical: "zen-text-zen-error",
   expired: "zen-text-zen-muted-fg",
 };

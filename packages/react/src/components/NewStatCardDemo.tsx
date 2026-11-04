@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { StatCard } from "./stat-card/stat-card";
+import { MicroBarChart } from "./micro-chart/micro-chart";
 import { Icon } from "./icon/icon";
 import { Button } from "./button/button";
 import { CodeExample } from "./demo-helpers";
@@ -161,6 +162,46 @@ const NewStatCardDemo: React.FC = () => {
             <Button size="sm" variant="outline" color="neutral" onClick={() => setLoading((v) => !v)}>
               {loading ? "Resolve" : "Simulate loading"}
             </Button>
+          </div>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>6. Hero figure with a chart</h2>
+        <CodeExample
+          title='size="lg" and chart: the lead figure of a dashboard row'
+          description="The hero carries a larger figure and the trend behind it, under the figure and across the card; the KPIs beside it stay as they are. While loading, the chart is a skeleton too."
+          code={`<StatCard
+  size="lg"
+  label="Revenue · trailing 12 months"
+  value="₹4,82,10,000"
+  trend={{ value: "+8.2%", direction: "up" }}
+  chart={<MicroBarChart values={monthly} width={320} height={56} baseline="zero" label="Monthly revenue, last 12 months" />}
+  href="#revenue"
+/>`}
+        >
+          <div
+            style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) repeat(2, minmax(0, 1fr))", gap: 16, width: "100%" }}
+            data-testid="hero-row"
+          >
+            <StatCard
+              size="lg"
+              label="Revenue · trailing 12 months"
+              value="₹4,82,10,000"
+              trend={{ value: "+8.2%", direction: "up" }}
+              chart={
+                <MicroBarChart
+                  values={[31, 34, 29, 38, 41, 37, 44, 46, 42, 48, 51, 55]}
+                  width={320}
+                  height={56}
+                  baseline="zero"
+                  label="Monthly revenue, last 12 months, rising from 31 to 55 lakh"
+                />
+              }
+              href="#revenue"
+            />
+            <StatCard label="Receivables" value="₹38,20,500" description="62 invoices outstanding" href="#receivables" />
+            <StatCard label="Stock value" value="₹1,12,40,000" trend={{ value: "-1.4%", direction: "down" }} href="#stock" />
           </div>
         </CodeExample>
       </section>
