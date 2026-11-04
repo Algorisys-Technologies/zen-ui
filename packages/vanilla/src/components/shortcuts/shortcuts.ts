@@ -354,6 +354,14 @@ export interface ShortcutHelpProps {
   /** Keys handled elsewhere (a table's arrows, a form's own keys), listed after the registered ones. */
   extra?: ShortcutHelpGroup[];
   title?: string;
+  /**
+   * The registry to list and to register the opening key in. Default: the
+   * provider building this component (`useShortcuts()`). Vanilla only: React and
+   * Solid read it from context; here it is the explicit context object PORTING.md
+   * maps context to, for an overlay built outside a provider's children function
+   * (the web-components binding's document-level registry).
+   */
+  registry?: ShortcutRegistry;
 }
 
 export interface ShortcutHelpHandle extends ZenComponent<ShortcutHelpProps> {
@@ -379,7 +387,7 @@ export interface ShortcutHelpHandle extends ZenComponent<ShortcutHelpProps> {
 export function ShortcutHelp(props: ShortcutHelpProps = {}): ShortcutHelpHandle {
   let state = { ...props };
   const loc = useLocale();
-  const registry = useShortcuts();
+  const registry = props.registry ?? useShortcuts();
   const disposer = new Disposer();
 
   const body = document.createElement("div");
@@ -473,7 +481,14 @@ export function ShortcutHelp(props: ShortcutHelpProps = {}): ShortcutHelpHandle 
 
   // The opening key is fixed for the overlay's life, as in React and Solid.
   const openKey = props.openKey === undefined ? "?" : props.openKey;
-  if (openKey) disposer.add(useShortcut(openKey, () => setOpen(true), { description: "Show these keys", group: "General" }));
+  if (openKey) {
+    const opener = { description: "Show these keys", group: "General" };
+    disposer.add(
+      props.registry
+        ? props.registry.register({ text: openKey, handler: () => setOpen(true), ...opener })
+        : useShortcut(openKey, () => setOpen(true), opener),
+    );
+  }
   // A key registered or released while the overlay is open shows up (or goes) at once.
   if (registry) disposer.add(registry.subscribe(() => dialog.isOpen && paint()));
 

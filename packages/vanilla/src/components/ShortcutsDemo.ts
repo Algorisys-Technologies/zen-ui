@@ -136,7 +136,7 @@ export default function ShortcutsDemo(): HTMLElement {
     // A function, so the panel and the overlay register into this provider.
     children: () => {
       // Built after the page, so its "?" lists after the panel's keys, as in React and Solid.
-      let help: ReturnType<typeof ShortcutHelp> | undefined;
+      const overlay: { help?: ReturnType<typeof ShortcutHelp> } = {};
 
       const logText = document.createElement("span");
       logText.dataset.testid = "shortcut-log";
@@ -199,15 +199,15 @@ Button({
               Button({
                 size: "sm",
                 variant: "outline",
-                onClick: () => help?.open(),
+                onClick: () => overlay.help?.open(),
                 children: ["Show keyboard shortcuts ", Kbd({ keys: "?", class: "zen-ml-1.5" })],
               }).el,
           },
         ],
       });
-      help = ShortcutHelp({ extra: EXTRA });
+      overlay.help = ShortcutHelp({ extra: EXTRA });
       // The overlay's handle sits beside the page: it renders nothing in place.
-      return [page, help];
+      return [page, overlay.help];
     },
   });
   return provider.el;
