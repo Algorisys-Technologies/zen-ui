@@ -154,6 +154,7 @@ export const NAV: NavGroup[] = [
       { to: "/icon", label: "Icon", description: "The shared zen-ui icon set, rendered straight from core's geometry", source: "packages/vanilla/src/components/IconDemo.ts" },
       { to: "/object", label: "Object atoms", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/vanilla/src/components/ObjectDemo.ts" },
       { to: "/button-family", label: "Button family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/vanilla/src/components/ButtonFamilyDemo.ts" },
+      { to: "/document-tabs", label: "Document tabs", description: "A workspace's open documents as closable, pinnable tabs with an all-tabs menu", source: "packages/vanilla/src/components/DocumentTabsDemo.ts" },
       { to: "/tree", label: "Tree", description: "Hierarchical expandable list with full ARIA keyboard navigation", source: "packages/vanilla/src/components/TreeDemo.ts" },
       { to: "/toolbar", label: "Toolbar", description: "Actions that collapse into an overflow menu when they do not fit", source: "packages/vanilla/src/components/ToolbarDemo.ts" },
     ],

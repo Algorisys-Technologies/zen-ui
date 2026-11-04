@@ -161,6 +161,10 @@ export { Stepper } from "./components/stepper/stepper";
 export type { StepperProps, StepperStep, StepStatus, StepperApi, StepperHandle, StepperNavigationOptions } from "./components/stepper/stepper";
 export { Toolbar } from "./components/toolbar/toolbar";
 export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
+
+// DocumentTabs (Zen-shaped: a workspace's open documents; the panels are the app's)
+export { DocumentTabs } from "./components/document-tabs/document-tabs";
+export type { DocumentTabsProps, DocumentTab } from "./components/document-tabs/document-tabs";
 export { Carousel } from "./components/carousel/carousel";
 export type { CarouselProps } from "./components/carousel/carousel";
 
