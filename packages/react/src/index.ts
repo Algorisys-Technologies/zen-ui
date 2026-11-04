@@ -622,6 +622,10 @@ export {
 } from "./components/card/card.selectable";
 export type { SelectableCardProps } from "./components/card/card.selectable";
 
+// Tile and TileGrid (a launchpad: one tab stop, arrows by the columns as laid out)
+export { Tile, TileGrid } from "./components/tile/tile";
+export type { TileProps, TileGridProps } from "./components/tile/tile";
+
 export {
   Paper,
   PaperHeader,

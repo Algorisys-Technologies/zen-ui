@@ -24,6 +24,6 @@ SKILL.md.
 ### Other exports
 
 - `FilterVariant` = `"number" | "boolean" | "text" | "select" | "numberRange"`
-- `TextOp` = `"contains" | "equals" | "starts" | "ends"`
+- `TextOp` = `"equals" | "contains" | "starts" | "ends"`
 - `NumberOp` = `"eq" | "ne" | "gt" | "lt" | "gte" | "lte"`
 - `NumberRangeFilterValue` = `[number | null, number | null]`

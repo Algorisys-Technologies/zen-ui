@@ -88,9 +88,11 @@ real props; guessing prop names is how agents invent APIs.
 - [theme-theme.md](theme-theme.md) — `Theme`, `ThemeProps`
 - [message-popover.md](message-popover.md) — `MessagePopover`, `Message`, `MessageType`, `MessagePopoverProps`
 - [direction.md](direction.md) — `DirectionProvider`, `Direction`, `DirectionProviderProps`
+- [locale.md](locale.md) — `LocaleProvider`, `useLocale`, `LocaleProviderProps`, `LocaleContextValue`, `MessageKey`, `ZenMessages`
 - [card.md](card.md) — `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `cardVariants`, `CardProps`
 - [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
 - [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`
+- [tile.md](tile.md) — `Tile`, `TileGrid`, `TileProps`, `TileGridProps`
 - [paper.md](paper.md) — `Paper`, `PaperHeader`, `PaperTitle`, `PaperDescription`, `PaperContent`, `PaperFooter`, `PaperProps`, `PaperTitleProps`
 - [accordion.md](accordion.md) — `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`
 - [collapsible.md](collapsible.md) — `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`

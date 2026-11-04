@@ -127,6 +127,7 @@ export const NAV: NavGroup[] = [
       { to: "/card", label: "Card", description: "Surface primitive + SelectableCard variant for goal pickers / plan selectors", source: "packages/react/src/components/NewCardDemo.tsx" },
       { to: "/paper", label: "Paper", description: "Document surface — reading measure, document typography, and a paper Dialog variant", source: "packages/react/src/components/NewPaperDemo.tsx" },
       { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/react/src/components/NewStatCardDemo.tsx" },
+      { to: "/tile", label: "Tile", description: "A launchpad: tiles with a mark, a name and a live count, in a grid that is one tab stop with arrow keys", source: "packages/react/src/components/NewTileDemo.tsx" },
       { to: "/sheet", label: "Sheet / Drawer", description: "Slide-in side panel on Radix Dialog; right / left / top / bottom", source: "packages/react/src/components/NewSheetDemo.tsx" },
       { to: "/date-range-picker", label: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled", source: "packages/react/src/components/NewDateRangePickerDemo.tsx" },
       { to: "/dynamic-date-range", label: "DynamicDateRange", description: "Semantic periods — \"Last 7 days\", \"This quarter\"; stores the question, not the answer", source: "packages/react/src/components/NewDynamicDateRangeDemo.tsx" },

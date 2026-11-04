@@ -162,6 +162,7 @@ import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
 import NewFilterBarDemo from "./components/NewFilterBarDemo";
 import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
 import NewStatCardDemo from "./components/NewStatCardDemo";
+import NewTileDemo from "./components/NewTileDemo";
 import NewCustomizingDemo from "./components/NewCustomizingDemo";
 import NewMaskInputDemo from "./components/NewMaskInputDemo";
 import NewPopoverDemo from "./components/NewPopoverDemo";
@@ -425,6 +426,7 @@ const App: React.FC = () => {
             <Route path="/filter-bar" element={<NewFilterBarDemo />} />
             <Route path="/page-header" element={<NewPageHeaderDemo />} />
             <Route path="/stat-card" element={<NewStatCardDemo />} />
+            <Route path="/tile" element={<NewTileDemo />} />
             <Route path="/customizing" element={<NewCustomizingDemo />} />
             <Route path="/mask-input" element={<NewMaskInputDemo />} />
             <Route path="/popover" element={<NewPopoverDemo />} />
