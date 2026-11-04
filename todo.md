@@ -21,6 +21,21 @@ issue / PR when its turn comes.
    When it is live, add it to "Ship it" in CLAUDE.md.
 
 
+## Raw rem literals in DataTable's edit-cell (found 2026-11-05)
+
+- [ ] `edit-cell` in Solid, React and vanilla uses `zen-m-[-0.5rem]
+      zen-p-[0.4rem]`, against CLAUDE.md's "no raw rem literals". Replace with
+      utilities or tokens of the SAME computed size (0.4rem is 6.4px: no
+      standard step), measured identical, in all three at once.
+
+## Vanilla DataTable: the features it never had (found 2026-11-05)
+
+- [ ] Grouping (and so group subtotals), per-column filters (and so
+      `enableFilterOperators`), expandable rows (`renderSubRow`), column
+      visibility / pinning / resizing / ordering. React and Solid have them;
+      the parity pass ported only 12.2.0's additions. check:parity cannot see
+      a missing PROP, which is how this stayed hidden.
+
 ## Latent: Label's `leading-none` is dropped by its own size class (found 2026-11-05)
 
 - [ ] Solid Label (`form/label/label.tsx`) writes `cn("… zen-leading-none …",

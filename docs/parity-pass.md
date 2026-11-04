@@ -30,7 +30,7 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A11 | ViewManager | ok | ok | ok |
 | A12 | Sidebar collapseMode / overlay / badges / header label | ok | ok | ok |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | ok | ok |
-| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | partial: 1-5 ok; cell nav + row virt need inline editing first | partial (as vanilla) |
+| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | ok (grouping / per-column filters: pre-existing gap) | ok (as vanilla) |
 | S | Strings: the binding's components read the message catalogue; check:strings per binding | ok (139/139; S2 wip) | wip | wip |
 
 ## Log
@@ -221,3 +221,12 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   keys (half cover English Solid still hard-codes). S2 launched: Solid onto
   those keys, plus the words neither scan can see (helpers, data tables) in
   both bindings, and a wider check that would have caught them.
+- 2026-11-05: D-rest vanilla+WC merged: inline editing (17/17), cell navigation
+  (26/26 oracle + 10/10), row virtualization (18/18; 6 grouping/expand checks
+  n/a, leak check passes), row ordering + virtualized drag (7/7, 5/5), all on
+  both demos; 17 existing sections identical (a11y + byte-identical markup).
+  `onCellEdit` takes React's `{ rowId, columnId, value }` payload. Remaining
+  vanilla DataTable gaps, all pre-existing and out of this pass: grouping,
+  per-column filters, expandable rows, column visibility/pinning/resizing.
+  Noted: edit-cell's `zen-m-[-0.5rem] zen-p-[0.4rem]` raw rem literals exist
+  identically in Solid, React and now vanilla (CLAUDE.md rule; todo).
