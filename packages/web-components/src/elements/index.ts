@@ -116,6 +116,7 @@ import "./textarea";
 import "./time-picker";
 import "./toast";
 import "./toolbar";
+import "./document-tabs";
 import "./tooltip";
 import "./tree";
 import "./value-help";

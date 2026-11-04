@@ -39,6 +39,7 @@ import MessagePopoverDemo from "./components/MessagePopoverDemo";
 import StackDemo from "./components/StackDemo";
 import StatCardDemo from "./components/StatCardDemo";
 import TileDemo from "./components/TileDemo";
+import DocumentTabsDemo from "./components/DocumentTabsDemo";
 import CardDemo from "./components/CardDemo";
 import PaperDemo from "./components/PaperDemo";
 import EmptyStateDemo from "./components/EmptyStateDemo";
@@ -192,6 +193,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/scroll-area": ScrollAreaDemo,
   "/stepper": StepperDemo,
   "/toolbar": ToolbarDemo,
+  "/document-tabs": DocumentTabsDemo,
   "/carousel": CarouselDemo,
   "/dropdown-menu": DropdownMenuDemo,
   "/file-upload": FileUploadDemo,
