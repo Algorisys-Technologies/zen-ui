@@ -34,6 +34,7 @@
     "./grid-range": "./src/grid-range.ts",
     "./tree-select": "./src/tree-select.ts",
     "./keys": "./src/keys.ts",
+    "./date-input": "./src/date-input.ts",
     "./countdown": "./src/countdown.ts",
     "./chunk-upload": "./src/chunk-upload.ts",
     "./spreadsheet": "./src/spreadsheet.ts",

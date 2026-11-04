@@ -32,6 +32,10 @@ export type PopoverContentProps = Omit<
 > & {
   class?: string;
   children?: JSX.Element;
+  /** Where focus goes when the panel opens; preventDefault to place it yourself. */
+  onOpenAutoFocus?: (e: Event) => void;
+  /** Where focus goes when it closes (back to the trigger by default); preventDefault to place it yourself. */
+  onCloseAutoFocus?: (e: Event) => void;
 };
 
 export const PopoverContent = (props: PopoverContentProps) => {

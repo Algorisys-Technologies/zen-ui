@@ -772,6 +772,11 @@
   --zen-tile-min-width: 13rem;
 }
 
+/* DateInput's width: room for DD/MM/YYYY and the calendar button. */
+:root {
+  --zen-date-input-width: 10rem;
+}
+
 /* The object page's section titles ("GENERAL", "ITEMS"): an app that sets one
  * size for every small uppercase label sets this too. Default: today's size. */
 :root {

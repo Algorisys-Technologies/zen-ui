@@ -932,6 +932,8 @@ export type {
   DatePickerProps,
   DateRange,
 } from "./components/form/date-picker/date-picker";
+export { DateInput, isTypedDate } from "./components/form/date-picker/date-input";
+export type { DateInputProps, DateOrder } from "./components/form/date-picker/date-input";
 export { DateRangePicker } from "./components/form/date-picker/date-range-picker";
 export type { DateRangePickerProps } from "./components/form/date-picker/date-range-picker";
 export { TimePicker } from "./components/form/time-picker/time-picker";

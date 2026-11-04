@@ -16,6 +16,22 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **DateInput** (Solid; new): a date you type, the way clerks enter them,
+  with the calendar as a second way in. Read in the locale's order (day first
+  for en-IN, month first for en-US, or `order`): `15/03/2026`, `15-3-26`,
+  `150326`, `1503` (this year), `15` (this month), ISO `2026-03-15` in any
+  locale, and the shortcuts `t`, `y`, `+7`, `-1`, `+2w`, `+1m`, `+1y`. Enter or
+  Tab reads it; ↑ ↓ move a day (Shift: a month); Alt+↓ opens the calendar on
+  the chosen day; Esc undoes what was typed. A date that does not exist
+  (31/02), or one outside `min` / `max` / `isDateDisabled`, is kept as typed
+  and marked aria-invalid (`onInvalidInput` hears it), never rolled over into
+  March. Width is the new `--zen-date-input-width` token. DatePicker is
+  unchanged. The pure half is core's new `@algorisys/zen-ui-core/date-input`,
+  checked by `bun run check:date-input` (5907 assertions; fails 11 when broken
+  on purpose).
+- **PopoverContent** (Solid): its type now names `onOpenAutoFocus` and
+  `onCloseAutoFocus`, which it already forwarded to Kobalte (React's accepts
+  them).
 - **Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp** (Solid; new).
   One list of every key an app answers. A chord is written once ("Mod+S": Ctrl,
   or ⌘ on a Mac). `useShortcut` answers it while a component is on screen, with

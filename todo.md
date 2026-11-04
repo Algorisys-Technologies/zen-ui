@@ -92,6 +92,20 @@ issue / PR when its turn comes.
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
 
+## Parity: DateInput (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `date-input` (shared already): the
+      field reads on Enter / blur and keeps invalid text marked (never
+      rewritten); Esc reverts; ↑ ↓ a day, Shift a month, within min / max /
+      isDateDisabled; Alt+↓ opens the calendar FOCUSED ON THE CHOSEN DAY (else
+      today), and closing returns focus to the field, not the calendar button
+      (which is tabIndex -1). Demo /date-input. ERPNext review C1.
+- [ ] The same typed reading for DateRangePicker and DateTimePicker, and a
+      DataTable date editor built on it.
+- [ ] Solid's Calendar opens focused on "Previous month" (DatePicker too);
+      DateInput works round it with onOpenAutoFocus. Fix it in Calendar itself
+      once the owner agrees the change of focus is not breaking.
+
 ## Parity: TreeSelect (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass, on core's `tree-select` (shared already):

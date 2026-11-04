@@ -83,6 +83,7 @@ import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 import NewFormDemo from "./components/NewFormDemo";
 import NewBoundFieldsDemo from "./components/NewBoundFieldsDemo";
 import NewDatePickerDemo from "./components/NewDatePickerDemo";
+import NewDateInputDemo from "./components/NewDateInputDemo";
 import NewDateRangePickerDemo from "./components/NewDateRangePickerDemo";
 import NewTimePickerDemo from "./components/NewTimePickerDemo";
 import NewDateTimePickerDemo from "./components/NewDateTimePickerDemo";
@@ -219,6 +220,7 @@ render(
       <Route path="/form-new" component={NewFormDemo} />
       <Route path="/bound-fields" component={NewBoundFieldsDemo} />
       <Route path="/date-picker" component={NewDatePickerDemo} />
+      <Route path="/date-input" component={NewDateInputDemo} />
       <Route path="/date-range-picker" component={NewDateRangePickerDemo} />
       <Route path="/time-picker" component={NewTimePickerDemo} />
       <Route path="/date-time-picker" component={NewDateTimePickerDemo} />
