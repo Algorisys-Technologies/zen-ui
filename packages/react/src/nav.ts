@@ -113,6 +113,7 @@ export const NAV: NavGroup[] = [
       { to: "/combobox", label: "Combobox + Async", description: "cmdk-backed; sync `options` or async `onSearch` with debounced loading", source: "packages/react/src/components/NewComboboxDemo.tsx" },
       { to: "/alert", label: "Alert", description: "Inline semantic callout; compound Icon / Title / Description / Actions API", source: "packages/react/src/components/NewAlertDemo.tsx" },
       { to: "/dialog", label: "Dialog + AlertDialog", description: "Radix Dialog modal surface, plus AlertDialog for destructive confirmations", source: "packages/react/src/components/NewDialogDemo.tsx" },
+      { to: "/shortcuts", label: "Shortcuts", description: "Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform", source: "packages/react/src/components/NewShortcutsDemo.tsx" },
       { to: "/toast", label: "Toast", description: "Radix Toast \u2014 imperative toast() plus a Toaster viewport; variants and actions", source: "packages/react/src/components/NewToastDemo.tsx" },
       { to: "/file-upload", label: "FileUpload", description: "Drag-and-drop or browse; accept / max-size validation with per-file progress", source: "packages/react/src/components/NewFileUploadDemo.tsx" },
       { to: "/form-bound", label: "Bound* fields", description: "BoundInput / BoundSelect / BoundSwitch \u2014 form-wired field wrappers, no boilerplate", source: "packages/react/src/components/NewBoundFieldsDemo.tsx" },

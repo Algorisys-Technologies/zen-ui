@@ -30,5 +30,5 @@ SKILL.md.
 - `computeDiff(before: DiffSnapshot, after: DiffSnapshot, options?: DiffOptions): DiffRow[]`
 - `parseSnapshot(value: unknown): unknown`
 - `isKeyed(value: unknown): value is Record<string, unknown>`
-- `DiffKind` = `"added" | "removed" | "changed" | "unchanged"`
+- `DiffKind` = `"unchanged" | "added" | "removed" | "changed"`
 - `DiffSnapshot` = `Record<string, unknown> | undefined`

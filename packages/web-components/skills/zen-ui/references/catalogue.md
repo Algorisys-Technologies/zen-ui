@@ -67,6 +67,7 @@ description, then import the name from your binding's package.
 - **Combobox + Async** — cmdk-backed; sync `options` or async `onSearch` with debounced loading
 - **Alert** — Inline semantic callout; compound Icon / Title / Description / Actions API
 - **Dialog + AlertDialog** — Radix Dialog modal surface, plus AlertDialog for destructive confirmations
+- **Shortcuts** — Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform
 - **Toast** — Radix Toast — imperative toast() plus a Toaster viewport; variants and actions
 - **FileUpload** — Drag-and-drop or browse; accept / max-size validation with per-file progress
 - **Bound* fields** — BoundInput / BoundSelect / BoundSwitch — form-wired field wrappers, no boilerplate
