@@ -83,6 +83,44 @@ const columns: DataTableColumn<Person>[] = [
   { accessorKey: "lastSeen", header: "Last seen" },
 ];
 
+/* -------------------------- section 26: totals --------------------- */
+type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
+const TOTAL_CUSTOMERS = ["Acme Traders", "Bharat Steels", "Coastal Agencies"];
+const TOTAL_ITEMS = ["Hex Bolt M8", "MS Sheet 2mm", "Cutting Oil", "Bearing 6204", "V-Belt B-48", "SS Rod 12mm"];
+// Rates in paise-precise rupees: summing them as doubles drifts; the totals here do not.
+const LINES: TotalLine[] = Array.from({ length: 60 }, (_, i) => {
+  const qty = 1 + ((i * 7) % 23);
+  const rate = Math.round((10.1 + ((i * 37) % 900) * 1.37) * 100) / 100;
+  return {
+    item: TOTAL_ITEMS[i % TOTAL_ITEMS.length],
+    customer: TOTAL_CUSTOMERS[(i * 5) % 3],
+    qty,
+    rate,
+    amount: Math.round(qty * rate * 100) / 100,
+    due: `2026-${String(10 + (i % 3)).padStart(2, "0")}-${String(1 + ((i * 3) % 28)).padStart(2, "0")}`,
+  };
+});
+const inrTotal = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const endAligned = (text: string): HTMLElement => {
+  const span = document.createElement("span");
+  span.className = "zen-block zen-text-end zen-tabular-nums";
+  span.textContent = text;
+  return span;
+};
+const totalColumns: DataTableColumn<TotalLine>[] = [
+  { accessorKey: "item", header: "Item" },
+  { accessorKey: "customer", header: "Customer" },
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" }, cell: ({ row }) => endAligned(String(row.qty)) },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" }, cell: ({ row }) => endAligned(inrTotal.format(row.rate)) },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    meta: { aggregate: "sum", formatTotal: (v) => `₹${inrTotal.format(v as number)}` },
+    cell: ({ row }) => endAligned(inrTotal.format(row.amount)),
+  },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
 const labeled = (text: string, node: Node): HTMLElement => {
   const wrap = document.createElement("div");
   const h4 = document.createElement("h4");
@@ -391,6 +429,31 @@ const table = DataTable({
                   ? "zen-bg-zen-info-soft/30"
                   : undefined,
           }).el,
+      },
+      {
+        title: "26. Totals",
+        codeTitle: "meta.aggregate: a total that computes itself, exact in decimal",
+        codeDescription:
+          'Sum, count, avg, min, max or your own function, per column. The footer totals every row the filters let through (across pages; totalsOver: "page" for this page only) and stays in view as the rows scroll. Search for a customer and watch the totals follow.',
+        code: `const columns: DataTableColumn<Line>[] = [
+  { accessorKey: "item", header: "Item" },                       // "Total" goes here
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" } },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" } },
+  { accessorKey: "amount", header: "Amount",
+    meta: { aggregate: "sum", formatTotal: (v) => \`₹\${inr.format(v)}\` } },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true });`,
+        render: () => {
+          const frame = document.createElement("div");
+          frame.className = "zen-flex zen-h-80 zen-flex-col";
+          frame.dataset.testid = "totals-table";
+          frame.append(
+            DataTable({ data: LINES, columns: totalColumns, fillHeight: true, enableColumnFilters: true }).el,
+          );
+          return frame;
+        },
       },
     ],
   });

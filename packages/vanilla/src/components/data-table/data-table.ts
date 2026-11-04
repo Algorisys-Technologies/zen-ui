@@ -13,6 +13,8 @@ import { Select } from "../form/select/select";
 import { VirtualizedItems } from "../listbox/virtualized-items";
 import { useLocale } from "../locale/locale";
 import { ownsArrowKeys, rowKeyTarget } from "@algorisys/zen-ui-core/row-keys";
+import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
+import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
 
 /**
  * DataTable — the headless data grid, hand-written for the vanilla binding.
@@ -65,6 +67,23 @@ export interface DataTableCellContext<TData> {
   index: number;
 }
 
+/**
+ * Per-column extras, React's `columnDef.meta` in this binding's shape.
+ */
+export interface DataTableColumnMeta {
+  /**
+   * A total for this column, computed by the table: "sum", "count", "avg",
+   * "min", "max" (exact in decimal, @algorisys/zen-ui-core/aggregate), or your
+   * own function of the column's values and rows. The table gets a footer with
+   * the total (right-aligned, kept in view while the rows scroll in a
+   * stickyHeader / fillHeight table) and "Total" in the first column that has
+   * no total and no footer of its own. A hand-written `footer` is kept.
+   */
+  aggregate?: AggregateKind | ((values: unknown[], rows: unknown[]) => unknown);
+  /** How the total reads. Default: the locale's number, at the precision of the values. */
+  formatTotal?: (value: unknown) => Child;
+}
+
 export interface DataTableColumn<TData> {
   /** Stable column id. Defaults to `accessorKey`. */
   id?: string;
@@ -88,6 +107,8 @@ export interface DataTableColumn<TData> {
    * in the table so the total reflects filtering.
    */
   footer?: (rows: TData[]) => Child;
+  /** Per-column extras: totals (`aggregate`, `formatTotal`). */
+  meta?: DataTableColumnMeta;
 }
 
 export interface SortingColumn {
@@ -155,6 +176,12 @@ export interface DataTableProps<TData> {
   onRowActivate?: (row: TData, event: KeyboardEvent) => void;
   /** A row's accessible name, read as focus moves onto it. */
   rowLabel?: (row: TData, index: number) => string;
+
+  /**
+   * Which rows a column's `meta.aggregate` totals: every row the filters let
+   * through, across pages (default), or the rows on this page.
+   */
+  totalsOver?: "filtered" | "page";
 
   /** Stable row-id resolver. Defaults to the row's array index. */
   getRowId?: (row: TData, index: number) => string;
@@ -551,6 +578,23 @@ export function DataTable<TData>(
       ? "[&>th]:zen-border-r [&>th]:zen-border-zen-border [&>th:last-child]:zen-border-r-0"
       : "";
 
+  /* ----- totals (a column's meta.aggregate) ----- */
+  function totalOf(col: DataTableColumn<TData>, rows: DisplayRow[]): Child {
+    const meta = col.meta!;
+    const values = rows.map((r) => getValue(col, r.row));
+    const value =
+      typeof meta.aggregate === "function"
+        ? meta.aggregate(values, rows.map((r) => r.row))
+        : aggregateValues(values, meta.aggregate!);
+    if (meta.formatTotal) return meta.formatTotal(value);
+    if (value === null || value === undefined) return "";
+    const kind = typeof meta.aggregate === "string" ? meta.aggregate : "sum";
+    if (typeof value === "number")
+      return formatNumber(value, { locale: loc.locale, precision: totalPrecision(values, kind) });
+    if (value instanceof Date) return value.toLocaleDateString(validLocale(loc.locale));
+    return String(value);
+  }
+
   /* ----- keyboard rows ----- */
   const keyboardActive = (): boolean => !!current.enableKeyboardNavigation && !isVirt();
 
@@ -759,18 +803,45 @@ export function DataTable<TData>(
       });
     }
 
-    /* tfoot — only when a column declares a footer, so every existing table
-     * keeps its exact markup. */
+    /* tfoot — only when a column declares a footer or a total, so every
+     * existing table keeps its exact markup. */
     const footerCols = current.columns.filter((c) => c.footer);
-    if (footerCols.length) {
+    const hasTotals = current.columns.some((c) => c.meta?.aggregate);
+    if (footerCols.length || hasTotals) {
       const tfoot = h("tfoot", "zen-border-t zen-bg-zen-muted/50 zen-font-medium");
       const tr = h("tr", "");
+      // Totals: right-aligned figures, kept in view at the bottom while the
+      // rows scroll under them. A footer without totals renders exactly as it
+      // always has.
+      const totalCellClass = (isTotal: boolean): string =>
+        cn(
+          TABLE_CELL_CLASS,
+          sepCellClass(),
+          isTotal && "zen-text-end zen-tabular-nums",
+          stickyActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
+        );
+      if (hasTotals) {
+        tfoot.setAttribute("data-totals", "");
+        // The select column's cell, so the totals sit under their columns.
+        if (current.enableRowSelection) tr.append(h("td", totalCellClass(false)));
+      }
+      const labelCol = hasTotals
+        ? current.columns.find((c) => !c.meta?.aggregate && !c.footer)
+        : undefined;
+      // The filtered rows (every page), or this page's own rows.
+      const totalRows = current.totalsOver === "page" ? display : processed;
       for (const col of current.columns) {
-        const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+        const td = h("td", hasTotals ? totalCellClass(!!col.meta?.aggregate) : cn(TABLE_CELL_CLASS, sepCellClass()));
         if (col.footer) {
           const content = col.footer(display.map((r: (typeof display)[number]) => r.row));
           collectInto(content, mounted);
           td.append(...toNodes(content));
+        } else if (col.meta?.aggregate) {
+          const content = totalOf(col, totalRows);
+          collectInto(content, mounted);
+          td.append(...toNodes(content));
+        } else if (col === labelCol) {
+          td.textContent = loc.t("dataTable.total");
         }
         tr.append(td);
       }
