@@ -64,6 +64,14 @@ export interface ShellBarProfile {
   /** Falls back to initials derived from `name`. */
   initials?: string;
   menuItems?: ShellBarMenuItem[];
+  /**
+   * The menu's own body, in place of `menuItems`: DropdownMenu parts — labels,
+   * radio groups, checkbox items — for a menu that holds settings as well as
+   * actions (appearance, density, sign out). Rendered under the name heading.
+   * A function, called inside the open menu: the parts need the menu's context,
+   * and JSX built where the profile object is written would be built outside it.
+   */
+  menu?: () => JSX.Element;
   onClick?: () => void;
 }
 
@@ -435,7 +443,7 @@ export const ShellBar = (props: ShellBarProps) => {
             <Show when={local.profile}>
               {(p) => (
                 <Show
-                  when={p().menuItems && p().menuItems!.length > 0}
+                  when={p().menu || (p().menuItems && p().menuItems!.length > 0)}
                   fallback={
                     <Button
                       type="button"
@@ -465,7 +473,9 @@ export const ShellBar = (props: ShellBarProps) => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>{p().name}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {renderMenuItems(p().menuItems ?? [])}
+                      <Show when={p().menu} fallback={renderMenuItems(p().menuItems ?? [])}>
+                        {p().menu?.()}
+                      </Show>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </Show>

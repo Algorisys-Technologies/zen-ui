@@ -30,6 +30,14 @@ issue / PR when its turn comes.
       section to each. Then extend all four to the virtualized and
       row-ordering bodies, which ignore the flag today.
 
+## Demos: DataTable `fillHeight`, ShellBar `profile.menu` (2026-11-04)
+
+- [ ] **A demo section for each, in all four bindings.** Both shipped in every
+  binding with no demo: `fillHeight` (a list that is the page's main pane — needs
+  a fixed-height frame to show anything) and `profile.menu` (a profile menu with
+  radio groups). Driven in a real app (the ERPNext port) instead; add the
+  sections together so the demos keep matching.
+
 ## Housekeeping / release readiness
 
 The migration on `ui-refactor` is feature-complete but hasn't been

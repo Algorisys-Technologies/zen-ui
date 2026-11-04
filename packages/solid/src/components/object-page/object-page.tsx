@@ -359,7 +359,14 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
         </div>
       </Show>
 
-      <div ref={scrollRef} class="zen-min-h-0 zen-flex-1 zen-overflow-y-auto">
+      {/* scroll-padding-top: whatever the browser scrolls into view in here — a
+          field reached with Tab, a grid cell, scrollIntoView — lands below the
+          sticky anchor bar instead of under it. */}
+      <div
+        ref={scrollRef}
+        class="zen-min-h-0 zen-flex-1 zen-overflow-y-auto"
+        style={{ "scroll-padding-top": `${barHeight()}px` }}
+      >
         <Show when={local.header}>
           <div class="zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-4">{local.header}</div>
         </Show>

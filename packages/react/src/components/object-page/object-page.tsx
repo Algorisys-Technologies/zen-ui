@@ -402,7 +402,14 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
           </div>
         ) : null}
 
-        <div ref={scrollRef} className="zen-min-h-0 zen-flex-1 zen-overflow-y-auto">
+        {/* scroll-padding-top: whatever the browser scrolls into view in here —
+            a field reached with Tab, a grid cell, scrollIntoView — lands below
+            the sticky anchor bar instead of under it. */}
+        <div
+          ref={scrollRef}
+          className="zen-min-h-0 zen-flex-1 zen-overflow-y-auto"
+          style={{ scrollPaddingTop: barHeight }}
+        >
           {header ? (
             <div className="zen-border-b zen-border-zen-border zen-px-zen-section-x zen-py-4">{header}</div>
           ) : null}

@@ -323,6 +323,9 @@ export function ObjectPageLayout(
     }
     barHeight = h;
     for (const s of sectionEls.values()) s.style.scrollMarginTop = `${h}px`;
+    // Whatever the browser scrolls into view in the scroller — a field reached
+    // with Tab, a grid cell — lands below the sticky bar instead of under it.
+    if (scroller) scroller.style.scrollPaddingTop = `${h}px`;
     setupObserver();
     recomputeTail();
     tryInit();

@@ -16,6 +16,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **DataTable `fillHeight`** (all four bindings). The table fills its parent's
+  height: the rows scroll inside it under a header that stays put, and the pager
+  stays below — a list as the page's main pane, where `stickyHeader` alone needs
+  a fixed `maxBodyHeight`. Implies `stickyHeader`. The parent must give it a
+  height (a flex child with `min-height: 0`).
+- **ShellBar `profile.menu`** (all four bindings): the profile menu's own body in
+  place of `menuItems`, for a menu that holds settings (radio groups, labels) as
+  well as actions. React and Solid take a function returning DropdownMenu parts
+  (Solid must build them inside the menu's context, and a JSX value written into
+  the profile object would be built outside it — Kobalte throws
+  `useMenuRootContext must be used within a MenuRoot`); vanilla and web
+  components take `DropdownMenuItemSpec[]`, the binding's data idiom.
+
 - **Density: Comfortable or Compact** (core tokens; all four bindings). Set
   `data-density="compact"` on any element, usually `<html>`, and what is inside
   tightens: inputs, selects, comboboxes, number fields, search and md buttons go
@@ -64,6 +77,10 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **ObjectPage: a field reached with Tab could land under the sticky anchor
+  bar** (all four bindings). The content scroller now has `scroll-padding-top`
+  equal to the measured bar, so anything the browser scrolls into view there —
+  focus, a grid cell, `scrollIntoView` — lands below it.
 - **FlexibleColumnLayout left a blank gap when a layout named a column the
   caller did not fill.** A three-column layout with no start column drew mid
   and end at three quarters of the width and left the last quarter empty; the

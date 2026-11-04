@@ -121,6 +121,13 @@ export interface DataTableProps<TData> {
   headerVariant?: "plain" | "underline" | "branded";
   /** Pin the header to the top of a `maxBodyHeight` scroll viewport (non-virtualized only). */
   stickyHeader?: boolean;
+  /**
+   * Fill the parent's height: the rows scroll inside the table, under a header
+   * that stays put, and the pager stays below. For a list that is the page's
+   * main pane. The parent must give it a height (a flex child with min-height 0,
+   * or a fixed height). Implies stickyHeader; maxBodyHeight is ignored.
+   */
+  fillHeight?: boolean;
 
   /* layout / messages */
   pageSize?: number;
@@ -242,11 +249,23 @@ export function DataTable<TData>(
   }
 
   /* ----- structure ----- */
-  const el = h("div", cn("zen-space-y-3", current.class));
+  const rootClass = () =>
+    cn(
+      "zen-space-y-3",
+      current.fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
+      current.class,
+    );
+  const el = h("div", rootClass());
   if (current.id) el.id = current.id;
 
   const toolbarEl = h("div", "zen-flex zen-items-center zen-gap-2");
-  const containerEl = h("div", "zen-rounded-zen-md zen-border zen-border-zen-border");
+  const containerEl = h(
+    "div",
+    cn(
+      "zen-rounded-zen-md zen-border zen-border-zen-border",
+      current.fillHeight && "!zen-shrink zen-flex zen-min-h-0 zen-flex-1 zen-flex-col",
+    ),
+  );
   const paginationEl = h(
     "div",
     "zen-flex zen-items-center zen-justify-between zen-gap-3 zen-text-sm",
@@ -512,9 +531,12 @@ export function DataTable<TData>(
   }
 
   function buildTable(processed: DisplayRow[], display: DisplayRow[]): HTMLElement {
-    const stickyActive = !!current.stickyHeader && !isVirt();
-    const wrapper = h("div", "zen-relative zen-w-full zen-overflow-auto");
-    if (stickyActive) wrapper.style.maxHeight = `${bodyHeight()}px`;
+    const stickyActive = !!(current.stickyHeader || current.fillHeight) && !isVirt();
+    const wrapper = h(
+      "div",
+      cn("zen-relative zen-w-full zen-overflow-auto", current.fillHeight && "zen-min-h-0 zen-flex-1"),
+    );
+    if (stickyActive && !current.fillHeight) wrapper.style.maxHeight = `${bodyHeight()}px`;
 
     const table = h(
       "table",
@@ -862,7 +884,7 @@ export function DataTable<TData>(
     el,
     update(next: Partial<DataTableProps<TData>>) {
       current = { ...current, ...next };
-      if (next.class !== undefined) el.className = cn("zen-space-y-3", current.class);
+      if (next.class !== undefined || next.fillHeight !== undefined) el.className = rootClass();
       if (next.id !== undefined) el.id = current.id ?? "";
       if (next.globalFilter !== undefined && filterInput) {
         filterInput.update({ value: current.globalFilter });

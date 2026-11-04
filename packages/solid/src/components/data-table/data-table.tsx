@@ -154,6 +154,13 @@ export interface DataTableProps<TData, TValue = unknown> {
   rowLabel?: (row: Row<TData>) => string;
 
   stickyHeader?: boolean;
+  /**
+   * Fill the parent's height: the rows scroll inside the table, under a header
+   * that stays put, and the pager stays below. For a list that is the page's
+   * main pane. The parent must give it a height (a flex child with min-height 0,
+   * or a fixed height). Implies stickyHeader; maxBodyHeight is ignored.
+   */
+  fillHeight?: boolean;
   enableColumnPinning?: boolean;
   columnPinning?: ColumnPinningState;
   initialColumnPinning?: ColumnPinningState;
@@ -288,6 +295,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "pageSize",
     "pageSizeOptions",
     "maxBodyHeight",
+    "fillHeight",
     "rowEstimatedHeight",
     "globalFilterPlaceholder",
     "emptyMessage",
@@ -672,7 +680,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
       ? "[&>th]:zen-border-r [&>th]:zen-border-zen-border [&>th:last-child]:zen-border-r-0"
       : "";
   const stickyHeaderActive = () =>
-    !!props.stickyHeader && !props.enableVirtualization;
+    !!(props.stickyHeader || props.fillHeight) && !props.enableVirtualization;
 
   const pinStyle = (column: Column<TData, unknown>): JSX.CSSProperties | undefined => {
     if (!props.enableColumnPinning) return undefined;
@@ -786,7 +794,13 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
   };
 
   return (
-    <div class={cn("zen-space-y-3", props.class)}>
+    <div
+      class={cn(
+        "zen-space-y-3",
+        props.fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
+        props.class,
+      )}
+    >
       <Toolbar
         table={table}
         enableColumnFilters={!!props.enableColumnFilters}
@@ -807,7 +821,10 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
       <ActiveFilterChips table={table} />
 
       <div
-        class="zen-rounded-zen-md zen-border zen-border-zen-border"
+        class={cn(
+          "zen-rounded-zen-md zen-border zen-border-zen-border",
+          props.fillHeight && "!zen-shrink zen-flex zen-min-h-0 zen-flex-1 zen-flex-col",
+        )}
         aria-busy={props.loading || undefined}
       >
         <Show
@@ -821,6 +838,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
                   loading={!!props.loading}
                   emptyMessage={props.emptyMessage ?? "No results."}
                   maxBodyHeight={props.maxBodyHeight ?? 480}
+                  fillHeight={!!props.fillHeight}
                   stickyHeaderActive={stickyHeaderActive()}
                   sepHeadClass={sepHeadClass()}
                   sepCellClass={sepCellClass()}
@@ -861,6 +879,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
                     loading={!!props.loading}
                     emptyMessage={props.emptyMessage ?? "No results."}
                     maxBodyHeight={props.maxBodyHeight ?? 480}
+                    fillHeight={!!props.fillHeight}
                     stickyHeaderActive={stickyHeaderActive()}
                     sepHeadClass={sepHeadClass()}
                     sepCellClass={sepCellClass()}
@@ -1373,6 +1392,7 @@ interface BodyTableProps<TData> {
   loading: boolean;
   emptyMessage: string;
   maxBodyHeight: number;
+  fillHeight: boolean;
   stickyHeaderActive: boolean;
   sepHeadClass: string;
   sepCellClass: string;
@@ -1508,7 +1528,10 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
   );
 
   return (
-    <Table containerStyle={props.stickyHeaderActive ? { "max-height": `${props.maxBodyHeight}px` } : undefined}>
+    <Table
+      containerClass={props.fillHeight ? "zen-min-h-0 zen-flex-1" : undefined}
+      containerStyle={props.stickyHeaderActive && !props.fillHeight ? { "max-height": `${props.maxBodyHeight}px` } : undefined}
+    >
       <Show
         when={props.enableColumnOrdering}
         fallback={<HeaderRows />}
