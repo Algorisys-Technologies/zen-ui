@@ -21,11 +21,11 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | — | — |
 | A3 | ContextMenu | ok | — | — |
 | A4 | DocumentTabs | ok | — | — |
-| A5 | Tile, TileGrid | ok | — | — |
-| A6 | QRCode, Barcode | ok | — | — |
+| A5 | Tile, TileGrid | ok | — | wip |
+| A6 | QRCode, Barcode | ok | — | wip |
 | A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | — | — |
 | A8 | TreeSelect | ok | — | — |
-| A9 | LookupField | wip | — | — |
+| A9 | LookupField | ok | — | — |
 | A10 | FilterBuilder | ok | — | — |
 | A11 | ViewManager | wip | — | — |
 | A12 | Sidebar collapseMode / overlay / badges / header label | wip | — | — |
@@ -97,3 +97,9 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   it cannot snapshot React yet (TODO for the vanilla/WC phase).
   Known: React DatePicker's placeholder "Pick a date" is hard-coded (unit S).
 - 2026-11-05: A13 React (gaps batch) launched.
+- 2026-11-05: A9 React merged (LookupField 30/30 unmodified oracle; a flexible
+  column's 14 cells share one edge and width). Reuses useAnchoredPlacement.
+  Enter ignored mid-IME-composition (a gap Solid also has; noted, not changed).
+- 2026-11-05: vanilla phase begins. Each vanilla agent ports, verifies, commits,
+  THEN builds the WC elements over the verified factory (binding order kept
+  within one agent). First: A5+A6.
