@@ -163,6 +163,19 @@ const NewInputDemo: React.FC = () => {
           <BioField />
         </CodeExample>
       </section>
+
+      <section className="demo-section">
+        <h2>10. Invalid</h2>
+        <CodeExample
+          title='aria-invalid="true"'
+          description="A field the form has marked invalid takes the error border, as Select and Combobox do."
+          code={`<Input aria-invalid="true" placeholder="GSTIN" />`}
+        >
+          <div className="zen-w-64" data-testid="input-invalid">
+            <Input aria-invalid="true" placeholder="GSTIN" />
+          </div>
+        </CodeExample>
+      </section>
     </div>
   );
 };

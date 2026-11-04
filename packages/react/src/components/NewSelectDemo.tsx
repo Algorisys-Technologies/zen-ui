@@ -217,6 +217,33 @@ const NewSelectDemo: React.FC = () => {
           </form>
         </CodeExample>
       </section>
+
+      <section className="demo-section">
+        <h2>7. Invalid without a message</h2>
+        <CodeExample
+          title="invalid: the form shows its own message"
+          description="invalid on the Select marks its trigger aria-invalid with the error border, for a form that lays out its messages itself."
+          code={`<Select invalid>
+  <SelectTrigger><SelectValue placeholder="Payment terms" /></SelectTrigger>
+  <SelectContent>
+    <SelectItem value="net30">Net 30</SelectItem>
+    <SelectItem value="net60">Net 60</SelectItem>
+  </SelectContent>
+</Select>`}
+        >
+          <div className="zen-w-64" data-testid="select-invalid">
+            <Select invalid>
+              <SelectTrigger aria-label="Payment terms">
+                <SelectValue placeholder="Payment terms" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="net30">Net 30</SelectItem>
+                <SelectItem value="net60">Net 60</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CodeExample>
+      </section>
     </div>
   );
 };
