@@ -58,6 +58,8 @@ export interface CellEditPayload {
 export interface EditingState {
   rowId: string;
   columnId: string;
+  /** What was typed to start the edit (cell navigation): the editor starts from it. */
+  seed?: string;
 }
 
 declare module "@tanstack/react-table" {
@@ -74,6 +76,8 @@ declare module "@tanstack/react-table" {
 
 interface EditorProps {
   initialValue: unknown;
+  /** The edit began by typing: keep the cursor after what was typed, not select it. */
+  seeded?: boolean;
   onCommit: (value: unknown) => void;
   onCancel: () => void;
 }
@@ -81,12 +85,37 @@ interface EditorProps {
 const editorWrapClass =
   "zen-flex zen-items-center zen-w-full zen-h-full zen-m-[-0.5rem] zen-p-[0.4rem] zen-bg-zen-background zen-ring-2 zen-ring-zen-ring zen-rounded-zen-sm";
 
-function TextEditor({ initialValue, onCommit, onCancel }: EditorProps) {
+/**
+ * An editor ends once: whichever of commit and cancel comes first wins, and
+ * the other is ignored. Cancelling removes the input, and removing a focused
+ * input fires its blur, which must not then save what Esc threw away.
+ */
+function useEndsOnce(onCommit: (value: unknown) => void, onCancel: () => void) {
+  const done = React.useRef(false);
+  return {
+    commit: (value: unknown) => {
+      if (done.current) return;
+      done.current = true;
+      onCommit(value);
+    },
+    cancel: () => {
+      if (done.current) return;
+      done.current = true;
+      onCancel();
+    },
+  };
+}
+
+function TextEditor({ initialValue, seeded, onCommit, onCancel }: EditorProps) {
   const [value, setValue] = React.useState(String(initialValue ?? ""));
   const ref = React.useRef<HTMLInputElement>(null);
+  const end = useEndsOnce(onCommit, onCancel);
   React.useEffect(() => {
-    ref.current?.focus();
-    ref.current?.select();
+    const input = ref.current;
+    input?.focus();
+    if (seeded) input?.setSelectionRange(input.value.length, input.value.length);
+    else input?.select();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- on mount only
   }, []);
   return (
     <div className={editorWrapClass}>
@@ -97,20 +126,20 @@ function TextEditor({ initialValue, onCommit, onCancel }: EditorProps) {
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            onCommit(value);
+            end.commit(value);
           } else if (e.key === "Escape") {
             e.preventDefault();
-            onCancel();
+            end.cancel();
           }
         }}
-        onBlur={() => onCommit(value)}
+        onBlur={() => end.commit(value)}
         className="zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1"
       />
     </div>
   );
 }
 
-function NumberEditor({ initialValue, onCommit, onCancel }: EditorProps) {
+function NumberEditor({ initialValue, seeded, onCommit, onCancel }: EditorProps) {
   const initial =
     typeof initialValue === "number"
       ? initialValue
@@ -120,32 +149,39 @@ function NumberEditor({ initialValue, onCommit, onCancel }: EditorProps) {
   const [value, setValue] = React.useState<number | null>(
     Number.isNaN(initial as number) ? null : initial,
   );
-  // NumberField doesn't expose a ref-to-input; we approximate auto-focus
-  // by mounting and letting the inner <input> take focus through the
-  // wrapper's tabIndex chain. Most browsers focus the first focusable
-  // child of a freshly-mounted control here.
+  const end = useEndsOnce(onCommit, onCancel);
+  // The editor takes focus with its value selected: without this it opened
+  // with focus nowhere and typing went to the page.
+  const ref = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    ref.current?.focus();
+    // A number input has no settable cursor; focusing leaves it after the value.
+    if (!seeded) ref.current?.select();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- on mount only
+  }, []);
   return (
     <div
       className={editorWrapClass}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          onCommit(value);
+          end.commit(value);
         } else if (e.key === "Escape") {
           e.preventDefault();
-          onCancel();
+          end.cancel();
         }
       }}
       onBlur={(e) => {
         // Only commit when focus leaves the whole wrapper, not on internal
         // focus jumps (e.g. clicking the ± steppers).
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-          onCommit(value);
+          end.commit(value);
         }
       }}
       tabIndex={-1}
     >
       <NumberField
+        ref={ref}
         value={value ?? undefined}
         onValueChange={setValue}
         className="zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1"
@@ -160,24 +196,30 @@ function SelectEditor({
   onCancel,
   options,
 }: EditorProps & { options: { label: string; value: string }[] }) {
+  const end = useEndsOnce(onCommit, onCancel);
   return (
     <div
       className={editorWrapClass}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
-          onCancel();
+          end.cancel();
         }
       }}
     >
+      {/* Controlled, so a pick reaches onValueChange at once. Uncontrolled,
+          Radix reports the new value from an effect, after the close that
+          follows the pick had already cancelled the edit and unmounted this:
+          a pick never saved. Picking calls onValueChange, then onOpenChange
+          (false); the edit ends once, so the close after a pick is ignored. */}
       <Select
-        defaultValue={String(initialValue ?? "")}
-        onValueChange={(v) => onCommit(v)}
+        value={String(initialValue ?? "")}
+        onValueChange={(v) => end.commit(v)}
         open
         onOpenChange={(open) => {
           // Closing the popover without picking = cancel back to the
           // last rendered value.
-          if (!open) onCancel();
+          if (!open) end.cancel();
         }}
       >
         <SelectTrigger className="zen-h-7 zen-text-sm">
@@ -206,6 +248,14 @@ export interface EditableCellProps<TData> {
   onCancel: () => void;
   /** The cell's rendered (non-edit) content. */
   children: React.ReactNode;
+  /**
+   * The table moves focus cell by cell (enableCellNavigation): the cell itself
+   * is the focus target and starts the edit, so the display is not a button
+   * of its own.
+   */
+  navigable?: boolean;
+  /** What was typed to start this edit. */
+  seed?: string;
 }
 
 /**
@@ -219,6 +269,8 @@ export function EditableCell<TData>({
   onCommit,
   onCancel,
   children,
+  navigable,
+  seed,
 }: EditableCellProps<TData>) {
   const meta = cell.column.columnDef.meta as
     | {
@@ -237,7 +289,22 @@ export function EditableCell<TData>({
   if (editing) {
     const variant = meta?.editVariant ?? "text";
     const value = cell.getValue();
-    const props = { initialValue: value, onCommit, onCancel };
+    // Typing a character starts the edit from it: a digit for a number,
+    // anything for text; a select just opens.
+    const initialValue =
+      seed === undefined || variant === "select"
+        ? value
+        : variant === "number"
+        ? /^[0-9]$/.test(seed)
+          ? Number(seed)
+          : null
+        : seed;
+    const props = {
+      initialValue,
+      seeded: seed !== undefined && variant !== "select",
+      onCommit,
+      onCancel,
+    };
     switch (variant) {
       case "number":
         return <NumberEditor {...props} />;
@@ -247,6 +314,17 @@ export function EditableCell<TData>({
       default:
         return <TextEditor {...props} />;
     }
+  }
+
+  if (navigable) {
+    return (
+      <div
+        onDoubleClick={onStartEdit}
+        className="zen-w-full zen-h-full zen-inline-flex zen-items-center zen-cursor-text"
+      >
+        {children}
+      </div>
+    );
   }
 
   const colHeader = cell.column.columnDef.header;

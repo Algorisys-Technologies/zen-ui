@@ -65,20 +65,29 @@ import {
   SelectValue,
 } from "../form/select/select";
 import {
-  Table,
-  TableBody,
   TableCell,
   TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "./table";
-import { FilterCell, filterFnByVariant, type FilterVariant } from "./filters";
+import { FilterCell, filterFnByVariant, textFilterFn, type FilterVariant } from "./filters";
+import { useLocale } from "../locale/locale";
+import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
+import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
+import {
+  buildExportRequest,
+  EXPORT_FILE,
+  type ExportColumn,
+  type ExportFormat,
+  type ExportRequest,
+} from "@algorisys/zen-ui-core/export-request";
 import {
   EditableCell,
   type CellEditPayload,
   type EditingState,
 } from "./edit-cell";
+import { BodyTable, RowDragContext } from "./body-table";
 
 /**
  * DataTable — headless via @tanstack/react-table, optionally virtualized
@@ -141,7 +150,27 @@ export interface DataTableProps<TData, TValue = unknown> {
   enableColumnFilters?: boolean;
   enableRowSelection?: boolean;
   enableColumnVisibility?: boolean;
+  /**
+   * The older virtualized body: a grid of divs, not the table, so it renders
+   * differently and cannot group, expand sub-rows, reorder rows or take
+   * keyboard navigation. Kept as it is for the tables already built on it;
+   * new tables want `enableRowVirtualization`.
+   */
   enableVirtualization?: boolean;
+  /**
+   * Render only the rows in view, inside the regular table: the same rows,
+   * cells and features as an unvirtualized table (grouping, sub-rows,
+   * keyboard navigation, cell navigation, editing, pinning, a sticky header,
+   * `fillHeight`), for thousands of rows. Heights are measured, so group rows
+   * and expanded sub-rows may differ from the rest. The rows scroll inside
+   * the table: give it `fillHeight` or it is capped at `maxBodyHeight`.
+   * Columns keep their widths as rows come and go (the table lays out from
+   * the header). With `enableRowOrdering`, rows are dragged by the table
+   * itself, to anywhere in it (it scrolls near its edges; Esc cancels), and
+   * expanded panels are off. Wins over `enableVirtualization` when both are
+   * set.
+   */
+  enableRowVirtualization?: boolean;
   /** Drag column headers sideways to reorder. Persists nothing — caller can lift onColumnOrderChange. */
   enableColumnOrdering?: boolean;
   onColumnOrderChange?: (order: string[]) => void;
@@ -161,6 +190,32 @@ export interface DataTableProps<TData, TValue = unknown> {
   exportFilename?: string;
   /** When true, export only selected rows (requires enableRowSelection). */
   exportOnlySelected?: boolean;
+  /**
+   * Export on the SERVER: for data too large to be in the browser (a table
+   * showing one page of a million rows). The Export menu then offers
+   * `exportFormats` and hands your server an ExportRequest: exactly what the
+   * user is looking at (visible columns in order with header, width, format and
+   * total; filters, sort, grouping; locale; all matching rows, or the selected
+   * ids, even ones on pages never loaded). Your endpoint queries the full data
+   * and renders the file. Return a Blob (downloaded as `exportFilename`), a
+   * `{ url }` (opened as a download), or nothing (you handled it). A rejected
+   * Promise is shown as the reason. Without it, Export is the client-side CSV
+   * of the loaded rows, as before.
+   */
+  onExport?: (
+    format: ExportFormat,
+    request: ExportRequest,
+  ) =>
+    | void
+    | Blob
+    | { url: string; filename?: string }
+    | Promise<void | Blob | { url: string; filename?: string }>;
+  /** The formats the server export offers, in menu order. Default xlsx, pdf, csv. */
+  exportFormats?: ExportFormat[];
+  /** Extra state for the server (a FilterBuilder tree, a saved view's id): sent as `request.context`. */
+  exportContext?: Record<string, unknown>;
+  /** A title for the exported document (a report heading). */
+  exportTitle?: string;
   /** Vertical 1-px dividers between columns (per Zen theme table spec, opt-in). */
   enableColumnSeparators?: boolean;
   /**
@@ -335,6 +390,44 @@ export interface DataTableProps<TData, TValue = unknown> {
    * so rowId is stable across re-renders.
    */
   onCellEdit?: (payload: CellEditPayload) => void;
+  /**
+   * Several cells changed at once: a paste, or Delete over a selection, with
+   * enableCellNavigation. Without it each change goes to onCellEdit.
+   */
+  onCellsEdit?: (edits: CellEditPayload[]) => void;
+
+  /**
+   * Work in the table cell by cell, as in a spreadsheet. One tab stop for the
+   * table; the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End move
+   * between cells (the arithmetic is @algorisys/zen-ui-core/row-keys'
+   * cellKeyTarget, and ← → follow the text direction). Enter or F2 edits an
+   * editable cell, typing starts editing with what was typed, Esc returns to
+   * the cell, and Enter in an editor moves down, Tab across. Shift with the
+   * arrows, Shift+click or a drag selects a range; Ctrl+A selects every cell.
+   * Copy writes the range as a spreadsheet does (tab-separated), paste fills
+   * editable cells from the active one (from Excel, Sheets or this table),
+   * and Delete clears them; see onCellsEdit. Replaces
+   * enableKeyboardNavigation's row focus when both are set. Not with
+   * enableRowOrdering or the older enableVirtualization.
+   */
+  enableCellNavigation?: boolean;
+
+  /**
+   * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
+   * Home/End and PageUp/PageDown move between rows (the key logic is
+   * @algorisys/zen-ui-core/row-keys); Enter calls `onRowActivate`; with
+   * `enableRowSelection`, Space toggles the row and Ctrl/Cmd+A every row on
+   * the page. Keys with Alt are left alone (an app's own shortcuts), and so is
+   * anything typed in a field, select or combobox inside a row.
+   *
+   * The plain body only, for now: a row-ordering table or the older
+   * `enableVirtualization` grid ignores it.
+   */
+  enableKeyboardNavigation?: boolean;
+  /** Enter on a focused row. The event carries its modifiers, so Ctrl+Enter can mean something else. */
+  onRowActivate?: (row: Row<TData>, event: React.KeyboardEvent<HTMLTableRowElement>) => void;
+  /** A row's accessible name, read as focus moves onto it. */
+  rowLabel?: (row: Row<TData>) => string;
 
   /**
    * Pin the header row to the top of a scroll viewport. In virtualized mode
@@ -350,6 +443,11 @@ export interface DataTableProps<TData, TValue = unknown> {
    * or a fixed height). Implies stickyHeader; maxBodyHeight is ignored.
    */
   fillHeight?: boolean;
+  /**
+   * Which rows a column's `meta.aggregate` totals: every row the filters let
+   * through, across pages (default), or the rows on this page.
+   */
+  totalsOver?: "filtered" | "page";
   /**
    * Freeze columns to the left or right edge while the body scrolls
    * horizontally. Pinned cells get a 1-px divider and a soft shadow on
@@ -433,8 +531,12 @@ export function DataTable<TData, TValue = unknown>({
   enablePagination = false,
   enableColumnFilters = false,
   enableRowSelection = false,
+  enableKeyboardNavigation = false,
+  onRowActivate,
+  rowLabel,
   enableColumnVisibility = false,
   enableVirtualization = false,
+  enableRowVirtualization = false,
   enableColumnSeparators = false,
   enableRowOrdering = false,
   onRowOrderChange,
@@ -457,19 +559,26 @@ export function DataTable<TData, TValue = unknown>({
   enableExport = false,
   exportFilename = "data-table",
   exportOnlySelected = false,
+  onExport,
+  exportFormats,
+  exportContext,
+  exportTitle,
   stickyHeader = false,
   fillHeight = false,
+  totalsOver,
   enableColumnPinning = false,
   columnPinning: columnPinningProp,
   initialColumnPinning,
   onColumnPinningChange,
   onCellEdit,
+  onCellsEdit,
+  enableCellNavigation = false,
   headerVariant = "plain",
 
   pageSize = 10,
   pageSizeOptions = [10, 20, 50, 100],
   maxBodyHeight = 480,
-  rowEstimatedHeight = 44,
+  rowEstimatedHeight,
   globalFilterPlaceholder = "Search…",
   emptyMessage = "No results.",
   loading = false,
@@ -537,10 +646,15 @@ export function DataTable<TData, TValue = unknown>({
    * upgrade later but for v1 we keep it simple. */
   const [editingCell, setEditingCell] = React.useState<EditingState | null>(null);
   const startEdit = React.useCallback(
-    (rowId: string, columnId: string) =>
-      setEditingCell({ rowId, columnId }),
+    (rowId: string, columnId: string, seed?: string) =>
+      setEditingCell(seed === undefined ? { rowId, columnId } : { rowId, columnId, seed }),
     [],
   );
+  const editCells = (edits: CellEditPayload[]) => {
+    if (edits.length === 0) return;
+    if (onCellsEdit) onCellsEdit(edits);
+    else for (const edit of edits) onCellEdit?.(edit);
+  };
   const commitEdit = React.useCallback(
     (rowId: string, columnId: string, value: unknown) => {
       setEditingCell(null);
@@ -562,9 +676,15 @@ export function DataTable<TData, TValue = unknown>({
    * or absolute-position-incompatible drag (enableRowOrdering) is
    * silently disabled when virt is on. Dev-mode warnings below tell
    * callers which combo was rejected. */
-  const rowOrderingActive = enableRowOrdering && !enableVirtualization;
-  const groupingActive = enableGrouping && !enableVirtualization;
-  const subRowActive = !!renderSubRow && !enableVirtualization;
+  /* Row virtualization renders the regular table and keeps all three; only
+   * the older div-grid body gates them. Its rows are dragged by BodyTable
+   * itself rather than dnd-kit, which can drop only on a mounted row. */
+  const rowVirtual = enableRowVirtualization;
+  const legacyVirtual = enableVirtualization && !rowVirtual;
+  const rowOrderingActive = enableRowOrdering && !legacyVirtual;
+  const virtualRowDrag = rowOrderingActive && rowVirtual;
+  const groupingActive = enableGrouping && !legacyVirtual;
+  const subRowActive = !!renderSubRow && !legacyVirtual;
   /* renderSubRow OR grouping — both rely on getExpandedRowModel.
    * Both are already virt-gated above. */
   const expansionEnabled = subRowActive || groupingActive;
@@ -573,7 +693,7 @@ export function DataTable<TData, TValue = unknown>({
    * with enableVirtualization. We deliberately log instead of throwing
    * so production builds don't crash on a stale prop combo. */
   React.useEffect(() => {
-    if (!enableVirtualization) return;
+    if (!legacyVirtual) return;
     /* Vite + most bundlers replace import.meta.env.DEV statically at
      * build time, so the warning block tree-shakes out of production. */
     if (!import.meta.env?.DEV) return;
@@ -597,7 +717,11 @@ export function DataTable<TData, TValue = unknown>({
           "aggregated values as scalars). Disable virtualization to use grouping.",
       );
     }
-  }, [enableVirtualization, enableRowOrdering, renderSubRow, enableGrouping]);
+  }, [legacyVirtual, enableRowOrdering, renderSubRow, enableGrouping]);
+
+  /* The table, for the column filters below, which are built before it. */
+  const tableRef = React.useRef<TanStackTable<TData> | null>(null);
+  const loc = useLocale();
 
   /* Prepend leading columns: drag-grip (if enabled) then select-checkbox
    * (if enabled). Both are opt-in. For user columns we also auto-attach
@@ -691,11 +815,18 @@ export function DataTable<TData, TValue = unknown>({
           ] as unknown as FilterFn<TData>,
         };
       }
+      /* A column with no filterFn and no filterVariant: the operator select
+       * stores `{ op, value }`, which TanStack's own "auto" filter cannot read
+       * (it compared the cell with "[object Object]" and matched nothing). */
+      if (!meta?.filterVariant && !col.filterFn) {
+        const id = col.id ?? (col as { accessorKey?: string }).accessorKey;
+        if (id) return { ...col, filterFn: operatorAwareAuto(String(id), tableRef) };
+      }
       return col;
     });
 
-    return [...leading, ...withVariantFilters];
-  }, [columns, enableRowSelection, rowOrderingActive, expansionEnabled]);
+    return [...leading, ...withTotals(withVariantFilters, loc, totalsOver)];
+  }, [columns, enableRowSelection, rowOrderingActive, expansionEnabled, loc, totalsOver]);
 
   const table = useReactTable({
     data,
@@ -818,6 +949,7 @@ export function DataTable<TData, TValue = unknown>({
     getGroupedRowModel: groupingActive ? getGroupedRowModel() : undefined,
   });
 
+  tableRef.current = table;
   const rows = table.getRowModel().rows;
 
   /* Cell-content renderer that handles the four TanStack cell modes
@@ -904,6 +1036,10 @@ export function DataTable<TData, TValue = unknown>({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
   const rowIds = React.useMemo(() => rows.map((r) => r.id), [rows]);
+  /* A virtualized drag reports positions, not a dnd-kit event. */
+  const handleRowMove = (from: number, to: number) => {
+    onRowOrderChange?.(arrayMove(rowIds, from, to));
+  };
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -952,7 +1088,8 @@ export function DataTable<TData, TValue = unknown>({
 
   /* Sticky header is meaningful only outside virtualized mode (the
    * virtualized body already pins its header). */
-  const stickyHeaderActive = (stickyHeader || fillHeight) && !enableVirtualization;
+  /* Row virtualization scrolls the rows inside the table, so its header sticks. */
+  const stickyHeaderActive = (stickyHeader || fillHeight || rowVirtual) && !legacyVirtual;
 
   /* Effective column IDs in display order, for the horizontal SortableContext */
   const visibleColumnIds = React.useMemo(
@@ -1021,9 +1158,15 @@ export function DataTable<TData, TValue = unknown>({
 
   /* Any column declaring a footer opts the whole table into a <tfoot>. */
   const hasFooter = React.useMemo(
-    () => columns.some((c) => (c as { footer?: unknown }).footer !== undefined),
-    [columns],
+    () => augmentedColumns.some((c) => (c as { footer?: unknown }).footer !== undefined),
+    [augmentedColumns],
   );
+  /* Totals (a column's meta.aggregate): right-aligned figures, kept in view at
+   * the bottom while the rows scroll under them. A footer without totals
+   * renders exactly as it always has. */
+  const totalOf = (column: { columnDef: { meta?: unknown } }) =>
+    !!(column.columnDef.meta as { aggregate?: unknown } | undefined)?.aggregate;
+  const hasTotals = table.getAllLeafColumns().some(totalOf);
 
   const headerRows = (
     <TableHeader className={headerVariantThClass}>
@@ -1086,168 +1229,78 @@ export function DataTable<TData, TValue = unknown>({
     ? { maxHeight: maxBodyHeight }
     : undefined;
 
+  const footer = hasFooter ? (
+    <TableFooter data-totals={hasTotals ? "" : undefined}>
+      {table.getFooterGroups().map((fg) => (
+        <TableRow key={fg.id}>
+          {fg.headers.map((header) => (
+            <TableCell
+              key={header.id}
+              colSpan={header.colSpan}
+              className={
+                hasTotals
+                  ? cn(
+                      totalOf(header.column) && "zen-text-end zen-tabular-nums",
+                      stickyHeaderActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
+                    )
+                  : undefined
+              }
+            >
+              {header.isPlaceholder
+                ? null
+                : flexRender(header.column.columnDef.footer, header.getContext())}
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </TableFooter>
+  ) : null;
+
+  /* Rows sorted by dnd-kit: unvirtualized row ordering. */
+  const sortableRows = rowOrderingActive && !virtualRowDrag;
   const tableBody = (
-    <Table
+    <BodyTable
+      table={table}
+      header={
+        enableColumnOrdering ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleColumnDragEnd}>
+            <SortableContext items={visibleColumnIds} strategy={horizontalListSortingStrategy}>
+              {headerRows}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          headerRows
+        )
+      }
+      footer={footer}
+      loading={loading}
+      emptyMessage={emptyMessage}
+      colSpan={augmentedColumns.length}
       containerClassName={fillHeight ? "zen-min-h-0 zen-flex-1" : undefined}
       containerStyle={tableContainerStyle}
-    >
-      {enableColumnOrdering ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleColumnDragEnd}
-        >
-          <SortableContext
-            items={visibleColumnIds}
-            strategy={horizontalListSortingStrategy}
-          >
-            {headerRows}
-          </SortableContext>
-        </DndContext>
-      ) : (
-        headerRows
-      )}
-      <TableBody>
-        {loading ? (
-          <TableRow>
-            <TableCell
-              colSpan={augmentedColumns.length}
-              className="zen-text-center zen-text-zen-muted-fg zen-py-6"
-            >
-              Loading…
-            </TableCell>
-          </TableRow>
-        ) : rows.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={augmentedColumns.length}
-              className="zen-text-center zen-text-zen-muted-fg zen-py-6"
-            >
-              {emptyMessage}
-            </TableCell>
-          </TableRow>
-        ) : (
-          rows.map((row) =>
-            rowOrderingActive ? (
-              <SortableRow
-                key={row.id}
-                id={row.id}
-                selected={row.getIsSelected()}
-                cellClassName={sepCellClass}
-                className={rowClassName?.(row)}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const pin = pinStyle(cell.column);
-                  const isEditing =
-                    editingCell?.rowId === row.id &&
-                    editingCell?.columnId === cell.column.id;
-                  return (
-                    <TableCell
-                      key={cell.id}
-                      className={sepCellClass}
-                      style={pin}
-                    >
-                      <EditableCell
-                        cell={cell}
-                        editing={isEditing}
-                        onStartEdit={() => startEdit(row.id, cell.column.id)}
-                        onCommit={(v) => commitEdit(row.id, cell.column.id, v)}
-                        onCancel={cancelEdit}
-                      >
-                        {renderCell(cell)}
-                      </EditableCell>
-                    </TableCell>
-                  );
-                })}
-              </SortableRow>
-            ) : (
-              <React.Fragment key={row.id}>
-                <TableRow
-                  data-state={row.getIsSelected() ? "selected" : undefined}
-                  data-grouped={row.getIsGrouped() ? "true" : undefined}
-                  className={cn(
-                    row.getIsGrouped() && "zen-bg-zen-muted/40 zen-font-medium",
-                    rowClassName?.(row),
-                  )}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const pin = pinStyle(cell.column);
-                    const isEditing =
-                      editingCell?.rowId === row.id &&
-                      editingCell?.columnId === cell.column.id;
-                    /* Disable inline-edit for group-header and
-                     * aggregated cells — the rendered value isn't a
-                     * single row's field. */
-                    const isInteractive =
-                      !cell.getIsGrouped() &&
-                      !cell.getIsAggregated() &&
-                      !cell.getIsPlaceholder();
-                    const content = renderCell(cell);
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        className={sepCellClass}
-                        style={pin}
-                      >
-                        {isInteractive ? (
-                          <EditableCell
-                            cell={cell}
-                            editing={isEditing}
-                            onStartEdit={() => startEdit(row.id, cell.column.id)}
-                            onCommit={(v) => commitEdit(row.id, cell.column.id, v)}
-                            onCancel={cancelEdit}
-                          >
-                            {content}
-                          </EditableCell>
-                        ) : (
-                          content
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-                {/* Expanded sub-row: a single full-width <td> spanning every
-                 * visible column. Renders only when the toggle is open. */}
-                {expansionEnabled && row.getIsExpanded() && renderSubRow ? (
-                  <TableRow data-expanded-of={row.id}>
-                    <TableCell
-                      colSpan={row.getVisibleCells().length}
-                      className="zen-p-0 zen-bg-zen-muted/30"
-                    >
-                      {renderSubRow(row)}
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-              </React.Fragment>
-            ),
-          )
-        )}
-      </TableBody>
-      {/* A footer row, but only when a column actually declares one.
-       *
-       * TanStack has carried `footer` on every ColumnDef since v8 and this
-       * rendered none of them, so a column total had nowhere to go — the one
-       * thing a financial table always needs. Rendered only when at least one
-       * column defines it, so every existing table keeps its exact markup. */}
-      {hasFooter ? (
-        <TableFooter>
-          {table.getFooterGroups().map((fg) => (
-            <TableRow key={fg.id}>
-              {fg.headers.map((header) => (
-                <TableCell key={header.id} colSpan={header.colSpan}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.footer,
-                        header.getContext(),
-                      )}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableFooter>
-      ) : null}
-    </Table>
+      sepCellClass={sepCellClass}
+      pinStyle={pinStyle}
+      editingCell={editingCell}
+      startEdit={startEdit}
+      commitEdit={commitEdit}
+      cancelEdit={cancelEdit}
+      rowClassName={rowClassName}
+      renderCell={renderCell}
+      expansionEnabled={rowOrderingActive ? false : expansionEnabled}
+      renderSubRow={rowOrderingActive ? undefined : renderSubRow}
+      rowOrderingActive={rowOrderingActive && !virtualRowDrag}
+      keyboard={!sortableRows && enableKeyboardNavigation && !enableCellNavigation}
+      cellNav={!sortableRows && enableCellNavigation}
+      virtualize={rowVirtual}
+      estimatedRowHeight={rowEstimatedHeight}
+      headerRowCount={table.getHeaderGroups().length * (enablePerColumnFilters ? 2 : 1)}
+      rowDrag={virtualRowDrag}
+      onRowMove={handleRowMove}
+      editCells={editCells}
+      selectable={enableRowSelection}
+      onRowActivate={onRowActivate}
+      rowLabel={rowLabel}
+    />
   );
 
   return (
@@ -1264,9 +1317,20 @@ export function DataTable<TData, TValue = unknown>({
         enableColumnVisibility={enableColumnVisibility}
         enableColumnPinning={enableColumnPinning}
         enableGrouping={groupingActive}
-        enableExport={enableExport}
+        enableExport={enableExport || !!onExport}
         exportFilename={exportFilename}
         exportOnlySelected={exportOnlySelected}
+        serverExport={
+          onExport
+            ? {
+                onExport,
+                formats: exportFormats ?? ["xlsx", "pdf", "csv"],
+                context: exportContext,
+                title: exportTitle,
+                search: globalFilter,
+              }
+            : undefined
+        }
         globalFilter={globalFilter}
         globalFilterPlaceholder={globalFilterPlaceholder}
         onGlobalFilterChange={(v) => {
@@ -1286,11 +1350,11 @@ export function DataTable<TData, TValue = unknown>({
         )}
         aria-busy={loading || undefined}
       >
-        {enableVirtualization ? (
+        {legacyVirtual ? (
           <VirtualizedBody
             table={table}
             maxHeight={maxBodyHeight}
-            estimatedRowHeight={rowEstimatedHeight}
+            estimatedRowHeight={rowEstimatedHeight ?? 44}
             emptyMessage={emptyMessage}
             loading={loading}
             enableColumnPinning={enableColumnPinning}
@@ -1307,7 +1371,7 @@ export function DataTable<TData, TValue = unknown>({
             rowClassName={rowClassName}
             headerVariant={headerVariant}
           />
-        ) : rowOrderingActive ? (
+        ) : sortableRows ? (
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -1334,6 +1398,115 @@ export function DataTable<TData, TValue = unknown>({
   );
 }
 
+/**
+ * Columns that declare `meta.aggregate` get their total filled in: a footer
+ * (and a "Total" label in the first visible column without one) and each
+ * group's subtotal. Only what the column has not set itself: a hand-written
+ * footer, aggregationFn or aggregatedCell is kept, so existing tables are
+ * unchanged.
+ */
+function withTotals<TData, TValue>(
+  cols: ColumnDef<TData, TValue>[],
+  loc: ReturnType<typeof useLocale>,
+  totalsOver: "filtered" | "page" | undefined,
+): ColumnDef<TData, TValue>[] {
+  type TotalMeta = {
+    aggregate?: AggregateKind | ((values: unknown[], rows: unknown[]) => unknown);
+    formatTotal?: (v: unknown) => React.ReactNode;
+  };
+  const metaOf = (c: ColumnDef<TData, TValue>) => c.meta as TotalMeta | undefined;
+  if (!cols.some((c) => metaOf(c)?.aggregate)) return cols;
+  const idOf = (c: ColumnDef<TData, TValue>) =>
+    c.id ?? (c as { accessorKey?: string }).accessorKey ?? "";
+  const compute = (meta: TotalMeta, values: unknown[], rows: unknown[]) =>
+    typeof meta.aggregate === "function"
+      ? meta.aggregate(values, rows)
+      : aggregateValues(values, meta.aggregate!);
+  const show = (meta: TotalMeta, value: unknown, values: unknown[]): React.ReactNode => {
+    if (meta.formatTotal) return meta.formatTotal(value);
+    if (value === null || value === undefined) return "";
+    const kind = typeof meta.aggregate === "string" ? meta.aggregate : "sum";
+    if (typeof value === "number")
+      return formatNumber(value, { locale: loc.locale, precision: totalPrecision(values, kind) });
+    if (value instanceof Date) return value.toLocaleDateString(validLocale(loc.locale));
+    return String(value);
+  };
+  // "Total" goes in the first VISIBLE column that has no total and no footer
+  // of its own, decided at render time: grouping, reordering and hiding move
+  // columns around.
+  const labelIds = new Set(
+    cols.filter((c) => !metaOf(c)?.aggregate && c.footer === undefined).map(idOf),
+  );
+  return cols.map((col) => {
+    const meta = metaOf(col);
+    if (!meta?.aggregate) {
+      if (!labelIds.has(idOf(col))) return col;
+      return {
+        ...col,
+        footer: (ctx) =>
+          ctx.table.getVisibleLeafColumns().find((c) => labelIds.has(c.id))?.id === ctx.column.id
+            ? loc.t("dataTable.total")
+            : "",
+      };
+    }
+    const id = idOf(col);
+    const next: ColumnDef<TData, TValue> = { ...col };
+    if (col.footer === undefined) {
+      next.footer = (ctx) => {
+        // The filtered rows (every page), or this page's own rows: leaf rows
+        // only, so a group's header row (which carries its subtotal) is not
+        // added again.
+        const rows =
+          totalsOver === "page"
+            ? ctx.table.getRowModel().rows.filter((r) => !r.getIsGrouped())
+            : ctx.table.getFilteredRowModel().rows;
+        const values = rows.map((r) => r.getValue(id));
+        return show(meta, compute(meta, values, rows), values);
+      };
+    }
+    if (!col.aggregationFn) {
+      next.aggregationFn = (columnId, leafRows) =>
+        compute(meta, leafRows.map((r) => r.getValue(columnId)), leafRows);
+    }
+    if (!col.aggregatedCell) {
+      next.aggregatedCell = (info) =>
+        show(meta, info.getValue(), info.row.getLeafRows().map((r) => r.getValue(info.column.id)));
+    }
+    return next;
+  });
+}
+
+/**
+ * The filter for a column with no filterFn and no filterVariant. An
+ * `{ op, value }` (the operator select's) goes to the text filter that
+ * understands it; ANYTHING ELSE, and the filter's autoRemove and
+ * resolveFilterValue, go to exactly the filter TanStack would have picked for
+ * the column itself, so a bare string, a number range or a boolean behaves as
+ * it always did. One per column: the auto filter, and resolveFilterValue
+ * (which is given no column), are per column.
+ */
+function operatorAwareAuto<TData>(
+  columnId: string,
+  tableRef: React.RefObject<TanStackTable<TData> | null>,
+): FilterFn<TData> {
+  const auto = () =>
+    tableRef.current?.getColumn(columnId)?.getAutoFilterFn() as FilterFn<TData> | undefined;
+  const isOp = (v: unknown): v is { op: string; value: unknown } =>
+    !!v && typeof v === "object" && "op" in v;
+  const fn: FilterFn<TData> = (row, id, value, addMeta) => {
+    if (isOp(value)) return (textFilterFn as unknown as FilterFn<TData>)(row, id, value, addMeta);
+    const a = auto();
+    return a ? a(row, id, value, addMeta) : true;
+  };
+  fn.autoRemove = (value, column) =>
+    isOp(value)
+      ? String(value.value ?? "").trim() === ""
+      : (auto()?.autoRemove?.(value, column) ?? false);
+  fn.resolveFilterValue = (value) =>
+    isOp(value) ? value : (auto()?.resolveFilterValue?.(value) ?? value);
+  return fn;
+}
+
 /* ----------------------------- Toolbar ------------------------------- */
 function Toolbar<TData>({
   table,
@@ -1344,6 +1517,7 @@ function Toolbar<TData>({
   enableExport,
   exportFilename,
   exportOnlySelected,
+  serverExport,
   globalFilter,
   globalFilterPlaceholder,
   onGlobalFilterChange,
@@ -1356,6 +1530,7 @@ function Toolbar<TData>({
   enableExport: boolean;
   exportFilename: string;
   exportOnlySelected: boolean;
+  serverExport?: ServerExportConfig;
   globalFilter: string;
   globalFilterPlaceholder: string;
   onGlobalFilterChange: (v: string) => void;
@@ -1378,7 +1553,9 @@ function Toolbar<TData>({
         />
       )}
       <div className="zen-ml-auto zen-flex zen-items-center zen-gap-2">
-        {enableExport && (
+        {enableExport && serverExport ? (
+          <ServerExportMenu table={table} filename={exportFilename} config={serverExport} />
+        ) : enableExport && (
           <ExportMenu
             table={table}
             filename={exportFilename}
@@ -1759,6 +1936,157 @@ function ExportMenu<TData>({
   );
 }
 
+/* ---------------------------- Server export menu --------------------- */
+interface ServerExportConfig {
+  onExport: NonNullable<DataTableProps<unknown>["onExport"]>;
+  formats: ExportFormat[];
+  context: Record<string, unknown> | undefined;
+  title: string | undefined;
+  search: string;
+}
+
+/**
+ * Export on the server: describe what is on screen (ExportRequest), hand it to
+ * the app, and deal with what comes back. The rows themselves never leave the
+ * server: only the description does, so the file can be any size. The request
+ * is built exactly as the Solid binding builds it, so a server is written once.
+ */
+function ServerExportMenu<TData>({
+  table,
+  filename,
+  config,
+}: {
+  table: TanStackTable<TData>;
+  filename: string;
+  config: ServerExportConfig;
+}) {
+  const loc = useLocale();
+  const [busy, setBusy] = React.useState<ExportFormat | null>(null);
+  const [error, setError] = React.useState("");
+  const [status, setStatus] = React.useState("");
+  const [onlySelected, setOnlySelected] = React.useState(false);
+  // Selection is kept by id, so rows selected on pages never loaded count too.
+  const rowSelection = table.getState().rowSelection ?? {};
+  const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+
+  const columns = (): ExportColumn[] =>
+    table
+      .getVisibleLeafColumns()
+      // Data columns only: DataTable's own (__select__, __expand__, __drag__)
+      // are "__"-prefixed, the same rule the client-side export uses.
+      .filter((c) => !c.id.startsWith("__"))
+      .map((c) => {
+        const meta = (c.columnDef.meta ?? {}) as {
+          aggregate?: unknown;
+          exportFormat?: ExportColumn["format"];
+          filterVariant?: string;
+        };
+        const format: ExportColumn["format"] =
+          meta.exportFormat ??
+          (meta.aggregate || meta.filterVariant === "number" || meta.filterVariant === "numberRange"
+            ? { kind: "number" }
+            : { kind: "text" });
+        const numeric =
+          format.kind !== "text" && format.kind !== "date" && format.kind !== "datetime" && format.kind !== "boolean";
+        return {
+          id: c.id,
+          header: headerLabel(c),
+          width: Math.round(c.getSize()),
+          align: numeric ? "end" : "start",
+          format,
+          ...(meta.aggregate
+            ? { total: typeof meta.aggregate === "string" ? (meta.aggregate as ExportColumn["total"]) : "custom" }
+            : {}),
+        };
+      });
+
+  const busyRef = React.useRef(false);
+  const run = async (format: ExportFormat) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setError("");
+    setStatus(loc.t("dataTable.exportPreparing"));
+    setBusy(format);
+    const state = table.getState();
+    const request = buildExportRequest({
+      format,
+      filename,
+      title: config.title,
+      locale: loc.locale ?? (typeof navigator !== "undefined" ? navigator.language : undefined),
+      selectedIds: onlySelected ? selectedIds : null,
+      columns: columns(),
+      sort: state.sorting,
+      search: config.search,
+      columnFilters: state.columnFilters,
+      grouping: state.grouping,
+      context: config.context,
+    });
+    try {
+      const result = await config.onExport(format, request);
+      const name = `${filename}.${EXPORT_FILE[format].extension}`;
+      if (result instanceof Blob) downloadBlob(result, name);
+      else if (result && typeof result === "object" && "url" in result) {
+        const a = document.createElement("a");
+        a.href = result.url;
+        a.download = result.filename ?? name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      setStatus(loc.t("dataTable.exportReady"));
+    } catch (e) {
+      setError(loc.t("dataTable.exportFailed", { error: String((e as Error)?.message ?? e) }));
+      setStatus("");
+    } finally {
+      busyRef.current = false;
+      setBusy(null);
+    }
+  };
+
+  const label = (f: ExportFormat) =>
+    loc.t(f === "xlsx" ? "dataTable.exportExcel" : f === "pdf" ? "dataTable.exportPdf" : "dataTable.exportCsv");
+  return (
+    <div className="zen-flex zen-items-center zen-gap-2">
+      {error ? (
+        <span role="alert" className="zen-text-sm zen-text-zen-error" data-export-error="">
+          {error}
+        </span>
+      ) : null}
+      <span className="zen-sr-only" role="status">
+        {status}
+      </span>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={!!busy}>
+          <Button variant="outline" color="neutral" size="sm" loading={!!busy}>
+            {busy ? loc.t("dataTable.exportPreparing") : loc.t("dataTable.export")}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="zen-min-w-52">
+          <DropdownMenuLabel>{loc.t("dataTable.exportTo")}</DropdownMenuLabel>
+          {config.formats.map((f) => (
+            <DropdownMenuItem key={f} onSelect={() => void run(f)}>
+              {label(f)}
+            </DropdownMenuItem>
+          ))}
+          {selectedIds.length > 0 ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                checked={onlySelected}
+                onCheckedChange={(v) => setOnlySelected(v === true)}
+                // A scope, not an action: the menu stays open to pick the format.
+                onSelect={(e) => e.preventDefault()}
+              >
+                {loc.t("dataTable.exportOnlySelected", { count: selectedIds.length })}
+              </DropdownMenuCheckboxItem>
+            </>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
 const headerLabel = (col: { id: string; columnDef: { header?: unknown } }) =>
   typeof col.columnDef.header === "string" ? col.columnDef.header : col.id;
 
@@ -1828,7 +2156,41 @@ function savePersistedState(
 }
 
 /* ----------------------------- Drag handle + sortable row ------------ */
+const dragHandleClass = cn(
+  "zen-cursor-grab active:zen-cursor-grabbing zen-inline-flex zen-items-center zen-justify-center",
+  "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0",
+  "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+  "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+);
+const GripIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <circle cx="9" cy="6" r="1.6" />
+    <circle cx="15" cy="6" r="1.6" />
+    <circle cx="9" cy="12" r="1.6" />
+    <circle cx="15" cy="12" r="1.6" />
+    <circle cx="9" cy="18" r="1.6" />
+    <circle cx="15" cy="18" r="1.6" />
+  </svg>
+);
+
+/* A virtualized body drags its rows itself (RowDragContext); otherwise the
+ * handle is dnd-kit's. */
 function DragHandle({ id }: { id: string }) {
+  const drag = React.useContext(RowDragContext);
+  if (!drag?.active) return <SortableDragHandle id={id} />;
+  return (
+    <button
+      type="button"
+      aria-label="Drag to reorder row"
+      className={cn(dragHandleClass, "zen-touch-none")}
+      onPointerDown={(e) => drag.start(id, e)}
+    >
+      <GripIcon />
+    </button>
+  );
+}
+
+function SortableDragHandle({ id }: { id: string }) {
   const { attributes, listeners, setActivatorNodeRef } = useSortable({ id });
   return (
     <button
@@ -1837,59 +2199,10 @@ function DragHandle({ id }: { id: string }) {
       {...attributes}
       {...listeners}
       aria-label="Drag to reorder row"
-      className={cn(
-        "zen-cursor-grab active:zen-cursor-grabbing zen-inline-flex zen-items-center zen-justify-center",
-        "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0",
-        "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
-        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-      )}
+      className={dragHandleClass}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <circle cx="9" cy="6" r="1.6" />
-        <circle cx="15" cy="6" r="1.6" />
-        <circle cx="9" cy="12" r="1.6" />
-        <circle cx="15" cy="12" r="1.6" />
-        <circle cx="9" cy="18" r="1.6" />
-        <circle cx="15" cy="18" r="1.6" />
-      </svg>
+      <GripIcon />
     </button>
-  );
-}
-
-function SortableRow({
-  id,
-  selected,
-  className,
-  children,
-}: {
-  id: string;
-  selected: boolean;
-  cellClassName: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  const {
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  return (
-    <TableRow
-      ref={setNodeRef}
-      data-state={selected ? "selected" : undefined}
-      className={className}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.6 : 1,
-        position: isDragging ? "relative" : undefined,
-        zIndex: isDragging ? 1 : undefined,
-      }}
-    >
-      {children}
-    </TableRow>
   );
 }
 
@@ -2045,13 +2358,19 @@ function HeaderCell<TData, TValue>({
   /** Variant-aware bg for sticky header cells (page bg or primary-soft). */
   stickyBg?: string;
 }) {
+  const loc = useLocale();
   if (header.isPlaceholder) return <TableHead />;
   const canSort = header.column.getCanSort();
   const sorted = header.column.getIsSorted();
   const sortLabel =
     sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none";
+  /* A priority means something only when two or more columns are sorted: a
+   * lone "1" next to the only sorted column read as stray text. */
   const sortIndex =
-    header.column.getSortIndex() >= 0 ? header.column.getSortIndex() + 1 : null;
+    header.getContext().table.getState().sorting.length > 1 &&
+    header.column.getSortIndex() >= 0
+      ? header.column.getSortIndex() + 1
+      : null;
   const isResizing = header.column.getIsResizing();
 
   /* Wrapped in <SortableHeader> when column-reorder is on so the cell
@@ -2079,8 +2398,8 @@ function HeaderCell<TData, TValue>({
           {sortIndex !== null ? (
             <span
               aria-hidden
-              className="zen-text-[1rem] zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5"
-              title={`Sort priority ${sortIndex}`}
+              className="zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5"
+              title={loc.t("dataTable.sortPriority", { n: sortIndex })}
             >
               {sortIndex}
             </span>
