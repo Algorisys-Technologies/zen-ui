@@ -16,6 +16,23 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **ViewManager** (Solid; new): saved views beside the page title ("My
+  overdue invoices, this quarter, these columns"). Pick, Save, Save as (a free
+  name offered; blank and duplicate names refused as a person reads them, case
+  and spacing ignored), open the screen with a view by default, Manage (rename,
+  delete in two presses, choose the default), and Copy link. The state is one
+  object of the app's choosing (a FilterBuilder value, sort, columns); the
+  picker never looks inside it, and marks the view Modified the moment the
+  screen drifts from it (key order is not a change). Storage is the app's:
+  every change is a callback, which may return a Promise; a dialog waits and
+  shows the error rather than closing on a save that failed. Views marked
+  readOnly (shared by a colleague) can be used and copied, not saved over.
+  The pure half is core's new `@algorisys/zen-ui-core/views`: `encodeView` /
+  `decodeView` for links (UTF-8, URL-safe; anything else decodes to null,
+  never throws), name rules, one default at most. Checked by
+  `bun run check:views` (1438 assertions).
+- **DropdownMenuRadioItem takes `closeOnSelect`** (Solid). Default unchanged
+  (stays open: a setting to flip and look at); a picker passes it.
 - **FilterBuilder** (Solid; new): nested AND/OR conditions on any field, edited
   as a tree and held as one plain object, for advanced list filters, report
   criteria and saved views. A field's type picks its operators and editor

@@ -97,6 +97,19 @@ issue / PR when its turn comes.
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
 
+## Parity: ViewManager (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `views` (shared already). Kobalte
+      behaviours it had to work round, all found by driving it: radio items in
+      a menu stay open by default (closeOnSelect for a picker); a dialog opened
+      through `open` gets no onOpenChange (reset state in an effect on open);
+      replacing the focused button inside a dialog lets the focus trap move
+      focus, so a two-step delete is ONE button that changes in place. Check
+      each against Radix. Demo /view-manager (localStorage; a ?view= link).
+      ERPNext review B3.
+- [ ] Put it in FilterBar's `variant` slot in a List Report demo, with a
+      DataTable's sort/columns state, once the parity pass reaches FilterBar.
+
 ## Parity: FilterBuilder (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass, on core's `filter` (shared already). Three

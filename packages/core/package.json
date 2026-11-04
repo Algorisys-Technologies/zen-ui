@@ -38,6 +38,7 @@
     "./lookup": "./src/lookup.ts",
     "./barcode": "./src/barcode.ts",
     "./filter": "./src/filter.ts",
+    "./views": "./src/views.ts",
     "./countdown": "./src/countdown.ts",
     "./chunk-upload": "./src/chunk-upload.ts",
     "./spreadsheet": "./src/spreadsheet.ts",

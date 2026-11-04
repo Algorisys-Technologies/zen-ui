@@ -315,6 +315,8 @@ export type DropdownMenuRadioItemProps = Omit<
   value: string;
   onSelect?: () => void;
   disabled?: boolean;
+  /** Close the menu when chosen. Default false: a radio group in a menu is usually a setting to flip and look at. A picker wants true. */
+  closeOnSelect?: boolean;
 };
 
 export const DropdownMenuRadioItem = (props: DropdownMenuRadioItemProps) => {
