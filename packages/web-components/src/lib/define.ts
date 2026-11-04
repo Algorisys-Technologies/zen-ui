@@ -1,4 +1,4 @@
-import type { Child, ZenComponent } from "@algorisys/zen-ui-vanilla";
+import { localeOf, withLocale, type Child, type ZenComponent } from "@algorisys/zen-ui-vanilla";
 import { camel, coerce, kebab, type AttrType } from "./coerce";
 import { captureChildren } from "./children";
 
@@ -54,6 +54,13 @@ const RESERVED_MEMBERS = new Set(["style"]);
 
 /** Every custom-element tag registered, in registration order. */
 export const registeredTags: string[] = [];
+
+/**
+ * Every zen element answers this: build your component again. A
+ * <zen-locale-provider> calls it on the elements inside it when its words
+ * change, because a factory reads its words once, when it is built.
+ */
+export const REBUILD = Symbol("zen-ui rebuild");
 
 /**
  * Copy a handle's extra members (Dialog's open/close/isOpen, Input's focus/…)
@@ -161,6 +168,14 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
       this.tryCreate();
     }
 
+    /** See REBUILD. Inner zen elements rebuild themselves: they are re-connected. */
+    [REBUILD](): void {
+      if (!this._comp) return;
+      this._comp.destroy();
+      this._comp = undefined;
+      this.tryCreate();
+    }
+
     disconnectedCallback(): void {
       this._connected = false;
       this._comp?.destroy();
@@ -185,7 +200,10 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
       if (this._comp) return;
       let comp: ZenComponent<P, Element>;
       try {
-        comp = def.factory(this.buildProps());
+        /* Built inside the words of the <zen-locale-provider> (or vanilla
+           LocaleProvider) around the element, if any: a factory reads them with
+           useLocale() while it is being called, and this is that moment. */
+        comp = withLocale(localeOf(this), () => def.factory(this.buildProps()));
       } catch {
         return;
       }

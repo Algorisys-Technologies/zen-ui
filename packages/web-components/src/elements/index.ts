@@ -10,6 +10,8 @@
  */
 import { registeredTags } from "../lib/define";
 
+// First, so a provider is defined before the elements inside it upgrade and find it.
+import "./locale-provider";
 import "./accordion";
 import "./collapsible";
 import "./paper";
