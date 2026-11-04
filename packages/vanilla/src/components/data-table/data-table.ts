@@ -1260,7 +1260,7 @@ export function DataTable<TData>(
     if (!cellNavActive()) {
       wrap.tabIndex = 0;
       wrap.setAttribute("role", "button");
-      wrap.setAttribute("aria-label", `Edit ${headerText(col)}`);
+      wrap.setAttribute("aria-label", loc.t("dataTable.editCell", { column: headerText(col) }));
       wrap.addEventListener("dblclick", () => startEdit(rowId, columnId));
       wrap.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
