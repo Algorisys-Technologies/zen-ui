@@ -18,6 +18,7 @@ SKILL.md.
 - `secondaryTitle?: string | undefined`
 - `menuItems?: ShellBarMenuItem[] | undefined` — Turns the title into a product-switcher dropdown.
 - `searchable?: boolean | undefined`
+- `search?: React.ReactNode | ((bar: { readonly compact: boolean; }) => React.ReactNode)` — Your own search control in the bar, in place of the built-in field: a command palette's trigger, say. Laid out by the bar like its own search. Pass a function to change with the space: `compact` is true where the built-in field would have shrunk to an icon, so the control can too. Replaces `searchable`'s field when both are given. search={(bar) => <PaletteButton iconOnly={bar.compact} />}
 - `onSearch?: ((value: string) => void) | undefined`
 - `searchPlaceholder?: string | undefined` — Placeholder AND the search field's visually-hidden label.
 - `notificationCount?: number | undefined`

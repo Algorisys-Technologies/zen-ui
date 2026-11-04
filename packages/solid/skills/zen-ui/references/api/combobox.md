@@ -27,6 +27,9 @@ SKILL.md.
 - `createLabel?: string | undefined` — Verb on the create row — `Create "foo"`. Default "Create".
 - `width?: string | number | undefined` — Trigger button's width. Defaults to 240.
 - `disabled?: boolean | undefined`
+- `invalid?: boolean | undefined` — The value is not acceptable (a required field left empty, say): the field is marked aria-invalid and its border takes the error colour, as Select's does.
+- `id?: string | undefined` — Lands on the trigger (the control that takes focus), so `<label for>` names it.
+- `aria-label?: string | undefined` — Names the field for assistive tech when no visible label does.
 - `className?: string | undefined`
 
 ### ComboboxOption (type)
