@@ -143,6 +143,7 @@ description, then import the name from your binding's package.
 - **Waveform** — Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align
 - **Lazy options** — VirtualizedItems — drop-in windowing for huge option lists inside Combobox / Select
 - **Combobox + Async** — cmdk-backed; sync `options` or async `onSearch` with debounced loading
+- **TreeSelect** — Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors
 - **Alert** — Inline semantic callout; compound Icon / Title / Description / Actions API
 - **Dialog + AlertDialog** — Radix Dialog modal surface, plus AlertDialog for destructive confirmations
 - **Shortcuts** — Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform

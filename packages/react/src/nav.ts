@@ -114,6 +114,7 @@ export const NAV: NavGroup[] = [
       { to: "/waveform", label: "Waveform", description: "Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align", source: "packages/react/src/components/NewWaveformDemo.tsx" },
       { to: "/lazy-options", label: "Lazy options", description: "VirtualizedItems \u2014 drop-in windowing for huge option lists inside Combobox / Select", source: "packages/react/src/components/NewLazyOptionsDemo.tsx" },
       { to: "/combobox", label: "Combobox + Async", description: "cmdk-backed; sync `options` or async `onSearch` with debounced loading", source: "packages/react/src/components/NewComboboxDemo.tsx" },
+      { to: "/tree-select", label: "TreeSelect", description: "Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors", source: "packages/react/src/components/NewTreeSelectDemo.tsx" },
       { to: "/alert", label: "Alert", description: "Inline semantic callout; compound Icon / Title / Description / Actions API", source: "packages/react/src/components/NewAlertDemo.tsx" },
       { to: "/dialog", label: "Dialog + AlertDialog", description: "Radix Dialog modal surface, plus AlertDialog for destructive confirmations", source: "packages/react/src/components/NewDialogDemo.tsx" },
       { to: "/shortcuts", label: "Shortcuts", description: "Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform", source: "packages/react/src/components/NewShortcutsDemo.tsx" },

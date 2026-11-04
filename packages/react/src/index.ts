@@ -1052,6 +1052,9 @@ export type {
   ComboboxOption,
   ComboboxProps,
 } from "./components/combobox/combobox";
+// TreeSelect (pick one node from a hierarchy; tree logic in core)
+export { TreeSelect } from "./components/tree-select/tree-select";
+export type { TreeSelectProps, TreeSelectNode } from "./components/tree-select/tree-select";
 export { MultiCombobox } from "./components/combobox/multi-combobox";
 export type { MultiComboboxProps } from "./components/combobox/multi-combobox";
 export {
