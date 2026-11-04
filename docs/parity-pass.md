@@ -17,20 +17,20 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | unit | what | React | vanilla | WC |
 |---|---|---|---|---|
 | L | LocaleProvider / useLocale | ok (e94479a) | ok | ok (re-export; `<zen-locale-provider>` with unit S) |
-| A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | — | — | — |
-| A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | — | — | — |
-| A3 | ContextMenu | — | — | — |
-| A4 | DocumentTabs | — | — | — |
-| A5 | Tile, TileGrid | — | — | — |
-| A6 | QRCode, Barcode | — | — | — |
-| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | — | — | — |
-| A8 | TreeSelect | — | — | — |
+| A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | ok | — | — |
+| A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | — | — |
+| A3 | ContextMenu | wip | — | — |
+| A4 | DocumentTabs | wip | — | — |
+| A5 | Tile, TileGrid | wip | — | — |
+| A6 | QRCode, Barcode | wip | — | — |
+| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | wip | — | — |
+| A8 | TreeSelect | wip | — | — |
 | A9 | LookupField | — | — | — |
 | A10 | FilterBuilder | — | — | — |
 | A11 | ViewManager | — | — | — |
 | A12 | Sidebar collapseMode / overlay / badges / header label | — | — | — |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | — | — | — |
-| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | — | — | — |
+| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | wip | — | — |
 | S | Strings: the binding's components read the message catalogue; check:strings per binding | — | — | — |
 
 ## Log
@@ -45,3 +45,15 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   rebuild + destroy, localeOf, cleanup). Web components re-export it.
 - 2026-11-05: wave 1 of React ports launched in worktrees: D (DataTable),
   A1, A2, A3, A4, A5+A6.
+- 2026-11-05: A2 React merged (Shortcuts; oracle 12/12 prod + StrictMode dev,
+  11/11 React-specific: no StrictMode duplicate, handler via ref, release on
+  unmount). `within` also takes a RefObject (additive). Integrator re-check on
+  dev: tsc app 0, eslint 258 files 0.
+- 2026-11-05: A1 React merged (AmountField/QuantityField 25/25 unmodified
+  oracle; locale 8/8; ObjectNumber /object and /object-page byte-identical
+  before/after). React's /localization shows only AmountField until React's
+  strings unit (S). Integrator re-check: tsc 0, eslint 261 files 0.
+- Merge note: `.repograph/graph.json` is a tracked tool cache and conflicts on
+  every merge; take dev's side. Regenerate agent guide + skill API after each
+  merge rather than merging generated files.
+- 2026-11-05: A7 and A8 React launched.
