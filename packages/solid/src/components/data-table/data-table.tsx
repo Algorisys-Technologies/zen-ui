@@ -89,7 +89,10 @@ import {
   TableHeader,
   TableRow,
 } from "./table";
-import { FilterCell, filterFnByVariant, type FilterVariant } from "./filters";
+import { FilterCell, filterFnByVariant, textFilterFn, type FilterVariant } from "./filters";
+import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
+import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
+import { useLocale } from "../locale/locale";
 import {
   EditableCell,
   RowMoveContext,
@@ -249,6 +252,11 @@ export interface DataTableProps<TData, TValue = unknown> {
    * or a fixed height). Implies stickyHeader; maxBodyHeight is ignored.
    */
   fillHeight?: boolean;
+  /**
+   * Which rows a column's `meta.aggregate` totals: every row the filters let
+   * through, across pages (default), or the rows on this page.
+   */
+  totalsOver?: "filtered" | "page";
   enableColumnPinning?: boolean;
   columnPinning?: ColumnPinningState;
   initialColumnPinning?: ColumnPinningState;
@@ -389,6 +397,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "pageSizeOptions",
     "maxBodyHeight",
     "fillHeight",
+    "totalsOver",
     "rowEstimatedHeight",
     "globalFilterPlaceholder",
     "emptyMessage",
@@ -500,6 +509,93 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
    * false positive. Scoped to this factory, and re-enabled straight after.
    */
   /* eslint-disable solid/no-destructure */
+  /**
+   * A column with no filterFn and no filterVariant: the operator select stores
+   * `{ op, value }`, which TanStack's own "auto" filter cannot read (it compared
+   * the cell with "[object Object]" and matched nothing). An `{ op, value }`
+   * goes to the text filter that understands it; ANYTHING ELSE, and the filter
+   * function's autoRemove and resolveFilterValue, go to exactly the filter
+   * TanStack would have picked for the column itself, so a bare string, a
+   * number range or a boolean behaves as it always did. One per column: the
+   * auto filter, and resolveFilterValue (which is given no column), are per
+   * column.
+   */
+  const operatorAwareAuto = (columnId: string): FilterFn<TData> => {
+    const auto = () => table.getColumn(columnId)?.getAutoFilterFn() as FilterFn<TData> | undefined;
+    const isOp = (v: unknown): v is { op: string; value: unknown } => !!v && typeof v === "object" && "op" in v;
+    const fn: FilterFn<TData> = (row, id, value, addMeta) => {
+      if (isOp(value)) return (textFilterFn as unknown as FilterFn<TData>)(row, id, value, addMeta);
+      const a = auto();
+      return a ? a(row, id, value, addMeta) : true;
+    };
+    fn.autoRemove = (value, column) =>
+      isOp(value) ? String(value.value ?? "").trim() === "" : (auto()?.autoRemove?.(value, column) ?? false);
+    fn.resolveFilterValue = (value) => (isOp(value) ? value : (auto()?.resolveFilterValue?.(value) ?? value));
+    return fn;
+  };
+
+  const loc = useLocale();
+  /**
+   * Columns that declare `meta.aggregate` get their total filled in: a footer
+   * (and a "Total" label in the first column without one) and each group's
+   * subtotal. Only what the column has not set itself: a hand-written footer,
+   * aggregationFn or aggregatedCell is kept, so existing tables are unchanged.
+   */
+  const withTotals = (cols: ColumnDef<TData, TValue>[]): ColumnDef<TData, TValue>[] => {
+    type TotalMeta = { aggregate?: AggregateKind | ((values: unknown[], rows: unknown[]) => unknown); formatTotal?: (v: unknown) => JSX.Element };
+    const metaOf = (c: ColumnDef<TData, TValue>) => c.meta as TotalMeta | undefined;
+    if (!cols.some((c) => metaOf(c)?.aggregate)) return cols;
+    const idOf = (c: ColumnDef<TData, TValue>) => c.id ?? (c as { accessorKey?: string }).accessorKey ?? "";
+    const compute = (meta: TotalMeta, values: unknown[], rows: unknown[]) =>
+      typeof meta.aggregate === "function" ? meta.aggregate(values, rows) : aggregateValues(values, meta.aggregate!);
+    const show = (meta: TotalMeta, value: unknown, values: unknown[]): JSX.Element => {
+      if (meta.formatTotal) return meta.formatTotal(value);
+      if (value === null || value === undefined) return "";
+      const kind = typeof meta.aggregate === "string" ? meta.aggregate : "sum";
+      if (typeof value === "number") return formatNumber(value, { locale: loc.locale(), precision: totalPrecision(values, kind) });
+      if (value instanceof Date) return value.toLocaleDateString(validLocale(loc.locale()));
+      return String(value);
+    };
+    // "Total" goes in the first VISIBLE column that has no total and no footer of its own,
+    // decided at render time: grouping, reordering and hiding move columns around.
+    const labelIds = new Set(cols.filter((c) => !metaOf(c)?.aggregate && c.footer === undefined).map(idOf));
+    return cols.map((col) => {
+      const meta = metaOf(col);
+      if (!meta?.aggregate) {
+        if (!labelIds.has(idOf(col))) return col;
+        return {
+          ...col,
+          // A getter, not a value: flexRender mounts this as a component, whose body runs once.
+          footer: (ctx) => () => (ctx.table.getVisibleLeafColumns().find((c) => labelIds.has(c.id))?.id === ctx.column.id ? loc.t("dataTable.total") : ""),
+        };
+      }
+      const id = idOf(col);
+      const next: ColumnDef<TData, TValue> = { ...col };
+      if (col.footer === undefined) {
+        // Returns a getter: flexRender mounts this as a component, whose body runs ONCE
+        // (untracked), so a computed value would never follow a filter. Solid inserts a
+        // returned function as a live expression, recomputed as the rows change.
+        // eslint-disable-next-line solid/reactivity -- the returned getter IS the tracked scope (Solid's insert runs it in an effect)
+        next.footer = (ctx) => () => {
+          // The filtered rows (every page), or this page's own rows: leaf rows only,
+          // so a group's header row (which carries its subtotal) is not added again.
+          const rows = props.totalsOver === "page"
+            ? ctx.table.getRowModel().rows.filter((r) => !r.getIsGrouped())
+            : ctx.table.getFilteredRowModel().rows;
+          const values = rows.map((r) => r.getValue(id));
+          return show(meta, compute(meta, values, rows), values);
+        };
+      }
+      if (!col.aggregationFn) {
+        next.aggregationFn = (columnId, leafRows) => compute(meta, leafRows.map((r) => r.getValue(columnId)), leafRows);
+      }
+      if (!col.aggregatedCell) {
+        next.aggregatedCell = (info) => show(meta, info.getValue(), info.row.getLeafRows().map((r) => r.getValue(info.column.id)));
+      }
+      return next;
+    });
+  };
+
   const augmentedColumns = createMemo<ColumnDef<TData, TValue>[]>(() => {
     const leading: ColumnDef<TData, TValue>[] = [];
 
@@ -576,10 +672,14 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
           filterFn: filterFnByVariant[meta.filterVariant] as unknown as FilterFn<TData>,
         };
       }
+      if (!meta?.filterVariant && !col.filterFn) {
+        const id = col.id ?? (col as { accessorKey?: string }).accessorKey;
+        if (id) return { ...col, filterFn: operatorAwareAuto(String(id)) };
+      }
       return col;
     });
 
-    return [...leading, ...withVariantFilters];
+    return [...leading, ...withTotals(withVariantFilters)];
   });
   /* eslint-enable solid/no-destructure */
 
@@ -1615,6 +1715,8 @@ interface BodyItem<TData> {
 
 function BodyTable<TData>(props: BodyTableProps<TData>) {
   const rows = () => props.table.getRowModel().rows;
+  const totalOf = (column: { columnDef: { meta?: unknown } }) => !!(column.columnDef.meta as { aggregate?: unknown } | undefined)?.aggregate;
+  const hasTotals = () => props.table.getAllLeafColumns().some(totalOf);
   const colCount = () => props.table.getAllLeafColumns().length;
 
   // Virtualized, the body is a flat list of items, an expanded row's panel
@@ -2553,13 +2655,26 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
         * thing a financial table always needs. Rendered only when at least one
         * column defines it, so every existing table keeps its exact markup. */}
       <Show when={props.table.getAllColumns().some((c) => c.columnDef.footer !== undefined)}>
-        <TableFooter>
+        {/* Totals (a column's meta.aggregate): right-aligned figures, and kept in
+          * view at the bottom while the rows scroll under it. A footer without
+          * totals renders exactly as it always has. */}
+        <TableFooter data-totals={hasTotals() ? "" : undefined}>
           <For each={props.table.getFooterGroups()}>
             {(fg) => (
               <TableRow>
                 <For each={fg.headers}>
                   {(header) => (
-                    <TableCell colSpan={header.colSpan}>
+                    <TableCell
+                      colSpan={header.colSpan}
+                      class={
+                        hasTotals()
+                          ? cn(
+                              totalOf(header.column) && "zen-text-end zen-tabular-nums",
+                              props.stickyHeaderActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
+                            )
+                          : undefined
+                      }
+                    >
                       <Show when={!header.isPlaceholder}>
                         {flexRender(header.column.columnDef.footer, header.getContext())}
                       </Show>

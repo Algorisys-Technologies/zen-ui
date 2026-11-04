@@ -41,6 +41,15 @@ declare module "@tanstack/solid-table" {
     filterVariant?: FilterVariant;
     /** Options used by the `select` variant. */
     filterOptions?: { label: string; value: string }[];
+    /**
+     * A total for this column, computed and shown by DataTable: in a footer
+     * (over the filtered rows, or the page with `totalsOver="page"`) and as
+     * each group's subtotal when grouped. Sums are exact in decimal. Leaves a
+     * column's own `footer`, `aggregationFn` and `aggregatedCell` alone.
+     */
+    aggregate?: "sum" | "count" | "avg" | "min" | "max" | ((values: unknown[], rows: unknown[]) => unknown);
+    /** How the total and subtotals show. Default: the locale's number at the column's own decimal places. */
+    formatTotal?: (value: unknown) => JSX.Element;
   }
 }
 
@@ -49,7 +58,7 @@ declare module "@tanstack/solid-table" {
 const empty = (s: unknown) =>
   s === null || s === undefined || (typeof s === "string" && s.length === 0);
 
-const textFilterFn: FilterFn<unknown> = (row, columnId, filter) => {
+export const textFilterFn: FilterFn<unknown> = (row, columnId, filter) => {
   const f = filter as TextFilterValue | string | undefined;
   const op: TextOp = typeof f === "object" && f ? f.op : "contains";
   const needle = String(typeof f === "object" && f ? f.value : f ?? "")

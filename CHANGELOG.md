@@ -16,6 +16,20 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **Grid totals: `meta.aggregate` on a DataTable column** (Solid). `"sum"`,
+  `"count"`, `"avg"`, `"min"`, `"max"` or a function, per column: DataTable
+  fills the footer (a "Total" label in the first visible column without one),
+  keeps it in view at the bottom while the rows scroll (fillHeight /
+  stickyHeader), and shows each group's subtotal from the same declaration
+  when grouped. Totals cover every row the filters let through across pages,
+  or the page with `totalsOver="page"`; group header rows are never added in
+  twice. Sums are exact in decimal (on generated money columns a plain double
+  sum was wrong 332 times in 400). Formatted at the column's own decimal
+  places in the locale; `meta.formatTotal` to show it your way. A column's own
+  `footer`, `aggregationFn` and `aggregatedCell` are left alone, and a table
+  with a hand-written footer and no `meta.aggregate` renders as before. Core's
+  new `@algorisys/zen-ui-core/aggregate`, checked by `bun run check:aggregate`
+  (3224 assertions, against an exact-integer oracle). Demo: DataTable section 25.
 - **Every built-in string can be translated (B1, batch 1 of 3)** (Solid).
   One catalogue, `@algorisys/zen-ui-core/messages`, English by default;
   `LocaleProvider messages={…}` translates any subset of it, the rest stays
@@ -340,6 +354,15 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **A per-column text filter matched nothing on a column without
+  `filterVariant`** (Solid DataTable; a regression from the operator select
+  added earlier in this release, never in a published version). The operator
+  select stores `{ op, value }`, and TanStack's automatic filter compared the
+  cell with "[object Object]". Such a column now reads the operator; any other
+  filter value (a plain string, a number range, a boolean), and the filter's
+  autoRemove / resolveFilterValue, go to exactly the filter TanStack would
+  have chosen, so nothing else changes. Every existing demo column declared
+  `filterVariant`, which is why no demo showed it.
 - **A malformed locale threw instead of falling back** (core number-format,
   new messages): `Intl` raises a RangeError on a tag like "en_IN", so an app
   passing one to AmountField or LocaleProvider would stop rendering. Now it

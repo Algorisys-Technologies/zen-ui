@@ -41,6 +41,7 @@
     "./views": "./src/views.ts",
     "./number-format": "./src/number-format.ts",
     "./messages": "./src/messages.ts",
+    "./aggregate": "./src/aggregate.ts",
     "./countdown": "./src/countdown.ts",
     "./chunk-upload": "./src/chunk-upload.ts",
     "./spreadsheet": "./src/spreadsheet.ts",

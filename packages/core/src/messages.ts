@@ -248,6 +248,9 @@ export const DEFAULT_MESSAGES = {
   "valueHelp.op.GT": "greater than",
   "valueHelp.op.GE": "greater or equal",
 
+  // DataTable
+  "dataTable.total": "Total",
+
   // ViewSettingsDialog
   "viewSettings.title": "View settings",
   "viewSettings.sort": "Sort",

@@ -97,6 +97,18 @@ issue / PR when its turn comes.
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
 
+## Parity: DataTable totals (meta.aggregate) and the no-variant filter fix (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `aggregate` (shared already). In
+      Solid a footer function must RETURN A GETTER: flexRender mounts it as a
+      component, whose body runs once, so a computed value never followed a
+      filter (measured). The "Total" label is chosen at render time (first
+      visible column without a total), because grouping moves columns. Check
+      React's DataTable for the no-variant filter bug too: an `{ op, value }`
+      filter on a column with TanStack's auto filterFn matches nothing.
+- [ ] Not in this cut: a totals row for selected rows only; totals in
+      the CSV / Excel export (C4 will want them).
+
 ## B1: translatable strings — batches 2 and 3 (2026-11-04)
 
 - [ ] Batch 2: tables and data (DataTable, url-data-table, tree-table,
