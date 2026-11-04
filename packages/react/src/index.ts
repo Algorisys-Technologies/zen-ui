@@ -592,6 +592,11 @@ export type { Message, MessageType, MessagePopoverProps } from "./components/mes
 export { DirectionProvider } from "./components/direction/direction";
 export type { Direction, DirectionProviderProps } from "./components/direction/direction";
 
+// LocaleProvider — the locale, currency and built-in words, set once (optional:
+// without it every component behaves as before).
+export { LocaleProvider, useLocale } from "./components/locale/locale";
+export type { LocaleProviderProps, LocaleContextValue, MessageKey, ZenMessages } from "./components/locale/locale";
+
 // UI Components - Card (generic surface + SelectableCard for "pick one")
 export {
   Card,

@@ -101,7 +101,7 @@ export { FilterBar } from "./components/filter-bar/filter-bar";
 export type { FilterBarProps, FilterBarField } from "./components/filter-bar/filter-bar";
 export { FilterBuilder } from "./components/filter-builder/filter-builder";
 export { LocaleProvider, useLocale } from "./components/locale/locale";
-export type { LocaleProviderProps, LocaleContextValue } from "./components/locale/locale";
+export type { LocaleProviderProps, LocaleContextValue, MessageKey, ZenMessages } from "./components/locale/locale";
 export { AmountField, QuantityField } from "./components/form/amount-field/amount-field";
 export type { AmountFieldProps, QuantityFieldProps } from "./components/form/amount-field/amount-field";
 export { ViewManager } from "./components/view-manager/view-manager";
