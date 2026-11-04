@@ -41,6 +41,10 @@ export type { PasswordInputProps } from "./components/form/password-input/passwo
 export { NumberField } from "./components/form/number-field/number-field";
 export type { NumberFieldProps } from "./components/form/number-field/number-field";
 
+// Form Components - AmountField / QuantityField (locale-formatted amounts and quantities)
+export { AmountField, QuantityField } from "./components/form/amount-field/amount-field";
+export type { AmountFieldProps, QuantityFieldProps } from "./components/form/amount-field/amount-field";
+
 // Form Components - DatePicker + Calendar (react-day-picker + Radix Popover)
 export {
   DatePicker,

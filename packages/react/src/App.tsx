@@ -88,6 +88,7 @@ import NewInputDemo from "./components/NewInputDemo";
 import SearchDemo from "./components/SearchDemo";
 import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
+import NewAmountFieldDemo from "./components/NewAmountFieldDemo";
 import NewDatePickerDemo from "./components/NewDatePickerDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
 import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
@@ -169,6 +170,7 @@ import NewPopoverDemo from "./components/NewPopoverDemo";
 import NewLinkDemo from "./components/NewLinkDemo";
 import NewThemeDemo from "./components/NewThemeDemo";
 import NewDirectionDemo from "./components/NewDirectionDemo";
+import NewLocaleDemo from "./components/NewLocaleDemo";
 import NewPageDemo from "./components/NewPageDemo";
 import NewMessagePopoverDemo from "./components/NewMessagePopoverDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
@@ -349,6 +351,7 @@ const App: React.FC = () => {
             <Route path="/search" element={<SearchDemo />} />
             <Route path="/password-input" element={<PasswordInputDemo />} />
             <Route path="/number-field-new" element={<NewNumberFieldDemo />} />
+            <Route path="/amount-field" element={<NewAmountFieldDemo />} />
             <Route path="/date-picker-new" element={<NewDatePickerDemo />} />
             <Route path="/otp-new" element={<NewOTPDemo />} />
             <Route path="/phone-input-new" element={<NewPhoneInputDemo />} />
@@ -432,6 +435,7 @@ const App: React.FC = () => {
             <Route path="/popover" element={<NewPopoverDemo />} />
             <Route path="/link" element={<NewLinkDemo />} />
             <Route path="/theme" element={<NewThemeDemo />} />
+            <Route path="/localization" element={<NewLocaleDemo />} />
             <Route path="/direction" element={<NewDirectionDemo />} />
             <Route path="/page" element={<NewPageDemo />} />
             <Route path="/message-popover" element={<NewMessagePopoverDemo />} />

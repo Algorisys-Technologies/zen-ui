@@ -21,7 +21,11 @@ SKILL.md.
 
 ### ObjectNumber
 
-- `value: React.ReactNode` — Pre-formatted for the user's locale — this component does not format.
+- `value?: React.ReactNode` — Shown as given: pre-formatted for the user's locale. To have the number formatted here instead, pass `number` (and `currency`) and leave this out.
+- `number?: number | undefined` — A number to format in the locale (the `locale` prop, else LocaleProvider's, else the browser's): at the currency's precision with `currency`, else at `precision`. Used only when `value` is not given.
+- `currency?: string | undefined` — ISO 4217. Sets the precision (INR 2, JPY 0) and, without a `unit`, is shown as the unit: 1,250.00 INR.
+- `precision?: number | undefined` — Decimal places for `number`. Default: the currency's, else as many as it has.
+- `locale?: string | undefined`
 - `unit?: React.ReactNode`
 - `state?: ObjectState | undefined`
 - `emphasized?: boolean | undefined` — Larger and bolder — for the headline figure on an object page.
