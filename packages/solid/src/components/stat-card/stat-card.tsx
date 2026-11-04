@@ -149,9 +149,12 @@ export const StatCard = (props: StatCardProps) => {
           fallback={<Skeleton class="zen-h-7 zen-w-24" />}
         >
           <span
+            // Size FIRST: cn() treats a later font-size class as overriding
+            // line-height, so "zen-leading-none … zen-text-2xl" dropped the
+            // leading (12.2.0 drew every figure 32px tall instead of 24).
             class={cn(
-              "zen-font-semibold zen-leading-none zen-text-zen-foreground",
               local.size === "lg" ? "zen-text-4xl" : "zen-text-2xl",
+              "zen-font-semibold zen-leading-none zen-text-zen-foreground",
             )}
           >
             {local.value}

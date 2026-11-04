@@ -31,6 +31,13 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   count. Two developer install notices (Map, RichText) are marked
   `i18n-ignore-next-line`. English unchanged: all 120 Solid demo routes
   snapshot identical before and after.
+- **StatCard figures were drawn 32px tall instead of 24px in 12.2.0** (Solid;
+  `size="lg"` 40px instead of 36px). Adding `size` put the font-size class
+  after `zen-leading-none`, and `cn()` resolves a later font-size as also
+  setting line-height, so the leading was dropped: every existing StatCard
+  grew 8px taller. The size class comes first again; measured on the demo: 17
+  figures back to 24px / 24px, one `lg` at 36px. Found by the React port of
+  the same feature.
 - **`build:lib` vendored no core declarations in a checkout under a dotted
   path** (`scripts/vendor-core-types.mjs` treated "no dot in the path" as "a
   directory"), so every binding's build failed its own assertion there.

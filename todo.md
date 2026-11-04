@@ -21,6 +21,16 @@ issue / PR when its turn comes.
    When it is live, add it to "Ship it" in CLAUDE.md.
 
 
+## Latent: Label's `leading-none` is dropped by its own size class (found 2026-11-05)
+
+- [ ] Solid Label (`form/label/label.tsx`) writes `cn("… zen-leading-none …",
+      SIZES[size])`, and `cn()` treats a later font-size as also setting
+      line-height, so `leading-none` never applies; React's `labelVariants`
+      (cva + cn) likely the same. Long-standing (before 12.1.1), so labels
+      have always rendered at the size's own line-height: fixing it changes
+      every label's height, which is a breaking visual change. Decide for the
+      next major; the same trap bit StatCard in 12.2.0 (fixed, see CHANGELOG).
+
 ## Parity: DataTable `enableRowVirtualization` (Solid only, 2026-11-04)
 
 - [ ] **Port to React, then vanilla, then web-components**, from the Solid
