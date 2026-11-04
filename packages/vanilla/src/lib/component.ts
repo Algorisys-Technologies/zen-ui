@@ -133,18 +133,25 @@ const camelToKebab = (s: string) => s.replace(/[A-Z]/g, (m) => `-${m.toLowerCase
  */
 export class Disposer {
   private fns: Cleanup[] = [];
-  private done = false;
 
   add(fn: Cleanup | void): void {
     if (typeof fn === "function") this.fns.push(fn);
   }
 
+  /**
+   * Run every cleanup added so far, once. Reusable: what is added afterwards
+   * runs at the NEXT dispose. It used to latch "done" forever, so a Disposer
+   * used per opening (Combobox's and TreeSelect's `session`, and two dozen
+   * others) ran its cleanups on the first close only, and every later
+   * opening's document listeners stayed attached. Taking the list before
+   * running it keeps a second call, or a re-entrant one from inside a
+   * cleanup, a no-op.
+   */
   dispose(): void {
-    if (this.done) return;
-    this.done = true;
+    const fns = this.fns;
+    this.fns = [];
     // Reverse order: a later cleanup may depend on something an earlier one set up.
-    for (const fn of this.fns.reverse()) fn();
-    this.fns.length = 0;
+    for (const fn of fns.reverse()) fn();
   }
 }
 

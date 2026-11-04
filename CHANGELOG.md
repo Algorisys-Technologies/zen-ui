@@ -31,6 +31,14 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   count. Two developer install notices (Map, RichText) are marked
   `i18n-ignore-next-line`. English unchanged: all 120 Solid demo routes
   snapshot identical before and after.
+- **Vanilla (and web components) leaked document listeners on every opening
+  after the first** of Combobox, TreeSelect and every other component that
+  reuses a cleanup list per opening (about 25): `Disposer.dispose()` latched
+  "done" after its first call, so cleanups added later never ran. Measured
+  on Combobox: 2 more document listeners per open/close cycle (8 after five);
+  now 0. `Disposer` is reusable (it takes its list, then runs it; a second or
+  re-entrant call is a no-op). All 116 vanilla demo routes snapshot identical
+  before and after. Present since 7.0.0; found by the LookupField port.
 - **StatCard figures were drawn 32px tall instead of 24px in 12.2.0** (Solid;
   `size="lg"` 40px instead of 36px). Adding `size` put the font-size class
   after `zen-leading-none`, and `cn()` resolves a later font-size as also
