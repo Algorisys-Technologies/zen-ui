@@ -120,6 +120,7 @@ import "./time-picker";
 import "./toast";
 import "./toolbar";
 import "./document-tabs";
+import "./filter-builder";
 import "./tooltip";
 import "./tree";
 import "./tree-select";
