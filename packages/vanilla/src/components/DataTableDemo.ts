@@ -69,6 +69,7 @@ const SMALL = makePeople(8);
 const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
 const MENU_PEOPLE = makePeople(1000);
+const HUGE = makePeople(10_000);
 
 const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
@@ -86,6 +87,55 @@ const columns: DataTableColumn<Person>[] = [
   },
   { accessorKey: "lastSeen", header: "Last seen" },
 ];
+
+/* -------------------------- section 6b: row virtualization -------- */
+/* React's grouped columns, without the group aggregates (this binding does
+ * not group rows). */
+const virtColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "role", header: "Role" },
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "email", header: "Email" },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) => row.salary.toLocaleString("en-IN"),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => Badge({ variant: "soft", color: statusColor(row.status), children: row.status }),
+  },
+];
+
+function RowVirtDemo(): HTMLElement {
+  const opened = document.createElement("span");
+  opened.dataset.testid = "virt-activated";
+  opened.textContent = "nothing yet";
+  // fillHeight: the table fills this frame, as a list that is a page's main pane.
+  const frame = document.createElement("div");
+  frame.className = "zen-flex zen-h-[440px] zen-flex-col";
+  frame.append(
+    DataTable<Person>({
+      data: HUGE,
+      columns: virtColumns,
+      getRowId: (p) => p.id,
+      enableRowVirtualization: true,
+      enableSorting: true,
+      enableRowSelection: true,
+      enableKeyboardNavigation: true,
+      rowLabel: (row) => row.name,
+      onRowActivate: (row) => (opened.textContent = row.name),
+      fillHeight: true,
+    }).el,
+  );
+  const note = document.createElement("p");
+  note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+  note.setAttribute("aria-live", "polite");
+  note.append("Opened: ", opened);
+  const wrap = document.createElement("div");
+  wrap.append(frame, note);
+  return wrap;
+}
 
 /* -------------------------- section 6c: cell navigation ----------- */
 /* An order's lines, for the cell-navigation grid. */
@@ -561,6 +611,24 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
             enableVirtualization: true,
             maxBodyHeight: 400,
           }).el,
+      },
+      {
+        title: "6b. Row virtualization — 10 000 rows, every feature on",
+        codeTitle: "enableRowVirtualization keeps sorting, selection and the keyboard",
+        codeDescription:
+          "Only the rows in view are rendered, inside the regular table. Sort a column, select rows, or click a row and move with ↑/↓, PageUp/PageDown and Home/End: the focused row is scrolled into view and stays mounted while you scroll away. (React's version of this table also groups and expands rows, which this binding does not do yet.)",
+        code: `DataTable({
+  data: tenThousandPeople,
+  columns,
+  getRowId: (p) => p.id,
+  enableRowVirtualization: true,
+  enableSorting: true,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  onRowActivate: (row) => open(row),
+  fillHeight: true, // inside a frame with a height; or maxBodyHeight: 420
+});`,
+        render: () => RowVirtDemo(),
       },
       {
         title: "6c. Cell navigation — work in it like a spreadsheet",
