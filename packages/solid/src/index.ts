@@ -596,6 +596,23 @@ export type {
 
 export { Tile, TileGrid } from "./components/tile/tile";
 export { TreeSelect } from "./components/tree-select/tree-select";
+export {
+  ShortcutProvider,
+  ShortcutHelp,
+  Kbd,
+  useShortcut,
+  useShortcuts,
+  keyshortcut,
+  shortcutLabel,
+  detectPlatform,
+} from "./components/shortcuts/shortcuts";
+export type {
+  ShortcutOptions,
+  ShortcutProviderProps,
+  ShortcutHelpProps,
+  ShortcutHelpGroup,
+  KbdProps,
+} from "./components/shortcuts/shortcuts";
 export type { TreeSelectProps, TreeSelectNode } from "./components/tree-select/tree-select";
 export type { TileProps, TileGridProps } from "./components/tile/tile";
 export { DataTable } from "./components/data-table/data-table";

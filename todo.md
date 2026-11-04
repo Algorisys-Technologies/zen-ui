@@ -81,6 +81,17 @@ issue / PR when its turn comes.
       call. Found and fixed in DataTable's BodyTable props (2026-11-04); worth a
       sweep of the other components' native handlers.
 
+## Parity: Shortcuts (Solid only, 2026-11-04)
+
+- [ ] Port Kbd, the provider and hook (React: a context + useEffect; vanilla and
+      WC: a registry object and an element), ShortcutHelp, keyshortcut() and
+      shortcutLabel(), on core's `keys` (shared already). Demo /shortcuts.
+      ERPNext review A2.
+- [ ] Then let components name their keys: a `shortcut` prop on Button, menu
+      items (DropdownMenuShortcut / ContextMenuShortcut from a chord) and Tooltip,
+      so the label, aria-keyshortcuts and the registered key cannot disagree.
+- [ ] F6 pane cycling (review A3) can be one more registration on this.
+
 ## Parity: TreeSelect (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass, on core's `tree-select` (shared already):

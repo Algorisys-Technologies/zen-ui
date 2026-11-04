@@ -163,6 +163,7 @@ export const NAV: NavGroup[] = [
       { label: "Sheet", path: "/sheet", description: "Slide-in side panel; right / left / top / bottom", source: "packages/solid/src/components/NewSheetDemo.tsx" },
       { label: "DropdownMenu", path: "/dropdown-menu", description: "Action menus, sub-menus, checkbox / radio items", source: "packages/solid/src/components/NewDropdownMenuDemo.tsx" },
       { label: "ContextMenu", path: "/context-menu", description: "Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press", source: "packages/solid/src/components/NewContextMenuDemo.tsx" , since: "12.2.0" },
+      { label: "Shortcuts", path: "/shortcuts", description: "Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform", source: "packages/solid/src/components/NewShortcutsDemo.tsx", since: "12.2.0" },
       { label: "Toast", path: "/toast", description: "Imperative toast() + Toaster viewport; variants and actions", source: "packages/solid/src/components/NewToastDemo.tsx" },
     ],
   },

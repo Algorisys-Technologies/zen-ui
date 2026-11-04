@@ -16,6 +16,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp** (Solid; new).
+  One list of every key an app answers. A chord is written once ("Mod+S": Ctrl,
+  or ⌘ on a Mac). `useShortcut` answers it while a component is on screen, with
+  `within` (only while focus is inside an element, winning over a global one),
+  `allowInFields`, `enabled`, a description and a group. `Kbd` draws a chord's
+  keys spelled per platform; `keyshortcut()` gives a control its
+  aria-keyshortcuts and `shortcutLabel()` its tooltip text. `ShortcutHelp` is
+  the `?` overlay, generated from what is registered, plus `extra` keys handled
+  elsewhere. Chords the browser keeps (Ctrl+T, Ctrl+W, F5…) and a second
+  shortcut on the same keys in the same place are refused with a warning. The
+  pure half is core's new `@algorisys/zen-ui-core/keys`, checked by
+  `bun run check:keys` (431 assertions; fails 10 with ⌘ broken on purpose).
 - **TreeSelect** (Solid; new): pick one node from a hierarchy, the chart of
   accounts, item groups, cost centres. Type to search: every match shows under
   its ancestors (opened), so "Cash" and "Cash Credit" read as the different
