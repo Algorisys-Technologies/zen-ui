@@ -16,7 +16,7 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 
 | unit | what | React | vanilla | WC |
 |---|---|---|---|---|
-| L | LocaleProvider / useLocale | ok (e94479a) | — | — |
+| L | LocaleProvider / useLocale | ok (e94479a) | ok | ok (re-export; `<zen-locale-provider>` with unit S) |
 | A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | — | — | — |
 | A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | — | — | — |
 | A3 | ContextMenu | — | — | — |
@@ -37,3 +37,11 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 
 - 2026-11-05: L merged (React LocaleProvider; Solid index also re-exports
   MessageKey / ZenMessages).
+- 2026-11-05: L for vanilla: `LocaleProvider({ children: () => … })` runs its
+  children function as the current locale, so factories read it with
+  `useLocale()` when called, as React/Solid read context; `localeOf(node)` for
+  words rendered after mount; `update()` rebuilds (and destroys) a function's
+  children. 7/7 in Chromium (defaults, translation, nesting, scope ends,
+  rebuild + destroy, localeOf, cleanup). Web components re-export it.
+- 2026-11-05: wave 1 of React ports launched in worktrees: D (DataTable),
+  A1, A2, A3, A4, A5+A6.

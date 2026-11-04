@@ -78,6 +78,8 @@ export { MessagePopover } from "./components/message-popover/message-popover";
 export type { Message, MessageType, MessagePopoverProps } from "./components/message-popover/message-popover";
 export { DirectionProvider } from "./components/direction/direction";
 export type { Direction, DirectionProviderProps } from "./components/direction/direction";
+export { LocaleProvider, useLocale, localeOf } from "./components/locale/locale";
+export type { LocaleProviderProps, LocaleContextValue, MessageKey, ZenMessages } from "./components/locale/locale";
 
 export { StatCard } from "./components/stat-card/stat-card";
 export type { StatCardProps, StatCardColor, StatCardTrend } from "./components/stat-card/stat-card";
