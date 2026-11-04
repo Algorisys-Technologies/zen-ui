@@ -116,6 +116,7 @@ import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewAlertDemo from "./components/NewAlertDemo";
 import NewDialogDemo from "./components/NewDialogDemo";
 import NewToastDemo from "./components/NewToastDemo";
+import NewShortcutsDemo from "./components/NewShortcutsDemo";
 import NewFileUploadDemo from "./components/NewFileUploadDemo";
 import NewBoundFieldsDemo from "./components/NewBoundFieldsDemo";
 import NewStepperDemo from "./components/NewStepperDemo";
@@ -376,6 +377,7 @@ const App: React.FC = () => {
             <Route path="/alert" element={<NewAlertDemo />} />
             <Route path="/dialog" element={<NewDialogDemo />} />
             <Route path="/toast" element={<NewToastDemo />} />
+            <Route path="/shortcuts" element={<NewShortcutsDemo />} />
             <Route path="/file-upload" element={<NewFileUploadDemo />} />
             <Route path="/form-bound" element={<NewBoundFieldsDemo />} />
             <Route path="/stepper" element={<NewStepperDemo />} />

@@ -462,6 +462,25 @@ export {
   DropdownMenuRadioGroup,
 } from "./components/dropdown-menu/dropdown-menu";
 
+// Keyboard shortcuts: key caps, a registry with scopes, and the "?" overlay
+export {
+  ShortcutProvider,
+  ShortcutHelp,
+  Kbd,
+  useShortcut,
+  useShortcuts,
+  keyshortcut,
+  shortcutLabel,
+  detectPlatform,
+} from "./components/shortcuts/shortcuts";
+export type {
+  ShortcutOptions,
+  ShortcutProviderProps,
+  ShortcutHelpProps,
+  ShortcutHelpGroup,
+  KbdProps,
+} from "./components/shortcuts/shortcuts";
+
 // UI Components - FAB (shadcn-style; composes the Button)
 export { FAB } from "./components/fab/fab";
 export type { FABProps } from "./components/fab/fab";
