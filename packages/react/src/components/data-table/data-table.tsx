@@ -73,6 +73,8 @@ import {
 } from "./table";
 import { FilterCell, filterFnByVariant, textFilterFn, type FilterVariant } from "./filters";
 import { useLocale } from "../locale/locale";
+import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
+import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
 import {
   EditableCell,
   type CellEditPayload,
@@ -368,6 +370,11 @@ export interface DataTableProps<TData, TValue = unknown> {
    */
   fillHeight?: boolean;
   /**
+   * Which rows a column's `meta.aggregate` totals: every row the filters let
+   * through, across pages (default), or the rows on this page.
+   */
+  totalsOver?: "filtered" | "page";
+  /**
    * Freeze columns to the left or right edge while the body scrolls
    * horizontally. Pinned cells get a 1-px divider and a soft shadow on
    * their inner edge so they read as floating.
@@ -479,6 +486,7 @@ export function DataTable<TData, TValue = unknown>({
   exportOnlySelected = false,
   stickyHeader = false,
   fillHeight = false,
+  totalsOver,
   enableColumnPinning = false,
   columnPinning: columnPinningProp,
   initialColumnPinning,
@@ -621,6 +629,7 @@ export function DataTable<TData, TValue = unknown>({
 
   /* The table, for the column filters below, which are built before it. */
   const tableRef = React.useRef<TanStackTable<TData> | null>(null);
+  const loc = useLocale();
 
   /* Prepend leading columns: drag-grip (if enabled) then select-checkbox
    * (if enabled). Both are opt-in. For user columns we also auto-attach
@@ -724,8 +733,8 @@ export function DataTable<TData, TValue = unknown>({
       return col;
     });
 
-    return [...leading, ...withVariantFilters];
-  }, [columns, enableRowSelection, rowOrderingActive, expansionEnabled]);
+    return [...leading, ...withTotals(withVariantFilters, loc, totalsOver)];
+  }, [columns, enableRowSelection, rowOrderingActive, expansionEnabled, loc, totalsOver]);
 
   const table = useReactTable({
     data,
@@ -1052,9 +1061,15 @@ export function DataTable<TData, TValue = unknown>({
 
   /* Any column declaring a footer opts the whole table into a <tfoot>. */
   const hasFooter = React.useMemo(
-    () => columns.some((c) => (c as { footer?: unknown }).footer !== undefined),
-    [columns],
+    () => augmentedColumns.some((c) => (c as { footer?: unknown }).footer !== undefined),
+    [augmentedColumns],
   );
+  /* Totals (a column's meta.aggregate): right-aligned figures, kept in view at
+   * the bottom while the rows scroll under them. A footer without totals
+   * renders exactly as it always has. */
+  const totalOf = (column: { columnDef: { meta?: unknown } }) =>
+    !!(column.columnDef.meta as { aggregate?: unknown } | undefined)?.aggregate;
+  const hasTotals = table.getAllLeafColumns().some(totalOf);
 
   const headerRows = (
     <TableHeader className={headerVariantThClass}>
@@ -1118,11 +1133,22 @@ export function DataTable<TData, TValue = unknown>({
     : undefined;
 
   const footer = hasFooter ? (
-    <TableFooter>
+    <TableFooter data-totals={hasTotals ? "" : undefined}>
       {table.getFooterGroups().map((fg) => (
         <TableRow key={fg.id}>
           {fg.headers.map((header) => (
-            <TableCell key={header.id} colSpan={header.colSpan}>
+            <TableCell
+              key={header.id}
+              colSpan={header.colSpan}
+              className={
+                hasTotals
+                  ? cn(
+                      totalOf(header.column) && "zen-text-end zen-tabular-nums",
+                      stickyHeaderActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
+                    )
+                  : undefined
+              }
+            >
               {header.isPlaceholder
                 ? null
                 : flexRender(header.column.columnDef.footer, header.getContext())}
@@ -1253,6 +1279,84 @@ export function DataTable<TData, TValue = unknown>({
       )}
     </div>
   );
+}
+
+/**
+ * Columns that declare `meta.aggregate` get their total filled in: a footer
+ * (and a "Total" label in the first visible column without one) and each
+ * group's subtotal. Only what the column has not set itself: a hand-written
+ * footer, aggregationFn or aggregatedCell is kept, so existing tables are
+ * unchanged.
+ */
+function withTotals<TData, TValue>(
+  cols: ColumnDef<TData, TValue>[],
+  loc: ReturnType<typeof useLocale>,
+  totalsOver: "filtered" | "page" | undefined,
+): ColumnDef<TData, TValue>[] {
+  type TotalMeta = {
+    aggregate?: AggregateKind | ((values: unknown[], rows: unknown[]) => unknown);
+    formatTotal?: (v: unknown) => React.ReactNode;
+  };
+  const metaOf = (c: ColumnDef<TData, TValue>) => c.meta as TotalMeta | undefined;
+  if (!cols.some((c) => metaOf(c)?.aggregate)) return cols;
+  const idOf = (c: ColumnDef<TData, TValue>) =>
+    c.id ?? (c as { accessorKey?: string }).accessorKey ?? "";
+  const compute = (meta: TotalMeta, values: unknown[], rows: unknown[]) =>
+    typeof meta.aggregate === "function"
+      ? meta.aggregate(values, rows)
+      : aggregateValues(values, meta.aggregate!);
+  const show = (meta: TotalMeta, value: unknown, values: unknown[]): React.ReactNode => {
+    if (meta.formatTotal) return meta.formatTotal(value);
+    if (value === null || value === undefined) return "";
+    const kind = typeof meta.aggregate === "string" ? meta.aggregate : "sum";
+    if (typeof value === "number")
+      return formatNumber(value, { locale: loc.locale, precision: totalPrecision(values, kind) });
+    if (value instanceof Date) return value.toLocaleDateString(validLocale(loc.locale));
+    return String(value);
+  };
+  // "Total" goes in the first VISIBLE column that has no total and no footer
+  // of its own, decided at render time: grouping, reordering and hiding move
+  // columns around.
+  const labelIds = new Set(
+    cols.filter((c) => !metaOf(c)?.aggregate && c.footer === undefined).map(idOf),
+  );
+  return cols.map((col) => {
+    const meta = metaOf(col);
+    if (!meta?.aggregate) {
+      if (!labelIds.has(idOf(col))) return col;
+      return {
+        ...col,
+        footer: (ctx) =>
+          ctx.table.getVisibleLeafColumns().find((c) => labelIds.has(c.id))?.id === ctx.column.id
+            ? loc.t("dataTable.total")
+            : "",
+      };
+    }
+    const id = idOf(col);
+    const next: ColumnDef<TData, TValue> = { ...col };
+    if (col.footer === undefined) {
+      next.footer = (ctx) => {
+        // The filtered rows (every page), or this page's own rows: leaf rows
+        // only, so a group's header row (which carries its subtotal) is not
+        // added again.
+        const rows =
+          totalsOver === "page"
+            ? ctx.table.getRowModel().rows.filter((r) => !r.getIsGrouped())
+            : ctx.table.getFilteredRowModel().rows;
+        const values = rows.map((r) => r.getValue(id));
+        return show(meta, compute(meta, values, rows), values);
+      };
+    }
+    if (!col.aggregationFn) {
+      next.aggregationFn = (columnId, leafRows) =>
+        compute(meta, leafRows.map((r) => r.getValue(columnId)), leafRows);
+    }
+    if (!col.aggregatedCell) {
+      next.aggregatedCell = (info) =>
+        show(meta, info.getValue(), info.row.getLeafRows().map((r) => r.getValue(info.column.id)));
+    }
+    return next;
+  });
 }
 
 /**

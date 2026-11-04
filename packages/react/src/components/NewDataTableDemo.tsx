@@ -191,6 +191,33 @@ const sizedColumns: ColumnDef<Person>[] = [
   { accessorKey: "lastSeen", header: "Last seen", size: 140 },
 ];
 
+/* -------------------------- section 26: totals --------------------- */
+type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
+const TOTAL_CUSTOMERS = ["Acme Traders", "Bharat Steels", "Coastal Agencies"];
+const TOTAL_ITEMS = ["Hex Bolt M8", "MS Sheet 2mm", "Cutting Oil", "Bearing 6204", "V-Belt B-48", "SS Rod 12mm"];
+// Rates in paise-precise rupees: summing them as doubles drifts; the totals here do not.
+const LINES: TotalLine[] = Array.from({ length: 60 }, (_, i) => {
+  const qty = 1 + ((i * 7) % 23);
+  const rate = Math.round((10.1 + ((i * 37) % 900) * 1.37) * 100) / 100;
+  return {
+    item: TOTAL_ITEMS[i % TOTAL_ITEMS.length],
+    customer: TOTAL_CUSTOMERS[(i * 5) % 3],
+    qty,
+    rate,
+    amount: Math.round(qty * rate * 100) / 100,
+    due: `2026-${String(10 + (i % 3)).padStart(2, "0")}-${String(1 + ((i * 3) % 28)).padStart(2, "0")}`,
+  };
+});
+const inrTotal = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const totalColumns: ColumnDef<TotalLine>[] = [
+  { accessorKey: "item", header: "Item" },
+  { accessorKey: "customer", header: "Customer" },
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" }, cell: (c) => <span className="zen-block zen-text-end zen-tabular-nums">{c.getValue<number>()}</span> },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" }, cell: (c) => <span className="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span> },
+  { accessorKey: "amount", header: "Amount", meta: { aggregate: "sum", formatTotal: (v) => `₹${inrTotal.format(v as number)}` }, cell: (c) => <span className="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span> },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
 /* -------------------------- demo ----------------------------------- */
 const NewDataTableDemo: React.FC = () => {
   const [serverPage, setServerPage] = useState(0);
@@ -979,6 +1006,36 @@ const columns = [
             enableColumnResizing
             enableExport
           />
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>26. Totals</h2>
+        <CodeExample
+          title="meta.aggregate: a total that computes itself, exact in decimal"
+          description="Sum, count, avg, min, max or your own function, per column. The footer totals every row the filters let through (across pages; totalsOver=&quot;page&quot; for this page only), stays in view as the rows scroll, and a grouped table shows each group's subtotal from the same declaration. Filter the Customer column and watch the totals follow."
+          code={`const columns: ColumnDef<Line>[] = [
+  { accessorKey: "item", header: "Item" },                       // "Total" goes here
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" } },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" } },
+  { accessorKey: "amount", header: "Amount",
+    meta: { aggregate: "sum", formatTotal: (v) => \`₹\${inr.format(v)}\` } },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+<DataTable data={lines} columns={columns} fillHeight enablePerColumnFilters />`}
+        >
+          <div className="zen-flex zen-h-80 zen-flex-col" data-testid="totals-table">
+            <DataTable data={LINES} columns={totalColumns} fillHeight enableColumnFilters enablePerColumnFilters />
+          </div>
+        </CodeExample>
+        <CodeExample
+          title="Grouped: each customer's subtotal, from the same declaration"
+          code={`<DataTable data={lines} columns={columns} enableGrouping initialGrouping={["customer"]} />`}
+        >
+          <div data-testid="totals-grouped">
+            <DataTable data={LINES} columns={totalColumns} enableGrouping initialGrouping={["customer"]} />
+          </div>
         </CodeExample>
       </section>
     </div>
