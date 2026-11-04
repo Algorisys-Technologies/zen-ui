@@ -23,6 +23,7 @@ import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
 import { type AnyZenComponent } from "../../lib/component";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * ScheduleGrid — the chrome every schedule chart needs, and none of what any
@@ -101,13 +102,13 @@ const SCROLLER_MAX_PX = 512;
 const CELL_FOCUS_CLASS =
   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-inset focus-visible:zen-ring-zen-ring";
 
-const VIEW_LABEL: Record<GanttView, string> = {
-  fit: "Fit",
-  day: "Day",
-  week: "Week",
-  month: "Month",
-  quarter: "Quarter",
-  year: "Year",
+const VIEW_LABEL: Record<GanttView, MessageKey> = {
+  fit: "scheduleGrid.views.fit",
+  day: "scheduleGrid.views.day",
+  week: "scheduleGrid.views.week",
+  month: "scheduleGrid.views.month",
+  quarter: "scheduleGrid.views.quarter",
+  year: "scheduleGrid.views.year",
 };
 
 /* Fit first: it is the default, and the one that answers "what does this plan
@@ -323,6 +324,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
   options: ScheduleGridOptions<R>,
 ): ScheduleGridHandle<R> {
   let current: ScheduleGridOptions<R> = { ...options };
+  const loc = useLocale();
 
   const root = el("div");
   const toolbarSlot = el("div");
@@ -611,7 +613,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
         Button({
           variant: "outline",
           size: "sm",
-          "aria-label": "Previous",
+          "aria-label": loc.t("scheduleGrid.previous"),
           // Logical, not physical: under RTL the axis runs the other way.
           children: keep(Icon({ name: "chevron-left", size: 14, class: "rtl:zen-rotate-180" })),
           onClick: () =>
@@ -622,7 +624,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
         Button({
           variant: "outline",
           size: "sm",
-          children: "Today",
+          children: loc.t("scheduleGrid.today"),
           onClick: () => current.onDateChange(current.now),
         }),
       );
@@ -630,7 +632,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
         Button({
           variant: "outline",
           size: "sm",
-          "aria-label": "Next",
+          "aria-label": loc.t("scheduleGrid.next"),
           children: keep(Icon({ name: "chevron-right", size: 14, class: "rtl:zen-rotate-180" })),
           onClick: () =>
             current.onDateChange(shiftGanttAnchor(current.axis.anchoredView, current.anchor, 1)),
@@ -655,14 +657,14 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
 
     const switcher = el("div", "zen-ms-auto zen-flex zen-gap-1");
     switcher.setAttribute("role", "group");
-    switcher.setAttribute("aria-label", "View");
+    switcher.setAttribute("aria-label", loc.t("scheduleGrid.view"));
     for (const v of current.views ?? ALL_VIEWS) {
       const button = keep(
         Button({
           variant: current.view === v ? "solid" : "outline",
           size: "sm",
           "aria-pressed": current.view === v,
-          children: VIEW_LABEL[v],
+          children: loc.t(VIEW_LABEL[v]),
           onClick: () => current.onViewChange(v),
         }),
       );
@@ -699,7 +701,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     const axis = el("div", "zen-flex");
     axis.setAttribute("role", "columnheader");
     axis.setAttribute("aria-colindex", String(current.timelineColIndex));
-    axis.setAttribute("aria-label", "Timeline");
+    axis.setAttribute("aria-label", loc.t("scheduleGrid.timeline"));
     axis.style.width = `${current.axis.axisWidth}px`;
     current.axis.columns.forEach((column, i) => {
       const cell = el(

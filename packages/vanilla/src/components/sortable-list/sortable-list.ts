@@ -9,6 +9,7 @@ import {
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, setChildren, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * SortableList — a list whose order the user can change.
@@ -77,6 +78,7 @@ const GRIP =
 
 export function SortableList(props: SortableListProps): ZenComponent<SortableListProps> {
   let current: SortableListProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -244,7 +246,7 @@ export function SortableList(props: SortableListProps): ZenComponent<SortableLis
     for (const spec of items) {
       const inert = disabled || (spec.disabled ?? false);
       const li = document.createElement("li");
-      li.setAttribute("aria-roledescription", "sortable item");
+      li.setAttribute("aria-roledescription", loc.t("sortableList.itemRoleDescription"));
       li.className = cn(
         "zen-flex zen-items-center zen-gap-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1.5",
         "zen-transition-shadow",
@@ -260,7 +262,7 @@ export function SortableList(props: SortableListProps): ZenComponent<SortableLis
            currently picked up. */
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.setAttribute("aria-label", spec.handleLabel ?? "Reorder");
+        btn.setAttribute("aria-label", spec.handleLabel ?? loc.t("sortableList.reorder"));
         btn.setAttribute("aria-pressed", "false");
         btn.disabled = inert;
         btn.className = cn(

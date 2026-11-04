@@ -51,6 +51,10 @@ const DATA_DRIVEN_DIVERGENT = [
   "InputHandle", "InputOTPGroup", "InputOTPSeparator", "InputOTPSlot", "MaskInputHandle", "NotificationsInboxHandle",
   // AmountField / QuantityField return a handle like NumberField's (parity A1).
   "AmountFieldHandle", "QuantityFieldHandle",
+  // LocaleProvider's settings without its children (unit S): what provideLocale()
+  // takes, which <zen-locale-provider> is built on. React and Solid have a
+  // context, so a provider never needs to be an element they hand a setting to.
+  "LocaleSettings",
   "ShortcutHelpHandle", "ShortcutRegistry",
   "NumberFieldHandle", "PasswordInputHandle", "PopoverAlign", "PopoverAnchor", "PopoverContent", "PopoverHandle", "PopoverSide",
   "PopoverTrigger", "RatingSize", "SearchHandle", "SelectDialogHandle", "SelectableCard", "SelectableCardItemSpec", "SheetClose",

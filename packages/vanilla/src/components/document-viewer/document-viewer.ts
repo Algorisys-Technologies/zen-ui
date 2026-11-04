@@ -12,6 +12,7 @@ import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
 import { applyProps, Disposer, toNodes, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * DocumentViewer — show a scanned document.
@@ -97,6 +98,7 @@ const FILE = svg(
 
 export function DocumentViewer(props: DocumentViewerProps): ZenComponent<DocumentViewerProps> {
   let current: DocumentViewerProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -267,7 +269,7 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
       mod = await import("pdfjs-dist");
     } catch {
       if (mine !== token) return;
-      fail("This is a PDF, and pdfjs-dist is not installed. Add it to render PDFs.");
+      fail("This is a PDF, and pdfjs-dist is not installed. Add it to render PDFs."); // i18n-ignore (a developer notice: install instructions)
       return;
     }
     if (mine !== token) return;
@@ -292,7 +294,7 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
       void renderPdfPage();
     } catch (e) {
       if (mine !== token) return;
-      fail(e instanceof Error ? e.message : "Could not open this PDF.");
+      fail(e instanceof Error ? e.message : loc.t("documentViewer.pdfFailed"));
     }
   };
 
@@ -336,7 +338,7 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
       return b.el;
     };
 
-    bar.append(iconButton(MINUS, "Zoom out", () => stepZoom(-1), z <= minZoom()));
+    bar.append(iconButton(MINUS, loc.t("documentViewer.zoomOut"), () => stepZoom(-1), z <= minZoom()));
 
     /* A live region: the percentage is the only feedback a zoom press gives, and
        a sighted user gets it for free. */
@@ -346,13 +348,13 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
     pct.textContent = PERCENT(z);
     bar.append(pct);
 
-    bar.append(iconButton(PLUS, "Zoom in", () => stepZoom(1), z >= maxZoom()));
+    bar.append(iconButton(PLUS, loc.t("documentViewer.zoomIn"), () => stepZoom(1), z >= maxZoom()));
 
-    const fitBtn = Button({ variant: "ghost", size: "sm", onClick: fitNow, children: "Fit" });
+    const fitBtn = Button({ variant: "ghost", size: "sm", onClick: fitNow, children: loc.t("documentViewer.fit") });
     barParts.push(fitBtn);
     bar.append(fitBtn.el);
 
-    bar.append(iconButton(ROTATE, "Rotate 90 degrees", rotate));
+    bar.append(iconButton(ROTATE, loc.t("documentViewer.rotate"), rotate));
 
     if (k === "pdf" && pageCount > 1) {
       const sep = document.createElement("span");
@@ -363,7 +365,7 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
       const prev = Button({
         variant: "ghost",
         size: "sm",
-        "aria-label": "Previous page",
+        "aria-label": loc.t("documentViewer.previousPage"),
         disabled: page() <= 1,
         onClick: () => setPageTo(page() - 1),
         children: Icon({ name: "chevron-left", size: 16, class: "rtl:zen-rotate-180" }),
@@ -379,7 +381,7 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
       const next = Button({
         variant: "ghost",
         size: "sm",
-        "aria-label": "Next page",
+        "aria-label": loc.t("documentViewer.nextPage"),
         disabled: page() >= pageCount,
         onClick: () => setPageTo(page() + 1),
         children: Icon({ name: "chevron-right", size: 16, class: "rtl:zen-rotate-180" }),
@@ -392,7 +394,7 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
       const spacer = document.createElement("span");
       spacer.className = "zen-ms-auto";
       bar.append(spacer);
-      bar.append(iconButton(DOWNLOAD, "Download", () => current.onDownload?.(srcUrl(), current.name)));
+      bar.append(iconButton(DOWNLOAD, loc.t("documentViewer.download"), () => current.onDownload?.(srcUrl(), current.name)));
     }
   };
 
@@ -412,7 +414,7 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
 
     if (k === "image") {
       img.src = srcUrl();
-      img.alt = current.name ?? "Document";
+      img.alt = current.name ?? loc.t("documentViewer.document");
       /* Sized rather than transformed: a CSS scale() leaves the element's layout
          box at its old size, so the scroller never learns the content grew and
          zooming past the frame just clips. */
@@ -431,14 +433,14 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
       icon.innerHTML = FILE;
       const p = document.createElement("p");
       p.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
-      p.append(...toNodes(current.unsupportedMessage ?? "No preview for this file type."));
+      p.append(...toNodes(current.unsupportedMessage ?? loc.t("documentViewer.noPreviewForThisFile")));
       box.append(icon, p);
       if (current.onDownload) {
         const dl = Button({
           variant: "outline",
           size: "sm",
           onClick: () => current.onDownload?.(srcUrl(), current.name),
-          children: "Download",
+          children: loc.t("documentViewer.download"),
         });
         barParts.push(dl);
         box.append(dl.el);
@@ -470,7 +472,7 @@ export function DocumentViewer(props: DocumentViewerProps): ZenComponent<Documen
     status = "ready";
     render();
   };
-  const onImgError = () => fail("Could not load this image.");
+  const onImgError = () => fail(loc.t("documentViewer.imageFailed"));
   img.addEventListener("load", onImgLoad);
   img.addEventListener("error", onImgError);
   disposer.add(() => {

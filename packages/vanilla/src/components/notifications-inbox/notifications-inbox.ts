@@ -1,6 +1,7 @@
 import { cn } from "../../lib/cn";
 import { toNodes, type Child, type ZenComponent } from "../../lib/component";
 import { Popover, type PopoverProps } from "../popover/popover";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * NotificationsInbox — bell-icon trigger that opens a Popover panel of
@@ -94,10 +95,10 @@ const startOfDay = (d: Date): Date => {
 const daysBetween = (a: Date, b: Date): number =>
   Math.round((startOfDay(b).getTime() - startOfDay(a).getTime()) / 86400000);
 
-const dayLabel = (d: Date, now: Date): string => {
+const dayLabel = (d: Date, now: Date, loc: LocaleContextValue): string => {
   const diff = daysBetween(d, now);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
+  if (diff === 0) return loc.t("notificationsInbox.today");
+  if (diff === 1) return loc.t("notificationsInbox.yesterday");
   if (diff < 7) return d.toLocaleDateString(undefined, { weekday: "long" });
   const sameYear = d.getFullYear() === now.getFullYear();
   return d.toLocaleDateString(undefined, {
@@ -107,12 +108,12 @@ const dayLabel = (d: Date, now: Date): string => {
   });
 };
 
-const relativeTime = (d: Date, now: Date): string => {
+const relativeTime = (d: Date, now: Date, loc: LocaleContextValue): string => {
   const sec = Math.floor((now.getTime() - d.getTime()) / 1000);
-  if (sec < 45) return "just now";
-  if (sec < 60 * 60) return `${Math.floor(sec / 60)}m ago`;
-  if (sec < 60 * 60 * 24) return `${Math.floor(sec / 3600)}h ago`;
-  if (sec < 60 * 60 * 24 * 7) return `${Math.floor(sec / 86400)}d ago`;
+  if (sec < 45) return loc.t("notificationsInbox.justNow");
+  if (sec < 60 * 60) return loc.t("notificationsInbox.minutesAgo", { count: Math.floor(sec / 60) });
+  if (sec < 60 * 60 * 24) return loc.t("notificationsInbox.hoursAgo", { count: Math.floor(sec / 3600) });
+  if (sec < 60 * 60 * 24 * 7) return loc.t("notificationsInbox.daysAgo", { count: Math.floor(sec / 86400) });
   return d.toLocaleDateString();
 };
 
@@ -121,10 +122,10 @@ interface Group {
   items: Notification[];
 }
 
-const groupByDay = (notifications: Notification[], now: Date): Group[] => {
+const groupByDay = (notifications: Notification[], now: Date, loc: LocaleContextValue): Group[] => {
   const groups: Group[] = [];
   for (const n of notifications) {
-    const label = dayLabel(toDate(n.timestamp), now);
+    const label = dayLabel(toDate(n.timestamp), now, loc);
     const tail = groups[groups.length - 1];
     if (tail && tail.label === label) tail.items.push(n);
     else groups.push({ label, items: [n] });
@@ -160,6 +161,7 @@ const emptyState = (message: Child): HTMLElement => {
 const buildRow = (
   n: Notification,
   now: Date,
+  loc: LocaleContextValue,
   onSelect?: (n: Notification) => void,
 ): HTMLElement => {
   const interactive = !!onSelect || !!n.href;
@@ -203,7 +205,7 @@ const buildRow = (
   const time = document.createElement("span");
   time.className =
     "zen-text-[0.65rem] zen-uppercase zen-tracking-wide zen-text-zen-muted-fg";
-  time.textContent = relativeTime(toDate(n.timestamp), now);
+  time.textContent = relativeTime(toDate(n.timestamp), now, loc);
   meta.append(time);
   if (n.actions) {
     const actionsWrap = document.createElement("div");
@@ -262,11 +264,12 @@ export function NotificationsInbox(
   props: NotificationsInboxProps,
 ): NotificationsInboxHandle {
   let current: NotificationsInboxProps = { ...props };
+  const loc = useLocale();
 
   const trigger = document.createElement("button");
   trigger.type = "button";
 
-  const label = () => current.triggerLabel ?? "Notifications";
+  const label = () => current.triggerLabel ?? loc.t("notificationsInbox.notifications");
   const badgeMax = () => current.badgeMax ?? 99;
   const computedUnread = () =>
     current.unreadCount ?? current.notifications.filter((n) => !n.read).length;
@@ -286,7 +289,7 @@ export function NotificationsInbox(
     );
     trigger.setAttribute(
       "aria-label",
-      hasUnread ? `${label()}, ${unread} unread` : label(),
+      hasUnread ? loc.t("notificationsInbox.unread", { label: label(), count: unread }) : label(),
     );
 
     trigger.replaceChildren(bellIcon());
@@ -310,7 +313,7 @@ export function NotificationsInbox(
   const buildPanel = (): Node[] => {
     // Captured once so every relative-time calc in this pass agrees.
     const now = new Date();
-    const groups = groupByDay(current.notifications, now);
+    const groups = groupByDay(current.notifications, now, loc);
     const unread = computedUnread();
     const hasUnread = unread > 0;
 
@@ -337,7 +340,7 @@ export function NotificationsInbox(
         "hover:zen-underline focus-visible:zen-outline-none focus-visible:zen-underline",
         "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-p-0",
       );
-      markBtn.textContent = "Mark all as read";
+      markBtn.textContent = loc.t("notificationsInbox.markAllAsRead");
       markBtn.addEventListener("click", () => current.onMarkAllRead?.());
       header.append(markBtn);
     }
@@ -349,7 +352,7 @@ export function NotificationsInbox(
     list.style.overflowY = "auto";
 
     if (groups.length === 0) {
-      list.append(emptyState(current.emptyMessage ?? "You're all caught up."));
+      list.append(emptyState(current.emptyMessage ?? loc.t("notificationsInbox.youReAllCaughtUp")));
     } else {
       for (const g of groups) {
         const section = document.createElement("section");
@@ -360,7 +363,7 @@ export function NotificationsInbox(
         h4.textContent = g.label;
         const ul = document.createElement("ul");
         ul.className = "zen-list-none zen-p-0 zen-m-0";
-        for (const n of g.items) ul.append(buildRow(n, now, current.onItemSelect));
+        for (const n of g.items) ul.append(buildRow(n, now, loc, current.onItemSelect));
         section.append(h4, ul);
         list.append(section);
       }
@@ -378,7 +381,7 @@ export function NotificationsInbox(
         "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-bg-zen-muted",
         "zen-bg-transparent zen-border-0 zen-cursor-pointer",
       );
-      viewBtn.textContent = "View all";
+      viewBtn.textContent = loc.t("notificationsInbox.viewAll");
       viewBtn.addEventListener("click", () => current.onViewAll?.());
       footer.append(viewBtn);
       nodes.push(footer);

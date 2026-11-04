@@ -1,6 +1,7 @@
 import { cn } from "../../lib/cn";
 import { Disposer, type BaseProps, type ZenComponent, type Child } from "../../lib/component";
 import { toNodes } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * Camera — webcam capture. The vanilla port of the React reference.
@@ -57,13 +58,14 @@ export interface CameraHandle extends ZenComponent<CameraProps> {
 }
 
 export function Camera(props: CameraProps = {}): CameraHandle {
+  const loc = useLocale();
   let current: CameraProps = {
     width: 480,
     height: 360,
     facingMode: "user",
     screenshotFormat: "image/jpeg",
     mirrored: true,
-    captureLabel: "Capture",
+    captureLabel: loc.t("camera.capture"),
     ...props,
   };
 
@@ -149,11 +151,11 @@ export function Camera(props: CameraProps = {}): CameraHandle {
     stopStream();
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      showStatus("Camera is not available in this browser.");
+      showStatus(loc.t("camera.unavailable"));
       return;
     }
 
-    showStatus("Loading camera…");
+    showStatus(loc.t("camera.loading"));
     try {
       const next = await navigator.mediaDevices.getUserMedia({
         audio: false,
@@ -177,10 +179,10 @@ export function Camera(props: CameraProps = {}): CameraHandle {
       const name = (err as DOMException)?.name;
       showStatus(
         name === "NotAllowedError" || name === "SecurityError"
-          ? "Camera permission denied."
+          ? loc.t("camera.permissionDenied")
           : name === "NotFoundError"
-            ? "No camera device was found."
-            : "Could not start the camera.",
+            ? loc.t("camera.notFound")
+            : loc.t("camera.failed"),
       );
     }
   };

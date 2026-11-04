@@ -1,5 +1,6 @@
 import { cn } from "../../lib/cn";
 import { applyProps, type BaseProps, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * Pagination — standalone, controlled page navigator. zen-ui's DataTable has
@@ -95,8 +96,9 @@ const OWN = new Set([
 
 export function Pagination(props: PaginationProps): ZenComponent<PaginationProps> {
   let current = { ...props };
+  const loc = useLocale();
   const el = document.createElement("nav");
-  el.setAttribute("aria-label", "pagination");
+  el.setAttribute("aria-label", loc.t("pagination.label"));
   let removeRest: (() => void) | undefined;
 
   const render = () => {
@@ -131,7 +133,7 @@ export function Pagination(props: PaginationProps): ZenComponent<PaginationProps
     if (!hidePrevNext) {
       nodes.push(
         arrowButton({
-          label: "Go to previous page",
+          label: loc.t("pagination.previous"),
           glyph: "‹",
           disabled: page <= 1,
           onClick: () => go(page - 1),
@@ -167,7 +169,7 @@ export function Pagination(props: PaginationProps): ZenComponent<PaginationProps
     if (!hidePrevNext) {
       nodes.push(
         arrowButton({
-          label: "Go to next page",
+          label: loc.t("pagination.next"),
           glyph: "›",
           disabled: page >= pageCount,
           onClick: () => go(page + 1),

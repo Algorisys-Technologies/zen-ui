@@ -7,6 +7,7 @@ import {
   type Child,
   type ZenComponent,
 } from "./component";
+import { useLocale, type LocaleContextValue } from "../components/locale/locale";
 
 /**
  * `styled` — a factory for the commonest shape in this library: a styled element
@@ -40,8 +41,11 @@ export interface StyledConfig<P> {
    * so they do not leak onto the element as stray attributes.
    */
   own?: readonly (keyof P)[];
-  /** Extra attributes to set, computed from props (role, aria-*, type, …). */
-  attrs?: (props: P) => Record<string, unknown>;
+  /**
+   * Extra attributes to set, computed from props (role, aria-*, type, …). `loc`
+   * is the locale the element was built in, for a built-in label's words.
+   */
+  attrs?: (props: P, loc: LocaleContextValue) => Record<string, unknown>;
   /** A fixed role, shorthand for the common case. */
   role?: string;
 }
@@ -53,6 +57,7 @@ export function styled<P extends BaseProps = BaseProps>(
 
   return (props?: P) => {
     let current = { ...(props ?? {}) } as P;
+    const loc = useLocale();
     const el = document.createElement(config.tag);
     const disposer = new Disposer();
     let removeProps: (() => void) | undefined;
@@ -73,7 +78,7 @@ export function styled<P extends BaseProps = BaseProps>(
       for (const [k, v] of Object.entries(current)) {
         if (!interpreted.has(k)) rest[k] = v;
       }
-      if (config.attrs) Object.assign(rest, config.attrs(current));
+      if (config.attrs) Object.assign(rest, config.attrs(current, loc));
 
       removeProps?.();
       removeProps = applyProps(el, rest);

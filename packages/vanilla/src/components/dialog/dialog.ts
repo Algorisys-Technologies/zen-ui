@@ -12,6 +12,7 @@ import { focusTrap } from "../../lib/focus-trap";
 import { portal } from "../../lib/portal";
 import { scrollLock } from "../../lib/scroll-lock";
 import { setPresence } from "../../lib/presence";
+import { useLocale } from "../locale/locale";
 
 /**
  * Dialog — the vanilla port of the React reference.
@@ -77,6 +78,7 @@ export interface DialogHandle extends ZenComponent<DialogProps> {
 
 export function Dialog(props: DialogProps): DialogHandle {
   let current: DialogProps = { ...props };
+  const loc = useLocale();
   const id = `zen-dialog-${++uid}`;
   let open = false;
   /** Everything that must be released when the dialog closes, not when it dies. */
@@ -181,7 +183,7 @@ export function Dialog(props: DialogProps): DialogHandle {
     if (showCloseButton) {
       const close = document.createElement("button");
       close.type = "button";
-      close.setAttribute("aria-label", "Close");
+      close.setAttribute("aria-label", loc.t("common.close"));
       close.className = cn(
         "zen-absolute zen-end-3 zen-top-3 zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center",
         "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg",

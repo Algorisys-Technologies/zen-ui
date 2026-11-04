@@ -8,6 +8,7 @@ import {
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, setChildren, toNodes, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * TimerBadge and TestCountdownBar — how long is left, and what that means.
@@ -136,6 +137,7 @@ export interface TimerBadgeProps extends CountdownCore, BaseProps {
 
 export function TimerBadge(props: TimerBadgeProps): ZenComponent<TimerBadgeProps> {
   let current: TimerBadgeProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -166,14 +168,14 @@ export function TimerBadge(props: TimerBadgeProps): ZenComponent<TimerBadgeProps
       level === "critical" && "zen-animate-pulse motion-reduce:zen-animate-none",
       className,
     );
-    el.setAttribute("aria-label", typeof label === "string" ? `${label}: ${text} remaining` : `${text} remaining`);
+    el.setAttribute("aria-label", typeof label === "string" ? loc.t("countdown.labelRemaining", { label, time: text }) : loc.t("countdown.remaining", { time: text }));
 
     figure.className = cn(size === "sm" ? "zen-text-sm" : "zen-text-base", "zen-font-semibold");
     figure.textContent = text;
 
     /* The state in words, for anyone who cannot use the colour. */
     sr.textContent =
-      level === "critical" && ms > 0 ? "Less than a minute remaining" : level === "expired" ? "Time is up" : "";
+      level === "critical" && ms > 0 ? loc.t("countdown.lessThanAMinuteRemaining") : level === "expired" ? loc.t("countdown.timeIsUp") : "";
 
     el.replaceChildren();
     if (label !== undefined && label !== null && label !== false) {
@@ -235,6 +237,7 @@ export interface TestCountdownBarProps extends CountdownCore, BaseProps {
  */
 export function TestCountdownBar(props: TestCountdownBarProps): ZenComponent<TestCountdownBarProps> {
   let current: TestCountdownBarProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -242,7 +245,7 @@ export function TestCountdownBar(props: TestCountdownBarProps): ZenComponent<Tes
 
   /* ONE badge instance, which is what makes the callbacks fire once rather than
      twice: the bar's own clock only paints the border. */
-  const badge = TimerBadge({ label: "Time left", ...countOf(current) });
+  const badge = TimerBadge({ label: loc.t("countdown.timeLeft"), ...countOf(current) });
   disposer.add(() => badge.destroy());
 
   const paint = ({ level }: Reading) => {
@@ -302,7 +305,7 @@ export function TestCountdownBar(props: TestCountdownBarProps): ZenComponent<Tes
     el,
     update(next) {
       current = { ...current, ...next };
-      badge.update({ label: "Time left", ...countOf(current) });
+      badge.update({ label: loc.t("countdown.timeLeft"), ...countOf(current) });
       render();
       (stop as { resync?: () => void }).resync?.();
     },

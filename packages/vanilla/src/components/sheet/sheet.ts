@@ -13,6 +13,7 @@ import { focusTrap } from "../../lib/focus-trap";
 import { portal } from "../../lib/portal";
 import { scrollLock } from "../../lib/scroll-lock";
 import { setPresence } from "../../lib/presence";
+import { useLocale } from "../locale/locale";
 
 /**
  * Sheet / Drawer — the vanilla port of the React reference.
@@ -124,6 +125,7 @@ export interface SheetHandle extends ZenComponent<SheetProps> {
 
 export function Sheet(props: SheetProps): SheetHandle {
   let current: SheetProps = { ...props };
+  const loc = useLocale();
   const id = `zen-sheet-${++uid}`;
   let open = false;
   /** Everything released when the sheet closes, not when it dies. */
@@ -197,7 +199,7 @@ export function Sheet(props: SheetProps): SheetHandle {
     if (showCloseButton) {
       const close = document.createElement("button");
       close.type = "button";
-      close.setAttribute("aria-label", "Close sheet");
+      close.setAttribute("aria-label", loc.t("sheet.closeSheet"));
       close.className = cn(
         "zen-absolute zen-top-3 zen-end-3 zen-inline-flex zen-items-center zen-justify-center",
         "zen-h-7 zen-w-7 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",

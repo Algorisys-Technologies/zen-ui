@@ -1,5 +1,6 @@
 import { cn } from "../../../lib/cn";
 import { applyProps, Disposer, type ZenComponent } from "../../../lib/component";
+import { useLocale } from "../../locale/locale";
 
 /**
  * Search — a search input as a component, not a pattern reinvented per screen.
@@ -50,6 +51,7 @@ const FIELD_BASE =
 
 export function Search(props: SearchProps): SearchHandle {
   let current: SearchProps = { ...props };
+  const loc = useLocale();
   let internal = current.defaultValue ?? "";
 
   const isControlled = () => current.value !== undefined;
@@ -107,7 +109,7 @@ export function Search(props: SearchProps): SearchHandle {
     if (name !== undefined) input.name = name;
     if (id !== undefined) input.id = id;
 
-    clearBtn.setAttribute("aria-label", clearLabel ?? "Clear search");
+    clearBtn.setAttribute("aria-label", clearLabel ?? loc.t("search.clear"));
     // Inline style, not the `hidden` attribute: `hidden` sets display:none via the
     // UA stylesheet, and the button's own `zen-inline-flex` class is an author rule
     // that beats it — so `hidden` would leave the × visible on an empty field.

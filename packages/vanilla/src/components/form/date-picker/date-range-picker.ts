@@ -4,6 +4,7 @@ import { controllable } from "../../../lib/state";
 import { Button } from "../../button/button";
 import { Popover } from "../../popover/popover";
 import { Calendar, type DateRange } from "./date-picker";
+import { useLocale } from "../../locale/locale";
 
 /**
  * DateRangePicker — the vanilla binding's port.
@@ -66,6 +67,7 @@ export function DateRangePicker(
   props: DateRangePickerProps,
 ): ZenComponent<DateRangePickerProps> {
   let current: DateRangePickerProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   // The committed value: controlled when `value` is present, uncontrolled otherwise.
@@ -85,7 +87,7 @@ export function DateRangePicker(
 
   const label = (): string => {
     const r = state.get();
-    if (!r?.from) return current.placeholder ?? "Pick a date range";
+    if (!r?.from) return current.placeholder ?? loc.t("dateRangePicker.placeholder");
     if (!r.to) return fmt(r.from);
     return `${fmt(r.from)} – ${fmt(r.to)}`;
   };
@@ -131,7 +133,7 @@ export function DateRangePicker(
     variant: "ghost",
     color: "neutral",
     size: "sm",
-    children: current.cancelLabel ?? "Cancel",
+    children: current.cancelLabel ?? loc.t("common.cancel"),
     onClick: () => handleCancel(),
   });
 
@@ -141,7 +143,7 @@ export function DateRangePicker(
     color: "primary",
     size: "sm",
     disabled: !isCompleteRange(draft),
-    children: current.doneLabel ?? "Done",
+    children: current.doneLabel ?? loc.t("common.done"),
     onClick: () => handleDone(),
   });
 
@@ -237,9 +239,9 @@ export function DateRangePicker(
       }
       refreshTrigger();
       paintCalendar();
-      cancelBtn.update({ children: current.cancelLabel ?? "Cancel" });
+      cancelBtn.update({ children: current.cancelLabel ?? loc.t("common.cancel") });
       doneBtn.update({
-        children: current.doneLabel ?? "Done",
+        children: current.doneLabel ?? loc.t("common.done"),
         disabled: !isCompleteRange(draft),
       });
     },

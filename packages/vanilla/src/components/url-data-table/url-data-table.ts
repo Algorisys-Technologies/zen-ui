@@ -10,6 +10,7 @@ import {
   type DataTableColumn,
   type SortingState,
 } from "../data-table/data-table";
+import { useLocale } from "../locale/locale";
 
 /**
  * UrlDataTable — a DataTable whose entire state lives in the URL.
@@ -186,6 +187,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
   props: UrlDataTableProps<TRow>,
 ): ZenComponent<UrlDataTableProps<TRow>> {
   let current: UrlDataTableProps<TRow> = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const root = el("div", cn("zen-flex zen-flex-col zen-gap-3", current.class));
@@ -240,7 +242,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
               ? "zen-font-medium zen-text-zen-success"
               : "zen-text-zen-muted-fg",
           );
-          span.textContent = value ? "Yes" : "No";
+          span.textContent = loc.t(value ? "dataTable.yes" : "dataTable.no");
           return span;
         }
 
@@ -271,7 +273,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
     if (current.actions) {
       defs.push({
         id: "__actions",
-        header: current.actionsLabel ?? "Actions",
+        header: current.actionsLabel ?? loc.t("dataTable.actions"),
         enableSorting: false,
         cell: (info: DataTableCellContext<TRow>): Child => {
           const wrap = el("div", "zen-whitespace-nowrap zen-text-center");
@@ -303,7 +305,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
       ? (value: string) =>
           commit((next) => setOrDelete(next, names().search, value.trim()))
       : undefined,
-    globalFilterPlaceholder: current.searchPlaceholder ?? "Search…",
+    globalFilterPlaceholder: current.searchPlaceholder ?? loc.t("dataTable.search"),
     manualPagination: {
       pageIndex: Math.max(0, (current.page ?? 1) - 1),
       pageCount: Math.max(1, current.pageCount ?? 1),
@@ -368,7 +370,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
   const renderFooter = () => {
     if (typeof current.totalCount === "number") {
       footer.hidden = false;
-      footer.textContent = `Showing ${current.rows.length} of ${current.totalCount}`;
+      footer.textContent = loc.t("urlDataTable.showing", { shown: current.rows.length, total: current.totalCount });
     } else {
       footer.hidden = true;
       footer.textContent = "";

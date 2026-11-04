@@ -26,7 +26,7 @@ import { Select, type SelectOption } from "../form/select/select";
 import { DateInput } from "../form/date-picker/date-input";
 import { MultiCombobox } from "../combobox/multi-combobox";
 import { Icon } from "../icon/icon";
-import { useLocale, type MessageKey } from "../locale/locale";
+import { useLocale, withLocale, type MessageKey } from "../locale/locale";
 
 export type { FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator };
 
@@ -230,7 +230,9 @@ export function FilterBuilder(props: FilterBuilderProps): ZenComponent<FilterBui
 
   /* ---------------- a condition row ---------------- */
 
-  const ConditionView = (id: string, parentId: string, first: FilterCondition): View => {
+  // Built later than the factory call, so inside the locale it was built in (see withLocale).
+  const ConditionView = (id: string, parentId: string, first: FilterCondition): View => withLocale(loc, () => ConditionViewNow(id, parentId, first));
+  const ConditionViewNow = (id: string, parentId: string, first: FilterCondition): View => {
     let c = first;
     const disposer = new Disposer();
     const el = h("div", "zen-flex zen-flex-wrap zen-items-center zen-gap-2");

@@ -3,6 +3,7 @@ import { arrowStep } from "@algorisys/zen-ui-core";
 import { applyProps, Disposer, toNodes, type Child, type ZenComponent } from "../../../lib/component";
 import { controllable } from "../../../lib/state";
 import "./otp.css";
+import { useLocale } from "../../locale/locale";
 
 /**
  * InputOTP — one `<input>` per digit. Zero-dependency one-time-code field with
@@ -102,6 +103,7 @@ const SLOT_BASE = cn(
 
 export function InputOTP(props: InputOTPProps): ZenComponent<InputOTPProps> {
   let current: InputOTPProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
@@ -161,7 +163,7 @@ export function InputOTP(props: InputOTPProps): ZenComponent<InputOTPProps> {
     input.type = "text";
     input.inputMode = "numeric";
     input.autocomplete = index === 0 ? "one-time-code" : "off";
-    input.setAttribute("aria-label", `Digit ${index + 1} of ${maxLength}`);
+    input.setAttribute("aria-label", loc.t("otp.digit", { n: index + 1, count: maxLength }));
     input.disabled = Boolean(current.disabled);
     input.value = state.get()[index] ?? "";
     input.className = cn(SLOT_BASE, current.slotClassName);

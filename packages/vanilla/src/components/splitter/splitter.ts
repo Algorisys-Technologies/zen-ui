@@ -10,6 +10,7 @@ import {
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, setChildren, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * Splitter — panes a user can resize by dragging the divider between them.
@@ -64,6 +65,7 @@ let uid = 0;
 
 export function Splitter(props: SplitterProps): ZenComponent<SplitterProps> {
   let current: SplitterProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -173,7 +175,7 @@ export function Splitter(props: SplitterProps): ZenComponent<SplitterProps> {
          cannot reach is worse than one that announces none. */
       handle.setAttribute("aria-valuemin", String(Math.round(bounds.min)));
       handle.setAttribute("aria-valuemax", String(Math.round(bounds.max)));
-      handle.setAttribute("aria-label", current.panels[i]?.handleLabel ?? "Resize panels");
+      handle.setAttribute("aria-label", current.panels[i]?.handleLabel ?? loc.t("splitter.resizePanels"));
       handle.setAttribute("aria-controls", panelEls[i]?.id ?? "");
       handle.tabIndex = inert ? -1 : 0;
       if (inert) handle.setAttribute("aria-disabled", "true");

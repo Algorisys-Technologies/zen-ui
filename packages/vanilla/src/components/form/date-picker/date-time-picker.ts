@@ -5,6 +5,7 @@ import { Button } from "../../button/button";
 import { Popover } from "../../popover/popover";
 import { Calendar, type CalendarSelected } from "./date-picker";
 import { TimePicker } from "../time-picker/time-picker";
+import { useLocale } from "../../locale/locale";
 
 /**
  * DateTimePicker — the vanilla binding's port.
@@ -97,6 +98,7 @@ const calendarIcon = (): Node => {
 
 export function DateTimePicker(props: DateTimePickerProps = {}): DateTimePickerHandle {
   let current: DateTimePickerProps = { ...props };
+  const loc = useLocale();
 
   const state = controllable<Date | undefined>({
     value: current.value,
@@ -118,7 +120,7 @@ export function DateTimePicker(props: DateTimePickerProps = {}): DateTimePickerH
 
   const triggerLabel = (): string => {
     const d = state.get();
-    return d ? `${fmtDate(d)} ${fmtTime(d)}` : current.placeholder ?? "Pick date & time";
+    return d ? `${fmtDate(d)} ${fmtTime(d)}` : current.placeholder ?? loc.t("dateTimePicker.placeholder");
   };
 
   const buttonClass = (): string =>
@@ -188,7 +190,7 @@ export function DateTimePicker(props: DateTimePickerProps = {}): DateTimePickerH
     "zen-flex zen-items-center zen-justify-between zen-gap-3 zen-border-t zen-border-zen-border zen-px-3 zen-py-2.5";
   const timeLabel = document.createElement("label");
   timeLabel.className = "zen-text-xs zen-text-zen-muted-fg";
-  timeLabel.textContent = "Time";
+  timeLabel.textContent = loc.t("dateTimePicker.time");
   timeRow.append(timeLabel, timePicker.el);
 
   const popover = Popover({

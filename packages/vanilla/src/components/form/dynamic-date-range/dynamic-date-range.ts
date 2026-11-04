@@ -1,6 +1,7 @@
 import {
   DATE_RANGE_OPERATORS,
   formatDateRangeValue,
+  type DateRangeTranslate,
   operatorMeta,
   parseISODate,
   resolveDateRange,
@@ -21,6 +22,7 @@ import { Icon } from "../../icon/icon";
 import { Input } from "../input/input";
 import { Popover } from "../../popover/popover";
 import { Calendar, type DateRange } from "../date-picker/date-picker";
+import { useLocale, withLocale, type MessageKey } from "../../locale/locale";
 
 /**
  * DynamicDateRange — a date range you describe rather than point at.
@@ -63,13 +65,14 @@ export interface DynamicDateRangeProps {
   class?: string;
 }
 
-const GROUP_ORDER = ["Day", "Week", "Month", "Quarter", "Year", "Rolling", "Fixed"] as const;
+// Core's group ids (shown through dateRange.group.*), not words.
+const GROUP_ORDER = ["Day", "Week", "Month", "Quarter", "Year", "Rolling", "Fixed"] as const; // i18n-ignore (ids)
 
 /** "1 Jul – 7 Jul", "from 1 Jul", "until 7 Jul". */
-const describe = (r: ResolvedRange, formatDate: (d: Date) => string): string => {
-  if (r.from && r.to) return `${formatDate(r.from)} – ${formatDate(r.to)}`;
-  if (r.from) return `from ${formatDate(r.from)}`;
-  if (r.to) return `until ${formatDate(r.to)}`;
+const describe = (r: ResolvedRange, formatDate: (d: Date) => string, say: DateRangeTranslate): string => {
+  if (r.from && r.to) return say("dateRange.span", { from: formatDate(r.from), to: formatDate(r.to) });
+  if (r.from) return say("dateRange.from", { date: formatDate(r.from) });
+  if (r.to) return say("dateRange.until", { date: formatDate(r.to) });
   return "—";
 };
 
@@ -79,6 +82,9 @@ type BetweenValue = Extract<DateRangeValue, { operator: "BETWEEN" }>;
 
 export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<DynamicDateRangeProps> {
   let current: DynamicDateRangeProps = { ...props };
+  const loc = useLocale();
+  // Core builds its phrases by catalogue key through this, so a translation reaches them too.
+  const say: DateRangeTranslate = (key, values) => loc.t(key as MessageKey, values);
   const weekStartsOn = () => current.weekStartsOn ?? 0;
   const fmt = (d: Date): string =>
     (current.formatDate ?? ((x: Date) => x.toLocaleDateString()))(d);
@@ -113,13 +119,13 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
 
   const paintTrigger = () => {
     const v = state.get();
-    labelSpan.textContent = v ? formatDateRangeValue(v, fmt) : current.placeholder ?? "Select a period";
+    labelSpan.textContent = v ? formatDateRangeValue(v, fmt, say) : current.placeholder ?? loc.t("dynamicDateRange.selectAPeriod");
     labelSpan.classList.toggle("zen-text-zen-muted-fg", !v);
     const resolvedNow = v ? resolveDateRange(v, clock, { weekStartsOn: weekStartsOn() }) : {};
     if (v && (resolvedNow.from || resolvedNow.to)) {
       // The trigger says "Last 7 days"; this says which 7. Both matter — the name
       // is the intent, the dates are the fact.
-      resolvedSpan.textContent = `(${describe(resolvedNow, fmt)})`;
+      resolvedSpan.textContent = `(${describe(resolvedNow, fmt, say)})`;
       resolvedSpan.hidden = false;
     } else {
       resolvedSpan.hidden = true;
@@ -132,7 +138,7 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
 
   const listbox = document.createElement("div");
   listbox.setAttribute("role", "listbox");
-  listbox.setAttribute("aria-label", "Period");
+  listbox.setAttribute("aria-label", loc.t("dynamicDateRange.period"));
   listbox.className =
     "zen-max-h-72 zen-w-48 zen-shrink-0 zen-overflow-y-auto zen-border-b zen-border-zen-border zen-p-1 sm:zen-border-b-0 sm:zen-border-r";
 
@@ -174,14 +180,14 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
       const heading = document.createElement("div");
       heading.className =
         "zen-px-2 zen-pb-1 zen-pt-2 zen-text-xs zen-font-medium zen-uppercase zen-tracking-wide zen-text-zen-muted-fg";
-      heading.textContent = group;
+      heading.textContent = loc.t(`dateRange.group.${group}` as MessageKey);
       listbox.append(heading);
 
       for (const o of items) {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.setAttribute("role", "option");
-        btn.textContent = o.label;
+        btn.textContent = loc.t(`dateRange.op.${o.operator}`);
         paintOption(btn, draft?.operator === o.operator);
         btn.addEventListener("click", () => pick(o.operator));
         listbox.append(btn);
@@ -198,11 +204,13 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
   const refreshPreview = () => {
     const preview = resolveDateRange(draft, clock, { weekStartsOn: weekStartsOn() });
     const valid = !!(preview.from || preview.to);
-    if (previewEl) previewEl.textContent = valid ? describe(preview, fmt) : "—";
+    if (previewEl) previewEl.textContent = valid ? describe(preview, fmt, say) : "—";
     applyBtn?.update({ disabled: !draft || !valid });
   };
 
-  const rebuildPane = () => {
+  // Built later than the factory call, so inside the locale it was built in (see withLocale).
+  const rebuildPane = () => withLocale(loc, () => rebuildPaneNow());
+  const rebuildPaneNow = () => {
     paneDisposer.dispose();
     paneDisposer = new Disposer();
     pane.replaceChildren();
@@ -214,7 +222,7 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
     if (!draft) {
       const p = document.createElement("p");
       p.className = "zen-m-0 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      p.textContent = "Pick a period on the left.";
+      p.textContent = loc.t("dynamicDateRange.pickAPeriodOnThe");
       pane.append(p);
     }
 
@@ -226,12 +234,12 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
       row.className = "zen-flex zen-items-center zen-gap-2 zen-text-sm";
       const dir = document.createElement("span");
       dir.className = "zen-text-zen-muted-fg";
-      dir.textContent = draft.operator.startsWith("LAST") ? "Last" : "Next";
+      dir.textContent = loc.t(draft.operator.startsWith("LAST") ? "dynamicDateRange.last" : "dynamicDateRange.next");
 
       const input = Input({
         type: "number",
         value: String(draft.count),
-        "aria-label": `Number of ${meta.unit}s`,
+        "aria-label": loc.t(`dynamicDateRange.numberOf.${meta.unit}` as MessageKey),
         class: "zen-h-8 zen-w-20",
         onInput: (e) => {
           const n = Number((e.target as HTMLInputElement).value);
@@ -246,7 +254,7 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
 
       const unit = document.createElement("span");
       unit.className = "zen-text-zen-muted-fg";
-      unit.textContent = `${meta.unit}s`;
+      unit.textContent = loc.t(`dynamicDateRange.units.${meta.unit}` as MessageKey);
       row.append(dir, input.el, unit);
 
       const inclLabel = document.createElement("label");
@@ -262,7 +270,7 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
       });
       // Named for what it does to the dates, not "includeCurrent" — the whole
       // hazard is that the difference is invisible.
-      inclLabel.append(cb, document.createTextNode(`Include the current ${meta.unit}`));
+      inclLabel.append(cb, document.createTextNode(loc.t(`dynamicDateRange.includeCurrent.${meta.unit}` as MessageKey)));
 
       wrap.append(row, inclLabel);
       pane.append(wrap);
@@ -320,12 +328,12 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
       variant: "ghost",
       color: "neutral",
       size: "sm",
-      children: "Cancel",
+      children: loc.t("dynamicDateRange.cancel"),
       onClick: () => popover.close(),
     });
     applyBtn = Button({
       size: "sm",
-      children: "Apply",
+      children: loc.t("dynamicDateRange.apply"),
       onClick: () => commit(),
     });
     paneDisposer.add(() => cancel.destroy());

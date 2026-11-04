@@ -11,6 +11,7 @@ import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Progress } from "../progress/progress";
 import { applyProps, Disposer, type BaseProps, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * ChunkUploader — a large file, sent in pieces, with progress you can pause and
@@ -81,6 +82,7 @@ const formatBytes = (n: number): string => {
 
 export function ChunkUploader(props: ChunkUploaderProps): ZenComponent<ChunkUploaderProps> {
   let current: ChunkUploaderProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -199,7 +201,7 @@ export function ChunkUploader(props: ChunkUploaderProps): ZenComponent<ChunkUplo
     if (!file) {
       el.replaceChildren();
       el.className = cn("zen-m-0 zen-text-sm zen-text-zen-muted-fg", className);
-      el.textContent = "No file selected.";
+      el.textContent = loc.t("chunkUploader.noFileSelected");
       applyRest();
       return;
     }
@@ -215,7 +217,7 @@ export function ChunkUploader(props: ChunkUploaderProps): ZenComponent<ChunkUplo
     nameEl.className = "zen-min-w-0 zen-truncate zen-text-sm zen-font-medium zen-text-zen-foreground";
     nameEl.textContent = file.name;
     countsEl.className = "zen-shrink-0 zen-text-xs zen-tabular-nums zen-text-zen-muted-fg";
-    countsEl.textContent = `${formatBytes(bytesDone)} / ${formatBytes(file.size)} · ${done}/${chunks.length} chunks`;
+    countsEl.textContent = loc.t("chunkUploader.progress", { done: formatBytes(bytesDone), size: formatBytes(file.size), chunk: done, chunks: chunks.length });
     head.replaceChildren(nameEl, countsEl);
     el.append(head);
 
@@ -235,14 +237,14 @@ export function ChunkUploader(props: ChunkUploaderProps): ZenComponent<ChunkUplo
     statusEl.className = cn("zen-text-xs", status === "error" ? "zen-text-zen-error" : "zen-text-zen-muted-fg");
     statusEl.textContent =
       status === "complete"
-        ? "Uploaded"
+        ? loc.t("chunkUploader.uploaded")
         : status === "error"
-          ? `Failed: ${errorText}`
+          ? loc.t("chunkUploader.failed", { error: errorText })
           : status === "paused"
-            ? "Paused"
+            ? loc.t("chunkUploader.paused")
             : status === "uploading"
               ? `${percent}%`
-              : "Ready";
+              : loc.t("chunkUploader.ready");
 
     buttons.className = "zen-ms-auto zen-flex zen-gap-2";
     buttons.replaceChildren();
@@ -254,7 +256,7 @@ export function ChunkUploader(props: ChunkUploaderProps): ZenComponent<ChunkUplo
         onClick: () => {
           paused = true;
         },
-        children: "Pause",
+        children: loc.t("chunkUploader.pause"),
       });
       btnParts.push(pause);
       buttons.append(pause.el);
@@ -264,7 +266,7 @@ export function ChunkUploader(props: ChunkUploaderProps): ZenComponent<ChunkUplo
       const go = Button({
         size: "sm",
         onClick: () => void run(),
-        children: status === "error" ? "Retry" : status === "paused" ? "Resume" : "Upload",
+        children: loc.t(status === "error" ? "chunkUploader.retry" : status === "paused" ? "chunkUploader.resume" : "chunkUploader.upload"),
       });
       btnParts.push(go);
       buttons.append(go.el);
@@ -279,9 +281,9 @@ export function ChunkUploader(props: ChunkUploaderProps): ZenComponent<ChunkUplo
     liveEl.setAttribute("aria-live", "polite");
     liveEl.textContent =
       status === "complete"
-        ? `${file.name} uploaded`
+        ? loc.t("chunkUploader.announceUploaded", { name: file.name })
         : status === "error"
-          ? `${file.name} failed to upload: ${errorText}`
+          ? loc.t("chunkUploader.announceFailed", { name: file.name, error: errorText })
           : "";
     el.append(liveEl);
 

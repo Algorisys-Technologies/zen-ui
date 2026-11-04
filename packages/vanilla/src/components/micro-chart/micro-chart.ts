@@ -1,5 +1,6 @@
 import { cn } from "../../lib/cn";
 import type { BaseProps, ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * Micro charts — trend marks small enough to live inside something else.
@@ -73,7 +74,7 @@ const normalise = (values: number[]) => {
   return values.map((v) => (span === 0 ? 0.5 : (v - min) / span));
 };
 
-const trend = (values: number[]) => {
+const trend = (values: number[]): "rising" | "falling" | "flat" => {
   if (values.length < 2) return "flat";
   const a = values[0];
   const b = values[values.length - 1];
@@ -111,6 +112,7 @@ export interface MicroLineChartProps extends MicroChartBaseProps {
 }
 
 export function MicroLineChart(props: MicroLineChartProps): ZenComponent<MicroLineChartProps> {
+  const loc = useLocale();
   return make(props, (p) => {
     const width = p.width ?? 80;
     const height = p.height ?? 24;
@@ -119,7 +121,7 @@ export function MicroLineChart(props: MicroLineChartProps): ZenComponent<MicroLi
       width,
       height,
       p.color ?? "primary",
-      p.label ?? `Line chart, ${vs.length} points, ${trend(vs)}`,
+      p.label ?? loc.t("microChart.line", { count: vs.length, trend: loc.t(`microChart.${trend(vs)}`) }),
       p.class,
     );
     if (vs.length === 0) return root;
@@ -174,6 +176,7 @@ export interface MicroBarChartProps extends MicroChartBaseProps {
 }
 
 export function MicroBarChart(props: MicroBarChartProps): ZenComponent<MicroBarChartProps> {
+  const loc = useLocale();
   return make(props, (p) => {
     const width = p.width ?? 80;
     const height = p.height ?? 24;
@@ -182,7 +185,7 @@ export function MicroBarChart(props: MicroBarChartProps): ZenComponent<MicroBarC
       width,
       height,
       p.color ?? "primary",
-      p.label ?? `Bar chart, ${vs.length} bars`,
+      p.label ?? loc.t("microChart.bar", { count: vs.length }),
       p.class,
     );
     if (vs.length === 0) return root;
@@ -232,6 +235,7 @@ export interface MicroBulletChartProps extends MicroChartBaseProps {
 }
 
 export function MicroBulletChart(props: MicroBulletChartProps): ZenComponent<MicroBulletChartProps> {
+  const loc = useLocale();
   return make(props, (p) => {
     const width = p.width ?? 80;
     const height = p.height ?? 12;
@@ -246,7 +250,9 @@ export function MicroBulletChart(props: MicroBulletChartProps): ZenComponent<Mic
       height,
       p.color ?? "primary",
       p.label ??
-        `${p.value} of ${max}` + (p.target !== undefined ? `, target ${p.target}` : ""),
+        (p.target !== undefined
+          ? loc.t("microChart.bulletTarget", { value: p.value, max, target: p.target })
+          : loc.t("microChart.bullet", { value: p.value, max })),
       p.class,
     );
     root.append(
@@ -292,6 +298,7 @@ export interface MicroDeltaChartProps extends MicroChartBaseProps {
 }
 
 export function MicroDeltaChart(props: MicroDeltaChartProps): ZenComponent<MicroDeltaChartProps> {
+  const loc = useLocale();
   return make(props, (p) => {
     const width = p.width ?? 80;
     const height = p.height ?? 24;
@@ -310,7 +317,12 @@ export function MicroDeltaChart(props: MicroDeltaChartProps): ZenComponent<Micro
       height,
       color,
       p.label ??
-        `${p.from} to ${p.to}, ${delta > 0 ? "up" : delta < 0 ? "down" : "unchanged"} ${Math.abs(delta)}`,
+        loc.t("microChart.delta", {
+          from: p.from,
+          to: p.to,
+          direction: loc.t(delta > 0 ? "microChart.up" : delta < 0 ? "microChart.down" : "microChart.unchanged"),
+          amount: Math.abs(delta),
+        }),
       p.class,
     );
     root.append(
@@ -346,6 +358,7 @@ export interface MicroRadialChartProps extends MicroChartBaseProps {
 }
 
 export function MicroRadialChart(props: MicroRadialChartProps): ZenComponent<MicroRadialChartProps> {
+  const loc = useLocale();
   return make(props, (p) => {
     const width = p.width ?? 40;
     const height = p.height ?? 40;
@@ -359,7 +372,7 @@ export function MicroRadialChart(props: MicroRadialChartProps): ZenComponent<Mic
       width,
       height,
       p.color ?? "primary",
-      p.label ?? `${Math.round(pct * 100)} percent`,
+      p.label ?? loc.t("microChart.percent", { value: Math.round(pct * 100) }),
       p.class,
     );
     const g = svg("g", { transform: `rotate(-90 ${width / 2} ${height / 2})` });

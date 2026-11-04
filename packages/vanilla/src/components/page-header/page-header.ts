@@ -8,6 +8,7 @@ import {
   type ZenComponent,
 } from "../../lib/component";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * PageHeader — a heading with a back affordance and one action.
@@ -64,6 +65,7 @@ const div = (className: string, children?: Child): HTMLDivElement => {
 
 export function PageHeader(props: PageHeaderProps): ZenComponent<PageHeaderProps> {
   let current: PageHeaderProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
@@ -73,7 +75,7 @@ export function PageHeader(props: PageHeaderProps): ZenComponent<PageHeaderProps
       title,
       subtitle,
       onBack,
-      backLabel = "Back",
+      backLabel = loc.t("pageHeader.back"),
       actions,
       info,
       breadcrumb,

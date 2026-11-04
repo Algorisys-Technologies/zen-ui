@@ -1,6 +1,7 @@
 import { computeDiff, parseSnapshot, isKeyed, type DiffKind } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, toNodes, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * DiffView — what changed between two snapshots of the same record.
@@ -60,7 +61,7 @@ function defaultFormat(value: unknown): Child {
   if (value === null) {
     const i = document.createElement("span");
     i.className = "zen-italic";
-    i.textContent = "null";
+    i.textContent = "null"; // i18n-ignore (the JSON value null, shown as code)
     return i;
   }
   if (typeof value === "string") return value;
@@ -78,19 +79,20 @@ function defaultFormat(value: unknown): Child {
  * bug the Solid port shipped, where the placeholder appeared in one of three
  * cells because a JSX const is one DOM node.
  */
-function absent(): Node[] {
+function absent(loc: LocaleContextValue): Node[] {
   const dash = document.createElement("span");
   dash.setAttribute("aria-hidden", "true");
   dash.className = "zen-text-zen-muted-fg";
   dash.textContent = "—";
   const word = document.createElement("span");
   word.className = "zen-sr-only";
-  word.textContent = "not set";
+  word.textContent = loc.t("diffView.notSet");
   return [dash, word];
 }
 
 export function DiffView(props: DiffViewProps): ZenComponent<DiffViewProps> {
   let current: DiffViewProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -137,7 +139,7 @@ export function DiffView(props: DiffViewProps): ZenComponent<DiffViewProps> {
       el.className = cn(className);
       const p = document.createElement("p");
       p.className = "zen-m-0 zen-py-3 zen-text-sm zen-text-zen-muted-fg";
-      p.append(...toNodes(emptyMessage ?? "No changes"));
+      p.append(...toNodes(emptyMessage ?? loc.t("diffView.noChanges")));
       el.append(p);
     } else if (!keyed) {
       /* The whole-value view, for payloads with no fields to line up: a bare
@@ -157,7 +159,7 @@ export function DiffView(props: DiffViewProps): ZenComponent<DiffViewProps> {
         if (value === undefined) {
           const p = document.createElement("p");
           p.className = "zen-m-0 zen-text-sm";
-          p.append(...absent());
+          p.append(...absent(loc));
           wrap.append(p);
         } else {
           const pre = document.createElement("pre");
@@ -172,8 +174,8 @@ export function DiffView(props: DiffViewProps): ZenComponent<DiffViewProps> {
       };
 
       el.append(
-        pane(headings?.before ?? "Before", left, "zen-text-zen-muted-fg"),
-        pane(headings?.after ?? "After", right, "zen-text-zen-foreground"),
+        pane(headings?.before ?? loc.t("diffView.before"), left, "zen-text-zen-muted-fg"),
+        pane(headings?.after ?? loc.t("diffView.after"), right, "zen-text-zen-foreground"),
       );
     } else {
       /* Its own scroller: a long value must not widen the page, and a diff
@@ -189,7 +191,7 @@ export function DiffView(props: DiffViewProps): ZenComponent<DiffViewProps> {
       const thead = document.createElement("thead");
       const hr = document.createElement("tr");
       hr.className = "zen-border-b zen-border-zen-border zen-bg-zen-muted";
-      for (const h of [headings?.key ?? "Field", headings?.before ?? "Before", headings?.after ?? "After"]) {
+      for (const h of [headings?.key ?? loc.t("diffView.field"), headings?.before ?? loc.t("diffView.before"), headings?.after ?? loc.t("diffView.after")]) {
         const th = document.createElement("th");
         th.setAttribute("scope", "col");
         th.className = cn(cell, "zen-text-start zen-font-medium zen-text-zen-muted-fg");
@@ -213,7 +215,7 @@ export function DiffView(props: DiffViewProps): ZenComponent<DiffViewProps> {
         const beforeCell = document.createElement("td");
         beforeCell.className = cn(cell, "zen-text-zen-muted-fg");
         if (row.kind === "added") {
-          beforeCell.append(...absent());
+          beforeCell.append(...absent(loc));
         } else {
           /* Struck through rather than merely dimmed: the signal has to survive
              greyscale. */
@@ -226,7 +228,7 @@ export function DiffView(props: DiffViewProps): ZenComponent<DiffViewProps> {
 
         const afterCell = document.createElement("td");
         afterCell.className = cn(cell, AFTER_CLASS[row.kind]);
-        if (row.kind === "removed") afterCell.append(...absent());
+        if (row.kind === "removed") afterCell.append(...absent(loc));
         else afterCell.append(...draw(row.after, row.key));
         tr.append(afterCell);
 

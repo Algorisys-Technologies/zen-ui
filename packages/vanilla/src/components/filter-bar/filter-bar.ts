@@ -12,6 +12,7 @@ import { Input } from "../form/input/input";
 import { Checkbox } from "../form/checkbox/checkbox";
 import { Icon } from "../icon/icon";
 import { Dialog, type DialogHandle } from "../dialog/dialog";
+import { useLocale, withLocale } from "../locale/locale";
 
 /**
  * FilterBar — the vanilla port of the React reference. The structured filter area
@@ -91,6 +92,7 @@ const CHEVRON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" str
 
 export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
   let current: FilterBarProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   // Visible-ids state: controlled when `visibleIds` is passed, else everything not
@@ -134,19 +136,19 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
     variant: "ghost",
     color: "neutral",
     size: "sm",
-    children: current.adaptLabel ?? "Adapt filters",
+    children: current.adaptLabel ?? loc.t("filterBar.adapt"),
     onClick: () => openAdapt(),
   });
   const clearBtn = Button({
     variant: "outline",
     color: "neutral",
     size: "sm",
-    children: current.clearLabel ?? "Clear",
+    children: current.clearLabel ?? loc.t("common.clear"),
     onClick: () => current.onClear?.(),
   });
   const goBtn = Button({
     size: "sm",
-    children: current.goLabel ?? "Go",
+    children: current.goLabel ?? loc.t("filterBar.go"),
     onClick: () => current.onGo?.(),
   });
   disposer.add(() => adaptBtn.destroy());
@@ -230,7 +232,7 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
       const empty = document.createElement("p");
       empty.className =
         "zen-m-0 zen-px-4 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      empty.textContent = "No matching items";
+      empty.textContent = loc.t("selectList.empty");
       listBody.append(empty);
       return;
     }
@@ -271,7 +273,9 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
     clearAllBtn?.update({ disabled: draft.length === 0 });
   };
 
-  const buildAdaptDialog = (): DialogHandle => {
+  // Built later than the factory call, so inside the locale it was built in (see withLocale).
+  const buildAdaptDialog = (): DialogHandle => withLocale(loc, () => buildAdaptDialogNow());
+  const buildAdaptDialogNow = (): DialogHandle => {
     const searchWrap = document.createElement("div");
     searchWrap.className = "zen-relative zen-mt-1";
     const searchIcon = Icon({
@@ -281,8 +285,8 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
         "zen-pointer-events-none zen-absolute zen-start-3 zen-top-1/2 -zen-translate-y-1/2 zen-text-zen-muted-fg",
     });
     searchInput = Input({
-      placeholder: "Search",
-      "aria-label": "Search",
+      placeholder: loc.t("selectList.placeholder"),
+      "aria-label": loc.t("selectList.placeholder"),
       class: "zen-pl-9",
       onInput: (e) => {
         query = (e.target as HTMLInputElement).value;
@@ -301,7 +305,7 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
       size: "sm",
       disabled: true,
       class: "zen-mr-auto",
-      children: "Clear",
+      children: loc.t("common.clear"),
       onClick: () => {
         draft = [];
         renderAdaptList();
@@ -312,12 +316,12 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
       variant: "outline",
       color: "neutral",
       size: "sm",
-      children: "Cancel",
+      children: loc.t("common.cancel"),
       onClick: () => adaptDlg?.close(),
     });
     const okBtn = Button({
       size: "sm",
-      children: "OK",
+      children: loc.t("common.ok"),
       onClick: () => {
         // Uncontrolled -> subscribe repaints the body. Controlled -> the caller
         // feeds the new ids back through update(), which repaints. Painting here
@@ -328,8 +332,8 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
     });
 
     const dlg = Dialog({
-      title: current.adaptLabel ?? "Adapt filters",
-      description: "Choose which filters appear on the bar.",
+      title: current.adaptLabel ?? loc.t("filterBar.adapt"),
+      description: loc.t("filterBar.adaptDescription"),
       class: "zen-flex zen-max-h-[85vh] zen-flex-col",
       children: bodyWrap,
       footer: [clearAllBtn.el, cancelBtn.el, okBtn.el],
@@ -364,7 +368,7 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
     const collapsible = current.collapsible ?? true;
     chevronBtn.hidden = !collapsible;
     chevronBtn.setAttribute("aria-expanded", String(expanded));
-    chevronBtn.setAttribute("aria-label", expanded ? "Collapse filters" : "Expand filters");
+    chevronBtn.setAttribute("aria-label", loc.t(expanded ? "filterBar.collapse" : "filterBar.expand"));
     chevronSvg.setAttribute(
       "class",
       cn("zen-transition-transform", expanded && "zen-rotate-90"),
@@ -372,9 +376,9 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
 
     variantSlot.replaceChildren(...toNodes(current.variant));
 
-    adaptBtn.update({ children: current.adaptLabel ?? "Adapt filters" });
-    clearBtn.update({ children: current.clearLabel ?? "Clear" });
-    goBtn.update({ children: current.goLabel ?? "Go" });
+    adaptBtn.update({ children: current.adaptLabel ?? loc.t("filterBar.adapt") });
+    clearBtn.update({ children: current.clearLabel ?? loc.t("common.clear") });
+    goBtn.update({ children: current.goLabel ?? loc.t("filterBar.go") });
 
     const adaptable = current.adaptable ?? true;
     const parts: Node[] = [];
@@ -400,7 +404,7 @@ export function FilterBar(props: FilterBarProps): ZenComponent<FilterBarProps> {
     } else {
       const p = document.createElement("p");
       p.className = "zen-m-0 zen-py-2 zen-text-sm zen-text-zen-muted-fg";
-      p.textContent = `No filters shown. Use ${current.adaptLabel ?? "Adapt filters"} to add some.`;
+      p.textContent = loc.t("filterBar.noneShown", { adapt: current.adaptLabel ?? loc.t("filterBar.adapt") });
       body.append(p);
     }
   };

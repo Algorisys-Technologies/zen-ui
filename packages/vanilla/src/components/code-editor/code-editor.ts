@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, setChildren, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * CodeEditor — a code surface over `monaco-editor`.
@@ -89,6 +90,7 @@ export interface CodeEditorProps extends BaseProps {
 
 export function CodeEditor(props: CodeEditorProps): ZenComponent<CodeEditorProps> {
   let current: CodeEditorProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -125,15 +127,15 @@ export function CodeEditor(props: CodeEditorProps): ZenComponent<CodeEditorProps
       message.className =
         "zen-flex zen-items-center zen-justify-center zen-p-4 zen-text-center zen-text-sm zen-text-zen-muted-fg";
       message.replaceChildren();
-      message.append("CodeEditor needs ");
+      message.append("CodeEditor needs "); // i18n-ignore (a developer notice: install instructions)
       const code = document.createElement("code");
       code.className = "zen-mx-1 zen-font-mono";
-      code.textContent = "@monaco-editor/loader";
-      message.append(code, " installed, and network access to fetch Monaco.");
+      code.textContent = "@monaco-editor/loader"; // i18n-ignore (a package name)
+      message.append(code, " installed, and network access to fetch Monaco."); // i18n-ignore (the same notice)
       el.append(message);
     } else if (status === "loading") {
       message.className = "zen-flex zen-items-center zen-justify-center zen-text-sm zen-text-zen-muted-fg";
-      setChildren(message, current.loading ?? "Loading editor…");
+      setChildren(message, current.loading ?? loc.t("codeEditor.loading"));
       /* The host stays mounted and merely hidden: Monaco is created into it, and
          creating into a node that is not in the document gives an editor with a
          measured size of zero. */
@@ -296,6 +298,7 @@ export interface IDEWindowProps extends Omit<CodeEditorProps, "value" | "onChang
  */
 export function IDEWindow(props: IDEWindowProps): ZenComponent<IDEWindowProps> {
   let current: IDEWindowProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -307,7 +310,7 @@ export function IDEWindow(props: IDEWindowProps): ZenComponent<IDEWindowProps> {
   const right = document.createElement("div");
   const bar = document.createElement("div");
 
-  nav.setAttribute("aria-label", "Files");
+  nav.setAttribute("aria-label", loc.t("codeEditor.files"));
   nav.append(list);
   el.append(nav, right);
 
@@ -394,8 +397,8 @@ export function IDEWindow(props: IDEWindowProps): ZenComponent<IDEWindowProps> {
       if (f.readOnly) {
         const ro = document.createElement("span");
         ro.className = "zen-shrink-0 zen-rounded-zen-sm zen-bg-zen-muted zen-px-1 zen-text-[0.625rem] zen-text-zen-muted-fg";
-        ro.title = "Read only";
-        ro.textContent = "RO";
+        ro.title = loc.t("codeEditor.readOnly");
+        ro.textContent = loc.t("codeEditor.readOnlyBadge");
         btn.append(ro);
       }
       const click = () => select(f.path);

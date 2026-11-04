@@ -3,6 +3,7 @@ import { toNodes, type Child, type ZenComponent } from "../../lib/component";
 import { cardVariants } from "../card/card";
 import { Skeleton } from "../skeleton/skeleton";
 import { Icon } from "../icon/icon";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 export type StatCardColor = "primary" | "neutral" | "info" | "success" | "warning" | "error";
 export interface StatCardTrend {
@@ -51,10 +52,15 @@ const TEXT: Record<StatCardColor, string> = {
 };
 const TREND_COLOR: Record<StatCardTrend["direction"], StatCardColor> = { up: "success", down: "error", flat: "neutral" };
 const TREND_ICON = { up: "arrow-up", down: "arrow-down", flat: "arrow-right" } as const;
-const TREND_LABEL = { up: "Trending up", down: "Trending down", flat: "Flat" } as const;
+const TREND_LABEL: Record<"up" | "down" | "flat", MessageKey> = {
+  up: "statCard.trendingUp",
+  down: "statCard.trendingDown",
+  flat: "statCard.flat",
+};
 
 export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
   let current = { ...props };
+  const loc = useLocale();
   // Element identity depends on interactivity, but it is fixed for the card's life
   // (a stat card does not toggle between a link and a button), so it is chosen once.
   const tag = current.href ? "a" : current.onClick ? "button" : "div";
@@ -104,7 +110,7 @@ export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
     if (trend && !loading) {
       const t = document.createElement("span");
       t.className = cn("zen-inline-flex zen-items-center zen-gap-1 zen-text-xs zen-font-medium", TEXT[trend.color ?? TREND_COLOR[trend.direction]]);
-      t.append(Icon({ name: TREND_ICON[trend.direction], size: 14, title: TREND_LABEL[trend.direction] }).el);
+      t.append(Icon({ name: TREND_ICON[trend.direction], size: 14, title: loc.t(TREND_LABEL[trend.direction]) }).el);
       const tv = document.createElement("span");
       tv.append(...toNodes(trend.value));
       t.append(tv);

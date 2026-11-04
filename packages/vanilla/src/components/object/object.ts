@@ -10,7 +10,7 @@ import {
 } from "../../lib/component";
 import { formatAmount, formatNumber } from "@algorisys/zen-ui-core/number-format";
 import { Icon, type IconName } from "../icon/icon";
-import { useLocale, type LocaleContextValue } from "../locale/locale";
+import { useLocale, type LocaleContextValue, type MessageKey } from "../locale/locale";
 
 /**
  * Object atoms — the small, semantic display elements object pages, list
@@ -282,12 +282,12 @@ export const ObjectIdentifier = atom<ObjectIdentifierProps, HTMLDivElement>("div
 
 export type ObjectMarkerType = "flagged" | "favorite" | "draft" | "locked" | "unsaved";
 
-const MARKER: Record<ObjectMarkerType, { icon: IconName; label: string }> = {
-  flagged: { icon: "flag", label: "Flagged" },
-  favorite: { icon: "star", label: "Favorite" },
-  draft: { icon: "draft", label: "Draft" },
-  locked: { icon: "lock", label: "Locked" },
-  unsaved: { icon: "edit", label: "Unsaved changes" },
+const MARKER: Record<ObjectMarkerType, { icon: IconName; label: MessageKey }> = {
+  flagged: { icon: "flag", label: "objectMarker.flagged" },
+  favorite: { icon: "star", label: "objectMarker.favorite" },
+  draft: { icon: "draft", label: "objectMarker.draft" },
+  locked: { icon: "lock", label: "objectMarker.locked" },
+  unsaved: { icon: "edit", label: "objectMarker.unsaved" },
 };
 
 export interface ObjectMarkerProps extends Omit<BaseProps, "children"> {
@@ -298,10 +298,10 @@ export interface ObjectMarkerProps extends Omit<BaseProps, "children"> {
   label?: string;
 }
 
-export const ObjectMarker = atom<ObjectMarkerProps, HTMLSpanElement>("span", (el, c) => {
+export const ObjectMarker = atom<ObjectMarkerProps, HTMLSpanElement>("span", (el, c, loc) => {
   const { type, showLabel = false, label, class: className, ...rest } = c;
   const m = MARKER[type];
-  const text = label ?? m.label;
+  const text = label ?? loc.t(m.label);
 
   el.className = cn(
     "zen-inline-flex zen-items-center zen-gap-1 zen-text-xs zen-text-zen-muted-fg",

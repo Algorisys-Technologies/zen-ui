@@ -9,6 +9,7 @@ import {
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, type BaseProps, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * Waveform — an audio lane with an optional draggable clip window. The vanilla
@@ -92,6 +93,7 @@ const makeEnvelope = (): { svg: SVGSVGElement; path: SVGPathElement } => {
 
 export function Waveform(props: WaveformProps): ZenComponent<WaveformProps> {
   let current: WaveformProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -252,7 +254,7 @@ export function Waveform(props: WaveformProps): ZenComponent<WaveformProps> {
   clipWin.setAttribute("role", "slider");
   clipWin.tabIndex = 0;
   clipWin.setAttribute("aria-orientation", "horizontal");
-  clipWin.setAttribute("aria-label", "Clip position");
+  clipWin.setAttribute("aria-label", loc.t("waveform.clipPosition"));
   const bodyDown = (e: PointerEvent) => startDrag("move", e);
   const bodyKey = (e: KeyboardEvent) => nudge("move", e);
   const bodyClick = (e: MouseEvent) => e.stopPropagation();
@@ -271,7 +273,7 @@ export function Waveform(props: WaveformProps): ZenComponent<WaveformProps> {
     h.setAttribute("role", "slider");
     h.tabIndex = 0;
     h.setAttribute("aria-orientation", "horizontal");
-    h.setAttribute("aria-label", `Clip trim ${edge}`);
+    h.setAttribute("aria-label", loc.t(edge === "start" ? "waveform.trimStart" : "waveform.trimEnd"));
     h.className = cn(
       "zen-absolute zen-top-0 zen-h-full zen-w-2 zen-cursor-ew-resize",
       "zen-bg-zen-primary hover:zen-opacity-80",
@@ -303,7 +305,7 @@ export function Waveform(props: WaveformProps): ZenComponent<WaveformProps> {
     removeProps?.();
     removeProps = applyProps(el, pickRest());
 
-    lane.setAttribute("aria-label", current.label ?? "Audio waveform");
+    lane.setAttribute("aria-label", current.label ?? loc.t("waveform.audioWaveform"));
     lane.style.width = `${(current.zoom ?? 1) * 100}%`;
     lane.style.minWidth = "100%";
 

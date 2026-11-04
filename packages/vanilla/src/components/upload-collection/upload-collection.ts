@@ -11,6 +11,7 @@ import {
   type Child,
   type ZenComponent,
 } from "../../lib/component";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * UploadCollection — the list of files that have been uploaded, or are on their
@@ -95,13 +96,13 @@ const formatBytes = (bytes: number): string => {
  * empty track and Kobalte as a full one, and the full one is actively wrong for
  * a queued file. A bar is drawn only when there is a real number behind it.
  */
-const metaOf = (item: UploadItem): string => {
+const metaOf = (item: UploadItem, loc: LocaleContextValue): string => {
   const status = item.status ?? "complete";
   const state =
     status === "pending"
-      ? "Queued"
+      ? loc.t("uploadCollection.queued")
       : status === "uploading" && item.progress === undefined
-        ? "Uploading…"
+        ? loc.t("uploadCollection.uploadingNoProgress")
         : undefined;
   return [
     state,
@@ -123,6 +124,7 @@ function row(
   item: UploadItem,
   props: UploadCollectionProps,
   owned: AnyZenComponent[],
+  loc: LocaleContextValue,
 ): HTMLLIElement {
   const status = item.status ?? "complete";
   const busy = status === "uploading" || status === "pending";
@@ -168,16 +170,16 @@ function row(
   const meta = document.createElement("span");
   if (status === "error") {
     meta.className = "zen-text-xs zen-text-zen-error";
-    meta.textContent = item.error ?? "Upload failed";
+    meta.textContent = item.error ?? loc.t("uploadCollection.uploadFailed");
     body.append(meta);
-  } else if (metaOf(item)) {
+  } else if (metaOf(item, loc)) {
     meta.className = "zen-text-xs zen-text-zen-muted-fg";
-    meta.textContent = metaOf(item);
+    meta.textContent = metaOf(item, loc);
     body.append(meta);
   }
 
   if (busy && item.progress !== undefined) {
-    const bar = Progress({ size: "sm", value: item.progress, "aria-label": `Uploading ${item.name}` });
+    const bar = Progress({ size: "sm", value: item.progress, "aria-label": loc.t("uploadCollection.uploading", { name: item.name }) });
     owned.push(bar);
     body.append(bar.el);
   }
@@ -195,7 +197,7 @@ function row(
         variant: "outline",
         size: "sm",
         disabled: props.disabled,
-        children: "Retry",
+        children: loc.t("uploadCollection.retry"),
         onClick: () => props.onRetry?.(item),
       })).el,
     );
@@ -207,13 +209,13 @@ function row(
         variant: "ghost",
         color: "neutral",
         size: "sm",
-        "aria-label": `Rename ${item.name}`,
+        "aria-label": loc.t("uploadCollection.rename", { name: item.name }),
         disabled: props.disabled,
         children: keep(owned, Icon({ name: "edit", size: 14 })),
         onClick: () => {
           const input = document.createElement("input");
           input.value = item.name;
-          input.setAttribute("aria-label", `Rename ${item.name}`);
+          input.setAttribute("aria-label", loc.t("uploadCollection.rename", { name: item.name }));
           input.className =
             "zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring";
 
@@ -267,7 +269,7 @@ function row(
         variant: "ghost",
         color: "neutral",
         size: "sm",
-        "aria-label": `Remove ${item.name}`,
+        "aria-label": loc.t("uploadCollection.remove", { name: item.name }),
         disabled: props.disabled,
         children: keep(owned, Icon({ name: "trash", size: 14 })),
         onClick: () => props.onRemove?.(item),
@@ -283,6 +285,7 @@ export function UploadCollection(
   props: UploadCollectionProps,
 ): ZenComponent<UploadCollectionProps> {
   let current: UploadCollectionProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -314,12 +317,12 @@ export function UploadCollection(
     if (rows.length === 0) {
       const p = document.createElement("p");
       p.className = "zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      p.append(...toNodes(emptyMessage ?? "No files yet"));
+      p.append(...toNodes(emptyMessage ?? loc.t("uploadCollection.noFilesYet")));
       el.append(p);
     } else {
       const ul = document.createElement("ul");
       ul.className = "zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-2 zen-p-0";
-      for (const item of rows) ul.append(row(item, current, owned));
+      for (const item of rows) ul.append(row(item, current, owned, loc));
       el.append(ul);
     }
 

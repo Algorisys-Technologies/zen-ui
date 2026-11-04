@@ -43,6 +43,7 @@ import {
   type ScheduleColumn,
   type ScheduleGridHandle,
 } from "../gantt/schedule-grid";
+import { useLocale, withLocale, type LocaleContextValue, type MessageKey } from "../locale/locale";
 
 /**
  * ProductionSchedule — what each machine is doing, and whether it can.
@@ -182,15 +183,15 @@ const PANE_PX: Record<ProductionPaneColumn, number> = {
   float: 84,
 };
 
-const PANE_LABEL: Record<ProductionPaneColumn, string> = {
-  resource: "Resource",
-  jobs: "Jobs",
-  capacity: "Capacity",
-  load: "Load",
+const PANE_LABEL: Record<ProductionPaneColumn, MessageKey> = {
+  resource: "productionSchedule.column.resource",
+  jobs: "productionSchedule.column.jobs",
+  capacity: "productionSchedule.column.capacity",
+  load: "productionSchedule.column.load",
   /* The row's TIGHTEST operation, because a row is only as movable as the job
      on it with the least room. An average would say a machine has four hours of
      slack while one of its jobs has none. */
-  float: "Float",
+  float: "productionSchedule.column.float",
 };
 
 /** Place in the FULL set, so a dropped column does not renumber the others. */
@@ -246,14 +247,14 @@ const formatTime = (d: Date): string =>
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 
 /** "4h 30m", "0", "-2h" — float is minutes, and nobody reads minutes past 90. */
-const formatFloat = (minutes: number): string => {
+const formatFloat = (minutes: number, loc: LocaleContextValue): string => {
   const sign = minutes < 0 ? "-" : "";
   const total = Math.abs(minutes);
   if (total === 0) return "0";
-  if (total < 60) return `${sign}${total}m`;
+  if (total < 60) return sign + loc.t("productionSchedule.minutes", { m: total });
   const hours = Math.floor(total / 60);
   const rest = total % 60;
-  return rest === 0 ? `${sign}${hours}h` : `${sign}${hours}h ${rest}m`;
+  return sign + (rest === 0 ? loc.t("productionSchedule.hours", { h: hours }) : loc.t("productionSchedule.hoursMinutes", { h: hours, m: rest }));
 };
 
 const el = <K extends keyof HTMLElementTagNameMap>(
@@ -271,6 +272,7 @@ export function ProductionSchedule(
   props: ProductionScheduleProps,
 ): ZenComponent<ProductionScheduleProps> {
   let current: ProductionScheduleProps = { ...props };
+  const loc = useLocale();
 
   let innerView: GanttView = props.defaultView ?? "fit";
   let innerDate: Date = props.defaultDate ?? new Date();
@@ -385,7 +387,7 @@ export function ProductionSchedule(
         chevron.tabIndex = -1;
         chevron.setAttribute(
           "aria-label",
-          row.expanded ? `Collapse ${resource.name}` : `Expand ${resource.name}`,
+          loc.t(row.expanded ? "productionSchedule.collapseResource" : "productionSchedule.expandResource", { name: resource.name }),
         );
         chevron.addEventListener("click", () => toggle(resource.id));
         const icon = Icon({
@@ -425,7 +427,7 @@ export function ProductionSchedule(
           name: "warn",
           size: 13,
           class: "zen-ms-auto zen-shrink-0 zen-text-zen-error",
-          title: "Over capacity",
+          title: loc.t("productionSchedule.overCapacity"),
         });
         out.push(warn);
       }
@@ -471,7 +473,7 @@ export function ProductionSchedule(
       variant: "soft",
       color: float.totalFloatMinutes < 0 ? "error" : float.critical ? "warning" : "neutral",
       children:
-        float.critical && float.totalFloatMinutes === 0 ? "Critical" : formatFloat(float.totalFloatMinutes),
+        float.critical && float.totalFloatMinutes === 0 ? loc.t("productionSchedule.critical") : formatFloat(float.totalFloatMinutes, loc),
     });
     chip.el.setAttribute("dir", "ltr");
     /* The words, not only the colour: a negative float and a critical one are
@@ -480,12 +482,12 @@ export function ProductionSchedule(
     chip.el.setAttribute(
       "title",
       float.totalFloatMinutes < 0
-        ? `Past the date it is measured against by ${formatFloat(-float.totalFloatMinutes)}`
+        ? loc.t("productionSchedule.floatLate", { time: formatFloat(-float.totalFloatMinutes, loc) })
         : float.freeFloatMinutes < 0
-          ? `Already overlaps the next operation by ${formatFloat(-float.freeFloatMinutes)}`
+          ? loc.t("productionSchedule.floatOverlaps", { time: formatFloat(-float.freeFloatMinutes, loc) })
           : float.critical
-            ? "On the critical path — no room to move"
-            : `${formatFloat(float.freeFloatMinutes)} before it disturbs the next operation`,
+            ? loc.t("productionSchedule.floatCritical")
+            : loc.t("productionSchedule.floatFree", { time: formatFloat(float.freeFloatMinutes, loc) }),
     );
     return [chip];
   }
@@ -509,10 +511,10 @@ export function ProductionSchedule(
 
     const title = [
       operation.name,
-      operation.order ? `Order ${operation.order}` : null,
+      operation.order ? loc.t("productionSchedule.order", { order: operation.order }) : null,
       `${formatTime(placement.span.start)} – ${formatTime(placement.span.end)}`,
-      placement.setup ? "incl. changeover" : null,
-      critical ? "on the critical path" : null,
+      placement.setup ? loc.t("productionSchedule.inclChangeover") : null,
+      critical ? loc.t("productionSchedule.onCriticalPath") : null,
       progress === null ? null : `${Math.round(progress)}%`,
     ]
       .filter(Boolean)
@@ -552,9 +554,13 @@ export function ProductionSchedule(
       el(
         "span",
         "zen-sr-only",
-        `${operation.name}, ${formatTime(placement.span.start)} to ${formatTime(placement.span.end)}${
-          placement.setup ? ", including changeover" : ""
-        }${progress === null ? "" : `, ${Math.round(progress)} percent complete`}`,
+        loc.t("productionSchedule.barSpan", {
+          name: operation.name,
+          start: formatTime(placement.span.start),
+          end: formatTime(placement.span.end),
+          changeover: placement.setup ? loc.t("productionSchedule.barChangeover") : "",
+          progress: progress === null ? "" : loc.t("productionSchedule.barProgress", { percent: Math.round(progress) }),
+        }),
       ),
     );
 
@@ -691,7 +697,7 @@ export function ProductionSchedule(
     const label = el(
       "div",
       "zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-3 zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
-      "Load",
+      loc.t("productionSchedule.load"),
     );
     label.style.width = `${axis.paneWidth}px`;
     label.style.insetInlineStart = "0";
@@ -718,8 +724,8 @@ export function ProductionSchedule(
       cell.style.width = `${axis.columnWidths[i]}px`;
       cell.title =
         utilisation === null
-          ? "Closed"
-          : `${pct(utilisation)} of capacity${bucket?.overloaded ? " — over" : ""}`;
+          ? loc.t("productionSchedule.closed")
+          : loc.t(bucket?.overloaded ? "productionSchedule.ofCapacityOver" : "productionSchedule.ofCapacity", { percent: pct(utilisation) });
 
       /* Bars grow from the BOTTOM and are clipped at 100%, with the overflow
          drawn above the line — so 140% reads as "40% more than there is" rather
@@ -743,7 +749,11 @@ export function ProductionSchedule(
     return [label, strip];
   }
 
+  // Built later than the factory call, so inside the locale it was built in (see withLocale).
   function render(): void {
+    withLocale(loc, renderNow);
+  }
+  function renderNow(): void {
     for (const handle of owned) handle.destroy();
     owned = [];
 
@@ -782,7 +792,7 @@ export function ProductionSchedule(
         current.class,
       );
       root.setAttribute("role", "status");
-      root.setAttribute("aria-label", "Loading production schedule");
+      root.setAttribute("aria-label", loc.t("productionSchedule.loadingProductionSchedule"));
       root.replaceChildren();
       for (let i = 0; i < (current.loadingRows ?? 6); i++) {
         const line = el("div", "zen-flex zen-items-center zen-gap-3");
@@ -817,10 +827,9 @@ export function ProductionSchedule(
             bordered: true,
             children: [
               EmptyStateIcon({ children: Icon({ name: "cog", size: 22 }) }),
-              EmptyStateTitle({ children: "No resources" }),
+              EmptyStateTitle({ children: loc.t("productionSchedule.noResources") }),
               EmptyStateDescription({
-                children:
-                  "Add a work centre and book an operation on it, and the schedule will appear here.",
+                children: loc.t("productionSchedule.addAWorkCentreAnd"),
               }),
             ],
           }),
@@ -954,7 +963,7 @@ export function ProductionSchedule(
 
     const paneColumns: ScheduleColumn<Row>[] = requestedPane().map((key) => ({
       key,
-      label: PANE_LABEL[key],
+      label: loc.t(PANE_LABEL[key]),
       width: PANE_PX[key],
       colIndex: COL_INDEX[key],
       class: key === "resource" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
@@ -981,8 +990,8 @@ export function ProductionSchedule(
               "span",
               "zen-sr-only",
               row.hasChildren && row.expanded
-                ? "Work shown on the rows below"
-                : "Nothing booked in this range",
+                ? loc.t("productionSchedule.workBelow")
+                : loc.t("productionSchedule.nothingBooked"),
             ),
           ];
         }
@@ -1020,7 +1029,7 @@ export function ProductionSchedule(
         if (first) current.onOperationClick?.(first.operation, row);
       },
       onMetrics: () => render(),
-      ariaLabel: "Production schedule",
+      ariaLabel: loc.t("productionSchedule.productionSchedule"),
       class: current.class,
     };
 

@@ -1,5 +1,6 @@
 import { cn } from "../../lib/cn";
 import { Disposer, toNodes, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * QRScanner — camera-based barcode / QR scanner. The vanilla port of the React
@@ -73,29 +74,29 @@ const VIDEO_CLASS = "zen-absolute zen-inset-0 zen-h-full zen-w-full zen-object-c
 
 const VIEWFINDER_SVG = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" class="zen-pointer-events-none zen-absolute zen-inset-0 zen-h-full zen-w-full" aria-hidden="true"><g stroke="white" stroke-width="2" stroke-linecap="round" fill="none" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,.45))"><path d="M 20 26 L 20 20 L 26 20" /><path d="M 74 20 L 80 20 L 80 26" /><path d="M 80 74 L 80 80 L 74 80" /><path d="M 26 80 L 20 80 L 20 74" /></g></svg>`;
 
-function defaultFallback(status: Status): Node {
+function defaultFallback(status: Status, loc: LocaleContextValue): Node {
   const span = document.createElement("span");
   if (status === "blocked") {
-    span.textContent =
-      "Camera access was blocked. Allow camera permission in your browser settings, then reload.";
+    span.textContent = loc.t("qrScanner.blocked");
   } else if (status === "no-camera") {
-    span.textContent = "No camera was found on this device.";
+    span.textContent = loc.t("qrScanner.noCameraWasFoundOn");
   } else if (status === "no-decoder") {
     const code = document.createElement("code");
-    code.textContent = "decode";
+    code.textContent = "decode"; // i18n-ignore (a prop name)
     span.append(
-      "This browser does not support the BarcodeDetector API. Pass a ",
+      "This browser does not support the BarcodeDetector API. Pass a ", // i18n-ignore (a developer notice: how to supply a decoder)
       code,
       " prop (e.g. powered by jsQR) to enable scanning here.",
     );
   } else {
-    span.textContent = "Scanner idle.";
+    span.textContent = loc.t("qrScanner.scannerIdle");
   }
   return span;
 }
 
 export function QRScanner(props: QRScannerProps): ZenComponent<QRScannerProps, HTMLDivElement> {
   let current: QRScannerProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   // DOM.
@@ -117,7 +118,7 @@ export function QRScanner(props: QRScannerProps): ZenComponent<QRScannerProps, H
   const startingOverlay = document.createElement("div");
   startingOverlay.className =
     "zen-absolute zen-inset-x-0 zen-bottom-2 zen-text-center zen-text-xs zen-text-white/80";
-  startingOverlay.textContent = "Starting camera…";
+  startingOverlay.textContent = loc.t("qrScanner.startingCamera");
 
   el.append(video, viewfinder, fallbackOverlay, startingOverlay);
 
@@ -133,7 +134,7 @@ export function QRScanner(props: QRScannerProps): ZenComponent<QRScannerProps, H
     el.className = cn(ROOT_CLASS, current.class);
     el.style.aspectRatio = `${current.aspectRatio ?? 1} / 1`;
     if (current.id) el.id = current.id;
-    video.setAttribute("aria-label", current["aria-label"] ?? "QR scanner camera view");
+    video.setAttribute("aria-label", current["aria-label"] ?? loc.t("qrScanner.cameraView"));
   };
 
   const renderStatus = () => {
@@ -145,7 +146,7 @@ export function QRScanner(props: QRScannerProps): ZenComponent<QRScannerProps, H
     if (!showSurface) {
       fallbackOverlay.style.display = "";
       fallbackOverlay.replaceChildren(
-        ...(current.fallback != null ? toNodes(current.fallback) : [defaultFallback(status)]),
+        ...(current.fallback != null ? toNodes(current.fallback) : [defaultFallback(status, loc)]),
       );
     } else {
       fallbackOverlay.style.display = "none";

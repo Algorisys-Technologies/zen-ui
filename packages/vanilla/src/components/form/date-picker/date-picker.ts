@@ -7,6 +7,7 @@ import {
 import { controllable } from "../../../lib/state";
 import { Button } from "../../button/button";
 import { Popover } from "../../popover/popover";
+import { useLocale, withLocale } from "../../locale/locale";
 
 /**
  * Calendar + DatePicker — the vanilla binding's port.
@@ -59,7 +60,7 @@ export interface CalendarProps {
   class?: string;
 }
 
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const WEEKDAYS = ["su", "mo", "tu", "we", "th", "fr", "sa"] as const;
 
 const sameDay = (a: Date | undefined, b: Date | undefined): boolean =>
   !!a &&
@@ -114,6 +115,7 @@ const calendarIcon = (): Node => {
 
 export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
   let current: CalendarProps = { ...props };
+  const loc = useLocale();
   const root = document.createElement("div");
   const disposer = new Disposer();
 
@@ -194,7 +196,7 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
     b.type = "button";
     b.className =
       "zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer hover:zen-bg-zen-muted";
-    b.setAttribute("aria-label", dir < 0 ? "Previous month" : "Next month");
+    b.setAttribute("aria-label", loc.t(dir < 0 ? "calendar.previousMonth" : "calendar.nextMonth"));
     b.textContent = dir < 0 ? "‹" : "›";
     b.addEventListener("click", () => {
       setViewMonth(addMonths(viewMonth(), dir));
@@ -346,7 +348,8 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
 
     const thead = document.createElement("thead");
     const hrow = document.createElement("tr");
-    for (const wd of WEEKDAYS) {
+    for (const day of WEEKDAYS) {
+      const wd = loc.t(`calendar.weekday.${day}`);
       const th = document.createElement("th");
       th.className = "zen-h-8 zen-w-8 zen-text-xs zen-font-normal zen-text-zen-muted-fg";
       th.textContent = wd;
@@ -425,6 +428,7 @@ export const focusableDay = (panel: HTMLElement): HTMLButtonElement | null =>
 
 export function DatePicker(props: DatePickerProps): ZenComponent<DatePickerProps> {
   let current: DatePickerProps = { ...props };
+  const loc = useLocale();
 
   const state = controllable<Date | undefined>({
     value: current.value,
@@ -437,7 +441,7 @@ export function DatePicker(props: DatePickerProps): ZenComponent<DatePickerProps
 
   const label = (): Child => {
     const d = state.get();
-    return d ? fmt(d) : current.placeholder ?? "Pick a date";
+    return d ? fmt(d) : current.placeholder ?? loc.t("datePicker.placeholder");
   };
 
   const buttonClass = (): string =>
@@ -462,7 +466,9 @@ export function DatePicker(props: DatePickerProps): ZenComponent<DatePickerProps
     children: label(),
   });
 
-  const makeCalendar = () =>
+  // Built later than the factory call, so inside the locale it was built in (see withLocale).
+  const makeCalendar = () => withLocale(loc, makeCalendarNow);
+  const makeCalendarNow = () =>
     Calendar({
       mode: "single",
       selected: state.get(),

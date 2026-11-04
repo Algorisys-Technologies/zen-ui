@@ -9,6 +9,7 @@ import {
   type IconName,
   type ZenComponent,
 } from "../../lib/component";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * Timeline — a sequence of things that happened, in order.
@@ -99,7 +100,7 @@ export interface TimelineItem {
  * is exactly the place someone hits Ctrl+F expecting to match text inside a
  * collapsed row.
  */
-function bodyOf(item: TimelineItem): HTMLElement {
+function bodyOf(item: TimelineItem, loc: LocaleContextValue): HTMLElement {
   if (!item.collapsible) {
     const plain = document.createElement("div");
     plain.className = "zen-mt-1";
@@ -125,7 +126,7 @@ function bodyOf(item: TimelineItem): HTMLElement {
 
   const label =
     item.collapseLabel === undefined
-      ? "Details"
+      ? loc.t("timeline.details")
       : typeof item.collapseLabel === "function"
         ? item.collapseLabel(open)
         : item.collapseLabel;
@@ -204,7 +205,7 @@ function marker(item: TimelineItem): HTMLElement {
   return span;
 }
 
-function entry(item: TimelineItem, isLast: boolean, compact: boolean): HTMLLIElement {
+function entry(item: TimelineItem, isLast: boolean, compact: boolean, loc: LocaleContextValue): HTMLLIElement {
   const li = document.createElement("li");
   li.className = cn("zen-relative zen-ps-8", compact ? "zen-pb-3" : "zen-pb-6");
 
@@ -249,7 +250,7 @@ function entry(item: TimelineItem, isLast: boolean, compact: boolean): HTMLLIEle
   }
 
   if (!compact && item.children !== undefined && item.children !== null) {
-    body.append(bodyOf(item));
+    body.append(bodyOf(item, loc));
   }
 
   li.append(body);
@@ -258,6 +259,7 @@ function entry(item: TimelineItem, isLast: boolean, compact: boolean): HTMLLIEle
 
 export function Timeline(props: TimelineProps): ZenComponent<TimelineProps> {
   let current: TimelineProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -282,7 +284,7 @@ export function Timeline(props: TimelineProps): ZenComponent<TimelineProps> {
     if (rows.length === 0) {
       const p = document.createElement("p");
       p.className = "zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      p.append(...toNodes(emptyMessage ?? "Nothing yet"));
+      p.append(...toNodes(emptyMessage ?? loc.t("timeline.nothingYet")));
       el.append(p);
     } else {
       const ol = document.createElement("ol");
@@ -298,7 +300,7 @@ export function Timeline(props: TimelineProps): ZenComponent<TimelineProps> {
           heading.textContent = item.group;
           ol.append(heading);
         }
-        ol.append(entry(item, i === rows.length - 1, compact));
+        ol.append(entry(item, i === rows.length - 1, compact, loc));
       });
 
       el.append(ol);
