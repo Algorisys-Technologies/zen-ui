@@ -19,16 +19,16 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | L | LocaleProvider / useLocale | ok (e94479a) | ok | ok (re-export; `<zen-locale-provider>` with unit S) |
 | A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | ok | — | — |
 | A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | — | — |
-| A3 | ContextMenu | wip | — | — |
-| A4 | DocumentTabs | wip | — | — |
-| A5 | Tile, TileGrid | wip | — | — |
-| A6 | QRCode, Barcode | wip | — | — |
+| A3 | ContextMenu | ok | — | — |
+| A4 | DocumentTabs | ok | — | — |
+| A5 | Tile, TileGrid | ok | — | — |
+| A6 | QRCode, Barcode | ok | — | — |
 | A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | wip | — | — |
 | A8 | TreeSelect | wip | — | — |
 | A9 | LookupField | — | — | — |
-| A10 | FilterBuilder | — | — | — |
-| A11 | ViewManager | — | — | — |
-| A12 | Sidebar collapseMode / overlay / badges / header label | — | — | — |
+| A10 | FilterBuilder | wip | — | — |
+| A11 | ViewManager | wip | — | — |
+| A12 | Sidebar collapseMode / overlay / badges / header label | wip | — | — |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | — | — | — |
 | D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | wip | — | — |
 | S | Strings: the binding's components read the message catalogue; check:strings per binding | — | — | — |
@@ -57,3 +57,21 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   every merge; take dev's side. Regenerate agent guide + skill API after each
   merge rather than merging generated files.
 - 2026-11-05: A7 and A8 React launched.
+- 2026-11-05: A5+A6 React merged (Tile 10/10, QR/Barcode 16/16 with every
+  symbol on the page decoded by zxing). Tile `as` passes `href` and `to`
+  (react-router Link works); TileGrid chains a caller's onKeyDown.
+- 2026-11-05: A4 React merged (DocumentTabs: a new 35-assertion drive gives
+  identical results on Solid and React; a control with the per-tab observer
+  removed drops to 32/35). It found 5 strings Solid hard-coded that
+  check:strings could not see; widening the check found 13 more in Solid
+  (2a234331, 120/120 routes identical).
+- 2026-11-05: A3 React merged (ContextMenu 11/11 + 4 extra; Button bundle
+  byte-identical). DropdownMenu and ContextMenu now share classes via
+  `dropdown-menu/menu-parts.tsx` (DropdownMenu output identical on 12 menus).
+  Radix forces separate item components and its prop names (`onCheckedChange`);
+  a checkbox item closes the menu as React's DropdownMenu does. Not testable
+  in Playwright: suppressing the browser's own keyboard contextmenu.
+  Also found: vendor-core-types vendored nothing under a dotted path (fixed,
+  64dd29ce).
+- 2026-11-05: A10 (FilterBuilder), A11 (ViewManager), A12 (Sidebar) React
+  launched.
