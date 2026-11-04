@@ -148,6 +148,16 @@ function numberText<P extends Common & { precision?: number; allowNegative?: boo
     render();
   };
 
+  // Remove only what this field set: an id a caller put on the <input> itself
+  // (the web-components demos name the inner control that way) survives renders.
+  const owned = new Set<string>();
+  const attr = (name: string, v: string | undefined) => {
+    if (v !== undefined) {
+      input.setAttribute(name, v);
+      owned.add(name);
+    } else if (owned.delete(name)) input.removeAttribute(name);
+  };
+
   let removeProps: (() => void) | undefined;
   const render = () => {
     const f = flavour(current);
@@ -183,8 +193,6 @@ function numberText<P extends Common & { precision?: number; allowNegative?: boo
     const shown = editing || bad !== null ? text : value === null || value === undefined ? "" : f.display(value);
     if (input.value !== shown) input.value = shown;
 
-    const attr = (name: string, v: string | undefined) =>
-      v === undefined ? input.removeAttribute(name) : input.setAttribute(name, v);
     attr("id", id);
     attr("name", name);
     attr("placeholder", placeholder);
