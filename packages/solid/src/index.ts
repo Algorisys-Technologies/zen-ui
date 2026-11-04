@@ -945,6 +945,8 @@ export type { DateTimePickerProps } from "./components/form/date-picker/date-tim
 
 // Tier 3 batch E — device + composite
 export { QRScanner } from "./components/qr-scanner/qr-scanner";
+export { QRCode, Barcode } from "./components/barcode/barcode";
+export type { QRCodeProps, BarcodeProps, BarcodeFormat, QrEcc } from "./components/barcode/barcode";
 export type { QRScannerProps, QRScannerScan } from "./components/qr-scanner/qr-scanner";
 export { NotificationsInbox } from "./components/notifications-inbox/notifications-inbox";
 export type {

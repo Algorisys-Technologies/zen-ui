@@ -252,6 +252,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Composite",
     items: [
+      { label: "QRCode and Barcode", path: "/barcode", description: "Draw codes as SVG for screens and print: QR (the e-invoice's signed QR, gate passes; error correction L to H), Code 128, EAN-13 and Code 39, dark on light in every theme", source: "packages/solid/src/components/NewBarcodeDemo.tsx", since: "12.2.0" },
       { label: "QRScanner", path: "/qr-scanner", description: "Camera-based QR / barcode scanner with decoder escape hatch", source: "packages/solid/src/components/NewQRScannerDemo.tsx" },
       { label: "NotificationsInbox", path: "/notifications-inbox", description: "Bell + popover panel; day-grouped feed with unread badge", source: "packages/solid/src/components/NewNotificationsInboxDemo.tsx" },
     ],

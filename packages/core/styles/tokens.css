@@ -777,6 +777,14 @@
   --zen-date-input-width: 10rem;
 }
 
+/* QRCode and Barcode: dark on light in every theme, on purpose. Scanners read
+ * inverted codes badly and paper is light; a theme that overrides these takes
+ * that on itself. */
+:root {
+  --zen-code-dark: #000;
+  --zen-code-light: #fff;
+}
+
 /* LookupField's table under the field: at least this wide, and as wide as its
  * columns need up to the max (and the window). */
 :root {

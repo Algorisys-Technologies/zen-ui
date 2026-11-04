@@ -14,6 +14,11 @@ issue / PR when its turn comes.
    Every "Parity: … (Solid only)" item below is part of that pass. React stays
    the API reference: where Solid's shape would not suit React, reconcile before
    porting, not after.
+3. **Publish to npm** (owner, 2026-11-04: "just like tinyfly and yappydraw",
+   https://www.npmjs.com/package/@algorisys/tinyfly). Queued after the current
+   task, not started. Match how those packages publish (scope, metadata,
+   workflow); the tarballs already install cleanly (CLAUDE.md, check:package).
+   When it is live, add it to "Ship it" in CLAUDE.md.
 
 
 ## Parity: DataTable `enableRowVirtualization` (Solid only, 2026-11-04)
@@ -91,6 +96,20 @@ issue / PR when its turn comes.
       items (DropdownMenuShortcut / ContextMenuShortcut from a chord) and Tooltip,
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
+
+## Parity: QRCode and Barcode (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `barcode` (shared already, with
+      `qrPath`): SVG, crispEdges, quiet zone drawn, dark on light via
+      --zen-code-dark/--zen-code-light, the reason shown in place of a code that
+      cannot be encoded. Demo /barcode. ERPNext review C6. Verify by decoding the
+      RENDERED page with zxing-cpp at whole pixels per module (the Solid drive
+      script rasterises the SVG in the page and reads its pixels).
+- [ ] Not in this cut: GS1-128 (FNC1 and application identifiers), EAN-8 /
+      UPC-A, a logo over the QR's middle (needs level H), a QR "Kanji" mode.
+- [ ] Do not test QR detection with ZXing-js: its detector misses ~1 large
+      symbol in 8 from ANY encoder (bit-identical grids from the qrcode package
+      failed on the same 27 of 203); zxing-cpp finds all.
 
 ## Parity: LookupField (Solid only, 2026-11-04)
 

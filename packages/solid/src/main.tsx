@@ -89,6 +89,7 @@ import NewDateRangePickerDemo from "./components/NewDateRangePickerDemo";
 import NewTimePickerDemo from "./components/NewTimePickerDemo";
 import NewDateTimePickerDemo from "./components/NewDateTimePickerDemo";
 import NewQRScannerDemo from "./components/NewQRScannerDemo";
+import NewBarcodeDemo from "./components/NewBarcodeDemo";
 import NewNotificationsInboxDemo from "./components/NewNotificationsInboxDemo";
 import NewStackDemo from "./components/NewStackDemo";
 import NewBreadcrumbDemo from "./components/NewBreadcrumbDemo";
@@ -227,6 +228,7 @@ render(
       <Route path="/time-picker" component={NewTimePickerDemo} />
       <Route path="/date-time-picker" component={NewDateTimePickerDemo} />
       <Route path="/qr-scanner" component={NewQRScannerDemo} />
+      <Route path="/barcode" component={NewBarcodeDemo} />
       <Route path="/notifications-inbox" component={NewNotificationsInboxDemo} />
       <Route path="/stack" component={NewStackDemo} />
       <Route path="/breadcrumb" component={NewBreadcrumbDemo} />

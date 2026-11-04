@@ -16,6 +16,21 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **QRCode and Barcode** (Solid; new): codes drawn as SVG for screens and
+  print. `QRCode`: versions 1–40, error correction L/M/Q/H, numeric /
+  alphanumeric / byte (UTF-8) modes, `minVersion` for a fixed printed size;
+  sized for the e-invoice's signed QR. `Barcode`: Code 128 (any ASCII, digit
+  runs packed in pairs), EAN-13 (the check digit added, or a wrong one refused
+  naming the right one) and Code 39. Dark on light in every theme (new
+  `--zen-code-dark` / `--zen-code-light` tokens, black and white), quiet zone
+  included; a value that cannot be encoded shows why in place of the code. The
+  pure half is core's new `@algorisys/zen-ui-core/barcode`, checked by
+  `bun run check:barcode` (627 assertions): every symbol is found and decoded
+  by zxing-cpp (zxing-wasm, a devDependency of the check only), every QR version
+  at every level at its exact capacity edge, all eight masks, and the format
+  and version words against the standard's tables. The QR grids were also
+  measured bit-identical to the `qrcode` package's for the same mask (203 of
+  203).
 - **LookupField** (Solid; new): pick a row from a table of choices (an item,
   a customer, an account) seeing several facts at once. Columns with headers,
   laid out as one grid (the header and rows are subgrids), so each column is as
