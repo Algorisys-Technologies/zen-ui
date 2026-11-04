@@ -90,6 +90,7 @@ import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
 import NewAmountFieldDemo from "./components/NewAmountFieldDemo";
 import NewDatePickerDemo from "./components/NewDatePickerDemo";
+import NewDateInputDemo from "./components/NewDateInputDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
 import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
 import NewFABDemo from "./components/NewFABDemo";
@@ -352,6 +353,7 @@ const App: React.FC = () => {
             <Route path="/password-input" element={<PasswordInputDemo />} />
             <Route path="/number-field-new" element={<NewNumberFieldDemo />} />
             <Route path="/amount-field" element={<NewAmountFieldDemo />} />
+            <Route path="/date-input" element={<NewDateInputDemo />} />
             <Route path="/date-picker-new" element={<NewDatePickerDemo />} />
             <Route path="/otp-new" element={<NewOTPDemo />} />
             <Route path="/phone-input-new" element={<NewPhoneInputDemo />} />

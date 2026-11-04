@@ -79,6 +79,7 @@ description, then import the name from your binding's package.
 - **PasswordInput** — Password field with a show / hide toggle; every native input attribute passes through
 - **NumberField** — Number input with −/+ stepper, clamp, decimal step
 - **AmountField and QuantityField** — Amounts and quantities typed the way clerks do (1,25,000, 2.5L, 1.2Cr), formatted in the locale with the currency's own precision; LocaleProvider sets locale and currency once
+- **DateInput** — Type a date the way clerks do (150326, t, +7) in the locale's order, with the calendar as a second way in; impossible dates are kept and flagged, never rolled over
 - **DatePicker** — react-day-picker in a Radix Popover; inline Calendar too
 - **InputOTP** — one input per digit, zero-dep; paste / autocomplete / a11y
 - **MaskInput** — Fixed-template input — 99-9999, aa-99; the mask decides what may be typed

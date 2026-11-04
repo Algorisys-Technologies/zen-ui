@@ -54,6 +54,11 @@ export type {
   DatePickerProps,
   CalendarProps,
 } from "./components/form/date-picker/date-picker";
+
+// Form Components - DateInput (a typed date in the locale's order; the calendar as a second way in)
+export { DateInput, isTypedDate } from "./components/form/date-picker/date-input";
+export type { DateInputProps, DateOrder } from "./components/form/date-picker/date-input";
+
 // Survey primitives - Rating (5-star feedback input)
 export { Rating } from "./components/survey/rating";
 export type { RatingProps } from "./components/survey/rating";
