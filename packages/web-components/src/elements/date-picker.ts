@@ -30,6 +30,8 @@ defineZenElement<DatePickerProps>({
   attrs: {
     placeholder: "string",
     disabled: "boolean",
+    // "first" (default, the panel as before) | "selected" (the chosen day, else today).
+    "initial-focus": "string",
   },
   props: ["value", "defaultValue", "disabled", "formatDate"],
   events: { onValueChange: "zen-value-change" },

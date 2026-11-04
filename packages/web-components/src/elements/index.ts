@@ -47,6 +47,7 @@ import "./sortable-list";
 import "./upload-collection";
 import "./planning-calendar";
 import "./date-picker";
+import "./date-input";
 import "./date-range-picker";
 import "./date-time-picker";
 import "./dialog";
