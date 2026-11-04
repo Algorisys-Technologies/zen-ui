@@ -167,6 +167,7 @@ export const NAV: NavGroup[] = [
       { to: "/select-dialog", label: "SelectDialog", description: "Searchable list picker — single commits on click, multi commits on OK", source: "packages/vanilla/src/components/SelectDialogDemo.ts" },
       { to: "/value-help", label: "ValueHelp", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/vanilla/src/components/ValueHelpDemo.ts" },
       { to: "/view-settings", label: "ViewSettingsDialog", description: "Sort / group / filter settings; commits on OK", source: "packages/vanilla/src/components/ViewSettingsDemo.ts" },
+      { to: "/filter-builder", label: "FilterBuilder", description: "Nested AND/OR conditions on any field as one serialisable object, for advanced list filters, report criteria and saved views; says in words what it filters", source: "packages/vanilla/src/components/FilterBuilderDemo.ts" },
     ],
   },
   {

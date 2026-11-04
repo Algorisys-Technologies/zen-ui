@@ -74,7 +74,13 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   const id = current.id ?? `zen-select-${++uid}`;
   const el = document.createElement("div");
   const disposer = new Disposer();
-  const cleanups = new Disposer();
+  // Two lifetimes, kept apart: what one OPENING registers (dismiss, roving
+  // focus) and what one RENDER registers (the options' listeners). They shared
+  // one Disposer, so the first close removed every option's listeners and
+  // marked it spent: from then on a reopened list ignored every pick, and its
+  // dismiss layers were never released.
+  let openScope = new Disposer();
+  let itemScope = new Disposer();
   let removeProps: (() => void) | undefined;
   let open = false;
 
@@ -117,9 +123,12 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     open = false;
     trigger.setAttribute("aria-expanded", "false");
     setPresence(listbox, "closed", () => {
-      listbox.hidden = true;
+      // Reopened mid-exit: the exit animation is cancelled, which lands here
+      // too, after the list is open again. Hiding it then left an open, empty select.
+      if (!open) listbox.hidden = true;
     });
-    cleanups.dispose();
+    openScope.dispose();
+    openScope = new Disposer();
     trigger.focus();
   };
 
@@ -130,13 +139,13 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     listbox.hidden = false;
     setPresence(listbox, "open");
 
-    cleanups.add(
+    openScope.add(
       dismissable(listbox, {
         ignore: [trigger],
         onDismiss: () => close(),
       }),
     );
-    cleanups.add(
+    openScope.add(
       rovingFocus(listbox, {
         items: () => items.filter((i) => i.getAttribute("aria-disabled") !== "true"),
         orientation: "vertical",
@@ -214,6 +223,8 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     );
     listbox.hidden = !open;
     listbox.replaceChildren();
+    itemScope.dispose();
+    itemScope = new Disposer();
 
     for (const o of options) {
       const item = document.createElement("div");
@@ -248,7 +259,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
           }
         };
         item.addEventListener("keydown", onKey);
-        cleanups.add(() => {
+        itemScope.add(() => {
           item.removeEventListener("click", pick);
           item.removeEventListener("keydown", onKey);
         });
@@ -287,7 +298,8 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   disposer.add(state.subscribe(paintValue));
   disposer.add(() => trigger.removeEventListener("click", onTriggerClick));
   disposer.add(() => trigger.removeEventListener("keydown", onTriggerKey));
-  disposer.add(() => cleanups.dispose());
+  disposer.add(() => openScope.dispose());
+  disposer.add(() => itemScope.dispose());
   disposer.add(() => removeProps?.());
 
   return {

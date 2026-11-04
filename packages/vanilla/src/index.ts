@@ -201,6 +201,9 @@ export { VirtualizedItems } from "./components/listbox/virtualized-items";
 export type { VirtualizedItemsProps, VirtualizedItemsDenseProps, VirtualizedItemsSparseProps } from "./components/listbox/virtualized-items";
 export { FilterBar } from "./components/filter-bar/filter-bar";
 export type { FilterBarProps, FilterBarField } from "./components/filter-bar/filter-bar";
+// FilterBuilder — nested AND/OR conditions as one plain object (core's filter model)
+export { FilterBuilder } from "./components/filter-builder/filter-builder";
+export type { FilterBuilderProps, FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator } from "./components/filter-builder/filter-builder";
 export { FlexibleColumnLayout } from "./components/flexible-column-layout/flexible-column-layout";
 export type { FlexibleColumnLayoutProps, FlexibleColumnLayoutType, FlexibleColumnName, FlexibleColumnLayoutChangeDetail } from "./components/flexible-column-layout/flexible-column-layout";
 export { SelectDialog } from "./components/select-dialog/select-dialog";
