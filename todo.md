@@ -92,6 +92,20 @@ issue / PR when its turn comes.
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
 
+## Parity: LookupField (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `lookup` (shared already). The list
+      is ONE grid with the header and rows as subgrids (separate grids per row
+      could only align fixed widths: the flexible column was squeezed to "H…"
+      while an alignment check passed); its placement is Solid's
+      lib/anchored.ts (portal, flip, follow scroll, kept on screen). The field
+      never keeps text that is not a row; Tab picks only after a search; Esc
+      closes, then undoes; onSearch is debounced and aborts the stale request.
+      Demo /lookup-field. ERPNext review C2.
+- [ ] A LookupField cell editor for DataTable (the invoice-line item column).
+- [ ] React check: does Radix Tabs inside a Dialog swallow Esc as Kobalte's did
+      (fixed in Solid's TabsList, 2026-11-04)? Test ValueHelp there before porting.
+
 ## Parity: DateInput (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass, on core's `date-input` (shared already): the

@@ -20,6 +20,7 @@ import {
   type TreeSelectNode,
 } from "@algorisys/zen-ui-core/tree-select";
 import { cn } from "../../lib/cn";
+import { createAnchoredPlacement } from "../../lib/anchored";
 import { Icon } from "../icon/icon";
 
 export type { TreeSelectNode };
@@ -177,46 +178,9 @@ export const TreeSelect = (props: TreeSelectProps) => {
     else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
   });
 
-  // The list lives in a portal, placed against the field: below it, or above
-  // when there is more room there, its height capped to the room it has. A
-  // list positioned inside the field's wrapper was cut off by any ancestor that
-  // clips (a card with overflow hidden) and never flipped near the window's end.
-  const LIST_MAX = 288; // 18rem at the default size, as max-h-72 was
-  const GAP = 4;
-  type Place = { left: number; width: number; top?: number; bottom?: number; maxHeight: number; dir: "ltr" | "rtl" };
-  const [place, setPlace] = createSignal<Place>();
-  const measure = () => {
-    if (!wrap) return;
-    const r = wrap.getBoundingClientRect();
-    const below = window.innerHeight - r.bottom - GAP * 2;
-    const above = r.top - GAP * 2;
-    const up = below < Math.min(LIST_MAX, list?.scrollHeight ?? LIST_MAX) && above > below;
-    setPlace({
-      left: r.left,
-      width: r.width,
-      top: up ? undefined : r.bottom + GAP,
-      bottom: up ? window.innerHeight - r.top + GAP : undefined,
-      maxHeight: Math.max(96, Math.min(LIST_MAX, up ? above : below)),
-      dir: getComputedStyle(wrap).direction === "rtl" ? "rtl" : "ltr",
-    });
-  };
-  createEffect(() => {
-    if (!open()) return;
-    measure();
-    let frame = 0;
-    const later = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(measure);
-    };
-    // Any scroller moving the field moves the list with it.
-    window.addEventListener("scroll", later, true);
-    window.addEventListener("resize", later);
-    onCleanup(() => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", later, true);
-      window.removeEventListener("resize", later);
-    });
-  });
+  // The list lives in a portal, placed against the field (lib/anchored): a
+  // list inside the field's wrapper was cut off by any ancestor that clips.
+  const placement = createAnchoredPlacement({ anchor: () => wrap, popup: () => list, open, maxHeight: 288, matchWidth: true });
 
   // Closing on a press outside, while open.
   createEffect(() => {
@@ -353,15 +317,8 @@ export const TreeSelect = (props: TreeSelectProps) => {
         <Portal>
         <div
           ref={list}
-          dir={place()?.dir}
-          style={{
-            position: "fixed",
-            left: `${place()?.left ?? 0}px`,
-            width: `${place()?.width ?? 0}px`,
-            top: place()?.top !== undefined ? `${place()!.top}px` : undefined,
-            bottom: place()?.bottom !== undefined ? `${place()!.bottom}px` : undefined,
-            "max-height": `${place()?.maxHeight ?? LIST_MAX}px`,
-          }}
+          dir={placement.dir()}
+          style={placement.style()}
           id={listId}
           role="tree"
           aria-label={local["aria-label"] ?? local.placeholder}

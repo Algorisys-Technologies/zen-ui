@@ -16,6 +16,21 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **LookupField** (Solid; new): pick a row from a table of choices (an item,
+  a customer, an account) seeing several facts at once. Columns with headers,
+  laid out as one grid (the header and rows are subgrids), so each column is as
+  wide as its widest cell and lines up on every row; the table is at least the
+  field and `--zen-lookup-list-width` wide, at most `--zen-lookup-list-max-width`.
+  Type any part of any searchable column, words in any order; the likeliest row
+  first (the code as typed, a code starting with it, words starting columns,
+  then anywhere), accents and case ignored, matches drawn bold. `onSearch` takes
+  the rows from a server instead: debounced, the stale request aborted,
+  "Searching…" and the result count announced. The chosen row comes back whole.
+  The field never holds text that is not a row. Keys: ↓ ↑ PageUp PageDown,
+  Enter picks, Tab picks the active row after a search, Esc closes then undoes,
+  F4 calls `onValueHelp` with what was typed (for ValueHelp). The pure half is
+  core's new `@algorisys/zen-ui-core/lookup`, checked by `bun run check:lookup`
+  (6344 assertions, against an independent brute force).
 - **DateInput** (Solid; new): a date you type, the way clerks enter them,
   with the calendar as a second way in. Read in the locale's order (day first
   for en-IN, month first for en-US, or `order`): `15/03/2026`, `15-3-26`,
@@ -237,6 +252,11 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **Esc did nothing in ValueHelp and ViewSettingsDialog while a tab had focus**
+  (Solid), and ValueHelp opens with focus on one. Kobalte's tab list swallows
+  Esc, though a tab list can never be emptied, so any Dialog, Sheet or Popover
+  containing Tabs ignored the key. TabsList now passes it on, once, to whatever
+  contains it.
 - **TreeSelect's list was cut off** inside anything that clips (a card with
   overflow hidden, as on its own demo page) and never opened upward near the
   bottom of the window. It now renders in a portal placed against the field:

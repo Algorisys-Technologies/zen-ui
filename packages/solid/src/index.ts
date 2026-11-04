@@ -596,6 +596,8 @@ export type {
 
 export { Tile, TileGrid } from "./components/tile/tile";
 export { TreeSelect } from "./components/tree-select/tree-select";
+export { LookupField } from "./components/lookup-field/lookup-field";
+export type { LookupFieldProps, LookupColumn } from "./components/lookup-field/lookup-field";
 export {
   ShortcutProvider,
   ShortcutHelp,

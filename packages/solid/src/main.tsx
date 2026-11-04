@@ -47,6 +47,7 @@ import NewDropdownMenuDemo from "./components/NewDropdownMenuDemo";
 import NewContextMenuDemo from "./components/NewContextMenuDemo";
 import NewTileDemo from "./components/NewTileDemo";
 import NewTreeSelectDemo from "./components/NewTreeSelectDemo";
+import NewLookupFieldDemo from "./components/NewLookupFieldDemo";
 import NewShortcutsDemo from "./components/NewShortcutsDemo";
 import NewSelectDemo from "./components/NewSelectDemo";
 import NewScrollAreaDemo from "./components/NewScrollAreaDemo";
@@ -184,6 +185,7 @@ render(
       <Route path="/context-menu" component={NewContextMenuDemo} />
       <Route path="/tile" component={NewTileDemo} />
       <Route path="/tree-select" component={NewTreeSelectDemo} />
+      <Route path="/lookup-field" component={NewLookupFieldDemo} />
       <Route path="/shortcuts" component={NewShortcutsDemo} />
       <Route path="/select" component={NewSelectDemo} />
       <Route path="/scroll-area" component={NewScrollAreaDemo} />

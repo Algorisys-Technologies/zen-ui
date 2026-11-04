@@ -777,6 +777,13 @@
   --zen-date-input-width: 10rem;
 }
 
+/* LookupField's table under the field: at least this wide, and as wide as its
+ * columns need up to the max (and the window). */
+:root {
+  --zen-lookup-list-width: 24rem;
+  --zen-lookup-list-max-width: 48rem;
+}
+
 /* The object page's section titles ("GENERAL", "ITEMS"): an app that sets one
  * size for every small uppercase label sets this too. Default: today's size. */
 :root {

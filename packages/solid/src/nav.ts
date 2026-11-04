@@ -150,7 +150,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Disclosure (Kobalte)",
     items: [
-      { label: "Tabs", path: "/tabs", description: "Tabbed navigation; underline + pills variants", source: "packages/solid/src/components/NewTabsDemo.tsx" },
+      { label: "Tabs", path: "/tabs", description: "Tabbed navigation; underline + pills variants", source: "packages/solid/src/components/NewTabsDemo.tsx", updated: "12.2.0" },
       { label: "Accordion", path: "/accordion", description: "Collapsible sections; single + multiple expand modes", source: "packages/solid/src/components/NewAccordionDemo.tsx" },
       { label: "Collapsible", path: "/collapsible", description: "One region that shows and hides — the single disclosure Accordion overserves", source: "packages/solid/src/components/NewCollapsibleDemo.tsx" },
     ],
@@ -219,6 +219,7 @@ export const NAV: NavGroup[] = [
       { label: "Pivot", path: "/pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/solid/src/components/NewPivotDemo.tsx" },
       { label: "Combobox", path: "/combobox", description: "Sync options or async onSearch with debounced loading", source: "packages/solid/src/components/NewComboboxDemo.tsx" , updated: "12.2.0" },
       { label: "TreeSelect", path: "/tree-select", description: "Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors", source: "packages/solid/src/components/NewTreeSelectDemo.tsx", since: "12.2.0" },
+      { label: "LookupField", path: "/lookup-field", description: "Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search", source: "packages/solid/src/components/NewLookupFieldDemo.tsx", since: "12.2.0" },
       { label: "MultiCombobox", path: "/multi-combobox", description: "Multi-select with chip trigger + overflow collapse", source: "packages/solid/src/components/NewMultiComboboxDemo.tsx" },
       { label: "VirtualizedItems", path: "/lazy-options", description: "Drop-in windowing for huge option lists", source: "packages/solid/src/components/NewLazyOptionsDemo.tsx" },
     ],
@@ -279,8 +280,8 @@ export const NAV: NavGroup[] = [
     group: "Zen table ecosystem",
     items: [
       { label: "SelectDialog", path: "/select-dialog", description: "Searchable list picker — single commits on click, multi commits on OK", source: "packages/solid/src/components/NewSelectDialogDemo.tsx" },
-      { label: "ValueHelp", path: "/value-help", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/solid/src/components/NewValueHelpDemo.tsx" },
-      { label: "ViewSettingsDialog", path: "/view-settings", description: "Sort / group / filter settings; commits on OK", source: "packages/solid/src/components/NewViewSettingsDemo.tsx" },
+      { label: "ValueHelp", path: "/value-help", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/solid/src/components/NewValueHelpDemo.tsx", updated: "12.2.0" },
+      { label: "ViewSettingsDialog", path: "/view-settings", description: "Sort / group / filter settings; commits on OK", source: "packages/solid/src/components/NewViewSettingsDemo.tsx", updated: "12.2.0" },
       { label: "FilterBar", path: "/filter-bar", description: "List Report filter area — fields, Go, and Adapt filters", source: "packages/solid/src/components/NewFilterBarDemo.tsx" },
     ],
   },
