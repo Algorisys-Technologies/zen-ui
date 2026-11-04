@@ -50,6 +50,7 @@ import "./date-picker";
 import "./date-input";
 import "./date-range-picker";
 import "./date-time-picker";
+import "./context-menu";
 import "./dialog";
 import "./divider";
 import "./dropdown-menu";
