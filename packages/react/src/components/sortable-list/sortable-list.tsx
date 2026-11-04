@@ -25,6 +25,7 @@ import {
   type ReorderAnnouncements,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * SortableList — a list whose order the user can change.
@@ -209,6 +210,7 @@ export interface SortableListItemProps {
 }
 
 export const SortableListItem = ({ id, disabled, className, children }: SortableListItemProps) => {
+  const loc = useLocale();
   const ctx = useSortableList();
   const sortable = useSortable({ id });
   const inert = ctx.disabled || (disabled ?? false);
@@ -220,7 +222,7 @@ export const SortableListItem = ({ id, disabled, className, children }: Sortable
       style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }}
       data-dragging={sortable.isDragging ? "" : undefined}
       data-picked={isPicked ? "" : undefined}
-      aria-roledescription="sortable item"
+      aria-roledescription={loc.t("sortableList.itemRoleDescription")}
       className={cn(
         "zen-flex zen-items-center zen-gap-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1.5",
         "zen-transition-shadow",
@@ -268,6 +270,7 @@ const GripIcon = () => (
  * is currently picked up.
  */
 export const SortableListHandle = ({ label, className, children }: SortableListHandleProps) => {
+  const loc = useLocale();
   const ctx = useSortableList();
   const id = React.useContext(SortableItemIdContext);
   const sortable = useSortable({ id });
@@ -276,7 +279,7 @@ export const SortableListHandle = ({ label, className, children }: SortableListH
     <button
       type="button"
       ref={sortable.setActivatorNodeRef}
-      aria-label={label ?? "Reorder"}
+      aria-label={label ?? loc.t("sortableList.reorder")}
       disabled={ctx.disabled}
       {...sortable.attributes}
       {...sortable.listeners}

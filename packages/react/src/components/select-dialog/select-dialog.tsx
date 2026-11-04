@@ -13,6 +13,7 @@ import {
   type SelectListItem,
 } from "../select-list/select-list";
 import { filterItems } from "../select-list/filter";
+import { useLocale } from "../locale/locale";
 
 /**
  * SelectDialog — the list picker: a modal with a search field, a scrollable
@@ -76,15 +77,20 @@ export const SelectDialog = ({
   selectedIds,
   onConfirm,
   searchable = true,
-  searchPlaceholder = "Search",
+  searchPlaceholder: searchPlaceholderProp,
   onSearch,
-  emptyText = "No matching items",
-  confirmLabel = "OK",
-  cancelLabel = "Cancel",
-  clearLabel = "Clear",
+  emptyText,
+  confirmLabel: confirmLabelProp,
+  cancelLabel: cancelLabelProp,
+  clearLabel: clearLabelProp,
   showClearAll = true,
   className,
 }: SelectDialogProps) => {
+  const loc = useLocale();
+  const searchPlaceholder = searchPlaceholderProp ?? loc.t("common.search");
+  const confirmLabel = confirmLabelProp ?? loc.t("common.ok");
+  const cancelLabel = cancelLabelProp ?? loc.t("common.cancel");
+  const clearLabel = clearLabelProp ?? loc.t("common.clear");
   const [query, setQuery] = React.useState("");
   // Seeded by the reset effect below rather than here: `selectedIds` is read when
   // the dialog opens, so an initial read would be a second, contradictory source

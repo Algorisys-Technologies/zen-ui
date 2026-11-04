@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * QRScanner — camera-based barcode / QR scanner.
@@ -90,10 +91,12 @@ const QRScanner = React.forwardRef<HTMLDivElement, QRScannerProps>(
       fallback,
       className,
       hideViewfinder,
-      "aria-label": ariaLabel = "QR scanner camera view",
+      "aria-label": ariaLabelProp,
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const ariaLabel = ariaLabelProp ?? loc.t("qrScanner.cameraView");
     const videoRef = React.useRef<HTMLVideoElement | null>(null);
     const streamRef = React.useRef<MediaStream | null>(null);
     const rafRef = React.useRef<number | null>(null);
@@ -269,7 +272,7 @@ const QRScanner = React.forwardRef<HTMLDivElement, QRScannerProps>(
 
         {status === "starting" && (
           <div className="zen-absolute zen-inset-x-0 zen-bottom-2 zen-text-center zen-text-xs zen-text-white/80">
-            Starting camera…
+            {loc.t("qrScanner.startingCamera")}
           </div>
         )}
       </div>
@@ -302,16 +305,12 @@ const Viewfinder: React.FC = () => (
 );
 
 const DefaultFallback: React.FC<{ status: Status }> = ({ status }) => {
+  const loc = useLocale();
   if (status === "blocked") {
-    return (
-      <span>
-        Camera access was blocked. Allow camera permission in your browser
-        settings, then reload.
-      </span>
-    );
+    return <span>{loc.t("qrScanner.cameraBlocked")}</span>;
   }
   if (status === "no-camera") {
-    return <span>No camera was found on this device.</span>;
+    return <span>{loc.t("qrScanner.noCameraWasFoundOn")}</span>;
   }
   if (status === "no-decoder") {
     return (
@@ -322,7 +321,7 @@ const DefaultFallback: React.FC<{ status: Status }> = ({ status }) => {
       </span>
     );
   }
-  return <span>Scanner idle.</span>;
+  return <span>{loc.t("qrScanner.scannerIdle")}</span>;
 };
 
 export { QRScanner };

@@ -14,6 +14,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * PlanningCalendar — who is busy, and when.
@@ -132,6 +133,7 @@ export const PlanningCalendar = ({
   emptyMessage,
   className,
 }: PlanningCalendarProps) => {
+  const loc = useLocale();
   const [innerView, setInnerView] = React.useState<PlanningView>(defaultView ?? "week");
   const [innerDate, setInnerDate] = React.useState<Date>(defaultDate ?? new Date());
 
@@ -187,7 +189,7 @@ export const PlanningCalendar = ({
           <Button
             variant="outline"
             size="sm"
-            aria-label="Previous"
+            aria-label={loc.t("planningCalendar.previous")}
             onClick={() => setDate(shiftPlanningAnchor(view, anchor, -1))}
           >
             {/* Logical, not physical: under RTL the axis runs the other way, so
@@ -195,12 +197,12 @@ export const PlanningCalendar = ({
             <Icon name="chevron-left" size={14} className="rtl:zen-rotate-180" />
           </Button>
           <Button variant="outline" size="sm" onClick={() => setDate(now)}>
-            Today
+            {loc.t("planningCalendar.today")}
           </Button>
           <Button
             variant="outline"
             size="sm"
-            aria-label="Next"
+            aria-label={loc.t("planningCalendar.next")}
             onClick={() => setDate(shiftPlanningAnchor(view, anchor, 1))}
           >
             <Icon name="chevron-right" size={14} className="rtl:zen-rotate-180" />
@@ -210,7 +212,7 @@ export const PlanningCalendar = ({
             {planningRangeLabel(view, anchor)}
           </span>
 
-          <div className="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label="View">
+          <div className="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label={loc.t("planningCalendar.view")}>
             {(views ?? ALL_VIEWS).map((v) => (
               <Button
                 key={v}
@@ -228,7 +230,7 @@ export const PlanningCalendar = ({
 
       {laidOut.length === 0 ? (
         <p className="zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-          {emptyMessage ?? "No resources"}
+          {emptyMessage ?? loc.t("planningCalendar.noResources")}
         </p>
       ) : (
         /* One horizontal scroller holding the header and every row, so the time
@@ -238,7 +240,7 @@ export const PlanningCalendar = ({
           <div className="zen-min-w-[45rem]">
             <div className="zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted/30">
               <div className="zen-w-40 zen-shrink-0 zen-border-e zen-border-zen-border zen-px-3 zen-py-2 zen-text-xs zen-font-semibold zen-text-zen-muted-fg">
-                Resource
+                {loc.t("planningCalendar.resource")}
               </div>
               <div className="zen-flex zen-flex-1">
                 {columns.map((column) => (

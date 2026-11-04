@@ -681,6 +681,9 @@ export const DEFAULT_MESSAGES = {
   "codeEditor.loadingEditor": "Loading editor…",
   "chart.loading": "Loading chart…",
   "filterBar.noFilters": "No filters shown. Use {adapt} to add some.",
+  "qrScanner.cameraView": "QR scanner camera view",
+  "qrScanner.cameraBlocked": "Camera access was blocked. Allow camera permission in your browser settings, then reload.",
+  "richText.preview": "Preview",
 } as const satisfies Record<string, string>;
 
 export type MessageKey = keyof typeof DEFAULT_MESSAGES;

@@ -2,6 +2,7 @@ import * as React from "react";
 import type { IconName } from "@algorisys/zen-ui-core";
 import { Icon } from "../icon/icon";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Timeline — a sequence of things that happened, in order.
@@ -144,6 +145,7 @@ export interface TimelineProps {
 }
 
 export const Timeline = ({ items, density, emptyMessage, className }: TimelineProps) => {
+  const loc = useLocale();
   /* Group boundaries are computed once per render rather than by comparing
    * against the previous item inside the loop, which would re-derive it for
    * every item and read the array out of order. */
@@ -162,7 +164,7 @@ export const Timeline = ({ items, density, emptyMessage, className }: TimelinePr
   if (rows.length === 0) {
     return (
       <p className="zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-        {emptyMessage ?? "Nothing yet"}
+        {emptyMessage ?? loc.t("timeline.nothingYet")}
       </p>
     );
   }

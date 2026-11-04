@@ -2,6 +2,7 @@ import { cn } from "@algorisys/zen-ui-core";
 import { Input } from "../form/input/input";
 import { Checkbox } from "../form/checkbox/checkbox";
 import { Icon, type IconName } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * The searchable item list shared by the pickers — SelectDialog's whole body,
@@ -30,14 +31,17 @@ export interface SelectListItem {
 export const SelectSearchField = ({
   value,
   onValueChange,
-  placeholder = "Search",
+  placeholder: placeholderProp,
   className,
 }: {
   value: string;
   onValueChange: (v: string) => void;
   placeholder?: string;
   className?: string;
-}) => (
+}) => {
+  const loc = useLocale();
+  const placeholder = placeholderProp ?? loc.t("selectList.placeholder");
+  return (
   <div className={cn("zen-relative", className)}>
     <Icon
       name="search"
@@ -52,7 +56,8 @@ export const SelectSearchField = ({
       className="zen-ps-9"
     />
   </div>
-);
+  );
+};
 
 export const SelectListBody = ({
   items,
@@ -60,7 +65,7 @@ export const SelectListBody = ({
   selected,
   onToggle,
   onPick,
-  emptyText = "No matching items",
+  emptyText,
 }: {
   items: SelectListItem[];
   multiple?: boolean;
@@ -70,10 +75,11 @@ export const SelectListBody = ({
   onPick: (id: string) => void;
   emptyText?: string;
 }) => {
+  const loc = useLocale();
   if (items.length === 0) {
     return (
       <p className="zen-m-0 zen-px-4 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-        {emptyText}
+        {emptyText ?? loc.t("selectList.empty")}
       </p>
     );
   }
