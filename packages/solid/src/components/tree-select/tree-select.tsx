@@ -8,6 +8,7 @@ import {
   onCleanup,
   splitProps,
 } from "solid-js";
+import { Portal } from "solid-js/web";
 import {
   filterTree,
   findNode,
@@ -176,11 +177,53 @@ export const TreeSelect = (props: TreeSelectProps) => {
     else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
   });
 
+  // The list lives in a portal, placed against the field: below it, or above
+  // when there is more room there, its height capped to the room it has. A
+  // list positioned inside the field's wrapper was cut off by any ancestor that
+  // clips (a card with overflow hidden) and never flipped near the window's end.
+  const LIST_MAX = 288; // 18rem at the default size, as max-h-72 was
+  const GAP = 4;
+  type Place = { left: number; width: number; top?: number; bottom?: number; maxHeight: number; dir: "ltr" | "rtl" };
+  const [place, setPlace] = createSignal<Place>();
+  const measure = () => {
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const below = window.innerHeight - r.bottom - GAP * 2;
+    const above = r.top - GAP * 2;
+    const up = below < Math.min(LIST_MAX, list?.scrollHeight ?? LIST_MAX) && above > below;
+    setPlace({
+      left: r.left,
+      width: r.width,
+      top: up ? undefined : r.bottom + GAP,
+      bottom: up ? window.innerHeight - r.top + GAP : undefined,
+      maxHeight: Math.max(96, Math.min(LIST_MAX, up ? above : below)),
+      dir: getComputedStyle(wrap).direction === "rtl" ? "rtl" : "ltr",
+    });
+  };
+  createEffect(() => {
+    if (!open()) return;
+    measure();
+    let frame = 0;
+    const later = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    // Any scroller moving the field moves the list with it.
+    window.addEventListener("scroll", later, true);
+    window.addEventListener("resize", later);
+    onCleanup(() => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", later, true);
+      window.removeEventListener("resize", later);
+    });
+  });
+
   // Closing on a press outside, while open.
   createEffect(() => {
     if (!open()) return;
     const onDown = (e: PointerEvent) => {
-      if (!wrap?.contains(e.target as Node)) close();
+      const t = e.target as Node;
+      if (!wrap?.contains(t) && !list?.contains(t)) close();
     };
     document.addEventListener("pointerdown", onDown, true);
     onCleanup(() => document.removeEventListener("pointerdown", onDown, true));
@@ -307,14 +350,24 @@ export const TreeSelect = (props: TreeSelectProps) => {
       </div>
 
       <Show when={open()}>
+        <Portal>
         <div
           ref={list}
+          dir={place()?.dir}
+          style={{
+            position: "fixed",
+            left: `${place()?.left ?? 0}px`,
+            width: `${place()?.width ?? 0}px`,
+            top: place()?.top !== undefined ? `${place()!.top}px` : undefined,
+            bottom: place()?.bottom !== undefined ? `${place()!.bottom}px` : undefined,
+            "max-height": `${place()?.maxHeight ?? LIST_MAX}px`,
+          }}
           id={listId}
           role="tree"
           aria-label={local["aria-label"] ?? local.placeholder}
           // Presses in the list must not take focus from the field.
           onMouseDown={(e) => e.preventDefault()}
-          class="zen-absolute zen-start-0 zen-end-0 zen-top-full zen-z-50 zen-mt-1 zen-max-h-72 zen-overflow-y-auto zen-rounded-zen-md zen-border zen-border-solid zen-border-zen-border zen-bg-zen-background zen-p-1 zen-shadow-md"
+          class="zen-z-50 zen-overflow-y-auto zen-rounded-zen-md zen-border zen-border-solid zen-border-zen-border zen-bg-zen-background zen-p-1 zen-shadow-md"
         >
           <Show
             when={rows().length > 0}
@@ -374,6 +427,7 @@ export const TreeSelect = (props: TreeSelectProps) => {
             </For>
           </Show>
         </div>
+        </Portal>
       </Show>
     </div>
   );

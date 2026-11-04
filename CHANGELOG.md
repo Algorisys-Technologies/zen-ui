@@ -237,6 +237,11 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **TreeSelect's list was cut off** inside anything that clips (a card with
+  overflow hidden, as on its own demo page) and never opened upward near the
+  bottom of the window. It now renders in a portal placed against the field:
+  below it, or above when there is more room there, its height capped to the
+  room it has, following the field as the page scrolls.
 - **Breadcrumb showed list numbers without the opt-in preflight** (Solid):
   "Home1. › Accounts2. ›", 44px high instead of 20. Its list resets its own
   margin, indent and markers now, as do Stepper's and FileUpload's lists,
