@@ -23,8 +23,7 @@ import { Button } from "../button/button";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../form/select/select";
-import { Calendar } from "../form/date-picker/date-picker";
-import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
+import { DateInput } from "../form/date-picker/date-input";
 import { MultiCombobox } from "../combobox/multi-combobox";
 import { Icon } from "../icon/icon";
 import { useLocale, type LocaleContextValue, type MessageKey } from "../locale/locale";
@@ -40,10 +39,10 @@ export type { FilterField, FilterGroup, FilterNode, FilterCondition, FilterOpera
  * The value is one plain object (a FilterGroup): save it, send it to the server
  * as report criteria, put it in a saved view, or filter rows here with
  * `filterPredicate` from @algorisys/zen-ui-core/filter. Each field's type
- * decides its operators and its value editor: text, number, date (a calendar),
- * a list of choices, or yes/no. A condition still missing its value filters
- * nothing, and the summary under the builder says in words what the filter
- * does now.
+ * decides its operators and its value editor: text, number, date (typed, with
+ * a calendar), a list of choices, or yes/no. A condition still missing its
+ * value filters nothing, and the summary under the builder says in words what
+ * the filter does now.
  *
  * Each group's "Match" covers all four meanings (all, any, none, not all), so
  * NOT is never a separate checkbox to miss. The pure half is
@@ -74,7 +73,7 @@ const groupOf = (m: MatchMode): Pick<FilterGroup, "join" | "not"> => ({
   not: m === "none" || m === "notAll",
 });
 
-/** "2026-03-15" <-> a local Date, for the calendar. */
+/** "2026-03-15" <-> a local Date, for DateInput. */
 const toDate = (v: FilterValue | undefined): Date | null => {
   if (typeof v !== "string") return null;
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
@@ -139,52 +138,6 @@ const OptionSelect = ({
   </Select>
 );
 
-/**
- * A day, picked on a calendar. React has no typed DateInput yet, so this is
- * DatePicker's own parts (a trigger button, a Popover, the Calendar), composed
- * here so the trigger can carry the row's id (for its label and for focus) and
- * so a cleared value reads as cleared rather than as DatePicker's last pick.
- */
-const DateEditor = ({
-  id,
-  value,
-  onValueChange,
-  loc,
-}: {
-  id: string;
-  value: Date | null;
-  onValueChange: (d: Date | null) => void;
-  loc: LocaleContextValue;
-}) => {
-  const [open, setOpen] = React.useState(false);
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          id={id}
-          variant="outline"
-          color="neutral"
-          className={cn("zen-w-44 zen-justify-between zen-font-normal", !value && "zen-text-zen-muted-fg")}
-          iconLeft={<Icon name="calendar" size={14} />}
-        >
-          {value ? value.toLocaleDateString(loc.locale) : loc.t("datePicker.placeholder")}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="zen-w-auto zen-p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={value ?? undefined}
-          defaultMonth={value ?? undefined}
-          onSelect={(d: Date | undefined) => {
-            onValueChange(d ?? null);
-            if (d) setOpen(false);
-          }}
-        />
-      </PopoverContent>
-    </Popover>
-  );
-};
-
 const ConditionRow = ({ c, parent, ctx }: { c: FilterCondition; parent: FilterGroup; ctx: Ctx }) => {
   const { loc } = ctx;
   const n = ctx.numbers.get(c.id) ?? 0;
@@ -217,7 +170,7 @@ const ConditionRow = ({ c, parent, ctx }: { c: FilterCondition; parent: FilterGr
       );
     if (fieldType === "date")
       return (
-        <DateEditor key={`${which}-date`} id={id} value={toDate(v)} onValueChange={(d) => setValue({ [which]: toIso(d) })} loc={loc} />
+        <DateInput key={`${which}-date`} id={id} value={toDate(v)} onValueChange={(d) => setValue({ [which]: toIso(d) })} />
       );
     if (fieldType === "text")
       return (
