@@ -51,6 +51,17 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     (`menu-parts.tsx`); vanilla's share their drawing code (`menu-engine.ts`).
     DropdownMenu output measured identical in both.
 
+### Changed
+- **Visible on existing pages, by design** (each is Solid's 12.2.0 behaviour
+  reaching the other bindings):
+  - React and vanilla: an Input (and React's SelectTrigger) that already has
+    `aria-invalid="true"` now draws the error border, as an explicit
+    `invalid` does. Forms that mark errors that way (React BoundFields,
+    `FormControl`) show it when a field is in error.
+  - React and vanilla Sidebar: a non-active menu button takes the theme's
+    foreground colour; without the opt-in preflight a `<button>` row used the
+    browser's button colour. Measured unchanged in the demos.
+
 ### Fixed
 - **Built-in strings in 18 places were still hard-coded after 12.2.0's "every string
   can be translated"** (Solid), which overstated it: `check:strings` could
