@@ -60,6 +60,7 @@ export const NAV: NavGroup[] = [
       { to: "/select", label: "Select", description: "Listbox on a trigger; the known React/Solid divergence, decided here", source: "packages/web-components/src/components/SelectDemo.ts" },
       { to: "/combobox", label: "Combobox + Async", description: "Searchable single-select; sync `options` or async `onSearch` with debounce + abort, plus a creatable row", source: "packages/web-components/src/components/ComboboxDemo.ts" },
       { to: "/dialog", label: "Dialog", description: "Portal, focus trap, scroll lock, Escape and click-outside — all hand-written", source: "packages/web-components/src/components/DialogDemo.ts" },
+      { to: "/shortcuts", label: "Shortcuts", description: "Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform", source: "packages/web-components/src/components/ShortcutsDemo.ts" },
       { to: "/separator", label: "Separator", description: "Radix Separator — horizontal / vertical with decorative semantics", source: "packages/web-components/src/components/SeparatorDemo.ts" },
       { to: "/progress", label: "Progress", description: "Determinate progress indicator — sizes × colors, accessible value", source: "packages/web-components/src/components/ProgressDemo.ts" },
       { to: "/loading", label: "Loading", description: "Animated spinner with sr-only label, color=current for buttons", source: "packages/web-components/src/components/LoadingDemo.ts" },

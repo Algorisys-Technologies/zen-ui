@@ -99,6 +99,7 @@ import "./select";
 import "./select-dialog";
 import "./sheet";
 import "./shellbar";
+import "./shortcuts";
 import "./sidebar";
 import "./skeleton";
 import "./skip-to-content";

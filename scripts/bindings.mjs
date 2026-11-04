@@ -41,6 +41,7 @@ const DATA_DRIVEN_DIVERGENT = [
   "InputHandle", "InputOTPGroup", "InputOTPSeparator", "InputOTPSlot", "MaskInputHandle", "NotificationsInboxHandle",
   // AmountField / QuantityField return a handle like NumberField's (parity A1).
   "AmountFieldHandle", "QuantityFieldHandle",
+  "ShortcutHelpHandle", "ShortcutRegistry",
   "NumberFieldHandle", "PasswordInputHandle", "PopoverAlign", "PopoverAnchor", "PopoverContent", "PopoverHandle", "PopoverSide",
   "PopoverTrigger", "RatingSize", "SearchHandle", "SelectDialogHandle", "SelectableCard", "SelectableCardItemSpec", "SheetClose",
   "SheetContent", "SheetDescription", "SheetFooter", "SheetHandle", "SheetHeader", "SheetOverlay",

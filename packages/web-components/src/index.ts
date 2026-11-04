@@ -41,6 +41,7 @@ export {
   InputOTP, Label, Likert, NativeSelect, Link, Loading, Map, MaskInput, MultiCombobox, NPS, NotificationsInbox,
   NumberField, ObjectIdentifier, ObjectMarker, ObjectNumber, ObjectPageLayout, ObjectStatus,
   AmountField, QuantityField,
+  ShortcutProvider, ShortcutHelp, Kbd, useShortcut, useShortcuts, keyshortcut, shortcutLabel, detectPlatform,
   PIVOT_AGGREGATIONS, PIVOT_ZONES, Page, PageHeader, Pagination, PasswordInput, PhoneInput,
   PivotDropZone, PivotFieldChip, PivotFilterMenu, PivotGrid, PivotWorkbench, Popover, Progress,
   QRScanner, RadioGroup, RadioGroupItem, Rating, RichText, SKIP_TO_CONTENT_CLASS, ScrollArea,
@@ -111,6 +112,7 @@ export type {
   Notification, NotificationsInboxHandle, NotificationsInboxProps, NumberFieldHandle,
   NumberFieldProps, ObjectIdentifierProps, ObjectMarkerProps, ObjectMarkerType,
   AmountFieldProps, QuantityFieldProps, AmountFieldHandle, QuantityFieldHandle,
+  ShortcutOptions, ShortcutProviderProps, ShortcutHelpProps, ShortcutHelpGroup, ShortcutHelpHandle, KbdProps, ShortcutRegistry,
   ObjectNumberProps, ObjectPageLayoutProps, ObjectPageSection, ObjectPageSubSection, ObjectState,
   ObjectStatusProps, OperatorMeta, PageHeaderProps, PageProps, PaginationProps,
   PasswordInputHandle, PasswordInputProps, PhoneInputProps, PhoneValue, PivotAggregation,
@@ -173,3 +175,4 @@ export type {
 export { defineZenElement } from "./lib/define";
 export type { ElementDef, AttrType } from "./lib/define";
 export { defineZenElements } from "./elements";
+export { documentShortcuts } from "./elements/shortcuts";
