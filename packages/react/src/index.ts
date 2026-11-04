@@ -346,6 +346,9 @@ export type {
 // FilterBar (Zen-shaped: the List Report filter area)
 export { FilterBar } from "./components/filter-bar/filter-bar";
 export type { FilterBarProps, FilterBarField } from "./components/filter-bar/filter-bar";
+// FilterBuilder — nested AND/OR conditions as one plain object (core's filter model)
+export { FilterBuilder } from "./components/filter-builder/filter-builder";
+export type { FilterBuilderProps, FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator } from "./components/filter-builder/filter-builder";
 
 // ValueHelp (Zen-shaped: the F4 lookup dialog — list + condition builder)
 export { ValueHelp } from "./components/value-help/value-help";

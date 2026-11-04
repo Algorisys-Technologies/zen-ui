@@ -163,6 +163,7 @@ description, then import the name from your binding's package.
 - **SelectDialog** — Searchable list picker — single commits on click, multi commits on OK
 - **ValueHelp** — F4 lookup dialog — the list picker plus a condition builder
 - **ViewSettingsDialog** — Sort / group / filter settings; commits on OK
+- **FilterBuilder** — Nested AND/OR conditions on any field as one serialisable object, for advanced list filters, report criteria and saved views; says in words what it filters
 - **FilterBar** — List Report filter area — fields, Go, and Adapt filters
 
 ### Zen app frame
