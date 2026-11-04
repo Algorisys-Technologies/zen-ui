@@ -75,6 +75,7 @@ import StepperDemo from "./components/StepperDemo";
 import ToolbarDemo from "./components/ToolbarDemo";
 import CarouselDemo from "./components/CarouselDemo";
 import DropdownMenuDemo from "./components/DropdownMenuDemo";
+import ContextMenuDemo from "./components/ContextMenuDemo";
 import FileUploadDemo from "./components/FileUploadDemo";
 import ColorPickerDemo from "./components/ColorPickerDemo";
 import MultiComboboxDemo from "./components/MultiComboboxDemo";
@@ -194,6 +195,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/toolbar": ToolbarDemo,
   "/carousel": CarouselDemo,
   "/dropdown-menu": DropdownMenuDemo,
+  "/context-menu": ContextMenuDemo,
   "/file-upload": FileUploadDemo,
   "/color-picker": ColorPickerDemo,
   "/multi-combobox": MultiComboboxDemo,

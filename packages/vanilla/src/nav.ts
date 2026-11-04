@@ -103,6 +103,7 @@ export const NAV: NavGroup[] = [
       { to: "/stepper", label: "Stepper", description: "Multi-step wizard for onboarding + journey apps (horizontal / vertical, linear / non-linear)", source: "packages/vanilla/src/components/StepperDemo.ts" },
       { to: "/carousel", label: "Carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/vanilla/src/components/CarouselDemo.ts" },
       { to: "/dropdown-menu", label: "DropdownMenu", description: "Action menus, sub-menus, checkbox/radio items — positioning, keyboard nav and dismissal all hand-written", source: "packages/vanilla/src/components/DropdownMenuDemo.ts" },
+      { to: "/context-menu", label: "ContextMenu", description: "Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press", source: "packages/vanilla/src/components/ContextMenuDemo.ts" },
       { to: "/file-upload", label: "FileUpload", description: "Drag-and-drop or browse; accept / max-size / max-files validation with an inline removable file list", source: "packages/vanilla/src/components/FileUploadDemo.ts" },
       { to: "/color-picker", label: "ColorPicker", description: "Swatch palette + the platform picker; hex in, hex out", source: "packages/vanilla/src/components/ColorPickerDemo.ts" },
       { to: "/multi-combobox", label: "MultiCombobox", description: "Multi-select Combobox with chip trigger + overflow collapse + sync / async option loading", source: "packages/vanilla/src/components/MultiComboboxDemo.ts" },

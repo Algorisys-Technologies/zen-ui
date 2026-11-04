@@ -172,6 +172,8 @@ export { formatMediaTime, MIN_MEDIA_RANGE } from "@algorisys/zen-ui-core/media";
 export type { MediaRange, MediaRangeMode, WaveformClip } from "@algorisys/zen-ui-core/media";
 export { DropdownMenu } from "./components/dropdown-menu/dropdown-menu";
 export type { DropdownMenuProps, DropdownMenuHandle, DropdownMenuItemSpec, DropdownMenuActionItem, DropdownMenuLabelItem, DropdownMenuSeparatorItem, DropdownMenuCheckboxItemSpec, DropdownMenuRadioGroupSpec, DropdownMenuRadioOption, DropdownMenuSubSpec, DropdownMenuSide, DropdownMenuAlign } from "./components/dropdown-menu/dropdown-menu";
+export { ContextMenu } from "./components/context-menu/context-menu";
+export type { ContextMenuProps, ContextMenuHandle } from "./components/context-menu/context-menu";
 export { FileUpload } from "./components/file-upload/file-upload";
 export type { FileUploadProps, FileRejection } from "./components/file-upload/file-upload";
 export { ColorPicker, ColorPalette } from "./components/color-picker/color-picker";
