@@ -240,7 +240,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         </div>
 
         {showFileList && files.length > 0 ? (
-          <ul className="zen-flex zen-flex-col zen-gap-1 zen-text-sm">
+          <ul className="zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-1 zen-p-0 zen-text-sm">
             {files.map((file, idx) => (
               <li
                 key={`${file.name}-${idx}`}
