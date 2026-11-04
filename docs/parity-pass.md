@@ -24,8 +24,8 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A5 | Tile, TileGrid | ok | — | — |
 | A6 | QRCode, Barcode | ok | — | — |
 | A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | wip | — | — |
-| A8 | TreeSelect | wip | — | — |
-| A9 | LookupField | — | — | — |
+| A8 | TreeSelect | ok | — | — |
+| A9 | LookupField | wip | — | — |
 | A10 | FilterBuilder | wip | — | — |
 | A11 | ViewManager | wip | — | — |
 | A12 | Sidebar collapseMode / overlay / badges / header label | wip | — | — |
@@ -75,3 +75,9 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   64dd29ce).
 - 2026-11-05: A10 (FilterBuilder), A11 (ViewManager), A12 (Sidebar) React
   launched.
+- 2026-11-05: A8 React merged (TreeSelect oracle 18/18 + 19/19 extra).
+  `packages/react/src/lib/anchored.ts` = `useAnchoredPlacement` (React's
+  first `createPortal`), for LookupField to reuse. The React port found a
+  first-open scroll bug in its own first version (scrolled before the height
+  cap); the integrator ran the same check on Solid: passes (scrollTop 46, row
+  in view), so Solid does not have it. A9 (LookupField) React launched.
