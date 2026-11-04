@@ -1547,6 +1547,34 @@ export function DataTable<TData>(
     ed?.comp.destroy();
   });
 
+  /* Whether the table holds focus, kept from its own focus events rather than
+   * read from document.activeElement, which is the page during a blur. A blur
+   * towards nothing that leaves its element in place is a click elsewhere:
+   * the table gives focus up. One whose element has gone is a rebuild: it
+   * does not. (Cell navigation and keyboard rows only.) */
+  let tableHasFocus = false;
+  const onFocusIn = (): void => {
+    tableHasFocus = true;
+  };
+  const onFocusOut = (e: FocusEvent): void => {
+    const to = e.relatedTarget as Node | null;
+    if (to) {
+      if (!containerEl.contains(to)) tableHasFocus = false;
+      return;
+    }
+    const from = e.target as Element;
+    setTimeout(() => {
+      const now = document.activeElement;
+      if (from.isConnected && (!now || now === document.body)) tableHasFocus = false;
+    });
+  };
+  containerEl.addEventListener("focusin", onFocusIn);
+  containerEl.addEventListener("focusout", onFocusOut);
+  disposer.add(() => {
+    containerEl.removeEventListener("focusin", onFocusIn);
+    containerEl.removeEventListener("focusout", onFocusOut);
+  });
+
   /* Every state change repaints the body, which would drop focus to the page.
    * Where focus was in the table, it is put back: in the editor, on the
    * active cell, on the same row (by id, so a sort or new data that moves the
@@ -1561,6 +1589,14 @@ export function DataTable<TData>(
   function captureFocus(): FocusMark | null {
     if (editor?.comp.holdsFocus()) return { kind: "editor" };
     const active = document.activeElement;
+    // Focus is between two of the table's own elements (an editor's blur
+    // committing while focus moves to the next cell): it goes to the active
+    // cell or the tab-stop row once the rows are rebuilt.
+    if ((!active || active === document.body) && tableHasFocus) {
+      if (cellNavActive()) return { kind: "cell" };
+      const stop = lastDisplay[Math.min(focusIndex, lastDisplay.length - 1)];
+      if (keyboardActive() && stop) return { kind: "row", id: rowIdOf(stop.row, stop.index), sub: -1 };
+    }
     if (!active || !containerEl.contains(active)) return null;
     if (cellNavActive() && active.matches("td[data-col]")) return { kind: "cell" };
     const tr = active.closest("tr");

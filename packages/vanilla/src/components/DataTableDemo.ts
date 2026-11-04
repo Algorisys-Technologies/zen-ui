@@ -1,4 +1,5 @@
 import { DataTable, type DataTableColumn, type SortingState } from "./data-table/data-table";
+import type { CellEditPayload } from "./data-table/edit-cell";
 import type { ExportFormat, ExportRequest } from "@algorisys/zen-ui-core/export-request";
 import { Badge } from "./badge/badge";
 import { Button } from "./button/button";
@@ -85,6 +86,72 @@ const columns: DataTableColumn<Person>[] = [
   },
   { accessorKey: "lastSeen", header: "Last seen" },
 ];
+
+/* -------------------------- section 6c: cell navigation ----------- */
+/* An order's lines, for the cell-navigation grid. */
+type Line = { id: string; item: string; qty: number; rate: number; uom: string; note: string };
+const UOMS = ["Nos", "Kg", "Box", "Litre"];
+const makeLines = (count: number): Line[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `l-${i + 1}`,
+    item: `ITEM-${String(1000 + i)}`,
+    qty: 1 + (i % 12),
+    rate: 50 + ((i * 37) % 950),
+    uom: UOMS[i % UOMS.length],
+    note: "",
+  }));
+const lineColumns: DataTableColumn<Line>[] = [
+  { accessorKey: "item", header: "Item", meta: { editable: true } },
+  { accessorKey: "qty", header: "Qty", meta: { editable: true, editVariant: "number" } },
+  {
+    accessorKey: "uom",
+    header: "UOM",
+    meta: { editable: true, editVariant: "select", editOptions: UOMS.map((u) => ({ label: u, value: u })) },
+  },
+  { accessorKey: "rate", header: "Rate (₹)", meta: { editable: true, editVariant: "number" } },
+  {
+    id: "amount",
+    header: "Amount (₹)",
+    accessorFn: (l) => l.qty * l.rate,
+    cell: ({ value }) => (value as number).toLocaleString("en-IN"),
+  },
+  { accessorKey: "note", header: "Note", meta: { editable: true } },
+];
+
+/** Section 6c's grid: the caller owns the lines and applies each edit, or a block of them. */
+function CellNavDemo(): HTMLElement {
+  let lines = makeLines(2000);
+  const said = document.createElement("span");
+  said.dataset.testid = "cells-edited";
+  said.textContent = "No changes yet.";
+  const apply = (edits: CellEditPayload[]) => {
+    const byRow = new Map<string, Record<string, unknown>>();
+    for (const e of edits) byRow.set(e.rowId, { ...byRow.get(e.rowId), [e.columnId]: e.value });
+    lines = lines.map((l) => (byRow.has(l.id) ? { ...l, ...byRow.get(l.id) } : l));
+    table.update({ data: lines });
+    said.textContent = `${edits.length} cell${edits.length === 1 ? "" : "s"} changed`;
+  };
+  const table = DataTable<Line>({
+    data: lines,
+    columns: lineColumns,
+    getRowId: (l) => l.id,
+    enableCellNavigation: true,
+    enableRowVirtualization: true,
+    onCellEdit: (edit) => apply([edit]),
+    onCellsEdit: apply,
+    fillHeight: true,
+  });
+  const frame = document.createElement("div");
+  frame.className = "zen-flex zen-h-[420px] zen-flex-col";
+  frame.append(table.el);
+  const note = document.createElement("p");
+  note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+  note.setAttribute("aria-live", "polite");
+  note.append(said);
+  const wrap = document.createElement("div");
+  wrap.append(frame, note);
+  return wrap;
+}
 
 /* -------------------------- section 26: totals --------------------- */
 type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
@@ -494,6 +561,23 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
             enableVirtualization: true,
             maxBodyHeight: 400,
           }).el,
+      },
+      {
+        title: "6c. Cell navigation — work in it like a spreadsheet",
+        codeTitle: "enableCellNavigation: cell by cell, ranges, copy and paste",
+        codeDescription:
+          "Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. A cell takes only what its editor could produce: Amount is computed, so paste and Delete leave it alone, and UOM is a select with no empty option, so Delete leaves it as it is and a paste must match one of its options.",
+        code: `DataTable({
+  data: lines,
+  columns, // meta: { editable: true, editVariant: "number" | "select" }
+  getRowId: (l) => l.id,
+  enableCellNavigation: true,
+  enableRowVirtualization: true,
+  onCellEdit: (edit) => apply([edit]),
+  onCellsEdit: (edits) => apply(edits), // a paste, or Delete over a range
+  fillHeight: true,
+});`,
+        render: () => CellNavDemo(),
       },
       {
         title: "6d. Context menu on rows",
