@@ -83,6 +83,8 @@ export type { LocaleProviderProps, LocaleContextValue, MessageKey, ZenMessages }
 
 export { StatCard } from "./components/stat-card/stat-card";
 export type { StatCardProps, StatCardColor, StatCardTrend } from "./components/stat-card/stat-card";
+export { Tile, TileGrid } from "./components/tile/tile";
+export type { TileProps, TileGridProps } from "./components/tile/tile";
 
 export { Progress } from "./components/progress/progress";
 export type { ProgressProps, ProgressSize, ProgressColor } from "./components/progress/progress";
@@ -219,6 +221,8 @@ export { Camera } from "./components/camera/camera";
 export type { CameraProps, CameraHandle } from "./components/camera/camera";
 export { QRScanner } from "./components/qr-scanner/qr-scanner";
 export type { QRScannerProps, QRScannerScan } from "./components/qr-scanner/qr-scanner";
+export { QRCode, Barcode } from "./components/barcode/barcode";
+export type { QRCodeProps, BarcodeProps, BarcodeFormat, QrEcc } from "./components/barcode/barcode";
 export { Map } from "./components/map/map";
 export type { MapProps, MapMarker } from "./components/map/map";
 export { Chart } from "./components/chart/chart";
