@@ -148,7 +148,16 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
       // prototype accessor. Re-assign it THROUGH the accessor so it reaches _bag.
       for (const name of [...propNames, ...eventNames]) this.upgradeProperty(name);
 
-      this._children = childrenProp ? captureChildren(this) : (this.replaceChildren(), []);
+      const fresh = childrenProp ? captureChildren(this) : (this.replaceChildren(), []);
+      /* A RE-connect after a teardown finds the host empty: the children went out
+         with the destroyed component's element, which is where the factory had
+         moved them. They are still the ones captured the first time, so keep
+         those rather than building with none. Every nested zen element is
+         re-connected when the element around it builds (its factory moves them
+         into its own element), and this is what kept <zen-alert-title> inside
+         <zen-alert-content>, the avatar's fallback and the theme's card from
+         rendering empty on the demo pages. */
+      if (fresh.length || !childrenProp) this._children = fresh;
       this.tryCreate();
     }
 
