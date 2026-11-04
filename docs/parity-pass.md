@@ -23,13 +23,13 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A4 | DocumentTabs | ok | — | — |
 | A5 | Tile, TileGrid | ok | — | — |
 | A6 | QRCode, Barcode | ok | — | — |
-| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | wip | — | — |
+| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | — | — |
 | A8 | TreeSelect | ok | — | — |
 | A9 | LookupField | wip | — | — |
-| A10 | FilterBuilder | wip | — | — |
+| A10 | FilterBuilder | ok | — | — |
 | A11 | ViewManager | wip | — | — |
 | A12 | Sidebar collapseMode / overlay / badges / header label | wip | — | — |
-| A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | — | — | — |
+| A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | wip | — | — |
 | D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | wip | — | — |
 | S | Strings: the binding's components read the message catalogue; check:strings per binding | — | — | — |
 
@@ -81,3 +81,19 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   first-open scroll bug in its own first version (scrolled before the height
   cap); the integrator ran the same check on Solid: passes (scrollTop 46, row
   in view), so Solid does not have it. A9 (LookupField) React launched.
+- 2026-11-05: A10 React merged (FilterBuilder: oracle 23/23, extra 14/14).
+  Radix Select does not re-report on options change, but does re-fire inside a
+  <form> (hidden native select): handlers ignore a report of the held value.
+  MultiCombobox gained `aria-label` (as Solid's did). Follow-ups launched: date
+  editor onto DateInput; React MultiCombobox showing raw values as chips on
+  first paint (a pre-existing bug).
+- 2026-11-05: A7 React merged (DateInput 28/28; calendar keys 21/21 incl. 7
+  RTL). react-day-picker already had the keys; it mirrored ← → only with its
+  own `dir` prop, so in an RTL page → went back a day: fixed without passing
+  `dir` (that would flip the chevrons). Shift+arrows: React keeps
+  react-day-picker's month/year (Solid: same as plain) — left as is, changing
+  it would break. DatePicker `initialFocus` "first" = today's React focus.
+  `scripts/snapshot-routes.mjs` reads `path:` but React's nav uses `to:`, so
+  it cannot snapshot React yet (TODO for the vanilla/WC phase).
+  Known: React DatePicker's placeholder "Pick a date" is hard-coded (unit S).
+- 2026-11-05: A13 React (gaps batch) launched.
