@@ -13,54 +13,88 @@ SKILL.md.
 
 ### ContextMenu
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- from `@radix-ui/react-context-menu`: `children?`, `open?`, `onOpenChange?`, `dir?`, `modal?`
 
 ### ContextMenuTrigger
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- from `@radix-ui/react-context-menu`: `disabled?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (280 inherited).
 
 ### ContextMenuContent
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-popper`: `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`
+- from `@radix-ui/react-menu`: `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `onCloseAutoFocus?`, `forceMount?`, `loop?`
+- …plus the underlying element's standard props (279 inherited).
 
 ### ContextMenuItem
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- `inset?: boolean | undefined`
+- `variant?: "default" | "destructive" | undefined`
+- from `@radix-ui/react-menu`: `disabled?`, `onSelect?`, `textValue?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (279 inherited).
 
 ### ContextMenuCheckboxItem
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- from `@radix-ui/react-menu`: `checked?`, `disabled?`, `onSelect?`, `onCheckedChange?`, `textValue?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (279 inherited).
 
 ### ContextMenuRadioItem
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- from `@radix-ui/react-menu`: `disabled?`, `value`, `onSelect?`, `textValue?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (279 inherited).
 
 ### ContextMenuLabel
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- `inset?: boolean | undefined`
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (280 inherited).
 
 ### ContextMenuSeparator
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (280 inherited).
 
 ### ContextMenuShortcut
 
 - …plus the underlying element's standard props (278 inherited).
 
+### ContextMenuGroup
+
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (280 inherited).
+
+### ContextMenuPortal
+
+- from `@radix-ui/react-menu`: `children?`, `container?`, `forceMount?`
+
+### ContextMenuSub
+
+- from `@radix-ui/react-context-menu`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`
+
 ### ContextMenuSubContent
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- from `@radix-ui/react-menu`: `align?`, `onEscapeKeyDown?`, `onPointerDownOutside?`, `onFocusOutside?`, `onInteractOutside?`, `forceMount?`, `loop?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- from `@radix-ui/react-popper`: `sideOffset?`, `alignOffset?`, `arrowPadding?`, `avoidCollisions?`, `collisionBoundary?`, `collisionPadding?`, `sticky?`, `hideWhenDetached?`, `updatePositionStrategy?`
+- …plus the underlying element's standard props (279 inherited).
 
 ### ContextMenuSubTrigger
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- `inset?: boolean | undefined`
+- from `@radix-ui/react-menu`: `disabled?`, `textValue?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (280 inherited).
 
-### Other exports
+### ContextMenuRadioGroup
 
-- `ContextMenuGroup: any`
-- `ContextMenuPortal: any`
-- `ContextMenuSub: any`
-- `ContextMenuRadioGroup: any`
+- from `@radix-ui/react-menu`: `value?`, `onValueChange?`
+- from `@radix-ui/react-primitive`: `asChild?`
+- …plus the underlying element's standard props (280 inherited).
 
 ### Types
 
