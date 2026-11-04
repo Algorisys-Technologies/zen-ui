@@ -767,6 +767,11 @@
   --zen-table-row-hover: var(--zen-color-muted);
 }
 
+/* The narrowest a launchpad tile gets before TileGrid drops a column. */
+:root {
+  --zen-tile-min-width: 13rem;
+}
+
 /* The object page's section titles ("GENERAL", "ITEMS"): an app that sets one
  * size for every small uppercase label sets this too. Default: today's size. */
 :root {

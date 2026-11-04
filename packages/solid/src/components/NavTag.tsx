@@ -5,7 +5,8 @@ import { cn } from "../lib/cn";
 /**
  * The demo site's "New" / "Updated" mark beside a catalogue entry, from its
  * `since` / `updated` versions in nav.ts. One component, so the sidebar and the
- * catalogue cards cannot disagree. New is the stronger mark; Updated is quiet.
+ * catalogue cards cannot disagree. New is green, Updated yellow, each in the
+ * theme's soft background with its matching text colour.
  */
 export const NavTag = (props: { item: NavItem; class?: string }) => (
   <Show
@@ -14,7 +15,7 @@ export const NavTag = (props: { item: NavItem; class?: string }) => (
       <Show when={isUpdated(props.item)}>
         <span
           class={cn(
-            "zen-rounded-zen-sm zen-border zen-border-solid zen-border-zen-border zen-px-1.5 zen-text-xs zen-font-medium zen-text-zen-muted-fg",
+            "zen-rounded-zen-sm zen-bg-zen-warning-soft zen-px-1.5 zen-py-px zen-text-xs zen-font-medium zen-text-zen-warning-soft-fg",
             props.class,
           )}
         >
@@ -25,7 +26,7 @@ export const NavTag = (props: { item: NavItem; class?: string }) => (
   >
     <span
       class={cn(
-        "zen-rounded-zen-sm zen-bg-zen-primary-soft zen-px-1.5 zen-py-px zen-text-xs zen-font-medium zen-text-zen-primary-soft-fg",
+        "zen-rounded-zen-sm zen-bg-zen-success-soft zen-px-1.5 zen-py-px zen-text-xs zen-font-medium zen-text-zen-success-soft-fg",
         props.class,
       )}
     >

@@ -16,7 +16,15 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
-- **Demo site: "New" and "Updated" tags** (Solid demo). `nav.ts` entries take
+- **Tile and TileGrid** (Solid; new): a launchpad. A tile has a mark (two
+  letters or an icon), a name and a live line ("131 records"); it is a link
+  with `href` (`as` takes a router link) or a button with `onClick`, and has
+  `loading`, `disabled` and `locked` (outside the user's plan: muted, with a
+  lock, still activatable so the app can explain). TileGrid lays tiles out in
+  responsive columns (`--zen-tile-min-width`, or `minTileWidth`) as one tab
+  stop: the arrows move between tiles, up and down by the columns as laid out.
+- **Demo site: "New" and "Updated" tags** (Solid demo), New in green and
+  Updated in yellow (4.92:1 and 4.84:1). `nav.ts` entries take
   `since` and `updated` versions; the sidebar and the catalogue mark them while
   that is the current release's minor or later, and the marks expire by
   themselves. Fourteen components are marked Updated for this release,

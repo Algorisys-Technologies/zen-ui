@@ -81,6 +81,14 @@ issue / PR when its turn comes.
       call. Found and fixed in DataTable's BodyTable props (2026-11-04); worth a
       sweep of the other components' native handlers.
 
+## Parity: Tile and TileGrid (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass: tiles as links / buttons / plain elements by
+      what they do, `locked` (activatable), the one-tab-stop grid whose ↑↓ follow
+      the laid-out columns (measured from offsetTop, so they survive a column
+      dropping), `--zen-tile-min-width`, and the grid being full width. Demo
+      /tile. Gaps report item 4.
+
 ## Parity: the gaps-report batch (Solid only, 2026-11-04)
 
 - [ ] Port with the rest of the parity pass (ERPNext docs/zen-ui-component-gaps.md
