@@ -150,7 +150,7 @@ real props; guessing prop names is how agents invent APIs.
 - [command.md](command.md) — `Command`, `CommandInput`, `CommandList`, `CommandEmpty`, `CommandLoading`, `CommandGroup`, `CommandItem`, `CommandSeparator`
 - [breadcrumb.md](breadcrumb.md) — `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`, `BreadcrumbSeparator`, `BreadcrumbEllipsis`
 - [pagination.md](pagination.md) — `Pagination`, `usePaginationRange`, `PaginationProps`
-- [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
+- [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarHeaderLabel`, `SidebarMenuBadge`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
 - [chart-chart.md](chart-chart.md) — `Chart`, `ChartProps`, `ChartSeries`
 - [zen-ui-core-chart.md](zen-ui-core-chart.md) — `Slice`, `CHART_PALETTE`
 - [rich-text.md](rich-text.md) — `renderMath`, `RichText`, `RichTextProps`

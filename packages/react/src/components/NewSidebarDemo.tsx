@@ -2,6 +2,8 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
+  SidebarHeaderLabel,
+  SidebarMenuBadge,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
@@ -203,6 +205,158 @@ const NewSidebarDemo: React.FC = () => (
               </SidebarContent>
             </Sidebar>
             <div style={{ flex: 1, padding: 16 }}>Page content…</div>
+          </div>
+        </SidebarProvider>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>3. A text-only menu that hides when collapsed</h2>
+      <CodeExample
+        title='collapseMode="hidden", with counts on the groups'
+        description="A menu with no icons has nothing to show on a rail, so collapsing hides it entirely, and a hidden sidebar is inert. Its toggle lives outside it, in the page's header. SidebarMenuSub's badge puts a count at the row's end."
+        code={`<SidebarProvider collapseMode="hidden">
+  <div style={{ display: "flex", height: 320 }}>
+    <Sidebar>
+      <SidebarHeader><SidebarHeaderLabel>Algorisys One</SidebarHeaderLabel></SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuSub label="Accounts" badge={29} defaultOpen>
+              <SidebarMenuSubItem>
+                <SidebarMenuSubButton asChild>
+                  <a href="#journal-entry">Journal Entry</a>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+              …
+            </SidebarMenuSub>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarContent>
+    </Sidebar>
+    <main>
+      <SidebarTrigger /> …
+    </main>
+  </div>
+</SidebarProvider>`}
+      >
+        <SidebarProvider collapseMode="hidden">
+          <div
+            data-testid="hidden-frame"
+            style={{ display: "flex", height: 320, width: "100%", border: "1px solid var(--zen-color-border)", borderRadius: 8, overflow: "hidden" }}
+          >
+            <Sidebar>
+              <SidebarHeader>
+                <SidebarHeaderLabel>Algorisys One</SidebarHeaderLabel>
+              </SidebarHeader>
+              <SidebarContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuSub label="Accounts" badge={29} defaultOpen>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <a href="#journal-entry">Journal Entry</a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <a href="#payment-entry">Payment Entry</a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <a href="#sales-invoice">Sales Invoice</a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuSub label="Stock" badge={18}>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <a href="#stock-entry">Stock Entry</a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <a href="#delivery-note">Delivery Note</a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuSub label="Buying" badge={12}>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <a href="#purchase-order">Purchase Order</a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <a href="#purchase-receipt">Purchase Receipt</a>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarContent>
+            </Sidebar>
+            <div style={{ flex: 1, padding: 16 }}>
+              <SidebarTrigger />
+              <p className="zen-mt-2 zen-text-sm zen-text-zen-muted-fg">Page content…</p>
+            </div>
+          </div>
+        </SidebarProvider>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>4. On a narrow screen, over the content</h2>
+      <CodeExample
+        title="overlay={{ below: 900 }}"
+        description="This frame is 600px wide, under the 900px breakpoint, so the sidebar starts closed and opens over the page instead of beside it. It takes focus when it opens; Esc, a click outside it or following one of its links closes it. Widen past 900px and it sits beside the content again. The width is the sidebar's container's, not the window's."
+        code={`<SidebarProvider overlay={{ below: 900 }}>
+  <div style={{ display: "flex", height: 320 }}>
+    <Sidebar>…</Sidebar>
+    <main><SidebarTrigger /> …</main>
+  </div>
+</SidebarProvider>`}
+      >
+        <SidebarProvider overlay={{ below: 900 }}>
+          <div
+            data-testid="overlay-frame"
+            style={{ display: "flex", height: 320, width: 600, maxWidth: "100%", border: "1px solid var(--zen-color-border)", borderRadius: 8, overflow: "hidden" }}
+          >
+            <Sidebar>
+              <SidebarHeader>
+                <SidebarHeaderLabel>Acme</SidebarHeaderLabel>
+              </SidebarHeader>
+              <SidebarContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild active>
+                      <a href="#home">
+                        <HomeIcon />
+                        <span>Home</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <a href="#team">
+                        <UsersIcon />
+                        <span>Team</span>
+                        <SidebarMenuBadge>4</SidebarMenuBadge>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarContent>
+            </Sidebar>
+            <div style={{ flex: 1, padding: 16 }}>
+              <SidebarTrigger />
+              <p className="zen-mt-2 zen-text-sm zen-text-zen-muted-fg">Page content…</p>
+            </div>
           </div>
         </SidebarProvider>
       </CodeExample>
