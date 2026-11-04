@@ -2,8 +2,8 @@ import { DemoPage } from "./demo-helpers";
 
 /**
  * StatCard demo — the web-components port. <zen-stat-card>'s `label`, `value`,
- * `icon`, `trend` and `onClick` are set as JS properties (Node / object / callback);
- * `color`, `href` and `loading` are attributes. `href` renders a link, `onClick` a
+ * `icon`, `trend`, `chart` and `onClick` are set as JS properties (Node / object /
+ * callback); `color`, `href`, `loading` and `size` are attributes. `href` renders a link, `onClick` a
  * button — both real, focusable controls.
  */
 
@@ -171,6 +171,56 @@ card.loading = false;   // remove it to reveal the figure — a targeted DOM wri
             btn.textContent = loading ? "Resolve" : "Simulate loading";
           });
           return column(grid(a, b), btn);
+        },
+      },
+      {
+        title: "6. Hero figure with a chart",
+        codeTitle: 'size="lg" and chart: the lead figure of a dashboard row',
+        codeDescription:
+          "The hero carries a larger figure and the trend behind it, under the figure and across the card; the KPIs beside it stay as they are. While loading, the chart is a skeleton too.",
+        code: `const chart = document.createElement("zen-micro-bar-chart");
+chart.setAttribute("baseline", "zero");
+chart.setAttribute("width", "320");
+chart.setAttribute("height", "56");
+chart.setAttribute("label", "Monthly revenue, last 12 months");
+chart.values = monthly;
+
+const hero = document.createElement("zen-stat-card");
+hero.setAttribute("size", "lg");
+hero.setAttribute("href", "#revenue");
+hero.label = "Revenue · trailing 12 months";
+hero.value = "₹4,82,10,000";
+hero.trend = { value: "+8.2%", direction: "up" };
+hero.chart = chart;`,
+        render: () => {
+          const chart = document.createElement("zen-micro-bar-chart") as HTMLElement & { values: number[] };
+          chart.setAttribute("baseline", "zero");
+          chart.setAttribute("width", "320");
+          chart.setAttribute("height", "56");
+          chart.setAttribute("label", "Monthly revenue, last 12 months, rising from 31 to 55 lakh");
+          chart.values = [31, 34, 29, 38, 41, 37, 44, 46, 42, 48, 51, 55];
+          const hero = statCard({
+            label: "Revenue · trailing 12 months",
+            value: "₹4,82,10,000",
+            trend: { value: "+8.2%", direction: "up" },
+            href: "#revenue",
+          });
+          hero.setAttribute("size", "lg");
+          Object.assign(hero, { chart });
+          const receivables = statCard({ label: "Receivables", value: "₹38,20,500", href: "#receivables" });
+          Object.assign(receivables, { description: "62 invoices outstanding" });
+          const row = document.createElement("div");
+          row.setAttribute(
+            "style",
+            "display:grid;grid-template-columns:minmax(0, 2fr) repeat(2, minmax(0, 1fr));gap:16px;width:100%",
+          );
+          row.dataset.testid = "hero-row";
+          row.append(
+            hero,
+            receivables,
+            statCard({ label: "Stock value", value: "₹1,12,40,000", trend: { value: "-1.4%", direction: "down" }, href: "#stock" }),
+          );
+          return row;
         },
       },
     ],

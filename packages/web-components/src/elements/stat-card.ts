@@ -7,7 +7,7 @@ import { defineZenElement } from "../lib/define";
 defineZenElement<StatCardProps>({
   tag: "zen-stat-card",
   factory: StatCard,
-  attrs: { color: "string", href: "string", loading: "boolean" },
-  props: ["label", "value", "icon", "description", "trend", "onClick"],
+  attrs: { color: "string", href: "string", loading: "boolean", size: "string" },
+  props: ["label", "value", "icon", "description", "trend", "onClick", "chart"],
   childrenProp: false,
 });

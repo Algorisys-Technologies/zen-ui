@@ -41,7 +41,7 @@ defineZenElement<MicroLineChartProps>({
 defineZenElement<MicroBarChartProps>({
   tag: "zen-micro-bar-chart",
   factory: MicroBarChart,
-  attrs: { ...COMMON, values: "json" },
+  attrs: { ...COMMON, values: "json", baseline: "string" },
   props: ["values"],
   childrenProp: false,
 });

@@ -236,6 +236,24 @@ box.onSearch = async (query) => {
           return box;
         },
       },
+      {
+        title: "7. Invalid",
+        codeTitle: "invalid: a required field left empty",
+        codeDescription:
+          "The field is marked aria-invalid and its border takes the error colour; the message itself is the form's to show.",
+        code: `<zen-combobox placeholder="Customer" invalid options='[…]'></zen-combobox>`,
+        render: () => {
+          const d = document.createElement("div");
+          d.dataset.testid = "combobox-invalid";
+          const box = el("zen-combobox", { placeholder: "Customer", "search-placeholder": "Customer", invalid: "" });
+          (box as unknown as { options: ComboboxOption[] }).options = [
+            { value: "acme", label: "Acme Traders" },
+            { value: "kaveri", label: "Kaveri Steel" },
+          ];
+          d.append(box);
+          return d;
+        },
+      },
     ],
   });
 }

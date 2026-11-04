@@ -91,6 +91,38 @@ function bar(spec: BarSpec): HTMLElement {
   return el;
 }
 
+/**
+ * A command palette's trigger: the kind of control the bar's `search` property
+ * is for. Compact, it is an icon button named by a visually hidden label.
+ */
+const paletteButton = (compact: boolean, onOpen: () => void): HTMLElement => {
+  const btn = document.createElement("zen-button");
+  btn.setAttribute("variant", "outline");
+  btn.setAttribute("color", "neutral");
+  btn.setAttribute("size", "sm");
+  const icon = document.createElement("zen-icon");
+  icon.setAttribute("name", "search");
+  icon.setAttribute("size", "14");
+  btn.append(icon);
+  if (compact) {
+    btn.setAttribute("shape", "square");
+    const name = document.createElement("span");
+    name.className = "zen-sr-only";
+    name.textContent = "Search (Ctrl+K)";
+    btn.append(name);
+  } else {
+    btn.setAttribute("class", "zen-w-56 zen-justify-start zen-text-zen-muted-fg");
+    const text = document.createElement("span");
+    text.textContent = "Search…";
+    const kbd = document.createElement("kbd");
+    kbd.className = "zen-ml-auto zen-font-sans zen-text-xs";
+    kbd.textContent = "Ctrl K";
+    btn.append(text, kbd);
+  }
+  btn.addEventListener("click", onOpen);
+  return btn;
+};
+
 /** A rounded, clipping frame for the bar; an optional fixed pixel width. */
 const frame = (width: number | null, el: HTMLElement): HTMLElement => {
   const box = document.createElement("div");
@@ -223,6 +255,44 @@ minimal.logo = makeLogo();`,
               }),
             ),
             frame(null, bar({ primaryTitle: "Northwind", noProfile: true, ariaLabel: "Northwind (minimal)" })),
+          );
+          return wrap;
+        },
+      },
+      {
+        title: "6. Your own search control in the bar",
+        codeTitle: "bar.search = (bar) => …: a command palette's trigger",
+        codeDescription:
+          "The slot takes any control, laid out by the bar where its search field would be. As a function it is told when the bar is compact (where the built-in field would shrink to an icon), so a palette button can drop its label: the second bar is 480px.",
+        code: `const bar = document.createElement("zen-shell-bar");
+bar.setAttribute("primary-title", "Algorisys One");
+bar.logo = makeLogo();
+bar.profile = profile;
+bar.search = (b) => paletteButton(b.compact, openPalette);`,
+        render: () => {
+          const wrap = document.createElement("div");
+          wrap.className = "zen-flex zen-flex-col zen-gap-3";
+          const out = document.createElement("p");
+          out.className = "zen-text-sm zen-text-zen-muted-fg";
+          out.setAttribute("aria-live", "polite");
+          const opened = document.createElement("span");
+          opened.dataset.testid = "palette";
+          opened.textContent = "not opened";
+          out.append("Palette: ", opened);
+          const slotted = (width: number, testid: string, from: string) => {
+            const el = bar({ primaryTitle: "Algorisys One", ariaLabel: `Algorisys One (${width}px)` });
+            Object.assign(el, {
+              search: (b: { compact: boolean }) => paletteButton(b.compact, () => (opened.textContent = from)),
+            });
+            const box = frame(width, el);
+            box.style.maxWidth = "100%";
+            box.dataset.testid = testid;
+            return box;
+          };
+          wrap.append(
+            slotted(900, "slot-wide", "from the wide bar"),
+            slotted(480, "slot-narrow", "from the narrow bar"),
+            out,
           );
           return wrap;
         },
