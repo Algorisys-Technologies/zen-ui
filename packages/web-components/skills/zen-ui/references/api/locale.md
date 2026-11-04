@@ -727,6 +727,31 @@ SKILL.md.
 - `productionSchedule.barSpan: string`
 - `productionSchedule.barChangeover: string`
 - `productionSchedule.barProgress: string`
+- `camera.unavailableHttps: string`
+- `camera.noCameraFound: string`
+- `camera.failedToStart: string`
+- `camera.failedToStartNamed: string`
+- `dataTable.textOp.contains: string`
+- `dataTable.textOp.equals: string`
+- `dataTable.textOp.starts: string`
+- `dataTable.textOp.ends: string`
+- `dataTable.numberOp.eq: string`
+- `dataTable.numberOp.ne: string`
+- `dataTable.numberOp.gt: string`
+- `dataTable.numberOp.lt: string`
+- `dataTable.numberOp.gte: string`
+- `dataTable.numberOp.lte: string`
+- `dataTable.filterOperator: string`
+- `dataTable.groupBy: string`
+- `dataTable.groupByCount: string`
+- `dataTable.nSelected: string`
+- `dataTable.selectAllMatching: string`
+- `dataTable.manageColumns: string`
+- `dataTable.toggleColumns: string`
+- `dataTable.pinColumnTo: string`
+- `dataTable.unpinColumnFrom: string`
+- `dataTable.sideLeft: string`
+- `dataTable.sideRight: string`
 
 ### Other exports
 

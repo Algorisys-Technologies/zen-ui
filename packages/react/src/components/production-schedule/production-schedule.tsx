@@ -44,7 +44,7 @@ import {
   useScrollerMetrics,
   type ScheduleColumn,
 } from "../gantt/schedule-grid";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * ProductionSchedule — what each machine is doing, and whether it can.
@@ -242,15 +242,15 @@ const PANE_PX: Record<ProductionPaneColumn, number> = {
   float: 84,
 };
 
-const PANE_LABEL: Record<ProductionPaneColumn, string> = {
-  resource: "Resource",
-  jobs: "Jobs",
-  capacity: "Capacity",
-  load: "Load",
+const PANE_LABEL: Record<ProductionPaneColumn, MessageKey> = {
+  resource: "productionSchedule.column.resource",
+  jobs: "productionSchedule.column.jobs",
+  capacity: "productionSchedule.column.capacity",
+  load: "productionSchedule.load",
   /* The row's TIGHTEST operation, because a row is only as movable as the job
      on it with the least room. Reporting an average would say a machine has
      four hours of slack while one of its jobs has none. */
-  float: "Float",
+  float: "productionSchedule.column.float",
 };
 
 /** Place in the FULL set, so a dropped column does not renumber the others. */
@@ -557,7 +557,7 @@ export const ProductionSchedule = ({
     () =>
       requestedPane.map((key) => ({
         key,
-        label: PANE_LABEL[key],
+        label: loc.t(PANE_LABEL[key]),
         width: PANE_PX[key],
         colIndex: COL_INDEX[key],
         className: key === "resource" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
@@ -757,7 +757,7 @@ export const ProductionSchedule = ({
           const first = row.lanes[0]?.[0];
           if (first) onOperationClick?.(first.operation, row);
         }}
-        ariaLabel="Production schedule"
+        ariaLabel={loc.t("productionSchedule.productionSchedule")}
         className={className}
         scrollerRef={scrollerRef}
         axis={axis}
@@ -891,15 +891,17 @@ const ProductionPaneCell = ({
            a rounding error rather than as a schedule that does not work. */
         title={
           float.totalFloatMinutes < 0
-            ? `Past the date it is measured against by ${formatFloat(-float.totalFloatMinutes)}`
+            ? loc.t("productionSchedule.floatLate", { time: formatFloat(-float.totalFloatMinutes) })
             : float.freeFloatMinutes < 0
-              ? `Already overlaps the next operation by ${formatFloat(-float.freeFloatMinutes)}`
+              ? loc.t("productionSchedule.floatOverlaps", { time: formatFloat(-float.freeFloatMinutes) })
               : float.critical
-                ? "On the critical path — no room to move"
-                : `${formatFloat(float.freeFloatMinutes)} before it disturbs the next operation`
+                ? loc.t("productionSchedule.floatCritical")
+                : loc.t("productionSchedule.floatFree", { time: formatFloat(float.freeFloatMinutes) })
         }
       >
-        {float.critical && float.totalFloatMinutes === 0 ? "Critical" : formatFloat(float.totalFloatMinutes)}
+        {float.critical && float.totalFloatMinutes === 0
+          ? loc.t("productionSchedule.critical")
+          : formatFloat(float.totalFloatMinutes)}
       </Badge>
     );
   }
@@ -939,15 +941,17 @@ const ProductionTrack = ({
   msPerPx: number;
   onPropose: (move: ProductionMove) => void;
   isCritical: (id: string) => boolean;
-}) => (
+}) => {
+  const loc = useLocale();
+  return (
   <>
     {row.lanes.length === 0 && (
       /* An expanded parent draws nothing because its children draw its work —
          which is a fact worth saying, not a blank cell. */
       <span className="zen-sr-only">
         {row.hasChildren && row.expanded
-          ? "Work shown on the rows below"
-          : "Nothing booked in this range"}
+          ? loc.t("productionSchedule.workBelow")
+          : loc.t("productionSchedule.nothingBooked")}
       </span>
     )}
     {row.lanes.map((lane, laneIndex) =>
@@ -967,7 +971,8 @@ const ProductionTrack = ({
       )),
     )}
   </>
-);
+  );
+};
 
 const ProductionBar = ({
   placement,
@@ -990,6 +995,7 @@ const ProductionBar = ({
   onPropose: (move: ProductionMove) => void;
   critical: boolean;
 }) => {
+  const loc = useLocale();
   const { operation } = placement;
   const placed = placeAppointment(placement.span, range);
   const status = operation.status ?? "on-track";
@@ -1119,10 +1125,10 @@ const ProductionBar = ({
 
   const title = [
     operation.name,
-    operation.order ? `Order ${operation.order}` : null,
+    operation.order ? loc.t("productionSchedule.order", { order: operation.order }) : null,
     `${formatTime(placement.span.start)} – ${formatTime(placement.span.end)}`,
-    placement.setup ? "incl. changeover" : null,
-    critical ? "on the critical path" : null,
+    placement.setup ? loc.t("productionSchedule.inclChangeover") : null,
+    critical ? loc.t("productionSchedule.onCriticalPath") : null,
     progress === null ? null : `${Math.round(progress)}%`,
   ]
     .filter(Boolean)
@@ -1176,9 +1182,13 @@ const ProductionBar = ({
       title={title}
     >
       <span className="zen-sr-only">
-        {`${operation.name}, ${formatTime(placement.span.start)} to ${formatTime(placement.span.end)}${
-          placement.setup ? ", including changeover" : ""
-        }${progress === null ? "" : `, ${Math.round(progress)} percent complete`}`}
+        {loc.t("productionSchedule.barSpan", {
+          name: operation.name,
+          start: formatTime(placement.span.start),
+          end: formatTime(placement.span.end),
+          changeover: placement.setup ? loc.t("productionSchedule.barChangeover") : "",
+          progress: progress === null ? "" : loc.t("productionSchedule.barProgress", { percent: Math.round(progress) }),
+        })}
       </span>
       {pieces.map((piece) => (
         <span
@@ -1266,8 +1276,8 @@ const ProductionLoadStrip = ({
             style={{ width: columnWidths[i] }}
             title={
               utilisation === null
-                ? "Closed"
-                : `${pct(utilisation)} of capacity${bucket.overloaded ? " — over" : ""}`
+                ? loc.t("productionSchedule.closed")
+                : loc.t(bucket.overloaded ? "productionSchedule.ofCapacityOver" : "productionSchedule.ofCapacity", { percent: pct(utilisation) })
             }
           >
             <span

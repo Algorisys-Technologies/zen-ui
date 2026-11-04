@@ -261,7 +261,7 @@ export const ProctorStreamGrid = ({
           and cannot is worse off than one who knows they are looking at 24. */}
       {hidden > 0 ? (
         <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
-          Showing {shown.length} of {participants.length}. {hidden} not rendered.
+          {loc.t("proctor.showing", { shown: shown.length, total: participants.length, hidden })}
         </p>
       ) : null}
     </div>

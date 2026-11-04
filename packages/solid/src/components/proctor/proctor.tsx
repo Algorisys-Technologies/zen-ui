@@ -247,7 +247,7 @@ export const ProctorStreamGrid = (props: ProctorStreamGridProps) => {
             and cannot is worse off than one who knows they are looking at 24. */}
         <Show when={hidden() > 0}>
           <p class="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
-            Showing {shown().length} of {props.participants.length}. {hidden()} not rendered.
+            {loc.t("proctor.showing", { shown: shown().length, total: props.participants.length, hidden: hidden() })}
           </p>
         </Show>
       </div>

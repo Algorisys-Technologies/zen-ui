@@ -189,12 +189,14 @@ export const RichText = ({
     <div className={className}>
       <RichTextBoundary
         fallback={
+          /* i18n-ignore-start: a developer install notice (add the peer dependency), not a word for end users */
           <div className="zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-muted zen-p-4 zen-text-sm zen-text-zen-muted-fg">
             <strong className="zen-font-medium zen-text-zen-foreground">
               RichText needs an optional peer dependency.
             </strong>{" "}
             Install <code>jodit-pro-react</code> to use this component.
           </div>
+          /* i18n-ignore-end */
         }
       >
         <React.Suspense

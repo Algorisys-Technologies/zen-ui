@@ -480,7 +480,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
 
       {typeof totalCount === "number" && (
         <p className="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
-          Showing {rows.length} of {totalCount}
+          {loc.t("urlDataTable.showing", { shown: rows.length, total: totalCount })}
         </p>
       )}
     </div>

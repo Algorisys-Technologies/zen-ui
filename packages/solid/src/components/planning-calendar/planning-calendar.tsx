@@ -14,7 +14,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * PlanningCalendar — who is busy, and when.
@@ -101,10 +101,10 @@ export interface PlanningCalendarProps {
   class?: string;
 }
 
-const VIEW_LABEL: Record<PlanningView, string> = {
-  day: "Day",
-  week: "Week",
-  month: "Month",
+const VIEW_LABEL: Record<PlanningView, MessageKey> = {
+  day: "planningCalendar.views.day",
+  week: "planningCalendar.views.week",
+  month: "planningCalendar.views.month",
 };
 
 /** Row height per lane. A block is 28px tall; lanes stack inside the row. */
@@ -213,7 +213,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
                   aria-pressed={view() === v}
                   onClick={() => setView(v)}
                 >
-                  {VIEW_LABEL[v]}
+                  {loc.t(VIEW_LABEL[v])}
                 </Button>
               )}
             </For>

@@ -197,8 +197,12 @@ export const ChunkUploader = (props: ChunkUploaderProps) => {
               {file().name}
             </span>
             <span class="zen-shrink-0 zen-text-xs zen-tabular-nums zen-text-zen-muted-fg">
-              {formatBytes(bytesDone())} / {formatBytes(file().size)} · {done()}/{chunks().length}{" "}
-              chunks
+              {loc.t("chunkUploader.progress", {
+                done: formatBytes(bytesDone()),
+                size: formatBytes(file().size),
+                chunk: done(),
+                count: chunks().length,
+              })}
             </span>
           </div>
 
@@ -220,14 +224,14 @@ export const ChunkUploader = (props: ChunkUploaderProps) => {
               )}
             >
               {status() === "complete"
-                ? "Uploaded"
+                ? loc.t("chunkUploader.uploaded")
                 : status() === "error"
-                  ? `Failed: ${error()}`
+                  ? loc.t("chunkUploader.failed", { error: error() })
                   : status() === "paused"
-                    ? "Paused"
+                    ? loc.t("chunkUploader.paused")
                     : status() === "uploading"
                       ? `${percent()}%`
-                      : "Ready"}
+                      : loc.t("chunkUploader.ready")}
             </span>
 
             <span class="zen-ms-auto zen-flex zen-gap-2">
@@ -245,7 +249,11 @@ export const ChunkUploader = (props: ChunkUploaderProps) => {
               >
                 {/* Resume, not restart: the cursor sits on the chunk that failed. */}
                 <Button size="sm" onClick={() => void run()}>
-                  {status() === "error" ? "Retry" : status() === "paused" ? "Resume" : "Upload"}
+                  {status() === "error"
+                    ? loc.t("chunkUploader.retry")
+                    : status() === "paused"
+                      ? loc.t("chunkUploader.resume")
+                      : loc.t("chunkUploader.upload")}
                 </Button>
               </Show>
             </span>
@@ -255,9 +263,9 @@ export const ChunkUploader = (props: ChunkUploaderProps) => {
               announcing every step is unusable with a screen reader. */}
           <span class="zen-sr-only" aria-live="polite">
             {status() === "complete"
-              ? `${file().name} uploaded`
+              ? loc.t("chunkUploader.fileUploaded", { name: file().name })
               : status() === "error"
-                ? `${file().name} failed to upload: ${error()}`
+                ? loc.t("chunkUploader.fileFailed", { name: file().name, error: error() })
                 : ""}
           </span>
         </div>

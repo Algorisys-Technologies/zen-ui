@@ -733,10 +733,11 @@ export function TreeTable<TData, TValue = unknown>({
           <p className="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
             {/* Roots, not rows: saying "rows" here would contradict what the
                 user can count on screen the moment anything is expanded. */}
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {Math.max(1, table.getPageCount())}
-            {" · "}
-            {table.getPreFilteredRowModel().rows.filter((r) => r.depth === 0).length} top-level rows
+            {loc.t("treeTable.pageOf", {
+              page: table.getState().pagination.pageIndex + 1,
+              pages: Math.max(1, table.getPageCount()),
+              roots: table.getPreFilteredRowModel().rows.filter((r) => r.depth === 0).length,
+            })}
           </p>
           <div className="zen-flex zen-items-center zen-gap-2">
             {pageSizeOptions?.length ? (
@@ -748,7 +749,7 @@ export function TreeTable<TData, TValue = unknown>({
               >
                 {pageSizeOptions.map((n) => (
                   <option key={n} value={n}>
-                    {n} per page
+                    {loc.t("treeTable.perPage", { n })}
                   </option>
                 ))}
               </select>

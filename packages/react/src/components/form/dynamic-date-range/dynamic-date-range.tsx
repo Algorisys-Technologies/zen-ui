@@ -58,7 +58,7 @@ export interface DynamicDateRangeProps {
   className?: string;
 }
 
-const GROUP_ORDER = ["Day", "Week", "Month", "Quarter", "Year", "Rolling", "Fixed"] as const;
+const GROUP_ORDER = ["Day", "Week", "Month", "Quarter", "Year", "Rolling", "Fixed"] as const; // i18n-ignore (group ids: shown through dateRange.group.<id>)
 
 export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
   value,

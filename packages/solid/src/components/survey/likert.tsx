@@ -1,6 +1,7 @@
 import { type JSX, createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * Likert — n-point agree/disagree scale. The third leg of the survey
@@ -45,13 +46,17 @@ export interface LikertOption {
   renderOption?: () => JSX.Element;
 }
 
-const DEFAULT_OPTIONS: LikertOption[] = [
-  { value: "strongly_disagree", label: "Strongly disagree", shortLabel: "SD" },
-  { value: "disagree", label: "Disagree", shortLabel: "D" },
-  { value: "neutral", label: "Neutral", shortLabel: "N" },
-  { value: "agree", label: "Agree", shortLabel: "A" },
-  { value: "strongly_agree", label: "Strongly agree", shortLabel: "SA" },
-];
+// The five-point agreement scale. Its words come from the catalogue (likert.<value>
+// and likert.<value>Short), resolved where a locale is in scope.
+const DEFAULT_SCALE = [
+  ["strongly_disagree", "likert.stronglyDisagree", "likert.stronglyDisagreeShort"],
+  ["disagree", "likert.disagree", "likert.disagreeShort"],
+  ["neutral", "likert.neutral", "likert.neutralShort"],
+  ["agree", "likert.agree", "likert.agreeShort"],
+  ["strongly_agree", "likert.stronglyAgree", "likert.stronglyAgreeShort"],
+] as const;
+const defaultOptions = (t: (key: MessageKey) => string): LikertOption[] =>
+  DEFAULT_SCALE.map(([value, label, short]) => ({ value, label: t(label), shortLabel: t(short) }));
 
 export interface LikertProps {
   value?: string;
@@ -77,7 +82,8 @@ export interface LikertProps {
 }
 
 export const Likert = (props: LikertProps) => {
-  const options = createMemo(() => props.options ?? DEFAULT_OPTIONS);
+  const loc = useLocale();
+  const options = createMemo(() => props.options ?? defaultOptions(loc.t));
   const layout = createMemo(() => props.layout ?? "segmented");
   const isControlled = () => props.value !== undefined;
   const [inner, setInner] = createSignal<string | undefined>(props.defaultValue);

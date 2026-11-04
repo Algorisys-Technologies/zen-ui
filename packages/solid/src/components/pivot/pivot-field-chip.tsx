@@ -120,7 +120,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
                   unmounted on first click — no console error, because the
                   boundary caught it. */}
               <DropdownMenuGroup>
-                <DropdownMenuLabel>Move {label()} to</DropdownMenuLabel>
+                <DropdownMenuLabel>{loc.t("pivot.moveTo", { label: label() })}</DropdownMenuLabel>
                 <For each={PIVOT_ZONES.filter((z) => z !== "available" && z !== props.zone)}>
                   {(z) => (
                     <DropdownMenuItem onSelect={() => props.onMoveToZone?.(z)}>{zoneName(z)}</DropdownMenuItem>

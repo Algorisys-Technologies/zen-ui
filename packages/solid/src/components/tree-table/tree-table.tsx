@@ -689,9 +689,11 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
           <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
             {/* Roots, not rows: saying "rows" here would contradict what the
                 user can count on screen the moment anything is expanded. */}
-            Page {table.getState().pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}
-            {" · "}
-            {table.getPreFilteredRowModel().rows.filter((r) => r.depth === 0).length} top-level rows
+            {loc.t("treeTable.pageOf", {
+              page: table.getState().pagination.pageIndex + 1,
+              pages: Math.max(1, table.getPageCount()),
+              roots: table.getPreFilteredRowModel().rows.filter((r) => r.depth === 0).length,
+            })}
           </p>
           <div class="zen-flex zen-items-center zen-gap-2">
             <Show when={props.pageSizeOptions?.length}>
@@ -702,7 +704,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                 onChange={(e) => table.setPageSize(Number(e.currentTarget.value))}
               >
                 <For each={props.pageSizeOptions}>
-                  {(n) => <option value={n}>{n} per page</option>}
+                  {(n) => <option value={n}>{loc.t("treeTable.perPage", { n })}</option>}
                 </For>
               </select>
             </Show>

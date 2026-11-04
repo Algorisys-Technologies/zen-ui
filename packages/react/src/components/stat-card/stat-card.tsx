@@ -3,6 +3,7 @@ import { cn } from "../../lib/cn";
 import { cardVariants } from "../card/card";
 import { Icon } from "../icon/icon";
 import { Skeleton } from "../skeleton/skeleton";
+import { useLocale } from "../locale/locale";
 
 /**
  * StatCard — a labelled figure, optionally with an icon, a delta and somewhere
@@ -102,13 +103,14 @@ const TREND_COLOR: Record<StatCardTrend["direction"], StatCardColor> = {
 const TREND_ICON = { up: "arrow-up", down: "arrow-down", flat: "arrow-right" } as const;
 
 /** The arrow is the only thing carrying direction, so it is named, not hidden. */
-const TREND_LABEL = { up: "Trending up", down: "Trending down", flat: "Flat" } as const;
+const TREND_LABEL = { up: "statCard.trendingUp", down: "statCard.trendingDown", flat: "statCard.flat" } as const;
 
 export const StatCard = React.forwardRef<HTMLElement, StatCardProps>(
   (
     { label, value, icon, description, color = "neutral", trend, onClick, href, loading, chart, size, className, ...rest },
     ref,
   ) => {
+    const loc = useLocale();
     const interactive = Boolean(href || onClick);
 
     const classes = cn(
@@ -151,7 +153,7 @@ export const StatCard = React.forwardRef<HTMLElement, StatCardProps>(
               <Icon
                 name={TREND_ICON[trend.direction]}
                 size={13}
-                title={TREND_LABEL[trend.direction]}
+                title={loc.t(TREND_LABEL[trend.direction])}
               />
               {trend.value}
             </span>

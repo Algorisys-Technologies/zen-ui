@@ -300,7 +300,7 @@ export const IDEWindow = ({
                     className="zen-shrink-0 zen-rounded-zen-sm zen-bg-zen-muted zen-px-1 zen-text-[0.625rem] zen-text-zen-muted-fg"
                     title={loc.t("codeEditor.readOnly")}
                   >
-                    RO
+                    {loc.t("codeEditor.readOnlyBadge")}
                   </span>
                 ) : null}
               </button>

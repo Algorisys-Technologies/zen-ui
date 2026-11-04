@@ -1670,7 +1670,7 @@ function GroupByMenu<TData>({ table }: { table: TanStackTable<TData> }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" color="neutral" size="sm">
-          {activeCount ? `Group by (${activeCount})` : "Group by"}
+          {activeCount ? loc.t("dataTable.groupByCount", { count: activeCount }) : loc.t("dataTable.groupBy")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="zen-min-w-44">
@@ -1760,7 +1760,7 @@ function BulkActionBar<TData>({
         aria-live="polite"
         aria-atomic="true"
       >
-        {selectedCount} selected
+        {loc.t("dataTable.nSelected", { count: selectedCount })}
       </span>
       {showCrossPage ? (
         <button
@@ -1773,7 +1773,7 @@ function BulkActionBar<TData>({
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
           )}
         >
-          Select all {totalFiltered} matching
+          {loc.t("dataTable.selectAllMatching", { count: totalFiltered })}
         </button>
       ) : null}
       <div className="zen-ml-auto zen-flex zen-items-center zen-gap-2">
@@ -2325,7 +2325,7 @@ function ColumnsMenu<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="zen-min-w-56">
         <DropdownMenuLabel>
-          {enableColumnPinning ? "Manage columns" : "Toggle columns"}
+          {enableColumnPinning ? loc.t("dataTable.manageColumns") : loc.t("dataTable.toggleColumns")}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {hideable.map((column) => {
@@ -2394,15 +2394,14 @@ function PinButton({
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
   const loc = useLocale();
+  const sideWord = loc.t(side === "left" ? "dataTable.sideLeft" : "dataTable.sideRight");
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={
-        active ? `Unpin ${label} from ${side}` : `Pin ${label} to ${side}`
-      }
+      aria-label={loc.t(active ? "dataTable.unpinColumnFrom" : "dataTable.pinColumnTo", { label, side: sideWord })}
       aria-pressed={active}
-      title={loc.t(active ? "dataTable.unpinFrom" : "dataTable.pinTo", { side })}
+      title={loc.t(active ? "dataTable.unpinFrom" : "dataTable.pinTo", { side: sideWord })}
       className={cn(
         "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
         "zen-border-0 zen-cursor-pointer zen-text-xs",
@@ -2964,6 +2963,7 @@ function VirtualizedBody<TData>({
         )}
       </div>
       {/* Hidden helper to silence a11y linters that complain about empty <tbody> */}
+      {/* i18n-ignore-next-line (hidden from everyone: never shown, never announced) */}
       <span hidden aria-hidden>{colCount} columns</span>
     </div>
   );

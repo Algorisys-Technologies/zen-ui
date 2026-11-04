@@ -297,7 +297,10 @@ export const ShortcutHelp = ({ openKey: openKeyProp, open: openProp, onOpenChang
   };
   // The opening key is fixed for the overlay's life, as in Solid.
   const [openKey] = React.useState(() => (openKeyProp === undefined ? "?" : openKeyProp));
-  useShortcutRegistration(openKey || null, () => setOpen(true), { description: "Show these keys", group: "General" });
+  useShortcutRegistration(openKey || null, () => setOpen(true), {
+    description: loc.t("shortcuts.showTheseKeys"),
+    group: loc.t("shortcuts.general"),
+  });
 
   const list = registry?.list;
   const general = loc.t("shortcuts.general");

@@ -36,18 +36,20 @@ export type ColorPickerProps = {
   class?: string;
 };
 
-const DEFAULT_COLORS: ColorOption[] = [
-  { value: "#ef4444", label: "Red" },
-  { value: "#f97316", label: "Orange" },
-  { value: "#facc15", label: "Yellow" },
-  { value: "#22c55e", label: "Green" },
-  { value: "#3b82f6", label: "Blue" },
-  { value: "#6366f1", label: "Indigo" },
-  { value: "#a855f7", label: "Purple" },
-  { value: "#ec4899", label: "Pink" },
-  { value: "#78716c", label: "Stone" },
-  { value: "#000000", label: "Black" },
-];
+// The default swatches name their colour through the catalogue, so a translated app
+// announces "Rot", not "Red". Resolved where a locale is in scope.
+const DEFAULT_COLORS = [
+  { value: "#ef4444", key: "colorPicker.red" },
+  { value: "#f97316", key: "colorPicker.orange" },
+  { value: "#facc15", key: "colorPicker.yellow" },
+  { value: "#22c55e", key: "colorPicker.green" },
+  { value: "#3b82f6", key: "colorPicker.blue" },
+  { value: "#6366f1", key: "colorPicker.indigo" },
+  { value: "#a855f7", key: "colorPicker.purple" },
+  { value: "#ec4899", key: "colorPicker.pink" },
+  { value: "#78716c", key: "colorPicker.stone" },
+  { value: "#000000", key: "colorPicker.black" },
+] as const;
 
 export const ColorPicker = (props: ColorPickerProps) => {
   const loc = useLocale();
@@ -67,7 +69,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
     setDraft(value());
   });
 
-  const colors = () => props.colors ?? DEFAULT_COLORS;
+  const colors = () => props.colors ?? DEFAULT_COLORS.map((c): ColorOption => ({ value: c.value, label: loc.t(c.key) }));
 
   const update = (hex: string) => {
     const next = normalizeHex(hex);

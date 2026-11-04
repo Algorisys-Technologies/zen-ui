@@ -76,11 +76,11 @@ export const FileUpload = (props: FileUploadProps) => {
 
     for (const f of arr) {
       if (typeof props.maxSize === "number" && f.size > props.maxSize) {
-        rejected.push({ file: f, reason: "size", message: `"${f.name}" exceeds ${formatBytes(props.maxSize)}` });
+        rejected.push({ file: f, reason: "size", message: loc.t("fileUpload.rejectSize", { name: f.name, size: formatBytes(props.maxSize) }) });
         continue;
       }
       if (!matchesAccept(f, props.accept)) {
-        rejected.push({ file: f, reason: "type", message: `"${f.name}" is not an accepted file type` });
+        rejected.push({ file: f, reason: "type", message: loc.t("fileUpload.rejectType", { name: f.name }) });
         continue;
       }
       accepted.push(f);
@@ -91,7 +91,7 @@ export const FileUpload = (props: FileUploadProps) => {
     if (nextFiles.length > max) {
       const overflow = nextFiles.slice(max);
       overflow.forEach((f) =>
-        rejected.push({ file: f, reason: "max-files", message: `Maximum ${max} file(s); "${f.name}" dropped` }),
+        rejected.push({ file: f, reason: "max-files", message: loc.t("fileUpload.rejectMaxFiles", { max, name: f.name }) }),
       );
       nextFiles = nextFiles.slice(0, max);
     }
@@ -159,10 +159,13 @@ export const FileUpload = (props: FileUploadProps) => {
           fallback={
             <Show when={props.maxSize}>
               <div class="zen-text-xs zen-text-zen-muted-fg">
-                Max {formatBytes(props.maxSize as number)} per file
-                {props.multiple && effectiveMax() !== Infinity
-                  ? ` · up to ${effectiveMax()} files`
-                  : ""}
+                {loc.t("fileUpload.maxPerFile", {
+                  size: formatBytes(props.maxSize as number),
+                  suffix:
+                    props.multiple && effectiveMax() !== Infinity
+                      ? loc.t("fileUpload.upToFiles", { max: effectiveMax() })
+                      : "",
+                })}
               </div>
             </Show>
           }

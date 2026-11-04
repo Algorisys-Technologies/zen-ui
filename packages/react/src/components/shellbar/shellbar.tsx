@@ -440,8 +440,8 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                     shape="square"
                     aria-label={
                       notificationCount
-                        ? `Notifications, ${notificationCount} unread`
-                        : "Notifications"
+                        ? loc.t("shellbar.notificationsUnread", { count: notificationCount })
+                        : loc.t("shellbar.notifications")
                     }
                     onClick={onNotificationsClick}
                   >

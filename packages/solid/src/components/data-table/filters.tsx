@@ -4,7 +4,7 @@ import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
 import { Select } from "../form/select/select";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * Per-column filter variants for the Solid DataTable.
@@ -134,20 +134,20 @@ export const filterFnByVariant: Record<FilterVariant, FilterFn<unknown>> = {
 
 /* ---------------------------- variant inputs ------------------------------ */
 
-const TEXT_OPS: { value: TextOp; label: string; symbol: string }[] = [
-  { value: "contains", label: "Contains", symbol: "≈" },
-  { value: "equals", label: "Equals", symbol: "=" },
-  { value: "starts", label: "Starts with", symbol: "a…" },
-  { value: "ends", label: "Ends with", symbol: "…a" },
+const TEXT_OPS: { value: TextOp; label: MessageKey; symbol: string }[] = [
+  { value: "contains", label: "dataTable.textOp.contains", symbol: "≈" },
+  { value: "equals", label: "dataTable.textOp.equals", symbol: "=" },
+  { value: "starts", label: "dataTable.textOp.starts", symbol: "a…" },
+  { value: "ends", label: "dataTable.textOp.ends", symbol: "…a" },
 ];
 
-const NUMBER_OPS: { value: NumberOp; label: string; symbol: string }[] = [
-  { value: "eq", label: "Equals", symbol: "=" },
-  { value: "ne", label: "Not equal", symbol: "≠" },
-  { value: "gt", label: "Greater than", symbol: ">" },
-  { value: "lt", label: "Less than", symbol: "<" },
-  { value: "gte", label: "Greater or equal", symbol: "≥" },
-  { value: "lte", label: "Less or equal", symbol: "≤" },
+const NUMBER_OPS: { value: NumberOp; label: MessageKey; symbol: string }[] = [
+  { value: "eq", label: "dataTable.numberOp.eq", symbol: "=" },
+  { value: "ne", label: "dataTable.numberOp.ne", symbol: "≠" },
+  { value: "gt", label: "dataTable.numberOp.gt", symbol: ">" },
+  { value: "lt", label: "dataTable.numberOp.lt", symbol: "<" },
+  { value: "gte", label: "dataTable.numberOp.gte", symbol: "≥" },
+  { value: "lte", label: "dataTable.numberOp.lte", symbol: "≤" },
 ];
 
 const headerLabel = (column: Column<unknown, unknown>): string => {
@@ -158,7 +158,7 @@ const headerLabel = (column: Column<unknown, unknown>): string => {
 function OpSelect<T extends string>(props: {
   value: T;
   onChange: (next: T) => void;
-  options: { value: T; label: string; symbol: string }[];
+  options: { value: T; label: MessageKey; symbol: string }[];
   ariaLabel: string;
 }): JSX.Element {
   return (
@@ -208,7 +208,7 @@ function TextFilter(props: { column: Column<unknown, unknown>; operators?: boole
           value={op()}
           onChange={(o) => setNext({ op: o })}
           options={TEXT_OPS}
-          ariaLabel={`${headerLabel(props.column)} filter operator`}
+          ariaLabel={loc.t("dataTable.filterOperator", { column: headerLabel(props.column) })}
         />
       </Show>
       <Input
@@ -235,7 +235,7 @@ function NumberFilter(props: { column: Column<unknown, unknown> }) {
           props.column.setFilterValue({ op: o, value: value() } satisfies NumberFilterValue)
         }
         options={NUMBER_OPS}
-        ariaLabel={`${headerLabel(props.column)} filter operator`}
+        ariaLabel={loc.t("dataTable.filterOperator", { column: headerLabel(props.column) })}
       />
       <NumberField
         value={value() ?? undefined}
@@ -292,10 +292,11 @@ function SelectFilter(props: {
   column: Column<unknown, unknown>;
   options: { label: string; value: string }[];
 }) {
+  const loc = useLocale();
   const value = () => (props.column.getFilterValue() as string | undefined) ?? "";
   return (
     <Select
-      options={[{ value: "__all__", label: "All" }, ...props.options]}
+      options={[{ value: "__all__", label: loc.t("dataTable.all") }, ...props.options]}
       value={value() || "__all__"}
       onChange={(v) =>
         props.column.setFilterValue(v === "__all__" ? undefined : v)

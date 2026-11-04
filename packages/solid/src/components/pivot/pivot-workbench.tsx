@@ -312,7 +312,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                     </button>
                   </Show>
                   <Button size="sm" onClick={applyLayout}>
-                    View Data
+                    {loc.t("pivot.viewData")}
                   </Button>
                 </div>
               </div>

@@ -159,7 +159,7 @@ export const FilterBar = (props: FilterBarProps) => {
           when={shown().length}
           fallback={
             <p class="zen-m-0 zen-py-2 zen-text-sm zen-text-zen-muted-fg">
-              No filters shown. Use {adaptLabel()} to add some.
+              {loc.t("filterBar.noFilters", { adapt: adaptLabel() })}
             </p>
           }
         >

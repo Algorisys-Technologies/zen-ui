@@ -123,7 +123,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           rejected.push({
             file: f,
             reason: "size",
-            message: `"${f.name}" exceeds ${formatBytes(maxSize)}`,
+            message: loc.t("fileUpload.rejectSize", { name: f.name, size: formatBytes(maxSize) }),
           });
           continue;
         }
@@ -131,7 +131,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           rejected.push({
             file: f,
             reason: "type",
-            message: `"${f.name}" is not an accepted file type`,
+            message: loc.t("fileUpload.rejectType", { name: f.name }),
           });
           continue;
         }
@@ -146,7 +146,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           rejected.push({
             file: f,
             reason: "max-files",
-            message: `Maximum ${effectiveMax} file(s); "${f.name}" dropped`,
+            message: loc.t("fileUpload.rejectMaxFiles", { max: effectiveMax, name: f.name }),
           }),
         );
         nextFiles = nextFiles.slice(0, effectiveMax);
@@ -217,10 +217,10 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
             <div className="zen-text-xs zen-text-zen-muted-fg">{helperText}</div>
           ) : maxSize ? (
             <div className="zen-text-xs zen-text-zen-muted-fg">
-              Max {formatBytes(maxSize)} per file
-              {multiple && effectiveMax !== Infinity
-                ? ` · up to ${effectiveMax} files`
-                : ""}
+              {loc.t("fileUpload.maxPerFile", {
+                size: formatBytes(maxSize),
+                suffix: multiple && effectiveMax !== Infinity ? loc.t("fileUpload.upToFiles", { max: effectiveMax }) : "",
+              })}
             </div>
           ) : null}
           <input

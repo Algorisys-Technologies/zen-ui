@@ -385,7 +385,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
 
       <Show when={typeof props.totalCount === "number"}>
         <p class="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
-          Showing {props.rows.length} of {props.totalCount}
+          {loc.t("urlDataTable.showing", { shown: props.rows.length, total: props.totalCount! })}
         </p>
       </Show>
     </div>

@@ -3,7 +3,7 @@ import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
 import { Progress } from "../progress/progress";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * UploadCollection — the list of files that have been uploaded, or are on their
@@ -87,13 +87,13 @@ const formatBytes = (bytes: number): string => {
  * full one is actively wrong for a queued file. A bar is drawn only when there
  * is a real number behind it.
  */
-const metaOf = (item: UploadItem): string => {
+const metaOf = (item: UploadItem, t: (key: MessageKey) => string): string => {
   const status = item.status ?? "complete";
   const state =
     status === "pending"
-      ? "Queued"
+      ? t("uploadCollection.queued")
       : status === "uploading" && item.progress === undefined
-        ? "Uploading…"
+        ? t("uploadCollection.uploadingNoProgress")
         : undefined;
   return [
     state,
@@ -216,8 +216,8 @@ const Row = (props: {
         <Show
           when={status() === "error"}
           fallback={
-            <Show when={metaOf(props.item)}>
-              <span class="zen-text-xs zen-text-zen-muted-fg">{metaOf(props.item)}</span>
+            <Show when={metaOf(props.item, loc.t)}>
+              <span class="zen-text-xs zen-text-zen-muted-fg">{metaOf(props.item, loc.t)}</span>
             </Show>
           }
         >
