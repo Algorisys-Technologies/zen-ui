@@ -213,7 +213,8 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   Integrated React re-verification (one build of dev): amount 25/25, locale
   8/8, shortcuts 12/12, contextmenu 11/11, barcode 16/16, tile 10/10,
   treeselect 18/18 + 19/19, filter 21/21, date-input 28/28, cal-keys 21/21,
-  sidebar 11/11, doc-tabs 35/35, lookup 30/30 (views pending re-run).
+  sidebar 11/11, doc-tabs 35/35, lookup 30/30, views 25/25 — every merged React unit re-verified together
+  on one integrated build (15 scripts, 0 failures).
 - 2026-11-05: S React merged: 139/139 components on the catalogue,
   `check:strings` takes a binding and `check:strings:react` is in `bun run
   check`; 121/121 routes + 57 opened popovers identical in English. 30 new
