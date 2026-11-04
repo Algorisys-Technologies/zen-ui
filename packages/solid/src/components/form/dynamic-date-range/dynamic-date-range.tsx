@@ -2,6 +2,7 @@ import { For, Show, createEffect, createMemo, createSignal, untrack } from "soli
 import {
   DATE_RANGE_OPERATORS,
   formatDateRangeValue,
+  type DateRangeTranslate,
   operatorMeta,
   parseISODate,
   resolveDateRange,
@@ -17,6 +18,7 @@ import { Icon } from "../../icon/icon";
 import { Input } from "../input/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover/popover";
 import { Calendar } from "../date-picker/date-picker";
+import { useLocale, type MessageKey } from "../../locale/locale";
 
 /**
  * DynamicDateRange — a date range you describe rather than point at.
@@ -56,6 +58,9 @@ export type DynamicDateRangeProps = {
 const GROUP_ORDER = ["Day", "Week", "Month", "Quarter", "Year", "Rolling", "Fixed"] as const;
 
 export const DynamicDateRange = (props: DynamicDateRangeProps) => {
+  const loc = useLocale();
+  // Core builds its phrases by catalogue key through this, so a translation reaches them too.
+  const say: DateRangeTranslate = (key, values) => loc.t(key as MessageKey, values);
   const [open, setOpen] = createSignal(false);
   const [internal, setInternal] = createSignal<DateRangeValue | undefined>(props.defaultValue);
   const isControlled = () => props.value !== undefined;
@@ -128,7 +133,7 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
     setOpen(false);
   };
 
-  const label = () => (current() ? formatDateRangeValue(current(), formatDate()) : (props.placeholder ?? "Select a period"));
+  const label = () => (current() ? formatDateRangeValue(current(), formatDate(), say) : (props.placeholder ?? loc.t("dynamicDateRange.selectAPeriod")));
   const resolvedNow = createMemo(() =>
     current() ? resolveDateRange(current(), clock(), { weekStartsOn: weekStartsOn() }) : {},
   );
@@ -150,7 +155,7 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
         <Show when={current() && (resolvedNow().from || resolvedNow().to)}>
           {/* The trigger says "Last 7 days"; this says which 7. Both matter —
               the name is the intent, the dates are the fact. */}
-          <span class="zen-text-xs zen-text-zen-muted-fg">({describe(resolvedNow(), formatDate())})</span>
+          <span class="zen-text-xs zen-text-zen-muted-fg">({describe(resolvedNow(), formatDate(), say)})</span>
         </Show>
       </PopoverTrigger>
 
@@ -158,14 +163,14 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
         <div class="zen-flex zen-max-w-[34rem] zen-flex-col zen-gap-0 sm:zen-flex-row">
           <div
             role="listbox"
-            aria-label="Period"
+            aria-label={loc.t("dynamicDateRange.period")}
             class="zen-max-h-72 zen-w-48 zen-shrink-0 zen-overflow-y-auto zen-border-b zen-border-zen-border zen-p-1 sm:zen-border-b-0 sm:zen-border-r"
           >
             <For each={groups()}>
               {([group, items]) => (
                 <div>
                   <div class="zen-px-2 zen-pb-1 zen-pt-2 zen-text-xs zen-font-medium zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">
-                    {group}
+                    {loc.t(`dateRange.group.${group}` as MessageKey)}
                   </div>
                   <For each={items}>
                     {(o) => (
@@ -183,7 +188,7 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
                             : "zen-bg-transparent zen-text-zen-foreground hover:zen-bg-zen-muted",
                         )}
                       >
-                        {o.label}
+                        {loc.t(`dateRange.op.${o.operator}` as MessageKey)}
                       </button>
                     )}
                   </For>
@@ -195,7 +200,7 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
           <div class="zen-flex zen-min-w-[16rem] zen-flex-col zen-gap-3 zen-p-3">
             <Show when={!draft()}>
               <p class="zen-m-0 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-                Pick a period on the left.
+                {loc.t("dynamicDateRange.pickAPeriodOnThe")}
               </p>
             </Show>
 
@@ -214,10 +219,10 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
                         const n = Number(e.currentTarget.value);
                         setDraft({ ...d(), count: Number.isFinite(n) ? n : 0 } as DateRangeValue);
                       }}
-                      aria-label={`Number of ${meta()?.unit}s`}
+                      aria-label={loc.t(`dynamicDateRange.numberOf.${meta()?.unit ?? "day"}` as MessageKey)}
                       class="zen-h-8 zen-w-20"
                     />
-                    <span class="zen-text-zen-muted-fg">{meta()?.unit}s</span>
+                    <span class="zen-text-zen-muted-fg">{loc.t(`dynamicDateRange.units.${meta()?.unit ?? "day"}` as MessageKey)}</span>
                   </label>
                   <label class="zen-flex zen-cursor-pointer zen-items-center zen-gap-2 zen-text-sm zen-text-zen-muted-fg">
                     <input
@@ -229,7 +234,7 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
                     />
                     {/* Named for what it does to the dates, not "includeCurrent" —
                         the whole hazard is that the difference is invisible. */}
-                    Include the current {meta()?.unit}
+                    {loc.t(`dynamicDateRange.includeCurrent.${meta()?.unit ?? "day"}` as MessageKey)}
                   </label>
                 </div>
               )}
@@ -266,16 +271,16 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
                 aria-live="polite"
                 class="zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs zen-text-zen-muted-fg"
               >
-                {previewValid() ? describe(preview(), formatDate()) : "—"}
+                {previewValid() ? describe(preview(), formatDate(), say) : "—"}
               </div>
             </Show>
 
             <div class="zen-flex zen-justify-end zen-gap-2">
               <Button variant="ghost" color="neutral" size="sm" onClick={() => setOpen(false)}>
-                Cancel
+                {loc.t("dynamicDateRange.cancel")}
               </Button>
               <Button size="sm" disabled={!draft() || !previewValid()} onClick={commit}>
-                Apply
+                {loc.t("dynamicDateRange.apply")}
               </Button>
             </div>
           </div>
@@ -286,9 +291,9 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
 };
 
 /** "1 Jul – 7 Jul", "from 1 Jul", "until 7 Jul". */
-const describe = (r: ResolvedRange, formatDate: (d: Date) => string): string => {
-  if (r.from && r.to) return `${formatDate(r.from)} – ${formatDate(r.to)}`;
-  if (r.from) return `from ${formatDate(r.from)}`;
-  if (r.to) return `until ${formatDate(r.to)}`;
+const describe = (r: ResolvedRange, formatDate: (d: Date) => string, say: DateRangeTranslate): string => {
+  if (r.from && r.to) return say("dateRange.span", { from: formatDate(r.from), to: formatDate(r.to) });
+  if (r.from) return say("dateRange.from", { date: formatDate(r.from) });
+  if (r.to) return say("dateRange.until", { date: formatDate(r.to) });
   return "—";
 };

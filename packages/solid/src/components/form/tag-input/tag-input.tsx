@@ -1,5 +1,6 @@
 import { type JSX, createMemo, createSignal, For } from "solid-js";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * TagInput — type-and-press-Enter chip input.
@@ -39,6 +40,7 @@ export type TagInputProps = {
 };
 
 export const TagInput = (props: TagInputProps) => {
+  const loc = useLocale();
   const isControlled = () => props.value !== undefined;
   const [inner, setInner] = createSignal<string[]>(props.defaultValue ?? []);
   const tags = createMemo<string[]>(() => (isControlled() ? (props.value as string[]) : inner()));
@@ -149,7 +151,7 @@ export const TagInput = (props: TagInputProps) => {
               <button
                 type="button"
                 onClick={() => removeAt(i())}
-                aria-label={`Remove ${tag}`}
+                aria-label={loc.t("tagInput.remove", { tag })}
                 disabled={props.disabled}
                 class={cn(
                   "zen-inline-flex zen-items-center zen-justify-center",
@@ -178,7 +180,7 @@ export const TagInput = (props: TagInputProps) => {
           const ok = await commit(input());
           if (ok) setInput("");
         }}
-        placeholder={tags().length === 0 ? (props.placeholder ?? "Add a tag…") : ""}
+        placeholder={tags().length === 0 ? (props.placeholder ?? loc.t("tagInput.placeholder")) : ""}
         disabled={props.disabled}
         aria-label={props.inputAriaLabel}
         class={cn(

@@ -2,6 +2,8 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
+  SidebarHeaderLabel,
+  SidebarMenuBadge,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
@@ -197,6 +199,128 @@ const NewSidebarDemo = () => (
             </SidebarContent>
           </Sidebar>
           <div class="zen-flex-1 zen-p-4">Page content…</div>
+        </div>
+      </SidebarProvider>
+    </DemoSection>
+
+    <DemoSection
+      title="3. A text-only menu that hides when collapsed"
+      codeTitle='collapseMode="hidden", with counts on the groups'
+      codeDescription="A menu with no icons has nothing to show on a rail, so collapsing hides it entirely, and a hidden sidebar is inert. Its toggle lives outside it, in the page's header. SidebarMenuSub's badge puts a count at the row's end."
+      code={`<SidebarProvider collapseMode="hidden">
+  <div style={{ display: "flex", height: "320px" }}>
+    <Sidebar>
+      <SidebarHeader><SidebarHeaderLabel>Algorisys One</SidebarHeaderLabel></SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuSub label="Accounts" badge={29} defaultOpen>
+              <SidebarMenuSubItem>
+                <SidebarMenuSubButton as="a" href="#journal-entry">Journal Entry</SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+              …
+            </SidebarMenuSub>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarContent>
+    </Sidebar>
+    <main>
+      <SidebarTrigger /> …
+    </main>
+  </div>
+</SidebarProvider>`}
+    >
+      <SidebarProvider collapseMode="hidden">
+        <div class="zen-flex zen-h-80 zen-w-full zen-overflow-hidden zen-rounded-zen-lg zen-border zen-border-zen-border" data-testid="hidden-frame">
+          <Sidebar>
+            <SidebarHeader>
+              <SidebarHeaderLabel>Algorisys One</SidebarHeaderLabel>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuSub label="Accounts" badge={29} defaultOpen>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton as="a" href="#journal-entry">Journal Entry</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton as="a" href="#payment-entry">Payment Entry</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton as="a" href="#sales-invoice">Sales Invoice</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuSub label="Stock" badge={18}>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton as="a" href="#stock-entry">Stock Entry</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton as="a" href="#delivery-note">Delivery Note</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuSub label="Buying" badge={12}>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton as="a" href="#purchase-order">Purchase Order</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton as="a" href="#purchase-receipt">Purchase Receipt</SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarContent>
+          </Sidebar>
+          <div class="zen-flex-1 zen-p-4">
+            <SidebarTrigger />
+            <p class="zen-mt-2 zen-text-sm zen-text-zen-muted-fg">Page content…</p>
+          </div>
+        </div>
+      </SidebarProvider>
+    </DemoSection>
+
+    <DemoSection
+      title="4. On a narrow screen, over the content"
+      codeTitle="overlay={{ below: 900 }}"
+      codeDescription="This frame is 600px wide, under the 900px breakpoint, so the sidebar starts closed and opens over the page instead of beside it. It takes focus when it opens; Esc, a click outside it or following one of its links closes it. Widen past 900px and it sits beside the content again. The width is the sidebar's container's, not the window's."
+      code={`<SidebarProvider overlay={{ below: 900 }}>
+  <div style={{ display: "flex", height: "320px" }}>
+    <Sidebar>…</Sidebar>
+    <main><SidebarTrigger /> …</main>
+  </div>
+</SidebarProvider>`}
+    >
+      <SidebarProvider overlay={{ below: 900 }}>
+        <div class="zen-flex zen-h-80 zen-w-[600px] zen-max-w-full zen-overflow-hidden zen-rounded-zen-lg zen-border zen-border-zen-border" data-testid="overlay-frame">
+          <Sidebar>
+            <SidebarHeader>
+              <SidebarHeaderLabel>Acme</SidebarHeaderLabel>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton as="a" href="#home" active>
+                    <HomeIcon />
+                    <span>Home</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton as="a" href="#team">
+                    <UsersIcon />
+                    <span>Team</span>
+                    <SidebarMenuBadge>4</SidebarMenuBadge>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarContent>
+          </Sidebar>
+          <div class="zen-flex-1 zen-p-4">
+            <SidebarTrigger />
+            <p class="zen-mt-2 zen-text-sm zen-text-zen-muted-fg">Page content…</p>
+          </div>
         </div>
       </SidebarProvider>
     </DemoSection>

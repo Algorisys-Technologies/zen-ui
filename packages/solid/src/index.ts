@@ -45,6 +45,8 @@ export { PageHeader } from "./components/page-header/page-header";
 export type { PageHeaderProps } from "./components/page-header/page-header";
 
 export { Toolbar } from "./components/toolbar/toolbar";
+export { DocumentTabs } from "./components/document-tabs/document-tabs";
+export type { DocumentTabsProps, DocumentTab } from "./components/document-tabs/document-tabs";
 export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
 
 export { Tree } from "./components/tree/tree";
@@ -97,6 +99,14 @@ export type {
 
 export { FilterBar } from "./components/filter-bar/filter-bar";
 export type { FilterBarProps, FilterBarField } from "./components/filter-bar/filter-bar";
+export { FilterBuilder } from "./components/filter-builder/filter-builder";
+export { LocaleProvider, useLocale } from "./components/locale/locale";
+export type { LocaleProviderProps, LocaleContextValue } from "./components/locale/locale";
+export { AmountField, QuantityField } from "./components/form/amount-field/amount-field";
+export type { AmountFieldProps, QuantityFieldProps } from "./components/form/amount-field/amount-field";
+export { ViewManager } from "./components/view-manager/view-manager";
+export type { ViewManagerProps, SavedView } from "./components/view-manager/view-manager";
+export type { FilterBuilderProps, FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator } from "./components/filter-builder/filter-builder";
 
 export { ValueHelp } from "./components/value-help/value-help";
 export type {
@@ -452,6 +462,32 @@ export type {
   DropdownMenuRadioItemProps,
 } from "./components/dropdown-menu/dropdown-menu";
 
+export {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuCheckboxItem,
+  ContextMenuRadioItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuGroup,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
+} from "./components/context-menu/context-menu";
+export type {
+  ContextMenuProps,
+  ContextMenuTriggerProps,
+  ContextMenuContentProps,
+  ContextMenuItemProps,
+  ContextMenuCheckboxItemProps,
+  ContextMenuRadioItemProps,
+} from "./components/context-menu/context-menu";
+
 export { Select } from "./components/form/select/select";
 export type { SelectProps, SelectOption } from "./components/form/select/select";
 
@@ -566,6 +602,29 @@ export type {
   SortDirection,
 } from "@algorisys/zen-ui-core/pivot";
 
+export { Tile, TileGrid } from "./components/tile/tile";
+export { TreeSelect } from "./components/tree-select/tree-select";
+export { LookupField } from "./components/lookup-field/lookup-field";
+export type { LookupFieldProps, LookupColumn } from "./components/lookup-field/lookup-field";
+export {
+  ShortcutProvider,
+  ShortcutHelp,
+  Kbd,
+  useShortcut,
+  useShortcuts,
+  keyshortcut,
+  shortcutLabel,
+  detectPlatform,
+} from "./components/shortcuts/shortcuts";
+export type {
+  ShortcutOptions,
+  ShortcutProviderProps,
+  ShortcutHelpProps,
+  ShortcutHelpGroup,
+  KbdProps,
+} from "./components/shortcuts/shortcuts";
+export type { TreeSelectProps, TreeSelectNode } from "./components/tree-select/tree-select";
+export type { TileProps, TileGridProps } from "./components/tile/tile";
 export { DataTable } from "./components/data-table/data-table";
 export {
   UrlDataTable,
@@ -584,6 +643,7 @@ export type {
 export type {
   DataTableProps,
   DataTableManualPagination,
+  DataTableMenuTarget,
 } from "./components/data-table/data-table";
 export { TreeTable } from "./components/tree-table/tree-table";
 export { PlanningCalendar } from "./components/planning-calendar/planning-calendar";
@@ -757,6 +817,11 @@ export {
 } from "@algorisys/zen-ui-core/splitter";
 export type { SplitterPanelConstraint } from "@algorisys/zen-ui-core/splitter";
 
+// Keyboard movement through rows and grid cells (DataTable's keyboard rows;
+// any editable grid a consumer builds). Pure; shared by every binding.
+export { rowKeyTarget, cellKeyTarget, ownsArrowKeys, ROW_PAGE_STEP } from "@algorisys/zen-ui-core/row-keys";
+export type { GridCell } from "@algorisys/zen-ui-core/row-keys";
+
 export {
   SortableList,
   SortableListItem,
@@ -877,6 +942,8 @@ export type {
   DatePickerProps,
   DateRange,
 } from "./components/form/date-picker/date-picker";
+export { DateInput, isTypedDate } from "./components/form/date-picker/date-input";
+export type { DateInputProps, DateOrder } from "./components/form/date-picker/date-input";
 export { DateRangePicker } from "./components/form/date-picker/date-range-picker";
 export type { DateRangePickerProps } from "./components/form/date-picker/date-range-picker";
 export { TimePicker } from "./components/form/time-picker/time-picker";
@@ -886,6 +953,8 @@ export type { DateTimePickerProps } from "./components/form/date-picker/date-tim
 
 // Tier 3 batch E — device + composite
 export { QRScanner } from "./components/qr-scanner/qr-scanner";
+export { QRCode, Barcode } from "./components/barcode/barcode";
+export type { QRCodeProps, BarcodeProps, BarcodeFormat, QrEcc } from "./components/barcode/barcode";
 export type { QRScannerProps, QRScannerScan } from "./components/qr-scanner/qr-scanner";
 export { NotificationsInbox } from "./components/notifications-inbox/notifications-inbox";
 export type {
@@ -958,6 +1027,8 @@ export {
   SidebarProvider,
   SidebarTrigger,
   SidebarHeader,
+  SidebarHeaderLabel,
+  SidebarMenuBadge,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,

@@ -14,6 +14,7 @@ import { Button, type ButtonProps } from "../button/button";
 import { Icon, type IconName } from "../icon/icon";
 import { Input } from "../form/input/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar/avatar";
+import { DropdownMenu, type DropdownMenuItemSpec } from "../dropdown-menu/dropdown-menu";
 
 /**
  * ShellBar — the global application header: logo, product title, search,
@@ -97,6 +98,14 @@ export interface ShellBarProfile {
   /** Falls back to initials derived from `name`. */
   initials?: string;
   menuItems?: ShellBarMenuItem[];
+  /**
+   * The menu's own body, in place of `menuItems`: DropdownMenu item specs —
+   * labels, radio groups, checkbox items — for a menu that holds settings as
+   * well as actions (appearance, density, sign out). Rendered under the name
+   * heading. React's and Solid's `menu` take DropdownMenu parts; here, as
+   * everywhere in this binding, the parts are data.
+   */
+  menu?: DropdownMenuItemSpec[];
   onClick?: () => void;
 }
 
@@ -796,7 +805,27 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
           ],
         });
 
-      if (profile.menuItems && profile.menuItems.length > 0) {
+      if (profile.menu && profile.menu.length > 0) {
+        const trigger = Button({
+          type: "button",
+          variant: "ghost",
+          color: "neutral",
+          size: "sm",
+          shape: "circle",
+          "aria-label": profile.name,
+          children: buildAvatar(),
+        });
+        const dd = DropdownMenu({
+          trigger: trigger.el,
+          align: "end",
+          items: [{ type: "label", label: profile.name }, { type: "separator" }, ...profile.menu],
+        });
+        renderDisposer.add(() => {
+          dd.destroy();
+          trigger.destroy();
+        });
+        fixed.append(dd.el);
+      } else if (profile.menuItems && profile.menuItems.length > 0) {
         const trigger = Button({
           type: "button",
           variant: "ghost",

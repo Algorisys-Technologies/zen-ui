@@ -36,6 +36,7 @@ import {
   createScrollerMetrics,
   type ScheduleColumn,
 } from "./schedule-grid";
+import { useLocale } from "../locale/locale";
 
 /**
  * Gantt — what the project is doing, and what is waiting on what.
@@ -301,6 +302,7 @@ const formatDay = (d: Date): string =>
 type Row = GanttRow<GanttTask>;
 
 export const Gantt = (props: GanttProps) => {
+  const loc = useLocale();
   /* Fit, not month, and certainly not week. A seven-day window is right for a
      calendar and wrong for a plan; a month is right for a plan that fits in one
      and wrong for the majority that do not. Fit is the only default that is
@@ -456,7 +458,7 @@ export const Gantt = (props: GanttProps) => {
             props.class,
           )}
           role="status"
-          aria-label="Loading schedule"
+          aria-label={loc.t("gantt.loadingSchedule")}
         >
           <For each={Array.from({ length: props.loadingRows ?? 6 }, (_, i) => i)}>
             {(i) => (
@@ -484,9 +486,9 @@ export const Gantt = (props: GanttProps) => {
                 <EmptyStateIcon>
                   <Icon name="calendar" size={22} />
                 </EmptyStateIcon>
-                <EmptyStateTitle>Nothing scheduled</EmptyStateTitle>
+                <EmptyStateTitle>{loc.t("gantt.nothingScheduled")}</EmptyStateTitle>
                 <EmptyStateDescription>
-                  Add a task with a start and an end date and it will appear on the timeline.
+                  {loc.t("gantt.addATaskWithA")}
                 </EmptyStateDescription>
               </EmptyState>
             )}

@@ -124,6 +124,7 @@ real props; guessing prop names is how agents invent APIs.
 - [sortable.md](sortable.md) — `moveItem`, `reduceReorder`, `keyToReorderAction`, `DEFAULT_REORDER_ANNOUNCEMENTS`, `PickedUp`, `ReorderAction`, `ReorderIntent`, `ReorderResult`, `ReorderOrientation`, `ReorderAnnouncements`
 - [splitter-splitter.md](splitter-splitter.md) — `Splitter`, `SplitterPanel`, `SplitterHandle`, `SplitterProps`, `SplitterPanelProps`, `SplitterHandleProps`, `SplitterOrientation`
 - [zen-ui-core-splitter.md](zen-ui-core-splitter.md) — `normalizeSizes`, `dragHandle`, `handleBounds`, `splitterKeyDelta`, `mirrorDelta`, `SPLITTER_STEP`, `SPLITTER_STEP_LARGE`, `SplitterPanelConstraint`
+- [row-keys.md](row-keys.md) — `rowKeyTarget`, `cellKeyTarget`, `ownsArrowKeys`, `ROW_PAGE_STEP`, `GridCell`
 - [document-viewer.md](document-viewer.md) — `DocumentViewer`, `DocumentViewerProps`
 - [document.md](document.md) — `inferDocumentKind`, `clampZoom`, `zoomStep`, `normalizeRotation`, `fitScale`, `DOCUMENT_ZOOM_MIN`, `DOCUMENT_ZOOM_MAX`, `DocumentKind`, `DocumentFit`, `DocumentSize`
 - [diff-view.md](diff-view.md) — `DiffView`, `DiffViewProps`

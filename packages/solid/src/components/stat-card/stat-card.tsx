@@ -71,6 +71,14 @@ export interface StatCardProps extends Omit<JSX.HTMLAttributes<HTMLElement>, "on
   href?: string;
   /** Swaps the figure for a skeleton and marks the card busy. */
   loading?: boolean;
+  /**
+   * A small chart under the figure, across the card: the trend behind a hero
+   * figure ("Revenue, trailing 12 months"). A MicroChart, or any element.
+   * While `loading` it is a skeleton too.
+   */
+  chart?: JSX.Element;
+  /** "lg": the hero of a dashboard row, with a larger figure. Default "md". */
+  size?: "md" | "lg";
   class?: string;
 }
 
@@ -79,7 +87,7 @@ const TEXT: Record<StatCardColor, string> = {
   neutral: "zen-text-zen-muted-fg",
   info: "zen-text-zen-info",
   success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   error: "zen-text-zen-error",
 };
 
@@ -107,6 +115,8 @@ export const StatCard = (props: StatCardProps) => {
     "onClick",
     "href",
     "loading",
+    "chart",
+    "size",
     "class",
     "ref",
   ]);
@@ -118,7 +128,9 @@ export const StatCard = (props: StatCardProps) => {
     cn(
       // The surface is Card's, not a copy of it.
       cardVariants({ variant: "outlined", padding: "md" }),
-      "zen-block zen-w-full zen-text-start",
+      // A linked card would otherwise underline every word in it: zen-ui ships
+      // no element reset, so an <a> keeps the browser's text-decoration.
+      "zen-block zen-w-full zen-text-start zen-no-underline",
       interactive() &&
         "zen-cursor-pointer zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       local.class,
@@ -128,6 +140,7 @@ export const StatCard = (props: StatCardProps) => {
   // changes, and the body must not be built twice (a JSX value read twice
   // mounts two of everything — see demo-helpers' CodeExample).
   const Body = () => (
+    <>
     <div class="zen-flex zen-items-start zen-justify-between zen-gap-3">
       <div class="zen-flex zen-min-w-0 zen-flex-col zen-gap-1.5">
         <span class="zen-truncate zen-text-sm zen-text-zen-muted-fg">{local.label}</span>
@@ -135,7 +148,12 @@ export const StatCard = (props: StatCardProps) => {
           when={!local.loading}
           fallback={<Skeleton class="zen-h-7 zen-w-24" />}
         >
-          <span class="zen-text-2xl zen-font-semibold zen-leading-none zen-text-zen-foreground">
+          <span
+            class={cn(
+              "zen-font-semibold zen-leading-none zen-text-zen-foreground",
+              local.size === "lg" ? "zen-text-4xl" : "zen-text-2xl",
+            )}
+          >
             {local.value}
           </span>
         </Show>
@@ -166,6 +184,16 @@ export const StatCard = (props: StatCardProps) => {
         </span>
       </Show>
     </div>
+    {/* The chart sits under the figure, across the card; nothing at all is
+        rendered without one, so a card that has none is unchanged. */}
+    <Show when={local.chart}>
+      <div class="zen-mt-3" data-stat-chart="">
+        <Show when={!local.loading} fallback={<Skeleton class="zen-h-12 zen-w-full" />}>
+          {local.chart}
+        </Show>
+      </div>
+    </Show>
+    </>
   );
 
   // Three concrete branches rather than <Dynamic>: a Dynamic over an

@@ -19,7 +19,7 @@ const INVOICE_AFTER = {
   reference: "PO-4417",
 };
 
-const AUDIT: TimelineItem[] = [
+const makeAudit = (): TimelineItem[] => [
   {
     id: "3",
     group: "Today",
@@ -62,7 +62,10 @@ const AUDIT: TimelineItem[] = [
   },
 ];
 
-const NewDiffViewDemo = () => (
+const NewDiffViewDemo = () => {
+  // Built here, not at module level: JSX built at import time creates components outside any root.
+  const AUDIT = makeAudit();
+  return (
   <DemoPage
     title="DiffView"
     description={
@@ -225,6 +228,7 @@ const NewDiffViewDemo = () => (
       />
     </DemoSection>
   </DemoPage>
-);
+  );
+};
 
 export default NewDiffViewDemo;

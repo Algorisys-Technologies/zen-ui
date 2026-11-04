@@ -1,6 +1,7 @@
 import { type JSX, createMemo, createSignal, For, Show } from "solid-js";
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
+import { useLocale } from "../locale/locale";
 
 /**
  * FileUpload — drag-and-drop zone wrapping a native <input type="file">.
@@ -59,6 +60,7 @@ const matchesAccept = (file: File, accept: string | undefined): boolean => {
 };
 
 export const FileUpload = (props: FileUploadProps) => {
+  const loc = useLocale();
   const isControlled = () => props.value !== undefined;
   const [inner, setInner] = createSignal<File[]>(props.defaultValue ?? []);
   const files = createMemo<File[]>(() => (isControlled() ? (props.value as File[]) : inner()));
@@ -147,7 +149,7 @@ export const FileUpload = (props: FileUploadProps) => {
         <div class="zen-text-sm">
           {props.label ?? (
             <>
-              <span class="zen-font-medium">Click to upload</span>{" "}
+              <span class="zen-font-medium">{loc.t("fileUpload.clickToUpload")}</span>{" "}
               <span class="zen-text-zen-muted-fg">or drag and drop</span>
             </>
           )}
@@ -185,7 +187,7 @@ export const FileUpload = (props: FileUploadProps) => {
       </div>
 
       <Show when={showFileList() && files().length > 0}>
-        <ul class="zen-flex zen-flex-col zen-gap-1 zen-text-sm">
+        <ul class="zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-1 zen-p-0 zen-text-sm">
           <For each={files()}>
             {(file, idx) => (
               <li class="zen-flex zen-items-center zen-gap-3 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2">
@@ -198,7 +200,7 @@ export const FileUpload = (props: FileUploadProps) => {
                   variant="ghost"
                   color="neutral"
                   size="sm"
-                  aria-label={`Remove ${file.name}`}
+                  aria-label={loc.t("fileUpload.removeFile", { name: file.name })}
                   onClick={(e) => {
                     e.stopPropagation();
                     removeFile(idx());

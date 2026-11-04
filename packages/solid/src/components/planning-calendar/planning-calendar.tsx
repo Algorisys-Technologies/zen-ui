@@ -14,6 +14,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * PlanningCalendar — who is busy, and when.
@@ -125,6 +126,7 @@ const LANE_PX = 30;
 const TEXT_MIN_WIDTH_PCT = 3;
 
 export const PlanningCalendar = (props: PlanningCalendarProps) => {
+  const loc = useLocale();
   const [innerView, setInnerView] = createSignal<PlanningView>(props.defaultView ?? "week");
   const [innerDate, setInnerDate] = createSignal<Date>(props.defaultDate ?? new Date());
 
@@ -179,7 +181,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
           <Button
             variant="outline"
             size="sm"
-            aria-label="Previous"
+            aria-label={loc.t("planningCalendar.previous")}
             onClick={() => setDate(shiftPlanningAnchor(view(), anchor(), -1))}
           >
             {/* Logical, not physical: under RTL the axis runs the other way, so a
@@ -187,12 +189,12 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
             <Icon name="chevron-left" size={14} class="rtl:zen-rotate-180" />
           </Button>
           <Button variant="outline" size="sm" onClick={() => setDate(now())}>
-            Today
+            {loc.t("planningCalendar.today")}
           </Button>
           <Button
             variant="outline"
             size="sm"
-            aria-label="Next"
+            aria-label={loc.t("planningCalendar.next")}
             onClick={() => setDate(shiftPlanningAnchor(view(), anchor(), 1))}
           >
             <Icon name="chevron-right" size={14} class="rtl:zen-rotate-180" />
@@ -202,7 +204,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
             {planningRangeLabel(view(), anchor())}
           </span>
 
-          <div class="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label="View">
+          <div class="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label={loc.t("planningCalendar.view")}>
             <For each={props.views ?? (["day", "week", "month"] as PlanningView[])}>
               {(v) => (
                 <Button
@@ -223,7 +225,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
         when={laidOut().length > 0}
         fallback={
           <p class="zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-            {props.emptyMessage ?? "No resources"}
+            {props.emptyMessage ?? loc.t("planningCalendar.noResources")}
           </p>
         }
       >
@@ -234,7 +236,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
           <div class="zen-min-w-[45rem]">
             <div class="zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted/30">
               <div class="zen-w-40 zen-shrink-0 zen-border-e zen-border-zen-border zen-px-3 zen-py-2 zen-text-xs zen-font-semibold zen-text-zen-muted-fg">
-                Resource
+                {loc.t("planningCalendar.resource")}
               </div>
               <div class="zen-flex zen-flex-1">
                 <For each={columns()}>
@@ -327,7 +329,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
                             top: `${block.lane * LANE_PX + 4}px`,
                             height: `${LANE_PX - 6}px`,
                           }}
-                          title={`${block.appointment.title} · ${formatTimeRange(block.appointment.start, block.appointment.end)}`}
+                    title={`${block.appointment.title} · ${formatTimeRange(block.appointment.start, block.appointment.end)}`} // i18n-ignore (data joined by a separator, no words)
                         >
                           {/* The time is in the accessible name, not only the
                               title attribute: a block narrow enough to clip its

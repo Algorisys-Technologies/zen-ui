@@ -1,6 +1,7 @@
 import { For } from "solid-js";
 import { A } from "@solidjs/router";
 import { NAV } from "../nav";
+import { NavTag } from "./NavTag";
 import { useTheme } from "../lib/theme";
 
 /**
@@ -43,7 +44,9 @@ const CardPreview = (props: { route: string }) => {
 const Welcome = () => {
   const { themes } = useTheme();
   const groups = NAV.filter((g) => g.catalogue !== false);
-  const total = groups.reduce((n, g) => n + g.items.length, 0);
+  // Counted as the header counts: Patterns (components: false) are screens built from
+  // the components above, so counting them would count the same components twice.
+  const total = groups.filter((g) => g.components !== false).reduce((n, g) => n + g.items.length, 0);
 
   return (
     <div class="zen-mx-auto zen-max-w-5xl zen-px-6 zen-py-10">
@@ -110,8 +113,9 @@ const Welcome = () => {
                     >
                       <CardPreview route={item.path} />
                       <div class="zen-p-4">
-                        <div class="zen-text-sm zen-font-semibold zen-text-zen-foreground">
+                        <div class="zen-flex zen-items-center zen-gap-2 zen-text-sm zen-font-semibold zen-text-zen-foreground">
                           {item.label}
+                          <NavTag item={item} />
                         </div>
                         <p class="zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg">
                           {item.description}

@@ -1,5 +1,6 @@
 import { type JSX, splitProps, createSignal, createEffect, onCleanup, Show } from "solid-js";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * PasswordInput — a password field with a show/hide toggle. Solid port of the
@@ -26,6 +27,7 @@ export interface PasswordInputProps
 }
 
 export const PasswordInput = (props: PasswordInputProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["class", "showLabel", "hideLabel", "disabled", "autoHideMs"]);
   const [visible, setVisible] = createSignal(false);
   // Each reveal starts its own countdown; hiding (or unmounting) clears it.
@@ -42,7 +44,7 @@ export const PasswordInput = (props: PasswordInputProps) => {
         type={visible() ? "text" : "password"}
         disabled={local.disabled}
         class={cn(
-          "zen-flex zen-h-10 zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-ps-3 zen-pe-10 zen-py-2 zen-text-sm",
+          "zen-flex zen-h-zen-control zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-ps-zen-control-x zen-pe-10 zen-py-2 zen-text-sm",
           "placeholder:zen-text-zen-muted-fg",
           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
           "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
@@ -53,7 +55,7 @@ export const PasswordInput = (props: PasswordInputProps) => {
       <button
         type="button"
         disabled={local.disabled}
-        aria-label={visible() ? local.hideLabel ?? "Hide password" : local.showLabel ?? "Show password"}
+        aria-label={visible() ? local.hideLabel ?? loc.t("passwordInput.hide") : local.showLabel ?? loc.t("passwordInput.show")}
         aria-pressed={visible()}
         onClick={() => setVisible((v) => !v)}
         class={cn(

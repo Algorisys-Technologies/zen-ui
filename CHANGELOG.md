@@ -15,6 +15,494 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.2.0] - 2026-11-04
+
+### Added
+- **Calendar: arrow keys between days** (Solid). ← → a day (mirrored right
+  to left), ↑ ↓ a week, Home / End the week's ends, PageUp / PageDown a month
+  (Shift: a year); crossing the visible months turns the page. These keys did
+  nothing before.
+- **DatePicker `initialFocus="selected"`** (Solid): opens on the chosen day
+  (else today) instead of "Previous month". Opt-in; the default is unchanged.
+- **`--zen-color-warning-text`**: warning text (ObjectStatus, ObjectNumber,
+  Countdown, StatCard's trend) reads it, falling back to the warning colour, so
+  nothing changes unless you set it. The plain warning colour is 1.77:1 on
+  white; `:root { --zen-color-warning-text: var(--zen-color-warning-soft-fg); }`
+  makes it 5.23:1.
+- **Combobox takes `id` and `aria-label`** (Solid), on its input, so
+  `<label for>` names and focuses it.
+- `scripts/snapshot-routes.mjs` and `scripts/compare-route-snapshots.mjs`: the
+  "nothing else moved" check for sweeping changes (see CLAUDE.md).
+- **Server-side export: DataTable `onExport`** (Solid). For data too large to
+  be in the browser: the Export menu (Excel, PDF, CSV; "only the n selected
+  rows" when there is a selection) hands the app an `ExportRequest`, a few KB
+  describing exactly what the user sees: the visible columns in order with
+  header, width, alignment, format (`meta.exportFormat`) and total; the
+  search, per-column filters, sort and grouping; the locale; every matching
+  row, or the selected ids (including rows on pages the browser no longer
+  holds); plus `exportContext` (a FilterBuilder tree, a view id). The app's
+  server queries the full data and returns the file: a Blob is downloaded, a
+  `{ url }` followed, a rejected Promise shown as the reason, with a busy
+  state meanwhile. zen-ui runs nothing on the server. Without `onExport`, the
+  client-side CSV / JSON export is unchanged. Core's new
+  `@algorisys/zen-ui-core/export-request` (`buildExportRequest`, and
+  `parseExportRequest` for JavaScript servers: validates, never throws), checked
+  by `bun run check:export-request`. Integration guide, with a Frappe sketch:
+  docs/server-export.md. Demo: DataTable section 26, a 100,000-row ledger behind
+  a mock server.
+- **Grid totals: `meta.aggregate` on a DataTable column** (Solid). `"sum"`,
+  `"count"`, `"avg"`, `"min"`, `"max"` or a function, per column: DataTable
+  fills the footer (a "Total" label in the first visible column without one),
+  keeps it in view at the bottom while the rows scroll (fillHeight /
+  stickyHeader), and shows each group's subtotal from the same declaration
+  when grouped. Totals cover every row the filters let through across pages,
+  or the page with `totalsOver="page"`; group header rows are never added in
+  twice. Sums are exact in decimal (on generated money columns a plain double
+  sum was wrong 332 times in 400). Formatted at the column's own decimal
+  places in the locale; `meta.formatTotal` to show it your way. A column's own
+  `footer`, `aggregationFn` and `aggregatedCell` are left alone, and a table
+  with a hand-written footer and no `meta.aggregate` renders as before. Core's
+  new `@algorisys/zen-ui-core/aggregate`, checked by `bun run check:aggregate`
+  (3224 assertions, against an exact-integer oracle). Demo: DataTable section 25.
+- **Every built-in string can be translated (B1, batch 1 of 3)** (Solid).
+  One catalogue, `@algorisys/zen-ui-core/messages`, English by default;
+  `LocaleProvider messages={…}` translates any subset of it, the rest stays
+  English, and a nested provider inherits what it leaves out. Plural forms
+  follow each language's own rules (ICU-style `{count, plural, one {…} other
+  {…}}`, decided by Intl.PluralRules: Hindi counts 0 as "one", Arabic has six
+  forms). A component's own label props still win. This batch covers the form
+  controls and dialogs: Dialog, Combobox, MultiCombobox, Calendar, DatePicker,
+  DateInput, DateRangePicker, DateTimePicker, TimePicker (its AM/PM too),
+  NumberField, PasswordInput, PhoneInput, Search, TagInput, AmountField,
+  QuantityField, LookupField, TreeSelect, FilterBar, SelectList, SelectDialog,
+  ValueHelp (its operator names too), ViewSettingsDialog, FilterBuilder and
+  ViewManager. A demo page, Localization, shows a partial Hindi translation.
+- **Every built-in string can be translated: batches 2 and 3 of 3** (Solid).
+  Batch 2: the tables and data (DataTable incl. its export menu and totals,
+  UrlDataTable, TreeTable, Pagination, Pivot, SpreadsheetGrid, Chart,
+  MicroChart). Batch 3: every remaining component, 135 in all, so
+  `check:strings` now has no exemptions. Composite labels are whole messages
+  ("Range {n} start", "{label}, step {n} of {count}, {status}"), never English
+  glued to a translated word. Words CORE generates translate too:
+  `formatDateRangeValue`, `operatorLabel` and `describeFilter` take an optional
+  message lookup (`t`) and build every phrase by catalogue key
+  (`dateRange.*`, `filter.*`); Barcode/QR errors carry a `code` and `values`
+  (`barcode.error.*`). All additive: called as before they return the same
+  English, and `check:messages` asserts the catalogue path reads identically
+  for every date-range operator (166 values), every filter operator and each
+  summary shape, and every barcode error. Route snapshots: 120 of 120 routes
+  identical before and after.
+- `bun run check:strings` fails on a hard-coded user-visible string in any
+  swept component, and in any NEW component (components still to sweep are
+  listed, and the list only shrinks). `bun run check:messages` checks the
+  catalogue (placeholders, plurals in en / hi / ar, well-formed entries).
+- **AmountField and QuantityField** (Solid; new): amounts and quantities as
+  clerks type and read them. Raw digits while editing, formatted at rest in the
+  locale's grouping (1,25,000.00 in India, 1.250,00 in Germany, Arabic-Indic
+  digits in Egypt), an amount at its currency's own precision (INR 2, JPY 0,
+  KWD 3) with the symbol where the locale puts it, a quantity with its unit.
+  Typed 1,25,000, 125000, 2.5L, 1.2Cr or 15k all read; text that is not one
+  number in the locale, or is out of range (or negative, unless
+  allowNegative), is kept and marked aria-invalid, never quietly changed. Esc
+  undoes the typing. Rounding is half away from zero in decimal (1.005 is
+  1.01).
+- **LocaleProvider / useLocale** (Solid; new): the locale and default currency
+  zen-ui formats with, set once (nestable). Optional: without it nothing
+  changes. The built-in strings will come from it next (review B1).
+- **ObjectNumber formats a number it's given** (Solid): `number`, `currency`,
+  `precision`, `locale`. `value` is still shown as given and wins when present,
+  so existing uses render exactly as before (measured: every demo route
+  snapshots identical).
+- Core's new `@algorisys/zen-ui-core/number-format`: formatNumber,
+  formatAmount (accounting negatives, symbol / code / name / none),
+  formatQuantity, formatPercent (takes 18, not 0.18), parseNumber (strict:
+  ambiguous text is "invalid", never a guess), currencyPrecision, roundTo.
+  Checked by `bun run check:number-format`: 38145 assertions, 38080 of them
+  format→parse round trips across 14 locales.
+- **ViewManager** (Solid; new): saved views beside the page title ("My
+  overdue invoices, this quarter, these columns"). Pick, Save, Save as (a free
+  name offered; blank and duplicate names refused as a person reads them, case
+  and spacing ignored), open the screen with a view by default, Manage (rename,
+  delete in two presses, choose the default), and Copy link. The state is one
+  object of the app's choosing (a FilterBuilder value, sort, columns); the
+  picker never looks inside it, and marks the view Modified the moment the
+  screen drifts from it (key order is not a change). Storage is the app's:
+  every change is a callback, which may return a Promise; a dialog waits and
+  shows the error rather than closing on a save that failed. Views marked
+  readOnly (shared by a colleague) can be used and copied, not saved over.
+  The pure half is core's new `@algorisys/zen-ui-core/views`: `encodeView` /
+  `decodeView` for links (UTF-8, URL-safe; anything else decodes to null,
+  never throws), name rules, one default at most. Checked by
+  `bun run check:views` (1438 assertions).
+- **DropdownMenuRadioItem takes `closeOnSelect`** (Solid). Default unchanged
+  (stays open: a setting to flip and look at); a picker passes it.
+- **FilterBuilder** (Solid; new): nested AND/OR conditions on any field, edited
+  as a tree and held as one plain object, for advanced list filters, report
+  criteria and saved views. A field's type picks its operators and editor
+  (text, number, a typed date with a calendar, a list of choices, yes/no);
+  each group's Match covers all, any, none and not all, so NOT is never a
+  checkbox to miss. Unfinished conditions filter nothing; a summary in words
+  says what the filter does now. Focus follows edits (a new condition's field,
+  the next row after a removal). The pure half is core's new
+  `@algorisys/zen-ui-core/filter`: `filterPredicate`, `describeFilter`, the
+  edit functions, and `loadFilter`, which reads a saved filter against today's
+  fields and names what it had to drop (a removed field, a retired option)
+  instead of failing. Operator names are DataTable's. Checked by
+  `bun run check:filter` (5826 assertions).
+- **Select and MultiCombobox take `aria-label`** (Solid), landing on the
+  control that takes focus. Select's used to fall through to Kobalte's root
+  div, where it named nothing.
+- **QRCode and Barcode** (Solid; new): codes drawn as SVG for screens and
+  print. `QRCode`: versions 1–40, error correction L/M/Q/H, numeric /
+  alphanumeric / byte (UTF-8) modes, `minVersion` for a fixed printed size;
+  sized for the e-invoice's signed QR. `Barcode`: Code 128 (any ASCII, digit
+  runs packed in pairs), EAN-13 (the check digit added, or a wrong one refused
+  naming the right one) and Code 39. Dark on light in every theme (new
+  `--zen-code-dark` / `--zen-code-light` tokens, black and white), quiet zone
+  included; a value that cannot be encoded shows why in place of the code. The
+  pure half is core's new `@algorisys/zen-ui-core/barcode`, checked by
+  `bun run check:barcode` (627 assertions): every symbol is found and decoded
+  by zxing-cpp (zxing-wasm, a devDependency of the check only), every QR version
+  at every level at its exact capacity edge, all eight masks, and the format
+  and version words against the standard's tables. The QR grids were also
+  measured bit-identical to the `qrcode` package's for the same mask (203 of
+  203).
+- **LookupField** (Solid; new): pick a row from a table of choices (an item,
+  a customer, an account) seeing several facts at once. Columns with headers,
+  laid out as one grid (the header and rows are subgrids), so each column is as
+  wide as its widest cell and lines up on every row; the table is at least the
+  field and `--zen-lookup-list-width` wide, at most `--zen-lookup-list-max-width`.
+  Type any part of any searchable column, words in any order; the likeliest row
+  first (the code as typed, a code starting with it, words starting columns,
+  then anywhere), accents and case ignored, matches drawn bold. `onSearch` takes
+  the rows from a server instead: debounced, the stale request aborted,
+  "Searching…" and the result count announced. The chosen row comes back whole.
+  The field never holds text that is not a row. Keys: ↓ ↑ PageUp PageDown,
+  Enter picks, Tab picks the active row after a search, Esc closes then undoes,
+  F4 calls `onValueHelp` with what was typed (for ValueHelp). The pure half is
+  core's new `@algorisys/zen-ui-core/lookup`, checked by `bun run check:lookup`
+  (6344 assertions, against an independent brute force).
+- **DateInput** (Solid; new): a date you type, the way clerks enter them,
+  with the calendar as a second way in. Read in the locale's order (day first
+  for en-IN, month first for en-US, or `order`): `15/03/2026`, `15-3-26`,
+  `150326`, `1503` (this year), `15` (this month), ISO `2026-03-15` in any
+  locale, and the shortcuts `t`, `y`, `+7`, `-1`, `+2w`, `+1m`, `+1y`. Enter or
+  Tab reads it; ↑ ↓ move a day (Shift: a month); Alt+↓ opens the calendar on
+  the chosen day; Esc undoes what was typed. A date that does not exist
+  (31/02), or one outside `min` / `max` / `isDateDisabled`, is kept as typed
+  and marked aria-invalid (`onInvalidInput` hears it), never rolled over into
+  March. Width is the new `--zen-date-input-width` token. DatePicker is
+  unchanged. The pure half is core's new `@algorisys/zen-ui-core/date-input`,
+  checked by `bun run check:date-input` (5907 assertions; fails 11 when broken
+  on purpose).
+- **PopoverContent** (Solid): its type now names `onOpenAutoFocus` and
+  `onCloseAutoFocus`, which it already forwarded to Kobalte (React's accepts
+  them).
+- **Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp** (Solid; new).
+  One list of every key an app answers. A chord is written once ("Mod+S": Ctrl,
+  or ⌘ on a Mac). `useShortcut` answers it while a component is on screen, with
+  `within` (only while focus is inside an element, winning over a global one),
+  `allowInFields`, `enabled`, a description and a group. `Kbd` draws a chord's
+  keys spelled per platform; `keyshortcut()` gives a control its
+  aria-keyshortcuts and `shortcutLabel()` its tooltip text. `ShortcutHelp` is
+  the `?` overlay, generated from what is registered, plus `extra` keys handled
+  elsewhere. Chords the browser keeps (Ctrl+T, Ctrl+W, F5…) and a second
+  shortcut on the same keys in the same place are refused with a warning. The
+  pure half is core's new `@algorisys/zen-ui-core/keys`, checked by
+  `bun run check:keys` (431 assertions; fails 10 with ⌘ broken on purpose).
+- **TreeSelect** (Solid; new): pick one node from a hierarchy, the chart of
+  accounts, item groups, cost centres. Type to search: every match shows under
+  its ancestors (opened), so "Cash" and "Cash Credit" read as the different
+  accounts they are, and the first match you can pick is the active one.
+  `leavesOnly` lets only end nodes be picked (groups open and close);
+  `showPath` shows "Assets › Current Assets › Bank" in the closed field;
+  `invalid`, `disabled`, `id` for `<label for>`. Keys as a tree view (→ opens or
+  steps in, ← closes or steps out), focus staying in the field with
+  aria-activedescendant. The pure half is core's new
+  `@algorisys/zen-ui-core/tree-select`, checked by `bun run check:tree-select`
+  (809 assertions; fails 20 with ancestors dropped on purpose).
+- **Tile and TileGrid** (Solid; new): a launchpad. A tile has a mark (two
+  letters or an icon), a name and a live line ("131 records"); it is a link
+  with `href` (`as` takes a router link) or a button with `onClick`, and has
+  `loading`, `disabled` and `locked` (outside the user's plan: muted, with a
+  lock, still activatable so the app can explain). TileGrid lays tiles out in
+  responsive columns (`--zen-tile-min-width`, or `minTileWidth`) as one tab
+  stop: the arrows move between tiles, up and down by the columns as laid out.
+- **Demo site: "New" and "Updated" tags** (Solid demo), New in green and
+  Updated in yellow (4.92:1 and 4.84:1). `nav.ts` entries take
+  `since` and `updated` versions; the sidebar and the catalogue mark them while
+  that is the current release's minor or later, and the marks expire by
+  themselves. Fourteen components are marked Updated for this release,
+  ContextMenu and Document tabs New.
+- **Combobox `invalid` and Select `invalid`** (Solid): marked aria-invalid with
+  the error border, for a form that shows its own message (Select's
+  `errorMessage` still prints one). **Input** takes the error border when it has
+  `aria-invalid="true"`.
+- **DocumentTabs `closeLabel(tab)`** (Solid): the close button's tooltip, e.g.
+  "Close (Alt+W)"; its accessible name stays "Close <tab>".
+- **`--zen-object-page-section-title-size`** (core; Solid reads it): the size of
+  ObjectPage's section titles. Default: today's size.
+- **Table tokens** (core; Solid's table reads them, the other bindings follow):
+  `--zen-table-head-font-size`, `--zen-table-head-font-weight`,
+  `--zen-table-head-text-transform`, `--zen-table-head-letter-spacing`,
+  `--zen-table-cell-padding-x` and `--zen-table-row-hover`. Set values instead
+  of overriding classes; the defaults are what the tables always drew (computed
+  styles measured identical before and after).
+- **ObjectStatus `stamp`** (Solid): a document's status as a stamp, a ruled
+  box in the state's colour, uppercase and letter-spaced, never rotated
+  (DRAFT, SUBMITTED, CANCELLED), with no icon unless one is given. Its colours
+  are the readable soft-fg text colours (warning's plain colour is 1.77:1 on
+  white).
+- **StatCard `size="lg"` and `chart`** (Solid): the hero of a dashboard row,
+  with a larger figure and a small chart under it across the card (a skeleton
+  while loading). Cards without them render as before.
+- **MicroBarChart `baseline="zero"`** (Solid): bars measured from zero, so a
+  bar's length is its value and two bars compare as their numbers do (negative
+  values hang below a zero line). The default stays `"range"`, which stretches
+  the values' own range over the height, as a sparkline does.
+- **SegmentedButtonItem `count`** (Solid): a count beside the label, for
+  choices that filter a list ("All 206 · Paid 4 · Overdue 1"), as a muted chip
+  in tabular figures, inverted when selected. The item is named "Paid, 4".
+- **ShellBar `search`** (Solid): your own control in the bar's search place,
+  a command palette's trigger, say, laid out by the bar. As a function it is
+  told when the bar is compact (`bar.compact`, where the built-in field would
+  shrink to an icon), so the control can shrink too. Replaces `searchable`'s
+  field when both are given.
+- **Sidebar: two more ways to collapse, and counts** (Solid; the other bindings
+  follow).
+  - `SidebarProvider collapseMode="hidden"`: collapsing hides the sidebar
+    entirely, for a menu with no icons; a hidden sidebar is inert.
+  - `SidebarProvider overlay` (`true`, or `{ below: 900 }`): the sidebar starts
+    closed and opens over the content, takes focus, and closes on Esc, a click
+    outside it or following a link in it. The width is the sidebar's
+    container's, not the window's; widening past it restores the sidebar as it
+    was.
+  - `SidebarMenuBadge` (a count at a row's end) and `SidebarMenuSub badge` (on
+    a group, before its chevron); `SidebarHeaderLabel` for the app's name.
+- **ContextMenu** (Solid; React, vanilla and web components follow). The menu
+  a right-click opens, at the pointer; from the keyboard (the menu key or
+  Shift+F10) at the focused element's corner with its first item active; on a
+  long press on touch. Focus returns to what it was opened on. Its items,
+  groups, labels, separators and submenus are DropdownMenu's (in Kobalte the
+  two menus share them), re-exported under ContextMenu names. Demo at
+  /context-menu.
+- **DataTable `contextMenu`** (Solid): a right-click menu for rows. It receives
+  the row, the cell's column and the selection to act on (every selected row
+  when the target row is selected). A right-click focuses its row or cell; the
+  menu key and Shift+F10 open the menu for the focused one; the header and
+  footer keep the browser's own menu. Works with keyboard rows, cell
+  navigation and row virtualization. Demo section "6d".
+- **DataTable `enableCellNavigation`** (Solid; React, vanilla and web
+  components follow): work in a table cell by cell, as in a spreadsheet.
+  - Keys: one tab stop for the table; arrows, PageUp/PageDown, Home/End and
+    Ctrl+Home/End move between cells (← → follow the text direction). Enter or
+    F2 edits, typing starts editing with the character typed, Esc returns to
+    the cell; in an editor Enter saves and moves down, Tab saves and moves
+    across.
+  - Ranges: Shift with the arrows, Shift+click or a drag; Ctrl+A selects every
+    cell; Esc collapses back to the active cell.
+  - Clipboard: copy writes the range as tab-separated text (what spreadsheets
+    exchange); paste fills editable cells from the active one, numbers parsed
+    ("1,500" is 1500), select cells matched by value or label, anything a cell
+    cannot take skipped; Delete clears a range. Several cells at once go to the
+    new `onCellsEdit(edits)`, or to `onCellEdit` one by one without it.
+  - Works with and without `enableRowVirtualization`: the active cell stays
+    mounted, and a jump to a cell far away scrolls it into view.
+  - The pure half is core's new `@algorisys/zen-ui-core/grid-range` (ranges,
+    the clipboard format, where a paste lands), checked by
+    `bun run check:grid-range`.
+- **DataTable `enableRowVirtualization`** (Solid; React, vanilla and web
+  components follow, see todo.md). Renders only the rows in view, inside the
+  regular table, so a virtualized table keeps everything an ordinary one has:
+  grouping, expandable rows, selection, keyboard navigation, inline editing,
+  column pinning, a sticky header and `fillHeight`. `enableVirtualization`
+  could do none of the first four, because it rendered a separate grid of divs;
+  it is unchanged, for the tables built on it.
+  - Spacer rows stand in for the rows not mounted; rows are measured as they
+    mount, so group rows and expanded panels may be taller than the rest, and
+    the row-height estimate is learned from the first row measured (it follows
+    density) unless `rowEstimatedHeight` is given.
+  - The keyboard's row and the row being edited stay mounted wherever the scroll
+    is: the table never loses its tab stop, focus or a half-typed value. A jump
+    (End, PageDown) scrolls only the table, never the page, and the row lands
+    below the sticky header.
+  - Columns lay out from the header (`table-layout: fixed`), so they hold still
+    as rows come and go.
+  - Measured in the Solid demo, 10 000 rows: 16–18 rows mounted, about one row
+    added per row scrolled past, frame p50 16.5 ms / p95 21 ms; four end-to-end
+    scrolls left DOM nodes and listeners unchanged.
+  - Rows can be dragged (`enableRowOrdering`) to anywhere in the table, not
+    just within view: the table scrolls while the pointer is near its top or
+    bottom edge, a line shows where the row will land, and Esc cancels. The
+    drag is the table's own, not solid-dnd's, which can drop only onto a row
+    that is mounted; expanded panels are off while rows can be dragged, as in
+    the unvirtualized table.
+- **DataTable `enableFilterOperators`** (Solid; React has had it). Set it to
+  `false` to drop the operator select beside each per-column text filter, when
+  the server owns the predicate; the filter value is then a plain string.
+- **Select `defaultOpen` and `onOpenChange`** (Solid): open the list when it
+  mounts, and hear it open and close. Used by DataTable's inline select editor.
+- **DataTable `fillHeight`** (all four bindings). The table fills its parent's
+  height: the rows scroll inside it under a header that stays put, and the pager
+  stays below — a list as the page's main pane, where `stickyHeader` alone needs
+  a fixed `maxBodyHeight`. Implies `stickyHeader`. The parent must give it a
+  height (a flex child with `min-height: 0`).
+- **ShellBar `profile.menu`** (all four bindings): the profile menu's own body in
+  place of `menuItems`, for a menu that holds settings (radio groups, labels) as
+  well as actions. React and Solid take a function returning DropdownMenu parts
+  (Solid must build them inside the menu's context, and a JSX value written into
+  the profile object would be built outside it — Kobalte throws
+  `useMenuRootContext must be used within a MenuRoot`); vanilla and web
+  components take `DropdownMenuItemSpec[]`, the binding's data idiom.
+
+- **Density: Comfortable or Compact** (core tokens; all four bindings). Set
+  `data-density="compact"` on any element, usually `<html>`, and what is inside
+  tightens: inputs, selects, comboboxes, number fields, search and md buttons go
+  from 40px to 32px; table heads and cells, menu, select and command items,
+  object-page sections and its anchor bar, filter bars and cards lose padding.
+  Type does not shrink. Comfortable is the default and is exactly the old sizes,
+  so nothing moves for a consumer who does not opt in (measured in all four demos:
+  40px comfortable, 32px compact).
+  - Tokens: `--zen-control-height`, `--zen-control-padding-x`,
+    `--zen-table-head-height`, `--zen-table-cell-padding-y`,
+    `--zen-section-padding-{x,y}`, `--zen-anchor-bar-height`,
+    `--zen-bar-padding-y`, `--zen-card-padding`, `--zen-menu-item-padding-y`
+    (tokens.css "Density", the last block, so compact wins by source order).
+  - Utilities: the Uno theme maps them as spacing and height keys
+    (`zen-h-zen-control`, `zen-px-zen-control-x`, `zen-py-zen-cell-y`, …), and
+    `cn()` knows them as spacing, so a caller's `zen-h-8` still overrides.
+  - Demo: Theme, section 5, in every binding.
+  - Sizes other than md (button xs/sm/lg/xl, search sm/lg) stay fixed: a size
+    asked for by name is kept.
+- **DocumentTabs** (Solid; the React, vanilla and web-components ports follow, see
+  todo.md — `check:parity` reports it until they land). A workspace's open
+  documents as closable, pinnable tabs, marked when they hold unsaved changes.
+  The consumer owns the panels, so a hidden document keeps its state.
+  - Keyboard: WAI-ARIA tabs with manual activation (←/→ Home/End, Enter, Delete
+    closes); middle-click closes.
+  - Overflow: the strip scrolls (only the strip, never the page) to keep the
+    active tab in view, and an all-tabs menu appears at its end.
+- **`pin` icon** (a thumbtack), used by DocumentTabs. Skill API docs regenerated:
+  every `IconName` list now includes it.
+
+- **DataTable keyboard rows** (Solid; the other bindings follow, see todo.md):
+  `enableKeyboardNavigation` gives the table one tab stop and moves focus a row
+  at a time (↑/↓, PageUp/PageDown, Home/End); `onRowActivate(row, event)` runs
+  on Enter, with the modifiers, so Ctrl+Enter can mean "elsewhere"; with
+  `enableRowSelection`, Space toggles a row and Ctrl/Cmd+A the page. Keys with
+  Alt, and anything typed in a field inside a row, are left alone. `rowLabel`
+  names each row for a screen reader. The plain body only for now. The key
+  logic is in core (`@algorisys/zen-ui-core/row-keys`) with
+  `check:row-keys`, 2,724 assertions.
+
+- **`cellKeyTarget`** (core `row-keys`, re-exported by every binding with
+  `rowKeyTarget`, `ownsArrowKeys`, `ROW_PAGE_STEP` and the `GridCell` type):
+  the cell a key moves to in an editable grid, as in a spreadsheet. Arrows move
+  one cell, Home/End go to the row's ends, and Ctrl+Home/End to the grid's.
+  Movement stops at the edges. `check:row-keys` covers it (15,937 assertions in
+  all).
+
+### Fixed
+- **`check:nav` passed on a nav.ts that does not compile** (it read it with
+  regexes). It parses it first now; a stray quote once blanked the Solid demo
+  while the check said ok.
+- **Two demo pages (DiffView, ObjectPage) warned "computations created outside
+  a `createRoot`"**: they built JSX at module level. Built inside the demo
+  components now; no warnings, every section still has its content.
+- The Solid demo's header and catalogue counted the components differently;
+  both count the same now.
+- **A per-column text filter matched nothing on a column without
+  `filterVariant`** (Solid DataTable; a regression from the operator select
+  added earlier in this release, never in a published version). The operator
+  select stores `{ op, value }`, and TanStack's automatic filter compared the
+  cell with "[object Object]". Such a column now reads the operator; any other
+  filter value (a plain string, a number range, a boolean), and the filter's
+  autoRemove / resolveFilterValue, go to exactly the filter TanStack would
+  have chosen, so nothing else changes. Every existing demo column declared
+  `filterVariant`, which is why no demo showed it.
+- **A malformed locale threw instead of falling back** (core number-format,
+  new messages): `Intl` raises a RangeError on a tag like "en_IN", so an app
+  passing one to AmountField or LocaleProvider would stop rendering. Now it
+  behaves as no locale (the browser's).
+- **check:lookup's sweep was far narrower than it claimed**: its random
+  generator overflowed a double (`seed * 1103515245`), lost its low bits and
+  picked 3 of 12 entries, so 12 distinct cells of 144 were tested and never a
+  decomposed accent or an emoji. It uses `Math.imul` now, asserts its own
+  variety, and passes. (No bug was hiding behind it; the claim was the defect.)
+- **Esc did nothing in ValueHelp and ViewSettingsDialog while a tab had focus**
+  (Solid), and ValueHelp opens with focus on one. Kobalte's tab list swallows
+  Esc, though a tab list can never be emptied, so any Dialog, Sheet or Popover
+  containing Tabs ignored the key. TabsList now passes it on, once, to whatever
+  contains it.
+- **TreeSelect's list was cut off** inside anything that clips (a card with
+  overflow hidden, as on its own demo page) and never opened upward near the
+  bottom of the window. It now renders in a portal placed against the field:
+  below it, or above when there is more room there, its height capped to the
+  room it has, following the field as the page scrolls.
+- **Breadcrumb showed list numbers without the opt-in preflight** (Solid):
+  "Home1. › Accounts2. ›", 44px high instead of 20. Its list resets its own
+  margin, indent and markers now, as do Stepper's and FileUpload's lists,
+  which had the same dependence.
+- **Select never told a screen reader it was invalid** (Solid): the trigger
+  carried `data-invalid` only. It has `aria-invalid` now.
+- **StatCard with `href` underlined every word in the card** (Solid): an `<a>`
+  keeps the browser's underline without the opt-in preflight. It no longer does.
+- **Sidebar: the header's text spilled out of the collapsed rail** over the
+  page (Solid). On the rail the header now stacks, and its text is read by
+  screen readers but not shown, as the menu's labels already were.
+- **Sidebar: a menu button rendered as a link was underlined and link-blue**
+  (Solid, `as={A}` or `as="a"` without the opt-in preflight). It now looks like
+  the button version; `SidebarMenuSubButton` already did.
+- **DataTable: Esc in an inline text editor saved the edit instead of
+  discarding it** (Solid, every table). Cancelling removed the input, and
+  removing a focused input fires its blur, which saved. Measured in the demo
+  before and after. An editor now ends once.
+- **DataTable lost keyboard focus whenever its data changed** (Solid, with
+  `enableKeyboardNavigation`): new data rebuilds the rows, the focused one with
+  them, and focus fell to the page. It now returns to the same row. Saving an
+  inline edit was the usual trigger.
+- **DataTable with `enableRowVirtualization`: a jump to a row far away could
+  land at the top of the table.** The browser's scroll anchoring adjusted the
+  scroll as spacer rows changed height; it is off for the virtualized
+  scroller.
+- **DataTable: the inline number editor opened without focus** (Solid; React
+  has the same bug, fixed with its port), so typing went nowhere until the
+  field was clicked again. It now takes focus with its value selected.
+- **DataTable: the inline select editor opened closed** (Solid), one more
+  click than React's. It now opens its list at once; closing it without a pick
+  cancels the edit.
+- **DataTable showed a sort priority "1" beside a column sorted on its own**
+  (Solid; React follows), at 16px, larger than the header text. The number now
+  appears only when two or more columns are sorted, at the header's size, as
+  vanilla already did.
+- **DataTable: expanding a group row opened a detail panel under it** (Solid;
+  the other bindings follow with the port) when the table had both
+  `enableGrouping` and `renderSubRow`. The panel showed one member's details
+  under the group header. A group row now expands into its rows only.
+- **ObjectPage: a field reached with Tab could land under the sticky anchor
+  bar** (all four bindings). The content scroller now has `scroll-padding-top`
+  equal to the measured bar, so anything the browser scrolls into view there —
+  focus, a grid cell, `scrollIntoView` — lands below it.
+- **FlexibleColumnLayout left a blank gap when a layout named a column the
+  caller did not fill.** A three-column layout with no start column drew mid
+  and end at three quarters of the width and left the last quarter empty; the
+  doc comment already promised an absent column "must not reserve room". The
+  present columns now share the whole row in their layout's proportions
+  (ThreeColumnsMidExpanded without start: mid 2/3, end 1/3). It matters to a
+  consumer that keeps the detail in `mid` so that showing or hiding the list
+  never remounts it. Every binding; layouts with all their columns filled
+  render exactly as before.
+
+### Changed
+- **FlexibleColumnLayout's arithmetic moved to core**
+  (`@algorisys/zen-ui-core/flexible-column-layout`): the tiers, the ratio
+  tables and the re-spreading were three identical copies, one per binding.
+  The bindings keep the `zen-basis-*` classes, mapped from a share token, since
+  UnoCSS generates only the classes in each binding's own source. New
+  `check:flexible-column-layout` (part of `bun run check`): 254 assertions,
+  including that the rendered shares fill the row for every layout, tier and
+  combination of present columns.
+
 ## [12.1.1] - 2026-11-02
 
 ### Fixed

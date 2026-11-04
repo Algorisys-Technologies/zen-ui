@@ -7,6 +7,12 @@ import {
   type Child,
   type ZenComponent,
 } from "../../lib/component";
+import {
+  FLEXIBLE_COLUMN_ORDER,
+  flexibleColumnsForWidth,
+  resolveFlexibleColumns,
+  type FlexibleColumnShare,
+} from "@algorisys/zen-ui-core/flexible-column-layout";
 
 /**
  * FlexibleColumnLayout — 1–3 columns for the master-detail pattern
@@ -73,73 +79,27 @@ export interface FlexibleColumnLayoutProps extends Omit<BaseProps, "children"> {
   endColumn?: Child;
 }
 
-/**
- * A column stops being usable below roughly this width, so the container is given
- * as many columns as it can pay for, capped at three. Deriving the tiers from a
- * column's minimum width keeps the rule container-relative (3 × 300 = 900 for three
- * columns, 2 × 300 = 600 for two — 600 being Fiori's own single-column boundary).
- */
-const MIN_COLUMN_WIDTH = 300;
-
-const COLUMN_ORDER: FlexibleColumnName[] = ["start", "mid", "end"];
-
-type Sizes = Partial<Record<FlexibleColumnName, string>>;
-
-/** The column ratios when all three columns are affordable. */
-const WIDE_SIZES: Record<FlexibleColumnLayoutType, Sizes> = {
-  OneColumn: { start: "zen-basis-full" },
-  TwoColumnsBeginExpanded: { start: "zen-basis-2/3", mid: "zen-basis-1/3" },
-  TwoColumnsMidExpanded: { start: "zen-basis-1/3", mid: "zen-basis-2/3" },
-  ThreeColumnsMidExpanded: { start: "zen-basis-1/4", mid: "zen-basis-1/2", end: "zen-basis-1/4" },
-  ThreeColumnsEndExpanded: { start: "zen-basis-1/4", mid: "zen-basis-1/4", end: "zen-basis-1/2" },
-  MidColumnFullScreen: { mid: "zen-basis-full" },
-  EndColumnFullScreen: { end: "zen-basis-full" },
+// The column arithmetic (tiers, ratios, re-spreading an absent column's room)
+// is core's, shared by every binding and pinned by
+// check:flexible-column-layout. The classes stay here: UnoCSS generates only
+// the classes it finds in this package's source.
+const BASIS_CLASS: Record<FlexibleColumnShare, string> = {
+  full: "zen-basis-full",
+  "2/3": "zen-basis-2/3",
+  "1/2": "zen-basis-1/2",
+  "1/3": "zen-basis-1/3",
+  "1/4": "zen-basis-1/4",
 };
 
-/**
- * Two-column tier. A three-column layout drops the START column and re-spreads
- * mid/end over the freed room — 25/50/25 squeezed into 700px would give three
- * unusable 230px columns, so it sheds the least-recently-navigated one instead of
- * scaling everything down.
- */
-const MEDIUM_SIZES: Record<FlexibleColumnLayoutType, Sizes> = {
-  OneColumn: { start: "zen-basis-full" },
-  TwoColumnsBeginExpanded: { start: "zen-basis-2/3", mid: "zen-basis-1/3" },
-  TwoColumnsMidExpanded: { start: "zen-basis-1/3", mid: "zen-basis-2/3" },
-  ThreeColumnsMidExpanded: { mid: "zen-basis-2/3", end: "zen-basis-1/3" },
-  ThreeColumnsEndExpanded: { mid: "zen-basis-1/3", end: "zen-basis-2/3" },
-  MidColumnFullScreen: { mid: "zen-basis-full" },
-  EndColumnFullScreen: { end: "zen-basis-full" },
-};
+const COLUMN_ORDER = FLEXIBLE_COLUMN_ORDER;
+const columnsForWidth = flexibleColumnsForWidth;
 
-function columnsForWidth(width: number): 1 | 2 | 3 {
-  return Math.min(3, Math.max(1, Math.floor(width / MIN_COLUMN_WIDTH))) as 1 | 2 | 3;
-}
-
-/**
- * Which columns render, and how wide. `present` gates on content: a layout that
- * names a column the caller never filled must not reserve room for it, and — at the
- * one-column tier — must not resolve to an empty screen.
- */
 function resolveColumns(
   layout: FlexibleColumnLayoutType,
   maxColumnsCount: 1 | 2 | 3,
   present: Record<FlexibleColumnName, boolean>,
 ): Array<{ name: FlexibleColumnName; basis: string }> {
-  const sizes = maxColumnsCount === 2 ? MEDIUM_SIZES[layout] : WIDE_SIZES[layout];
-  const columns = COLUMN_ORDER.filter((name) => sizes[name] && present[name]).map((name) => ({
-    name,
-    basis: sizes[name] as string,
-  }));
-
-  // One column: shows the most-recently-navigated one, which is the last of the
-  // layout's own columns — start for OneColumn, mid for any two-column layout, end
-  // for any three-column layout.
-  if (maxColumnsCount === 1) {
-    const last = columns[columns.length - 1];
-    return last ? [{ name: last.name, basis: "zen-basis-full" }] : [];
-  }
-  return columns;
+  return resolveFlexibleColumns(layout, maxColumnsCount, present).map((c) => ({ name: c.name, basis: BASIS_CLASS[c.share] }));
 }
 
 /**

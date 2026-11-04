@@ -2,6 +2,7 @@ import { type Component, type ParentProps, ErrorBoundary, For, Show, createSigna
 import { A, useLocation } from "@solidjs/router";
 import { useTheme } from "./lib/theme";
 import { NAV } from "./nav";
+import { NavTag } from "./components/NavTag";
 import ReleaseNotes from "./components/ReleaseNotes";
 import { Search } from "./components/form/search/search";
 
@@ -262,6 +263,7 @@ const App: Component<ParentProps> = (props) => {
                             end
                           >
                             {item.label}
+                            <NavTag item={item} class="zen-ml-1.5" />
                           </A>
                         </li>
                       )}

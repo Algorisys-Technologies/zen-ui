@@ -1,6 +1,7 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * NPS — Net Promoter Score input. The canonical 0–10 "would you
@@ -43,6 +44,7 @@ const bucketLabel: Record<Bucket, string> = {
 };
 
 export const NPS = (props: NPSProps) => {
+  const loc = useLocale();
   const isControlled = () => props.value !== undefined;
   const [inner, setInner] = createSignal<number | undefined>(props.defaultValue);
   const value = createMemo<number | undefined>(() =>
@@ -74,13 +76,13 @@ export const NPS = (props: NPSProps) => {
   };
 
   const scores = Array.from({ length: 11 }, (_, i) => i);
-  const lowLabel = () => props.lowLabel ?? "Not at all likely";
-  const highLabel = () => props.highLabel ?? "Extremely likely";
+  const lowLabel = () => props.lowLabel ?? loc.t("nps.notAtAllLikely");
+  const highLabel = () => props.highLabel ?? loc.t("nps.extremelyLikely");
 
   return (
     <div
       role="radiogroup"
-      aria-label={props.label ?? "How likely are you to recommend us?"}
+      aria-label={props.label ?? loc.t("nps.howLikelyAreYouTo")}
       aria-disabled={props.disabled || undefined}
       aria-readonly={props.readOnly || undefined}
       onKeyDown={onKeyDown}

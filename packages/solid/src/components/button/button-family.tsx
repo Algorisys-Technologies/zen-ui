@@ -1,4 +1,5 @@
 import {
+  Show,
   type JSX,
   createContext,
   createMemo,
@@ -14,6 +15,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * Button family — Solid binding. Mirrors packages/react/src/components/button/
@@ -128,17 +130,31 @@ export const SegmentedButton = (props: SegmentedButtonProps) => {
 
 export type SegmentedButtonItemProps = Omit<ButtonProps, "value"> & {
   value: string;
+  /**
+   * A count beside the label, for choices that filter a list ("Paid 4"):
+   * a muted chip in tabular figures, inverted when the item is selected. The
+   * item's name reads "Paid, 4".
+   */
+  count?: number | JSX.Element;
 };
 
 export const SegmentedButtonItem = (props: SegmentedButtonItemProps) => {
   const ctx = useSegmented();
-  const [local, rest] = splitProps(props, ["value", "class", "onClick"]);
+  const [local, rest] = splitProps(props, ["value", "class", "onClick", "count", "children"]);
   const selected = () => ctx.value() === local.value;
   return (
     <Button
       type="button"
       role="radio"
       aria-checked={selected()}
+      // "Paid, 4". Chrome pads a visually hidden separator with spaces of its
+      // own ("Paid , 4"), so a plain-text label is named directly; any other
+      // label keeps the hidden separator below. A caller's aria-label wins.
+      aria-label={
+        local.count !== undefined && typeof local.children === "string" && typeof local.count !== "object"
+          ? `${local.children}, ${local.count}`
+          : undefined
+      }
       variant="ghost"
       size={ctx.size()}
       class={cn(
@@ -150,7 +166,21 @@ export const SegmentedButtonItem = (props: SegmentedButtonItemProps) => {
         if (!e.defaultPrevented) ctx.select(local.value);
       }}
       {...rest}
-    />
+    >
+      {local.children}
+      <Show when={local.count !== undefined}>
+        <span class="zen-sr-only">, </span>
+        <span
+          data-count=""
+          class={cn(
+            "zen-ml-1.5 zen-min-w-5 zen-rounded-zen-sm zen-px-1.5 zen-text-center zen-text-xs zen-font-medium zen-tabular-nums",
+            selected() ? "zen-bg-zen-primary zen-text-zen-primary-fg" : "zen-bg-zen-muted zen-text-zen-muted-fg",
+          )}
+        >
+          {local.count}
+        </span>
+      </Show>
+    </Button>
   );
 };
 
@@ -165,6 +195,7 @@ export type SplitButtonProps = ButtonProps & {
 };
 
 export const SplitButton = (props: SplitButtonProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "menu",
     "menuLabel",
@@ -203,7 +234,7 @@ export const SplitButton = (props: SplitButtonProps) => {
           color={color()}
           size={size()}
           disabled={local.disabled}
-          aria-label={local.menuLabel ?? "More actions"}
+          aria-label={local.menuLabel ?? loc.t("buttonFamily.moreActions")}
           class="zen-rounded-l-none zen-border-l zen-border-l-zen-border zen-px-2"
         >
           <Icon name="chevron-down" size={14} />

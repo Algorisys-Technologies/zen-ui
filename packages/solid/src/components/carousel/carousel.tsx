@@ -2,6 +2,7 @@ import { type JSX, For, Show, children, createMemo, createSignal, splitProps } f
 import { arrowStep, directionOf } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * Carousel — swipeable rotating items.
@@ -40,6 +41,7 @@ export type CarouselProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "onScroll" 
 };
 
 export const Carousel = (props: CarouselProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "label",
     "arrows",
@@ -105,8 +107,8 @@ export const Carousel = (props: CarouselProps) => {
   return (
     <div
       role="group"
-      aria-roledescription="carousel"
-      aria-label={local.label ?? "Carousel"}
+      aria-roledescription={loc.t("carousel.roleDescription")}
+      aria-label={local.label ?? loc.t("carousel.label")}
       class={cn("zen-relative zen-flex zen-flex-col zen-gap-2", local.class)}
       {...rest}
     >
@@ -132,10 +134,10 @@ export const Carousel = (props: CarouselProps) => {
             {(child, i) => (
               <div
                 role="group"
-                aria-roledescription="slide"
+                aria-roledescription={loc.t("carousel.slideRoleDescription")}
                 // "3 of 7" — a slide with no position is just a div to anyone
                 // who cannot see where it sits.
-                aria-label={`${i() + 1} of ${count()}`}
+                aria-label={loc.t("carousel.slideOf", { n: i() + 1, count: count() })}
                 aria-hidden={i() < index() || i() >= index() + perView() || undefined}
                 class="zen-shrink-0 zen-snap-start"
                 // Computed from perView, so it cannot be a class.
@@ -162,7 +164,7 @@ export const Carousel = (props: CarouselProps) => {
             {(i) => (
               <button
                 type="button"
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={loc.t("carousel.goToSlide", { n: i + 1 })}
                 aria-current={i === index() || undefined}
                 onClick={() => goTo(i)}
                 class={cn(

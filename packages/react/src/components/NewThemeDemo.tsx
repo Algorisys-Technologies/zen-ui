@@ -2,6 +2,7 @@ import { Theme } from "./theme/theme";
 import { Card, CardContent, CardHeader, CardTitle } from "./card/card";
 import { Button } from "./button/button";
 import { Badge } from "./badge/badge";
+import { Input } from "./form/input/input";
 import { CodeExample } from "./demo-helpers";
 
 const PANEL: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 12 };
@@ -21,6 +22,17 @@ const Sample = ({ label }: { label: string }) => (
       </div>
     </CardContent>
   </Card>
+);
+
+const DensitySample = ({ label }: { label: string }) => (
+  <div style={PANEL}>
+    <p className="zen-m-0 zen-text-sm zen-font-semibold">{label}</p>
+    <div style={{ display: "flex", gap: 8 }}>
+      <Input placeholder="Customer" />
+      <Button>Save</Button>
+    </div>
+    <Sample label="A card" />
+  </div>
 );
 
 const NewThemeDemo: React.FC = () => (
@@ -117,6 +129,22 @@ const NewThemeDemo: React.FC = () => (
             </p>
           </div>
         </Theme>
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>5. Density</h2>
+      <CodeExample
+        title="Comfortable, or compact for people working all day"
+        description={`Comfortable is the default and is the size every component always had. Set data-density="compact" on any element (usually <html>) and what is inside tightens: inputs, selects and md buttons drop from 40px to 32px, table rows, menu items, cards and object-page sections lose padding. Type does not shrink. Like a theme it is a block of custom properties (tokens.css, "Density"), so it scopes to a subtree and needs no JavaScript; menus and popovers portalled to <body> follow the density on <html>.`}
+        code={`<html data-density="compact">  <!-- or any element: a compact panel -->`}
+      >
+        <div className="zen-grid zen-grid-cols-1 zen-gap-6 sm:zen-grid-cols-2">
+          <DensitySample label="comfortable" />
+          <div data-density="compact">
+            <DensitySample label="compact" />
+          </div>
+        </div>
       </CodeExample>
     </section>
   </div>

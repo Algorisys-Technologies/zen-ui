@@ -749,3 +749,98 @@
 @keyframes zen-slide-out-top   { from { transform: translateY(0); } to { transform: translateY(-100%); } }
 @keyframes zen-slide-in-bottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes zen-slide-out-bottom{ from { transform: translateY(0); } to { transform: translateY(100%); } }
+
+/* ===================================================================== *
+ * Tables — the look of a table's header, cells and hovered row          *
+ *                                                                       *
+ * Set these instead of overriding the table's classes. The defaults are *
+ * exactly what the tables always drew (an app wanting uppercase,        *
+ * letter-spaced headers sets two values). Cell padding across is here;  *
+ * padding down is density's (--zen-table-cell-padding-y, below).        *
+ * ===================================================================== */
+:root {
+  --zen-table-head-font-size: var(--zen-font-size-xs);
+  --zen-table-head-font-weight: var(--zen-font-weight-medium);
+  --zen-table-head-text-transform: none;
+  --zen-table-head-letter-spacing: normal;
+  --zen-table-cell-padding-x: 0.5rem;
+  --zen-table-row-hover: var(--zen-color-muted);
+}
+
+/* The narrowest a launchpad tile gets before TileGrid drops a column. */
+:root {
+  --zen-tile-min-width: 13rem;
+}
+
+/* DateInput's width: room for DD/MM/YYYY and the calendar button. */
+:root {
+  --zen-date-input-width: 10rem;
+}
+
+/* Warning as text (ObjectStatus, ObjectNumber, Countdown) uses
+ * --zen-color-warning-text, falling back to --zen-color-warning, which is
+ * 1.77:1 on white. To make warning text readable (5.23:1), set:
+ *   :root { --zen-color-warning-text: var(--zen-color-warning-soft-fg); }
+ * Left unset here so existing pages look exactly as before; the default
+ * changes in the next major version. */
+
+/* QRCode and Barcode: dark on light in every theme, on purpose. Scanners read
+ * inverted codes badly and paper is light; a theme that overrides these takes
+ * that on itself. */
+:root {
+  --zen-code-dark: #000;
+  --zen-code-light: #fff;
+}
+
+/* LookupField's table under the field: at least this wide, and as wide as its
+ * columns need up to the max (and the window). */
+:root {
+  --zen-lookup-list-width: 24rem;
+  --zen-lookup-list-max-width: 48rem;
+}
+
+/* The object page's section titles ("GENERAL", "ITEMS"): an app that sets one
+ * size for every small uppercase label sets this too. Default: today's size. */
+:root {
+  --zen-object-page-section-title-size: var(--zen-font-size-sm);
+}
+
+/* ===================================================================== *
+ * Density — how much room controls, rows and sections take              *
+ *                                                                       *
+ * Comfortable is the default and is exactly the sizes the components    *
+ * always had, so nothing moves unless a page asks. Set                  *
+ * `data-density="compact"` on any element (usually <html>) and          *
+ * everything inside tightens: shorter controls and rows, less padding   *
+ * around sections and cards. Type does not shrink — compact is for      *
+ * people working all day, and they still have to read it.               *
+ *                                                                       *
+ * Unanchored like the theme selectors, so a compact panel can sit in a  *
+ * comfortable page. The compact block comes after the defaults: both    *
+ * are (0,1,0), so source order decides. Keep it last.                   *
+ * ===================================================================== */
+:root {
+  --zen-control-height: 2.5rem;          /* inputs, selects, md buttons */
+  --zen-control-padding-x: 0.75rem;
+  --zen-table-head-height: 2.5rem;
+  --zen-table-cell-padding-y: 0.75rem;
+  --zen-section-padding-x: 1.5rem;       /* object page sections */
+  --zen-section-padding-y: 1.25rem;
+  --zen-anchor-bar-height: 2.75rem;
+  --zen-bar-padding-y: 0.75rem;          /* filter bars, title bars */
+  --zen-card-padding: 1.25rem;
+  --zen-menu-item-padding-y: 0.375rem;   /* menu, select and combobox items */
+}
+
+[data-density="compact"] {
+  --zen-control-height: 2rem;
+  --zen-control-padding-x: 0.5rem;
+  --zen-table-head-height: 2rem;
+  --zen-table-cell-padding-y: 0.375rem;
+  --zen-section-padding-x: 1rem;
+  --zen-section-padding-y: 0.75rem;
+  --zen-anchor-bar-height: 2.25rem;
+  --zen-bar-padding-y: 0.5rem;
+  --zen-card-padding: 0.75rem;
+  --zen-menu-item-padding-y: 0.25rem;
+}

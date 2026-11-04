@@ -9,6 +9,7 @@ import {
   waveformPath,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Waveform — an audio lane: peaks rendered as a filled envelope, with an
@@ -72,6 +73,7 @@ export type WaveformProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class"> & 
 };
 
 export const Waveform = (props: WaveformProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "peaks",
     "duration",
@@ -214,7 +216,7 @@ export const Waveform = (props: WaveformProps) => {
         <div
           ref={laneRef}
           role="group"
-          aria-label={local.label ?? "Audio waveform"}
+          aria-label={local.label ?? loc.t("waveform.audioWaveform")}
           // Time axes read left-to-right even in RTL locales — every editor's.
           dir="ltr"
           class={cn(
@@ -250,7 +252,7 @@ export const Waveform = (props: WaveformProps) => {
               role="slider"
               tabIndex={0}
               aria-orientation="horizontal"
-              aria-label="Clip position"
+              aria-label={loc.t("waveform.clipPosition")}
               aria-valuemin={0}
               aria-valuemax={local.duration - (local.clip!.end - local.clip!.start)}
               aria-valuenow={local.clip!.offset}
@@ -284,7 +286,7 @@ export const Waveform = (props: WaveformProps) => {
                     role="slider"
                     tabIndex={0}
                     aria-orientation="horizontal"
-                    aria-label={`Clip trim ${edge}`}
+                    aria-label={loc.t(edge === "start" ? "waveform.trimStart" : "waveform.trimEnd")}
                     aria-valuemin={edge === "start" ? 0 : local.clip!.start + minDur()}
                     aria-valuemax={edge === "start" ? local.clip!.end - minDur() : audioDur()}
                     aria-valuenow={local.clip![edge]}

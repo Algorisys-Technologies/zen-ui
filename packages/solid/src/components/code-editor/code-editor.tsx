@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSignal, createEffect, onCleanup, onMount, Show, For, type JSX } from "solid-js";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * CodeEditor — a code surface, wrapping `monaco-editor` (an OPTIONAL peer
@@ -249,6 +250,7 @@ export interface IDEWindowProps
  * than an honest list. Paths still read as paths.
  */
 export const IDEWindow = (props: IDEWindowProps) => {
+  const loc = useLocale();
   // eslint-disable-next-line solid/reactivity
   const [internal, setInternal] = createSignal(props.defaultActivePath ?? props.files[0]?.path ?? "");
   const current = () => props.activePath ?? internal();
@@ -269,7 +271,7 @@ export const IDEWindow = (props: IDEWindowProps) => {
     >
       {/* A real list, so a screen reader gets the file count. */}
       <nav
-        aria-label="Files"
+        aria-label={loc.t("codeEditor.files")}
         class="zen-w-48 zen-shrink-0 zen-overflow-y-auto zen-border-e zen-border-zen-border zen-bg-zen-muted"
         style={{ height: height() }}
       >
@@ -293,7 +295,7 @@ export const IDEWindow = (props: IDEWindowProps) => {
                   <Show when={f.readOnly}>
                     <span
                       class="zen-shrink-0 zen-rounded-zen-sm zen-bg-zen-muted zen-px-1 zen-text-xs zen-text-zen-muted-fg"
-                      title="Read only"
+                      title={loc.t("codeEditor.readOnly")}
                     >
                       RO
                     </span>

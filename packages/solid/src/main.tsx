@@ -44,6 +44,11 @@ import NewPopoverDemo from "./components/NewPopoverDemo";
 import NewDialogDemo from "./components/NewDialogDemo";
 import NewSheetDemo from "./components/NewSheetDemo";
 import NewDropdownMenuDemo from "./components/NewDropdownMenuDemo";
+import NewContextMenuDemo from "./components/NewContextMenuDemo";
+import NewTileDemo from "./components/NewTileDemo";
+import NewTreeSelectDemo from "./components/NewTreeSelectDemo";
+import NewLookupFieldDemo from "./components/NewLookupFieldDemo";
+import NewShortcutsDemo from "./components/NewShortcutsDemo";
 import NewSelectDemo from "./components/NewSelectDemo";
 import NewScrollAreaDemo from "./components/NewScrollAreaDemo";
 import NewToastDemo from "./components/NewToastDemo";
@@ -51,6 +56,8 @@ import NewInputDemo from "./components/NewInputDemo";
 import SearchDemo from "./components/SearchDemo";
 import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
+import NewAmountFieldDemo from "./components/NewAmountFieldDemo";
+import NewLocaleDemo from "./components/NewLocaleDemo";
 import NewTagInputDemo from "./components/NewTagInputDemo";
 import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
@@ -79,10 +86,12 @@ import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 import NewFormDemo from "./components/NewFormDemo";
 import NewBoundFieldsDemo from "./components/NewBoundFieldsDemo";
 import NewDatePickerDemo from "./components/NewDatePickerDemo";
+import NewDateInputDemo from "./components/NewDateInputDemo";
 import NewDateRangePickerDemo from "./components/NewDateRangePickerDemo";
 import NewTimePickerDemo from "./components/NewTimePickerDemo";
 import NewDateTimePickerDemo from "./components/NewDateTimePickerDemo";
 import NewQRScannerDemo from "./components/NewQRScannerDemo";
+import NewBarcodeDemo from "./components/NewBarcodeDemo";
 import NewNotificationsInboxDemo from "./components/NewNotificationsInboxDemo";
 import NewStackDemo from "./components/NewStackDemo";
 import NewBreadcrumbDemo from "./components/NewBreadcrumbDemo";
@@ -98,6 +107,7 @@ import NewObjectDemo from "./components/NewObjectDemo";
 import NewButtonFamilyDemo from "./components/NewButtonFamilyDemo";
 import NewTreeDemo from "./components/NewTreeDemo";
 import NewToolbarDemo from "./components/NewToolbarDemo";
+import NewDocumentTabsDemo from "./components/NewDocumentTabsDemo";
 import NewShellBarDemo from "./components/NewShellBarDemo";
 import SkipToContentDemo from "./components/SkipToContentDemo";
 import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDemo";
@@ -107,6 +117,8 @@ import NewSelectDialogDemo from "./components/NewSelectDialogDemo";
 import NewValueHelpDemo from "./components/NewValueHelpDemo";
 import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
 import NewFilterBarDemo from "./components/NewFilterBarDemo";
+import NewFilterBuilderDemo from "./components/NewFilterBuilderDemo";
+import NewViewManagerDemo from "./components/NewViewManagerDemo";
 import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
 import NewStatCardDemo from "./components/NewStatCardDemo";
 import NewCustomizingDemo from "./components/NewCustomizingDemo";
@@ -175,6 +187,11 @@ render(
       <Route path="/dialog" component={NewDialogDemo} />
       <Route path="/sheet" component={NewSheetDemo} />
       <Route path="/dropdown-menu" component={NewDropdownMenuDemo} />
+      <Route path="/context-menu" component={NewContextMenuDemo} />
+      <Route path="/tile" component={NewTileDemo} />
+      <Route path="/tree-select" component={NewTreeSelectDemo} />
+      <Route path="/lookup-field" component={NewLookupFieldDemo} />
+      <Route path="/shortcuts" component={NewShortcutsDemo} />
       <Route path="/select" component={NewSelectDemo} />
       <Route path="/scroll-area" component={NewScrollAreaDemo} />
       <Route path="/toast" component={NewToastDemo} />
@@ -182,6 +199,8 @@ render(
       <Route path="/search" component={SearchDemo} />
       <Route path="/password-input" component={PasswordInputDemo} />
       <Route path="/number-field" component={NewNumberFieldDemo} />
+      <Route path="/amount-field" component={NewAmountFieldDemo} />
+      <Route path="/localization" component={NewLocaleDemo} />
       <Route path="/tag-input" component={NewTagInputDemo} />
       <Route path="/phone-input" component={NewPhoneInputDemo} />
       <Route path="/otp" component={NewOTPDemo} />
@@ -210,10 +229,12 @@ render(
       <Route path="/form-new" component={NewFormDemo} />
       <Route path="/bound-fields" component={NewBoundFieldsDemo} />
       <Route path="/date-picker" component={NewDatePickerDemo} />
+      <Route path="/date-input" component={NewDateInputDemo} />
       <Route path="/date-range-picker" component={NewDateRangePickerDemo} />
       <Route path="/time-picker" component={NewTimePickerDemo} />
       <Route path="/date-time-picker" component={NewDateTimePickerDemo} />
       <Route path="/qr-scanner" component={NewQRScannerDemo} />
+      <Route path="/barcode" component={NewBarcodeDemo} />
       <Route path="/notifications-inbox" component={NewNotificationsInboxDemo} />
       <Route path="/stack" component={NewStackDemo} />
       <Route path="/breadcrumb" component={NewBreadcrumbDemo} />
@@ -229,6 +250,7 @@ render(
       <Route path="/button-family" component={NewButtonFamilyDemo} />
       <Route path="/tree" component={NewTreeDemo} />
       <Route path="/toolbar" component={NewToolbarDemo} />
+      <Route path="/document-tabs" component={NewDocumentTabsDemo} />
       <Route path="/skip-to-content" component={SkipToContentDemo} />
       <Route path="/shellbar" component={NewShellBarDemo} />
       <Route
@@ -241,6 +263,8 @@ render(
       <Route path="/value-help" component={NewValueHelpDemo} />
       <Route path="/view-settings" component={NewViewSettingsDemo} />
       <Route path="/filter-bar" component={NewFilterBarDemo} />
+      <Route path="/filter-builder" component={NewFilterBuilderDemo} />
+      <Route path="/view-manager" component={NewViewManagerDemo} />
       <Route path="/page-header" component={NewPageHeaderDemo} />
       <Route path="/stat-card" component={NewStatCardDemo} />
       <Route path="/customizing" component={NewCustomizingDemo} />

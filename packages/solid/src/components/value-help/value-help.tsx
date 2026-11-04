@@ -12,6 +12,7 @@ import {
   type SelectListItem,
 } from "../select-list/select-list";
 import { filterItems } from "../select-list/filter";
+import { useLocale } from "../locale/locale";
 
 /**
  * ValueHelp — the F4 lookup dialog. SelectDialog answers "which of these?";
@@ -87,28 +88,14 @@ export interface ValueHelpProps {
   class?: string;
 }
 
-const OPERATOR_LABELS: Record<ValueHelpOperator, string> = {
-  EQ: "equals",
-  Contains: "contains",
-  StartsWith: "starts with",
-  EndsWith: "ends with",
-  BT: "between",
-  LT: "less than",
-  LE: "less or equal",
-  GT: "greater than",
-  GE: "greater or equal",
-};
-
-const OPERATOR_OPTIONS = (Object.keys(OPERATOR_LABELS) as ValueHelpOperator[]).map((value) => ({
-  value,
-  label: OPERATOR_LABELS[value],
-}));
+const OPERATORS: ValueHelpOperator[] = ["EQ", "Contains", "StartsWith", "EndsWith", "BT", "LT", "LE", "GT", "GE"];
 
 /** A rule with no value filters nothing; committing it would be a silent no-op. */
 const isComplete = (c: ValueHelpCondition) =>
   c.value.trim() !== "" && (c.operator !== "BT" || (c.valueTo ?? "").trim() !== "");
 
 export const ValueHelp = (props: ValueHelpProps) => {
+  const loc = useLocale();
   const [query, setQuery] = createSignal("");
   const [draft, setDraft] = createSignal<string[]>([]);
   const [rules, setRules] = createSignal<ValueHelpCondition[]>([]);
@@ -165,7 +152,9 @@ export const ValueHelp = (props: ValueHelpProps) => {
     props.onSearch?.(value);
   };
 
-  const searchPlaceholder = () => props.searchPlaceholder ?? "Search";
+  // Built once per locale, not per render: Kobalte re-reports a selection when options change identity.
+  const operatorOptions = createMemo(() => OPERATORS.map((value) => ({ value, label: loc.t(`valueHelp.op.${value}`) })));
+  const searchPlaceholder = () => props.searchPlaceholder ?? loc.t("common.search");
 
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
@@ -187,9 +176,9 @@ export const ValueHelp = (props: ValueHelpProps) => {
 
         <Tabs defaultValue="select" class="zen-flex zen-min-h-0 zen-flex-1 zen-flex-col">
           <TabsList class="zen-mx-6 zen-mt-3">
-            <TabsTrigger value="select">{props.selectTabLabel ?? "Select from list"}</TabsTrigger>
+            <TabsTrigger value="select">{props.selectTabLabel ?? loc.t("valueHelp.selectTab")}</TabsTrigger>
             <TabsTrigger value="conditions">
-              {props.conditionsTabLabel ?? "Define conditions"}
+              {props.conditionsTabLabel ?? loc.t("valueHelp.conditionsTab")}
               <Show when={rules().length > 0}>
                 <span class="zen-ml-2 zen-rounded-zen-full zen-bg-zen-primary-soft zen-px-1.5 zen-text-xs zen-text-zen-primary-soft-fg">
                   {rules().length}
@@ -230,7 +219,7 @@ export const ValueHelp = (props: ValueHelpProps) => {
               when={rules().length > 0}
               fallback={
                 <p class="zen-m-0 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-                  No conditions yet.
+                  {loc.t("valueHelp.noConditions")}
                 </p>
               }
             >
@@ -242,29 +231,29 @@ export const ValueHelp = (props: ValueHelpProps) => {
                         <Checkbox
                           checked={c.exclude}
                           onChange={(v) => patch(c.id, { exclude: v === true })}
-                          aria-label={`Exclude condition ${c.id}`}
+                          aria-label={loc.t("valueHelp.exclude", { id: c.id })}
                         />
-                        Exclude
+                        {loc.t("valueHelp.excludeLabel")}
                       </label>
                       <Select
-                        options={OPERATOR_OPTIONS}
+                        options={operatorOptions()}
                         value={c.operator}
                         onChange={(v) => patch(c.id, { operator: (v ?? "EQ") as ValueHelpOperator })}
-                        aria-label="Operator"
+                        aria-label={loc.t("valueHelp.operator")}
                         class="zen-w-40 zen-shrink-0"
                       />
                       <Input
                         value={c.value}
                         onInput={(e) => patch(c.id, { value: e.currentTarget.value })}
-                        placeholder="Value"
-                        aria-label="Value"
+                        placeholder={loc.t("valueHelp.value")}
+                        aria-label={loc.t("valueHelp.value")}
                       />
                       <Show when={c.operator === "BT"}>
                         <Input
                           value={c.valueTo ?? ""}
                           onInput={(e) => patch(c.id, { valueTo: e.currentTarget.value })}
-                          placeholder="To"
-                          aria-label="To value"
+                          placeholder={loc.t("valueHelp.to")}
+                          aria-label={loc.t("valueHelp.toValue")}
                         />
                       </Show>
                       <Button
@@ -272,7 +261,7 @@ export const ValueHelp = (props: ValueHelpProps) => {
                         variant="ghost"
                         color="neutral"
                         size="sm"
-                        aria-label="Remove condition"
+                        aria-label={loc.t("valueHelp.removeCondition")}
                         onClick={() => setRules((prev) => prev.filter((r) => r.id !== c.id))}
                       >
                         ✕
@@ -290,7 +279,7 @@ export const ValueHelp = (props: ValueHelpProps) => {
               class="zen-mt-3"
               onClick={() => setRules((prev) => [...prev, newRow()])}
             >
-              {props.addConditionLabel ?? "Add condition"}
+              {props.addConditionLabel ?? loc.t("valueHelp.addCondition")}
             </Button>
           </TabsContent>
         </Tabs>
@@ -303,10 +292,10 @@ export const ValueHelp = (props: ValueHelpProps) => {
             size="sm"
             onClick={() => props.onOpenChange(false)}
           >
-            {props.cancelLabel ?? "Cancel"}
+            {props.cancelLabel ?? loc.t("common.cancel")}
           </Button>
           <Button type="button" size="sm" onClick={commit}>
-            {props.confirmLabel ?? "OK"}
+            {props.confirmLabel ?? loc.t("common.ok")}
           </Button>
         </div>
       </DialogContent>

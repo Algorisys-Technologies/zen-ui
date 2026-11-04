@@ -1,6 +1,7 @@
 import { type JSX, For, Show, createMemo } from "solid-js";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * NotificationsInbox — Solid port. Bell trigger that opens a Popover
@@ -85,6 +86,7 @@ const groupByDay = (notifications: Notification[], now: Date): Group[] => {
 };
 
 export const NotificationsInbox = (props: NotificationsInboxProps) => {
+  const loc = useLocale();
   const now = createMemo(() => {
     void props.notifications;
     return new Date();
@@ -96,7 +98,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
   const badgeMax = () => props.badgeMax ?? 99;
   const badgeText = () =>
     computedUnread() > badgeMax() ? `${badgeMax()}+` : String(computedUnread());
-  const triggerLabel = () => props.triggerLabel ?? "Notifications";
+  const triggerLabel = () => props.triggerLabel ?? loc.t("notificationsInbox.notifications");
 
   return (
     <Popover open={props.open} onOpenChange={props.onOpenChange}>
@@ -159,7 +161,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
                 "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-p-0",
               )}
             >
-              Mark all as read
+              {loc.t("notificationsInbox.markAllAsRead")}
             </button>
           </Show>
         </div>
@@ -172,7 +174,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
             when={groups().length > 0}
             fallback={
               <EmptyState
-                message={props.emptyMessage ?? "You're all caught up."}
+                message={props.emptyMessage ?? loc.t("notificationsInbox.youReAllCaughtUp")}
               />
             }
           >
@@ -203,7 +205,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
                 "zen-bg-transparent zen-border-0 zen-cursor-pointer",
               )}
             >
-              View all
+              {loc.t("notificationsInbox.viewAll")}
             </button>
           </div>
         </Show>

@@ -4,6 +4,7 @@ import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
 import { Select } from "../form/select/select";
+import { useLocale } from "../locale/locale";
 
 /**
  * Per-column filter variants for the Solid DataTable.
@@ -41,6 +42,21 @@ declare module "@tanstack/solid-table" {
     filterVariant?: FilterVariant;
     /** Options used by the `select` variant. */
     filterOptions?: { label: string; value: string }[];
+    /**
+     * A total for this column, computed and shown by DataTable: in a footer
+     * (over the filtered rows, or the page with `totalsOver="page"`) and as
+     * each group's subtotal when grouped. Sums are exact in decimal. Leaves a
+     * column's own `footer`, `aggregationFn` and `aggregatedCell` alone.
+     */
+    aggregate?: "sum" | "count" | "avg" | "min" | "max" | ((values: unknown[], rows: unknown[]) => unknown);
+    /** How the total and subtotals show. Default: the locale's number at the column's own decimal places. */
+    formatTotal?: (value: unknown) => JSX.Element;
+    /**
+     * How a server-side export should format this column (DataTable onExport):
+     * `{ kind: "amount", currency: "INR" }`, `{ kind: "date" }`… Default:
+     * "number" for a column with a total or a number filter, else "text".
+     */
+    exportFormat?: import("@algorisys/zen-ui-core/export-request").ExportColumnFormat;
   }
 }
 
@@ -49,7 +65,7 @@ declare module "@tanstack/solid-table" {
 const empty = (s: unknown) =>
   s === null || s === undefined || (typeof s === "string" && s.length === 0);
 
-const textFilterFn: FilterFn<unknown> = (row, columnId, filter) => {
+export const textFilterFn: FilterFn<unknown> = (row, columnId, filter) => {
   const f = filter as TextFilterValue | string | undefined;
   const op: TextOp = typeof f === "object" && f ? f.op : "contains";
   const needle = String(typeof f === "object" && f ? f.value : f ?? "")
@@ -164,25 +180,42 @@ function OpSelect<T extends string>(props: {
   );
 }
 
-function TextFilter(props: { column: Column<unknown, unknown> }) {
-  const raw = () => props.column.getFilterValue() as TextFilterValue | undefined;
-  const op = () => raw()?.op ?? "contains";
-  const value = () => raw()?.value ?? "";
+function TextFilter(props: { column: Column<unknown, unknown>; operators?: boolean }) {
+  const loc = useLocale();
+  const raw = () => props.column.getFilterValue() as TextFilterValue | string | undefined;
+  const op = () => {
+    const r = raw();
+    return typeof r === "object" && r ? r.op : "contains";
+  };
+  const value = () => {
+    const r = raw();
+    return (typeof r === "object" && r ? r.value : r) ?? "";
+  };
+  /**
+   * Without the operator select the filter value is a bare string, not
+   * `{ op, value }`. That is not cosmetic: the operator is a client-side
+   * predicate, and a server-filtered table has already made that decision. An
+   * operator the server ignores is a control that lies about what it does.
+   */
   const setNext = (next: Partial<TextFilterValue>) =>
-    props.column.setFilterValue({ op: op(), value: value(), ...next });
+    props.operators === false
+      ? props.column.setFilterValue(next.value ?? value())
+      : props.column.setFilterValue({ op: op(), value: value(), ...next });
   return (
     <div class="zen-flex zen-items-center zen-gap-1">
-      <OpSelect
-        value={op()}
-        onChange={(o) => setNext({ op: o })}
-        options={TEXT_OPS}
-        ariaLabel={`${headerLabel(props.column)} filter operator`}
-      />
+      <Show when={props.operators !== false}>
+        <OpSelect
+          value={op()}
+          onChange={(o) => setNext({ op: o })}
+          options={TEXT_OPS}
+          ariaLabel={`${headerLabel(props.column)} filter operator`}
+        />
+      </Show>
       <Input
         value={value()}
         onInput={(e) => setNext({ value: e.currentTarget.value })}
-        placeholder="Filter…"
-        aria-label={`Filter ${headerLabel(props.column)}`}
+        placeholder={loc.t("dataTable.filterPlaceholder")}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(props.column) })}
         class="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
@@ -190,6 +223,7 @@ function TextFilter(props: { column: Column<unknown, unknown> }) {
 }
 
 function NumberFilter(props: { column: Column<unknown, unknown> }) {
+  const loc = useLocale();
   const raw = () => props.column.getFilterValue() as NumberFilterValue | undefined;
   const op = () => raw()?.op ?? "eq";
   const value = () => raw()?.value ?? null;
@@ -212,7 +246,7 @@ function NumberFilter(props: { column: Column<unknown, unknown> }) {
           } satisfies NumberFilterValue)
         }
         placeholder="…"
-        aria-label={`Filter ${headerLabel(props.column)}`}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(props.column) })}
         class="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
@@ -220,6 +254,7 @@ function NumberFilter(props: { column: Column<unknown, unknown> }) {
 }
 
 function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
+  const loc = useLocale();
   const range = () =>
     (props.column.getFilterValue() as NumberRangeFilterValue | undefined) ?? [null, null];
   return (
@@ -232,8 +267,8 @@ function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
             range()[1],
           ] satisfies NumberRangeFilterValue)
         }
-        placeholder="min"
-        aria-label={`${headerLabel(props.column)} minimum`}
+        placeholder={loc.t("dataTable.min")}
+        aria-label={loc.t("dataTable.columnMinimum", { column: headerLabel(props.column) })}
         class="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
       <span class="zen-text-zen-muted-fg zen-text-xs" aria-hidden>–</span>
@@ -245,8 +280,8 @@ function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
             v ?? null,
           ] satisfies NumberRangeFilterValue)
         }
-        placeholder="max"
-        aria-label={`${headerLabel(props.column)} maximum`}
+        placeholder={loc.t("dataTable.max")}
+        aria-label={loc.t("dataTable.columnMaximum", { column: headerLabel(props.column) })}
         class="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
     </div>
@@ -270,6 +305,7 @@ function SelectFilter(props: {
 }
 
 function BooleanFilter(props: { column: Column<unknown, unknown> }) {
+  const loc = useLocale();
   const value = () => props.column.getFilterValue();
   const current = () =>
     value() === true || value() === "true"
@@ -284,23 +320,27 @@ function BooleanFilter(props: { column: Column<unknown, unknown> }) {
         const v = e.currentTarget.value;
         props.column.setFilterValue(v === "any" ? undefined : v === "true");
       }}
-      aria-label={`Filter ${headerLabel(props.column)}`}
+      aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(props.column) })}
       class={cn(
         "zen-h-7 zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
         "zen-px-2 zen-text-xs zen-cursor-pointer",
         "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
     >
-      <option value="any">Any</option>
-      <option value="true">Yes</option>
-      <option value="false">No</option>
+      <option value="any">{loc.t("dataTable.any")}</option>
+      <option value="true">{loc.t("dataTable.yes")}</option>
+      <option value="false">{loc.t("dataTable.no")}</option>
     </select>
   );
 }
 
 /* ---------------------------- dispatcher ----------------------------------- */
 
-export function FilterCell<TData>(props: { column: Column<TData, unknown> }) {
+export function FilterCell<TData>(props: {
+  column: Column<TData, unknown>;
+  /** Render the per-column operator select. Off for server-filtered tables. */
+  operators?: boolean;
+}) {
   return (
     <Show when={props.column.getCanFilter()}>
       {/* eslint-disable solid/components-return-once --
@@ -333,7 +373,7 @@ export function FilterCell<TData>(props: { column: Column<TData, unknown> }) {
             return <BooleanFilter column={c} />;
           case "text":
           default:
-            return <TextFilter column={c} />;
+            return <TextFilter column={c} operators={props.operators} />;
         }
       })()}
       {/* eslint-enable solid/components-return-once */}

@@ -2,6 +2,7 @@ import { For, Show, createMemo, createSignal, splitProps } from "solid-js";
 import { Combobox as KCombobox } from "@kobalte/core/combobox";
 import { cn } from "../../lib/cn";
 import type { ComboboxOption } from "./combobox";
+import { useLocale } from "../locale/locale";
 
 /**
  * MultiCombobox — searchable multi-select built on Kobalte Combobox
@@ -45,6 +46,8 @@ export type MultiComboboxProps = {
   createLabel?: string;
   width?: number | string;
   disabled?: boolean;
+  /** Names the field for assistive tech, when no visible label does. */
+  "aria-label"?: string;
   class?: string;
 };
 
@@ -53,6 +56,7 @@ export type MultiComboboxProps = {
 const CREATE_SENTINEL = "__zen_create__";
 
 export const MultiCombobox = (rawProps: MultiComboboxProps) => {
+  const loc = useLocale();
   const [props] = splitProps(rawProps, [
     "options",
     "value",
@@ -66,6 +70,7 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
     "createLabel",
     "width",
     "disabled",
+    "aria-label",
     "class",
   ]);
 
@@ -104,7 +109,7 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
     showCreate()
       ? [
           ...(props.options ?? []),
-          { value: CREATE_SENTINEL, label: `${props.createLabel ?? "Create"} “${typed()}”` },
+          { value: CREATE_SENTINEL, label: loc.t("combobox.createOption", { verb: props.createLabel ?? loc.t("combobox.create"), text: typed() }) },
         ]
       : (props.options ?? []),
   );
@@ -133,7 +138,7 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
         setValues(created && !rest.includes(created.value) ? [...rest, created.value] : rest);
       }}
       disabled={props.disabled}
-      placeholder={props.placeholder ?? "Select…"}
+      placeholder={props.placeholder ?? loc.t("combobox.placeholder")}
       itemComponent={(itemProps) => (
         <KCombobox.Item
           item={itemProps.item}
@@ -176,7 +181,7 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
                   e.stopPropagation();
                   remove(opt.value);
                 }}
-                aria-label={`Remove ${opt.label}`}
+                aria-label={loc.t("combobox.remove", { label: opt.label })}
                 class="zen-inline-flex zen-items-center zen-justify-center zen-h-4 zen-w-4 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer zen-opacity-70 hover:zen-opacity-100"
               >
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden>
@@ -188,10 +193,11 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
           )}
         </For>
         <KCombobox.Input
+          aria-label={props["aria-label"]}
           class="zen-flex-1 zen-min-w-[6rem] zen-bg-transparent zen-border-0 zen-outline-none zen-text-sm placeholder:zen-text-zen-muted-fg"
           placeholder={
             selectedValues().length === 0
-              ? (props.searchPlaceholder ?? "Search…")
+              ? (props.searchPlaceholder ?? loc.t("combobox.searchPlaceholder"))
               : ""
           }
         />
@@ -210,7 +216,7 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
           <KCombobox.Listbox class="zen-max-h-72 zen-overflow-y-auto" />
           <Show when={(props.options ?? []).length === 0}>
             <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">
-              {props.emptyMessage ?? "No results."}
+              {props.emptyMessage ?? loc.t("combobox.noResults")}
             </div>
           </Show>
         </KCombobox.Content>

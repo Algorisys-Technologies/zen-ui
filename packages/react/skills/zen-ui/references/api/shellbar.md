@@ -33,7 +33,7 @@ SKILL.md.
 
 - `id: string`
 - `label: string` — Icon-only on the bar, so this is the accessible name AND the menu label.
-- `icon: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" | "star" …`
+- `icon: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…`
 - `onSelect?: (() => void) | undefined`
 - `disabled?: boolean | undefined`
 - `overflow?: "auto" | "never" | undefined` — `never` pins the item to the bar; anything else collapses when needed.
@@ -42,7 +42,7 @@ SKILL.md.
 
 - `id: string`
 - `label: React.ReactNode`
-- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" | "star" …`
+- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…`
 - `onSelect?: (() => void) | undefined`
 - `disabled?: boolean | undefined`
 - `separatorBefore?: boolean | undefined` — Renders a divider before this entry.
@@ -53,6 +53,7 @@ SKILL.md.
 - `image?: string | undefined`
 - `initials?: string | undefined` — Falls back to initials derived from `name`.
 - `menuItems?: ShellBarMenuItem[] | undefined`
+- `menu?: (() => React.ReactNode) | undefined` — The menu's own body, in place of `menuItems`: DropdownMenu parts — labels, radio groups, checkbox items — for a menu that holds settings as well as actions (appearance, density, sign out). Rendered under the name heading. A function, called when the menu opens (the Solid binding needs that to build the parts inside the menu's context; the shape is kept the same here).
 - `onClick?: (() => void) | undefined`
 
 ### Types

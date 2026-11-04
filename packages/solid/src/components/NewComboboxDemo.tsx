@@ -119,6 +119,24 @@ const [picked, setPicked] = createSignal("");
           debounceMs={150}
         />
       </DemoSection>
+      <DemoSection
+        title="Invalid"
+        codeTitle="invalid: a required field left empty"
+        codeDescription="The field is marked aria-invalid and its border takes the error colour; the message itself is the form's to show."
+        code={`<Combobox options={customers} placeholder="Customer" invalid />`}
+      >
+        <div data-testid="combobox-invalid">
+          <Combobox
+            options={[
+              { value: "acme", label: "Acme Traders" },
+              { value: "kaveri", label: "Kaveri Steel" },
+            ]}
+            placeholder="Customer"
+            searchPlaceholder="Customer"
+            invalid
+          />
+        </div>
+      </DemoSection>
     </DemoPage>
   );
 };

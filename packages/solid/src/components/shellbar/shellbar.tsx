@@ -25,6 +25,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * ShellBar — Solid binding. Mirrors packages/react/src/components/shellbar/:
@@ -64,6 +65,14 @@ export interface ShellBarProfile {
   /** Falls back to initials derived from `name`. */
   initials?: string;
   menuItems?: ShellBarMenuItem[];
+  /**
+   * The menu's own body, in place of `menuItems`: DropdownMenu parts — labels,
+   * radio groups, checkbox items — for a menu that holds settings as well as
+   * actions (appearance, density, sign out). Rendered under the name heading.
+   * A function, called inside the open menu: the parts need the menu's context,
+   * and JSX built where the profile object is written would be built outside it.
+   */
+  menu?: () => JSX.Element;
   onClick?: () => void;
 }
 
@@ -74,6 +83,15 @@ export type ShellBarProps = Omit<JSX.HTMLAttributes<HTMLElement>, "onSearch" | "
   /** Turns the title into a product-switcher dropdown. */
   menuItems?: ShellBarMenuItem[];
   searchable?: boolean;
+  /**
+   * Your own search control in the bar, in place of the built-in field: a
+   * command palette's trigger, say. Laid out by the bar like its own search.
+   * Pass a function to change with the space: `compact` is true where the
+   * built-in field would have shrunk to an icon, so the control can too.
+   *
+   *   search={(bar) => <PaletteButton iconOnly={bar.compact} />}
+   */
+  search?: JSX.Element | ((bar: { readonly compact: boolean }) => JSX.Element);
   onSearch?: (value: string) => void;
   /** Placeholder AND the search field's visually-hidden label. */
   searchPlaceholder?: string;
@@ -96,12 +114,14 @@ const initialsFrom = (name: string) =>
     .join("");
 
 export const ShellBar = (props: ShellBarProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "logo",
     "primaryTitle",
     "secondaryTitle",
     "menuItems",
     "searchable",
+    "search",
     "onSearch",
     "searchPlaceholder",
     "notificationCount",
@@ -128,7 +148,7 @@ export const ShellBar = (props: ShellBarProps) => {
   const [searchOpen, setSearchOpen] = createSignal(false);
 
   const allItems = createMemo(() => local.items ?? []);
-  const searchLabel = () => local.searchPlaceholder ?? "Search";
+  const searchLabel = () => local.searchPlaceholder ?? loc.t("shellbar.search");
 
   // Starts at "all" so the first paint is the common case (everything fits)
   // rather than an empty bar. `untrack` because this is a seed read, seen once
@@ -264,7 +284,7 @@ export const ShellBar = (props: ShellBarProps) => {
 
   return (
     <header
-      aria-label={local["aria-label"] ?? local.primaryTitle ?? "Application header"}
+      aria-label={local["aria-label"] ?? local.primaryTitle ?? loc.t("shellbar.applicationHeader")}
       class={cn(
         "zen-w-full zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-3",
         local.class,
@@ -288,7 +308,7 @@ export const ShellBar = (props: ShellBarProps) => {
                 color="neutral"
                 size="sm"
                 shape="square"
-                aria-label="Home"
+                aria-label={loc.t("shellbar.home")}
                 onClick={() => local.onLogoClick?.()}
               >
                 {local.logo}
@@ -334,7 +354,7 @@ export const ShellBar = (props: ShellBarProps) => {
                     color="neutral"
                     size="sm"
                     shape="square"
-                    aria-label={local.overflowLabel ?? "More actions"}
+                    aria-label={local.overflowLabel ?? loc.t("shellbar.moreActions")}
                   >
                     <Icon name="more" size={16} />
                   </DropdownMenuTrigger>
@@ -354,7 +374,19 @@ export const ShellBar = (props: ShellBarProps) => {
           </div>
 
           <div ref={fixedRef} class="zen-flex zen-shrink-0 zen-items-center zen-gap-2">
-            <Show when={local.searchable}>
+            <Show when={local.search !== undefined}>
+              <div class="zen-flex zen-min-w-0 zen-items-center" data-shellbar-search="">
+                {(() => {
+                  const search = local.search;
+                  // Called once per control, not once per resize: `compact` is
+                  // a getter, read where the control uses it.
+                  return typeof search === "function"
+                    ? untrack(() => search({ get compact() { return searchCollapsed(); } }))
+                    : search;
+                })()}
+              </div>
+            </Show>
+            <Show when={local.searchable && local.search === undefined}>
               <Show
                 when={searchCollapsed()}
                 fallback={
@@ -435,7 +467,7 @@ export const ShellBar = (props: ShellBarProps) => {
             <Show when={local.profile}>
               {(p) => (
                 <Show
-                  when={p().menuItems && p().menuItems!.length > 0}
+                  when={p().menu || (p().menuItems && p().menuItems!.length > 0)}
                   fallback={
                     <Button
                       type="button"
@@ -465,7 +497,9 @@ export const ShellBar = (props: ShellBarProps) => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>{p().name}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {renderMenuItems(p().menuItems ?? [])}
+                      <Show when={p().menu} fallback={renderMenuItems(p().menuItems ?? [])}>
+                        {p().menu?.()}
+                      </Show>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </Show>
@@ -475,7 +509,7 @@ export const ShellBar = (props: ShellBarProps) => {
         </div>
 
         {/* --------------------------------------------- collapsed search */}
-        <Show when={local.searchable && searchCollapsed() && searchOpen()}>
+        <Show when={local.searchable && local.search === undefined && searchCollapsed() && searchOpen()}>
           <div
             class="zen-absolute zen-inset-0 zen-z-10 zen-flex zen-items-center zen-gap-2 zen-bg-zen-background"
             onKeyDown={(e) => {
@@ -517,7 +551,7 @@ export const ShellBar = (props: ShellBarProps) => {
               color="neutral"
               size="sm"
               shape="square"
-              aria-label="Close search"
+              aria-label={loc.t("shellbar.closeSearch")}
               onClick={closeSearch}
             >
               <Icon name="x" size={16} />

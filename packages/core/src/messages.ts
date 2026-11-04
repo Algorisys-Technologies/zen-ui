@@ -1,0 +1,636 @@
+/**
+ * Every string zen-ui shows or announces, in one place: the pure half of
+ * LocaleProvider's `messages`, shared by every binding.
+ *
+ *   bun run check:messages
+ *   bun run check:strings     (no hard-coded strings in swept components)
+ *
+ * A component never hard-codes a user-visible string. It asks for a key, and
+ * gets, in order: the instance's own prop (DocumentTabs' `closeLabel`, a
+ * Combobox's `placeholder`), the app's translation (LocaleProvider
+ * `messages`), then the English here, which is exactly what the component
+ * showed before this catalogue existed. So an app that translates nothing sees
+ * no change, and `bun run check:strings` fails on a new hard-coded string.
+ *
+ * Values interpolate `{name}` and choose plural forms the way ICU
+ * MessageFormat does, by the locale's own rules (Intl.PluralRules), which is
+ * what Hindi, Arabic or Polish need and "s" on the end does not give:
+ *
+ *   "{count, plural, one {# result} other {# results}}"
+ */
+
+/** Fill a message: `{name}` is replaced, `{n, plural, one {…} other {…}}` chooses by the locale's plural rules (`#` is the number). */
+export function formatMessage(template: string, values: Record<string, string | number> = {}, locale?: string): string {
+  let out = "";
+  let i = 0;
+  while (i < template.length) {
+    const open = template.indexOf("{", i);
+    if (open < 0) {
+      out += template.slice(i);
+      break;
+    }
+    out += template.slice(i, open);
+    const close = matchBrace(template, open);
+    if (close < 0) {
+      out += template.slice(open);
+      break;
+    }
+    out += placeholder(template.slice(open + 1, close), values, locale);
+    i = close + 1;
+  }
+  return out;
+}
+
+function matchBrace(s: string, open: number): number {
+  let depth = 0;
+  for (let i = open; i < s.length; i++) {
+    if (s[i] === "{") depth++;
+    else if (s[i] === "}" && --depth === 0) return i;
+  }
+  return -1;
+}
+
+function placeholder(body: string, values: Record<string, string | number>, locale?: string): string {
+  const m = /^\s*(\w+)\s*(?:,\s*plural\s*,(.*))?$/s.exec(body);
+  if (!m) return `{${body}}`;
+  const [, name, plural] = m;
+  const v = values[name];
+  if (plural === undefined) return v === undefined ? `{${name}}` : String(v);
+  const n = typeof v === "number" ? v : Number(v);
+  const forms = new Map<string, string>();
+  const re = /\s*(=\d+|zero|one|two|few|many|other)\s*\{/g;
+  let mm: RegExpExecArray | null;
+  re.lastIndex = 0;
+  while ((mm = re.exec(plural))) {
+    const start = mm.index + mm[0].length - 1;
+    const end = matchBrace(plural, start);
+    if (end < 0) break;
+    forms.set(mm[1], plural.slice(start + 1, end));
+    re.lastIndex = end + 1;
+  }
+  let rule = "other";
+  try {
+    rule = new Intl.PluralRules(locale).select(n);
+  } catch {
+    /* an unknown locale uses "other" */
+  }
+  const chosen = forms.get(`=${n}`) ?? forms.get(rule) ?? forms.get("other") ?? "";
+  let num = String(v);
+  if (Number.isFinite(n)) {
+    try {
+      num = new Intl.NumberFormat(locale).format(n);
+    } catch {
+      num = String(n); // an invalid locale tag must not break rendering
+    }
+  }
+  // `#` is the number, but not inside a nested placeholder's braces.
+  return formatMessage(chosen.replace(/#(?![^{]*})/g, num), values, locale);
+}
+
+/**
+ * The message catalogue, English. Keys are grouped by component; a value may
+ * use `{placeholders}`. Translating means supplying any subset of these to
+ * LocaleProvider `messages`: what is left out stays English.
+ */
+export const DEFAULT_MESSAGES = {
+  // Shared
+  "common.close": "Close",
+  "common.open": "Open",
+  "common.cancel": "Cancel",
+  "common.ok": "OK",
+  "common.done": "Done",
+  "common.clear": "Clear",
+  "common.search": "Search",
+  "common.delete": "Delete",
+
+  // Combobox, MultiCombobox
+  "combobox.placeholder": "Select…",
+  "combobox.searchPlaceholder": "Search…",
+  "combobox.noResults": "No results.",
+  "combobox.loading": "Loading…",
+  "combobox.create": "Create",
+  "combobox.createOption": "{verb} “{text}”",
+  "combobox.remove": "Remove {label}",
+
+  // DatePicker, Calendar, DateInput, DateRangePicker, DateTimePicker, TimePicker
+  "calendar.previousMonth": "Previous month",
+  "calendar.nextMonth": "Next month",
+  "datePicker.placeholder": "Pick a date",
+  "dateInput.chooseDate": "Choose a date",
+  "dateInput.hint": "Type a date as {pattern}, or t for today, +7 for a week ahead. Arrow keys move a day.",
+  "dateRangePicker.placeholder": "Pick a date range",
+  "dateTimePicker.placeholder": "Pick date & time",
+  "dateTimePicker.time": "Time",
+  "timePicker.label": "Time",
+  "timePicker.hours": "Hours",
+  "timePicker.minutes": "Minutes",
+  "timePicker.seconds": "Seconds",
+  "timePicker.am": "AM",
+  "timePicker.pm": "PM",
+
+  // NumberField, PasswordInput, PhoneInput, Search, TagInput
+  "numberField.decrement": "Decrement",
+  "numberField.increment": "Increment",
+  "passwordInput.show": "Show password",
+  "passwordInput.hide": "Hide password",
+  "phoneInput.placeholder": "Phone number",
+  "search.clear": "Clear search",
+  "tagInput.placeholder": "Add a tag…",
+  "tagInput.remove": "Remove {tag}",
+
+  // AmountField, QuantityField
+  "amountField.inCurrency": "Amount in {currency}.",
+  "amountField.shorthand": "You can type 2.5L for 2,50,000, 1.2Cr, or 15k.",
+  "quantityField.inUnit": "Quantity in {unit}.",
+  "quantityField.shorthand": "You can type 2.5k for 2,500.",
+
+  // LookupField
+  "lookupField.typeMore": "Type {count} or more characters to search",
+  "lookupField.searching": "Searching…",
+  "lookupField.failed": "The search failed",
+  "lookupField.noMatches": "No matches",
+  "lookupField.results": "{count, plural, one {# result} other {# results}}",
+  "lookupField.searchAll": "Search all (F4)",
+
+  // FilterBuilder
+  "filterBuilder.label": "Filter",
+  "filterBuilder.match": "Match",
+  "filterBuilder.theseConditions": "these conditions",
+  "filterBuilder.all": "All of",
+  "filterBuilder.any": "Any of",
+  "filterBuilder.none": "None of",
+  "filterBuilder.notAll": "Not all of",
+  "filterBuilder.groupLabel": "Group: {match} these",
+  "filterBuilder.removeGroup": "Remove group",
+  "filterBuilder.addCondition": "Condition",
+  "filterBuilder.addGroup": "Group",
+  "filterBuilder.emptyGroup": "An empty group filters nothing.",
+  "filterBuilder.emptyRoot": "No conditions: every row matches.",
+  "filterBuilder.field": "Condition {n}, field",
+  "filterBuilder.operator": "Condition {n}, operator",
+  "filterBuilder.values": "Condition {n}, values",
+  "filterBuilder.value": "Condition {n}, value",
+  "filterBuilder.from": "Condition {n}, from",
+  "filterBuilder.to": "Condition {n}, to",
+  "filterBuilder.and": "and",
+  "filterBuilder.choose": "Choose…",
+  "filterBuilder.removeCondition": "Remove condition",
+  "filterBuilder.removeConditionN": "Remove condition {n}",
+  "filterBuilder.shows": "Shows: ",
+  "filterBuilder.showsEverything": "every row (no condition is finished yet)",
+
+  // ViewManager
+  "viewManager.label": "View",
+  "viewManager.standard": "Standard",
+  "viewManager.trigger": "{label}: {name}",
+  "viewManager.triggerModified": "{label}: {name}, modified",
+  "viewManager.modified": "Modified",
+  "viewManager.views": "Views",
+  "viewManager.shared": "Shared",
+  "viewManager.default": "Default",
+  "viewManager.save": "Save",
+  "viewManager.saveAs": "Save as…",
+  "viewManager.openWithThis": "Open with this view",
+  "viewManager.openWith": "Open with {name}",
+  "viewManager.openWithQuoted": "Open with “{name}”",
+  "viewManager.copyLink": "Copy link",
+  "viewManager.manage": "Manage views…",
+  "viewManager.saved": "Saved “{name}”.",
+  "viewManager.saveFailed": "Could not save “{name}”: {error}",
+  "viewManager.linkCopied": "Link to “{name}” copied.",
+  "viewManager.newView": "New view",
+  "viewManager.saveAsTitle": "Save view as",
+  "viewManager.saveAsDescription": "Saves the filters, sort and columns on screen now under a new name.",
+  "viewManager.name": "Name",
+  "viewManager.openByDefault": "Open the screen with this view",
+  "viewManager.notSaved": "Not saved: {error}",
+  "viewManager.manageTitle": "Manage views",
+  "viewManager.manageDescription": "Rename or delete your views, and choose the one the screen opens with.",
+  "viewManager.nameOf": "Name of “{name}”",
+  "viewManager.notRenamed": "Not renamed: {error}",
+  "viewManager.sharedWithYou": "· shared with you",
+  "viewManager.readOnly": "· read only",
+  "viewManager.deleteView": "Delete “{name}”",
+  "viewManager.confirmDelete": "Confirm: delete “{name}”",
+  "viewManager.pressAgain": "Press again to delete",
+
+  // TreeSelect, SelectList, SelectDialog
+  "selectList.placeholder": "Search",
+  "selectList.empty": "No matching items",
+  "treeSelect.noMatches": "No matches",
+
+  // FilterBar
+  "filterBar.adapt": "Adapt filters",
+  "filterBar.collapse": "Collapse filters",
+  "filterBar.expand": "Expand filters",
+  "filterBar.go": "Go",
+  "filterBar.adaptDescription": "Choose which filters appear on the bar.",
+
+  // ValueHelp
+  "valueHelp.selectTab": "Select from list",
+  "valueHelp.conditionsTab": "Define conditions",
+  "valueHelp.addCondition": "Add condition",
+  "valueHelp.noConditions": "No conditions yet.",
+  "valueHelp.exclude": "Exclude condition {id}",
+  "valueHelp.excludeLabel": "Exclude",
+  "valueHelp.operator": "Operator",
+  "valueHelp.value": "Value",
+  "valueHelp.to": "To",
+  "valueHelp.toValue": "To value",
+  "valueHelp.removeCondition": "Remove condition",
+  "valueHelp.op.EQ": "equals",
+  "valueHelp.op.Contains": "contains",
+  "valueHelp.op.StartsWith": "starts with",
+  "valueHelp.op.EndsWith": "ends with",
+  "valueHelp.op.BT": "between",
+  "valueHelp.op.LT": "less than",
+  "valueHelp.op.LE": "less or equal",
+  "valueHelp.op.GT": "greater than",
+  "valueHelp.op.GE": "greater or equal",
+
+  // DataTable
+  "dataTable.total": "Total",
+  "dataTable.export": "Export",
+  "dataTable.exportTo": "Export to",
+  "dataTable.exportExcel": "Excel (.xlsx)",
+  "dataTable.exportPdf": "PDF (.pdf)",
+  "dataTable.exportCsv": "CSV (.csv)",
+  "dataTable.exportOnlySelected": "{count, plural, one {Only the selected row} other {Only the # selected rows}}",
+  "dataTable.exportPreparing": "Preparing export…",
+  "dataTable.exportReady": "Export ready.",
+  "dataTable.exportFailed": "Export failed: {error}",
+  "dataTable.reorder": "Reorder",
+  "dataTable.expand": "Expand",
+  "dataTable.selectAll": "Select all rows",
+  "dataTable.selectRow": "Select row {n}",
+  "dataTable.noResults": "No results.",
+  "dataTable.search": "Search…",
+  "dataTable.groupRowsBy": "Group rows by",
+  "dataTable.bulkActions": "Bulk actions for selected rows",
+  "dataTable.clearSelection": "Clear selection",
+  "dataTable.activeFilters": "Active filters",
+  "dataTable.filtersLabel": "Filters:",
+  "dataTable.searchChip": "Search: {value}",
+  "dataTable.filterChip": "{column}: {value}",
+  "dataTable.clearAll": "Clear all",
+  "dataTable.removeChip": "Remove {label}",
+  "dataTable.exportSelectedRows": "Export selected rows",
+  "dataTable.exportVisibleRows": "Export visible rows",
+  "dataTable.exportJson": "JSON (.json)",
+  "dataTable.columns": "Columns",
+  "dataTable.toggleColumn": "Toggle visibility of {label}",
+  "dataTable.dragRow": "Drag to reorder row",
+  "dataTable.sortBy": "Sort by {column}, currently {state}",
+  "dataTable.sortAscending": "ascending",
+  "dataTable.sortDescending": "descending",
+  "dataTable.sortNone": "none",
+  "dataTable.sortPriority": "Sort priority {n}",
+  "dataTable.resize": "Resize {column}",
+  "dataTable.rowsPerPage": "Rows per page",
+  "dataTable.firstPage": "First page",
+  "dataTable.previousPage": "Previous page",
+  "dataTable.nextPage": "Next page",
+  "dataTable.lastPage": "Last page",
+  "dataTable.pageOf": "Page {page} of {pages}",
+  "dataTable.selectedOf": "{selected} of {total} row(s) selected.",
+  "dataTable.filterPlaceholder": "Filter…",
+  "dataTable.filterColumn": "Filter {column}",
+  "dataTable.min": "min",
+  "dataTable.max": "max",
+  "dataTable.columnMinimum": "{column} minimum",
+  "dataTable.columnMaximum": "{column} maximum",
+  "dataTable.any": "Any",
+  "dataTable.yes": "Yes",
+  "dataTable.no": "No",
+  "dataTable.actions": "Actions",
+  "treeTable.search": "Search",
+  "treeTable.loading": "Loading…",
+  "treeTable.previous": "Previous",
+  "treeTable.next": "Next",
+  "pagination.label": "pagination",
+  "pagination.previous": "Go to previous page",
+  "pagination.next": "Go to next page",
+  "pivot.values": "{label} values",
+  "pivot.loadingValue": "Loading value",
+  "pivot.loadingMore": "Loading more…",
+  "pivot.dropHere": "Drop fields here",
+  "pivot.move": "Move {label}",
+  "pivot.removeFromLayout": "Remove from layout",
+  "pivot.nSelected": "{count} selected",
+  "pivot.aggregationFor": "Aggregation for {label}",
+  "pivot.removeFrom": "Remove {label} from {zone}",
+  "pivot.removeField": "Remove field",
+  "pivot.sortOrFilter": "Sort or filter {label}",
+  "pivot.filterFor": "{label} filter",
+  "pivot.sortAscending": "Sort ascending",
+  "pivot.sortDescending": "Sort descending",
+  "pivot.searchPlaceholder": "Search {label}…",
+  "pivot.searchValues": "Search {label} values",
+  "pivot.selectAll": "Select all",
+  "pivot.loadingValues": "Loading values…",
+  "pivot.loadFailed": "Could not load values.",
+  "pivot.tryAgain": "Try again",
+  "pivot.noMatchingValues": "No matching values",
+  "pivot.clearFilter": "Clear filter",
+  "pivot.grid": "Pivot grid",
+  "pivot.clearFilters": "Clear filters",
+  "pivot.availableFields": "Available Fields",
+  "pivot.valuesZone": "Values",
+  "pivot.rowsZone": "Rows",
+  "pivot.columnsZone": "Columns",
+  "pivot.valueRequired": "Value field required",
+  "pivot.valueRequiredHelp": "Drop at least one field into Values to calculate data.",
+  "pivot.dimensionRequired": "Dimension required",
+  "pivot.dimensionRequiredHelp": "Drop at least one field into Rows or Columns.",
+  "spreadsheet.row": "Row",
+  "chart.label": "{type} chart",
+  "chart.data": "Chart data",
+  "chart.value": "Value",
+  "chart.share": "Share",
+  "microChart.line": "Line chart, {count} points, {trend}",
+  "microChart.rising": "rising",
+  "microChart.falling": "falling",
+  "microChart.flat": "flat",
+  "microChart.bar": "Bar chart, {count} bars",
+  "microChart.bullet": "{value} of {max}",
+  "microChart.bulletTarget": "{value} of {max}, target {target}",
+  "microChart.delta": "{from} to {to}, {direction} {amount}",
+  "microChart.up": "up",
+  "microChart.down": "down",
+  "microChart.unchanged": "unchanged",
+  "microChart.percent": "{value} percent",
+  "chart.donut": "Donut chart",
+  "chart.pie": "Pie chart",
+  "treeTable.collapseAll": "Collapse all",
+  "treeTable.expandAll": "Expand all",
+  "pivot.removedFromLayout": "{field} removed from the layout.",
+  "pivot.movedTo": "{field} moved to {zone}.",
+  "pivot.movedToAt": "{field} moved to {zone} at position {position}.",
+  "pivot.moveCancelled": "Move cancelled.",
+  "pivot.zoneAvailable": "Available fields",
+  "pivot.zoneRows": "Rows",
+  "pivot.zoneColumns": "Columns",
+  "pivot.zoneValues": "Values",
+
+  // ViewSettingsDialog
+  "viewSettings.title": "View settings",
+  "viewSettings.sort": "Sort",
+  "viewSettings.group": "Group",
+  "viewSettings.filter": "Filter",
+  "viewSettings.reset": "Reset",
+  "viewSettings.descending": "Descending",
+  "viewSettings.noValues": "No values",
+  "viewSettings.noGroupFields": "No group fields",
+  "viewSettings.noSortFields": "No sort fields",
+
+  // Batch 3 (generated from the literals themselves: the English is what the components showed)
+  "alert.dismiss": "Dismiss",
+  "banner.dismissBanner": "Dismiss banner",
+  "breadcrumb.label": "breadcrumb",
+  "breadcrumb.more": "More",
+  "buttonFamily.moreActions": "More actions",
+  "carousel.roleDescription": "carousel",
+  "carousel.label": "Carousel",
+  "carousel.slideRoleDescription": "slide",
+  "chunkUploader.noFileSelected": "No file selected.",
+  "chunkUploader.pause": "Pause",
+  "codeEditor.files": "Files",
+  "codeEditor.readOnly": "Read only",
+  "colorPicker.chooseAColour": "Choose a colour",
+  "colorPicker.pickAColour": "Pick a colour",
+  "colorPicker.customColour": "Custom colour",
+  "colorPicker.hexColour": "Hex colour",
+  "command.suggestions": "Suggestions",
+  "command.loading": "Loading…",
+  "countdown.lessThanAMinuteRemaining": "Less than a minute remaining",
+  "countdown.timeIsUp": "Time is up",
+  "countdown.timeLeft": "Time left",
+  "diagramCanvas.diagramEditor": "Diagram editor",
+  "diagramCanvas.systemDesign": "System design",
+  "diffView.noChanges": "No changes",
+  "diffView.before": "Before",
+  "diffView.after": "After",
+  "diffView.field": "Field",
+  "documentTabs.openDocuments": "Open documents",
+  "documentTabs.close": "Close",
+  "documentTabs.allOpenDocuments": "All open documents",
+  "documentViewer.zoomOut": "Zoom out",
+  "documentViewer.zoomIn": "Zoom in",
+  "documentViewer.fit": "Fit",
+  "documentViewer.rotate": "Rotate 90 degrees",
+  "documentViewer.previousPage": "Previous page",
+  "documentViewer.nextPage": "Next page",
+  "documentViewer.download": "Download",
+  "documentViewer.document": "Document",
+  "documentViewer.noPreviewForThisFile": "No preview for this file type.",
+  "dynamicPage.pageHeader": "Page header",
+  "dynamicPage.unpinHeader": "Unpin header",
+  "fileUpload.clickToUpload": "Click to upload",
+  "dynamicDateRange.selectAPeriod": "Select a period",
+  "dynamicDateRange.period": "Period",
+  "dynamicDateRange.pickAPeriodOnThe": "Pick a period on the left.",
+  "dynamicDateRange.cancel": "Cancel",
+  "dynamicDateRange.apply": "Apply",
+  "gantt.loadingSchedule": "Loading schedule",
+  "gantt.nothingScheduled": "Nothing scheduled",
+  "gantt.addATaskWithA": "Add a task with a start and an end date and it will appear on the timeline.",
+  "scheduleGrid.previous": "Previous",
+  "scheduleGrid.today": "Today",
+  "scheduleGrid.next": "Next",
+  "scheduleGrid.timeline": "Timeline",
+  "mediaTimeline.mediaTimeline": "Media timeline",
+  "messagePopover.filterBySeverity": "Filter by severity",
+  "messagePopover.noMessages": "No messages",
+  "notificationsInbox.notifications": "Notifications",
+  "notificationsInbox.markAllAsRead": "Mark all as read",
+  "notificationsInbox.youReAllCaughtUp": "You're all caught up.",
+  "notificationsInbox.viewAll": "View all",
+  "objectPage.objectPageSections": "Object page sections",
+  "pageHeader.back": "Back",
+  "planningCalendar.previous": "Previous",
+  "planningCalendar.today": "Today",
+  "planningCalendar.next": "Next",
+  "planningCalendar.noResources": "No resources",
+  "planningCalendar.resource": "Resource",
+  "proctor.noVideo": "No video",
+  "proctor.nobodyIsConnected": "Nobody is connected.",
+  "productionSchedule.loadingProductionSchedule": "Loading production schedule",
+  "productionSchedule.noResources": "No resources",
+  "productionSchedule.addAWorkCentreAnd": "Add a work centre and book an operation on it, and the schedule will appear here.",
+  "productionSchedule.overCapacity": "Over capacity",
+  "productionSchedule.load": "Load",
+  "qrScanner.startingCamera": "Starting camera…",
+  "qrScanner.scannerIdle": "Scanner idle.",
+  "qrScanner.noCameraWasFoundOn": "No camera was found on this device.",
+  "richText.loadingEditor": "Loading editor…",
+  "sheet.closeSheet": "Close sheet",
+  "shellbar.search": "Search",
+  "shellbar.applicationHeader": "Application header",
+  "shellbar.home": "Home",
+  "shellbar.moreActions": "More actions",
+  "shellbar.closeSearch": "Close search",
+  "shortcuts.general": "General",
+  "shortcuts.keyboardShortcuts": "Keyboard shortcuts",
+  "sidebar.toggleSidebar": "Toggle sidebar",
+  "skipToContent.skipToMainContent": "Skip to main content",
+  "sortableList.itemRoleDescription": "sortable item",
+  "sortableList.reorder": "Reorder",
+  "splitter.resizePanels": "Resize panels",
+  "stepper.steps": "Steps",
+  "stepper.back": "Back",
+  "stepper.submit": "Submit",
+  "nps.notAtAllLikely": "Not at all likely",
+  "nps.extremelyLikely": "Extremely likely",
+  "nps.howLikelyAreYouTo": "How likely are you to recommend us?",
+  "tile.locked": "Locked",
+  "timeline.nothingYet": "Nothing yet",
+  "toolbar.moreActions": "More actions",
+  "uploadCollection.uploadFailed": "Upload failed",
+  "uploadCollection.retry": "Retry",
+  "uploadCollection.noFilesYet": "No files yet",
+  "waveform.audioWaveform": "Audio waveform",
+  "waveform.clipPosition": "Clip position",
+  // Hand-swept (batch 3): composite labels as whole messages
+  "barcode.noCode": "No {what}: {message}",
+  "carousel.slideOf": "{n} of {count}",
+  "carousel.goToSlide": "Go to slide {n}",
+  "documentTabs.closeTab": "Close {label}",
+  "dynamicPage.pinHeader": "Pin header",
+  "fileUpload.removeFile": "Remove {name}",
+  "otp.digit": "Digit {n} of {count}",
+  "scheduleGrid.view": "View",
+  "planningCalendar.view": "View",
+  "mediaTimeline.rangeStart": "Range {n} start",
+  "mediaTimeline.rangeEnd": "Range {n} end",
+  "mediaTimeline.removeRange": "Remove range {n}",
+  "stepper.stepLabel": "{label}, step {n} of {count}, {status}",
+  "stepper.status.pending": "pending",
+  "stepper.status.current": "current",
+  "stepper.status.completed": "completed",
+  "stepper.status.error": "error",
+  "stepper.continue": "Continue",
+  "uploadCollection.rename": "Rename {name}",
+  "uploadCollection.uploading": "Uploading {name}",
+  "uploadCollection.remove": "Remove {name}",
+  "waveform.trimStart": "Clip trim start",
+  "waveform.trimEnd": "Clip trim end",
+  "dynamicDateRange.numberOf.day": "Number of days",
+  "dynamicDateRange.numberOf.week": "Number of weeks",
+  "dynamicDateRange.numberOf.month": "Number of months",
+  "dynamicDateRange.numberOf.quarter": "Number of quarters",
+  "dynamicDateRange.numberOf.year": "Number of years",
+  "dynamicDateRange.units.day": "days",
+  "dynamicDateRange.units.week": "weeks",
+  "dynamicDateRange.units.month": "months",
+  "dynamicDateRange.units.quarter": "quarters",
+  "dynamicDateRange.units.year": "years",
+  "dynamicDateRange.includeCurrent.day": "Include the current day",
+  "dynamicDateRange.includeCurrent.week": "Include the current week",
+  "dynamicDateRange.includeCurrent.month": "Include the current month",
+  "dynamicDateRange.includeCurrent.quarter": "Include the current quarter",
+  "dynamicDateRange.includeCurrent.year": "Include the current year",
+  "barcode.qrCode": "QR code",
+  "barcode.error.qrTooLongBytes": "too long for a QR code at level {level} ({count} bytes)",
+  "barcode.error.qrTooLongChars": "too long for a QR code at level {level} ({count} characters)",
+  "barcode.error.empty": "nothing to encode",
+  "barcode.error.code128Ascii": "Code 128 holds ASCII only",
+  "barcode.error.ean13Digits": "EAN-13 is 12 digits (the check digit is added) or 13",
+  "barcode.error.ean13Check": "the check digit should be {check}",
+  "barcode.error.code39Char": "Code 39 has no “{char}” (it holds 0–9, A–Z, space and - . $ / + %)",
+  // Core date-range words (asserted equal to core's tables by check:messages)
+  "dateRange.op.TODAY": "Today",
+  "dateRange.op.YESTERDAY": "Yesterday",
+  "dateRange.op.TOMORROW": "Tomorrow",
+  "dateRange.op.THIS_WEEK": "This week",
+  "dateRange.op.LAST_WEEK": "Last week",
+  "dateRange.op.NEXT_WEEK": "Next week",
+  "dateRange.op.THIS_MONTH": "This month",
+  "dateRange.op.LAST_MONTH": "Last month",
+  "dateRange.op.NEXT_MONTH": "Next month",
+  "dateRange.op.MONTH_TO_DATE": "Month to date",
+  "dateRange.op.THIS_QUARTER": "This quarter",
+  "dateRange.op.LAST_QUARTER": "Last quarter",
+  "dateRange.op.NEXT_QUARTER": "Next quarter",
+  "dateRange.op.QUARTER_TO_DATE": "Quarter to date",
+  "dateRange.op.THIS_YEAR": "This year",
+  "dateRange.op.LAST_YEAR": "Last year",
+  "dateRange.op.NEXT_YEAR": "Next year",
+  "dateRange.op.YEAR_TO_DATE": "Year to date",
+  "dateRange.op.LAST_DAYS": "Last…days",
+  "dateRange.op.NEXT_DAYS": "Next…days",
+  "dateRange.op.LAST_WEEKS": "Last…weeks",
+  "dateRange.op.NEXT_WEEKS": "Next…weeks",
+  "dateRange.op.LAST_MONTHS": "Last…months",
+  "dateRange.op.NEXT_MONTHS": "Next…months",
+  "dateRange.op.LAST_QUARTERS": "Last…quarters",
+  "dateRange.op.NEXT_QUARTERS": "Next…quarters",
+  "dateRange.op.LAST_YEARS": "Last…years",
+  "dateRange.op.NEXT_YEARS": "Next…years",
+  "dateRange.op.DATE": "On",
+  "dateRange.op.FROM": "From",
+  "dateRange.op.TO": "Until",
+  "dateRange.op.BETWEEN": "Between",
+  "dateRange.group.Day": "Day",
+  "dateRange.group.Week": "Week",
+  "dateRange.group.Month": "Month",
+  "dateRange.group.Quarter": "Quarter",
+  "dateRange.group.Year": "Year",
+  "dateRange.group.Rolling": "Rolling",
+  "dateRange.group.Fixed": "Fixed",
+  "dateRange.span": "{from} – {to}",
+  "dateRange.at.DATE": "On {date}",
+  "dateRange.at.FROM": "From {date}",
+  "dateRange.at.TO": "Until {date}",
+  "dateRange.count.LAST_DAYS": "{count, plural, one {Last {count} day} other {Last {count} days}}",
+  "dateRange.count.NEXT_DAYS": "{count, plural, one {Next {count} day} other {Next {count} days}}",
+  "dateRange.count.LAST_WEEKS": "{count, plural, one {Last {count} week} other {Last {count} weeks}}",
+  "dateRange.count.NEXT_WEEKS": "{count, plural, one {Next {count} week} other {Next {count} weeks}}",
+  "dateRange.count.LAST_MONTHS": "{count, plural, one {Last {count} month} other {Last {count} months}}",
+  "dateRange.count.NEXT_MONTHS": "{count, plural, one {Next {count} month} other {Next {count} months}}",
+  "dateRange.count.LAST_QUARTERS": "{count, plural, one {Last {count} quarter} other {Last {count} quarters}}",
+  "dateRange.count.NEXT_QUARTERS": "{count, plural, one {Next {count} quarter} other {Next {count} quarters}}",
+  "dateRange.count.LAST_YEARS": "{count, plural, one {Last {count} year} other {Last {count} years}}",
+  "dateRange.count.NEXT_YEARS": "{count, plural, one {Next {count} year} other {Next {count} years}}",
+  "dateRange.inclCurrent": "{range}, incl. current",
+  "dateRange.from": "from {date}",
+  "dateRange.until": "until {date}",
+  // Core filter words (asserted equal to core's tables by check:messages)
+  "filter.op.contains": "contains",
+  "filter.op.notContains": "does not contain",
+  "filter.op.equals": "is",
+  "filter.op.notEquals": "is not",
+  "filter.op.starts": "starts with",
+  "filter.op.ends": "ends with",
+  "filter.op.eq": "=",
+  "filter.op.ne": "≠",
+  "filter.op.gt": ">",
+  "filter.op.gte": "≥",
+  "filter.op.lt": "<",
+  "filter.op.lte": "≤",
+  "filter.op.between": "is between",
+  "filter.op.in": "is one of",
+  "filter.op.notIn": "is none of",
+  "filter.op.isTrue": "is yes",
+  "filter.op.isFalse": "is no",
+  "filter.op.empty": "is empty",
+  "filter.op.notEmpty": "is not empty",
+  "filter.dateOp.eq": "is on",
+  "filter.dateOp.ne": "is not on",
+  "filter.dateOp.gt": "is after",
+  "filter.dateOp.gte": "is on or after",
+  "filter.dateOp.lt": "is before",
+  "filter.dateOp.lte": "is on or before",
+  "filter.quoted": "“{text}”",
+  "filter.listSeparator": ", ",
+  "filter.say.none": "{field} {op}",
+  "filter.say.one": "{field} {op} {value}",
+  "filter.say.two": "{field} {op} {value} and {valueTo}",
+  "filter.say.isOne": "{field} is {value}",
+  "filter.say.isNotOne": "{field} is not {value}",
+  "filter.say.and": "{a} and {b}",
+  "filter.say.or": "{a} or {b}",
+  "filter.say.not": "not ({clause})",
+} as const satisfies Record<string, string>;
+
+export type MessageKey = keyof typeof DEFAULT_MESSAGES;
+export type ZenMessages = { [K in MessageKey]: string };

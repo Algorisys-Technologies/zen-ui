@@ -23,6 +23,8 @@ import { cn } from "../../../lib/cn";
  * SelectGroup, SelectItemPrimitive, etc. (advanced users).
  */
 
+const EMPTY_OPTION_KEY = "\u0000zen-empty";
+
 export interface SelectOption {
   value: string;
   label: string;
@@ -45,6 +47,18 @@ export type SelectProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "on
   label?: string;
   /** Optional error message shown below the trigger. */
   errorMessage?: string;
+  /** Marked invalid without a message (the form shows its own): aria-invalid and the error border. */
+  invalid?: boolean;
+  /** Open the list when the select mounts, as an inline editor does. */
+  defaultOpen?: boolean;
+  /** The list opened or closed. */
+  onOpenChange?: (open: boolean) => void;
+  /**
+   * Names the control when no visible `label` does. Lands on the trigger (the
+   * button that takes focus), where Kobalte reads it with the chosen value:
+   * "Condition 1, field, Status". On the root it named nothing.
+   */
+  "aria-label"?: string;
 };
 
 export const Select = (props: SelectProps) => {
@@ -60,14 +74,19 @@ export const Select = (props: SelectProps) => {
     "class",
     "label",
     "errorMessage",
+    "invalid",
     "id",
+    "aria-label",
   ]);
 
   return (
     <KSelect<SelectOption>
       {...rest}
       options={local.options}
-      optionValue="value"
+      // Kobalte keys options by value, and an empty key is dropped: a "" option
+      // ("All", "None") rendered blank and could not be re-selected. It is keyed
+      // by a private sentinel instead; callers still see "".
+      optionValue={(o) => (o.value === "" ? EMPTY_OPTION_KEY : o.value)}
       optionTextValue="label"
       optionDisabled="disabled"
       value={local.options.find((o) => o.value === local.value) ?? null}
@@ -77,12 +96,12 @@ export const Select = (props: SelectProps) => {
       disabled={local.disabled}
       required={local.required}
       name={local.name}
-      validationState={local.errorMessage ? "invalid" : "valid"}
+      validationState={local.errorMessage || local.invalid ? "invalid" : "valid"}
       itemComponent={(itemProps) => (
         <KSelect.Item
           item={itemProps.item}
           class={cn(
-            "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-1.5 zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
+            "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
             "data-[highlighted]:zen-bg-zen-muted",
             "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
           )}
@@ -105,8 +124,12 @@ export const Select = (props: SelectProps) => {
           Kobalte root, so `<label for={id}>` associates and names the control. */}
       <KSelect.Trigger
         id={local.id}
+        aria-label={local["aria-label"]}
+        // Kobalte marks the trigger data-invalid only; a screen reader is told
+        // through aria-invalid, on the control that has focus.
+        aria-invalid={local.errorMessage || local.invalid ? "true" : undefined}
         class={cn(
-          "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-10 zen-px-3 zen-w-full",
+          "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-zen-control zen-px-zen-control-x zen-w-full",
           "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-sm zen-text-zen-foreground",
           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
           "data-[disabled]:zen-cursor-not-allowed data-[disabled]:zen-opacity-50",

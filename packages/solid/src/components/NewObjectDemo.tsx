@@ -64,6 +64,26 @@ const NewObjectDemo = () => (
     </DemoSection>
 
     <DemoSection
+      title="2b. ObjectStatus — stamp"
+      codeTitle="stamp: a document's status, ruled and uppercase"
+      codeDescription="How a document wears its status at the top of its page: a ruled box in the state's colour, never rotated. Mapping the status words to states stays the app's."
+      code={`<ObjectStatus stamp state="none">Draft</ObjectStatus>
+<ObjectStatus stamp state="info">Submitted</ObjectStatus>
+<ObjectStatus stamp state="success">Paid</ObjectStatus>
+<ObjectStatus stamp state="error">Overdue</ObjectStatus>
+<ObjectStatus stamp state="none">Cancelled</ObjectStatus>`}
+    >
+      <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-3" data-testid="stamps">
+        <ObjectStatus stamp state="none">Draft</ObjectStatus>
+        <ObjectStatus stamp state="info">Submitted</ObjectStatus>
+        <ObjectStatus stamp state="success">Paid</ObjectStatus>
+        <ObjectStatus stamp state="warning">Partly paid</ObjectStatus>
+        <ObjectStatus stamp state="error">Overdue</ObjectStatus>
+        <ObjectStatus stamp state="none">Cancelled</ObjectStatus>
+      </div>
+    </DemoSection>
+
+    <DemoSection
       title="3. ObjectStatus — custom icon, and no icon"
       codeTitle="icon overrides the state default; icon={null} drops it"
       code={`<ObjectStatus state="success" icon="star">Featured</ObjectStatus>

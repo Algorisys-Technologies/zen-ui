@@ -2,6 +2,7 @@ import { For, Show, createMemo, createSignal, splitProps } from "solid-js";
 import { cn } from "../../../lib/cn";
 import { Button } from "../../button/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover/popover";
+import { useLocale } from "../../locale/locale";
 
 /**
  * Calendar — custom month-grid built for the Solid binding (no
@@ -89,6 +90,7 @@ const monthMatrix = (anchor: Date): Date[][] => {
 };
 
 export const Calendar = (props: CalendarProps) => {
+  const loc = useLocale();
   // Seeds which MONTH opens, once: `defaultMonth`, else the month of `selected`,
   // else today. `props.selected` is read reactively further down (isSelected /
   // inRange / the day cells), so the SELECTION renders correctly regardless —
@@ -165,8 +167,51 @@ export const Calendar = (props: CalendarProps) => {
     return false;
   };
 
+  /**
+   * Keys between days, as in any date grid: ← → a day (mirrored right to
+   * left), ↑ ↓ a week, Home / End the week's ends, PageUp / PageDown a month
+   * (with Shift, a year). Crossing the visible months turns the page. These
+   * keys did nothing before, so nothing that worked changes.
+   */
+  let root: HTMLDivElement | undefined;
+  const onDayKey = (e: KeyboardEvent, from: Date) => {
+    const rtl = getComputedStyle(e.currentTarget as Element).direction === "rtl";
+    const day = (n: number) => new Date(from.getFullYear(), from.getMonth(), from.getDate() + n);
+    const month = (n: number) => {
+      const t = new Date(from.getFullYear(), from.getMonth() + n, 1);
+      const last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+      return new Date(t.getFullYear(), t.getMonth(), Math.min(from.getDate(), last));
+    };
+    let target: Date | null = null;
+    switch (e.key) {
+      case "ArrowLeft": target = day(rtl ? 1 : -1); break;
+      case "ArrowRight": target = day(rtl ? -1 : 1); break;
+      case "ArrowUp": target = day(-7); break;
+      case "ArrowDown": target = day(7); break;
+      case "Home": target = day(-from.getDay()); break;
+      case "End": target = day(6 - from.getDay()); break;
+      case "PageUp": target = month(e.shiftKey ? -12 : -1); break;
+      case "PageDown": target = month(e.shiftKey ? 12 : 1); break;
+    }
+    if (!target) return;
+    e.preventDefault();
+    const first = viewMonth();
+    const lastShown = addMonths(first, numberOfMonths() - 1);
+    const t = target;
+    if (t < new Date(first.getFullYear(), first.getMonth(), 1)) setViewMonth(new Date(t.getFullYear(), t.getMonth(), 1));
+    else if (t > new Date(lastShown.getFullYear(), lastShown.getMonth() + 1, 0)) setViewMonth(addMonths(new Date(t.getFullYear(), t.getMonth(), 1), -(numberOfMonths() - 1)));
+    // After the page has turned: the in-month copy of the day (neighbouring months show greyed copies).
+    queueMicrotask(() => {
+      const label = t.toDateString();
+      const btn =
+        root?.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]:not([data-outside])`) ?? // i18n-ignore (a selector)
+        root?.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`); // i18n-ignore (a selector)
+      btn?.focus();
+    });
+  };
+
   return (
-    <div class={cn("zen-p-3 zen-inline-block", props.class)}>
+    <div ref={root} class={cn("zen-p-3 zen-inline-block", props.class)}>
       <div class="zen-flex zen-gap-4">
         <For each={Array.from({ length: numberOfMonths() }, (_, i) => i)}>
           {(monthOffset) => {
@@ -183,7 +228,7 @@ export const Calendar = (props: CalendarProps) => {
                       type="button"
                       onClick={() => setViewMonth(addMonths(viewMonth(), -1))}
                       class="zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer hover:zen-bg-zen-muted"
-                      aria-label="Previous month"
+                      aria-label={loc.t("calendar.previousMonth")}
                     >
                       ‹
                     </button>
@@ -194,7 +239,7 @@ export const Calendar = (props: CalendarProps) => {
                       type="button"
                       onClick={() => setViewMonth(addMonths(viewMonth(), 1))}
                       class="zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer hover:zen-bg-zen-muted"
-                      aria-label="Next month"
+                      aria-label={loc.t("calendar.nextMonth")}
                     >
                       ›
                     </button>
@@ -231,7 +276,9 @@ export const Calendar = (props: CalendarProps) => {
                                     disabled={isDisabled()}
                                     aria-label={d.toDateString()}
                                     aria-pressed={isSel()}
+                                    data-outside={isOutside() ? "" : undefined}
                                     onClick={() => handleSelect(d)}
+                                    onKeyDown={(e) => onDayKey(e, d)}
                                     class={cn(
                                       "zen-h-8 zen-w-8 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm",
                                       "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-sm zen-transition-colors",
@@ -275,9 +322,17 @@ export type DatePickerProps = {
   disabled?: boolean | ((d: Date) => boolean);
   class?: string;
   formatDate?: (date: Date) => string;
+  /**
+   * Where focus lands when the calendar opens. "first" (default, as before):
+   * the first control, "Previous month". "selected": the chosen day (else
+   * today), so the arrow keys move between days at once. "selected" becomes the
+   * default in the next major version.
+   */
+  initialFocus?: "first" | "selected";
 };
 
 export const DatePicker = (rawProps: DatePickerProps) => {
+  const loc = useLocale();
   const [props] = splitProps(rawProps, [
     "value",
     "defaultValue",
@@ -286,6 +341,7 @@ export const DatePicker = (rawProps: DatePickerProps) => {
     "disabled",
     "class",
     "formatDate",
+    "initialFocus",
   ]);
   const isControlled = () => props.value !== undefined;
   const [open, setOpen] = createSignal(false);
@@ -314,9 +370,22 @@ export const DatePicker = (rawProps: DatePickerProps) => {
           props.class,
         )}
       >
-        {date() ? fmt(date()!) : (props.placeholder ?? "Pick a date")}
+        {date() ? fmt(date()!) : (props.placeholder ?? loc.t("datePicker.placeholder"))}
       </PopoverTrigger>
-      <PopoverContent class="zen-w-auto zen-p-0">
+      <PopoverContent
+        class="zen-w-auto zen-p-0"
+        onOpenAutoFocus={(e: Event) => {
+          if (props.initialFocus !== "selected") return; // the first control, as before
+          const panel = e.currentTarget as HTMLElement;
+          const day =
+            panel.querySelector<HTMLButtonElement>('button[aria-pressed="true"]:not(:disabled)') ??
+            panel.querySelector<HTMLButtonElement>(`button[aria-label="${new Date().toDateString()}"]:not(:disabled)`); // i18n-ignore (a selector, not text)
+          if (day) {
+            e.preventDefault();
+            day.focus();
+          }
+        }}
+      >
         <Calendar
           mode="single"
           selected={date()}

@@ -6,6 +6,380 @@ issue / PR when its turn comes.
 
 ---
 
+## Order of work (owner, 2026-11-04)
+
+1. **Finish Solid first.** New components and the ERPNext review items are
+   built and settled in Solid only.
+2. **Then parity, in this order: React, then vanilla, then web-components.**
+   Every "Parity: … (Solid only)" item below is part of that pass. React stays
+   the API reference: where Solid's shape would not suit React, reconcile before
+   porting, not after.
+3. **Publish to npm** (owner, 2026-11-04: "just like tinyfly and yappydraw",
+   https://www.npmjs.com/package/@algorisys/tinyfly). Queued after the current
+   task, not started. Match how those packages publish (scope, metadata,
+   workflow); the tarballs already install cleanly (CLAUDE.md, check:package).
+   When it is live, add it to "Ship it" in CLAUDE.md.
+
+
+## Parity: DataTable `enableRowVirtualization` (Solid only, 2026-11-04)
+
+- [ ] **Port to React, then vanilla, then web-components**, from the Solid
+      DataTable (`VirtualRows` and the `virtualize` path of `BodyTable`): spacer
+      rows around the mounted window, the expanded panel as an item of its own,
+      `getItemKey` / `rangeExtractor` returned as NEW functions when what they
+      read changes (the virtualizer recomputes only on identity), the tab stop
+      and the editing row kept mounted, focus restored when a list update moved
+      the focused row (a moved node drops focus), the estimate learned from the
+      first measured row, `keepInView` nudging the scroller only. Bring the
+      group-row fix with it (a grouped row never opens `renderSubRow`). Add the
+      "6b. Row virtualization" demo section to each, then regenerate the skill
+      API docs (they are built from the React types).
+      Also port the row drag (BodyTable `startDrag`: drop index from the
+      virtualizer's layout, edge autoscroll, Esc, the dragged row kept mounted,
+      every window listener removed on drop and on unmount), the de-duplicated
+      kept rows (a row both focused and edited was mounted twice), and
+      `RowMoveContext` (an editor ignores the blur a DOM move causes).
+- [ ] **Port this round's Solid DataTable fixes**: the inline number editor
+      takes focus (React has the same bug); the select editor opens at once
+      (React already does); sort priority only for 2+ sorted columns and no
+      `zen-text-[1rem]` (React shows it always; vanilla has the size only).
+      Solid gained `enableFilterOperators` from React.
+- [ ] **Reconcile UrlDataTable's filter operators.** React turns them off (the
+      server owns the predicate, and its chip showed "[object Object]"); Solid
+      keeps them and writes `id:op:value` to the URL, with no such bug. React is
+      the reference, but switching Solid off removes a working control: decide.
+- [ ] **Keyboard reordering of rows** (both bodies): the drag handle has no
+      keyboard path yet.
+
+## Parity: DataTable `enableCellNavigation` (Solid only, 2026-11-04)
+
+- [ ] **Port to React, then vanilla, then web-components**, from the Solid
+      BodyTable's "cell navigation" section: one capture-phase keydown and one
+      pointerdown / copy / paste / dblclick listener on the table (not per
+      cell), the active cell as the tab stop, Shift extends from the active
+      cell, the far corner scrolled to, RTL swapping ← →, Enter/Tab/Esc out of
+      an editor handled after the editor (a task later, since editors'
+      handlers are delegated), `keepCellInView` clear of the sticky header and
+      pinned columns. Core's `grid-range` is shared already. Also: the typed
+      seed (`EditingState.seed`), `EditableCell` `navigable`, `onCellsEdit`,
+      editors that end once (React: check whether Esc saves there too), focus
+      restored after a row rebuild (for keyboard rows as well), and
+      `overflow-anchor: none` on the virtualized scroller. Add the "6c" demo.
+- [ ] **Fill handle and row adding** in cell mode (drag a cell's corner to copy
+      down; Ctrl+Insert to add a row, as the ERP's ChildGrid does), then move
+      ChildGrid onto DataTable.
+
+## Parity: ContextMenu and DataTable `contextMenu` (Solid only, 2026-11-04)
+
+- [ ] **Port to React (Radix `@radix-ui/react-context-menu`, the shadcn parts),
+      then vanilla, then web-components.** From Solid's
+      `context-menu/context-menu.tsx`: the menu key and Shift+F10 open it at the
+      focused element's corner (a dispatched contextmenu; the browser's own
+      keyboard contextmenu suppressed only while the key is held, never a
+      button-2 one), the first item focused when opened by key, focus returned
+      to what it was opened on. DataTable: `contextMenu(target)`, `data-row-id`
+      / `data-column` only when set, a right-click focuses the row or cell,
+      `DataTableMenuTarget` exported. Add the /context-menu demo and "6d".
+- [ ] **Never pass `a && b` or `a ? b : c` as a child component's prop when it
+      can be read from a native handler.** Solid compiles them into a memo per
+      read; read outside an owner, each leaks a computation. Pass an accessor
+      call. Found and fixed in DataTable's BodyTable props (2026-11-04); worth a
+      sweep of the other components' native handlers.
+
+## Parity: Shortcuts (Solid only, 2026-11-04)
+
+- [ ] Port Kbd, the provider and hook (React: a context + useEffect; vanilla and
+      WC: a registry object and an element), ShortcutHelp, keyshortcut() and
+      shortcutLabel(), on core's `keys` (shared already). Demo /shortcuts.
+      ERPNext review A2.
+- [ ] Then let components name their keys: a `shortcut` prop on Button, menu
+      items (DropdownMenuShortcut / ContextMenuShortcut from a chord) and Tooltip,
+      so the label, aria-keyshortcuts and the registered key cannot disagree.
+- [ ] F6 pane cycling (review A3) can be one more registration on this.
+
+## Parity: DataTable server-side export (onExport, ExportRequest) (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `export-request` (shared already).
+      The request must be identical across bindings (same column order, same
+      inferred formats, same filter shapes) — a server is written once.
+      Selected ids come from the selection STATE (ids), not loaded rows.
+- [ ] Not in this cut: an "export the current page" scope; a progress
+      indicator for a background-job export (onExport could return a handle);
+      a client-side .xlsx writer for small offline tables (owner: export is the
+      server's; revisit only if asked).
+
+## Parity: DataTable totals (meta.aggregate) and the no-variant filter fix (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `aggregate` (shared already). In
+      Solid a footer function must RETURN A GETTER: flexRender mounts it as a
+      component, whose body runs once, so a computed value never followed a
+      filter (measured). The "Total" label is chosen at render time (first
+      visible column without a total), because grouping moves columns. Check
+      React's DataTable for the no-variant filter bug too: an `{ op, value }`
+      filter on a column with TanStack's auto filterFn matches nothing.
+- [ ] Not in this cut: a totals row for selected rows only; totals in
+      the CSV / Excel export (C4 will want them).
+
+## B1: translatable strings — batches 2 and 3 (2026-11-04)
+
+- [x] Batch 2: tables and data (DataTable, url-data-table, tree-table,
+      Pagination, Pivot*, SpreadsheetGrid, Chart, MicroChart).
+- [x] Batch 3: everything else on check:strings' NOT_YET_SWEPT list, plus
+      words generated in CORE (FilterBuilder's operator words and summary
+      sentence from core filter.ts; DynamicDateRange's period names from core
+      date-range.ts; Barcode/QR error reasons from core barcode.ts). Core
+      functions take English today; give them a message lookup (same keys), so
+      describeFilter etc. translate too. Done: optional `t` on
+      formatDateRangeValue / operatorLabel / describeFilter, barcode error
+      `code` + `values`; NOT_YET_SWEPT is empty (135 of 135 clean).
+- [x] Combobox takes `id` and `aria-label` (on its input): `<label for>` names
+      and focuses it (measured).
+- [x] Each batch: route snapshots must be identical to the baseline for every
+      pre-existing route (see "Regression proof" above). Batches 1, 2 and 3
+      measured: 120 of 120 identical after batch 3.
+- [ ] Parity: React / vanilla / web-components read the same core catalogue;
+      check:strings to be extended to each binding in the parity pass.
+
+## Parity: AmountField, QuantityField, LocaleProvider, ObjectNumber number= (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `number-format` (shared already).
+      LocaleProvider is OPTIONAL everywhere: a component reads its own prop,
+      then the provider, then the old behaviour. Demo /amount-field.
+      ERPNext review B2.
+- [x] The field hints moved to the message catalogue (B1 batch 1).
+- [ ] Not in this cut: a DataTable amount column / cell editor on AmountField;
+      ↑↓ stepping in AmountField (NumberField has it).
+
+## Regression proof for sweeping changes: route snapshots (2026-11-04)
+
+The owner's rule: existing code must not break. For a change that touches
+many components (B1's strings), snapshot every demo route's accessibility
+tree before and after; every pre-existing route must be identical. Scripts
+(session scratchpad, worth promoting to scripts/): snapshot-routes.mjs (fixed
+clock and Math.random, masked generated ids) and compare-snaps.mjs. Two runs of
+unchanged code agree on 117 of 118 routes; the welcome page's lazy preview
+images are the only noise (bare "- img" lines, ignored). B2 measured: 117/118
+identical, the welcome catalogue the only change (the new entry).
+
+## Parity: ViewManager (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `views` (shared already). Kobalte
+      behaviours it had to work round, all found by driving it: radio items in
+      a menu stay open by default (closeOnSelect for a picker); a dialog opened
+      through `open` gets no onOpenChange (reset state in an effect on open);
+      replacing the focused button inside a dialog lets the focus trap move
+      focus, so a two-step delete is ONE button that changes in place. Check
+      each against Radix. Demo /view-manager (localStorage; a ?view= link).
+      ERPNext review B3.
+- [ ] Put it in FilterBar's `variant` slot in a List Report demo, with a
+      DataTable's sort/columns state, once the parity pass reaches FilterBar.
+
+## Parity: FilterBuilder (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `filter` (shared already). Three
+      Solid traps it hit, all measured: rows must be keyed by node ID (each edit
+      builds a new tree; keying by object re-creates the row being typed into);
+      the value editor must depend on the field's TYPE, memoised (reading the
+      field re-ran it on every edit); and Select option lists must be stable
+      and handlers must ignore a "change" to the current value (Kobalte reports
+      the selection again when options change identity: a stack overflow).
+      React will not have the first two, but check the third against Radix.
+      Demo /filter-builder. ERPNext review C5.
+- [ ] Not in this cut: drag to reorder conditions; a "relative date" value
+      (this month, last 7 days, as DynamicDateRange has); a server-side
+      translator (filter -> SQL / Frappe filters) is the consumer's.
+
+## Parity: QRCode and Barcode (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `barcode` (shared already, with
+      `qrPath`): SVG, crispEdges, quiet zone drawn, dark on light via
+      --zen-code-dark/--zen-code-light, the reason shown in place of a code that
+      cannot be encoded. Demo /barcode. ERPNext review C6. Verify by decoding the
+      RENDERED page with zxing-cpp at whole pixels per module (the Solid drive
+      script rasterises the SVG in the page and reads its pixels).
+- [ ] Not in this cut: GS1-128 (FNC1 and application identifiers), EAN-8 /
+      UPC-A, a logo over the QR's middle (needs level H), a QR "Kanji" mode.
+- [ ] Do not test QR detection with ZXing-js: its detector misses ~1 large
+      symbol in 8 from ANY encoder (bit-identical grids from the qrcode package
+      failed on the same 27 of 203); zxing-cpp finds all.
+
+## Parity: LookupField (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `lookup` (shared already). The list
+      is ONE grid with the header and rows as subgrids (separate grids per row
+      could only align fixed widths: the flexible column was squeezed to "H…"
+      while an alignment check passed); its placement is Solid's
+      lib/anchored.ts (portal, flip, follow scroll, kept on screen). The field
+      never keeps text that is not a row; Tab picks only after a search; Esc
+      closes, then undoes; onSearch is debounced and aborts the stale request.
+      Demo /lookup-field. ERPNext review C2.
+- [ ] A LookupField cell editor for DataTable (the invoice-line item column).
+- [ ] React check: does Radix Tabs inside a Dialog swallow Esc as Kobalte's did
+      (fixed in Solid's TabsList, 2026-11-04)? Test ValueHelp there before porting.
+
+## Parity: DateInput (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `date-input` (shared already): the
+      field reads on Enter / blur and keeps invalid text marked (never
+      rewritten); Esc reverts; ↑ ↓ a day, Shift a month, within min / max /
+      isDateDisabled; Alt+↓ opens the calendar FOCUSED ON THE CHOSEN DAY (else
+      today), and closing returns focus to the field, not the calendar button
+      (which is tabIndex -1). Demo /date-input. ERPNext review C1.
+- [ ] The same typed reading for DateRangePicker and DateTimePicker, and a
+      DataTable date editor built on it.
+- [x] **Closed:** DatePicker `initialFocus="selected"` (opt-in; the default
+      stays "first" until the next major), and the Calendar's days now take the
+      arrow keys (← → ↑ ↓, Home / End, PageUp / PageDown, Shift for a year),
+      which did nothing before. Original note:
+      Solid's Calendar opens focused on "Previous month" (DatePicker too);
+      DateInput works round it with onOpenAutoFocus. Fix it in Calendar itself
+      once the owner agrees the change of focus is not breaking.
+
+## Parity: TreeSelect (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `tree-select` (shared already):
+      combobox + role="tree" popup with aria-activedescendant; typing into the
+      closed field starts a fresh search; the first pickable match active; ← →
+      are the text's while there is text; only a key scrolls the list (hover
+      would slide it under the pointer); groups in leavesOnly are operable, not
+      aria-disabled. Demo /tree-select. ERPNext review B4.
+- [ ] A tree mode for ValueHelp (B4's second half), and async children for big
+      trees.
+
+## Parity: Tile and TileGrid (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass: tiles as links / buttons / plain elements by
+      what they do, `locked` (activatable), the one-tab-stop grid whose ↑↓ follow
+      the laid-out columns (measured from offsetTop, so they survive a column
+      dropping), `--zen-tile-min-width`, and the grid being full width. Demo
+      /tile. Gaps report item 4.
+
+## Parity: the gaps-report batch (Solid only, 2026-11-04)
+
+- [ ] Port with the rest of the parity pass (ERPNext docs/zen-ui-component-gaps.md
+      items 2–11): ShellBar `search` (with `bar.compact`); SegmentedButtonItem
+      `count` (named "Paid, 4"); StatCard `size="lg"` and `chart`, and the
+      card-link underline fix; MicroBarChart `baseline`; ObjectStatus `stamp`
+      (soft-fg colours); the table tokens read by each binding's table
+      primitives and DataTable header buttons; the ObjectPage section-title
+      token; Combobox and Select `invalid`, Input's aria-invalid border, and
+      Select's aria-invalid; DocumentTabs `closeLabel`; the list resets
+      (Breadcrumb, Stepper, FileUpload: check each binding's own lists).
+
+## Parity: Sidebar collapse modes and counts (Solid only, 2026-11-04)
+
+- [ ] Port `collapseMode`, `overlay` (container-width breakpoint; Esc, outside
+      click and link-follow close it; focus in and back; leaving overlay restores
+      the earlier state), `SidebarHeaderLabel`, `SidebarMenuBadge`,
+      `SidebarMenuSub badge`, the header-on-the-rail fix, and the menu button's
+      link styling to React, vanilla and web-components, with demo sections 3
+      and 4. Gaps report item 1 (ERPNext docs/zen-ui-component-gaps.md).
+
+## Decided: MicroBarChart's default baseline (2026-11-04)
+
+- [x] **Closed (owner: no breaking changes):** the default stays as it is;
+      `baseline="zero"` is the opt-in (Solid, shipped). Making it the default is
+      a next-major change. Original note:
+      MicroBarChart stretches the values' range over its height by default, so
+      a bar's length is not its value (31 against 55 drew as a sliver against a
+      full bar). Fine for a sparkline's shape, misleading for any figure read
+      as an amount. `baseline="zero"` is opt-in now (Solid); making it the
+      default is a visible change for every existing chart, so a major-version
+      call for the owner. React's MicroBarChart likely shares the behaviour.
+
+## Decided: warning text contrast (found 2026-11-04)
+
+- [x] **Closed (owner: no breaking changes):** an opt-in token. Warning TEXT
+      (ObjectStatus, ObjectNumber, Countdown, StatCard's trend) now reads
+      `--zen-color-warning-text`, falling back to `--zen-color-warning`, so
+      every page looks exactly as before (measured: 21 elements, 3 themes,
+      identical computed colour); `:root { --zen-color-warning-text:
+      var(--zen-color-warning-soft-fg); }` makes it 5.23:1. The default
+      changes in the next major. Original note:
+      `--zen-color-warning` as text on white is 1.77:1 (body text needs 4.5:1);
+      `--zen-color-warning-soft-fg` is 5.23:1. ObjectStatus (plain, `state="warning"`)
+      and ObjectNumber use the plain colour for text, so warning statuses are
+      hard to read. The new stamp uses soft-fg. Switching the existing text to
+      soft-fg is a visible change: the owner's call (a fix, or a major).
+
+## Demo site: the "New" tag (owner, 2026-11-04)
+
+- [ ] Solid's `nav.ts` entries take `since` (the version a component first ships
+      in) and the sidebar and catalogue mark them **New** while that is the
+      current release's minor or later, so the mark expires on its own. Mark
+      every new component with `since`. Port the field and the pill to the
+      React, vanilla and web-components demos with their components.
+- [x] The Solid demo header and the catalogue heading disagreed: the catalogue
+      counted the Patterns group (screens built from components). It counts as
+      the header does now (both 117).
+
+## ERPNext review: section C (from the commercial suites, 2026-11-04)
+
+- [ ] Read with the owner's decisions: typed dates (DatePicker has no text
+      input, confirmed), a table combobox, grid totals (DataTable already renders
+      a column `footer`; missing are declarative aggregates, a sticky totals row
+      and group subtotals), xlsx/PDF export, a filter builder, barcode and QR
+      generation; then scheduler, smart-paste/AI hooks, hierarchy diagrams, a
+      file manager. ERPNext docs/zen-ui-desktop-erp-review.md.
+
+## Demos: two build JSX outside a root (found 2026-11-04)
+
+- [ ] `NewDiffViewDemo.tsx` (line ~35) and `NewObjectPageDemo.tsx` build
+      components at module load, so Solid warns "computations created outside
+      a `createRoot`" on every demo page. Move that JSX into the components.
+
+## Architecture: themeless core, themes as a package (owner, 2026-11-04)
+
+- [ ] **For discussion.** The owner wants zen-ui themeless, with themes in a
+      separate package or folder: a headless use, the default theme, and
+      extending a theme. Today the bindings ship styled components on
+      `--zen-*` tokens, and core carries tokens.css with the five themes.
+
+## From the ERPNext port (2026-11-04)
+
+- [ ] **BreadcrumbList's `<ol>` keeps the browser's list style**: without the
+      opt-in preflight every BreadcrumbSeparator `<li>` shows "1." "2." and the
+      row is 44px tall instead of 20. Reset list-style, margin and padding on
+      the component itself (ERPNext docs/zen-ui-component-gaps.md, item 11).
+- [ ] **Desktop-app gaps the ERP reported**: Sidebar that can hide completely
+      when collapsed, and a narrow-screen overlay; counts on filter tabs;
+      launchpad tiles; a KPI hero with a chart; a status stamp; table tokens.
+      The owner is reviewing ERPNext's full report and will send it.
+- [ ] **Deprecate `enableVirtualization`** at the next major, in favour of
+      `enableRowVirtualization` (a visual change for its users, hence a major).
+
+## Parity: DocumentTabs (Solid only, 2026-11-03)
+
+- [ ] **Port DocumentTabs to React, then vanilla, then web-components**, from
+      `packages/solid/src/components/document-tabs/document-tabs.tsx` (the
+      reference for behaviour: manual activation, Delete closes, middle-click
+      closes, strip-only scrolling, per-tab ResizeObserver so a font load or a
+      label change keeps the active tab in view, cleanup of refs and observers
+      per tab). Then React's shape becomes the API reference (CLAUDE.md, binding
+      parity), the demos match, the React nav.ts entry is added and
+      `bun run gen:agent-guide` and `gen:skill-api` are rerun.
+      `check:parity` stays red until all four land. Built Solid-first for
+      Algorisys One's workspace (its docs/UI-DESKTOP-PLAN.md, phase 2).
+
+## Parity: DataTable keyboard rows (Solid only, 2026-11-03)
+
+- [ ] **Port `enableKeyboardNavigation` / `onRowActivate` / `rowLabel` to React,
+      then vanilla, then web-components**, from the Solid DataTable's plain
+      body (`BodyTable`): roving tabindex on rows, the index clamped as rows
+      change, keys from `@algorisys/zen-ui-core/row-keys` (`rowKeyTarget`,
+      `ownsArrowKeys`), Alt left alone, Enter/Space/Ctrl+A on the row itself
+      only, the focus-visible outline. Add the "5b. Keyboard rows" demo
+      section to each. Then extend all four to the virtualized and
+      row-ordering bodies, which ignore the flag today.
+
+## Demos: DataTable `fillHeight`, ShellBar `profile.menu` (2026-11-04)
+
+- [ ] **A demo section for each, in all four bindings.** Both shipped in every
+  binding with no demo: `fillHeight` (a list that is the page's main pane — needs
+  a fixed-height frame to show anything) and `profile.menu` (a profile menu with
+  radio groups). Driven in a real app (the ERPNext port) instead; add the
+  sections together so the demos keep matching.
+
 ## Housekeeping / release readiness
 
 The migration on `ui-refactor` is feature-complete but hasn't been

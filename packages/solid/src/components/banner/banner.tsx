@@ -1,6 +1,7 @@
 import { type JSX, splitProps } from "solid-js";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Banner — page-top persistent callout. Compound API mirroring the
@@ -128,11 +129,12 @@ export type BannerCloseProps = Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>,
 };
 
 export const BannerClose = (props: BannerCloseProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <button
       type="button"
-      aria-label="Dismiss banner"
+      aria-label={loc.t("banner.dismissBanner")}
       class={cn(
         "zen-flex-shrink-0 zen-inline-flex zen-items-center zen-justify-center",
         "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",

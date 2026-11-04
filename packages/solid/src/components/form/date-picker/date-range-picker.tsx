@@ -3,6 +3,7 @@ import { cn } from "../../../lib/cn";
 import { Button } from "../../button/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover/popover";
 import { Calendar, type DateRange } from "./date-picker";
+import { useLocale } from "../../locale/locale";
 
 /**
  * DateRangePicker — Solid port. Trigger shows "From – To" summary, opens
@@ -32,6 +33,7 @@ const isCompleteRange = (range: DateRange | undefined): boolean =>
   Boolean(range?.from && range?.to);
 
 export const DateRangePicker = (rawProps: DateRangePickerProps) => {
+  const loc = useLocale();
   const [props] = splitProps(rawProps, [
     "value",
     "defaultValue",
@@ -95,7 +97,7 @@ export const DateRangePicker = (rawProps: DateRangePickerProps) => {
 
   const label = () => {
     const r = committed();
-    if (!r?.from) return props.placeholder ?? "Pick a date range";
+    if (!r?.from) return props.placeholder ?? loc.t("dateRangePicker.placeholder");
     if (!r.to) return fmt(r.from);
     return `${fmt(r.from)} – ${fmt(r.to)}`;
   };
@@ -126,7 +128,7 @@ export const DateRangePicker = (rawProps: DateRangePickerProps) => {
         />
         <div class="zen-flex zen-justify-end zen-gap-2 zen-border-t zen-border-zen-border zen-px-3 zen-py-2">
           <Button type="button" variant="ghost" color="neutral" size="sm" onClick={handleCancel}>
-            {props.cancelLabel ?? "Cancel"}
+            {props.cancelLabel ?? loc.t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -136,7 +138,7 @@ export const DateRangePicker = (rawProps: DateRangePickerProps) => {
             onClick={handleDone}
             disabled={!isCompleteRange(draft())}
           >
-            {props.doneLabel ?? "Done"}
+            {props.doneLabel ?? loc.t("common.done")}
           </Button>
         </div>
       </PopoverContent>

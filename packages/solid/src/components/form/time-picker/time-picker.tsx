@@ -1,5 +1,6 @@
 import { type JSX, Show, createMemo, createSignal, mergeProps, splitProps } from "solid-js";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * TimePicker — segmented HH:MM[:SS] input. 24h emitted regardless of
@@ -61,6 +62,7 @@ const fromTwelve = (h12: number, period: "AM" | "PM"): number => {
 };
 
 export const TimePicker = (rawProps: TimePickerProps) => {
+  const loc = useLocale();
   const props = mergeProps(
     {
       format: "24h" as Format,
@@ -147,7 +149,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
       id={local.id}
       class={cn("zen-inline-flex zen-items-center zen-gap-1", local.class)}
       role="group"
-      aria-label={local["aria-label"] ?? "Time"}
+      aria-label={local["aria-label"] ?? loc.t("timePicker.label")}
     >
       <input
         type="text"
@@ -192,7 +194,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
         disabled={local.disabled}
         readOnly={local.readOnly}
         class={segmentStyle}
-        aria-label="Hours"
+        aria-label={loc.t("timePicker.hours")}
       />
       <span class="zen-text-zen-muted-fg">:</span>
       <input
@@ -213,7 +215,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
         disabled={local.disabled}
         readOnly={local.readOnly}
         class={segmentStyle}
-        aria-label="Minutes"
+        aria-label={loc.t("timePicker.minutes")}
       />
       <Show when={local.showSeconds}>
         <span class="zen-text-zen-muted-fg">:</span>
@@ -231,7 +233,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
           disabled={local.disabled}
           readOnly={local.readOnly}
           class={segmentStyle}
-          aria-label="Seconds"
+          aria-label={loc.t("timePicker.seconds")}
         />
       </Show>
       <Show when={local.format === "12h"}>
@@ -245,7 +247,7 @@ export const TimePicker = (rawProps: TimePickerProps) => {
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
           )}
         >
-          {period()}
+          {period() === "AM" ? loc.t("timePicker.am") : loc.t("timePicker.pm")}
         </button>
       </Show>
       <Show when={local.name}>

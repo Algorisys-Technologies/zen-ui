@@ -16,6 +16,7 @@
  * is how a third binding could exist and be checked by nothing.
  */
 import { existsSync, readFileSync } from "node:fs";
+import ts from "typescript";
 import { BINDINGS } from "./bindings.mjs";
 
 let f = 0;
@@ -28,6 +29,12 @@ for (const b of BINDINGS) {
   console.log(`\n${b.id}`);
   const router = readFileSync(b.router, "utf8");
   const nav = readFileSync(`${b.dir}/src/nav.ts`, "utf8");
+
+  // Parse it first: everything below reads nav.ts with regexes, which pass on a
+  // file that does not compile. A stray quote in nav.ts once blanked the whole
+  // Solid demo (Vite: "Transform failed") while this check said ok.
+  const syntax = ts.transpileModule(nav, { reportDiagnostics: true, fileName: "nav.ts" }).diagnostics ?? [];
+  t(syntax.length === 0, "nav.ts parses", syntax.map((d) => ts.flattenDiagnosticMessageText(d.messageText, " ")).join("; "));
 
   const imports = new Map<string, string>();
   for (const m of router.matchAll(b.importRe)) imports.set(m[1], m[2]);

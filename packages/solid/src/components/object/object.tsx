@@ -1,6 +1,8 @@
 import { type JSX, Show, splitProps } from "solid-js";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { formatAmount, formatNumber } from "@algorisys/zen-ui-core/number-format";
+import { useLocale } from "../locale/locale";
 import { Icon, type IconName } from "../icon/icon";
 
 /**
@@ -16,7 +18,7 @@ export type ObjectState = "none" | "success" | "warning" | "error" | "info";
 const STATE_TEXT: Record<ObjectState, string> = {
   none: "zen-text-zen-foreground",
   success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   error: "zen-text-zen-error",
   info: "zen-text-zen-info",
 };
@@ -68,7 +70,24 @@ export type ObjectStatusProps = Omit<JSX.HTMLAttributes<HTMLSpanElement>, "color
      * not carry meaning.
      */
     stateAnnouncement?: string;
+    /**
+     * A document's status as a stamp: a ruled box in the state's colour,
+     * uppercase and letter-spaced, never rotated (DRAFT, SUBMITTED, CANCELLED).
+     * No icon unless one is given. The neutral state is a muted grey.
+     */
+    stamp?: boolean;
   };
+
+// The soft-fg colours, not the plain state colours: warning's plain colour is
+// 1.77:1 on white, unreadable as text; its soft-fg is 5.23:1. For success,
+// error and info the two are the same colour (measured on the default theme).
+const STAMP_TEXT: Record<ObjectState, string> = {
+  none: "zen-text-zen-muted-fg",
+  success: "zen-text-zen-success-soft-fg",
+  warning: "zen-text-zen-warning-soft-fg",
+  error: "zen-text-zen-error-soft-fg",
+  info: "zen-text-zen-info-soft-fg",
+};
 
 export const ObjectStatus = (props: ObjectStatusProps) => {
   const [local, rest] = splitProps(props, [
@@ -76,18 +95,29 @@ export const ObjectStatus = (props: ObjectStatusProps) => {
     "icon",
     "inverted",
     "stateAnnouncement",
+    "stamp",
     "class",
     "children",
   ]);
   const state = () => local.state ?? "none";
   const resolved = () =>
-    local.icon === null ? null : (local.icon ?? (state() === "none" ? null : STATE_ICON[state() as Exclude<ObjectState, "none">]));
+    local.icon === null || (local.stamp && local.icon === undefined)
+      ? null
+      : (local.icon ?? (state() === "none" ? null : STATE_ICON[state() as Exclude<ObjectState, "none">]));
 
   return (
     <span
       class={cn(
         objectStatusVariants({ inverted: local.inverted }),
-        local.inverted ? STATE_INVERTED[state()] : STATE_TEXT[state()],
+        local.stamp
+          ? cn(
+              "zen-rounded-zen-sm zen-border zen-border-solid zen-border-current zen-px-1.5 zen-py-px",
+              "zen-text-xs zen-font-semibold zen-uppercase zen-tracking-wider",
+              STAMP_TEXT[state()],
+            )
+          : local.inverted
+            ? STATE_INVERTED[state()]
+            : STATE_TEXT[state()],
         local.class,
       )}
       {...rest}
@@ -104,8 +134,22 @@ export const ObjectStatus = (props: ObjectStatusProps) => {
 /* ---------------------------- ObjectNumber ----------------------------- */
 
 export type ObjectNumberProps = Omit<JSX.HTMLAttributes<HTMLSpanElement>, "color"> & {
-  /** Pre-formatted for the user's locale — this component does not format. */
-  value: JSX.Element;
+  /**
+   * Shown as given: pre-formatted for the user's locale. To have the number
+   * formatted here instead, pass `number` (and `currency`) and leave this out.
+   */
+  value?: JSX.Element;
+  /**
+   * A number to format in the locale (the `locale` prop, else LocaleProvider's,
+   * else the browser's): at the currency's precision with `currency`, else at
+   * `precision`. Used only when `value` is not given.
+   */
+  number?: number;
+  /** ISO 4217. Sets the precision (INR 2, JPY 0) and, without a `unit`, is shown as the unit: 1,250.00 INR. */
+  currency?: string;
+  /** Decimal places for `number`. Default: the currency's, else as many as it has. */
+  precision?: number;
+  locale?: string;
   unit?: JSX.Element;
   state?: ObjectState;
   /** Larger and bolder — for the headline figure on an object page. */
@@ -113,7 +157,17 @@ export type ObjectNumberProps = Omit<JSX.HTMLAttributes<HTMLSpanElement>, "color
 };
 
 export const ObjectNumber = (props: ObjectNumberProps) => {
-  const [local, rest] = splitProps(props, ["value", "unit", "state", "emphasized", "class"]);
+  const [local, rest] = splitProps(props, ["value", "number", "currency", "precision", "locale", "unit", "state", "emphasized", "class"]);
+  const ctx = useLocale();
+  // `value` as given (the original behaviour); else `number`, formatted here.
+  const shown = () => {
+    if (local.value !== undefined || local.number === undefined) return local.value;
+    const locale = local.locale ?? ctx.locale();
+    return local.currency
+      ? formatAmount(local.number, local.currency, { locale, display: "none", precision: local.precision })
+      : formatNumber(local.number, { locale, precision: local.precision });
+  };
+  const unit = () => local.unit ?? (local.value === undefined && local.number !== undefined ? local.currency : undefined);
   return (
     <span
       class={cn(
@@ -124,9 +178,9 @@ export const ObjectNumber = (props: ObjectNumberProps) => {
       )}
       {...rest}
     >
-      <span>{local.value}</span>
-      <Show when={local.unit}>
-        <span class="zen-text-xs zen-font-normal zen-opacity-80">{local.unit}</span>
+      <span>{shown()}</span>
+      <Show when={unit()}>
+        <span class="zen-text-xs zen-font-normal zen-opacity-80">{unit()}</span>
       </Show>
     </span>
   );

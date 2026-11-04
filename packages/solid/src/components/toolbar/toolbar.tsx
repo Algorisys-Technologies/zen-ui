@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * Toolbar — Solid binding. Mirrors packages/react/src/components/toolbar/:
@@ -37,6 +38,7 @@ export type ToolbarProps = JSX.HTMLAttributes<HTMLDivElement> & {
 };
 
 export const Toolbar = (props: ToolbarProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "actions",
     "overflowLabel",
@@ -161,7 +163,7 @@ export const Toolbar = (props: ToolbarProps) => {
                 type="button"
                 size={local.size ?? "sm"}
                 variant="ghost"
-                aria-label={local.overflowLabel ?? "More actions"}
+                aria-label={local.overflowLabel ?? loc.t("toolbar.moreActions")}
               >
                 <Icon name="more" size={16} />
               </DropdownMenuTrigger>

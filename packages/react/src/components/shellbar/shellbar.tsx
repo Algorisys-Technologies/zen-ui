@@ -78,6 +78,14 @@ export interface ShellBarProfile {
   /** Falls back to initials derived from `name`. */
   initials?: string;
   menuItems?: ShellBarMenuItem[];
+  /**
+   * The menu's own body, in place of `menuItems`: DropdownMenu parts — labels,
+   * radio groups, checkbox items — for a menu that holds settings as well as
+   * actions (appearance, density, sign out). Rendered under the name heading.
+   * A function, called when the menu opens (the Solid binding needs that to
+   * build the parts inside the menu's context; the shape is kept the same here).
+   */
+  menu?: () => React.ReactNode;
   onClick?: () => void;
 }
 
@@ -431,7 +439,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
               ) : null}
 
               {profile ? (
-                profile.menuItems && profile.menuItems.length > 0 ? (
+                profile.menu || (profile.menuItems && profile.menuItems.length > 0) ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -453,7 +461,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>{profile.name}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {renderMenuItems(profile.menuItems)}
+                      {profile.menu ? profile.menu() : renderMenuItems(profile.menuItems ?? [])}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (

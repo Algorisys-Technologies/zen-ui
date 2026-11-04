@@ -5,6 +5,7 @@ import { Button } from "../button/button";
 import { Switch } from "../form/switch/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../tabs/tabs";
 import { SelectListBody } from "../select-list/select-list";
+import { useLocale } from "../locale/locale";
 
 /**
  * ViewSettingsDialog — sort / group / filter settings for a list or
@@ -85,6 +86,7 @@ const countFilters = (filters: Record<string, string[]> | undefined) =>
   Object.values(filters ?? {}).reduce((n, ids) => n + ids.length, 0);
 
 export const ViewSettingsDialog = (props: ViewSettingsDialogProps) => {
+  const loc = useLocale();
   const [draft, setDraft] = createSignal<ViewSettingsValue>(EMPTY);
   const descriptionId = createUniqueId();
 
@@ -133,10 +135,10 @@ export const ViewSettingsDialog = (props: ViewSettingsDialogProps) => {
   const activeFilters = () => countFilters(draft().filters);
   const labelFor = (key: string) =>
     key === "sort"
-      ? (props.sortTabLabel ?? "Sort")
+      ? (props.sortTabLabel ?? loc.t("viewSettings.sort"))
       : key === "group"
-        ? (props.groupTabLabel ?? "Group")
-        : (props.filterTabLabel ?? "Filter");
+        ? (props.groupTabLabel ?? loc.t("viewSettings.group"))
+        : (props.filterTabLabel ?? loc.t("viewSettings.filter"));
 
   const Pane = (p: { section: string }) => (
     <Show
@@ -155,7 +157,7 @@ export const ViewSettingsDialog = (props: ViewSettingsDialogProps) => {
                   selected={draft().filters?.[g.id] ?? []}
                   onToggle={(id) => toggleFilter(g.id, id, g.multiple ?? true)}
                   onPick={(id) => toggleFilter(g.id, id, g.multiple ?? true)}
-                  emptyText="No values"
+                  emptyText={loc.t("viewSettings.noValues")}
                 />
               </div>
             )}
@@ -172,10 +174,10 @@ export const ViewSettingsDialog = (props: ViewSettingsDialogProps) => {
               selected={draft().groupBy ? [draft().groupBy as string] : []}
               onToggle={pickGroup}
               onPick={pickGroup}
-              emptyText="No group fields"
+              emptyText={loc.t("viewSettings.noGroupFields")}
             />
             <DirectionToggle
-              label="Descending"
+              label={loc.t("viewSettings.descending")}
               checked={Boolean(draft().groupDescending)}
               disabled={!draft().groupBy}
               onChange={(v) => patch({ groupDescending: v })}
@@ -188,10 +190,10 @@ export const ViewSettingsDialog = (props: ViewSettingsDialogProps) => {
           selected={draft().sortBy ? [draft().sortBy as string] : []}
           onToggle={pickSort}
           onPick={pickSort}
-          emptyText="No sort fields"
+          emptyText={loc.t("viewSettings.noSortFields")}
         />
         <DirectionToggle
-          label="Descending"
+          label={loc.t("viewSettings.descending")}
           checked={Boolean(draft().sortDescending)}
           disabled={!draft().sortBy}
           onChange={(v) => patch({ sortDescending: v })}
@@ -212,7 +214,7 @@ export const ViewSettingsDialog = (props: ViewSettingsDialogProps) => {
         aria-describedby={props.description ? descriptionId : undefined}
       >
         <div class="zen-flex zen-flex-col zen-gap-2 zen-border-b zen-border-zen-border zen-px-6 zen-py-4">
-          <DialogTitle class="zen-pr-8">{props.title ?? "View settings"}</DialogTitle>
+          <DialogTitle class="zen-pr-8">{props.title ?? loc.t("viewSettings.title")}</DialogTitle>
           <Show when={props.description}>
             <DialogDescription id={descriptionId}>{props.description}</DialogDescription>
           </Show>
@@ -265,7 +267,7 @@ export const ViewSettingsDialog = (props: ViewSettingsDialogProps) => {
             class="zen-mr-auto"
             onClick={() => setDraft({ ...EMPTY, filters: {} })}
           >
-            {props.resetLabel ?? "Reset"}
+            {props.resetLabel ?? loc.t("viewSettings.reset")}
           </Button>
           <Button
             type="button"
@@ -274,10 +276,10 @@ export const ViewSettingsDialog = (props: ViewSettingsDialogProps) => {
             size="sm"
             onClick={() => props.onOpenChange(false)}
           >
-            {props.cancelLabel ?? "Cancel"}
+            {props.cancelLabel ?? loc.t("common.cancel")}
           </Button>
           <Button type="button" size="sm" onClick={commit}>
-            {props.confirmLabel ?? "OK"}
+            {props.confirmLabel ?? loc.t("common.ok")}
           </Button>
         </div>
       </DialogContent>

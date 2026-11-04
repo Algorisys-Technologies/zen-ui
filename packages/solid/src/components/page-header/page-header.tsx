@@ -1,6 +1,7 @@
 import { type JSX, splitProps, Show } from "solid-js";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * PageHeader — a heading with a back affordance and one action.
@@ -44,6 +45,7 @@ export interface PageHeaderProps
 }
 
 export const PageHeader = (props: PageHeaderProps) => {
+  const loc = useLocale();
   // The rest is forwarded rather than dropped: a binding that accepts only
   // class/children silently swallows a caller's style/id/data-*, which is the
   // PopoverContent divergence this repo already shipped once.
@@ -69,7 +71,7 @@ export const PageHeader = (props: PageHeaderProps) => {
           <button
             type="button"
             onClick={() => local.onBack?.()}
-            aria-label={local.backLabel ?? "Back"}
+            aria-label={local.backLabel ?? loc.t("pageHeader.back")}
             // h-8 matches the title's line box, so the control sits on the
             // title's line rather than floating above it.
             class={cn(

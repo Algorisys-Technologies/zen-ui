@@ -223,6 +223,25 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
   alongside the count of failures — a pass with a zero denominator is not a
   pass.
 
+**For a change that touches many components, prove nothing else moved.**
+`scripts/snapshot-routes.mjs` records every demo route's accessibility tree
+(the text, names, roles and states a user and a screen reader get) from a
+running demo; `scripts/compare-route-snapshots.mjs` compares two runs and fails
+on any route that changed, allowing only new routes and new sections appended
+at a page's end. Take the "before" snapshot with the tree at the last commit,
+and do not edit while it runs: the dev server serves the working tree.
+
+```bash
+node scripts/snapshot-routes.mjs http://localhost:5173/builder-solid /tmp/before.json   # ~8 min
+# … the change …
+node scripts/snapshot-routes.mjs http://localhost:5173/builder-solid /tmp/after.json
+node scripts/compare-route-snapshots.mjs /tmp/before.json /tmp/after.json
+```
+
+It is what showed the B1 string sweep (25 components rewired) changed nothing
+a user can see or hear. It cannot see colour or layout: pair it with a
+computed-style check when that is what changed.
+
 Green output is not evidence. Prefer running the thing: `node
 scripts/visual-check.mjs <react|solid> [routes…]` boots the demo's preview
 server, screenshots each route from `nav.ts`, and reports per-route console and
@@ -386,6 +405,13 @@ Each binding has one `src/nav.ts` — the single source of truth for **both** th
 sidebar and the landing-page catalogue. Adding a component means: add it to
 `nav.ts`, add its `<Route>`. Nothing else. (They were previously two hand-kept
 lists and drifted 16 entries apart.)
+
+**Mark what changed, in `nav.ts` (Solid so far).** A new component gets
+`since: "<the version it ships in>"`; a component you change (a feature or a
+fix a user would notice) gets `updated: "<that version>"`. The demo site marks
+them **New** / **Updated** while that version is the current release's minor or
+later, and the mark expires by itself one minor release later — so set it with
+the CHANGELOG entry, and never remove one by hand.
 
 `AGENTS.md` (repo root, plus one per package, published in each package's
 `files`) is the guide a consumer's LLM agent reads to pick the right component

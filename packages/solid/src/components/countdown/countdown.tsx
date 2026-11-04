@@ -8,6 +8,7 @@ import {
   type CountdownLevel,
 } from "@algorisys/zen-ui-core/countdown";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * TimerBadge and TestCountdownBar — how long is left, and what that means.
@@ -31,7 +32,7 @@ export type { CountdownLevel };
 
 const LEVEL_TEXT: Record<CountdownLevel, string> = {
   normal: "zen-text-zen-foreground",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   critical: "zen-text-zen-error",
   expired: "zen-text-zen-muted-fg",
 };
@@ -135,6 +136,7 @@ export interface TimerBadgeProps extends CountdownCoreProps {
 }
 
 export const TimerBadge = (props: TimerBadgeProps) => {
+  const loc = useLocale();
   const clock = useCountdown(props);
   const variant = () => props.variant ?? "soft";
   const size = () => props.size ?? "md";
@@ -172,10 +174,10 @@ export const TimerBadge = (props: TimerBadgeProps) => {
       </span>
       {/* The state in words, for anyone who cannot use the colour. */}
       <Show when={clock.level() === "critical" && clock.ms() > 0}>
-        <span class="zen-sr-only">Less than a minute remaining</span>
+        <span class="zen-sr-only">{loc.t("countdown.lessThanAMinuteRemaining")}</span>
       </Show>
       <Show when={clock.level() === "expired"}>
-        <span class="zen-sr-only">Time is up</span>
+        <span class="zen-sr-only">{loc.t("countdown.timeIsUp")}</span>
       </Show>
     </span>
   );
@@ -194,6 +196,7 @@ export interface TestCountdownBarProps extends CountdownCoreProps {
 }
 
 export const TestCountdownBar = (props: TestCountdownBarProps) => {
+  const loc = useLocale();
   /* A second clock purely for the border colour. It is deliberately given no
      callbacks, so onExpire and onThreshold fire exactly once — from the badge. */
   const clock = useCountdown({
@@ -230,7 +233,7 @@ export const TestCountdownBar = (props: TestCountdownBarProps) => {
         <div class="zen-flex zen-min-w-0 zen-items-center zen-gap-3">{props.children}</div>
       </Show>
       <div class="zen-ms-auto zen-flex zen-items-center zen-gap-2">
-        <TimerBadge label="Time left" {...props} />
+        <TimerBadge label={loc.t("countdown.timeLeft")} {...props} />
         {props.actions}
       </div>
     </header>

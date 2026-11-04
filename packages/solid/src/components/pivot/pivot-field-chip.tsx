@@ -6,7 +6,6 @@ import {
   PIVOT_ZONES,
   defaultAggregationForField,
   fieldLabel,
-  zoneLabel,
   type PivotAggregation,
   type PivotField,
   type PivotFilterSelection,
@@ -25,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "../dropdown-menu/dropdown-menu";
 import { PivotFilterMenu } from "./pivot-filter-menu";
+import { useLocale } from "../locale/locale";
 
 export interface PivotFieldChipProps {
   fieldKey: string;
@@ -55,6 +55,10 @@ export interface PivotFieldChipProps {
 }
 
 export function PivotFieldChip(props: PivotFieldChipProps) {
+  const loc = useLocale();
+  // The zones' names from the catalogue (core's zoneLabel is English).
+  const zoneName = (z: PivotZone) =>
+    loc.t(z === "available" ? "pivot.zoneAvailable" : z === "rows" ? "pivot.zoneRows" : z === "columns" ? "pivot.zoneColumns" : "pivot.zoneValues");
   const label = createMemo(() => fieldLabel(props.fields, props.fieldKey));
   const selectedField = createMemo(() => props.fields.find((f) => f.key === props.fieldKey));
   const isMeasure = createMemo(() => selectedField()?.type === "measure");
@@ -104,7 +108,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
           <DropdownMenu>
             <DropdownMenuTrigger
               class="zen-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-p-0 zen-text-zen-muted-fg hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
-              aria-label={`Move ${label()}`}
+              aria-label={loc.t("pivot.move", { label: label() })}
               disabled={props.disabled}
             >
               <Icon name="more-vertical" class="zen-h-3 zen-w-3" />
@@ -119,14 +123,14 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
                 <DropdownMenuLabel>Move {label()} to</DropdownMenuLabel>
                 <For each={PIVOT_ZONES.filter((z) => z !== "available" && z !== props.zone)}>
                   {(z) => (
-                    <DropdownMenuItem onSelect={() => props.onMoveToZone?.(z)}>{zoneLabel(z)}</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => props.onMoveToZone?.(z)}>{zoneName(z)}</DropdownMenuItem>
                   )}
                 </For>
               </DropdownMenuGroup>
               <Show when={props.zone !== "available"}>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => props.onMoveToZone?.("available")}>
-                  Remove from layout
+                  {loc.t("pivot.removeFromLayout")}
                 </DropdownMenuItem>
               </Show>
             </DropdownMenuContent>
@@ -144,7 +148,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
                     ? isMeasure()
                       ? Number(sel().values[0]).toLocaleString("en-US", { maximumFractionDigits: 2 })
                       : sel().values[0]
-                    : `${sel().values.length} selected`}
+                    : loc.t("pivot.nSelected", { count: sel().values.length })}
               </span>
             )}
           </Show>
@@ -162,7 +166,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
                   props.onAggregationChange?.(e.currentTarget.value as PivotAggregation)
                 }
                 class="zen-h-6 zen-min-w-14 zen-rounded-sm zen-px-1.5 zen-py-0 zen-text-xs zen-uppercase zen-bg-transparent zen-border-transparent hover:zen-bg-zen-muted focus:zen-ring-0"
-                aria-label={`Aggregation for ${fieldLabel(props.fields, props.fieldKey)}`}
+                aria-label={loc.t("pivot.aggregationFor", { label: fieldLabel(props.fields, props.fieldKey) })}
               >
                 <option value="sum">SUM</option>
                 <option value="count">COUNT</option>
@@ -228,8 +232,8 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
               e.stopPropagation();
               props.onRemove?.();
             }}
-            aria-label={`Remove ${label()} from ${zoneLabel(props.zone ?? "available")}`}
-            title="Remove field"
+            aria-label={loc.t("pivot.removeFrom", { label: label(), zone: zoneName(props.zone ?? "available") })}
+            title={loc.t("pivot.removeField")}
           >
             <Icon name="x" class="zen-h-3.5 zen-w-3.5" />
           </button>

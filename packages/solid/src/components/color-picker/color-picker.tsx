@@ -5,6 +5,7 @@ import { Button } from "../button/button";
 import { Input } from "../form/input/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { ColorPalette } from "./color-palette";
+import { useLocale } from "../locale/locale";
 
 /**
  * ColorPicker — a swatch that opens a palette, a hex field and the platform's
@@ -49,6 +50,7 @@ const DEFAULT_COLORS: ColorOption[] = [
 ];
 
 export const ColorPicker = (props: ColorPickerProps) => {
+  const loc = useLocale();
   const [inner, setInner] = createSignal(normalizeHex(props.defaultValue ?? "") ?? "");
   const isControlled = () => props.value !== undefined;
   const value = createMemo(() =>
@@ -87,7 +89,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
         variant="outline"
         color="neutral"
         disabled={props.disabled}
-        aria-label={props.label ?? "Choose a colour"}
+        aria-label={props.label ?? loc.t("colorPicker.chooseAColour")}
         class={cn("zen-justify-start zen-gap-2 zen-font-normal", props.class)}
       >
         <span
@@ -96,7 +98,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
           style={{ "background-color": value() || "transparent" }}
         />
         <span class={cn(!value() && "zen-text-zen-muted-fg")}>
-          {value() ? (named() ? colorLabel(named()!) : value()) : (props.placeholder ?? "Pick a colour")}
+          {value() ? (named() ? colorLabel(named()!) : value()) : (props.placeholder ?? loc.t("colorPicker.pickAColour"))}
         </span>
       </PopoverTrigger>
       <PopoverContent class="zen-w-auto zen-flex zen-flex-col zen-gap-3">
@@ -105,7 +107,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
             colors={colors()}
             value={value()}
             onValueChange={update}
-            label={props.label ?? "Choose a colour"}
+            label={props.label ?? loc.t("colorPicker.chooseAColour")}
           />
         </Show>
 
@@ -121,9 +123,9 @@ export const ColorPicker = (props: ColorPickerProps) => {
                 "zen-border zen-border-zen-border",
               )}
               style={{ "background-color": value() || "transparent" }}
-              title="Custom colour"
+              title={loc.t("colorPicker.customColour")}
             >
-              <span class="zen-sr-only">Custom colour</span>
+              <span class="zen-sr-only">{loc.t("colorPicker.customColour")}</span>
               <input
                 type="color"
                 value={value() || "#000000"}
@@ -139,7 +141,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
                 update(e.currentTarget.value);
               }}
               placeholder="#3b82f6"
-              aria-label="Hex colour"
+              aria-label={loc.t("colorPicker.hexColour")}
               spellcheck={false}
               autocomplete="off"
               class="zen-h-8 zen-w-28 zen-font-mono zen-text-xs"

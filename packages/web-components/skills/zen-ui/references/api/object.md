@@ -14,7 +14,7 @@ SKILL.md.
 ### ObjectStatus
 
 - `state?: ObjectState | undefined` — Semantic state. Drives colour and the default icon.
-- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" | "star" …` — Override the state's default icon, or pass `null` for no icon.
+- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…` — Override the state's default icon, or pass `null` for no icon.
 - `stateAnnouncement?: string | undefined` — Screen-reader text naming the state, e.g. "Approved". Colour alone must not carry meaning — without this, a status reads as bare text to assistive tech.
 - `inverted?: boolean | null | undefined`
 - …plus the underlying element's standard props (279 inherited).

@@ -1,6 +1,8 @@
-import { createMemo, createSignal } from "solid-js";
+import { Show, createMemo, createSignal } from "solid-js";
 import type { ColumnDef } from "@tanstack/solid-table";
 import { DataTable } from "./data-table/data-table";
+import type { ExportFormat, ExportRequest } from "@algorisys/zen-ui-core/export-request";
+import { ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut } from "./context-menu/context-menu";
 import { Badge } from "./badge/badge";
 import { Button } from "./button/button";
 import { CodeExample } from "./demo-helpers";
@@ -59,6 +61,37 @@ const makePeople = (count: number): Person[] =>
 const SMALL = makePeople(8);
 const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
+const HUGE = makePeople(10_000);
+
+/* An order's lines, for the cell-navigation grid. */
+type Line = { id: string; item: string; qty: number; rate: number; uom: string; note: string };
+const UOMS = ["Nos", "Kg", "Box", "Litre"];
+const makeLines = (count: number): Line[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `l-${i + 1}`,
+    item: `ITEM-${String(1000 + i)}`,
+    qty: 1 + (i % 12),
+    rate: 50 + ((i * 37) % 950),
+    uom: UOMS[i % UOMS.length],
+    note: "",
+  }));
+const lineColumns: ColumnDef<Line>[] = [
+  { accessorKey: "item", header: "Item", meta: { editable: true } },
+  { accessorKey: "qty", header: "Qty", meta: { editable: true, editVariant: "number" } },
+  {
+    accessorKey: "uom",
+    header: "UOM",
+    meta: { editable: true, editVariant: "select", editOptions: UOMS.map((u) => ({ label: u, value: u })) },
+  },
+  { accessorKey: "rate", header: "Rate (₹)", meta: { editable: true, editVariant: "number" } },
+  {
+    id: "amount",
+    header: "Amount (₹)",
+    accessorFn: (l) => l.qty * l.rate,
+    cell: (info) => (info.getValue() as number).toLocaleString("en-IN"),
+  },
+  { accessorKey: "note", header: "Note", meta: { editable: true } },
+];
 
 const statusBadgeColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
@@ -193,6 +226,162 @@ const editColumns: ColumnDef<Person>[] = [
 ];
 
 /* -------------------------- demo ----------------------------------- */
+// --- Section 25: totals --------------------------------------------------
+type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
+const TOTAL_CUSTOMERS = ["Acme Traders", "Bharat Steels", "Coastal Agencies"];
+const TOTAL_ITEMS = ["Hex Bolt M8", "MS Sheet 2mm", "Cutting Oil", "Bearing 6204", "V-Belt B-48", "SS Rod 12mm"];
+// Rates in paise-precise rupees: summing them as doubles drifts; the totals here do not.
+const LINES: TotalLine[] = Array.from({ length: 60 }, (_, i) => {
+  const qty = 1 + ((i * 7) % 23);
+  const rate = Math.round((10.1 + ((i * 37) % 900) * 1.37) * 100) / 100;
+  return {
+    item: TOTAL_ITEMS[i % TOTAL_ITEMS.length],
+    customer: TOTAL_CUSTOMERS[(i * 5) % 3],
+    qty,
+    rate,
+    amount: Math.round(qty * rate * 100) / 100,
+    due: `2026-${String(10 + (i % 3)).padStart(2, "0")}-${String(1 + ((i * 3) % 28)).padStart(2, "0")}`,
+  };
+});
+const inrTotal = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const totalColumns: ColumnDef<TotalLine>[] = [
+  { accessorKey: "item", header: "Item" },
+  { accessorKey: "customer", header: "Customer" },
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" }, cell: (c) => <span class="zen-block zen-text-end zen-tabular-nums">{c.getValue<number>()}</span> },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" }, cell: (c) => <span class="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span> },
+  { accessorKey: "amount", header: "Amount", meta: { aggregate: "sum", formatTotal: (v) => `₹${inrTotal.format(v as number)}` }, cell: (c) => <span class="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span> },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+// --- Section 26: export on the server ----------------------------------------
+// A stand-in for your server: 100,000 ledger lines that never come to the browser.
+// The table asks it for one page at a time; Export hands it an ExportRequest.
+type Entry = { id: string; date: string; account: string; party: string; amount: number };
+const LEDGER_SIZE = 100_000;
+const ACCOUNTS = ["Sales", "Purchases", "Bank", "Cash", "Debtors", "Creditors"];
+const PARTIES = ["Acme Traders", "Bharat Steels", "Coastal Agencies", "Deccan Engineering", "Eastern Mills"];
+const entryAt = (i: number): Entry => ({
+  id: `GL-${String(i + 1).padStart(6, "0")}`,
+  date: `2026-${String(1 + (i % 12)).padStart(2, "0")}-${String(1 + ((i * 7) % 28)).padStart(2, "0")}`,
+  account: ACCOUNTS[(i * 13) % ACCOUNTS.length],
+  party: PARTIES[(i * 7) % PARTIES.length],
+  amount: Math.round(((i * 7919) % 2_500_000) + 99) / 100,
+});
+const mockServer = {
+  /** The rows matching a search, column filters and sort: what a SQL query would select. */
+  match(search: string, filters: { id: string; value: unknown }[], sort: { id: string; desc: boolean }[]) {
+    const s = search.trim().toLowerCase();
+    const textOf = (v: unknown) => (v && typeof v === "object" && "value" in (v as object) ? String((v as { value: unknown }).value ?? "") : String(v ?? "")).toLowerCase();
+    const idx: number[] = [];
+    for (let i = 0; i < LEDGER_SIZE; i++) {
+      const e = entryAt(i);
+      if (s && !`${e.id} ${e.account} ${e.party}`.toLowerCase().includes(s)) continue;
+      if (filters.some((f) => !String(e[f.id as keyof Entry]).toLowerCase().includes(textOf(f.value)))) continue;
+      idx.push(i);
+    }
+    const [first] = sort;
+    if (first) {
+      const k = first.id as keyof Entry;
+      idx.sort((a, b) => { const x = entryAt(a)[k], y = entryAt(b)[k]; return (x < y ? -1 : x > y ? 1 : 0) * (first.desc ? -1 : 1); });
+    }
+    return idx;
+  },
+};
+const entryColumns: ColumnDef<Entry>[] = [
+  { accessorKey: "id", header: "Entry" },
+  { accessorKey: "date", header: "Date", meta: { exportFormat: { kind: "date" } } },
+  { accessorKey: "account", header: "Account" },
+  { accessorKey: "party", header: "Party" },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    meta: { exportFormat: { kind: "amount", currency: "INR", precision: 2 } },
+    cell: (c) => <span class="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span>,
+  },
+];
+
+/** Section 26's table, wired to the mock server. */
+const ServerLedger = () => {
+  const pageSize = 25;
+  const [page, setPage] = createSignal(0);
+  const [sorting, setSorting] = createSignal<{ id: string; desc: boolean }[]>([]);
+  const [filters, setFilters] = createSignal<{ id: string; value: unknown }[]>([]);
+  const [search, setSearch] = createSignal("");
+  const [selection, setSelection] = createSignal<Record<string, boolean>>({});
+  const [lastRequest, setLastRequest] = createSignal("");
+  const [serverSaid, setServerSaid] = createSignal("");
+  const [failNext, setFailNext] = createSignal(false);
+  const matching = createMemo(() => mockServer.match(search(), filters(), sorting()));
+  const pageRows = createMemo(() => matching().slice(page() * pageSize, (page() + 1) * pageSize).map(entryAt));
+  const fmt = new Intl.NumberFormat("en-IN");
+  /** The mock server's export endpoint. */
+  const serve = async (format: ExportFormat, request: ExportRequest): Promise<Blob | void> => {
+    setLastRequest(JSON.stringify(request, null, 2));
+    await new Promise((r) => setTimeout(r, 700)); // the server at work
+    if (failNext()) {
+      setFailNext(false);
+      throw new Error("the server is busy, try again");
+    }
+    const rows = request.scope.kind === "selected" ? request.scope.ids.length : mockServer.match(request.filters.search ?? "", request.filters.columns, request.sort).length;
+    if (format !== "csv") {
+      setServerSaid(`Your server would now build ledger.${format} from this request: ${fmt.format(rows)} rows. (This demo has no ${format} writer; CSV below is real.)`);
+      return;
+    }
+    // CSV: built from ALL the matching rows, not the page.
+    const ids = request.scope.kind === "selected" ? request.scope.ids : mockServer.match(request.filters.search ?? "", request.filters.columns, request.sort).map((i) => entryAt(i).id);
+    const byId = (id: string) => entryAt(Number(id.slice(3)) - 1);
+    const cols = request.columns;
+    const lines = [cols.map((c) => c.header).join(","), ...ids.map((id) => cols.map((c) => String(byId(id)[c.id as keyof Entry])).join(","))];
+    setServerSaid(`The server built ledger.csv: ${fmt.format(ids.length)} rows.`);
+    return new Blob([lines.join("\n")], { type: "text/csv" });
+  };
+  return (
+    <div class="zen-flex zen-w-full zen-flex-col zen-gap-3">
+      <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg" data-testid="ledger-counts">
+        The server holds <strong>{fmt.format(LEDGER_SIZE)}</strong> entries; {fmt.format(matching().length)} match; the browser has <strong>{pageRows().length}</strong>.
+      </p>
+      <DataTable
+        data={pageRows()}
+        columns={entryColumns}
+        getRowId={(e) => e.id}
+        enableSorting
+        manualSorting
+        sorting={sorting()}
+        onSortingChange={(s) => { setSorting(s); setPage(0); }}
+        enableColumnFilters
+        enablePerColumnFilters
+        manualFiltering
+        columnFilters={filters()}
+        onColumnFiltersChange={(f) => { setFilters(f); setPage(0); }}
+        globalFilter={search()}
+        onGlobalFilterChange={(v) => { setSearch(v); setPage(0); }}
+        enableRowSelection
+        rowSelection={selection()}
+        onRowSelectionChange={setSelection}
+        enablePagination
+        pageSize={pageSize}
+        manualPagination={{ pageIndex: page(), pageCount: Math.max(1, Math.ceil(matching().length / pageSize)), pageSize, onPageChange: setPage }}
+        exportFilename="ledger"
+        exportTitle="General ledger"
+        exportContext={{ ledger: "FY 2026-27" }}
+        onExport={serve}
+      />
+      <label class="zen-flex zen-items-center zen-gap-2 zen-text-sm">
+        <input type="checkbox" checked={failNext()} onChange={(e) => setFailNext(e.currentTarget.checked)} /> Make the next export fail (to see the error)
+      </label>
+      <Show when={serverSaid()}>
+        <p class="zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-sm" data-testid="server-said">{serverSaid()}</p>
+      </Show>
+      <Show when={lastRequest()}>
+        <details open>
+          <summary class="zen-cursor-pointer zen-text-sm zen-text-zen-muted-fg">What your server received</summary>
+          <pre class="zen-m-0 zen-mt-2 zen-max-h-72 zen-overflow-auto zen-rounded-zen-md zen-bg-zen-muted zen-p-3 zen-text-xs" data-testid="export-request">{lastRequest()}</pre>
+        </details>
+      </Show>
+    </div>
+  );
+};
+
 const NewDataTableDemo = () => {
   const [serverPage, setServerPage] = createSignal(0);
   const serverPageSize = 10;
@@ -208,6 +397,18 @@ const NewDataTableDemo = () => {
   };
 
   const [editRows, setEditRows] = createSignal<Person[]>(makePeople(8));
+  const [activated, setActivated] = createSignal("");
+  const [virtGrouping, setVirtGrouping] = createSignal<string[]>([]);
+  const [lines, setLines] = createSignal(makeLines(2000));
+  const [lastEdit, setLastEdit] = createSignal("");
+  const [menuAction, setMenuAction] = createSignal("");
+  const applyLineEdits = (edits: { rowId: string; columnId: string; value: unknown }[]) => {
+    const byRow = new Map<string, Record<string, unknown>>();
+    for (const e of edits) byRow.set(e.rowId, { ...byRow.get(e.rowId), [e.columnId]: e.value });
+    setLines(lines().map((l) => (byRow.has(l.id) ? { ...l, ...byRow.get(l.id) } : l)));
+    setLastEdit(`${edits.length} cell${edits.length === 1 ? "" : "s"} changed`);
+  };
+  const [virtOpened, setVirtOpened] = createSignal("");
 
   return (
     <div class="zen-space-y-8">
@@ -321,6 +522,34 @@ const NewDataTableDemo = () => {
       </section>
 
       <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">5b. Keyboard rows</h2>
+        <CodeExample
+          title="enableKeyboardNavigation + onRowActivate"
+          description="Tab into the table once, then ↑/↓, Home/End and PageUp/PageDown move between rows. Enter opens the row (Ctrl+Enter reports the modifier); Space selects it and Ctrl+A selects the page."
+          code={`<DataTable
+  data={small}
+  columns={columns}
+  enableRowSelection
+  enableKeyboardNavigation
+  onRowActivate={(row, e) => open(row.original, { newTab: e.ctrlKey || e.metaKey })}
+  rowLabel={(row) => row.original.name}
+/>`}
+        >
+          <DataTable
+            data={SMALL}
+            columns={columns}
+            enableRowSelection
+            enableKeyboardNavigation
+            onRowActivate={(row, e) => setActivated(`${row.original.name}${e.ctrlKey || e.metaKey ? " (Ctrl+Enter)" : ""}`)}
+            rowLabel={(row) => row.original.name}
+          />
+          <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            Opened: <span data-testid="kb-activated">{activated() || "nothing yet"}</span>
+          </p>
+        </CodeExample>
+      </section>
+
+      <section>
         <h2 class="zen-text-base zen-font-semibold zen-mb-2">6. Virtualized — 2 000 rows, no pagination</h2>
         <CodeExample
           title="enableVirtualization renders only the visible window"
@@ -340,6 +569,158 @@ const NewDataTableDemo = () => {
             enableVirtualization
             maxBodyHeight={400}
           />
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">6b. Row virtualization — 10 000 rows, every feature on</h2>
+        <CodeExample
+          title="enableRowVirtualization keeps grouping, expanding, selection and the keyboard"
+          description="Only the rows in view are rendered, inside the regular table. Group by role, expand a row, or click a row and move with ↑/↓, PageUp/PageDown and Home/End: the focused row is scrolled into view and stays mounted while you scroll away."
+          code={`<DataTable
+  data={tenThousandPeople}
+  columns={columns}
+  enableRowVirtualization
+  enableSorting
+  enableGrouping
+  grouping={grouping()}
+  onGroupingChange={setGrouping}
+  enableRowSelection
+  enableKeyboardNavigation
+  onRowActivate={(row) => open(row.original)}
+  renderSubRow={(row) => <Details person={row.original} />}
+  fillHeight // inside a frame with a height; or maxBodyHeight={420}
+/>`}
+        >
+          <div class="zen-flex zen-gap-2 zen-mb-3">
+            <Button
+              size="sm"
+              variant="outline"
+              aria-pressed={virtGrouping().length > 0}
+              onClick={() => setVirtGrouping(virtGrouping().length ? [] : ["role"])}
+            >
+              {virtGrouping().length ? "Ungroup" : "Group by role"}
+            </Button>
+          </div>
+          {/* fillHeight: the table fills this frame, as a list that is a page's main pane. */}
+          <div class="zen-flex zen-h-[440px] zen-flex-col">
+          <DataTable
+            data={HUGE}
+            columns={groupedColumns}
+            getRowId={(p) => p.id}
+            enableRowVirtualization
+            enableSorting
+            enableGrouping
+            grouping={virtGrouping()}
+            onGroupingChange={setVirtGrouping}
+            enableRowSelection
+            enableKeyboardNavigation
+            rowLabel={(row) => row.original.name ?? "Group"}
+            onRowActivate={(row) => setVirtOpened(row.original.name)}
+            renderSubRow={(row) => (
+              <div class="zen-px-4 zen-py-3 zen-text-sm zen-text-zen-muted-fg">
+                {row.original.email} · {row.original.department}, {row.original.location} · reports to{" "}
+                {row.original.manager}
+              </div>
+            )}
+            fillHeight
+          />
+          </div>
+          <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            Opened: <span data-testid="virt-activated">{virtOpened() || "nothing yet"}</span>
+          </p>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">6c. Cell navigation — work in it like a spreadsheet</h2>
+        <CodeExample
+          title="enableCellNavigation: cell by cell, ranges, copy and paste"
+          description="Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. A cell takes only what its editor could produce: Amount is computed, so paste and Delete leave it alone, and UOM is a select with no empty option, so Delete leaves it as it is and a paste must match one of its options."
+          code={`<DataTable
+  data={lines()}
+  columns={columns} // meta: { editable: true, editVariant: "number" | "select" }
+  getRowId={(l) => l.id}
+  enableCellNavigation
+  enableRowVirtualization
+  onCellEdit={(edit) => apply([edit])}
+  onCellsEdit={(edits) => apply(edits)} // a paste, or Delete over a range
+  fillHeight
+/>`}
+        >
+          <div class="zen-flex zen-h-[420px] zen-flex-col">
+            <DataTable
+              data={lines()}
+              columns={lineColumns}
+              getRowId={(l) => l.id}
+              enableCellNavigation
+              enableRowVirtualization
+              onCellEdit={(edit) => applyLineEdits([edit])}
+              onCellsEdit={applyLineEdits}
+              fillHeight
+            />
+          </div>
+          <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            <span data-testid="cells-edited">{lastEdit() || "No changes yet."}</span>
+          </p>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">6d. Context menu on rows</h2>
+        <CodeExample
+          title="contextMenu: a right-click menu for the row, or the selected rows"
+          description="Right-click a row, or focus one (click it, then use the arrows) and press the menu key or Shift+F10. The row becomes the focused one and the menu is for it; select a few rows first and a right-click on one of them acts on all of them. The header keeps the browser's own menu."
+          code={`<DataTable
+  data={people}
+  columns={columns}
+  getRowId={(p) => p.id}
+  enableRowSelection
+  enableKeyboardNavigation
+  enableRowVirtualization
+  contextMenu={({ row, selection }) => (<>
+    <ContextMenuLabel>{selection.length > 1 ? \`\${selection.length} rows\` : row.original.name}</ContextMenuLabel>
+    <ContextMenuItem onSelect={() => openInNewTab(row.original)}>Open in new tab</ContextMenuItem>
+    <ContextMenuItem onSelect={() => copy(selection)}>Copy name</ContextMenuItem>
+    <ContextMenuSeparator />
+    <ContextMenuItem variant="destructive" onSelect={() => remove(selection)}>Delete…</ContextMenuItem>
+  </>)}
+  fillHeight
+/>`}
+        >
+          <div class="zen-flex zen-h-[360px] zen-flex-col">
+            <DataTable
+              data={HUGE.slice(0, 1000)}
+              columns={columns}
+              getRowId={(p) => p.id}
+              enableRowSelection
+              enableKeyboardNavigation
+              enableRowVirtualization
+              rowLabel={(row) => row.original.name}
+              contextMenu={({ row, selection }) => (
+                <>
+                  <ContextMenuLabel>
+                    {selection.length > 1 ? `${selection.length} rows` : row.original.name}
+                  </ContextMenuLabel>
+                  <ContextMenuItem onSelect={() => setMenuAction(`Opened ${row.original.name} in a new tab`)}>
+                    Open in new tab<ContextMenuShortcut>Ctrl+Enter</ContextMenuShortcut>
+                  </ContextMenuItem>
+                  <ContextMenuItem onSelect={() => setMenuAction(`Copied ${selection.map((r) => r.original.name).join(", ")}`)}>
+                    Copy name
+                  </ContextMenuItem>
+                  <ContextMenuItem onSelect={() => setMenuAction(`Duplicated ${row.original.name}`)}>Duplicate</ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem variant="destructive" onSelect={() => setMenuAction(`Asked to delete ${selection.length} row${selection.length === 1 ? "" : "s"}`)}>
+                    Delete…
+                  </ContextMenuItem>
+                </>
+              )}
+              fillHeight
+            />
+          </div>
+          <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            <span data-testid="menu-action">{menuAction() || "Nothing chosen yet."}</span>
+          </p>
         </CodeExample>
       </section>
 
@@ -858,6 +1239,60 @@ const columns = [
             enableColumnResizing
             enableExport
           />
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">25. Totals</h2>
+        <CodeExample
+          title="meta.aggregate: a total that computes itself, exact in decimal"
+          description="Sum, count, avg, min, max or your own function, per column. The footer totals every row the filters let through (across pages; totalsOver=&quot;page&quot; for this page only), stays in view as the rows scroll, and a grouped table shows each group's subtotal from the same declaration. Filter the Customer column and watch the totals follow."
+          code={`const columns: ColumnDef<Line>[] = [
+  { accessorKey: "item", header: "Item" },                       // "Total" goes here
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" } },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" } },
+  { accessorKey: "amount", header: "Amount",
+    meta: { aggregate: "sum", formatTotal: (v) => \`₹\${inr.format(v)}\` } },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+<DataTable data={lines} columns={columns} fillHeight enablePerColumnFilters />`}
+        >
+          <div class="zen-flex zen-h-80 zen-flex-col" data-testid="totals-table">
+            <DataTable data={LINES} columns={totalColumns} fillHeight enableColumnFilters enablePerColumnFilters />
+          </div>
+        </CodeExample>
+        <CodeExample
+          title="Grouped: each customer's subtotal, from the same declaration"
+          code={`<DataTable data={lines} columns={columns} enableGrouping initialGrouping={["customer"]} />`}
+        >
+          <div data-testid="totals-grouped">
+            <DataTable data={LINES} columns={totalColumns} enableGrouping initialGrouping={["customer"]} />
+          </div>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">26. Export on the server</h2>
+        <CodeExample
+          title="onExport: the browser describes, the server builds"
+          description="For data too large for the browser. Export hands your server an ExportRequest: the visible columns (header, width, format, total), filters, sort, grouping, locale, and all matching rows or the selected ids (even on pages never loaded). Your endpoint queries the full data and returns the file. Try a search, a sort, or selecting rows on two pages, then Export."
+          code={`<DataTable
+  data={page.rows} manualPagination={…} manualSorting manualFiltering
+  getRowId={(e) => e.id} enableRowSelection
+  exportFilename="ledger" exportTitle="General ledger"
+  onExport={(format, request) =>
+    fetch("/api/method/myapp.export_ledger", {
+      method: "POST", body: JSON.stringify(request),
+    }).then((r) => (r.ok ? r.blob() : Promise.reject(new Error(r.statusText))))}
+/>
+
+// The server (yours): read request.columns / filters / sort / scope,
+// query the full ledger, write the .xlsx / .pdf / .csv, send it back.`}
+        >
+          <div data-testid="server-ledger" class="zen-w-full">
+            <ServerLedger />
+          </div>
         </CodeExample>
       </section>
     </div>

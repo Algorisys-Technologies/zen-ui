@@ -33,6 +33,48 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.2.0",
+    date: "2026-11-04",
+    kind: "new",
+    title: "Every built-in word can be translated (Solid)",
+    detail: "Wrap the app in LocaleProvider with messages for any of zen-ui's strings, in any language; what you leave out stays English. Plurals follow each language's rules. React, vanilla and web components follow in the next release.",
+  },
+  {
+    version: "12.2.0",
+    date: "2026-11-04",
+    kind: "new",
+    title: "Totals and server-side export for big lists (Solid DataTable)",
+    detail: "meta.aggregate fills a sticky totals row (exact decimal sums, group subtotals). onExport hands your server a description of exactly what the user sees, so a ledger too large for the browser can still go to Excel or PDF.",
+  },
+  {
+    version: "12.2.0",
+    date: "2026-11-04",
+    kind: "new",
+    title: "Spreadsheet-style tables (Solid DataTable)",
+    detail: "Cell-by-cell keys, ranges, copy and paste with Excel (enableCellNavigation); tens of thousands of rows with grouping and editing intact (enableRowVirtualization); keyboard rows and a right-click menu.",
+  },
+  {
+    version: "12.2.0",
+    date: "2026-11-04",
+    kind: "new",
+    title: "New ERP components (Solid)",
+    detail: "FilterBuilder, ViewManager, LookupField, DateInput, AmountField, QuantityField, TreeSelect, QRCode and Barcode, keyboard shortcuts with a ? overlay, ContextMenu, DocumentTabs, Tile.",
+  },
+  {
+    version: "12.2.0",
+    date: "2026-11-04",
+    kind: "new",
+    title: "Compact density, in every binding",
+    detail: 'data-density="compact" tightens controls to 32px and trims table, menu and section padding. Comfortable stays the default, at exactly the old sizes.',
+  },
+  {
+    version: "12.2.0",
+    date: "2026-11-04",
+    kind: "fixed",
+    title: "Fields no longer hide under an object page's sticky bar",
+    detail: "Tabbing to a field in ObjectPageLayout now lands it below the section bar (every binding). FlexibleColumnLayout no longer leaves an empty column's space blank.",
+  },
+  {
     version: "12.1.1",
     date: "2026-11-02",
     kind: "fixed",

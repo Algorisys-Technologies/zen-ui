@@ -8,6 +8,7 @@ import {
   type SelectListItem,
 } from "../select-list/select-list";
 import { filterItems } from "../select-list/filter";
+import { useLocale } from "../locale/locale";
 
 /**
  * SelectDialog — the list picker: a modal with a search field, a scrollable
@@ -62,6 +63,7 @@ export interface SelectDialogProps {
 }
 
 export const SelectDialog = (props: SelectDialogProps) => {
+  const loc = useLocale();
   const [query, setQuery] = createSignal("");
   // Seeded by the effect below rather than here: `selectedIds` is read when the
   // dialog opens, so an initial read would be a second, contradictory source of
@@ -106,7 +108,7 @@ export const SelectDialog = (props: SelectDialogProps) => {
     props.onSearch?.(value);
   };
 
-  const searchPlaceholder = () => props.searchPlaceholder ?? "Search";
+  const searchPlaceholder = () => props.searchPlaceholder ?? loc.t("common.search");
   const showClearAll = () => props.showClearAll ?? true;
 
   return (
@@ -159,7 +161,7 @@ export const SelectDialog = (props: SelectDialogProps) => {
               onClick={() => setDraft([])}
               class="zen-mr-auto"
             >
-              {props.clearLabel ?? "Clear"}
+              {props.clearLabel ?? loc.t("common.clear")}
             </Button>
           </Show>
           <Button
@@ -169,11 +171,11 @@ export const SelectDialog = (props: SelectDialogProps) => {
             size="sm"
             onClick={() => props.onOpenChange(false)}
           >
-            {props.cancelLabel ?? "Cancel"}
+            {props.cancelLabel ?? loc.t("common.cancel")}
           </Button>
           <Show when={props.multiple}>
             <Button type="button" size="sm" onClick={() => commit(inListOrder(draft()))}>
-              {props.confirmLabel ?? "OK"}
+              {props.confirmLabel ?? loc.t("common.ok")}
             </Button>
           </Show>
         </div>

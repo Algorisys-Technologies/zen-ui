@@ -36,7 +36,7 @@ const cardVariants = cva(
       padding: {
         none: "",
         sm: "zen-p-3",
-        md: "zen-p-5",
+        md: "zen-p-zen-card",
         lg: "zen-p-6",
       },
     },
@@ -68,7 +68,7 @@ export const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("zen-flex zen-flex-col zen-gap-1 zen-p-5 zen-pb-3", className)}
+    className={cn("zen-flex zen-flex-col zen-gap-1 zen-p-zen-card zen-pb-3", className)}
     {...props}
   />
 ));
@@ -105,7 +105,7 @@ export const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("zen-p-5 zen-pt-0", className)} {...props} />
+  <div ref={ref} className={cn("zen-p-zen-card zen-pt-0", className)} {...props} />
 ));
 CardContent.displayName = "CardContent";
 
@@ -116,7 +116,7 @@ export const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "zen-flex zen-items-center zen-gap-2 zen-p-5 zen-pt-3 zen-border-t zen-border-zen-border",
+      "zen-flex zen-items-center zen-gap-2 zen-p-zen-card zen-pt-3 zen-border-t zen-border-zen-border",
       className,
     )}
     {...props}

@@ -28,7 +28,7 @@ const cardVariants = cva(
       padding: {
         none: "",
         sm: "zen-p-3",
-        md: "zen-p-5",
+        md: "zen-p-zen-card",
         lg: "zen-p-6",
       },
     },
@@ -65,7 +65,7 @@ type SectionProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class"> & {
 export const CardHeader = (props: SectionProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div class={cn("zen-flex zen-flex-col zen-gap-1 zen-p-5 zen-pb-3", local.class)} {...rest}>
+    <div class={cn("zen-flex zen-flex-col zen-gap-1 zen-p-zen-card zen-pb-3", local.class)} {...rest}>
       {local.children}
     </div>
   );
@@ -105,7 +105,7 @@ export const CardDescription = (props: ParagraphProps) => {
 export const CardContent = (props: SectionProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
-    <div class={cn("zen-p-5 zen-pt-0", local.class)} {...rest}>
+    <div class={cn("zen-p-zen-card zen-pt-0", local.class)} {...rest}>
       {local.children}
     </div>
   );
@@ -115,7 +115,7 @@ export const CardFooter = (props: SectionProps) => {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
-      class={cn("zen-flex zen-items-center zen-gap-2 zen-p-5 zen-pt-3 zen-border-t zen-border-zen-border", local.class)}
+      class={cn("zen-flex zen-items-center zen-gap-2 zen-p-zen-card zen-pt-3 zen-border-t zen-border-zen-border", local.class)}
       {...rest}
     >
       {local.children}

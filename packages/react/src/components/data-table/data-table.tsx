@@ -344,6 +344,13 @@ export interface DataTableProps<TData, TValue = unknown> {
    */
   stickyHeader?: boolean;
   /**
+   * Fill the parent's height: the rows scroll inside the table, under a header
+   * that stays put, and the pager stays below. For a list that is the page's
+   * main pane. The parent must give it a height (a flex child with min-height 0,
+   * or a fixed height). Implies stickyHeader; maxBodyHeight is ignored.
+   */
+  fillHeight?: boolean;
+  /**
    * Freeze columns to the left or right edge while the body scrolls
    * horizontally. Pinned cells get a 1-px divider and a soft shadow on
    * their inner edge so they read as floating.
@@ -451,6 +458,7 @@ export function DataTable<TData, TValue = unknown>({
   exportFilename = "data-table",
   exportOnlySelected = false,
   stickyHeader = false,
+  fillHeight = false,
   enableColumnPinning = false,
   columnPinning: columnPinningProp,
   initialColumnPinning,
@@ -944,7 +952,7 @@ export function DataTable<TData, TValue = unknown>({
 
   /* Sticky header is meaningful only outside virtualized mode (the
    * virtualized body already pins its header). */
-  const stickyHeaderActive = stickyHeader && !enableVirtualization;
+  const stickyHeaderActive = (stickyHeader || fillHeight) && !enableVirtualization;
 
   /* Effective column IDs in display order, for the horizontal SortableContext */
   const visibleColumnIds = React.useMemo(
@@ -1074,12 +1082,15 @@ export function DataTable<TData, TValue = unknown>({
    * `maxBodyHeight` so the <thead>'s `position: sticky; top: 0` has a
    * non-trivial scroll context to pin against. Without max-height the
    * wrapper would grow to fit and sticky would be a no-op. */
-  const tableContainerStyle = stickyHeaderActive
+  const tableContainerStyle = stickyHeaderActive && !fillHeight
     ? { maxHeight: maxBodyHeight }
     : undefined;
 
   const tableBody = (
-    <Table containerStyle={tableContainerStyle}>
+    <Table
+      containerClassName={fillHeight ? "zen-min-h-0 zen-flex-1" : undefined}
+      containerStyle={tableContainerStyle}
+    >
       {enableColumnOrdering ? (
         <DndContext
           sensors={sensors}
@@ -1240,7 +1251,13 @@ export function DataTable<TData, TValue = unknown>({
   );
 
   return (
-    <div className={cn("zen-space-y-3", className)}>
+    <div
+      className={cn(
+        "zen-space-y-3",
+        fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
+        className,
+      )}
+    >
       <Toolbar
         table={table}
         enableColumnFilters={enableColumnFilters}
@@ -1263,7 +1280,10 @@ export function DataTable<TData, TValue = unknown>({
       <ActiveFilterChips table={table} />
 
       <div
-        className="zen-rounded-zen-md zen-border zen-border-zen-border"
+        className={cn(
+          "zen-rounded-zen-md zen-border zen-border-zen-border",
+          fillHeight && "!zen-shrink zen-flex zen-min-h-0 zen-flex-1 zen-flex-col",
+        )}
         aria-busy={loading || undefined}
       >
         {enableVirtualization ? (
