@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.2.0] - 2026-11-04
+
 ### Added
 - **Calendar: arrow keys between days** (Solid). ← → a day (mirrored right
   to left), ↑ ↓ a week, Home / End the week's ends, PageUp / PageDown a month
