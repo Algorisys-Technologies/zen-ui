@@ -16,7 +16,7 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 
 | unit | what | React | vanilla | WC |
 |---|---|---|---|---|
-| L | LocaleProvider / useLocale | ok (e94479a) | ok | ok (re-export; `<zen-locale-provider>` with unit S) |
+| L | LocaleProvider / useLocale | ok (e94479a) | ok | ok (<zen-locale-provider>) |
 | A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | ok | ok | ok |
 | A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | ok | ok |
 | A3 | ContextMenu | ok | ok | ok |
@@ -31,7 +31,7 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A12 | Sidebar collapseMode / overlay / badges / header label | ok | ok | ok |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | ok | ok |
 | D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | ok (grouping / per-column filters: pre-existing gap) | ok (as vanilla) |
-| S | Strings: the binding's components read the message catalogue; check:strings per binding | ok (139/139; S2 wip) | wip | wip |
+| S | Strings: the binding's components read the message catalogue; check:strings per binding | ok (139/139; S2 wip) | ok (128/128) | ok (<zen-locale-provider>) |
 
 ## Log
 
@@ -230,3 +230,17 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   per-column filters, expandable rows, column visibility/pinning/resizing.
   Noted: edit-cell's `zen-m-[-0.5rem] zen-p-[0.4rem]` raw rem literals exist
   identically in Solid, React and now vanilla (CLAUDE.md rule; todo).
+- 2026-11-05: S vanilla+WC merged: ~80 vanilla components on the catalogue,
+  `check:strings:vanilla` in `bun run check`; 117/117 vanilla routes + 151
+  popup triggers identical. `withLocale(value, fn)` builds later-rendered parts
+  (a calendar on open) in the component's locale. `<zen-locale-provider>`:
+  elements build inside the nearest provider and rebuild when it changes
+  (19/19 drive). FIXED in WC: a nested element lost its children on
+  re-connect (on dev, /alert, /avatar, /code-editor, /theme rendered their
+  nested parts empty); 13 WC routes changed = content restored.
+  Merge with the React sweep: the two sweeps had named some strings
+  differently; one key per string, React's kept (7 vanilla keys folded,
+  `chunkUploader.progress` placeholder unified to {count}); same-English keys
+  in DIFFERENT components kept separate on purpose (context for translators).
+  Vanilla DataTable strings then swept too (128/128, nothing exempt); A/B of
+  every vanilla route running.

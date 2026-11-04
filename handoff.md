@@ -19,9 +19,9 @@ that verified Solid.
 | what | state |
 |---|---|
 | React | complete, at parity with Solid |
-| vanilla + web components | complete except DataTable cell navigation and row virtualization (in progress: vanilla DataTable first needs inline editing) |
-| strings (translation) | Solid 135/135, React 139/139 (both in `bun run check`); vanilla/WC in progress; S2 (words neither scan sees, both bindings) in progress |
-| `<zen-locale-provider>` | in progress (with the vanilla/WC strings unit) |
+| vanilla + web components | complete, including DataTable inline editing, cell navigation, row virtualization (vanilla DataTable still lacks grouping / per-column filters / expandable rows: pre-existing, todo.md) |
+| strings (translation) | Solid 135/135, React 139/139, vanilla 128/128 — all three in `bun run check`; S2 (words no scan sees yet, Solid + React) in progress |
+| `<zen-locale-provider>` | done |
 
 ## Found and fixed on the way (all in CHANGELOG [Unreleased])
 
