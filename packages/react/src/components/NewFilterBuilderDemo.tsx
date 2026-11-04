@@ -71,7 +71,7 @@ const NewFilterBuilderDemo: React.FC = () => {
         <h2>1. Overdue, for these customers or large</h2>
         <CodeExample
           title="The review's example, live over eight invoices"
-          description="Change anything: a field's type picks its operators and editor (text, number, a date on a calendar, a list of choices, yes or no). Each group's Match covers all, any, none and not all. Add a group for brackets."
+          description="Change anything: a field's type picks its operators and editor (text, number, a typed date with a calendar, a list of choices, yes or no). Each group's Match covers all, any, none and not all. Add a group for brackets."
           code={`const fields: FilterField[] = [
   { id: "customer", label: "Customer", type: "enum", options: customers },
   { id: "status", label: "Status", type: "enum", options: statuses },
