@@ -23,6 +23,7 @@ real props; guessing prop names is how agents invent APIs.
 - [date-range-picker.md](date-range-picker.md) — `DateRangePicker`, `DateRangePickerProps`, `DateRange`
 - [time-picker.md](time-picker.md) — `TimePicker`, `TimePickerProps`
 - [date-time-picker.md](date-time-picker.md) — `DateTimePicker`, `DateTimePickerProps`
+- [barcode.md](barcode.md) — `QRCode`, `Barcode`, `QRCodeProps`, `BarcodeProps`, `BarcodeFormat`, `QrEcc`
 - [qr-scanner.md](qr-scanner.md) — `QRScanner`, `QRScannerProps`, `QRScannerScan`
 - [notifications-inbox.md](notifications-inbox.md) — `NotificationsInbox`, `NotificationsInboxProps`, `Notification`
 - [color-picker.md](color-picker.md) — `ColorPicker`, `ColorPickerProps`
