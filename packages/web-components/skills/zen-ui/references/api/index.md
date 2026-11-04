@@ -74,6 +74,7 @@ real props; guessing prop names is how agents invent APIs.
 - [button.md](button.md) — `Button`, `buttonVariants`, `ButtonProps`
 - [tooltip.md](tooltip.md) — `Tooltip`, `TooltipTrigger`, `TooltipContent`, `TooltipProvider`, `TooltipPortal`, `TooltipContentProps`
 - [dropdown-menu.md](dropdown-menu.md) — `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuCheckboxItem`, `DropdownMenuRadioItem`, `DropdownMenuLabel`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuGroup`, `DropdownMenuPortal`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuRadioGroup`
+- [context-menu.md](context-menu.md) — `ContextMenu`, `ContextMenuTrigger`, `ContextMenuContent`, `ContextMenuItem`, `ContextMenuCheckboxItem`, `ContextMenuRadioItem`, `ContextMenuLabel`, `ContextMenuSeparator`, `ContextMenuShortcut`, `ContextMenuGroup`, `ContextMenuPortal`, `ContextMenuSub`, `ContextMenuSubContent`, `ContextMenuSubTrigger`, `ContextMenuRadioGroup`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ContextMenuContentProps`, `ContextMenuItemProps`, `ContextMenuCheckboxItemProps`, `ContextMenuRadioItemProps`
 - [fab.md](fab.md) — `FAB`, `FABProps`
 - [form.md](form.md) — `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage`, `useFormField`
 - [bound-fields.md](bound-fields.md) — `BoundInput`, `BoundTextarea`, `BoundSelect`, `BoundCheckbox`, `BoundSwitch`, `BoundRadioGroup`, `BoundSlider`, `BoundInputProps`, `BoundTextareaProps`, `BoundSelectProps`, `BoundCheckboxProps`, `BoundSwitchProps`, `BoundRadioGroupProps`, `BoundSliderProps`, `BoundSelectOption`, `SelectOption`
@@ -88,6 +89,7 @@ real props; guessing prop names is how agents invent APIs.
 - [theme-theme.md](theme-theme.md) — `Theme`, `ThemeProps`
 - [message-popover.md](message-popover.md) — `MessagePopover`, `Message`, `MessageType`, `MessagePopoverProps`
 - [direction.md](direction.md) — `DirectionProvider`, `Direction`, `DirectionProviderProps`
+- [locale.md](locale.md) — `LocaleProvider`, `useLocale`, `LocaleProviderProps`, `LocaleContextValue`, `MessageKey`, `ZenMessages`
 - [card.md](card.md) — `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `cardVariants`, `CardProps`
 - [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
 - [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`

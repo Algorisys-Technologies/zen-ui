@@ -72,6 +72,7 @@ import ThemeSwitcher from "./components/theme-switcher";
 import NewButtonDemo from "./components/NewButtonDemo";
 import NewTooltipDemo from "./components/NewTooltipDemo";
 import NewDropdownMenuDemo from "./components/NewDropdownMenuDemo";
+import NewContextMenuDemo from "./components/NewContextMenuDemo";
 import NewSeparatorDemo from "./components/NewSeparatorDemo";
 import NewSwitchDemo from "./components/NewSwitchDemo";
 import NewCheckboxDemo from "./components/NewCheckboxDemo";
@@ -332,6 +333,7 @@ const App: React.FC = () => {
             <Route path="/button-new" element={<NewButtonDemo />} />
             <Route path="/tooltip-new" element={<NewTooltipDemo />} />
             <Route path="/dropdown-menu" element={<NewDropdownMenuDemo />} />
+            <Route path="/context-menu" element={<NewContextMenuDemo />} />
             <Route path="/separator" element={<NewSeparatorDemo />} />
             <Route path="/switch-new" element={<NewSwitchDemo />} />
             <Route path="/checkbox-new" element={<NewCheckboxDemo />} />
