@@ -31,7 +31,7 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A12 | Sidebar collapseMode / overlay / badges / header label | ok | ok | ok |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | ok | ok |
 | D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | ok (grouping / per-column filters: pre-existing gap) | ok (as vanilla) |
-| S | Strings: the binding's components read the message catalogue; check:strings per binding | ok (139/139; S2 wip) | ok (128/128) | ok (<zen-locale-provider>) |
+| S | Strings: the binding's components read the message catalogue; check:strings per binding | ok (139/139) | ok (128/128) | ok (<zen-locale-provider>) |
 
 ## Log
 
@@ -244,3 +244,14 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   in DIFFERENT components kept separate on purpose (context for translators).
   Vanilla DataTable strings then swept too (128/128, nothing exempt); A/B of
   every vanilla route running.
+- 2026-11-05: S2 merged (Solid + React): words built in helpers, ternaries and
+  data tables now come from the catalogue too, on the vanilla sweep's keys
+  (+25 new: DataTable operators / bulk bar / column pins, Solid camera
+  errors). check:strings widened by shape; on the OLD tree it now finds 250
+  strings (136 Solid, 114 React) it used to pass; 24 planted strings each fail
+  it. Solid 120/120 and React 121/121 routes identical; 3,976 + 4,239 popover
+  strings identical. All three bindings 100% clean, nothing exempt.
+  Left: ProductionSchedule's "h"/"m" units in Solid/React (vanilla has keys);
+  NotificationsInbox older dates use the browser locale (changing it changes
+  output).
+- 2026-11-05: **all units done.** Full ship gate running (measure only).

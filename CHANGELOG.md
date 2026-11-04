@@ -47,6 +47,17 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     and `contextMenu`. In vanilla and web components: keyboard rows, totals,
     server export and `contextMenu`; cell navigation and row virtualization
     follow once vanilla's DataTable has inline editing.
+  - **Every built-in word is translatable in every binding.** React's and
+    vanilla's components now take their words from the message catalogue as
+    Solid's do (Solid 135, React 139, vanilla 128 components; nothing exempt),
+    including words built in helpers and data tables (colour and Likert names,
+    DataTable's operators, the scheduling labels, relative times). Web
+    components gain `<zen-locale-provider locale currency>` with a `messages`
+    property; the elements inside build in its words and rebuild when they
+    change. `bun run check` runs `check:strings` for all three, and the check
+    now reads the shapes it used to miss (it finds 250 such strings on the
+    previous tree). English output is unchanged: every route snapshot and
+    every opened popover identical in each binding.
   - React's DropdownMenu and ContextMenu share their item classes
     (`menu-parts.tsx`); vanilla's share their drawing code (`menu-engine.ts`).
     DropdownMenu output measured identical in both.
@@ -98,6 +109,10 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Vanilla DataTable: a repaint dropped keyboard focus and scrolled a
   scrolled table back to its first row**; its sort-priority number was 16px
   beside 12px header text.
+- **Web components: nested elements rendered empty** (`<zen-alert-title>`,
+  `<zen-avatar-fallback>` and others on /alert, /avatar, /code-editor, /theme):
+  an element re-connected by the one around it dropped its children. It keeps
+  the children it captured first.
 - **Vanilla (and web components) leaked document listeners on every opening
   after the first** of Combobox, TreeSelect and every other component that
   reuses a cleanup list per opening (about 25): `Disposer.dispose()` latched
