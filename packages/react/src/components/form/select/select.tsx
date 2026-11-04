@@ -23,32 +23,62 @@ import { cn } from "../../../lib/cn";
  * primitive (deferred — see todo.md).
  */
 
-const Select = SelectPrimitive.Root;
+/** `invalid` on the root reaches the trigger, the control that has focus. */
+const SelectInvalidContext = React.createContext(false);
+
+/**
+ * Radix's Root, plus `invalid`: marked invalid without a message (the form
+ * shows its own), so the trigger carries aria-invalid and the error border.
+ */
+const Select = ({
+  invalid = false,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> & {
+  /** Marked invalid without a message (the form shows its own): the trigger's aria-invalid and the error border. */
+  invalid?: boolean;
+}) => (
+  <SelectInvalidContext.Provider value={invalid}>
+    <SelectPrimitive.Root {...props} />
+  </SelectInvalidContext.Provider>
+);
+Select.displayName = "Select";
 const SelectGroup = SelectPrimitive.Group;
 const SelectValue = SelectPrimitive.Value;
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "zen-flex zen-h-zen-control zen-w-full zen-items-center zen-justify-between zen-gap-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-zen-control-x zen-py-2 zen-text-sm",
-      "placeholder:zen-text-zen-muted-fg",
-      "focus:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
-      "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
-      "[&>span]:zen-line-clamp-1",
-      className,
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDownIcon />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-));
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
+    /** Marked invalid: aria-invalid and the error border. Also set by `<Select invalid>`. */
+    invalid?: boolean;
+  }
+>(({ className, children, invalid, ...props }, ref) => {
+  const rootInvalid = React.useContext(SelectInvalidContext);
+  return (
+    <SelectPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "zen-flex zen-h-zen-control zen-w-full zen-items-center zen-justify-between zen-gap-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-zen-control-x zen-py-2 zen-text-sm",
+        "placeholder:zen-text-zen-muted-fg",
+        "focus:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+        "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
+        // Marked invalid (aria-invalid="true", from `invalid` or the caller):
+        // the error border, as Input and Combobox show theirs.
+        "aria-[invalid=true]:zen-border-zen-error",
+        "[&>span]:zen-line-clamp-1",
+        className,
+      )}
+      {...props}
+      // A screen reader is told through aria-invalid, on the control that has
+      // focus; a caller's own aria-invalid stands when `invalid` is not set.
+      aria-invalid={invalid || rootInvalid ? "true" : props["aria-invalid"]}
+    >
+      {children}
+      <SelectPrimitive.Icon asChild>
+        <ChevronDownIcon />
+      </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+  );
+});
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
 const SelectScrollUpButton = React.forwardRef<

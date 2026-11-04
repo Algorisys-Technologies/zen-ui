@@ -13,6 +13,7 @@ SKILL.md.
 
 ### Select
 
+- `invalid?: boolean | undefined` — Marked invalid without a message (the form shows its own): the trigger's aria-invalid and the error border.
 - from `@radix-ui/react-select`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `dir?`, `name?`, `autoComplete?`, `disabled?`, `required?`, `form?`, `value?`, `defaultValue?`, `onValueChange?`
 
 ### SelectGroup
@@ -28,6 +29,7 @@ SKILL.md.
 
 ### SelectTrigger
 
+- `invalid?: boolean | undefined` — Marked invalid: aria-invalid and the error border. Also set by `<Select invalid>`.
 - from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (290 inherited).
 

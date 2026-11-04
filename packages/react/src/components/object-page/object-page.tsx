@@ -475,7 +475,7 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
             >
               <SectionTag
                 id={`${s.id}-title`}
-                className="zen-m-0 zen-mb-3 zen-text-sm zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg"
+                className="zen-m-0 zen-mb-3 zen-[font-size:var(--zen-object-page-section-title-size)] zen-[line-height:var(--zen-line-height-sm)] zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg"
               >
                 {s.title}
               </SectionTag>

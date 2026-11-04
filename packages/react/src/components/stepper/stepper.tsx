@@ -207,6 +207,9 @@ export const StepperList: React.FC<StepperListProps> = ({ className }) => {
   return (
     <ol
       className={cn(
+        // zen-ui ships no element reset (it is opt-in), so the list's own
+        // margin, indent and markers are reset here.
+        "zen-m-0 zen-list-none zen-p-0",
         horizontal
           ? "zen-flex zen-items-center zen-gap-2 zen-w-full"
           : "zen-flex zen-flex-col zen-gap-1 zen-min-w-[14rem] zen-shrink-0",

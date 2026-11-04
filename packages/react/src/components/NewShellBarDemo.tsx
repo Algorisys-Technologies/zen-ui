@@ -1,5 +1,30 @@
+import { useState } from "react";
 import { ShellBar, type ShellBarItem, type ShellBarMenuItem } from "./shellbar/shellbar";
 import { CodeExample } from "./demo-helpers";
+import { Button } from "./button/button";
+import { Icon } from "./icon/icon";
+
+/** A command palette's trigger: the kind of control ShellBar's `search` slot is for. */
+const PaletteButton = ({ compact, onOpen }: { compact: boolean; onOpen: () => void }) => (
+  <Button
+    type="button"
+    variant="outline"
+    color="neutral"
+    size="sm"
+    shape={compact ? "square" : undefined}
+    aria-label={compact ? "Search (Ctrl+K)" : undefined}
+    onClick={onOpen}
+    className={compact ? undefined : "zen-w-56 zen-justify-start zen-text-zen-muted-fg"}
+  >
+    <Icon name="search" size={14} />
+    {compact ? null : (
+      <>
+        <span>Search…</span>
+        <kbd className="zen-ml-auto zen-font-sans zen-text-xs">Ctrl K</kbd>
+      </>
+    )}
+  </Button>
+);
 
 /**
  * ShellBar demo. Several sections deliberately constrain width, because both
@@ -46,6 +71,58 @@ const PROFILE = {
   name: "Rajesh Pillai",
   image: "https://i.pravatar.cc/96?img=12",
   menuItems: PROFILE_MENU,
+};
+
+/** Section 6: the search slot, at two widths. */
+const SearchSlotSection = () => {
+  const [opened, setOpened] = useState("");
+  return (
+    <section className="demo-section">
+      <h2>6. Your own search control in the bar</h2>
+      <CodeExample
+        title="search={(bar) => …}: a command palette's trigger"
+        description="The slot takes any control, laid out by the bar where its search field would be. As a function it is told when the bar is compact (where the built-in field would shrink to an icon), so a palette button can drop its label: the second bar is 480px."
+        code={`<ShellBar
+  logo={<Logo />}
+  primaryTitle="Algorisys One"
+  search={(bar) => <PaletteButton compact={bar.compact} onOpen={openPalette} />}
+  profile={PROFILE}
+/>`}
+      >
+        <div className="zen-flex zen-flex-col zen-gap-3">
+          <div
+            className="zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border"
+            style={{ width: 900, maxWidth: "100%" }}
+            data-testid="slot-wide"
+          >
+            <ShellBar
+              logo={<Logo />}
+              primaryTitle="Algorisys One"
+              search={(bar) => <PaletteButton compact={bar.compact} onOpen={() => setOpened("from the wide bar")} />}
+              profile={PROFILE}
+              aria-label="Algorisys One (900px)"
+            />
+          </div>
+          <div
+            className="zen-overflow-hidden zen-rounded-zen-md zen-border zen-border-zen-border"
+            style={{ width: 480 }}
+            data-testid="slot-narrow"
+          >
+            <ShellBar
+              logo={<Logo />}
+              primaryTitle="Algorisys One"
+              search={(bar) => <PaletteButton compact={bar.compact} onOpen={() => setOpened("from the narrow bar")} />}
+              profile={PROFILE}
+              aria-label="Algorisys One (480px)"
+            />
+          </div>
+          <p className="zen-text-sm zen-text-zen-muted-fg" aria-live="polite">
+            Palette: <span data-testid="palette">{opened || "not opened"}</span>
+          </p>
+        </div>
+      </CodeExample>
+    </section>
+  );
 };
 
 const NewShellBarDemo = () => (
@@ -222,6 +299,8 @@ const NewShellBarDemo = () => (
         </div>
       </CodeExample>
     </section>
+
+    <SearchSlotSection />
   </div>
 );
 

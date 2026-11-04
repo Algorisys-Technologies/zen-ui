@@ -2068,7 +2068,7 @@ function HeaderCell<TData, TValue>({
               : header.column.id
           }, currently ${sortLabel}`}
           className={cn(
-            "zen-w-full zen-h-full zen-px-2 zen-py-2",
+            "zen-w-full zen-h-full zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2",
             "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
             "zen-bg-transparent zen-border-0 zen-cursor-pointer",
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
@@ -2087,7 +2087,7 @@ function HeaderCell<TData, TValue>({
           ) : null}
         </button>
       ) : (
-        <span className="zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
+        <span className="zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
           {flexRender(header.column.columnDef.header, header.getContext())}
         </span>
       )}
@@ -2580,13 +2580,13 @@ function VirtHeaderCellInner<TData, TValue>({
         <button
           type="button"
           onClick={header.column.getToggleSortingHandler()}
-          className="zen-w-full zen-h-full zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1 zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-inherit zen-font-inherit focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset"
+          className="zen-w-full zen-h-full zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-inline-flex zen-items-center zen-gap-1 zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-inherit zen-font-inherit focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset"
         >
           {flexRender(header.column.columnDef.header, header.getContext())}
           <SortIndicator state={sorted} />
         </button>
       ) : (
-        <span className="zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
+        <span className="zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
           {flexRender(header.column.columnDef.header, header.getContext())}
         </span>
       )}

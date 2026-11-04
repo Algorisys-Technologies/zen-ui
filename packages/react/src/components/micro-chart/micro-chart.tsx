@@ -162,6 +162,14 @@ export const MicroLineChart = ({
 
 export interface MicroBarChartProps extends MicroChartBase {
   values: number[];
+  /**
+   * What a bar's height measures from. `"range"` (the default) stretches the
+   * values' own range over the height, so small differences show, as a
+   * sparkline does. `"zero"` measures every bar from zero, so its length is its
+   * value and two bars compare as their numbers do: what a figure like revenue
+   * needs. Negative values hang below a zero line.
+   */
+  baseline?: "range" | "zero";
 }
 
 export const MicroBarChart = ({
@@ -170,19 +178,32 @@ export const MicroBarChart = ({
   height = 24,
   color = "primary",
   label,
+  baseline,
   className,
 }: MicroBarChartProps) => {
   const vs = values ?? [];
   if (vs.length === 0) return null;
   const gap = 2;
-  const n = normalise(vs);
   const barW = Math.max(1, (width - gap * (vs.length - 1)) / vs.length);
-  const bars = n.map((v, i) => {
-    // A minimum height keeps the smallest value visible as a value rather than
-    // as a gap the reader has to notice is missing.
-    const bh = Math.max(2, v * height);
-    return { x: i * (barW + gap), y: height - bh, w: barW, h: bh };
-  });
+  let bars: { x: number; y: number; w: number; h: number }[];
+  if (baseline === "zero") {
+    const top = Math.max(0, ...vs);
+    const bottom = Math.min(0, ...vs);
+    const span = top - bottom || 1;
+    const zeroY = (top / span) * height;
+    bars = vs.map((v, i) => {
+      const bh = Math.max(v === 0 ? 0 : 2, (Math.abs(v) / span) * height);
+      return { x: i * (barW + gap), y: v >= 0 ? zeroY - bh : zeroY, w: barW, h: bh };
+    });
+  } else {
+    const n = normalise(vs);
+    bars = n.map((v, i) => {
+      // A minimum height keeps the smallest value visible as a value rather than
+      // as a gap the reader has to notice is missing.
+      const bh = Math.max(2, v * height);
+      return { x: i * (barW + gap), y: height - bh, w: barW, h: bh };
+    });
+  }
 
   return (
     <Frame

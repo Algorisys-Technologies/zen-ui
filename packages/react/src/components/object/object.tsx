@@ -30,7 +30,7 @@ export type ObjectState = "none" | "success" | "warning" | "error" | "info";
 const STATE_TEXT: Record<ObjectState, string> = {
   none: "zen-text-zen-foreground",
   success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   error: "zen-text-zen-error",
   info: "zen-text-zen-info",
 };
@@ -85,17 +85,45 @@ export interface ObjectStatusProps
    * carry meaning — without this, a status reads as bare text to assistive tech.
    */
   stateAnnouncement?: string;
+  /**
+   * A document's status as a stamp: a ruled box in the state's colour,
+   * uppercase and letter-spaced, never rotated (DRAFT, SUBMITTED, CANCELLED).
+   * No icon unless one is given. The neutral state is a muted grey.
+   */
+  stamp?: boolean;
 }
 
+// The soft-fg colours, not the plain state colours: warning's plain colour is
+// 1.77:1 on white, unreadable as text; its soft-fg is 5.23:1. For success,
+// error and info the two are the same colour (measured on the default theme).
+const STAMP_TEXT: Record<ObjectState, string> = {
+  none: "zen-text-zen-muted-fg",
+  success: "zen-text-zen-success-soft-fg",
+  warning: "zen-text-zen-warning-soft-fg",
+  error: "zen-text-zen-error-soft-fg",
+  info: "zen-text-zen-info-soft-fg",
+};
+
 export const ObjectStatus = React.forwardRef<HTMLSpanElement, ObjectStatusProps>(
-  ({ state = "none", icon, inverted, stateAnnouncement, className, children, ...props }, ref) => {
-    const resolved = icon === null ? null : (icon ?? (state === "none" ? null : STATE_ICON[state]));
+  ({ state = "none", icon, inverted, stateAnnouncement, stamp, className, children, ...props }, ref) => {
+    const resolved =
+      icon === null || (stamp && icon === undefined)
+        ? null
+        : (icon ?? (state === "none" ? null : STATE_ICON[state]));
     return (
       <span
         ref={ref}
         className={cn(
           objectStatusVariants({ inverted }),
-          inverted ? STATE_INVERTED[state] : STATE_TEXT[state],
+          stamp
+            ? cn(
+                "zen-rounded-zen-sm zen-border zen-border-solid zen-border-current zen-px-1.5 zen-py-px",
+                "zen-text-xs zen-font-semibold zen-uppercase zen-tracking-wider",
+                STAMP_TEXT[state],
+              )
+            : inverted
+              ? STATE_INVERTED[state]
+              : STATE_TEXT[state],
           className,
         )}
         {...props}

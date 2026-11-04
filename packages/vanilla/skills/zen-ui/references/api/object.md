@@ -16,6 +16,7 @@ SKILL.md.
 - `state?: ObjectState | undefined` — Semantic state. Drives colour and the default icon.
 - `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…` — Override the state's default icon, or pass `null` for no icon.
 - `stateAnnouncement?: string | undefined` — Screen-reader text naming the state, e.g. "Approved". Colour alone must not carry meaning — without this, a status reads as bare text to assistive tech.
+- `stamp?: boolean | undefined` — A document's status as a stamp: a ruled box in the state's colour, uppercase and letter-spaced, never rotated (DRAFT, SUBMITTED, CANCELLED). No icon unless one is given. The neutral state is a muted grey.
 - `inverted?: boolean | null | undefined`
 - …plus the underlying element's standard props (279 inherited).
 

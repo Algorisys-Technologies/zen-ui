@@ -120,6 +120,16 @@ export interface ComboboxProps {
   /** Trigger button's width. Defaults to 240. */
   width?: number | string;
   disabled?: boolean;
+  /**
+   * The value is not acceptable (a required field left empty, say): the field
+   * is marked aria-invalid and its border takes the error colour, as Select's
+   * does.
+   */
+  invalid?: boolean;
+  /** Lands on the trigger (the control that takes focus), so `<label for>` names it. */
+  id?: string;
+  /** Names the field for assistive tech when no visible label does. */
+  "aria-label"?: string;
   className?: string;
 }
 
@@ -138,6 +148,9 @@ const Combobox: React.FC<ComboboxProps> = ({
   createLabel = "Create",
   width = 240,
   disabled,
+  invalid,
+  id,
+  "aria-label": ariaLabel,
   className,
 }) => {
   const isAsync = typeof onSearch === "function";
@@ -233,9 +246,15 @@ const Combobox: React.FC<ComboboxProps> = ({
           color="neutral"
           role="combobox"
           aria-expanded={open}
+          // The trigger is the control that takes focus here (a <button>, so
+          // labelable): `id` and `aria-label` land on it.
+          id={id}
+          aria-label={ariaLabel}
+          aria-invalid={invalid ? "true" : undefined}
           disabled={disabled}
           className={cn(
             "zen-justify-between zen-font-normal",
+            "aria-[invalid=true]:zen-border-zen-error",
             !selected && "zen-text-zen-muted-fg",
             className,
           )}

@@ -22,6 +22,8 @@ SKILL.md.
 - `onClick?: (() => void) | undefined` — Renders the card as a button.
 - `href?: string | undefined` — Renders the card as a link. Takes precedence over onClick.
 - `loading?: boolean | undefined` — Swaps the figure for a skeleton and marks the card busy.
+- `chart?: React.ReactNode` — A small chart under the figure, across the card: the trend behind a hero figure ("Revenue, trailing 12 months"). A MicroChart, or any element. While `loading` it is a skeleton too.
+- `size?: "md" | "lg" | undefined` — "lg": the hero of a dashboard row, with a larger figure. Default "md".
 - `className?: string | undefined`
 - …plus the underlying element's standard props (277 inherited).
 

@@ -24,6 +24,7 @@ SKILL.md.
 ### MicroBarChart
 
 - `values: number[]`
+- `baseline?: "range" | "zero" | undefined` — What a bar's height measures from. `"range"` (the default) stretches the values' own range over the height, so small differences show, as a sparkline does. `"zero"` measures every bar from zero, so its length is its value and two bars compare as their numbers do: what a figure like revenue needs. Negative values hang below a zero line.
 - `width?: number | undefined` — Pixel width. Default varies by chart.
 - `height?: number | undefined` — Pixel height. Default varies by chart.
 - `color?: MicroChartColor | undefined`
