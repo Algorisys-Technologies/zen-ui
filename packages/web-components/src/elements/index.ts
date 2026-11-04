@@ -123,6 +123,7 @@ import "./document-tabs";
 import "./tooltip";
 import "./tree";
 import "./tree-select";
+import "./lookup-field";
 import "./value-help";
 import "./view-settings";
 import "./virtualized-items";
