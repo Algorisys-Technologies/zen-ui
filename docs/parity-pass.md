@@ -31,7 +31,7 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A12 | Sidebar collapseMode / overlay / badges / header label | ok | ok | ok |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | ok | ok |
 | D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | partial: 1-5 ok; cell nav + row virt need inline editing first | partial (as vanilla) |
-| S | Strings: the binding's components read the message catalogue; check:strings per binding | — | — | — |
+| S | Strings: the binding's components read the message catalogue; check:strings per binding | ok (139/139; S2 wip) | wip | wip |
 
 ## Log
 
@@ -214,3 +214,9 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   8/8, shortcuts 12/12, contextmenu 11/11, barcode 16/16, tile 10/10,
   treeselect 18/18 + 19/19, filter 21/21, date-input 28/28, cal-keys 21/21,
   sidebar 11/11, doc-tabs 35/35, lookup 30/30 (views pending re-run).
+- 2026-11-05: S React merged: 139/139 components on the catalogue,
+  `check:strings` takes a binding and `check:strings:react` is in `bun run
+  check`; 121/121 routes + 57 opened popovers identical in English. 30 new
+  keys (half cover English Solid still hard-codes). S2 launched: Solid onto
+  those keys, plus the words neither scan can see (helpers, data tables) in
+  both bindings, and a wider check that would have caught them.

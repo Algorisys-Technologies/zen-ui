@@ -20,7 +20,7 @@ that verified Solid.
 |---|---|
 | React | complete, at parity with Solid |
 | vanilla + web components | complete except DataTable cell navigation and row virtualization (in progress: vanilla DataTable first needs inline editing) |
-| strings (translation) in React / vanilla / WC | in progress (Solid's is done: 135/135) |
+| strings (translation) | Solid 135/135, React 139/139 (both in `bun run check`); vanilla/WC in progress; S2 (words neither scan sees, both bindings) in progress |
 | `<zen-locale-provider>` | in progress (with the vanilla/WC strings unit) |
 
 ## Found and fixed on the way (all in CHANGELOG [Unreleased])
