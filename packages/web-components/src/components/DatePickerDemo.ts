@@ -125,6 +125,23 @@ cal.addEventListener("zen-select", (e) => { cal.selected = e.detail ?? {}; });`,
           return wrap;
         },
       },
+      {
+        title: "6. Opening on the chosen day",
+        codeTitle: 'initial-focus="selected"',
+        codeDescription:
+          'By default the calendar opens with focus on the calendar panel (as it always has). With initial-focus="selected" it opens on the chosen day, or today, so the arrow keys move between days at once. It becomes the default in the next major version.',
+        code: `<zen-date-picker initial-focus="selected"></zen-date-picker>
+
+picker.defaultValue = new Date(2026, 2, 15);`,
+        render: () => {
+          const wrap = document.createElement("div");
+          wrap.dataset.testid = "initial-focus";
+          const picker = el("zen-date-picker", { "initial-focus": "selected" });
+          (picker as unknown as { defaultValue: Date }).defaultValue = new Date(2026, 2, 15);
+          wrap.append(picker);
+          return wrap;
+        },
+      },
     ],
   });
 }
