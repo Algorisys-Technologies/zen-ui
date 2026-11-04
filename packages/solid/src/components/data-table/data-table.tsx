@@ -643,7 +643,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
             type="button"
             onClick={() => row.toggleExpanded()}
             aria-expanded={row.getIsExpanded()}
-            aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
+            aria-label={loc.t(row.getIsExpanded() ? "dataTable.collapseRow" : "dataTable.expandRow")}
             class={cn(
               "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6",
               "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -1005,7 +1005,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
             type="button"
             onClick={row.getToggleExpandedHandler()}
             aria-expanded={row.getIsExpanded()}
-            aria-label={row.getIsExpanded() ? "Collapse group" : "Expand group"}
+            aria-label={loc.t(row.getIsExpanded() ? "dataTable.collapseGroup" : "dataTable.expandGroup")}
             class={cn(
               "zen-inline-flex zen-items-center zen-justify-center zen-h-5 zen-w-5 zen-rounded-zen-sm",
               "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-transition-transform",
@@ -1798,6 +1798,7 @@ function PinButton(props: {
   label: string;
   onClick: (e: MouseEvent) => void;
 }) {
+  const loc = useLocale();
   return (
     <button
       type="button"
@@ -1806,7 +1807,7 @@ function PinButton(props: {
         props.active ? `Unpin ${props.label} from ${props.side}` : `Pin ${props.label} to ${props.side}`
       }
       aria-pressed={props.active}
-      title={props.active ? `Unpin from ${props.side}` : `Pin to ${props.side}`}
+      title={loc.t(props.active ? "dataTable.unpinFrom" : "dataTable.pinTo", { side: props.side })}
       class={cn(
         "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
         "zen-border-0 zen-cursor-pointer zen-text-xs",

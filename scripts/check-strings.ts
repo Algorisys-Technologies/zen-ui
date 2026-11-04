@@ -23,9 +23,15 @@ const ROOT = "packages/solid/src/components";
 const NOT_YET_SWEPT = new Set<string>([]);
 
 const PATTERNS: [string, RegExp][] = [
-  ["text attribute", /\b(aria-label|aria-description|aria-roledescription|title|placeholder|label|description|emptyText|emptyMessage|alt)="[^"]*[A-Za-z]{2}[^"]*"/],
+  ["text attribute", /\b(aria-label|aria-description|aria-roledescription|title|placeholder|label|description|emptyText|emptyMessage|alt|fallback)="[^"]*[A-Za-z]{2}[^"]*"/],
   ["templated text attribute", /\b(aria-label|title|placeholder|label|description)=\{`[^`]*[A-Za-z]{3}[^`]*`\}/],
   ["English default", /\?\? "[A-Z][a-z][^"]*"/],
+  // Found by the React DocumentTabs port: words inside an attribute EXPRESSION
+  // (a ternary of literals, a template after ??) and lowercase JSX text
+  // (", unsaved changes" in an sr-only span) slipped past the three above.
+  ["text in an attribute expression", /\b(aria-label|aria-description|aria-roledescription|title|placeholder|label|description|alt)=\{[^}]*(?:"[A-Z][a-z]+(?: [a-z]+)*"|`[^`]*\b[A-Za-z][a-z]{2,}\b[^`]*`)/],
+  ["English template default", /\?\? `[^`]*[A-Za-z][a-z]{2,} [^`]*`/],
+  ["lowercase JSX text", />\s*[,(]?\s*[a-z]+ [a-z]+(?: [a-z]+)*[.…:!?)]?\s*<\//],
   ["JSX text", />\s*[A-Z][a-z]+(?:[ ,'’.:…-]+[A-Za-z]+)*[.…:!?]?\s*<\//],
   ["JSX text line", /^\s+[A-Z][a-z]+(?:[ ,'’-]+[a-z]+)*[.…:!?]?\s*$/],
 ];
@@ -56,9 +62,13 @@ for (const file of files.sort()) {
     if (t.startsWith("/*")) { if (!t.includes("*/")) inComment = true; return; }
     if (t.startsWith("//") || t.startsWith("*") || t.startsWith("{/*")) return;
     if (/\/\/ i18n-ignore\b/.test(line)) return;
+    // A JSX child cannot carry a // comment: {/* i18n-ignore-next-line (why) */} on the line above.
+    if (/i18n-ignore-next-line\b/.test(lines[i - 1] ?? "")) return;
+    // What a person could read: not the code inside ${…}, not a catalogue key being built.
+    const scan = line.replace(/loc\.t\((?:[^()]|\([^()]*\))*\)/g, "loc.t()").replace(/\$\{(?:[^{}]|\{[^{}]*\})*\}/g, "${}");
     for (const [kind, re] of PATTERNS) {
       if (kind === "JSX text line" && !/>\s*$/.test(lines[i - 1] ?? "")) continue; // only text between tags
-      if (re.test(line)) { hits.push(`${rel}:${i + 1}  ${kind}: ${t.slice(0, 100)}`); break; }
+      if (re.test(scan)) { hits.push(`${rel}:${i + 1}  ${kind}: ${t.slice(0, 100)}`); break; }
     }
   });
   if (NOT_YET_SWEPT.has(rel)) { pending += hits.length; continue; }

@@ -15,6 +15,26 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- **Built-in strings in 18 places were still hard-coded after 12.2.0's "every string
+  can be translated"** (Solid), which overstated it: `check:strings` could
+  not see words inside an attribute EXPRESSION (`aria-label={open ? "Collapse
+  row" : "Expand row"}`, a template after `??`), lowercase JSX text (", unsaved
+  changes" in a screen-reader span), or `fallback=`. Found by the React
+  DocumentTabs port. The check now sees all four (ignoring code inside `${…}`
+  and catalogue keys being built), and the strings are in the catalogue:
+  Carousel's arrows, DataTable's expand / collapse and column pin titles,
+  DiffView's "not set", FileUpload's "or drag and drop", Gantt's and
+  ProductionSchedule's expand / collapse, Link's "(opens in a new tab)",
+  MediaTimeline's range position, Proctor's video labels and flag count, Map's
+  "Loading map…", and DocumentTabs' pin / unpin, unsaved marker and all-tabs
+  count. Two developer install notices (Map, RichText) are marked
+  `i18n-ignore-next-line`. English unchanged: all 120 Solid demo routes
+  snapshot identical before and after.
+- **`build:lib` vendored no core declarations in a checkout under a dotted
+  path** (`scripts/vendor-core-types.mjs` treated "no dot in the path" as "a
+  directory"), so every binding's build failed its own assertion there.
+
 ## [12.2.0] - 2026-11-04
 
 ### Added

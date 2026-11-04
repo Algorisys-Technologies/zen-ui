@@ -250,7 +250,7 @@ export const DocumentTabs = React.forwardRef<HTMLDivElement, DocumentTabsProps>(
                   {t.dirty && (
                     <>
                       <span className="zen-h-1.5 zen-w-1.5 zen-shrink-0 zen-rounded-full zen-bg-zen-primary" aria-hidden="true" />
-                      <span className="zen-sr-only">, unsaved changes</span>
+                      <span className="zen-sr-only">{loc.t("documentTabs.unsaved")}</span>
                     </>
                   )}
                 </button>
@@ -258,9 +258,9 @@ export const DocumentTabs = React.forwardRef<HTMLDivElement, DocumentTabsProps>(
                   <button
                     type="button"
                     tabIndex={-1}
-                    aria-label={t.pinned ? `Unpin ${t.label}` : `Pin ${t.label}`}
+                    aria-label={loc.t(t.pinned ? "documentTabs.unpinTab" : "documentTabs.pinTab", { label: t.label })}
                     aria-pressed={t.pinned ? "true" : "false"}
-                    title={t.pinned ? "Unpin" : "Pin"}
+                    title={loc.t(t.pinned ? "documentTabs.unpin" : "documentTabs.pin")}
                     className={cn(iconButton, t.pinned ? "zen-text-zen-primary" : "zen-opacity-0 group-hover:zen-opacity-100 group-focus-within:zen-opacity-100")}
                     onClick={() => onPinChange(t.id, !t.pinned)}
                   >
@@ -287,7 +287,7 @@ export const DocumentTabs = React.forwardRef<HTMLDivElement, DocumentTabsProps>(
           <DropdownMenu>
             <DropdownMenuTrigger
               type="button"
-              aria-label={allTabsLabel ?? `All open documents (${tabs.length})`}
+              aria-label={allTabsLabel ?? loc.t("documentTabs.allOpenDocumentsCount", { count: tabs.length })}
               title={allTabsLabel ?? loc.t("documentTabs.allOpenDocuments")}
               className={cn(iconButton, "zen-h-auto zen-w-8 zen-rounded-none zen-border-l zen-border-zen-border")}
             >

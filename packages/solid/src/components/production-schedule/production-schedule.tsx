@@ -701,7 +701,7 @@ const ProductionPaneCell = (props: {
                arrowing to the first column and pressing the forward arrow. */
             tabindex={-1}
             onClick={() => props.onToggle(resource().id)}
-            aria-label={props.row.expanded ? `Collapse ${resource().name}` : `Expand ${resource().name}`}
+            aria-label={loc.t(props.row.expanded ? "productionSchedule.collapseResource" : "productionSchedule.expandResource", { name: resource().name })}
             class="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
           >
             <Icon

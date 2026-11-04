@@ -3,6 +3,7 @@ import { Dynamic } from "solid-js/web";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * Link — a styled anchor.
@@ -82,6 +83,7 @@ export type LinkProps<T extends ValidComponent = "a"> = {
   >;
 
 export const Link = <T extends ValidComponent = "a">(rawProps: LinkProps<T>) => {
+  const loc = useLocale();
   const props = mergeProps({ as: "a" as ValidComponent }, rawProps);
   const [local, rest] = splitProps(props as LinkProps<"a"> & { as: ValidComponent }, [
     "as",
@@ -135,7 +137,7 @@ export const Link = <T extends ValidComponent = "a">(rawProps: LinkProps<T>) => 
           <Icon name="external-link" size={12} aria-hidden="true" class="zen-shrink-0" />
           {/* The icon is decorative, so the fact it leaves the page has to be
               said in words — a screen reader gets no warning otherwise. */}
-          <span class="zen-sr-only">(opens in a new tab)</span>
+          <span class="zen-sr-only">{loc.t("link.opensInNewTab")}</span>
         </Show>
       </Dynamic>
     </Show>

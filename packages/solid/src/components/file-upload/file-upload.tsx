@@ -150,7 +150,7 @@ export const FileUpload = (props: FileUploadProps) => {
           {props.label ?? (
             <>
               <span class="zen-font-medium">{loc.t("fileUpload.clickToUpload")}</span>{" "}
-              <span class="zen-text-zen-muted-fg">or drag and drop</span>
+              <span class="zen-text-zen-muted-fg">{loc.t("fileUpload.orDragAndDrop")}</span>
             </>
           )}
         </div>

@@ -133,7 +133,7 @@ export const DiffView = (props: DiffViewProps) => {
       <span aria-hidden="true" class="zen-text-zen-muted-fg">
         —
       </span>
-      <span class="zen-sr-only">not set</span>
+      <span class="zen-sr-only">{loc.t("diffView.notSet")}</span>
     </>
   );
 
@@ -156,7 +156,7 @@ export const DiffView = (props: DiffViewProps) => {
             <span aria-hidden="true" class="zen-text-zen-muted-fg">
               —
             </span>
-            <span class="zen-sr-only">not set</span>
+            <span class="zen-sr-only">{loc.t("diffView.notSet")}</span>
           </p>
         }
       >

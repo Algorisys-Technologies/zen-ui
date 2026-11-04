@@ -535,6 +535,7 @@ export const Gantt = (props: GanttProps) => {
 
 /** What each of the four pane columns actually draws. */
 const GanttPaneCell = (props: { column: GanttPaneColumn; row: Row; onToggle: (id: string) => void }) => {
+  const loc = useLocale();
   const task = () => props.row.task;
   const varianceText = () => formatGanttVariance(props.row.variance);
 
@@ -556,7 +557,7 @@ const GanttPaneCell = (props: { column: GanttPaneColumn; row: Row; onToggle: (id
                by a tab stop per parent. */
             tabindex={-1}
             onClick={() => props.onToggle(task().id)}
-            aria-label={props.row.expanded ? `Collapse ${task().name}` : `Expand ${task().name}`}
+            aria-label={loc.t(props.row.expanded ? "gantt.collapseTask" : "gantt.expandTask", { name: task().name })}
             class="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
           >
             <Icon
