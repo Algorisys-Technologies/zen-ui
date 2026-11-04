@@ -1088,6 +1088,8 @@ export {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
+  SidebarHeaderLabel,
+  SidebarMenuBadge,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
