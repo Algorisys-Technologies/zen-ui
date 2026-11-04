@@ -115,6 +115,7 @@ import NewSelectDialogDemo from "./components/NewSelectDialogDemo";
 import NewValueHelpDemo from "./components/NewValueHelpDemo";
 import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
 import NewFilterBarDemo from "./components/NewFilterBarDemo";
+import NewFilterBuilderDemo from "./components/NewFilterBuilderDemo";
 import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
 import NewStatCardDemo from "./components/NewStatCardDemo";
 import NewCustomizingDemo from "./components/NewCustomizingDemo";
@@ -257,6 +258,7 @@ render(
       <Route path="/value-help" component={NewValueHelpDemo} />
       <Route path="/view-settings" component={NewViewSettingsDemo} />
       <Route path="/filter-bar" component={NewFilterBarDemo} />
+      <Route path="/filter-builder" component={NewFilterBuilderDemo} />
       <Route path="/page-header" component={NewPageHeaderDemo} />
       <Route path="/stat-card" component={NewStatCardDemo} />
       <Route path="/customizing" component={NewCustomizingDemo} />

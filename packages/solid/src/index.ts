@@ -99,6 +99,8 @@ export type {
 
 export { FilterBar } from "./components/filter-bar/filter-bar";
 export type { FilterBarProps, FilterBarField } from "./components/filter-bar/filter-bar";
+export { FilterBuilder } from "./components/filter-builder/filter-builder";
+export type { FilterBuilderProps, FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator } from "./components/filter-builder/filter-builder";
 
 export { ValueHelp } from "./components/value-help/value-help";
 export type {

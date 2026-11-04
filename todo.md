@@ -97,6 +97,21 @@ issue / PR when its turn comes.
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
 
+## Parity: FilterBuilder (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `filter` (shared already). Three
+      Solid traps it hit, all measured: rows must be keyed by node ID (each edit
+      builds a new tree; keying by object re-creates the row being typed into);
+      the value editor must depend on the field's TYPE, memoised (reading the
+      field re-ran it on every edit); and Select option lists must be stable
+      and handlers must ignore a "change" to the current value (Kobalte reports
+      the selection again when options change identity: a stack overflow).
+      React will not have the first two, but check the third against Radix.
+      Demo /filter-builder. ERPNext review C5.
+- [ ] Not in this cut: drag to reorder conditions; a "relative date" value
+      (this month, last 7 days, as DynamicDateRange has); a server-side
+      translator (filter -> SQL / Frappe filters) is the consumer's.
+
 ## Parity: QRCode and Barcode (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass, on core's `barcode` (shared already, with

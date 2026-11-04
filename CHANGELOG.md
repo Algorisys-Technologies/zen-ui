@@ -16,6 +16,22 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **FilterBuilder** (Solid; new): nested AND/OR conditions on any field, edited
+  as a tree and held as one plain object, for advanced list filters, report
+  criteria and saved views. A field's type picks its operators and editor
+  (text, number, a typed date with a calendar, a list of choices, yes/no);
+  each group's Match covers all, any, none and not all, so NOT is never a
+  checkbox to miss. Unfinished conditions filter nothing; a summary in words
+  says what the filter does now. Focus follows edits (a new condition's field,
+  the next row after a removal). The pure half is core's new
+  `@algorisys/zen-ui-core/filter`: `filterPredicate`, `describeFilter`, the
+  edit functions, and `loadFilter`, which reads a saved filter against today's
+  fields and names what it had to drop (a removed field, a retired option)
+  instead of failing. Operator names are DataTable's. Checked by
+  `bun run check:filter` (5826 assertions).
+- **Select and MultiCombobox take `aria-label`** (Solid), landing on the
+  control that takes focus. Select's used to fall through to Kobalte's root
+  div, where it named nothing.
 - **QRCode and Barcode** (Solid; new): codes drawn as SVG for screens and
   print. `QRCode`: versions 1–40, error correction L/M/Q/H, numeric /
   alphanumeric / byte (UTF-8) modes, `minVersion` for a fixed printed size;
@@ -267,6 +283,11 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **check:lookup's sweep was far narrower than it claimed**: its random
+  generator overflowed a double (`seed * 1103515245`), lost its low bits and
+  picked 3 of 12 entries, so 12 distinct cells of 144 were tested and never a
+  decomposed accent or an emoji. It uses `Math.imul` now, asserts its own
+  variety, and passes. (No bug was hiding behind it; the claim was the defect.)
 - **Esc did nothing in ValueHelp and ViewSettingsDialog while a tab had focus**
   (Solid), and ValueHelp opens with focus on one. Kobalte's tab list swallows
   Esc, though a tab list can never be emptied, so any Dialog, Sheet or Popover

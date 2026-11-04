@@ -53,6 +53,12 @@ export type SelectProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "on
   defaultOpen?: boolean;
   /** The list opened or closed. */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Names the control when no visible `label` does. Lands on the trigger (the
+   * button that takes focus), where Kobalte reads it with the chosen value:
+   * "Condition 1, field, Status". On the root it named nothing.
+   */
+  "aria-label"?: string;
 };
 
 export const Select = (props: SelectProps) => {
@@ -70,6 +76,7 @@ export const Select = (props: SelectProps) => {
     "errorMessage",
     "invalid",
     "id",
+    "aria-label",
   ]);
 
   return (
@@ -117,6 +124,7 @@ export const Select = (props: SelectProps) => {
           Kobalte root, so `<label for={id}>` associates and names the control. */}
       <KSelect.Trigger
         id={local.id}
+        aria-label={local["aria-label"]}
         // Kobalte marks the trigger data-invalid only; a screen reader is told
         // through aria-invalid, on the control that has focus.
         aria-invalid={local.errorMessage || local.invalid ? "true" : undefined}

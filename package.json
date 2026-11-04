@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev:all": "node scripts/dev-all.mjs",
-    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:media && bun run check:diff && bun run check:document && bun run check:sortable && bun run check:splitter && bun run check:flexible-column-layout && bun run check:row-keys && bun run check:grid-range && bun run check:tree-select && bun run check:keys && bun run check:date-input && bun run check:lookup && bun run check:barcode && bun run check:countdown && bun run check:chunk-upload && bun run check:spreadsheet && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:gantt && bun run check:production && bun run check:reschedule && bun run check:critical-path && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide && bun run check:skill-api",
+    "check": "bun run check:types && bun run check:cn && bun run check:direction && bun run check:css-live && bun run check:mask && bun run check:color && bun run check:date-range && bun run check:chart && bun run check:media && bun run check:diff && bun run check:document && bun run check:sortable && bun run check:splitter && bun run check:flexible-column-layout && bun run check:row-keys && bun run check:grid-range && bun run check:tree-select && bun run check:keys && bun run check:date-input && bun run check:lookup && bun run check:barcode && bun run check:filter && bun run check:countdown && bun run check:chunk-upload && bun run check:spreadsheet && bun run check:pivot && bun run check:virtual-window && bun run check:planning && bun run check:gantt && bun run check:production && bun run check:reschedule && bun run check:critical-path && bun run check:nav && bun run check:parity && bun run check:release && bun run check:agent-guide && bun run check:skill-api",
     "gen:agent-guide": "bun run scripts/gen-agent-guide.ts",
     "check:agent-guide": "bun run scripts/gen-agent-guide.ts --check",
     "gen:skill-api": "bun run scripts/gen-skill-api.ts",
@@ -34,6 +34,7 @@
     "check:date-input": "bun run scripts/check-date-input.ts",
     "check:lookup": "bun run scripts/check-lookup.ts",
     "check:barcode": "bun run scripts/check-barcode.ts",
+    "check:filter": "bun run scripts/check-filter.ts",
     "check:countdown": "bun run scripts/check-countdown.ts",
     "check:chunk-upload": "bun run scripts/check-chunk-upload.ts",
     "check:spreadsheet": "bun run scripts/check-spreadsheet.ts",

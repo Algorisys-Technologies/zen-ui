@@ -45,6 +45,8 @@ export type MultiComboboxProps = {
   createLabel?: string;
   width?: number | string;
   disabled?: boolean;
+  /** Names the field for assistive tech, when no visible label does. */
+  "aria-label"?: string;
   class?: string;
 };
 
@@ -66,6 +68,7 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
     "createLabel",
     "width",
     "disabled",
+    "aria-label",
     "class",
   ]);
 
@@ -188,6 +191,7 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
           )}
         </For>
         <KCombobox.Input
+          aria-label={props["aria-label"]}
           class="zen-flex-1 zen-min-w-[6rem] zen-bg-transparent zen-border-0 zen-outline-none zen-text-sm placeholder:zen-text-zen-muted-fg"
           placeholder={
             selectedValues().length === 0
