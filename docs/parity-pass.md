@@ -20,17 +20,17 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | ok | ok | ok |
 | A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | wip | wip |
 | A3 | ContextMenu | ok | wip | wip |
-| A4 | DocumentTabs | ok | wip | wip |
+| A4 | DocumentTabs | ok | ok | ok |
 | A5 | Tile, TileGrid | ok | ok | ok |
 | A6 | QRCode, Barcode | ok | ok | ok |
 | A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | wip | wip |
-| A8 | TreeSelect | ok | — | — |
+| A8 | TreeSelect | ok | wip | wip |
 | A9 | LookupField | ok | — | — |
 | A10 | FilterBuilder | ok | — | — |
 | A11 | ViewManager | ok | — | — |
-| A12 | Sidebar collapseMode / overlay / badges / header label | ok | — | — |
+| A12 | Sidebar collapseMode / overlay / badges / header label | ok | wip | wip |
 | A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | — | — |
-| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok (contextMenu: D2 wip) | — | — |
+| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | wip | wip |
 | S | Strings: the binding's components read the message catalogue; check:strings per binding | — | — | — |
 
 ## Log
@@ -138,3 +138,12 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   Six orphaned preview servers from finished agents stopped.
 - 2026-11-05: wave 2 launched: D2 React (DataTable contextMenu), vanilla+WC
   A2, A3, A4, A7. Agent notes for vanilla in the scratchpad VANILLA-NOTES.md.
+- 2026-11-05: D2 React merged (DataTable contextMenu 10/10, + 8/8 with cell
+  navigation in a temporary build; /data-table 32 -> 33 sections, none changed).
+  **check:parity: Solid <-> React clean in both directions.** Radix reads the
+  trigger's `disabled` during the same event, so the target is committed in the
+  capture phase with flushSync (a header right-click after a row's otherwise
+  opened the row's menu).
+- 2026-11-05: A4 vanilla+WC merged (DocumentTabs 35/35 on both, results file
+  byte-identical to React's; update({tabs}) reconciles by id and keeps focus).
+- 2026-11-05: D vanilla+WC, A8 vanilla+WC, A12 vanilla+WC launched.
