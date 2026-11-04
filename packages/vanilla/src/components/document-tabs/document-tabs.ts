@@ -94,6 +94,9 @@ interface TabView {
 export function DocumentTabs(props: DocumentTabsProps): ZenComponent<DocumentTabsProps> {
   // Read the provider building this strip now: its words are written later too (update, overflow).
   const loc = useLocale();
+  // Before anything is observed: a factory that throws later would leak its
+  // observer. (<zen-document-tabs> retries once `tabs` arrives.)
+  if (!Array.isArray(props.tabs)) throw new TypeError("DocumentTabs: `tabs` must be an array");
   let current: DocumentTabsProps = { ...props };
   const disposer = new Disposer();
 
@@ -177,7 +180,7 @@ export function DocumentTabs(props: DocumentTabsProps): ZenComponent<DocumentTab
     wrapper.append(button);
     const view: TabView = { tab: t, wrapper, button, pin: null, close: null, drawn: "", dispose: () => {} };
 
-    const onClick = () => current.onSelect(view.tab.id);
+    const onClick = () => current.onSelect?.(view.tab.id);
     const onKey = (e: KeyboardEvent) => onKeyDown(e, view.tab.id);
     const onAux = (e: MouseEvent) => {
       if (e.button === 1) { e.preventDefault(); close(view.tab); }
@@ -336,7 +339,7 @@ export function DocumentTabs(props: DocumentTabsProps): ZenComponent<DocumentTab
       const label = document.createElement("span");
       label.className = cn("zen-truncate", t.id === current.activeId && "zen-font-medium");
       label.textContent = `${t.description ? `${t.description} · ` : ""}${t.label}${t.dirty ? " •" : ""}`;
-      return { label, onSelect: () => current.onSelect(t.id) };
+      return { label, onSelect: () => current.onSelect?.(t.id) };
     });
 
   const drawMenu = () => {
