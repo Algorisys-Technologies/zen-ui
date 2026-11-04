@@ -18,6 +18,7 @@ import { isFilterActive } from "@algorisys/zen-ui-core/pivot";
 import { usePivotFilterOptions } from "./internal/use-pivot-filter-options";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 export interface PivotFilterMenuProps {
   columnKey: string;
@@ -64,6 +65,7 @@ function isFilterAnchorVisible(anchor: DOMRect): boolean {
 }
 
 export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
+  const loc = useLocale();
   const [open, setOpen] = createSignal(false);
   const [search, setSearch] = createSignal("");
   const [position, setPosition] = createSignal({ top: 0, left: 0 });
@@ -288,7 +290,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
           "zen-inline-flex zen-min-h-11 zen-min-w-11 zen-cursor-pointer zen-items-center zen-justify-center zen-gap-1 zen-rounded-sm zen-p-2 zen-text-zen-muted-fg zen-transition-colors hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
           (filterActive() || props.sortDirection) && "zen-text-zen-primary",
         )}
-        aria-label={`Sort or filter ${props.label}`}
+        aria-label={loc.t("pivot.sortOrFilter", { label: props.label })}
         aria-haspopup="dialog"
         aria-expanded={open()}
         onClick={(event) => {
@@ -322,7 +324,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
           <div
             ref={panelRef}
             role="dialog"
-            aria-label={`${props.label} filter`}
+            aria-label={loc.t("pivot.filterFor", { label: props.label })}
             class="zen-fixed zen-z-50 zen-flex zen-w-72 zen-flex-col zen-rounded-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-shadow-md"
             style={{
               top: `${position().top}px`,
@@ -342,7 +344,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                   }}
                 >
                   <Icon name="arrow-up" class="zen-size-3.5" aria-hidden="true" />
-                  <span>Sort ascending</span>
+                  <span>{loc.t("pivot.sortAscending")}</span>
                   <Show when={props.sortDirection === "asc"}>
                     <Icon name="check" class="zen-ml-auto zen-size-3.5" aria-hidden="true" />
                   </Show>
@@ -359,7 +361,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                   }}
                 >
                   <Icon name="arrow-down" class="zen-size-3.5" aria-hidden="true" />
-                  <span>Sort descending</span>
+                  <span>{loc.t("pivot.sortDescending")}</span>
                   <Show when={props.sortDirection === "desc"}>
                     <Icon name="check" class="zen-ml-auto zen-size-3.5" aria-hidden="true" />
                   </Show>
@@ -371,8 +373,8 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                 ref={searchInputRef}
                 type="text"
                 class="zen-h-7 zen-w-full zen-border-0 zen-bg-transparent zen-text-sm zen-text-zen-foreground zen-outline-none placeholder:zen-font-normal placeholder:zen-text-zen-muted-fg"
-                placeholder={`Search ${props.label.toLowerCase()}…`}
-                aria-label={`Search ${props.label.toLowerCase()} values`}
+                placeholder={loc.t("pivot.searchPlaceholder", { label: props.label.toLowerCase() })}
+                aria-label={loc.t("pivot.searchValues", { label: props.label.toLowerCase() })}
                 value={search()}
                 onInput={(event) => {
                   setSearch(event.currentTarget.value);
@@ -402,19 +404,19 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                       <Icon name="minus" class="zen-size-3" />
                     </Show>
                   </span>
-                  <span>Select all</span>
+                  <span>{loc.t("pivot.selectAll")}</span>
                 </button>
               </div>
             </Show>
             <Show when={loading() && totalCount() === 0}>
               <div
                 role="listbox"
-                aria-label={`${props.label} values`}
+                aria-label={loc.t("pivot.values", { label: props.label })}
                 aria-busy="true"
                 class="zen-max-h-64 zen-overflow-y-auto zen-p-1"
               >
                 <div class="zen-flex zen-flex-col zen-items-center zen-justify-center zen-gap-2 zen-px-2 zen-py-6">
-                  <Loading size="sm" label="Loading values…" />
+                  <Loading size="sm" label={loc.t("pivot.loadingValues")} />
                 </div>
               </div>
             </Show>
@@ -424,24 +426,24 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                 is not missing. */}
             <Show when={!loading() && loadError()}>
               <div class="zen-flex zen-flex-col zen-items-start zen-gap-1 zen-px-2 zen-py-3" role="alert">
-                <p class="zen-m-0 zen-text-sm zen-text-zen-error">Could not load values.</p>
+                <p class="zen-m-0 zen-text-sm zen-text-zen-error">{loc.t("pivot.loadFailed")}</p>
                 <button
                   type="button"
                   class="zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-0 zen-text-xs zen-text-zen-primary hover:zen-underline"
                   onClick={() => openPanelFetch()}
                 >
-                  Try again
+                  {loc.t("pivot.tryAgain")}
                 </button>
               </div>
             </Show>
             <Show when={!loading() && !loadError() && totalCount() === 0}>
               <div
                 role="listbox"
-                aria-label={`${props.label} values`}
+                aria-label={loc.t("pivot.values", { label: props.label })}
                 class="zen-max-h-64 zen-overflow-y-auto zen-p-1"
               >
                 <p class="zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-fg">
-                  No matching values
+                  {loc.t("pivot.noMatchingValues")}
                 </p>
               </div>
             </Show>
@@ -469,7 +471,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                     props.onChange(null);
                   }}
                 >
-                  Clear filter
+                  {loc.t("pivot.clearFilter")}
                 </button>
               </div>
             </Show>

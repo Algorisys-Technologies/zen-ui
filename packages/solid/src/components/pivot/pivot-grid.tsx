@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, For, Index, onCleanup, Show, un
 import { createVirtualizer } from "@tanstack/solid-virtual";
 import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 const PIVOT_ROW_CLASS = "zen-border-b zen-border-zen-border/60 zen-bg-transparent even:zen-bg-transparent hover:zen-bg-transparent";
 const CORNER_HEADER_CLASS = "zen-px-2 zen-py-1 zen-text-start zen-text-sm zen-font-medium zen-text-zen-muted-fg zen-capitalize";
@@ -52,6 +53,7 @@ function colPadStyle(width: number): Record<string, string> {
 const SKELETON_BAR = "zen-rounded-sm zen-bg-zen-muted-fg/25 motion-safe:zen-animate-pulse";
 
 export function PivotGrid(props: PivotGridProps) {
+  const loc = useLocale();
   const rowHeight = () => props.rowHeight || 25;
   const colWidth = () => props.colWidth || 200;
   const rowHeaderWidth = () => props.rowHeaderWidth || 160;
@@ -178,7 +180,7 @@ export function PivotGrid(props: PivotGridProps) {
         ref={scrollRef}
         class="zen-flex-1 zen-min-h-0 zen-min-w-0 zen-w-full zen-overflow-auto zen-overscroll-contain zen-rounded-none zen-border-l zen-border-t zen-border-zen-border zen-bg-zen-background"
         role="region"
-        aria-label={props.label ?? "Pivot grid"}
+        aria-label={props.label ?? loc.t("pivot.grid")}
         tabIndex={0}
         onScroll={onScroll}
       >

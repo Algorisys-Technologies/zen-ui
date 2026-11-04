@@ -10,6 +10,7 @@ import {
   type CellFormat,
 } from "@algorisys/zen-ui-core/spreadsheet";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * SpreadsheetGrid — an editable grid of cells with formulas.
@@ -48,6 +49,7 @@ export interface SpreadsheetGridProps {
 }
 
 export const SpreadsheetGrid = (props: SpreadsheetGridProps) => {
+  const loc = useLocale();
   const [editing, setEditing] = createSignal<string | null>(null);
   const [draft, setDraft] = createSignal("");
   const [selected, setSelected] = createSignal("A1");
@@ -179,7 +181,7 @@ export const SpreadsheetGrid = (props: SpreadsheetGridProps) => {
         <thead>
           <tr>
             <th scope="col" class={cn(headerCell, "zen-start-0 zen-top-0 zen-z-20 zen-w-10")}>
-              <span class="zen-sr-only">Row</span>
+              <span class="zen-sr-only">{loc.t("spreadsheet.row")}</span>
             </th>
             <Index each={Array.from({ length: cols() })}>
               {(_, c) => (

@@ -22,6 +22,7 @@ import { Icon } from "../icon/icon";
 import { Input } from "../form/input/input";
 import { Button } from "../button/button";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * TreeTable — a table whose rows form a hierarchy.
@@ -142,6 +143,7 @@ export interface TreeTableProps<TData, TValue = unknown> {
 }
 
 export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, TValue>) {
+  const loc = useLocale();
   const [local] = splitProps(props, ["class"]);
 
   const [expandedInner, setExpandedInner] = createSignal<ExpandedState>(props.defaultExpanded ?? {});
@@ -190,7 +192,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
           checked={table.getIsAllRowsSelected()}
           indeterminate={!table.getIsAllRowsSelected() && table.getIsSomeRowsSelected()}
           onChange={(v: boolean) => table.toggleAllRowsSelected(v)}
-          aria-label="Select all rows"
+          aria-label={loc.t("dataTable.selectAll")}
         />
       ),
       cell: ({ row }) => {
@@ -214,7 +216,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
             checked={checked()}
             indeterminate={partial()}
             onChange={(v: boolean) => row.toggleSelected(v)}
-            aria-label={`Select row ${row.index + 1}`}
+            aria-label={loc.t("dataTable.selectRow", { n: row.index + 1 })}
           />
         );
       },
@@ -569,9 +571,9 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
             <Input
               value={globalFilter()}
               onInput={(e: { currentTarget: HTMLInputElement }) => table.setGlobalFilter(e.currentTarget.value)}
-              placeholder={props.globalFilterPlaceholder ?? "Search…"}
+              placeholder={props.globalFilterPlaceholder ?? loc.t("dataTable.search")}
               class="zen-max-w-xs"
-              aria-label="Search"
+              aria-label={loc.t("treeTable.search")}
             />
           </Show>
           <Show when={props.enableExpandAll ?? true}>
@@ -585,7 +587,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                 name={table.getIsAllRowsExpanded() ? "chevron-down" : "chevron-right"}
                 size={14}
               />
-              {table.getIsAllRowsExpanded() ? "Collapse all" : "Expand all"}
+              {table.getIsAllRowsExpanded() ? loc.t("treeTable.collapseAll") : loc.t("treeTable.expandAll")}
             </Button>
           </Show>
         </div>
@@ -664,7 +666,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                   colSpan={table.getVisibleLeafColumns().length}
                   class="zen-h-24 zen-text-center zen-text-zen-muted-fg"
                 >
-                  {props.loading ? "Loading…" : (props.emptyMessage ?? "No results.")}
+                  {props.loading ? loc.t("treeTable.loading") : (props.emptyMessage ?? loc.t("dataTable.noResults"))}
                 </TableCell>
               </TableRow>
             }
@@ -695,7 +697,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
             <Show when={props.pageSizeOptions?.length}>
               <select
                 class="zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm"
-                aria-label="Rows per page"
+                aria-label={loc.t("dataTable.rowsPerPage")}
                 value={table.getState().pagination.pageSize}
                 onChange={(e) => table.setPageSize(Number(e.currentTarget.value))}
               >
@@ -710,7 +712,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
               disabled={!table.getCanPreviousPage()}
               onClick={() => table.previousPage()}
             >
-              Previous
+              {loc.t("treeTable.previous")}
             </Button>
             <Button
               variant="outline"
@@ -718,7 +720,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
               disabled={!table.getCanNextPage()}
               onClick={() => table.nextPage()}
             >
-              Next
+              {loc.t("treeTable.next")}
             </Button>
           </div>
         </div>

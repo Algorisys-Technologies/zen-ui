@@ -4,6 +4,7 @@ import { Show } from "solid-js";
 import { cn } from "../../lib/cn";
 import type { PivotZone } from "@algorisys/zen-ui-core/pivot";
 import { Icon, type IconName } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 export interface PivotDropZoneProps {
   id: PivotZone;
@@ -17,6 +18,7 @@ export interface PivotDropZoneProps {
 }
 
 export function PivotDropZone(props: PivotDropZoneProps) {
+  const loc = useLocale();
   // A zone's id IS its identity ("rows"), fixed for the life of the component,
   // and solid-dnd registers the droppable once under it. Reading it reactively
   // would mean re-registering a droppable that never changes.
@@ -50,7 +52,7 @@ export function PivotDropZone(props: PivotDropZoneProps) {
         {props.children}
         <Show when={props.isEmpty}>
           <div class="zen-text-xs zen-text-zen-muted-fg/50 zen-italic zen-py-0.5 zen-select-none zen-pointer-events-none">
-            Drop fields here
+            {loc.t("pivot.dropHere")}
           </div>
         </Show>
       </div>

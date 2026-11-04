@@ -1,5 +1,6 @@
 import { For, Show, mergeProps } from "solid-js";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Micro charts — trend marks small enough to live inside something else.
@@ -102,6 +103,7 @@ export interface MicroLineChartProps extends MicroChartBase {
 }
 
 export const MicroLineChart = (rawProps: MicroLineChartProps) => {
+  const loc = useLocale();
   const props = mergeProps({ width: 80, height: 24, color: "primary" as MicroChartColor }, rawProps);
   const pad = 2;
   const points = () => {
@@ -116,7 +118,7 @@ export const MicroLineChart = (rawProps: MicroLineChartProps) => {
   };
   const label = () =>
     props.label ??
-    `Line chart, ${props.values?.length ?? 0} points, ${trend(props.values ?? [])}`;
+    loc.t("microChart.line", { count: props.values?.length ?? 0, trend: loc.t(`microChart.${trend(props.values ?? [])}`) });
 
   return (
     <Show when={points().length > 0}>
@@ -166,6 +168,7 @@ export interface MicroBarChartProps extends MicroChartBase {
 }
 
 export const MicroBarChart = (rawProps: MicroBarChartProps) => {
+  const loc = useLocale();
   const props = mergeProps({ width: 80, height: 24, color: "primary" as MicroChartColor }, rawProps);
   const gap = 2;
   const bars = () => {
@@ -197,7 +200,7 @@ export const MicroBarChart = (rawProps: MicroBarChartProps) => {
         width={props.width}
         height={props.height}
         color={props.color}
-        label={props.label ?? `Bar chart, ${props.values?.length ?? 0} bars`}
+        label={props.label ?? loc.t("microChart.bar", { count: props.values?.length ?? 0 })}
         class={props.class}
       >
         <For each={bars()}>
@@ -219,6 +222,7 @@ export interface MicroBulletChartProps extends MicroChartBase {
 }
 
 export const MicroBulletChart = (rawProps: MicroBulletChartProps) => {
+  const loc = useLocale();
   const props = mergeProps(
     { width: 80, height: 12, color: "primary" as MicroChartColor, min: 0, max: 100 },
     rawProps,
@@ -229,8 +233,9 @@ export const MicroBulletChart = (rawProps: MicroBulletChartProps) => {
   };
   const label = () =>
     props.label ??
-    `${props.value} of ${props.max}` +
-      (props.target !== undefined ? `, target ${props.target}` : "");
+    (props.target !== undefined
+      ? loc.t("microChart.bulletTarget", { value: props.value, max: props.max, target: props.target })
+      : loc.t("microChart.bullet", { value: props.value, max: props.max }));
 
   return (
     <Frame
@@ -280,6 +285,7 @@ export interface MicroDeltaChartProps extends MicroChartBase {
 }
 
 export const MicroDeltaChart = (rawProps: MicroDeltaChartProps) => {
+  const loc = useLocale();
   const props = mergeProps({ width: 80, height: 24 }, rawProps);
   const delta = () => props.to - props.from;
   /* Colour is DERIVED, not passed: the whole point of a delta is the direction,
@@ -298,7 +304,7 @@ export const MicroDeltaChart = (rawProps: MicroDeltaChartProps) => {
       color={color()}
       label={
         props.label ??
-        `${props.from} to ${props.to}, ${delta() > 0 ? "up" : delta() < 0 ? "down" : "unchanged"} ${Math.abs(delta())}`
+        loc.t("microChart.delta", { from: props.from, to: props.to, direction: loc.t(delta() > 0 ? "microChart.up" : delta() < 0 ? "microChart.down" : "microChart.unchanged"), amount: Math.abs(delta()) })
       }
       class={props.class}
     >
@@ -333,6 +339,7 @@ export interface MicroRadialChartProps extends MicroChartBase {
 }
 
 export const MicroRadialChart = (rawProps: MicroRadialChartProps) => {
+  const loc = useLocale();
   const props = mergeProps(
     { width: 40, height: 40, color: "primary" as MicroChartColor, max: 100 },
     rawProps,
@@ -347,7 +354,7 @@ export const MicroRadialChart = (rawProps: MicroRadialChartProps) => {
       width={props.width}
       height={props.height}
       color={props.color}
-      label={props.label ?? `${Math.round(pct() * 100)} percent`}
+      label={props.label ?? loc.t("microChart.percent", { value: Math.round(pct() * 100) })}
       class={props.class}
     >
       <g transform={`rotate(-90 ${props.width / 2} ${props.height / 2})`}>

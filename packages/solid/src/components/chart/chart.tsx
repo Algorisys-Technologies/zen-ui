@@ -9,6 +9,7 @@ import {
   type Slice,
 } from "@algorisys/zen-ui-core/chart";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Chart — line / area / bar chart rendered as plain SVG. No dependency.
@@ -129,6 +130,7 @@ Chart.displayName = "Chart";
 // reactivity rule flags, and Solid's props object must be read through, never
 // captured.
 const AxisChart = (merged: ChartProps & { type: "line" | "area" | "bar" | "pie" | "donut"; height: number }) => {
+  const loc = useLocale();
 
   const [width, setWidth] = createSignal(0);
   const [hover, setHover] = createSignal<number | null>(null);
@@ -268,7 +270,7 @@ const AxisChart = (merged: ChartProps & { type: "line" | "area" | "bar" | "pie" 
           width={width()}
           height={svgH()}
           role="img"
-          aria-label={`${merged.type} chart`}
+          aria-label={loc.t("chart.label", { type: merged.type })}
           onMouseMove={(e) => setHover(indexFromPointer(e.clientX))}
           onMouseLeave={() => setHover(null)}
         >
@@ -480,6 +482,7 @@ const R_OUTER = 40;
 const R_INNER = 22;
 
 const PieDonut = (props: ChartProps & { type: "line" | "area" | "bar" | "pie" | "donut"; height: number }) => {
+  const loc = useLocale();
   const [hover, setHover] = createSignal<number | null>(null);
 
   const slices = createMemo(() =>
@@ -488,7 +491,7 @@ const PieDonut = (props: ChartProps & { type: "line" | "area" | "bar" | "pie" | 
       : [],
   );
 
-  const label = () => (props.type === "donut" ? "Donut chart" : "Pie chart");
+  const label = () => (props.type === "donut" ? loc.t("chart.donut") : loc.t("chart.pie"));
   const svgH = () => Math.max(0, props.height - LEGEND_H);
 
   return (
@@ -566,26 +569,29 @@ const PieDonut = (props: ChartProps & { type: "line" | "area" | "bar" | "pie" | 
  * come back to one. A table they can. This is the difference between a pie chart
  * being described and being readable. Mirrors the React binding.
  */
-const SliceTable = (props: { slices: Slice[]; labelHeader: string }) => (
-  <table class="zen-sr-only">
-    <caption>Chart data</caption>
-    <thead>
-      <tr>
-        <th scope="col">{props.labelHeader}</th>
-        <th scope="col">Value</th>
-        <th scope="col">Share</th>
-      </tr>
-    </thead>
-    <tbody>
-      <For each={props.slices}>
-        {(s) => (
-          <tr>
-            <th scope="row">{s.label}</th>
-            <td>{s.value}</td>
-            <td>{formatPercent(s.percent)}</td>
-          </tr>
-        )}
-      </For>
-    </tbody>
-  </table>
-);
+const SliceTable = (props: { slices: Slice[]; labelHeader: string }) => {
+  const loc = useLocale();
+  return (
+    <table class="zen-sr-only">
+      <caption>{loc.t("chart.data")}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{props.labelHeader}</th>
+          <th scope="col">{loc.t("chart.value")}</th>
+          <th scope="col">{loc.t("chart.share")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <For each={props.slices}>
+          {(s) => (
+            <tr>
+              <th scope="row">{s.label}</th>
+              <td>{s.value}</td>
+              <td>{formatPercent(s.percent)}</td>
+            </tr>
+          )}
+        </For>
+      </tbody>
+    </table>
+  );
+};

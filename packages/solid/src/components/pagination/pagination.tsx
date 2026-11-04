@@ -1,5 +1,6 @@
 import { For, Show, type Accessor, type JSX, createMemo, splitProps } from "solid-js";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Pagination — standalone, controlled page navigator. zen-ui's DataTable has
@@ -102,6 +103,7 @@ export interface PaginationProps
 }
 
 export const Pagination = (props: PaginationProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "page",
     "pageCount",
@@ -127,7 +129,7 @@ export const Pagination = (props: PaginationProps) => {
   return (
     <Show when={local.pageCount > 1}>
       <nav
-        aria-label="pagination"
+        aria-label={loc.t("pagination.label")}
         class={cn("zen-flex zen-items-center zen-gap-1", local.class)}
         {...rest}
       >
@@ -137,7 +139,7 @@ export const Pagination = (props: PaginationProps) => {
             class={cn(itemBase, "hover:zen-bg-zen-muted")}
             onClick={() => go(local.page - 1)}
             disabled={local.page <= 1}
-            aria-label="Go to previous page"
+            aria-label={loc.t("pagination.previous")}
           >
             {"‹"}
           </button>
@@ -177,7 +179,7 @@ export const Pagination = (props: PaginationProps) => {
             class={cn(itemBase, "hover:zen-bg-zen-muted")}
             onClick={() => go(local.page + 1)}
             disabled={local.page >= local.pageCount}
-            aria-label="Go to next page"
+            aria-label={loc.t("pagination.next")}
           >
             {"›"}
           </button>

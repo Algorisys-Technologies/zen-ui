@@ -27,14 +27,11 @@ const NOT_YET_SWEPT = new Set<string>([
   "breadcrumb/breadcrumb.tsx",
   "button/button-family.tsx",
   "carousel/carousel.tsx",
-  "chart/chart.tsx",
   "chunk-uploader/chunk-uploader.tsx",
   "code-editor/code-editor.tsx",
   "color-picker/color-picker.tsx",
   "command/command.tsx",
   "countdown/countdown.tsx",
-  "data-table/data-table.tsx",
-  "data-table/filters.tsx",
   "diagram-canvas/diagram-canvas.tsx",
   "diff-view/diff-view.tsx",
   "document-tabs/document-tabs.tsx",
@@ -51,40 +48,25 @@ const NOT_YET_SWEPT = new Set<string>([
   "notifications-inbox/notifications-inbox.tsx",
   "object-page/object-page.tsx",
   "page-header/page-header.tsx",
-  "pagination/pagination.tsx",
-  "PasswordInputDemo.tsx",
-  "pivot/internal/windowed-virtual-list.tsx",
-  "pivot/pivot-drop-zone.tsx",
-  "pivot/pivot-field-chip.tsx",
-  "pivot/pivot-filter-menu.tsx",
-  "pivot/pivot-grid.tsx",
-  "pivot/pivot-workbench.tsx",
   "planning-calendar/planning-calendar.tsx",
   "proctor/proctor.tsx",
   "production-schedule/production-schedule.tsx",
   "qr-scanner/qr-scanner.tsx",
-  "ReleaseNotes.tsx",
   "rich-text/rich-text.tsx",
-  "SearchDemo.tsx",
   "sheet/sheet.tsx",
   "shellbar/shellbar.tsx",
   "shortcuts/shortcuts.tsx",
   "sidebar/sidebar.tsx",
-  "SkipToContentDemo.tsx",
   "skip-to-content/skip-to-content.tsx",
   "sortable-list/sortable-list.tsx",
   "splitter/splitter.tsx",
-  "spreadsheet-grid/spreadsheet-grid.tsx",
   "stepper/stepper.tsx",
   "survey/nps.tsx",
   "tile/tile.tsx",
   "timeline/timeline.tsx",
   "toolbar/toolbar.tsx",
-  "tree-table/tree-table.tsx",
   "upload-collection/upload-collection.tsx",
-  "url-data-table/url-data-table.tsx",
   "waveform/waveform.tsx",
-  "Welcome.tsx",
 ]);
 
 const PATTERNS: [string, RegExp][] = [
@@ -100,7 +82,9 @@ const walk = (dir: string) => {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
     if (statSync(p).isDirectory()) walk(p);
-    else if (p.endsWith(".tsx") && !/\/New[A-Z]\w*Demo\.tsx$/.test(p) && !/demo-helpers|NavTag|\.demo\./.test(p)) files.push(p);
+    // Library components live in a folder each (components/<name>/…); the files at the top of
+    // components/ are the demo site's pages (New*Demo, Welcome, ReleaseNotes…), not shipped.
+    else if (p.endsWith(".tsx") && relative(ROOT, p).includes("/") && !/\.demo\./.test(p)) files.push(p);
   }
 };
 walk(ROOT);

@@ -17,7 +17,6 @@ import { PivotFieldChip, type PivotFieldChipProps } from "./pivot-field-chip";
 import {
   availableFields as availableFieldsIn,
   createEmptyLayout,
-  describeMove,
   fieldLabel,
   hasActiveFilters,
   isLayoutRenderable,
@@ -31,6 +30,7 @@ import type {
 } from "@algorisys/zen-ui-core/pivot";
 import type { PivotField, PivotMembersRequest, PivotMembersResult } from "@algorisys/zen-ui-core/pivot";
 import type { PivotFilterSelection } from "@algorisys/zen-ui-core/pivot";
+import { useLocale } from "../locale/locale";
 export type { PivotField, PivotMembersRequest, PivotMembersResult, PivotFilterSelection };
 
 export interface PivotWorkbenchProps {
@@ -162,6 +162,9 @@ const CancelDragOnEscape = (props: { onCancel: () => void }) => {
 };
 
 export function PivotWorkbench(props: PivotWorkbenchProps) {
+  const loc = useLocale();
+  const zoneName = (z: PivotZone) =>
+    loc.t(z === "available" ? "pivot.zoneAvailable" : z === "rows" ? "pivot.zoneRows" : z === "columns" ? "pivot.zoneColumns" : "pivot.zoneValues");
   const [draftLayout, setDraftLayout] = createSignal<PivotLayout>(
     props.initialLayout || createEmptyLayout()
   );
@@ -189,7 +192,16 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
    */
   const moveField = (fieldId: string, zone: PivotZone, index?: number) => {
     setDraftLayout((prev) => moveFieldToZone(prev, fieldId, zone, { index }));
-    setAnnouncement(describeMove(untrack(() => props.fields), fieldId, zone, index));
+    // The catalogue's sentences (core's describeMove is English), one per shape:
+    // a translator never stitches fragments together.
+    const field = fieldLabel(untrack(() => props.fields), fieldId);
+    setAnnouncement(
+      zone === "available"
+        ? loc.t("pivot.removedFromLayout", { field })
+        : index === undefined
+          ? loc.t("pivot.movedTo", { field, zone: zoneName(zone) })
+          : loc.t("pivot.movedToAt", { field, zone: zoneName(zone), position: index + 1 }),
+    );
   };
 
   // Set by Escape, read by the very next onDragEnd. A signal would be a render
@@ -200,7 +212,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
     const { draggable, droppable } = event;
     if (cancelled) {
       cancelled = false;
-      setAnnouncement("Move cancelled.");
+      setAnnouncement(loc.t("pivot.moveCancelled"));
       return;
     }
     if (!droppable) return;
@@ -296,7 +308,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                         else setDraftLayout((prev) => ({ ...prev, filters: {} }));
                       }}
                     >
-                      Clear filters
+                      {loc.t("pivot.clearFilters")}
                     </button>
                   </Show>
                   <Button size="sm" onClick={applyLayout}>
@@ -305,7 +317,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                 </div>
               </div>
 
-              <PivotDropZone id="available" title="Available Fields" horizontal isEmpty={availableFields().length === 0}>
+              <PivotDropZone id="available" title={loc.t("pivot.availableFields")} horizontal isEmpty={availableFields().length === 0}>
                 <SortableProvider ids={availableFields().map((f) => f.key)}>
                   <For each={availableFields()}>
                     {(field) => (
@@ -329,7 +341,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
               </PivotDropZone>
 
               <div class="zen-grid zen-grid-cols-1 zen-gap-2 sm:zen-grid-cols-3">
-                <PivotDropZone id="values" title="Values" isEmpty={draftLayout().values.length === 0}>
+                <PivotDropZone id="values" title={loc.t("pivot.valuesZone")} isEmpty={draftLayout().values.length === 0}>
                   <SortableProvider ids={draftLayout().values.map((v) => v.id)}>
                     <For each={draftLayout().values}>
                       {(val) => (
@@ -351,7 +363,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                   </SortableProvider>
                 </PivotDropZone>
 
-                <PivotDropZone id="rows" title="Rows" isEmpty={draftLayout().rows.length === 0}>
+                <PivotDropZone id="rows" title={loc.t("pivot.rowsZone")} isEmpty={draftLayout().rows.length === 0}>
                   <SortableProvider ids={draftLayout().rows}>
                     <For each={draftLayout().rows}>
                       {(fieldId) => (
@@ -371,7 +383,7 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                   </SortableProvider>
                 </PivotDropZone>
 
-                <PivotDropZone id="columns" title="Columns" isEmpty={draftLayout().columns.length === 0}>
+                <PivotDropZone id="columns" title={loc.t("pivot.columnsZone")} isEmpty={draftLayout().columns.length === 0}>
                   <SortableProvider ids={draftLayout().columns}>
                     <For each={draftLayout().columns}>
                       {(fieldId) => (
@@ -405,8 +417,8 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                 <Alert color="warning">
                   <AlertIcon><Icon name="info" /></AlertIcon>
                   <AlertContent>
-                    <AlertTitle>Value field required</AlertTitle>
-                    <AlertDescription>Drop at least one field into Values to calculate data.</AlertDescription>
+                    <AlertTitle>{loc.t("pivot.valueRequired")}</AlertTitle>
+                    <AlertDescription>{loc.t("pivot.valueRequiredHelp")}</AlertDescription>
                   </AlertContent>
                 </Alert>
               </Show>
@@ -414,8 +426,8 @@ export function PivotWorkbench(props: PivotWorkbenchProps) {
                 <Alert color="warning">
                   <AlertIcon><Icon name="info" /></AlertIcon>
                   <AlertContent>
-                    <AlertTitle>Dimension required</AlertTitle>
-                    <AlertDescription>Drop at least one field into Rows or Columns.</AlertDescription>
+                    <AlertTitle>{loc.t("pivot.dimensionRequired")}</AlertTitle>
+                    <AlertDescription>{loc.t("pivot.dimensionRequiredHelp")}</AlertDescription>
                   </AlertContent>
                 </Alert>
               </Show>

@@ -626,7 +626,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     if (rowOrderingActive()) {
       leading.push({
         id: "__drag__",
-        header: () => <span class="zen-sr-only">Reorder</span>,
+        header: () => <span class="zen-sr-only">{loc.t("dataTable.reorder")}</span>,
         cell: ({ row }) => <DragHandle id={row.id} />,
         enableSorting: false,
         enableHiding: false,
@@ -637,7 +637,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     if (expansionEnabled()) {
       leading.push({
         id: "__expand__",
-        header: () => <span class="zen-sr-only">Expand</span>,
+        header: () => <span class="zen-sr-only">{loc.t("dataTable.expand")}</span>,
         cell: ({ row }) => (
           <button
             type="button"
@@ -672,14 +672,14 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
             checked={table.getIsAllRowsSelected()}
             indeterminate={!table.getIsAllRowsSelected() && table.getIsSomeRowsSelected()}
             onChange={(v) => table.toggleAllRowsSelected(v)}
-            aria-label="Select all rows"
+            aria-label={loc.t("dataTable.selectAll")}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
             onChange={(v) => row.toggleSelected(v)}
-            aria-label={`Select row ${row.index + 1}`}
+            aria-label={loc.t("dataTable.selectRow", { n: row.index + 1 })}
           />
         ),
         enableSorting: false,
@@ -1068,7 +1068,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
             <BodyTable
               table={table}
               loading={!!props.loading}
-              emptyMessage={props.emptyMessage ?? "No results."}
+              emptyMessage={props.emptyMessage ?? loc.t("dataTable.noResults")}
               maxBodyHeight={props.maxBodyHeight ?? 480}
               fillHeight={!!props.fillHeight}
               stickyHeaderActive={stickyHeaderActive()}
@@ -1117,7 +1117,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
               <BodyTable
                 table={table}
                 loading={!!props.loading}
-                emptyMessage={props.emptyMessage ?? "No results."}
+                emptyMessage={props.emptyMessage ?? loc.t("dataTable.noResults")}
                 maxBodyHeight={props.maxBodyHeight ?? 480}
                 fillHeight={!!props.fillHeight}
                 stickyHeaderActive={stickyHeaderActive()}
@@ -1154,7 +1154,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
         table={table}
         maxHeight={props.maxBodyHeight ?? 480}
         estimatedRowHeight={props.rowEstimatedHeight ?? 44}
-        emptyMessage={props.emptyMessage ?? "No results."}
+        emptyMessage={props.emptyMessage ?? loc.t("dataTable.noResults")}
         loading={!!props.loading}
         enableColumnPinning={!!props.enableColumnPinning}
         enableColumnResizing={!!props.enableColumnResizing}
@@ -1205,7 +1205,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
             : undefined
         }
         globalFilter={globalFilter()}
-        globalFilterPlaceholder={props.globalFilterPlaceholder ?? "Search…"}
+        globalFilterPlaceholder={props.globalFilterPlaceholder ?? loc.t("dataTable.search")}
         onGlobalFilterChange={(v) => {
           if (props.globalFilter === undefined) setGlobalFilterInner(v);
           props.onGlobalFilterChange?.(v);
@@ -1314,6 +1314,7 @@ function Toolbar<TData>(props: {
 
 /* ------------------------------- GroupByMenu ----------------------------- */
 function GroupByMenu<TData>(props: { table: TanStackTable<TData> }) {
+  const loc = useLocale();
   const groupable = createMemo(() => props.table.getAllColumns().filter((c) => c.getCanGroup()));
   const activeCount = () => props.table.getState().grouping.length;
   return (
@@ -1323,7 +1324,7 @@ function GroupByMenu<TData>(props: { table: TanStackTable<TData> }) {
           {activeCount() ? `Group by (${activeCount()})` : "Group by"}
         </DropdownMenuTrigger>
         <DropdownMenuContent class="zen-min-w-44">
-          <DropdownMenuLabel>Group rows by</DropdownMenuLabel>
+          <DropdownMenuLabel>{loc.t("dataTable.groupRowsBy")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <For each={groupable()}>
             {(column) => {
@@ -1356,6 +1357,7 @@ function BulkActionBar<TData>(props: {
     clear: () => void;
   }) => JSX.Element;
 }) {
+  const loc = useLocale();
   const selectedRows = () => props.table.getSelectedRowModel().rows;
   const selectedCount = () => selectedRows().length;
   return (
@@ -1382,7 +1384,7 @@ function BulkActionBar<TData>(props: {
               "zen-text-zen-primary-soft-fg",
             )}
             role="toolbar"
-            aria-label="Bulk actions for selected rows"
+            aria-label={loc.t("dataTable.bulkActions")}
           >
             <span class="zen-text-sm zen-font-medium" aria-live="polite" aria-atomic="true">
               {selectedCount()} selected
@@ -1406,7 +1408,7 @@ function BulkActionBar<TData>(props: {
               <button
                 type="button"
                 onClick={clear}
-                aria-label="Clear selection"
+                aria-label={loc.t("dataTable.clearSelection")}
                 class={cn(
                   "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6",
                   "zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -1429,6 +1431,7 @@ function BulkActionBar<TData>(props: {
 
 /* ------------------------------- ActiveFilterChips ----------------------- */
 function ActiveFilterChips<TData>(props: { table: TanStackTable<TData> }) {
+  const loc = useLocale();
   const colFilters = () => props.table.getState().columnFilters;
   const globalFilter = () => (props.table.getState().globalFilter ?? "") as string;
   const hasGlobal = () => globalFilter().length > 0;
@@ -1466,11 +1469,11 @@ function ActiveFilterChips<TData>(props: { table: TanStackTable<TData> }) {
 
   return (
     <Show when={anyActive()}>
-      <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2" role="group" aria-label="Active filters">
-        <span class="zen-text-xs zen-text-zen-muted-fg">Filters:</span>
+      <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2" role="group" aria-label={loc.t("dataTable.activeFilters")}>
+        <span class="zen-text-xs zen-text-zen-muted-fg">{loc.t("dataTable.filtersLabel")}</span>
         <Show when={hasGlobal()}>
           <Chip
-            label={`Search: ${globalFilter()}`}
+            label={loc.t("dataTable.searchChip", { value: globalFilter() })}
             onRemove={() => props.table.setGlobalFilter("")}
           />
         </Show>
@@ -1480,7 +1483,7 @@ function ActiveFilterChips<TData>(props: { table: TanStackTable<TData> }) {
             return (
               <Show when={formatted}>
                 <Chip
-                  label={`${labelForColumn(f.id)}: ${formatted}`}
+                  label={loc.t("dataTable.filterChip", { column: labelForColumn(f.id), value: formatted })}
                   onRemove={() => props.table.getColumn(f.id)?.setFilterValue(undefined)}
                 />
               </Show>
@@ -1500,7 +1503,7 @@ function ActiveFilterChips<TData>(props: { table: TanStackTable<TData> }) {
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
           )}
         >
-          Clear all
+          {loc.t("dataTable.clearAll")}
         </button>
       </div>
     </Show>
@@ -1508,6 +1511,7 @@ function ActiveFilterChips<TData>(props: { table: TanStackTable<TData> }) {
 }
 
 function Chip(props: { label: string; onRemove: () => void }) {
+  const loc = useLocale();
   return (
     <span
       class={cn(
@@ -1521,7 +1525,7 @@ function Chip(props: { label: string; onRemove: () => void }) {
       <button
         type="button"
         onClick={() => props.onRemove()}
-        aria-label={`Remove ${props.label}`}
+        aria-label={loc.t("dataTable.removeChip", { label: props.label })}
         class={cn(
           "zen-inline-flex zen-items-center zen-justify-center",
           "zen-h-4 zen-w-4 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -1544,6 +1548,7 @@ function ExportMenu<TData>(props: {
   filename: string;
   onlySelected: boolean;
 }) {
+  const loc = useLocale();
   const rowsForExport = () => {
     const rows = props.onlySelected
       ? props.table.getSelectedRowModel().rows
@@ -1588,15 +1593,15 @@ function ExportMenu<TData>(props: {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger as={Button} variant="outline" color="neutral" size="sm">
-        Export
+        {loc.t("dataTable.export")}
       </DropdownMenuTrigger>
       <DropdownMenuContent class="zen-min-w-44">
         <DropdownMenuLabel>
-          Export {props.onlySelected ? "selected" : "visible"} rows
+          {props.onlySelected ? loc.t("dataTable.exportSelectedRows") : loc.t("dataTable.exportVisibleRows")}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={exportCsv}>CSV (.csv)</DropdownMenuItem>
-        <DropdownMenuItem onSelect={exportJson}>JSON (.json)</DropdownMenuItem>
+        <DropdownMenuItem onSelect={exportCsv}>{loc.t("dataTable.exportCsv")}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={exportJson}>{loc.t("dataTable.exportJson")}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -1720,12 +1725,13 @@ function ColumnsMenu<TData>(props: {
   table: TanStackTable<TData>;
   enableColumnPinning?: boolean;
 }) {
+  const loc = useLocale();
   const hideable = () => props.table.getAllColumns().filter((c) => c.getCanHide());
   return (
     <Show when={hideable().length > 0}>
       <DropdownMenu>
         <DropdownMenuTrigger as={Button} variant="outline" color="neutral" size="sm">
-          Columns
+          {loc.t("dataTable.columns")}
         </DropdownMenuTrigger>
         <DropdownMenuContent class="zen-min-w-56">
           <DropdownMenuLabel>
@@ -1754,7 +1760,7 @@ function ColumnsMenu<TData>(props: {
                     <Checkbox
                       checked={column.getIsVisible()}
                       onChange={(v) => column.toggleVisibility(v)}
-                      aria-label={`Toggle visibility of ${label()}`}
+                      aria-label={loc.t("dataTable.toggleColumn", { label: label() })}
                     />
                     <span class="zen-flex-1 zen-truncate">{label()}</span>
                     <PinButton
@@ -3045,12 +3051,13 @@ const GripIcon = () => (
 );
 
 function DragHandle(props: { id: string }) {
+  const loc = useLocale();
   const drag = useContext(RowDragContext);
   return (
     <Show when={drag?.active()} fallback={<SortableDragHandle id={props.id} />}>
       <button
         type="button"
-        aria-label="Drag to reorder row"
+        aria-label={loc.t("dataTable.dragRow")}
         class={cn(dragHandleClass, "zen-touch-none")}
         onPointerDown={(e) => drag?.start(props.id, e)}
       >
@@ -3061,6 +3068,7 @@ function DragHandle(props: { id: string }) {
 }
 
 function SortableDragHandle(props: { id: string }) {
+  const loc = useLocale();
   // A drag id fixed for the row's life. CLAUDE.md names this exact case as one
   // the rule gets wrong.
   // eslint-disable-next-line solid/reactivity
@@ -3070,7 +3078,7 @@ function SortableDragHandle(props: { id: string }) {
       type="button"
       ref={sortable.ref}
       {...sortable.dragActivators}
-      aria-label="Drag to reorder row"
+      aria-label={loc.t("dataTable.dragRow")}
       class={dragHandleClass}
     >
       <GripIcon />
@@ -3117,6 +3125,7 @@ function HeaderCell<TData, TValue>(props: {
   stickyHeader?: boolean;
   stickyBg?: string;
 }) {
+  const loc = useLocale();
   const header = () => props.header;
   const canSort = () => header().column.getCanSort();
   const sorted = () => header().column.getIsSorted();
@@ -3130,7 +3139,7 @@ function HeaderCell<TData, TValue>(props: {
       : null;
   const isResizing = () => header().column.getIsResizing();
   const sortLabel = () =>
-    sorted() === "asc" ? "ascending" : sorted() === "desc" ? "descending" : "none";
+    sorted() === "asc" ? loc.t("dataTable.sortAscending") : sorted() === "desc" ? loc.t("dataTable.sortDescending") : loc.t("dataTable.sortNone");
 
   // A placeholder header (TanStack emits them for grouped column structures)
   // renders an empty cell. This was an early `return`, which Solid runs once —
@@ -3154,11 +3163,10 @@ function HeaderCell<TData, TValue>(props: {
         <button
           type="button"
           onClick={(e) => header().column.getToggleSortingHandler()?.(e)}
-          aria-label={`Sort by ${
-            typeof header().column.columnDef.header === "string"
-              ? (header().column.columnDef.header as string)
-              : header().column.id
-          }, currently ${sortLabel()}`}
+          aria-label={loc.t("dataTable.sortBy", {
+            column: typeof header().column.columnDef.header === "string" ? (header().column.columnDef.header as string) : header().column.id,
+            state: sortLabel(),
+          })}
           class={cn(
             "zen-w-full zen-h-full zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2",
             "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
@@ -3172,7 +3180,7 @@ function HeaderCell<TData, TValue>(props: {
             <span
               aria-hidden="true"
               class="zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5"
-              title={`Sort priority ${sortIndex()}`}
+              title={loc.t("dataTable.sortPriority", { n: sortIndex() ?? "" })}
             >
               {sortIndex()}
             </span>
@@ -3182,7 +3190,7 @@ function HeaderCell<TData, TValue>(props: {
       <Show when={props.enableColumnResizing && header().column.getCanResize()}>
         <button
           type="button"
-          aria-label={`Resize ${header().column.id}`}
+          aria-label={loc.t("dataTable.resize", { column: header().column.id })}
           onMouseDown={(e) => header().getResizeHandler()(e)}
           onTouchStart={(e) => header().getResizeHandler()(e)}
           onClick={(e) => e.stopPropagation()}
@@ -3565,6 +3573,7 @@ function VirtHeaderCellInner<TData, TValue>(props: {
   header: Header<TData, TValue>;
   enableColumnResizing?: boolean;
 }) {
+  const loc = useLocale();
   const canSort = () => props.header.column.getCanSort();
   const sorted = () => props.header.column.getIsSorted();
   const isResizing = () => props.header.column.getIsResizing();
@@ -3595,7 +3604,7 @@ function VirtHeaderCellInner<TData, TValue>(props: {
       <Show when={props.enableColumnResizing && props.header.column.getCanResize()}>
         <button
           type="button"
-          aria-label={`Resize ${props.header.column.id}`}
+          aria-label={loc.t("dataTable.resize", { column: props.header.column.id })}
           onMouseDown={(e) => props.header.getResizeHandler()(e)}
           onTouchStart={(e) => props.header.getResizeHandler()(e)}
           onClick={(e) => e.stopPropagation()}
@@ -3707,6 +3716,7 @@ function PaginationBar<TData>(props: {
   pageSizeOptions: number[];
   manual: boolean;
 }) {
+  const loc = useLocale();
   const pagination = () => props.table.getState().pagination;
   const pageCount = () => props.table.getPageCount();
   const selectedCount = () => props.table.getSelectedRowModel().rows.length;
@@ -3718,17 +3728,17 @@ function PaginationBar<TData>(props: {
           when={props.enableRowSelection}
           fallback={
             <>
-              Page {pagination().pageIndex + 1} of {Math.max(pageCount(), 1)}
+              {loc.t("dataTable.pageOf", { page: pagination().pageIndex + 1, pages: Math.max(pageCount(), 1) })}
             </>
           }
         >
-          {selectedCount()} of {totalCount()} row(s) selected.
+          {loc.t("dataTable.selectedOf", { selected: selectedCount(), total: totalCount() })}
         </Show>
       </div>
       <div class="zen-flex zen-items-center zen-gap-3">
         <Show when={!props.manual}>
           <div class="zen-flex zen-items-center zen-gap-2">
-            <span class="zen-text-zen-muted-fg">Rows per page</span>
+            <span class="zen-text-zen-muted-fg">{loc.t("dataTable.rowsPerPage")}</span>
             <div style={{ width: "88px" }}>
               <Select
                 options={props.pageSizeOptions.map((s) => ({
@@ -3748,7 +3758,7 @@ function PaginationBar<TData>(props: {
             size="sm"
             disabled={!props.table.getCanPreviousPage()}
             onClick={() => props.table.setPageIndex(0)}
-            aria-label="First page"
+            aria-label={loc.t("dataTable.firstPage")}
           >
             «
           </Button>
@@ -3758,7 +3768,7 @@ function PaginationBar<TData>(props: {
             size="sm"
             disabled={!props.table.getCanPreviousPage()}
             onClick={() => props.table.previousPage()}
-            aria-label="Previous page"
+            aria-label={loc.t("dataTable.previousPage")}
           >
             ‹
           </Button>
@@ -3768,7 +3778,7 @@ function PaginationBar<TData>(props: {
             size="sm"
             disabled={!props.table.getCanNextPage()}
             onClick={() => props.table.nextPage()}
-            aria-label="Next page"
+            aria-label={loc.t("dataTable.nextPage")}
           >
             ›
           </Button>
@@ -3778,7 +3788,7 @@ function PaginationBar<TData>(props: {
             size="sm"
             disabled={!props.table.getCanNextPage()}
             onClick={() => props.table.setPageIndex(props.table.getPageCount() - 1)}
-            aria-label="Last page"
+            aria-label={loc.t("dataTable.lastPage")}
           >
             »
           </Button>

@@ -9,6 +9,7 @@ import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
 import { DataTable } from "../data-table/data-table";
 import { Search } from "../form/search/search";
+import { useLocale } from "../locale/locale";
 
 /**
  * UrlDataTable — a DataTable whose entire state lives in the URL.
@@ -169,6 +170,7 @@ function setOrDelete(params: URLSearchParams, key: string, value: string) {
 export function UrlDataTable<TRow extends Record<string, unknown>>(
   props: UrlDataTableProps<TRow>,
 ) {
+  const loc = useLocale();
   const names = createMemo(() => ({ ...DEFAULT_PARAMS, ...props.paramNames }));
 
   const sorting = createMemo(() => parseSortParam(props.params.get(names().sort)));
@@ -243,9 +245,9 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
         // makes "no" indistinguishable from "not answered".
         if (typeof value === "boolean") {
           return value ? (
-            <span class="zen-font-medium zen-text-zen-success">Yes</span>
+            <span class="zen-font-medium zen-text-zen-success">{loc.t("dataTable.yes")}</span>
           ) : (
-            <span class="zen-text-zen-muted-fg">No</span>
+            <span class="zen-text-zen-muted-fg">{loc.t("dataTable.no")}</span>
           );
         }
 
@@ -267,7 +269,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
     if (props.actions) {
       defs.push({
         id: "__actions",
-        header: () => <div class="zen-text-center">{props.actionsLabel ?? "Actions"}</div>,
+        header: () => <div class="zen-text-center">{props.actionsLabel ?? loc.t("dataTable.actions")}</div>,
         enableSorting: false,
         enableColumnFilter: false,
         cell: (info: CellContext<TRow, unknown>) => (
@@ -337,7 +339,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>(
               onClear={() =>
                 commit((next) => setOrDelete(next, names().search, ""))
               }
-              placeholder={props.searchPlaceholder ?? "Search…"}
+              placeholder={props.searchPlaceholder ?? loc.t("dataTable.search")}
               class="zen-w-64"
             />
           </Show>

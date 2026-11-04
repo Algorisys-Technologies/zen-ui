@@ -4,6 +4,7 @@ import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
 import { Select } from "../form/select/select";
+import { useLocale } from "../locale/locale";
 
 /**
  * Per-column filter variants for the Solid DataTable.
@@ -180,6 +181,7 @@ function OpSelect<T extends string>(props: {
 }
 
 function TextFilter(props: { column: Column<unknown, unknown>; operators?: boolean }) {
+  const loc = useLocale();
   const raw = () => props.column.getFilterValue() as TextFilterValue | string | undefined;
   const op = () => {
     const r = raw();
@@ -212,8 +214,8 @@ function TextFilter(props: { column: Column<unknown, unknown>; operators?: boole
       <Input
         value={value()}
         onInput={(e) => setNext({ value: e.currentTarget.value })}
-        placeholder="Filter…"
-        aria-label={`Filter ${headerLabel(props.column)}`}
+        placeholder={loc.t("dataTable.filterPlaceholder")}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(props.column) })}
         class="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
@@ -221,6 +223,7 @@ function TextFilter(props: { column: Column<unknown, unknown>; operators?: boole
 }
 
 function NumberFilter(props: { column: Column<unknown, unknown> }) {
+  const loc = useLocale();
   const raw = () => props.column.getFilterValue() as NumberFilterValue | undefined;
   const op = () => raw()?.op ?? "eq";
   const value = () => raw()?.value ?? null;
@@ -243,7 +246,7 @@ function NumberFilter(props: { column: Column<unknown, unknown> }) {
           } satisfies NumberFilterValue)
         }
         placeholder="…"
-        aria-label={`Filter ${headerLabel(props.column)}`}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(props.column) })}
         class="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
@@ -251,6 +254,7 @@ function NumberFilter(props: { column: Column<unknown, unknown> }) {
 }
 
 function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
+  const loc = useLocale();
   const range = () =>
     (props.column.getFilterValue() as NumberRangeFilterValue | undefined) ?? [null, null];
   return (
@@ -263,8 +267,8 @@ function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
             range()[1],
           ] satisfies NumberRangeFilterValue)
         }
-        placeholder="min"
-        aria-label={`${headerLabel(props.column)} minimum`}
+        placeholder={loc.t("dataTable.min")}
+        aria-label={loc.t("dataTable.columnMinimum", { column: headerLabel(props.column) })}
         class="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
       <span class="zen-text-zen-muted-fg zen-text-xs" aria-hidden>–</span>
@@ -276,8 +280,8 @@ function NumberRangeFilter(props: { column: Column<unknown, unknown> }) {
             v ?? null,
           ] satisfies NumberRangeFilterValue)
         }
-        placeholder="max"
-        aria-label={`${headerLabel(props.column)} maximum`}
+        placeholder={loc.t("dataTable.max")}
+        aria-label={loc.t("dataTable.columnMaximum", { column: headerLabel(props.column) })}
         class="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
     </div>
@@ -301,6 +305,7 @@ function SelectFilter(props: {
 }
 
 function BooleanFilter(props: { column: Column<unknown, unknown> }) {
+  const loc = useLocale();
   const value = () => props.column.getFilterValue();
   const current = () =>
     value() === true || value() === "true"
@@ -315,16 +320,16 @@ function BooleanFilter(props: { column: Column<unknown, unknown> }) {
         const v = e.currentTarget.value;
         props.column.setFilterValue(v === "any" ? undefined : v === "true");
       }}
-      aria-label={`Filter ${headerLabel(props.column)}`}
+      aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(props.column) })}
       class={cn(
         "zen-h-7 zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
         "zen-px-2 zen-text-xs zen-cursor-pointer",
         "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
     >
-      <option value="any">Any</option>
-      <option value="true">Yes</option>
-      <option value="false">No</option>
+      <option value="any">{loc.t("dataTable.any")}</option>
+      <option value="true">{loc.t("dataTable.yes")}</option>
+      <option value="false">{loc.t("dataTable.no")}</option>
     </select>
   );
 }
