@@ -20,6 +20,7 @@ SKILL.md.
 - `disabled?: import("react-day-picker/dist/esm/index").Matcher | import("react-day-picker/dist/esm/index").Matcher[] | undefined`
 - `className?: string | undefined`
 - `formatDate?: ((date: Date) => string) | undefined` — Format displayed in the trigger. Defaults to toLocaleDateString().
+- `initialFocus?: "first" | "selected" | undefined` — Where focus lands when the calendar opens. "first" (default, as before): the first control, "Previous month". "selected": the chosen day (else today), so the arrow keys move between days at once; the calendar then opens on the chosen day's month. "selected" becomes the default in the next major version.
 
 ### Calendar
 

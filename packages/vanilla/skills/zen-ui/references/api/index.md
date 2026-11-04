@@ -17,6 +17,7 @@ real props; guessing prop names is how agents invent APIs.
 - [number-field.md](number-field.md) — `NumberField`, `NumberFieldProps`
 - [amount-field.md](amount-field.md) — `AmountField`, `QuantityField`, `AmountFieldProps`, `QuantityFieldProps`
 - [date-picker.md](date-picker.md) — `DatePicker`, `Calendar`, `DatePickerProps`, `CalendarProps`
+- [date-input.md](date-input.md) — `DateInput`, `isTypedDate`, `DateInputProps`, `DateOrder`
 - [rating.md](rating.md) — `Rating`, `RatingProps`
 - [nps.md](nps.md) — `NPS`, `NPSProps`
 - [likert.md](likert.md) — `Likert`, `LikertProps`, `LikertOption`

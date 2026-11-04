@@ -1,5 +1,5 @@
 import * as React from "react";
-import { DayPicker, type DayPickerProps } from "react-day-picker";
+import { DayButton, DayPicker, type DayButtonProps, type DayPickerProps } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import "./calendar.css";
 import { cn } from "../../../lib/cn";
@@ -13,18 +13,64 @@ import {
 /**
  * Calendar — bare react-day-picker, styled. Use directly when you want an
  * inline calendar (no popover), or compose inside <DatePicker /> below.
+ *
+ * Keys between days are react-day-picker's: ← → a day, ↑ ↓ a week, Home / End
+ * the week's ends, PageUp / PageDown a month (Shift: a year), turning the page
+ * when they cross it.
  */
 export type CalendarProps = DayPickerProps;
 
-const Calendar: React.FC<CalendarProps> = ({ className, ...props }) => (
-  <DayPicker
-    className={cn(
-      "zen-calendar zen-p-3 zen-[--rdp-accent-color:var(--zen-color-primary)] zen-[--rdp-accent-background-color:var(--zen-color-primary-soft)]",
-      className,
-    )}
-    {...props}
-  />
-);
+const swapArrow: Record<string, string> = { ArrowLeft: "ArrowRight", ArrowRight: "ArrowLeft" };
+
+/**
+ * react-day-picker mirrors ← → only for its own `dir="rtl"` prop, so in a page
+ * that is right to left (<html dir="rtl">, a DirectionProvider) → still went
+ * BACK a day. Without a `dir` prop the day button reads the direction it is
+ * laid out in and hands the day-picker the mirrored key. Passing `dir` is left
+ * to the day-picker, as before.
+ */
+const DirectionalDayButton = (Inner: React.ComponentType<DayButtonProps>) => {
+  const Mirrored = (props: DayButtonProps) => {
+    const { onKeyDown } = props;
+    return (
+      <Inner
+        {...props}
+        onKeyDown={(e) => {
+          const swapped = swapArrow[e.key];
+          if (swapped && getComputedStyle(e.currentTarget).direction === "rtl") {
+            onKeyDown?.({
+              ...e,
+              key: swapped,
+              preventDefault: () => e.preventDefault(),
+              stopPropagation: () => e.stopPropagation(),
+            } as React.KeyboardEvent<HTMLButtonElement>);
+            return;
+          }
+          onKeyDown?.(e);
+        }}
+      />
+    );
+  };
+  return Mirrored;
+};
+const MirroredDayButton = DirectionalDayButton(DayButton);
+
+const Calendar: React.FC<CalendarProps> = ({ className, components, ...props }) => {
+  const Custom = components?.DayButton;
+  const MirroredCustom = React.useMemo(() => (Custom ? DirectionalDayButton(Custom) : undefined), [Custom]);
+  return (
+    <DayPicker
+      className={cn(
+        "zen-calendar zen-p-3 zen-[--rdp-accent-color:var(--zen-color-primary)] zen-[--rdp-accent-background-color:var(--zen-color-primary-soft)]",
+        className,
+      )}
+      components={
+        props.dir === undefined ? { ...components, DayButton: MirroredCustom ?? MirroredDayButton } : components
+      }
+      {...props}
+    />
+  );
+};
 
 /**
  * DatePicker — date-input button that opens a Calendar inside a Popover.
@@ -43,6 +89,14 @@ export interface DatePickerProps {
   className?: string;
   /** Format displayed in the trigger. Defaults to toLocaleDateString(). */
   formatDate?: (date: Date) => string;
+  /**
+   * Where focus lands when the calendar opens. "first" (default, as before):
+   * the first control, "Previous month". "selected": the chosen day (else
+   * today), so the arrow keys move between days at once; the calendar then
+   * opens on the chosen day's month. "selected" becomes the default in the
+   * next major version.
+   */
+  initialFocus?: "first" | "selected";
 }
 
 const DatePicker: React.FC<DatePickerProps> = ({
@@ -53,6 +107,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   disabled,
   className,
   formatDate = (d) => d.toLocaleDateString(),
+  initialFocus = "first",
 }) => {
   const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<Date | undefined>(defaultValue);
@@ -82,10 +137,26 @@ const DatePicker: React.FC<DatePickerProps> = ({
           {date ? formatDate(date) : placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="zen-w-auto zen-p-0" align="start">
+      <PopoverContent
+        className="zen-w-auto zen-p-0"
+        align="start"
+        onOpenAutoFocus={
+          initialFocus === "selected"
+            ? (e) => {
+                const day = focusableDay(e.currentTarget as HTMLElement);
+                if (day) {
+                  e.preventDefault();
+                  day.focus();
+                }
+              }
+            : undefined // the first control, as before
+        }
+      >
         <Calendar
           mode="single"
           selected={date}
+          // react-day-picker opens on today's month; "selected" needs the chosen day on screen.
+          defaultMonth={initialFocus === "selected" ? date : undefined}
           onSelect={update}
           disabled={typeof disabled === "boolean" ? undefined : disabled}
         />
@@ -93,6 +164,14 @@ const DatePicker: React.FC<DatePickerProps> = ({
     </Popover>
   );
 };
+
+/**
+ * The day a calendar panel should open on: the chosen one, else today. The
+ * cells react-day-picker marks, not a label, so it holds in any language.
+ */
+export const focusableDay = (panel: HTMLElement) =>
+  panel.querySelector<HTMLButtonElement>("[data-selected]:not([data-outside]) button:not(:disabled)") ??
+  panel.querySelector<HTMLButtonElement>("[data-today]:not([data-outside]) button:not(:disabled)");
 
 const CalendarIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
