@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Map — Leaflet map wrapping `react-leaflet` + `leaflet` (OPTIONAL peer
@@ -39,6 +40,7 @@ export const Map = ({
   attribution = DEFAULT_ATTR,
   className,
 }: MapProps) => {
+  const loc = useLocale();
   const [rl, setRl] = React.useState<any>(null);
 
   React.useEffect(() => {
@@ -62,7 +64,7 @@ export const Map = ({
         )}
         style={{ height }}
       >
-        Loading map…
+        {loc.t("map.loading")}
       </div>
     );
   }

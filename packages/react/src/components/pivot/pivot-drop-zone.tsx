@@ -3,6 +3,7 @@ import { useDroppable } from "@dnd-kit/core";
 import type { PivotZone } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
 import { Icon, type IconName } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * PivotDropZone — one of the four bins a field can live in.
@@ -33,6 +34,7 @@ export const PivotDropZone: React.FC<PivotDropZoneProps> = ({
   children,
   isEmpty,
 }) => {
+  const loc = useLocale();
   // `data.zone` is what the drop handler reads. It must NOT parse the zone out
   // of the droppable's id: once a zone holds a chip, the chip is the droppable
   // that wins, and its id is a field key. That is the bug that deleted fields.
@@ -65,7 +67,7 @@ export const PivotDropZone: React.FC<PivotDropZoneProps> = ({
         {children}
         {isEmpty ? (
           <div className="zen-pointer-events-none zen-select-none zen-py-0.5 zen-text-xs zen-italic zen-text-zen-muted-fg/50">
-            Drop fields here
+            {loc.t("pivot.dropHere")}
           </div>
         ) : null}
       </div>

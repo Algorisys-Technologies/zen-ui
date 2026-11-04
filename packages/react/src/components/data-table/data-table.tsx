@@ -606,8 +606,8 @@ export function DataTable<TData, TValue = unknown>({
   pageSizeOptions = [10, 20, 50, 100],
   maxBodyHeight = 480,
   rowEstimatedHeight,
-  globalFilterPlaceholder = "Search…",
-  emptyMessage = "No results.",
+  globalFilterPlaceholder: globalFilterPlaceholderProp,
+  emptyMessage: emptyMessageProp,
   loading = false,
   className,
 
@@ -749,6 +749,8 @@ export function DataTable<TData, TValue = unknown>({
   /* The table, for the column filters below, which are built before it. */
   const tableRef = React.useRef<TanStackTable<TData> | null>(null);
   const loc = useLocale();
+  const globalFilterPlaceholder = globalFilterPlaceholderProp ?? loc.t("dataTable.search");
+  const emptyMessage = emptyMessageProp ?? loc.t("dataTable.noResults");
 
   /* Prepend leading columns: drag-grip (if enabled) then select-checkbox
    * (if enabled). Both are opt-in. For user columns we also auto-attach
@@ -760,7 +762,7 @@ export function DataTable<TData, TValue = unknown>({
     if (rowOrderingActive) {
       leading.push({
         id: "__drag__",
-        header: () => <span className="zen-sr-only">Reorder</span>,
+        header: () => <span className="zen-sr-only">{loc.t("dataTable.reorder")}</span>,
         cell: ({ row }) => <DragHandle id={row.id} />,
         enableSorting: false,
         enableHiding: false,
@@ -771,15 +773,13 @@ export function DataTable<TData, TValue = unknown>({
     if (expansionEnabled) {
       leading.push({
         id: "__expand__",
-        header: () => <span className="zen-sr-only">Expand</span>,
+        header: () => <span className="zen-sr-only">{loc.t("dataTable.expand")}</span>,
         cell: ({ row }) => (
           <button
             type="button"
             onClick={() => row.toggleExpanded()}
             aria-expanded={row.getIsExpanded()}
-            aria-label={
-              row.getIsExpanded() ? "Collapse row" : "Expand row"
-            }
+            aria-label={loc.t(row.getIsExpanded() ? "dataTable.collapseRow" : "dataTable.expandRow")}
             className={cn(
               "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6",
               "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -813,14 +813,14 @@ export function DataTable<TData, TValue = unknown>({
                 : false
             }
             onCheckedChange={(v) => table.toggleAllRowsSelected(v === true)}
-            aria-label="Select all rows"
+            aria-label={loc.t("dataTable.selectAll")}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(v) => row.toggleSelected(v === true)}
-            aria-label={`Select row ${row.index + 1}`}
+            aria-label={loc.t("dataTable.selectRow", { n: row.index + 1 })}
           />
         ),
         enableSorting: false,
@@ -999,9 +999,7 @@ export function DataTable<TData, TValue = unknown>({
               type="button"
               onClick={row.getToggleExpandedHandler()}
               aria-expanded={row.getIsExpanded()}
-              aria-label={
-                row.getIsExpanded() ? "Collapse group" : "Expand group"
-              }
+              aria-label={loc.t(row.getIsExpanded() ? "dataTable.collapseGroup" : "dataTable.expandGroup")}
               className={cn(
                 "zen-inline-flex zen-items-center zen-justify-center zen-h-5 zen-w-5 zen-rounded-zen-sm",
                 "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-transition-transform",
@@ -1042,7 +1040,7 @@ export function DataTable<TData, TValue = unknown>({
       if (cell.getIsPlaceholder()) return null;
       return flexRender(cell.column.columnDef.cell, cell.getContext());
     },
-    [],
+    [loc],
   );
 
   /* Write the persistable snapshot back to localStorage whenever any
@@ -1664,6 +1662,7 @@ function Toolbar<TData>({
  * once one or more columns are active so it's clear at a glance.
  */
 function GroupByMenu<TData>({ table }: { table: TanStackTable<TData> }) {
+  const loc = useLocale();
   const groupable = table.getAllColumns().filter((c) => c.getCanGroup());
   if (groupable.length === 0) return null;
   const activeCount = table.getState().grouping.length;
@@ -1675,7 +1674,7 @@ function GroupByMenu<TData>({ table }: { table: TanStackTable<TData> }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="zen-min-w-44">
-        <DropdownMenuLabel>Group rows by</DropdownMenuLabel>
+        <DropdownMenuLabel>{loc.t("dataTable.groupRowsBy")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {groupable.map((column) => {
           const label =
@@ -1724,6 +1723,7 @@ function BulkActionBar<TData>({
     clear: () => void;
   }) => React.ReactNode;
 }) {
+  const loc = useLocale();
   const selectedRows = table.getSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
   if (selectedCount === 0 || !renderBulkActions) return null;
@@ -1753,7 +1753,7 @@ function BulkActionBar<TData>({
         "zen-text-zen-primary-soft-fg",
       )}
       role="toolbar"
-      aria-label="Bulk actions for selected rows"
+      aria-label={loc.t("dataTable.bulkActions")}
     >
       <span
         className="zen-text-sm zen-font-medium"
@@ -1781,7 +1781,7 @@ function BulkActionBar<TData>({
         <button
           type="button"
           onClick={clear}
-          aria-label="Clear selection"
+          aria-label={loc.t("dataTable.clearSelection")}
           className={cn(
             "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6",
             "zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -1817,6 +1817,7 @@ function ActiveFilterChips<TData>({
 }: {
   table: TanStackTable<TData>;
 }) {
+  const loc = useLocale();
   const colFilters = table.getState().columnFilters;
   const globalFilter = table.getState().globalFilter as string | undefined;
   const hasGlobal = typeof globalFilter === "string" && globalFilter.length > 0;
@@ -1856,7 +1857,7 @@ function ActiveFilterChips<TData>({
       }
       return "";
     }
-    if (typeof value === "boolean") return value ? "Yes" : "No";
+    if (typeof value === "boolean") return value ? loc.t("dataTable.yes") : loc.t("dataTable.no");
     return String(value);
   };
 
@@ -1864,12 +1865,12 @@ function ActiveFilterChips<TData>({
     <div
       className="zen-flex zen-flex-wrap zen-items-center zen-gap-2"
       role="group"
-      aria-label="Active filters"
+      aria-label={loc.t("dataTable.activeFilters")}
     >
-      <span className="zen-text-xs zen-text-zen-muted-fg">Filters:</span>
+      <span className="zen-text-xs zen-text-zen-muted-fg">{loc.t("dataTable.filtersLabel")}</span>
       {hasGlobal ? (
         <Chip
-          label={`Search: ${globalFilter}`}
+          label={loc.t("dataTable.searchChip", { value: globalFilter })}
           onRemove={() => table.setGlobalFilter("")}
         />
       ) : null}
@@ -1879,7 +1880,7 @@ function ActiveFilterChips<TData>({
         return (
           <Chip
             key={f.id}
-            label={`${labelForColumn(f.id)}: ${formatted}`}
+            label={loc.t("dataTable.filterChip", { column: labelForColumn(f.id), value: formatted })}
             onRemove={() => table.getColumn(f.id)?.setFilterValue(undefined)}
           />
         );
@@ -1897,7 +1898,7 @@ function ActiveFilterChips<TData>({
           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
         )}
       >
-        Clear all
+        {loc.t("dataTable.clearAll")}
       </button>
     </div>
   );
@@ -1910,6 +1911,7 @@ function Chip({
   label: string;
   onRemove: () => void;
 }) {
+  const loc = useLocale();
   return (
     <span
       className={cn(
@@ -1923,7 +1925,7 @@ function Chip({
       <button
         type="button"
         onClick={onRemove}
-        aria-label={`Remove ${label}`}
+        aria-label={loc.t("dataTable.removeChip", { label })}
         className={cn(
           "zen-inline-flex zen-items-center zen-justify-center",
           "zen-h-4 zen-w-4 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -1950,6 +1952,7 @@ function ExportMenu<TData>({
   filename: string;
   onlySelected: boolean;
 }) {
+  const loc = useLocale();
   const rowsForExport = React.useCallback(() => {
     const rows = onlySelected
       ? table.getSelectedRowModel().rows
@@ -2003,16 +2006,16 @@ function ExportMenu<TData>({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" color="neutral" size="sm">
-          Export
+          {loc.t("dataTable.export")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="zen-min-w-44">
         <DropdownMenuLabel>
-          Export {onlySelected ? "selected" : "visible"} rows
+          {onlySelected ? loc.t("dataTable.exportSelectedRows") : loc.t("dataTable.exportVisibleRows")}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={exportCsv}>CSV (.csv)</DropdownMenuItem>
-        <DropdownMenuItem onSelect={exportJson}>JSON (.json)</DropdownMenuItem>
+        <DropdownMenuItem onSelect={exportCsv}>{loc.t("dataTable.exportCsv")}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={exportJson}>{loc.t("dataTable.exportJson")}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -2258,12 +2261,13 @@ const GripIcon = () => (
 /* A virtualized body drags its rows itself (RowDragContext); otherwise the
  * handle is dnd-kit's. */
 function DragHandle({ id }: { id: string }) {
+  const loc = useLocale();
   const drag = React.useContext(RowDragContext);
   if (!drag?.active) return <SortableDragHandle id={id} />;
   return (
     <button
       type="button"
-      aria-label="Drag to reorder row"
+      aria-label={loc.t("dataTable.dragRow")}
       className={cn(dragHandleClass, "zen-touch-none")}
       onPointerDown={(e) => drag.start(id, e)}
     >
@@ -2273,6 +2277,7 @@ function DragHandle({ id }: { id: string }) {
 }
 
 function SortableDragHandle({ id }: { id: string }) {
+  const loc = useLocale();
   const { attributes, listeners, setActivatorNodeRef } = useSortable({ id });
   return (
     <button
@@ -2280,7 +2285,7 @@ function SortableDragHandle({ id }: { id: string }) {
       ref={setActivatorNodeRef}
       {...attributes}
       {...listeners}
-      aria-label="Drag to reorder row"
+      aria-label={loc.t("dataTable.dragRow")}
       className={dragHandleClass}
     >
       <GripIcon />
@@ -2308,13 +2313,14 @@ function ColumnsMenu<TData>({
   table: TanStackTable<TData>;
   enableColumnPinning?: boolean;
 }) {
+  const loc = useLocale();
   const hideable = table.getAllColumns().filter((c) => c.getCanHide());
   if (hideable.length === 0) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" color="neutral" size="sm">
-          Columns
+          {loc.t("dataTable.columns")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="zen-min-w-56">
@@ -2347,7 +2353,7 @@ function ColumnsMenu<TData>({
               <Checkbox
                 checked={column.getIsVisible()}
                 onCheckedChange={(v) => column.toggleVisibility(v === true)}
-                aria-label={`Toggle visibility of ${label}`}
+                aria-label={loc.t("dataTable.toggleColumn", { label })}
               />
               <span className="zen-flex-1 zen-truncate">{label}</span>
               <PinButton
@@ -2387,6 +2393,7 @@ function PinButton({
   label: string;
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
+  const loc = useLocale();
   return (
     <button
       type="button"
@@ -2395,9 +2402,7 @@ function PinButton({
         active ? `Unpin ${label} from ${side}` : `Pin ${label} to ${side}`
       }
       aria-pressed={active}
-      title={
-        active ? `Unpin from ${side}` : `Pin to ${side}`
-      }
+      title={loc.t(active ? "dataTable.unpinFrom" : "dataTable.pinTo", { side })}
       className={cn(
         "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
         "zen-border-0 zen-cursor-pointer zen-text-xs",
@@ -2445,7 +2450,11 @@ function HeaderCell<TData, TValue>({
   const canSort = header.column.getCanSort();
   const sorted = header.column.getIsSorted();
   const sortLabel =
-    sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none";
+    sorted === "asc"
+      ? loc.t("dataTable.sortAscending")
+      : sorted === "desc"
+        ? loc.t("dataTable.sortDescending")
+        : loc.t("dataTable.sortNone");
   /* A priority means something only when two or more columns are sorted: a
    * lone "1" next to the only sorted column read as stray text. */
   const sortIndex =
@@ -2463,11 +2472,13 @@ function HeaderCell<TData, TValue>({
         <button
           type="button"
           onClick={header.column.getToggleSortingHandler()}
-          aria-label={`Sort by ${
-            typeof header.column.columnDef.header === "string"
-              ? header.column.columnDef.header
-              : header.column.id
-          }, currently ${sortLabel}`}
+          aria-label={loc.t("dataTable.sortBy", {
+            column:
+              typeof header.column.columnDef.header === "string"
+                ? header.column.columnDef.header
+                : header.column.id,
+            state: sortLabel,
+          })}
           className={cn(
             "zen-w-full zen-h-full zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2",
             "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
@@ -2495,7 +2506,7 @@ function HeaderCell<TData, TValue>({
       {enableColumnResizing && header.column.getCanResize() ? (
         <button
           type="button"
-          aria-label={`Resize ${header.column.id}`}
+          aria-label={loc.t("dataTable.resize", { column: header.column.id })}
           onMouseDown={header.getResizeHandler()}
           onTouchStart={header.getResizeHandler()}
           onClick={(e) => e.stopPropagation()}
@@ -2666,6 +2677,7 @@ function VirtualizedBody<TData>({
   rowClassName?: (row: Row<TData>) => string | undefined;
   headerVariant: "plain" | "underline" | "branded";
 }) {
+  const loc = useLocale();
   /* Same brand-intensity machinery as the HTML-table path. The wrapper
    * <div> below paints headerStickyBg as a band; pinned + filter cells
    * inherit it via headerPinStyle so they don't repaint white over
@@ -2872,7 +2884,7 @@ function VirtualizedBody<TData>({
               color: "var(--zen-color-muted-fg)",
             }}
           >
-            Loading…
+            {loc.t("dataTable.loading")}
           </div>
         ) : rows.length === 0 ? (
           <div
@@ -2972,6 +2984,7 @@ function VirtHeaderCellInner<TData, TValue>({
   header: import("@tanstack/react-table").Header<TData, TValue>;
   enableColumnResizing?: boolean;
 }) {
+  const loc = useLocale();
   const canSort = header.column.getCanSort();
   const sorted = header.column.getIsSorted();
   const isResizing = header.column.getIsResizing();
@@ -2994,7 +3007,7 @@ function VirtHeaderCellInner<TData, TValue>({
       {enableColumnResizing && header.column.getCanResize() ? (
         <button
           type="button"
-          aria-label={`Resize ${header.column.id}`}
+          aria-label={loc.t("dataTable.resize", { column: header.column.id })}
           onMouseDown={header.getResizeHandler()}
           onTouchStart={header.getResizeHandler()}
           onClick={(e) => e.stopPropagation()}
@@ -3140,6 +3153,7 @@ function PaginationBar<TData>({
   pageSizeOptions: number[];
   manual: boolean;
 }) {
+  const loc = useLocale();
   const { pageIndex, pageSize } = table.getState().pagination;
   const pageCount = table.getPageCount();
   const selectedCount = table.getSelectedRowModel().rows.length;
@@ -3153,11 +3167,11 @@ function PaginationBar<TData>({
       <div className="zen-text-zen-muted-fg">
         {enableRowSelection ? (
           <>
-            {selectedCount} of {totalCount} row(s) selected.
+            {loc.t("dataTable.selectedOf", { selected: selectedCount, total: totalCount })}
           </>
         ) : (
           <>
-            Page {pageIndex + 1} of {Math.max(pageCount, 1)}
+            {loc.t("dataTable.pageOf", { page: pageIndex + 1, pages: Math.max(pageCount, 1) })}
           </>
         )}
       </div>
@@ -3165,7 +3179,7 @@ function PaginationBar<TData>({
         {!manual && (
           <div className="zen-flex zen-items-center zen-gap-2">
             <span id={pageSizeLabelId} className="zen-text-zen-muted-fg">
-              Rows per page
+              {loc.t("dataTable.rowsPerPage")}
             </span>
             <div style={{ width: 88 }}>
               <Select
@@ -3193,7 +3207,7 @@ function PaginationBar<TData>({
             size="sm"
             disabled={!table.getCanPreviousPage()}
             onClick={() => table.setPageIndex(0)}
-            aria-label="First page"
+            aria-label={loc.t("dataTable.firstPage")}
           >
             «
           </Button>
@@ -3203,7 +3217,7 @@ function PaginationBar<TData>({
             size="sm"
             disabled={!table.getCanPreviousPage()}
             onClick={() => table.previousPage()}
-            aria-label="Previous page"
+            aria-label={loc.t("dataTable.previousPage")}
           >
             ‹
           </Button>
@@ -3213,7 +3227,7 @@ function PaginationBar<TData>({
             size="sm"
             disabled={!table.getCanNextPage()}
             onClick={() => table.nextPage()}
-            aria-label="Next page"
+            aria-label={loc.t("dataTable.nextPage")}
           >
             ›
           </Button>
@@ -3223,7 +3237,7 @@ function PaginationBar<TData>({
             size="sm"
             disabled={!table.getCanNextPage()}
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            aria-label="Last page"
+            aria-label={loc.t("dataTable.lastPage")}
           >
             »
           </Button>

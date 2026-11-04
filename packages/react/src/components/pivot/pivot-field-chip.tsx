@@ -5,7 +5,6 @@ import {
   describeFilterSelection,
   fieldLabel,
   isFilterActive,
-  zoneLabel,
   type PivotAggregation,
   type PivotField,
   type PivotFilterSelection,
@@ -26,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "../dropdown-menu/dropdown-menu";
 import { PivotFilterMenu } from "./pivot-filter-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * PivotFieldChip — one field, in one zone.
@@ -64,6 +64,10 @@ export interface PivotFieldChipProps {
 }
 
 export const PivotFieldChip: React.FC<PivotFieldChipProps> = (props) => {
+  const loc = useLocale();
+  // The zones' names from the catalogue (core's zoneLabel is English).
+  const zoneName = (z: PivotZone) =>
+    loc.t(z === "available" ? "pivot.zoneAvailable" : z === "rows" ? "pivot.zoneRows" : z === "columns" ? "pivot.zoneColumns" : "pivot.zoneValues");
   const {
     fieldKey,
     fields,
@@ -109,7 +113,7 @@ export const PivotFieldChip: React.FC<PivotFieldChipProps> = (props) => {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  aria-label={`Move ${label}`}
+                  aria-label={loc.t("pivot.move", { label })}
                   disabled={disabled}
                   className="zen-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-p-0 zen-text-zen-muted-fg hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
                 >
@@ -120,14 +124,14 @@ export const PivotFieldChip: React.FC<PivotFieldChipProps> = (props) => {
                 <DropdownMenuLabel>Move {label} to</DropdownMenuLabel>
                 {PIVOT_ZONES.filter((z) => z !== "available" && z !== zone).map((z) => (
                   <DropdownMenuItem key={z} onSelect={() => onMoveToZone(z)}>
-                    {zoneLabel(z)}
+                    {zoneName(z)}
                   </DropdownMenuItem>
                 ))}
                 {zone !== "available" ? (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => onMoveToZone("available")}>
-                      Remove from layout
+                      {loc.t("pivot.removeFromLayout")}
                     </DropdownMenuItem>
                   </>
                 ) : null}
@@ -151,7 +155,7 @@ export const PivotFieldChip: React.FC<PivotFieldChipProps> = (props) => {
         {zone === "values" && isMeasure && onAggregationChange && field ? (
           <span className="zen-inline-block zen-shrink-0 zen-text-xs" onPointerDown={(e) => e.stopPropagation()}>
             <label className="zen-sr-only" htmlFor={`agg-${fieldKey}`}>
-              Aggregation for {label}
+              {loc.t("pivot.aggregationFor", { label })}
             </label>
             <select
               id={`agg-${fieldKey}`}
@@ -200,7 +204,7 @@ export const PivotFieldChip: React.FC<PivotFieldChipProps> = (props) => {
           <button
             type="button"
             className="zen-ml-1 zen-cursor-pointer zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-p-1 zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
-            aria-label={`Remove ${label} from ${zoneLabel(zone ?? "available")}`}
+            aria-label={loc.t("pivot.removeFrom", { label, zone: zoneName(zone ?? "available") })}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();

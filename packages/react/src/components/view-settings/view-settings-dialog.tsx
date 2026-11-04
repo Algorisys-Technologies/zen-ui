@@ -10,6 +10,7 @@ import { Button } from "../button/button";
 import { Switch } from "../form/switch/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../tabs/tabs";
 import { SelectListBody } from "../select-list/select-list";
+import { useLocale } from "../locale/locale";
 
 /**
  * ViewSettingsDialog — sort / group / filter settings for a list or
@@ -90,21 +91,29 @@ const countFilters = (filters: Record<string, string[]> | undefined) =>
 export const ViewSettingsDialog = ({
   open,
   onOpenChange,
-  title = "View settings",
+  title: titleProp,
   description,
   sortItems,
   groupItems,
   filterGroups,
   value,
   onConfirm,
-  confirmLabel = "OK",
-  cancelLabel = "Cancel",
-  resetLabel = "Reset",
-  sortTabLabel = "Sort",
-  groupTabLabel = "Group",
-  filterTabLabel = "Filter",
+  confirmLabel: confirmLabelProp,
+  cancelLabel: cancelLabelProp,
+  resetLabel: resetLabelProp,
+  sortTabLabel: sortTabLabelProp,
+  groupTabLabel: groupTabLabelProp,
+  filterTabLabel: filterTabLabelProp,
   className,
 }: ViewSettingsDialogProps) => {
+  const loc = useLocale();
+  const title = titleProp ?? loc.t("viewSettings.title");
+  const confirmLabel = confirmLabelProp ?? loc.t("common.ok");
+  const cancelLabel = cancelLabelProp ?? loc.t("common.cancel");
+  const resetLabel = resetLabelProp ?? loc.t("viewSettings.reset");
+  const sortTabLabel = sortTabLabelProp ?? loc.t("viewSettings.sort");
+  const groupTabLabel = groupTabLabelProp ?? loc.t("viewSettings.group");
+  const filterTabLabel = filterTabLabelProp ?? loc.t("viewSettings.filter");
   const [draft, setDraft] = React.useState<ViewSettingsValue>(EMPTY);
 
   // Held in a ref so the reset effect can depend on `open` alone: a caller
@@ -163,10 +172,10 @@ export const ViewSettingsDialog = ({
         selected={draft.sortBy ? [draft.sortBy] : []}
         onToggle={pickSort}
         onPick={pickSort}
-        emptyText="No sort fields"
+        emptyText={loc.t("viewSettings.noSortFields")}
       />
       <DirectionToggle
-        label="Descending"
+        label={loc.t("viewSettings.descending")}
         checked={Boolean(draft.sortDescending)}
         disabled={!draft.sortBy}
         onChange={(v) => patch({ sortDescending: v })}
@@ -181,10 +190,10 @@ export const ViewSettingsDialog = ({
         selected={draft.groupBy ? [draft.groupBy] : []}
         onToggle={pickGroup}
         onPick={pickGroup}
-        emptyText="No group fields"
+        emptyText={loc.t("viewSettings.noGroupFields")}
       />
       <DirectionToggle
-        label="Descending"
+        label={loc.t("viewSettings.descending")}
         checked={Boolean(draft.groupDescending)}
         disabled={!draft.groupBy}
         onChange={(v) => patch({ groupDescending: v })}
@@ -205,7 +214,7 @@ export const ViewSettingsDialog = ({
             selected={draft.filters?.[g.id] ?? []}
             onToggle={(id) => toggleFilter(g.id, id, g.multiple ?? true)}
             onPick={(id) => toggleFilter(g.id, id, g.multiple ?? true)}
-            emptyText="No values"
+            emptyText={loc.t("viewSettings.noValues")}
           />
         </div>
       ))}

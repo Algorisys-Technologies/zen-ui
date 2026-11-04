@@ -684,6 +684,11 @@ export const DEFAULT_MESSAGES = {
   "qrScanner.cameraView": "QR scanner camera view",
   "qrScanner.cameraBlocked": "Camera access was blocked. Allow camera permission in your browser settings, then reload.",
   "richText.preview": "Preview",
+  "dataTable.loading": "Loading…",
+  "dataTable.editCell": "Edit {column}",
+  "dataTable.all": "All",
+  "pivot.filterLabel": "Filter {label}",
+  "pivot.searchLabel": "Search {label}",
 } as const satisfies Record<string, string>;
 
 export type MessageKey = keyof typeof DEFAULT_MESSAGES;

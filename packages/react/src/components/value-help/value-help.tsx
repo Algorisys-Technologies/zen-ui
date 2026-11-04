@@ -23,6 +23,7 @@ import {
   type SelectListItem,
 } from "../select-list/select-list";
 import { filterItems } from "../select-list/filter";
+import { useLocale } from "../locale/locale";
 
 /**
  * ValueHelp — the F4 lookup dialog. SelectDialog answers "which of these?";
@@ -96,19 +97,8 @@ export interface ValueHelpProps {
   className?: string;
 }
 
-const OPERATOR_LABELS: Record<ValueHelpOperator, string> = {
-  EQ: "equals",
-  Contains: "contains",
-  StartsWith: "starts with",
-  EndsWith: "ends with",
-  BT: "between",
-  LT: "less than",
-  LE: "less or equal",
-  GT: "greater than",
-  GE: "greater or equal",
-};
-
-const OPERATORS = Object.keys(OPERATOR_LABELS) as ValueHelpOperator[];
+// The words are the catalogue's (valueHelp.op.<operator>); this fixes the order.
+const OPERATORS: ValueHelpOperator[] = ["EQ", "Contains", "StartsWith", "EndsWith", "BT", "LT", "LE", "GT", "GE"];
 
 /** A rule with no value filters nothing; committing it would be a silent no-op. */
 const isComplete = (c: ValueHelpCondition) =>
@@ -125,16 +115,23 @@ export const ValueHelp = ({
   conditions,
   onConfirm,
   searchable = true,
-  searchPlaceholder = "Search",
+  searchPlaceholder: searchPlaceholderProp,
   onSearch,
-  emptyText = "No matching items",
-  confirmLabel = "OK",
-  cancelLabel = "Cancel",
-  selectTabLabel = "Select from list",
-  conditionsTabLabel = "Define conditions",
-  addConditionLabel = "Add condition",
+  emptyText,
+  confirmLabel: confirmLabelProp,
+  cancelLabel: cancelLabelProp,
+  selectTabLabel: selectTabLabelProp,
+  conditionsTabLabel: conditionsTabLabelProp,
+  addConditionLabel: addConditionLabelProp,
   className,
 }: ValueHelpProps) => {
+  const loc = useLocale();
+  const searchPlaceholder = searchPlaceholderProp ?? loc.t("common.search");
+  const confirmLabel = confirmLabelProp ?? loc.t("common.ok");
+  const cancelLabel = cancelLabelProp ?? loc.t("common.cancel");
+  const selectTabLabel = selectTabLabelProp ?? loc.t("valueHelp.selectTab");
+  const conditionsTabLabel = conditionsTabLabelProp ?? loc.t("valueHelp.conditionsTab");
+  const addConditionLabel = addConditionLabelProp ?? loc.t("valueHelp.addCondition");
   const [query, setQuery] = React.useState("");
   const [draft, setDraft] = React.useState<string[]>([]);
   const [rules, setRules] = React.useState<ValueHelpCondition[]>([]);
@@ -263,7 +260,7 @@ export const ValueHelp = ({
           >
             {rules.length === 0 ? (
               <p className="zen-m-0 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-                No conditions yet.
+                {loc.t("valueHelp.noConditions")}
               </p>
             ) : (
               <ul className="zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-2 zen-p-0">
@@ -273,21 +270,21 @@ export const ValueHelp = ({
                       <Checkbox
                         checked={c.exclude}
                         onCheckedChange={(v) => patch(c.id, { exclude: v === true })}
-                        aria-label={`Exclude condition ${c.id}`}
+                        aria-label={loc.t("valueHelp.exclude", { id: c.id })}
                       />
-                      Exclude
+                      {loc.t("valueHelp.excludeLabel")}
                     </label>
                     <Select
                       value={c.operator}
                       onValueChange={(v) => patch(c.id, { operator: v as ValueHelpOperator })}
                     >
-                      <SelectTrigger className="zen-w-40 zen-shrink-0" aria-label="Operator">
+                      <SelectTrigger className="zen-w-40 zen-shrink-0" aria-label={loc.t("valueHelp.operator")}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {OPERATORS.map((op) => (
                           <SelectItem key={op} value={op}>
-                            {OPERATOR_LABELS[op]}
+                            {loc.t(`valueHelp.op.${op}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -295,15 +292,15 @@ export const ValueHelp = ({
                     <Input
                       value={c.value}
                       onChange={(e) => patch(c.id, { value: e.target.value })}
-                      placeholder="Value"
-                      aria-label="Value"
+                      placeholder={loc.t("valueHelp.value")}
+                      aria-label={loc.t("valueHelp.value")}
                     />
                     {c.operator === "BT" ? (
                       <Input
                         value={c.valueTo ?? ""}
                         onChange={(e) => patch(c.id, { valueTo: e.target.value })}
-                        placeholder="To"
-                        aria-label="To value"
+                        placeholder={loc.t("valueHelp.to")}
+                        aria-label={loc.t("valueHelp.toValue")}
                       />
                     ) : null}
                     <Button
@@ -311,7 +308,7 @@ export const ValueHelp = ({
                       variant="ghost"
                       color="neutral"
                       size="sm"
-                      aria-label="Remove condition"
+                      aria-label={loc.t("valueHelp.removeCondition")}
                       onClick={() => setRules((prev) => prev.filter((r) => r.id !== c.id))}
                     >
                       ✕

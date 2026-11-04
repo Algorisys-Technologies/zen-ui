@@ -15,7 +15,6 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   availableFields as availableFieldsIn,
   createEmptyLayout,
-  describeMove,
   fieldLabel,
   hasActiveFilters,
   isLayoutRenderable,
@@ -35,6 +34,7 @@ import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
 import { PivotDropZone } from "./pivot-drop-zone";
 import { PivotFieldChip, type PivotFieldChipProps } from "./pivot-field-chip";
+import { useLocale } from "../locale/locale";
 
 /**
  * PivotWorkbench — drag fields into zones, press View Data, get a layout.
@@ -128,6 +128,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
   showBuilder = true,
   loadMembers,
 }) => {
+  const loc = useLocale();
   // Draft vs applied: dragging edits the draft, View Data publishes it. Same
   // split the List Report makes between its filter bar and its table, for the
   // same reason — re-querying a pivot on every drag is fine over 48 rows and
@@ -160,9 +161,20 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
   const moveField = React.useCallback(
     (fieldId: string, zone: PivotZone, index?: number) => {
       setDraft((prev) => moveFieldToZone(prev, fieldId, zone, { index }));
-      setAnnouncement(describeMove(fields, fieldId, zone, index));
+      // The catalogue's sentences (core's describeMove is English), one per shape:
+      // a translator never stitches fragments together.
+      const field = fieldLabel(fields, fieldId);
+      const zoneName = (z: PivotZone) =>
+        loc.t(z === "available" ? "pivot.zoneAvailable" : z === "rows" ? "pivot.zoneRows" : z === "columns" ? "pivot.zoneColumns" : "pivot.zoneValues");
+      setAnnouncement(
+        zone === "available"
+          ? loc.t("pivot.removedFromLayout", { field })
+          : index === undefined
+            ? loc.t("pivot.movedTo", { field, zone: zoneName(zone) })
+            : loc.t("pivot.movedToAt", { field, zone: zoneName(zone), position: index + 1 }),
+      );
     },
-    [fields],
+    [fields, loc],
   );
 
   const onDragStart = (event: DragStartEvent) => setDragging(String(event.active.id));
@@ -224,7 +236,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
             // onDragEnd — so without it the cancel was silent here while Solid
             // announced it. Same gesture, same sentence.
             setDragging(null);
-            setAnnouncement("Move cancelled.");
+            setAnnouncement(loc.t("pivot.moveCancelled"));
           }}
         >
         <div className="zen-flex zen-w-full zen-flex-col zen-gap-2 zen-bg-zen-background zen-p-2">
@@ -244,7 +256,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
                         else setDraft((prev) => ({ ...prev, filters: {} }));
                       }}
                     >
-                      Clear filters
+                      {loc.t("pivot.clearFilters")}
                     </button>
                   ) : null}
                   <Button
@@ -261,7 +273,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
 
               <PivotDropZone
                 id="available"
-                title="Available Fields"
+                title={loc.t("pivot.availableFields")}
                 horizontal
                 isEmpty={available.length === 0}
               >
@@ -279,7 +291,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
               </PivotDropZone>
 
               <div className="zen-grid zen-grid-cols-1 zen-gap-2 sm:zen-grid-cols-3">
-                <PivotDropZone id="values" title="Values" isEmpty={draft.values.length === 0}>
+                <PivotDropZone id="values" title={loc.t("pivot.valuesZone")} isEmpty={draft.values.length === 0}>
                   <SortableContext items={draft.values.map((v) => v.id)} strategy={rectSortingStrategy}>
                     {draft.values.map((v) => (
                       <SortableChip
@@ -292,7 +304,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
                   </SortableContext>
                 </PivotDropZone>
 
-                <PivotDropZone id="rows" title="Rows" isEmpty={draft.rows.length === 0}>
+                <PivotDropZone id="rows" title={loc.t("pivot.rowsZone")} isEmpty={draft.rows.length === 0}>
                   <SortableContext items={draft.rows} strategy={rectSortingStrategy}>
                     {draft.rows.map((id) => (
                       <SortableChip key={id} {...chipProps(id, "rows")} />
@@ -300,7 +312,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
                   </SortableContext>
                 </PivotDropZone>
 
-                <PivotDropZone id="columns" title="Columns" isEmpty={draft.columns.length === 0}>
+                <PivotDropZone id="columns" title={loc.t("pivot.columnsZone")} isEmpty={draft.columns.length === 0}>
                   <SortableContext items={draft.columns} strategy={rectSortingStrategy}>
                     {draft.columns.map((id) => (
                       <SortableChip key={id} {...chipProps(id, "columns")} />
@@ -332,8 +344,8 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
               <Alert color="warning">
                 <AlertIcon><Icon name="info" /></AlertIcon>
                 <AlertContent>
-                  <AlertTitle>Value field required</AlertTitle>
-                  <AlertDescription>Drop at least one field into Values to calculate data.</AlertDescription>
+                  <AlertTitle>{loc.t("pivot.valueRequired")}</AlertTitle>
+                  <AlertDescription>{loc.t("pivot.valueRequiredHelp")}</AlertDescription>
                 </AlertContent>
               </Alert>
             ) : null}
@@ -341,8 +353,8 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
               <Alert color="warning">
                 <AlertIcon><Icon name="info" /></AlertIcon>
                 <AlertContent>
-                  <AlertTitle>Dimension required</AlertTitle>
-                  <AlertDescription>Drop at least one field into Rows or Columns.</AlertDescription>
+                  <AlertTitle>{loc.t("pivot.dimensionRequired")}</AlertTitle>
+                  <AlertDescription>{loc.t("pivot.dimensionRequiredHelp")}</AlertDescription>
                 </AlertContent>
               </Alert>
             ) : null}

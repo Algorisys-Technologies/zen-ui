@@ -16,6 +16,7 @@ import { Loading } from "../loading/loading";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { useWindowedOptionPages } from "./internal/use-windowed-option-pages";
 import { WindowedVirtualList } from "./internal/windowed-virtual-list";
+import { useLocale } from "../locale/locale";
 
 /**
  * PivotFilterMenu — pick values for one field, paged in from the server.
@@ -56,6 +57,7 @@ export const PivotFilterMenu: React.FC<PivotFilterMenuProps> = ({
   triggerChildren,
   singleSelect,
 }) => {
+  const loc = useLocale();
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const active = isFilterActive(selection);
@@ -110,7 +112,7 @@ export const PivotFilterMenu: React.FC<PivotFilterMenuProps> = ({
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={`Filter ${label}`}
+          aria-label={loc.t("pivot.filterLabel", { label })}
           onPointerDown={(e) => e.stopPropagation()}
           className={cn(
             "zen-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-justify-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-p-1 zen-transition-colors",
@@ -129,31 +131,31 @@ export const PivotFilterMenu: React.FC<PivotFilterMenuProps> = ({
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={`Search ${label}`}
-            aria-label={`Search ${label} values`}
+            placeholder={loc.t("pivot.searchLabel", { label })}
+            aria-label={loc.t("pivot.searchValues", { label })}
             autoFocus
             className="zen-h-8"
           />
 
           {pages.loading ? (
             <div className="zen-flex zen-items-center zen-justify-center zen-py-6" aria-busy>
-              <Loading size="sm" label="Loading values…" />
+              <Loading size="sm" label={loc.t("pivot.loadingValues")} />
             </div>
           ) : pages.loadError ? (
             // A failed fetch is NOT an empty result. Saying "No matching values"
             // here sends people looking for data that is not missing.
             <div className="zen-flex zen-flex-col zen-items-start zen-gap-1 zen-px-2 zen-py-3" role="alert">
-              <p className="zen-m-0 zen-text-sm zen-text-zen-error">Could not load values.</p>
+              <p className="zen-m-0 zen-text-sm zen-text-zen-error">{loc.t("pivot.loadFailed")}</p>
               <button
                 type="button"
                 className="zen-cursor-pointer zen-border-0 zen-bg-transparent zen-p-0 zen-text-xs zen-text-zen-primary hover:zen-underline"
                 onClick={() => pages.openPanelFetch()}
               >
-                Try again
+                {loc.t("pivot.tryAgain")}
               </button>
             </div>
           ) : pages.totalCount === 0 ? (
-            <p className="zen-m-0 zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-fg">No matching values</p>
+            <p className="zen-m-0 zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-fg">{loc.t("pivot.noMatchingValues")}</p>
           ) : (
             <WindowedVirtualList
               label={label}
@@ -173,7 +175,7 @@ export const PivotFilterMenu: React.FC<PivotFilterMenuProps> = ({
               className="zen-cursor-pointer zen-self-start zen-border-0 zen-bg-transparent zen-p-0 zen-text-xs zen-text-zen-primary hover:zen-underline"
               onClick={() => onChange(null)}
             >
-              Clear filter
+              {loc.t("pivot.clearFilter")}
             </button>
           ) : null}
         </div>

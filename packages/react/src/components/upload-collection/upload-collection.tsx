@@ -3,6 +3,7 @@ import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
 import { Progress } from "../progress/progress";
+import { useLocale } from "../locale/locale";
 
 /**
  * UploadCollection — the list of files that have been uploaded, or are on their
@@ -113,6 +114,7 @@ interface RowProps {
 }
 
 const Row = ({ item, disabled, onRemove, onRetry, onRename }: RowProps) => {
+  const loc = useLocale();
   const [editing, setEditing] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   /* Escape closes the editor, which unmounts the input, which fires BLUR — and
@@ -192,7 +194,7 @@ const Row = ({ item, disabled, onRemove, onRetry, onRename }: RowProps) => {
           <input
             ref={inputRef}
             defaultValue={item.name}
-            aria-label={`Rename ${item.name}`}
+            aria-label={loc.t("uploadCollection.rename", { name: item.name })}
             className="zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -217,7 +219,7 @@ const Row = ({ item, disabled, onRemove, onRetry, onRename }: RowProps) => {
         )}
 
         {status === "error" ? (
-          <span className="zen-text-xs zen-text-zen-error">{item.error ?? "Upload failed"}</span>
+          <span className="zen-text-xs zen-text-zen-error">{item.error ?? loc.t("uploadCollection.uploadFailed")}</span>
         ) : (
           !!metaOf(item) && (
             <span className="zen-text-xs zen-text-zen-muted-fg">{metaOf(item)}</span>
@@ -225,7 +227,7 @@ const Row = ({ item, disabled, onRemove, onRetry, onRename }: RowProps) => {
         )}
 
         {busy && item.progress !== undefined && (
-          <Progress size="sm" value={item.progress} aria-label={`Uploading ${item.name}`} />
+          <Progress size="sm" value={item.progress} aria-label={loc.t("uploadCollection.uploading", { name: item.name })} />
         )}
       </div>
 
@@ -234,7 +236,7 @@ const Row = ({ item, disabled, onRemove, onRetry, onRename }: RowProps) => {
           /* A word, not an icon. There is no retry glyph anyone reads reliably,
              and this is the one action a failed row exists to offer. */
           <Button variant="outline" size="sm" disabled={disabled} onClick={() => onRetry(item)}>
-            Retry
+            {loc.t("uploadCollection.retry")}
           </Button>
         )}
         {onRename && !busy && (
@@ -242,7 +244,7 @@ const Row = ({ item, disabled, onRemove, onRetry, onRename }: RowProps) => {
             variant="ghost"
             color="neutral"
             size="sm"
-            aria-label={`Rename ${item.name}`}
+            aria-label={loc.t("uploadCollection.rename", { name: item.name })}
             disabled={disabled}
             onClick={() => setEditing(true)}
           >
@@ -254,7 +256,7 @@ const Row = ({ item, disabled, onRemove, onRetry, onRename }: RowProps) => {
             variant="ghost"
             color="neutral"
             size="sm"
-            aria-label={`Remove ${item.name}`}
+            aria-label={loc.t("uploadCollection.remove", { name: item.name })}
             disabled={disabled}
             onClick={() => onRemove(item)}
           >
@@ -275,6 +277,7 @@ export const UploadCollection = ({
   disabled,
   className,
 }: UploadCollectionProps) => {
+  const loc = useLocale();
   if ((items ?? []).length === 0) {
     /* `className` reaches the empty state too. A caller who sized the list — a
        width, a max-width, a border — meant the box the files live in, and a
@@ -287,7 +290,7 @@ export const UploadCollection = ({
           className,
         )}
       >
-        {emptyMessage ?? "No files yet"}
+        {emptyMessage ?? loc.t("uploadCollection.noFilesYet")}
       </p>
     );
   }

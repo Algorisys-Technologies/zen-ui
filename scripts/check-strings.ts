@@ -46,7 +46,7 @@ const PATTERNS: [string, RegExp][] = [
   // React's idiom for a default: a destructured prop default (`placeholder = "Search"`),
   // where Solid writes `local.placeholder ?? loc.t(…)`. Only label-like names; a
   // variant (`variant = "solid"`) or a displayName is not text, and `==` is a comparison.
-  ["English prop default", /(?:^|[\s{,(])\w*(?:[Ll]abel|[Tt]ext|[Mm]essage|[Pp]laceholder|[Tt]itle|[Dd]escription|[Hh]eading) = "[^"]*[A-Za-z]{2}[^"]*"\s*(?:[,})]|$)/],
+  ["English prop default", /(?:^|[\s{,(])\w*(?:[Ll]abel|[Tt]ext|[Mm]essage|[Pp]laceholder|[Tt]itle|[Dd]escription|[Hh]eading|children) = "[^"]*[A-Za-z]{2}[^"]*"\s*(?:[,})]|$)/],
   ["JSX text line", /^\s+[A-Z][a-z]+(?:[ ,'’-]+[a-z]+)*[.…:!?]?\s*$/],
 ];
 
