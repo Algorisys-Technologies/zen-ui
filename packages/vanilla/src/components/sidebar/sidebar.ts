@@ -218,6 +218,13 @@ const SIDEBAR_BASE =
 
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/**
+ * Collapsed-or-not before the overlay took over, per provider, so a widening
+ * restores it. Kept by context rather than by Sidebar instance: a provider that
+ * rebuilds its children replaces the instance mid-overlay.
+ */
+const beforeOverlay = new WeakMap<SidebarContextValue, boolean>();
+
 export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
   const ctx = requireCtx(props.sidebar, "Sidebar");
   let current = { ...props };
@@ -231,11 +238,22 @@ export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
   // the aside observes itself too: its first notification comes once it is laid
   // out, which is when there is a parent to measure. Notifications arrive after
   // layout and before paint, so the first frame drawn is already the right one.
-  let narrow = false;
+  //
+  // A sidebar built against a context that is already an overlay (the provider
+  // rebuilt its children: a web component does on every attribute change)
+  // starts as one, so it neither reopens nor forgets what to restore.
+  let narrow = typeof ctx.overlay === "object" && ctx.overlayActive;
   let watched: Element | null = null;
+  // Once connected and then taken out of the document, this instance is stale:
+  // its replacement owns the context now, and a detached parent measures 0px.
+  let attached = false;
+  const stale = () => attached && !el.isConnected;
   const measureNarrow = () => {
     const o = ctx.overlay;
-    const parent = el.parentElement;
+    // The nearest ancestor with a box: a `display: contents` wrapper (a web
+    // component's host, a provider) has none, and measures 0px wide.
+    let parent = el.parentElement;
+    while (parent && getComputedStyle(parent).display === "contents") parent = parent.parentElement;
     if (parent !== watched) {
       if (watched) ro.unobserve(watched);
       watched = parent;
@@ -244,6 +262,11 @@ export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
     narrow = typeof o === "object" && !!parent && parent.clientWidth < o.below;
   };
   const ro = new ResizeObserver(() => {
+    if (!el.isConnected) {
+      if (attached) stopOpen?.();
+      return;
+    }
+    attached = true;
     const was = narrow;
     measureNarrow();
     if (narrow !== was) sync();
@@ -331,8 +354,7 @@ export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
   // (SidebarMenuSub would rebuild into its flyout and back), and the
   // notifications they cause are held until both have landed, so the one state
   // in between (an overlay not yet closed) is never painted or focused.
-  let wasOverlay = false;
-  let beforeOverlay = false;
+  let wasOverlay = ctx.overlayActive;
   let switching = false;
   function sync() {
     if (switching) return;
@@ -342,11 +364,11 @@ export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
       switching = true;
       try {
         if (overlay) {
-          beforeOverlay = ctx.collapsed;
+          beforeOverlay.set(ctx, ctx.collapsed);
           ctx.setOverlayActive(true);
           ctx.setCollapsed(true);
         } else {
-          ctx.setCollapsed(beforeOverlay);
+          ctx.setCollapsed(beforeOverlay.get(ctx) ?? false);
           ctx.setOverlayActive(false);
         }
       } finally {
@@ -367,6 +389,10 @@ export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
   render();
   disposer.add(
     ctx.subscribe(() => {
+      if (stale()) {
+        stopOpen?.();
+        return;
+      }
       // `overlay` may have changed on the provider: measure against the new one.
       if (el.isConnected) measureNarrow();
       else if (typeof ctx.overlay !== "object") narrow = false;
