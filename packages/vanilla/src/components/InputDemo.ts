@@ -77,6 +77,17 @@ MaskInput({ mask: "+\\\\9\\\\1 99999 99999" })`,
         code: `Input({ placeholder: "Read-only", disabled: true })`,
         render: () => field(Input({ placeholder: "Disabled", disabled: true }).el),
       },
+      {
+        title: "5. Invalid",
+        codeTitle: 'aria-invalid="true"',
+        codeDescription: "A field the form has marked invalid takes the error border, as Select and Combobox do.",
+        code: `Input({ "aria-invalid": "true", placeholder: "GSTIN" })`,
+        render: () => {
+          const d = field(Input({ "aria-invalid": "true", placeholder: "GSTIN" }).el);
+          d.dataset.testid = "input-invalid";
+          return d;
+        },
+      },
     ],
   });
 }

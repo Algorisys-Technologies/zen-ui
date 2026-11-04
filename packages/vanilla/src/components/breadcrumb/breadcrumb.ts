@@ -40,8 +40,12 @@ export const Breadcrumb = styled<BreadcrumbProps>({
 
 export const BreadcrumbList = styled({
   tag: "ol",
+  // Its own reset (zen-m-0 zen-list-none zen-p-0): zen-ui ships no list reset
+  // (the preflight is opt-in and does not touch lists), so every separator <li>
+  // drew a decimal marker and the list stood 40px in, 14px down. Measured in
+  // this demo and without the preflight.
   className:
-    "zen-flex zen-flex-wrap zen-items-center zen-gap-1.5 zen-break-words zen-text-sm zen-text-zen-muted-fg sm:zen-gap-2.5",
+    "zen-m-0 zen-list-none zen-p-0 zen-flex zen-flex-wrap zen-items-center zen-gap-1.5 zen-break-words zen-text-sm zen-text-zen-muted-fg sm:zen-gap-2.5",
 });
 
 export const BreadcrumbItem = styled({
