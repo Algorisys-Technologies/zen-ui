@@ -195,8 +195,8 @@ export { SkipToContent, SKIP_TO_CONTENT_CLASS } from "./components/skip-to-conte
 export type { SkipToContentProps, SkipToContentHandle } from "./components/skip-to-content/skip-to-content";
 export { ShellBar } from "./components/shellbar/shellbar";
 export type { ShellBarProps, ShellBarItem, ShellBarMenuItem, ShellBarProfile } from "./components/shellbar/shellbar";
-export { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarTrigger } from "./components/sidebar/sidebar";
-export type { SidebarContextValue, SidebarProviderProps, SidebarProviderHandle, SidebarProps, SidebarGroupLabelProps, SidebarMenuButtonProps, SidebarMenuSubProps, SidebarMenuSubButtonProps, SidebarTriggerProps } from "./components/sidebar/sidebar";
+export { SidebarProvider, Sidebar, SidebarHeader, SidebarHeaderLabel, SidebarMenuBadge, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarTrigger } from "./components/sidebar/sidebar";
+export type { SidebarContextValue, SidebarProviderProps, SidebarProviderHandle, SidebarProps, SidebarHeaderProps, SidebarHeaderLabelProps, SidebarGroupLabelProps, SidebarMenuButtonProps, SidebarMenuSubProps, SidebarMenuSubButtonProps, SidebarTriggerProps } from "./components/sidebar/sidebar";
 
 export { Calendar, DatePicker } from "./components/form/date-picker/date-picker";
 export type { CalendarProps, CalendarMode, CalendarSelected, DateRange, DatePickerProps } from "./components/form/date-picker/date-picker";

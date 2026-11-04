@@ -1,8 +1,9 @@
 import {
-  SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter,
-  SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
+  SidebarProvider, Sidebar, SidebarHeader, SidebarHeaderLabel, SidebarMenuBadge, SidebarContent,
+  SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
   SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarTrigger,
-  type SidebarProviderProps, type SidebarProps, type SidebarGroupLabelProps,
+  type SidebarProviderProps, type SidebarProps, type SidebarHeaderProps,
+  type SidebarHeaderLabelProps, type SidebarGroupLabelProps,
   type SidebarMenuButtonProps, type SidebarMenuSubProps, type SidebarMenuSubButtonProps,
   type SidebarTriggerProps,
 } from "@algorisys/zen-ui-vanilla";
@@ -12,11 +13,13 @@ import { defineZenElement } from "../lib/define";
 // `children` is a FUNCTION `(ctx) => Child`, not slottable markup, so the slot is
 // off and it is exposed as a JS property instead. `collapsed` is the controlled
 // boolean (its presence hands ownership to the caller); `defaultCollapsed`
-// defaults false, so it is a plain boolean attribute.
+// defaults false, so it is a plain boolean attribute. `collapse-mode` is
+// "icon" | "hidden". `overlay` is JSON because it is `true` OR `{ below }`:
+// `overlay="true"`, or `overlay='{"below":900}'`.
 defineZenElement<SidebarProviderProps>({
   tag: "zen-sidebar-provider",
   factory: SidebarProvider,
-  attrs: { "default-collapsed": "boolean" },
+  attrs: { "default-collapsed": "boolean", "collapse-mode": "string", overlay: "json" },
   props: ["collapsed", "children"],
   events: { onCollapsedChange: "zen-collapsed-change" },
   childrenProp: false,
@@ -30,8 +33,22 @@ defineZenElement<SidebarProps>({
   props: ["sidebar"],
 });
 
+// The header's `sidebar` is optional: with it, the header stacks on the icon
+// rail and its text is read, not shown.
+defineZenElement<SidebarHeaderProps>({
+  tag: "zen-sidebar-header",
+  factory: SidebarHeader,
+  props: ["sidebar"],
+});
+
+defineZenElement<SidebarHeaderLabelProps>({
+  tag: "zen-sidebar-header-label",
+  factory: SidebarHeaderLabel,
+  props: ["sidebar"],
+});
+
 // Pure-display structural parts — only slot children.
-defineZenElement({ tag: "zen-sidebar-header", factory: SidebarHeader });
+defineZenElement({ tag: "zen-sidebar-menu-badge", factory: SidebarMenuBadge });
 defineZenElement({ tag: "zen-sidebar-content", factory: SidebarContent });
 defineZenElement({ tag: "zen-sidebar-footer", factory: SidebarFooter });
 defineZenElement({ tag: "zen-sidebar-group", factory: SidebarGroup });
@@ -64,12 +81,14 @@ defineZenElement<SidebarMenuButtonProps>({
 
 // `label` is `string | Node` and `icon` is a Child → JS properties. `open` is the
 // controlled boolean; `defaultOpen`/`active` default false → boolean attrs.
+// `badge` is a count or status ("29"): a string attribute.
 defineZenElement<SidebarMenuSubProps>({
   tag: "zen-sidebar-menu-sub",
   factory: SidebarMenuSub,
   attrs: {
     "default-open": "boolean",
     active: "boolean",
+    badge: "string",
   },
   props: ["sidebar", "label", "icon", "open"],
   events: { onOpenChange: "zen-open-change" },
