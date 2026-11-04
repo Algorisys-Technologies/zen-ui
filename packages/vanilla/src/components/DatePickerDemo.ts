@@ -120,6 +120,19 @@ const cal = Calendar({
           return wrap;
         },
       },
+      {
+        title: "6. Opening on the chosen day",
+        codeTitle: 'initialFocus: "selected"',
+        codeDescription:
+          'By default the calendar opens with focus on the calendar panel (as it always has). With initialFocus: "selected" it opens on the chosen day, or today, so the arrow keys move between days at once. It becomes the default in the next major version.',
+        code: `DatePicker({ initialFocus: "selected", value: date, onValueChange: setDate })`,
+        render: () => {
+          const wrap = document.createElement("div");
+          wrap.dataset.testid = "initial-focus";
+          wrap.append(DatePicker({ initialFocus: "selected", defaultValue: new Date(2026, 2, 15) }).el);
+          return wrap;
+        },
+      },
     ],
   });
 }

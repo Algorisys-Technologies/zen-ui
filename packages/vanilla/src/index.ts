@@ -188,6 +188,9 @@ export type { SidebarContextValue, SidebarProviderProps, SidebarProviderHandle, 
 
 export { Calendar, DatePicker } from "./components/form/date-picker/date-picker";
 export type { CalendarProps, CalendarMode, CalendarSelected, DateRange, DatePickerProps } from "./components/form/date-picker/date-picker";
+// DateInput (a typed date in the locale's order; the calendar as a second way in)
+export { DateInput, isTypedDate } from "./components/form/date-picker/date-input";
+export type { DateInputProps, DateOrder } from "./components/form/date-picker/date-input";
 export { NotificationsInbox } from "./components/notifications-inbox/notifications-inbox";
 export type { NotificationsInboxProps, NotificationsInboxHandle, Notification } from "./components/notifications-inbox/notifications-inbox";
 export { VirtualizedItems } from "./components/listbox/virtualized-items";

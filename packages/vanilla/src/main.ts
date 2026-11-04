@@ -82,6 +82,7 @@ import ShellBarDemo from "./components/ShellBarDemo";
 import SkipToContentDemo from "./components/SkipToContentDemo";
 import SidebarDemo from "./components/SidebarDemo";
 import DatePickerDemo from "./components/DatePickerDemo";
+import DateInputDemo from "./components/DateInputDemo";
 import NotificationsInboxDemo from "./components/NotificationsInboxDemo";
 import VirtualizedItemsDemo from "./components/VirtualizedItemsDemo";
 import FilterBarDemo from "./components/FilterBarDemo";
@@ -200,6 +201,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/skip-to-content": SkipToContentDemo,
   "/shellbar": ShellBarDemo,
   "/sidebar": SidebarDemo,
+  "/date-input": DateInputDemo,
   "/date-picker": DatePickerDemo,
   "/notifications-inbox": NotificationsInboxDemo,
   "/virtualized-items": VirtualizedItemsDemo,
