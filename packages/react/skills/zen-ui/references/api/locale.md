@@ -324,6 +324,12 @@ SKILL.md.
 - `documentTabs.openDocuments: string`
 - `documentTabs.close: string`
 - `documentTabs.allOpenDocuments: string`
+- `documentTabs.unsaved: string`
+- `documentTabs.pinTab: string`
+- `documentTabs.unpinTab: string`
+- `documentTabs.pin: string`
+- `documentTabs.unpin: string`
+- `documentTabs.allOpenDocumentsCount: string`
 - `documentViewer.zoomOut: string`
 - `documentViewer.zoomIn: string`
 - `documentViewer.fit: string`
@@ -537,6 +543,26 @@ SKILL.md.
 - `filter.say.and: string`
 - `filter.say.or: string`
 - `filter.say.not: string`
+- `carousel.previousSlide: string`
+- `carousel.nextSlide: string`
+- `dataTable.collapseRow: string`
+- `dataTable.expandRow: string`
+- `dataTable.collapseGroup: string`
+- `dataTable.expandGroup: string`
+- `dataTable.unpinFrom: string`
+- `dataTable.pinTo: string`
+- `diffView.notSet: string`
+- `fileUpload.orDragAndDrop: string`
+- `gantt.collapseTask: string`
+- `gantt.expandTask: string`
+- `link.opensInNewTab: string`
+- `mediaTimeline.rangePosition: string`
+- `proctor.nameVideo: string`
+- `proctor.candidateVideo: string`
+- `proctor.flagsRaised: string`
+- `productionSchedule.collapseResource: string`
+- `productionSchedule.expandResource: string`
+- `map.loading: string`
 
 ### Other exports
 

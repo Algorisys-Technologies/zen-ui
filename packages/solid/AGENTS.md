@@ -62,6 +62,7 @@ description, then import the name from your binding's package.
 - **ColorPicker** — Swatch palette + the platform picker; hex in, hex out
 - **Carousel** — Scroll-snap slide strip; every child is a slide, no autoplay
 - **DropdownMenu** — Radix DropdownMenu — action menus, sub-menus, checkbox/radio items
+- **ContextMenu** — Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press
 - **Separator** — Radix Separator — horizontal / vertical with decorative semantics
 - **Switch** — Radix Switch — sizes, controlled / uncontrolled, form submission
 - **Checkbox** — Radix Checkbox — native tri-state indeterminate, sizes

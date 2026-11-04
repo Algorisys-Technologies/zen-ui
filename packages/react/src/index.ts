@@ -493,6 +493,33 @@ export type {
   KbdProps,
 } from "./components/shortcuts/shortcuts";
 
+// UI Components - ContextMenu (Radix-backed; looks exactly like DropdownMenu)
+export {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuCheckboxItem,
+  ContextMenuRadioItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuGroup,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
+} from "./components/context-menu/context-menu";
+export type {
+  ContextMenuProps,
+  ContextMenuTriggerProps,
+  ContextMenuContentProps,
+  ContextMenuItemProps,
+  ContextMenuCheckboxItemProps,
+  ContextMenuRadioItemProps,
+} from "./components/context-menu/context-menu";
+
 // UI Components - FAB (shadcn-style; composes the Button)
 export { FAB } from "./components/fab/fab";
 export type { FABProps } from "./components/fab/fab";

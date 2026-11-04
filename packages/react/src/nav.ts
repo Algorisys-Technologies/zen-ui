@@ -67,6 +67,7 @@ export const NAV: NavGroup[] = [
       { to: "/color-picker", label: "ColorPicker", description: "Swatch palette + the platform picker; hex in, hex out", source: "packages/react/src/components/NewColorPickerDemo.tsx" },
       { to: "/carousel", label: "Carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/react/src/components/NewCarouselDemo.tsx" },
       { to: "/dropdown-menu", label: "DropdownMenu", description: "Radix DropdownMenu \u2014 action menus, sub-menus, checkbox/radio items", source: "packages/react/src/components/NewDropdownMenuDemo.tsx" },
+      { to: "/context-menu", label: "ContextMenu", description: "Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press", source: "packages/react/src/components/NewContextMenuDemo.tsx" },
       { to: "/separator", label: "Separator", description: "Radix Separator \u2014 horizontal / vertical with decorative semantics", source: "packages/react/src/components/NewSeparatorDemo.tsx" },
       { to: "/switch-new", label: "Switch", description: "Radix Switch \u2014 sizes, controlled / uncontrolled, form submission", source: "packages/react/src/components/NewSwitchDemo.tsx" },
       { to: "/checkbox-new", label: "Checkbox", description: "Radix Checkbox \u2014 native tri-state indeterminate, sizes", source: "packages/react/src/components/NewCheckboxDemo.tsx" },
