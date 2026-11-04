@@ -26,11 +26,11 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | ok | ok |
 | A8 | TreeSelect | ok | ok | ok |
 | A9 | LookupField | ok | ok | ok |
-| A10 | FilterBuilder | ok | wip | wip |
+| A10 | FilterBuilder | ok | ok | ok |
 | A11 | ViewManager | ok | ok | ok |
-| A12 | Sidebar collapseMode / overlay / badges / header label | ok | wip | wip |
-| A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | wip | wip |
-| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | wip | wip |
+| A12 | Sidebar collapseMode / overlay / badges / header label | ok | ok | ok |
+| A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | ok | ok |
+| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | partial: 1-5 ok; cell nav + row virt need inline editing first | partial (as vanilla) |
 | S | Strings: the binding's components read the message catalogue; check:strings per binding | — | — | — |
 
 ## Log
@@ -186,3 +186,31 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   `lib/component.ts` (take the list, then run it; reusable; re-entrant safe),
   being A/B-measured: listener counts over 5 cycles + all vanilla routes
   snapshotted before/after.
+- 2026-11-05: Disposer fix A/B measured and committed (1ab8d2fa): Combobox
+  document listeners after 5 open/close cycles 8 -> 0, TreeSelect 1 -> 0;
+  116/116 vanilla routes identical.
+- 2026-11-05: A12 vanilla+WC merged (Sidebar 11/11 + 9/9 + WC elements 14/14;
+  rail fix measured element by element). `SidebarHeader` takes an optional
+  `sidebar` to get the rail fix (vanilla parts have no context lookup).
+- 2026-11-05: A13 vanilla+WC merged (34/34 both; 106/113 vanilla and 105/113
+  WC routes identical, 7 extended, 1 WC timing-flaky /chunk-uploader; computed
+  style differences are the intended list resets + StatCard underline only).
+  Vanilla DataTable body cells + row hover then moved onto the tokens
+  (0e46351e: 7286 cells identical at defaults).
+- 2026-11-05: D vanilla+WC merged, steps 1-5 (keyboard rows 18/18, totals 9/9,
+  export 17/17 with md5-identical ExportRequests across React/vanilla/WC once
+  in the same sort state, contextMenu 10/10). NOT DONE: cell navigation and
+  row virtualization — vanilla DataTable has no inline editing, grouping or
+  per-column filters (a pre-existing gap); group subtotals therefore n/a.
+  Also fixed: repaints dropped focus and scrolled a scrolled table to the top.
+  Known divergence: a number column's first sort click is descending in
+  React (TanStack) and ascending in vanilla.
+- 2026-11-05: A10 vanilla+WC merged (FilterBuilder 21/21 + 9/9 + 5/5 both;
+  vanilla contract 15/15, WC 10/10). Fixed in vanilla Select: dead after its
+  first close (open and render shared one cleanup list); 112/112 routes
+  identical. Merge conflicts in nav/main/index resolved by keeping both.
+- 2026-11-05: **check:parity GREEN across all four bindings.**
+  Integrated React re-verification (one build of dev): amount 25/25, locale
+  8/8, shortcuts 12/12, contextmenu 11/11, barcode 16/16, tile 10/10,
+  treeselect 18/18 + 19/19, filter 21/21, date-input 28/28, cal-keys 21/21,
+  sidebar 11/11, doc-tabs 35/35, lookup 30/30 (views pending re-run).
