@@ -6,6 +6,49 @@ issue / PR when its turn comes.
 
 ---
 
+## Parity: DataTable `enableRowVirtualization` (Solid only, 2026-11-04)
+
+- [ ] **Port to React, then vanilla, then web-components**, from the Solid
+      DataTable (`VirtualRows` and the `virtualize` path of `BodyTable`): spacer
+      rows around the mounted window, the expanded panel as an item of its own,
+      `getItemKey` / `rangeExtractor` returned as NEW functions when what they
+      read changes (the virtualizer recomputes only on identity), the tab stop
+      and the editing row kept mounted, focus restored when a list update moved
+      the focused row (a moved node drops focus), the estimate learned from the
+      first measured row, `keepInView` nudging the scroller only. Bring the
+      group-row fix with it (a grouped row never opens `renderSubRow`). Add the
+      "6b. Row virtualization" demo section to each, then regenerate the skill
+      API docs (they are built from the React types).
+      Also port the row drag (BodyTable `startDrag`: drop index from the
+      virtualizer's layout, edge autoscroll, Esc, the dragged row kept mounted,
+      every window listener removed on drop and on unmount), the de-duplicated
+      kept rows (a row both focused and edited was mounted twice), and
+      `RowMoveContext` (an editor ignores the blur a DOM move causes).
+- [ ] **Port this round's Solid DataTable fixes**: the inline number editor
+      takes focus (React has the same bug); the select editor opens at once
+      (React already does); sort priority only for 2+ sorted columns and no
+      `zen-text-[1rem]` (React shows it always; vanilla has the size only).
+      Solid gained `enableFilterOperators` from React.
+- [ ] **Reconcile UrlDataTable's filter operators.** React turns them off (the
+      server owns the predicate, and its chip showed "[object Object]"); Solid
+      keeps them and writes `id:op:value` to the URL, with no such bug. React is
+      the reference, but switching Solid off removes a working control: decide.
+- [ ] **Keyboard reordering of rows** (both bodies): the drag handle has no
+      keyboard path yet.
+
+## From the ERPNext port (2026-11-04)
+
+- [ ] **BreadcrumbList's `<ol>` keeps the browser's list style**: without the
+      opt-in preflight every BreadcrumbSeparator `<li>` shows "1." "2." and the
+      row is 44px tall instead of 20. Reset list-style, margin and padding on
+      the component itself (ERPNext docs/zen-ui-component-gaps.md, item 11).
+- [ ] **Desktop-app gaps the ERP reported**: Sidebar that can hide completely
+      when collapsed, and a narrow-screen overlay; counts on filter tabs;
+      launchpad tiles; a KPI hero with a chart; a status stamp; table tokens.
+      The owner is reviewing ERPNext's full report and will send it.
+- [ ] **Deprecate `enableVirtualization`** at the next major, in favour of
+      `enableRowVirtualization` (a visual change for its users, hence a major).
+
 ## Parity: DocumentTabs (Solid only, 2026-11-03)
 
 - [ ] **Port DocumentTabs to React, then vanilla, then web-components**, from

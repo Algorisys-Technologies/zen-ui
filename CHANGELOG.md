@@ -16,6 +16,37 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **DataTable `enableRowVirtualization`** (Solid; React, vanilla and web
+  components follow, see todo.md). Renders only the rows in view, inside the
+  regular table, so a virtualized table keeps everything an ordinary one has:
+  grouping, expandable rows, selection, keyboard navigation, inline editing,
+  column pinning, a sticky header and `fillHeight`. `enableVirtualization`
+  could do none of the first four, because it rendered a separate grid of divs;
+  it is unchanged, for the tables built on it.
+  - Spacer rows stand in for the rows not mounted; rows are measured as they
+    mount, so group rows and expanded panels may be taller than the rest, and
+    the row-height estimate is learned from the first row measured (it follows
+    density) unless `rowEstimatedHeight` is given.
+  - The keyboard's row and the row being edited stay mounted wherever the scroll
+    is: the table never loses its tab stop, focus or a half-typed value. A jump
+    (End, PageDown) scrolls only the table, never the page, and the row lands
+    below the sticky header.
+  - Columns lay out from the header (`table-layout: fixed`), so they hold still
+    as rows come and go.
+  - Measured in the Solid demo, 10 000 rows: 16–18 rows mounted, about one row
+    added per row scrolled past, frame p50 16.5 ms / p95 21 ms; four end-to-end
+    scrolls left DOM nodes and listeners unchanged.
+  - Rows can be dragged (`enableRowOrdering`) to anywhere in the table, not
+    just within view: the table scrolls while the pointer is near its top or
+    bottom edge, a line shows where the row will land, and Esc cancels. The
+    drag is the table's own, not solid-dnd's, which can drop only onto a row
+    that is mounted; expanded panels are off while rows can be dragged, as in
+    the unvirtualized table.
+- **DataTable `enableFilterOperators`** (Solid; React has had it). Set it to
+  `false` to drop the operator select beside each per-column text filter, when
+  the server owns the predicate; the filter value is then a plain string.
+- **Select `defaultOpen` and `onOpenChange`** (Solid): open the list when it
+  mounts, and hear it open and close. Used by DataTable's inline select editor.
 - **DataTable `fillHeight`** (all four bindings). The table fills its parent's
   height: the rows scroll inside it under a header that stays put, and the pager
   stays below — a list as the page's main pane, where `stickyHeader` alone needs
@@ -77,6 +108,20 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **DataTable: the inline number editor opened without focus** (Solid; React
+  has the same bug, fixed with its port), so typing went nowhere until the
+  field was clicked again. It now takes focus with its value selected.
+- **DataTable: the inline select editor opened closed** (Solid), one more
+  click than React's. It now opens its list at once; closing it without a pick
+  cancels the edit.
+- **DataTable showed a sort priority "1" beside a column sorted on its own**
+  (Solid; React follows), at 16px, larger than the header text. The number now
+  appears only when two or more columns are sorted, at the header's size, as
+  vanilla already did.
+- **DataTable: expanding a group row opened a detail panel under it** (Solid;
+  the other bindings follow with the port) when the table had both
+  `enableGrouping` and `renderSubRow`. The panel showed one member's details
+  under the group header. A group row now expands into its rows only.
 - **ObjectPage: a field reached with Tab could land under the sticky anchor
   bar** (all four bindings). The content scroller now has `scroll-padding-top`
   equal to the measured bar, so anything the browser scrolls into view there —

@@ -164,20 +164,36 @@ function OpSelect<T extends string>(props: {
   );
 }
 
-function TextFilter(props: { column: Column<unknown, unknown> }) {
-  const raw = () => props.column.getFilterValue() as TextFilterValue | undefined;
-  const op = () => raw()?.op ?? "contains";
-  const value = () => raw()?.value ?? "";
+function TextFilter(props: { column: Column<unknown, unknown>; operators?: boolean }) {
+  const raw = () => props.column.getFilterValue() as TextFilterValue | string | undefined;
+  const op = () => {
+    const r = raw();
+    return typeof r === "object" && r ? r.op : "contains";
+  };
+  const value = () => {
+    const r = raw();
+    return (typeof r === "object" && r ? r.value : r) ?? "";
+  };
+  /**
+   * Without the operator select the filter value is a bare string, not
+   * `{ op, value }`. That is not cosmetic: the operator is a client-side
+   * predicate, and a server-filtered table has already made that decision. An
+   * operator the server ignores is a control that lies about what it does.
+   */
   const setNext = (next: Partial<TextFilterValue>) =>
-    props.column.setFilterValue({ op: op(), value: value(), ...next });
+    props.operators === false
+      ? props.column.setFilterValue(next.value ?? value())
+      : props.column.setFilterValue({ op: op(), value: value(), ...next });
   return (
     <div class="zen-flex zen-items-center zen-gap-1">
-      <OpSelect
-        value={op()}
-        onChange={(o) => setNext({ op: o })}
-        options={TEXT_OPS}
-        ariaLabel={`${headerLabel(props.column)} filter operator`}
-      />
+      <Show when={props.operators !== false}>
+        <OpSelect
+          value={op()}
+          onChange={(o) => setNext({ op: o })}
+          options={TEXT_OPS}
+          ariaLabel={`${headerLabel(props.column)} filter operator`}
+        />
+      </Show>
       <Input
         value={value()}
         onInput={(e) => setNext({ value: e.currentTarget.value })}
@@ -300,7 +316,11 @@ function BooleanFilter(props: { column: Column<unknown, unknown> }) {
 
 /* ---------------------------- dispatcher ----------------------------------- */
 
-export function FilterCell<TData>(props: { column: Column<TData, unknown> }) {
+export function FilterCell<TData>(props: {
+  column: Column<TData, unknown>;
+  /** Render the per-column operator select. Off for server-filtered tables. */
+  operators?: boolean;
+}) {
   return (
     <Show when={props.column.getCanFilter()}>
       {/* eslint-disable solid/components-return-once --
@@ -333,7 +353,7 @@ export function FilterCell<TData>(props: { column: Column<TData, unknown> }) {
             return <BooleanFilter column={c} />;
           case "text":
           default:
-            return <TextFilter column={c} />;
+            return <TextFilter column={c} operators={props.operators} />;
         }
       })()}
       {/* eslint-enable solid/components-return-once */}

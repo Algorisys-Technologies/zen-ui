@@ -47,6 +47,10 @@ export type SelectProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "on
   label?: string;
   /** Optional error message shown below the trigger. */
   errorMessage?: string;
+  /** Open the list when the select mounts, as an inline editor does. */
+  defaultOpen?: boolean;
+  /** The list opened or closed. */
+  onOpenChange?: (open: boolean) => void;
 };
 
 export const Select = (props: SelectProps) => {

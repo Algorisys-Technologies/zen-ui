@@ -1,4 +1,4 @@
-import { type JSX, Show, createSignal, onMount } from "solid-js";
+import { type JSX, Show, createContext, createSignal, onMount, useContext } from "solid-js";
 import type { Cell, RowData } from "@tanstack/solid-table";
 import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
@@ -41,10 +41,19 @@ interface EditorProps {
   onCancel: () => void;
 }
 
+/**
+ * Set by a virtualized table while it moves rows in the DOM. Moving a focused
+ * element blurs it, synchronously, mid-update; that blur is not the user
+ * leaving the editor, so it must not commit. The table puts the focus back
+ * once the update is done.
+ */
+export const RowMoveContext = createContext<{ moving: boolean }>();
+
 const editorWrapClass =
   "zen-flex zen-items-center zen-w-full zen-h-full zen-m-[-0.5rem] zen-p-[0.4rem] zen-bg-zen-background zen-ring-2 zen-ring-zen-ring zen-rounded-zen-sm";
 
 function TextEditor(props: EditorProps) {
+  const rowMove = useContext(RowMoveContext);
   const [value, setValue] = createSignal(String(props.initialValue ?? ""));
   let ref: HTMLInputElement | undefined;
   onMount(() => {
@@ -66,7 +75,9 @@ function TextEditor(props: EditorProps) {
             props.onCancel();
           }
         }}
-        onBlur={() => props.onCommit(value())}
+        onBlur={() => {
+          if (!rowMove?.moving) props.onCommit(value());
+        }}
         class="zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1"
       />
     </div>
@@ -85,8 +96,19 @@ function NumberEditor(props: EditorProps) {
   const [value, setValue] = createSignal<number | null>(
     Number.isNaN(initial as number) ? null : initial,
   );
+  const rowMove = useContext(RowMoveContext);
+  // NumberField does not hand out its input, so it is found and focused here:
+  // without this the editor opened with focus nowhere and typing went to the
+  // page.
+  let wrap: HTMLDivElement | undefined;
+  onMount(() => {
+    const input = wrap?.querySelector("input");
+    input?.focus();
+    input?.select();
+  });
   return (
     <div
+      ref={wrap}
       class={editorWrapClass}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
@@ -98,6 +120,7 @@ function NumberEditor(props: EditorProps) {
         }
       }}
       onFocusOut={(e) => {
+        if (rowMove?.moving) return;
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
           props.onCommit(value());
         }
@@ -116,6 +139,7 @@ function NumberEditor(props: EditorProps) {
 function SelectEditor(
   props: EditorProps & { options: { label: string; value: string }[] },
 ) {
+  let picked = false;
   return (
     <div
       class={editorWrapClass}
@@ -126,10 +150,22 @@ function SelectEditor(
         }
       }}
     >
+      {/* Opens at once, as React's does; closing it without a pick cancels.
+          The close is read a tick later, so a pick's onChange lands first. */}
       <Select
         options={props.options}
         defaultValue={String(props.initialValue ?? "")}
-        onChange={(v) => (v ? props.onCommit(v) : props.onCancel())}
+        defaultOpen
+        onChange={(v) => {
+          picked = true;
+          if (v) props.onCommit(v);
+          else props.onCancel();
+        }}
+        onOpenChange={(open) => {
+          if (open) return;
+          const cancel = props.onCancel;
+          queueMicrotask(() => !picked && cancel());
+        }}
       />
     </div>
   );
