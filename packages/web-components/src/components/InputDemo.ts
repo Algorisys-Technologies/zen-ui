@@ -90,6 +90,18 @@ el.addEventListener("zen-value-change", (e) => {
         code: `<zen-input placeholder="Disabled" disabled></zen-input>`,
         render: () => field(input({ placeholder: "Disabled", disabled: "" })),
       },
+      {
+        title: "5. Invalid",
+        codeTitle: 'aria-invalid="true"',
+        codeDescription:
+          "A field the form has marked invalid takes the error border, as Select and Combobox do. The attribute reaches the inner <input>.",
+        code: `<zen-input aria-invalid="true" placeholder="GSTIN"></zen-input>`,
+        render: () => {
+          const d = field(input({ "aria-invalid": "true", placeholder: "GSTIN" }));
+          d.dataset.testid = "input-invalid";
+          return d;
+        },
+      },
     ],
   });
 }

@@ -60,6 +60,11 @@ export interface SelectProps {
   label?: string;
   /** Shown below the trigger; also flips the trigger to the error border. */
   errorMessage?: string;
+  /**
+   * Marked invalid without a message (the form shows its own): the trigger's
+   * aria-invalid and the error border. `errorMessage` implies it.
+   */
+  invalid?: boolean;
   class?: string;
   [key: `data-${string}`]: unknown;
 }
@@ -150,7 +155,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   };
 
   const render = () => {
-    const { options, class: className, label, errorMessage, disabled, name, placeholder: _p, ...rest } = current;
+    const { options, class: className, label, errorMessage, invalid, disabled, name, placeholder: _p, ...rest } = current;
 
     el.className = cn("zen-relative zen-w-full", className);
     el.replaceChildren();
@@ -174,7 +179,8 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
       trigger.setAttribute("aria-invalid", "true");
       trigger.setAttribute("aria-describedby", `${id}-error`);
     } else {
-      trigger.removeAttribute("aria-invalid");
+      if (invalid) trigger.setAttribute("aria-invalid", "true");
+      else trigger.removeAttribute("aria-invalid");
       trigger.removeAttribute("aria-describedby");
     }
     trigger.disabled = Boolean(disabled);
@@ -183,7 +189,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
       "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-sm zen-text-zen-foreground",
       "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
       "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
-      errorMessage && "zen-border-zen-error",
+      (errorMessage || invalid) && "zen-border-zen-error",
     );
     valueSpan.className = "zen-truncate";
     const chev = document.createElement("span");

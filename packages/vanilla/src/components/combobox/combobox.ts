@@ -97,6 +97,12 @@ export interface ComboboxProps {
   /** Trigger button's width. Defaults to 240. */
   width?: number | string;
   disabled?: boolean;
+  /**
+   * The value is not acceptable (a required field left empty, say): the field
+   * is marked aria-invalid and its border takes the error colour, as Select's
+   * does. The message itself is the form's to show.
+   */
+  invalid?: boolean;
   class?: string;
   id?: string;
   [key: `data-${string}`]: unknown;
@@ -166,7 +172,9 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     variant: "outline",
     color: "neutral",
     disabled: current.disabled,
-    class: cn("zen-justify-between zen-font-normal", current.class),
+    // Marked invalid (aria-invalid="true"): the error border, as Input and
+    // Select show theirs.
+    class: cn("zen-justify-between zen-font-normal aria-[invalid=true]:zen-border-zen-error", current.class),
     style: { width: widthOf() },
     iconRight: svgNode(CHEVRON),
     children: labelSpan,
@@ -501,6 +509,7 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     "createLabel",
     "width",
     "disabled",
+    "invalid",
     "class",
     "id",
   ]);
@@ -515,6 +524,9 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     triggerEl.style.width = widthOf();
     panel.style.width = widthOf();
     triggerEl.disabled = Boolean(current.disabled);
+    // On the trigger: the control that takes focus here.
+    if (current.invalid) triggerEl.setAttribute("aria-invalid", "true");
+    else triggerEl.removeAttribute("aria-invalid");
 
     paintTrigger();
     if (open) renderList();

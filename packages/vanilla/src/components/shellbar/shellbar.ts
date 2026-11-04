@@ -116,6 +116,17 @@ export interface ShellBarProps extends Omit<BaseProps, "children"> {
   /** Turns the title into a product-switcher dropdown. */
   menuItems?: ShellBarMenuItem[];
   searchable?: boolean;
+  /**
+   * Your own search control in the bar, in place of the built-in field: a
+   * command palette's trigger, say. Laid out by the bar like its own search.
+   * Pass a function to change with the space: `compact` is true where the
+   * built-in field would have shrunk to an icon, and the function is called
+   * again when that flips (a component it returns is destroyed then, and on
+   * destroy). Replaces `searchable`'s field when both are given.
+   *
+   *   search: (bar) => paletteButton({ iconOnly: bar.compact })
+   */
+  search?: Child | ((bar: { readonly compact: boolean }) => Child);
   onSearch?: (value: string) => void;
   /** Placeholder AND the search field's visually-hidden label. */
   searchPlaceholder?: string;
@@ -355,6 +366,11 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
   const searchSlot = document.createElement("span");
   searchSlot.className = "zen-flex zen-items-center";
 
+  // `search`: the caller's own control, where the built-in field would be.
+  const customSearch = document.createElement("div");
+  customSearch.className = "zen-flex zen-min-w-0 zen-items-center";
+  customSearch.setAttribute("data-shellbar-search", "");
+
   trailing.append(itemsRow, fixed);
 
   // Hidden measurement row: every item at full width, out of flow so it cannot
@@ -454,8 +470,33 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
     return { form, input };
   };
 
+  /** The caller's `search` replaces the built-in field (and its overlay). */
+  const builtInSearch = () => Boolean(current.searchable) && current.search === undefined;
+
+  // What a `search` FUNCTION returned: the bar called it, so the bar destroys
+  // it when it calls it again. A plain node or component is the caller's.
+  const customSearchDisposer = new Disposer();
+  disposer.add(() => customSearchDisposer.dispose());
+  const renderCustomSearch = () => {
+    customSearchDisposer.dispose();
+    const { search } = current;
+    if (typeof search === "function") {
+      const made = search({ compact: searchCollapsed });
+      customSearch.replaceChildren(...toNodes(made));
+      const owned = (Array.isArray(made) ? made : [made]).filter(
+        (m): m is ZenComponent<unknown> =>
+          typeof m === "object" && m !== null && "destroy" in m && "el" in m,
+      );
+      customSearchDisposer.add(() => {
+        for (const m of owned) m.destroy();
+      });
+    } else {
+      customSearch.replaceChildren(...toNodes(search));
+    }
+  };
+
   const renderSearchSlot = () => {
-    if (!current.searchable) return;
+    if (!builtInSearch()) return;
     searchSlot.replaceChildren();
     if (searchCollapsed) {
       if (searchTriggerBtn) searchSlot.append(searchTriggerBtn.el);
@@ -478,7 +519,7 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
     overlay?.remove();
     overlay = undefined;
 
-    if (!(current.searchable && searchCollapsed && searchOpen)) return;
+    if (!(builtInSearch() && searchCollapsed && searchOpen)) return;
 
     const fresh = new Disposer();
     overlay = document.createElement("div");
@@ -599,7 +640,15 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
     // Purely a function of the container width, so re-running this cannot depend
     // on what fits. When it flips, swap the trailing search cluster before we
     // measure, so its new width is what the item budget sees.
-    if (current.searchable) {
+    if (current.search !== undefined) {
+      // The caller's control is told when the bar turns compact, the same
+      // width the built-in field collapses at; only a function can change.
+      const nextCollapsed = width < SEARCH_COLLAPSE_WIDTH;
+      if (nextCollapsed !== searchCollapsed) {
+        searchCollapsed = nextCollapsed;
+        if (typeof current.search === "function") renderCustomSearch();
+      }
+    } else if (current.searchable) {
       const nextCollapsed = width < SEARCH_COLLAPSE_WIDTH;
       if (nextCollapsed !== searchCollapsed) {
         searchCollapsed = nextCollapsed;
@@ -650,6 +699,7 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
       primaryTitle,
       menuItems,
       searchable = false,
+      search,
       searchPlaceholder = "Search",
       notificationCount,
       onNotificationsClick,
@@ -734,7 +784,12 @@ export function ShellBar(props: ShellBarProps = {}): ZenComponent<ShellBarProps>
     // ---- fixed trailing cluster ----
     fixed.replaceChildren();
 
-    if (searchable) {
+    if (search !== undefined) {
+      searchTriggerBtn = undefined;
+      searchFieldForm = undefined;
+      renderCustomSearch();
+      fixed.append(customSearch);
+    } else if (searchable) {
       searchTriggerBtn = Button({
         type: "button",
         variant: "ghost",

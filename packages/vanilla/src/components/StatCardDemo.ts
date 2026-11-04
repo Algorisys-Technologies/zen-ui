@@ -1,6 +1,7 @@
 import { StatCard } from "./stat-card/stat-card";
 import { Icon } from "./icon/icon";
 import { Button } from "./button/button";
+import { MicroBarChart } from "./micro-chart/micro-chart";
 import { DemoPage } from "./demo-helpers";
 
 const GRID = "display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));width:100%";
@@ -163,6 +164,47 @@ card.update({ loading: false });   // targeted DOM write, no re-render`,
             btn.update({ children: loading ? "Resolve" : "Simulate loading" });
           });
           return column(grid(a.el, b.el), btn.el);
+        },
+      },
+      {
+        title: "6. Hero figure with a chart",
+        codeTitle: 'size: "lg" and chart: the lead figure of a dashboard row',
+        codeDescription:
+          "The hero carries a larger figure and the trend behind it, under the figure and across the card; the KPIs beside it stay as they are. While loading, the chart is a skeleton too.",
+        code: `StatCard({
+  size: "lg",
+  label: "Revenue · trailing 12 months",
+  value: "₹4,82,10,000",
+  trend: { value: "+8.2%", direction: "up" },
+  chart: MicroBarChart({ values: monthly, width: 320, height: 56, baseline: "zero", label: "Monthly revenue, last 12 months" }),
+  href: "#revenue",
+})`,
+        render: () => {
+          const row = document.createElement("div");
+          row.setAttribute(
+            "style",
+            "display:grid;grid-template-columns:minmax(0, 2fr) repeat(2, minmax(0, 1fr));gap:16px;width:100%",
+          );
+          row.dataset.testid = "hero-row";
+          row.append(
+            StatCard({
+              size: "lg",
+              label: "Revenue · trailing 12 months",
+              value: "₹4,82,10,000",
+              trend: { value: "+8.2%", direction: "up" },
+              chart: MicroBarChart({
+                values: [31, 34, 29, 38, 41, 37, 44, 46, 42, 48, 51, 55],
+                width: 320,
+                height: 56,
+                baseline: "zero",
+                label: "Monthly revenue, last 12 months, rising from 31 to 55 lakh",
+              }),
+              href: "#revenue",
+            }).el,
+            StatCard({ label: "Receivables", value: "₹38,20,500", description: "62 invoices outstanding", href: "#receivables" }).el,
+            StatCard({ label: "Stock value", value: "₹1,12,40,000", trend: { value: "-1.4%", direction: "down" }, href: "#stock" }).el,
+          );
+          return row;
         },
       },
     ],

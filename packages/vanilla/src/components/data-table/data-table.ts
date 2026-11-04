@@ -170,7 +170,7 @@ const TABLE_ROW_CLASS = cn(
   "data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1 data-[state=selected]:-zen-outline-offset-1 data-[state=selected]:zen-outline-zen-primary",
 );
 const TABLE_HEAD_CLASS =
-  "zen-h-zen-head zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs zen-text-zen-muted-fg";
+  "zen-h-zen-head zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-text-start zen-align-middle zen-[font-size:var(--zen-table-head-font-size)] zen-[line-height:var(--zen-line-height-xs)] zen-[font-weight:var(--zen-table-head-font-weight)] zen-[text-transform:var(--zen-table-head-text-transform)] zen-[letter-spacing:var(--zen-table-head-letter-spacing)] zen-text-zen-muted-fg";
 const TABLE_CELL_CLASS =
   "zen-px-2 zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground";
 const VIRT_CELL_CLASS =
@@ -179,7 +179,7 @@ const VIRT_HEAD_CLASS =
   "zen-h-zen-head zen-flex zen-items-center zen-text-xs zen-font-medium zen-text-zen-muted-fg zen-relative";
 
 const SORT_BTN_CLASS = cn(
-  "zen-w-full zen-h-full zen-px-2 zen-py-2",
+  "zen-w-full zen-h-full zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2",
   "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
   "zen-bg-transparent zen-border-0 zen-cursor-pointer",
   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
@@ -483,7 +483,7 @@ export function DataTable<TData>(
   function plainHeaderSpan(col: DataTableColumn<TData>): HTMLElement {
     const span = h(
       "span",
-      "zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1",
+      "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-inline-flex zen-items-center zen-gap-1",
     );
     span.textContent = headerText(col);
     return span;

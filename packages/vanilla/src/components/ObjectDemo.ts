@@ -194,6 +194,32 @@ ObjectStatus({ state: "success", children: "Approved" });`,
           return container;
         },
       },
+      {
+        title: "11. ObjectStatus — stamp",
+        codeTitle: "stamp: a document's status, ruled and uppercase",
+        codeDescription:
+          "How a document wears its status at the top of its page: a ruled box in the state's colour, never rotated. Mapping the status words to states stays the app's.",
+        code: `ObjectStatus({ stamp: true, state: "none", children: "Draft" })
+ObjectStatus({ stamp: true, state: "info", children: "Submitted" })
+ObjectStatus({ stamp: true, state: "success", children: "Paid" })
+ObjectStatus({ stamp: true, state: "error", children: "Overdue" })
+ObjectStatus({ stamp: true, state: "none", children: "Cancelled" })`,
+        render: () => {
+          const d = document.createElement("div");
+          d.className = "zen-flex zen-flex-wrap zen-items-center zen-gap-3";
+          d.dataset.testid = "stamps";
+          const stamps: Array<[ObjectState, string]> = [
+            ["none", "Draft"],
+            ["info", "Submitted"],
+            ["success", "Paid"],
+            ["warning", "Partly paid"],
+            ["error", "Overdue"],
+            ["none", "Cancelled"],
+          ];
+          d.append(...stamps.map(([state, text]) => ObjectStatus({ stamp: true, state, children: text }).el));
+          return d;
+        },
+      },
     ],
   });
 }

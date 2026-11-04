@@ -167,7 +167,9 @@ export function FileUpload(props: FileUploadProps = {}): ZenComponent<FileUpload
   input.className = "zen-sr-only";
 
   const list = document.createElement("ul");
-  list.className = "zen-flex zen-flex-col zen-gap-1 zen-text-sm";
+  // Its own list reset: without one the browser's disc, 40px indent and 14px
+  // margins showed (measured, with and without the preflight).
+  list.className = "zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-1 zen-p-0 zen-text-sm";
 
   dropzone.append(iconSlot, labelEl, helperEl, input);
   root.append(dropzone, list);

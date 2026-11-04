@@ -242,6 +242,29 @@ const box = Combobox({
         code: `Combobox({ options, disabled: true })`,
         render: () => Combobox({ options: FRAMEWORKS, disabled: true, placeholder: "Locked" }).el,
       },
+      {
+        title: "7. Invalid",
+        codeTitle: "invalid: a required field left empty",
+        codeDescription:
+          "The field is marked aria-invalid and its border takes the error colour; the message itself is the form's to show.",
+        code: `Combobox({ options: customers, placeholder: "Customer", invalid: true })`,
+        render: () => {
+          const d = document.createElement("div");
+          d.dataset.testid = "combobox-invalid";
+          d.append(
+            Combobox({
+              options: [
+                { value: "acme", label: "Acme Traders" },
+                { value: "kaveri", label: "Kaveri Steel" },
+              ],
+              placeholder: "Customer",
+              searchPlaceholder: "Customer",
+              invalid: true,
+            }).el,
+          );
+          return d;
+        },
+      },
     ],
   });
 }

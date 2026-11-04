@@ -17,6 +17,7 @@ defineZenElement<SelectProps>({
     name: "string",
     label: "string",
     "error-message": "string",
+    invalid: "boolean",
     options: "json",
   },
   props: ["options"],

@@ -261,6 +261,10 @@ export function Stepper(props: StepperProps): StepperHandle {
     /* ------------------------------ list ------------------------------ */
     const ol = document.createElement("ol");
     ol.className = cn(
+      // zen-ui ships no list reset (the preflight is opt-in and does not touch
+      // lists), so the list's own margin, indent and markers are reset here:
+      // measured, it stood 40px in with a 16px margin.
+      "zen-m-0 zen-list-none zen-p-0",
       horizontal()
         ? "zen-flex zen-items-center zen-gap-2 zen-w-full"
         : "zen-flex zen-flex-col zen-gap-1 zen-min-w-[14rem] zen-shrink-0",

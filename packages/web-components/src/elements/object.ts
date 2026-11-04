@@ -14,6 +14,7 @@ defineZenElement<ObjectStatusProps>({
     icon: "string",
     inverted: "boolean",
     "state-announcement": "string",
+    stamp: "boolean",
   },
 });
 

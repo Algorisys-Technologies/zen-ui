@@ -163,6 +163,14 @@ export function MicroLineChart(props: MicroLineChartProps): ZenComponent<MicroLi
 
 export interface MicroBarChartProps extends MicroChartBaseProps {
   values: number[];
+  /**
+   * What a bar's height measures from. `"range"` (the default) stretches the
+   * values' own range over the height, so small differences show, as a
+   * sparkline does. `"zero"` measures every bar from zero, so its length is its
+   * value and two bars compare as their numbers do: what a figure like revenue
+   * needs. Negative values hang below a zero line.
+   */
+  baseline?: "range" | "zero";
 }
 
 export function MicroBarChart(props: MicroBarChartProps): ZenComponent<MicroBarChartProps> {
@@ -180,23 +188,35 @@ export function MicroBarChart(props: MicroBarChartProps): ZenComponent<MicroBarC
     if (vs.length === 0) return root;
 
     const gap = 2;
-    const n = normalise(vs);
     const barW = Math.max(1, (width - gap * (vs.length - 1)) / vs.length);
-    n.forEach((v, i) => {
-      // A minimum height keeps the smallest value visible as a value rather
-      // than as a gap the reader has to notice is missing.
-      const bh = Math.max(2, v * height);
+    const bar = (i: number, y: number, bh: number) =>
       root.append(
         svg("rect", {
           x: i * (barW + gap),
-          y: height - bh,
+          y,
           width: barW,
           height: bh,
           fill: "currentColor",
           rx: "1",
         }),
       );
-    });
+    if (p.baseline === "zero") {
+      const top = Math.max(0, ...vs);
+      const bottom = Math.min(0, ...vs);
+      const span = top - bottom || 1;
+      const zeroY = (top / span) * height;
+      vs.forEach((v, i) => {
+        const bh = Math.max(v === 0 ? 0 : 2, (Math.abs(v) / span) * height);
+        bar(i, v >= 0 ? zeroY - bh : zeroY, bh);
+      });
+    } else {
+      normalise(vs).forEach((v, i) => {
+        // A minimum height keeps the smallest value visible as a value rather
+        // than as a gap the reader has to notice is missing.
+        const bh = Math.max(2, v * height);
+        bar(i, height - bh, bh);
+      });
+    }
     return root;
   });
 }

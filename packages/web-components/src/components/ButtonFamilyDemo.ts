@@ -25,6 +25,7 @@ interface MenuItem {
 interface SegmentItem {
   value: string;
   label: unknown;
+  count?: number;
 }
 
 function el(tag: string, attrs: Record<string, string> = {}, kids?: Node | Node[] | string): HTMLElement {
@@ -354,6 +355,43 @@ sb.menu = [
 
           bar.append(toggles, seg, right);
           return bar;
+        },
+      },
+      {
+        title: "11. SegmentedButton — filter tabs with counts",
+        codeTitle: "count on each item: a list's status filter",
+        codeDescription:
+          "A single choice that filters a list rather than switching panels, so SegmentedButton, not Tabs. Each item carries its count; the selected one's is inverted, and the item reads as “Paid, 4”.",
+        code: `<zen-segmented-button value="all" aria-label="Status" items='[
+  { "value": "all", "label": "All", "count": 206 },
+  { "value": "paid", "label": "Paid", "count": 4 },
+  { "value": "overdue", "label": "Overdue", "count": 1 },
+  { "value": "cancelled", "label": "Cancelled", "count": 201 }
+]'></zen-segmented-button>`,
+        render: () => {
+          const wrap = document.createElement("div");
+          wrap.className = "zen-flex zen-flex-col zen-gap-2";
+          const out = document.createElement("p");
+          out.className = "zen-text-sm zen-text-zen-muted-fg";
+          out.textContent = "Showing: all";
+          const seg = segmented({
+            value: "all",
+            ariaLabel: "Status",
+            items: [
+              { value: "all", label: "All", count: 206 },
+              { value: "paid", label: "Paid", count: 4 },
+              { value: "overdue", label: "Overdue", count: 1 },
+              { value: "cancelled", label: "Cancelled", count: 201 },
+            ],
+          });
+          seg.dataset.testid = "status-tabs";
+          seg.addEventListener("zen-value-change", (e) => {
+            const v = (e as CustomEvent).detail as string;
+            seg.setAttribute("value", v);
+            out.textContent = `Showing: ${v}`;
+          });
+          wrap.append(seg, out);
+          return wrap;
         },
       },
     ],

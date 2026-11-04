@@ -19,6 +19,7 @@ defineZenElement<ComboboxProps>({
     "create-label": "string",
     width: "string",
     disabled: "boolean",
+    invalid: "boolean",
     options: "json",
   },
   props: ["options", "onSearch", "onCreate"],

@@ -82,6 +82,27 @@ s.addEventListener("zen-value-change", (e) => console.log(e.detail));`,
         code: `<zen-select disabled placeholder="Unavailable" options='[…]'></zen-select>`,
         render: () => box(select({ disabled: "", placeholder: "Unavailable" })),
       },
+      {
+        title: "5. Invalid without a message",
+        codeTitle: "invalid: the form shows its own message",
+        codeDescription:
+          "error-message marks the select invalid and prints the message under it; invalid marks it alone, for a form that lays out its messages itself.",
+        code: `<zen-select placeholder="Payment terms" invalid options='[…]'></zen-select>`,
+        render: () => {
+          const s = document.createElement("zen-select");
+          s.setAttribute("placeholder", "Payment terms");
+          s.setAttribute("invalid", "");
+          Object.assign(s, {
+            options: [
+              { value: "net30", label: "Net 30" },
+              { value: "net60", label: "Net 60" },
+            ],
+          });
+          const d = box(s);
+          d.dataset.testid = "select-invalid";
+          return d;
+        },
+      },
     ],
   });
 }
