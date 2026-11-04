@@ -59,6 +59,7 @@ export const NAV: NavGroup[] = [
       { to: "/password-input", label: "PasswordInput", description: "Password field with a show / hide toggle; every native input prop passes through", source: "packages/vanilla/src/components/PasswordInputDemo.ts" },
       { to: "/select", label: "Select", description: "Listbox on a trigger; the known React/Solid divergence, decided here", source: "packages/vanilla/src/components/SelectDemo.ts" },
       { to: "/combobox", label: "Combobox + Async", description: "Searchable single-select; sync `options` or async `onSearch` with debounce + abort, plus a creatable row", source: "packages/vanilla/src/components/ComboboxDemo.ts" },
+      { to: "/tree-select", label: "TreeSelect", description: "Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors", source: "packages/vanilla/src/components/TreeSelectDemo.ts" },
       { to: "/dialog", label: "Dialog", description: "Portal, focus trap, scroll lock, Escape and click-outside — all hand-written", source: "packages/vanilla/src/components/DialogDemo.ts" },
       { to: "/separator", label: "Separator", description: "Radix Separator — horizontal / vertical with decorative semantics", source: "packages/vanilla/src/components/SeparatorDemo.ts" },
       { to: "/progress", label: "Progress", description: "Determinate progress indicator — sizes × colors, accessible value", source: "packages/vanilla/src/components/ProgressDemo.ts" },
