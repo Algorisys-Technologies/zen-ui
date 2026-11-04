@@ -101,9 +101,13 @@ const bf = {
 // Sweep: rows of short words over a small alphabet, so matches are frequent.
 const ALPHA = ["a", "b", "ab", "ba", "é", "e\u0301", "A-b", "b a", "aB", "x", "😀", ""];
 let seed = 7;
-const rnd = (n: number) => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) % n);
+// A 32-bit LCG. Math.imul, not *: the plain product overflows a double, loses its
+// low bits, and the sequence sticks (it picked 3 of 12 entries, so this sweep once
+// saw 12 distinct cells of 144 and never a decomposed accent or an emoji).
+const rnd = (n: number) => ((seed = (Math.imul(seed, 1103515245) + 12345) >>> 0) >>> 8) % n;
 const rows: string[][] = [];
 for (let r = 0; r < 60; r++) rows.push([0, 1, 2].map(() => ALPHA[rnd(ALPHA.length)] + ALPHA[rnd(ALPHA.length)]));
+eq("the sweep varies: most cells distinct, every alphabet entry used", [new Set(rows.flat()).size > 80, ALPHA.every((x) => x === "" || rows.flat().some((c) => c.includes(x)))], [true, true]);
 const QUERIES = ["", "a", "b", "ab", "a b", "ba a", "e", "é", "x", "-", "ab ba", "A", "zz", "b-", "a  b  x"];
 for (const q of QUERIES) {
   const ws = queryWords(q);
