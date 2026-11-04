@@ -812,6 +812,7 @@ export { DataTable } from "./components/data-table/data-table";
 export type {
   DataTableProps,
   DataTableManualPagination,
+  DataTableMenuTarget,
 } from "./components/data-table/data-table";
 export {
   UrlDataTable,

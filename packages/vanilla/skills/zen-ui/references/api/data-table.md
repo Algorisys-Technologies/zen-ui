@@ -4,7 +4,7 @@
 
 # data-table — API (React, the parity reference)
 
-Exports: `DataTable`, `DataTableProps`, `DataTableManualPagination`
+Exports: `DataTable`, `DataTableProps`, `DataTableManualPagination`, `DataTableMenuTarget`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-data-table>`-style
@@ -52,6 +52,7 @@ SKILL.md.
 - `onCellEdit?: ((payload: CellEditPayload) => void) | undefined` — Inline cell editing. Declare `meta.editable: true` (or a `(row) => boolean`) on any column to opt that column in. Double-click (or Enter when focused) swaps the cell content for the matching input — text by default, or `meta.editVariant: "number" | "select"`. Enter commits, Esc cancels, blur commits. <DataTable data={rows} columns={cols} onCellEdit={({ rowId, columnId, value }) => setRows(prev => prev.map(r => r.id === rowId ? { ...r, [columnId]: value } : r))} /> Pass `getRowId` on the table options (via column meta or a wrapper) so rowId is stable across re-renders.
 - `onCellsEdit?: ((edits: CellEditPayload[]) => void) | undefined` — Several cells changed at once: a paste, or Delete over a selection, with enableCellNavigation. Without it each change goes to onCellEdit.
 - `enableCellNavigation?: boolean | undefined` — Work in the table cell by cell, as in a spreadsheet. One tab stop for the table; the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End move between cells (the arithmetic is
+- `contextMenu?: ((target: DataTableMenuTarget<TData>) => React.ReactNode) | undefined` — A right-click menu for the rows: return ContextMenu items for the target (the row, the cell's column, and the selection it acts on). Right-clicking a row or cell focuses it, as on a desktop; the menu key and Shift+F10 open the menu for the focused row or cell; focus returns there when it closes. Outside the rows (the header, the footer) the browser keeps its own menu. contextMenu={({ row, selection }) => (<> <ContextMenuItem onSelect={() => openInNewTab(row.original)}>Open in new tab</ContextMenuItem> <ContextMenuItem variant="destructive" onSelect={() => remove(selection)}>Delete…</ContextMenuItem> </>)}
 - `enableKeyboardNavigation?: boolean | undefined` — Rows take keyboard focus, with one tab stop for the whole table: ↑/↓, Home/End and PageUp/PageDown move between rows (the key logic is
 - `onRowActivate?: ((row: Row<TData>, event: React.KeyboardEvent<HTMLTableRowElement>) => void) | undefined` — Enter on a focused row. The event carries its modifiers, so Ctrl+Enter can mean something else.
 - `rowLabel?: ((row: Row<TData>) => string) | undefined` — A row's accessible name, read as focus moves onto it.
@@ -91,6 +92,10 @@ SKILL.md.
 - `pageCount: number`
 - `pageSize?: number | undefined`
 - `onPageChange: (next: number) => void`
+
+### Other exports
+
+- `DataTableMenuTarget` = `DataTableMenuTarget<TData>`
 
 ### Types
 

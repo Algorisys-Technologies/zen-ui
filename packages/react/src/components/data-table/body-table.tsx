@@ -71,6 +71,8 @@ export interface BodyTableProps<TData> {
   /** Drag rows by their handle, virtualized: see startDrag. */
   rowDrag?: boolean;
   onRowMove?: (from: number, to: number) => void;
+  /** A context menu is attached: rows and cells say which they are, and a right-click focuses them. */
+  menuTargets?: boolean;
 }
 
 /** One rendered body row when virtualized: a data row, or the panel an expanded row opens. */
@@ -119,6 +121,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
     cellNav,
     virtualize,
     rowDrag,
+    menuTargets,
   } = props;
   const rows = table.getRowModel().rows;
   const tableRef = React.useRef<HTMLTableElement>(null);
@@ -314,6 +317,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
     copy: (e: ClipboardEvent) => void;
     paste: (e: ClipboardEvent) => void;
     focusCell: (at: GridCell) => void;
+    contextmenu: (e: MouseEvent) => void;
     stop?: () => void;
   } | null>(null);
   {
@@ -541,7 +545,25 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       // What was pasted is selected, as a spreadsheet shows it.
       setSelection({ anchor: { row: rect.top, col: rect.left }, focus: { row: bottom, col: right } });
     };
-    nav.current = { keydown, dblclick, pointerdown, copy, paste, focusCell, stop: nav.current?.stop };
+    // A right-click makes its row or cell the focused one, as on a desktop, so
+    // the menu is for it and focus returns there. Inside a cell selection it
+    // leaves the selection alone: the menu acts on it.
+    const contextmenu = (e: MouseEvent) => {
+      const tr = (e.target as Element | null)?.closest?.("tr[data-row-id]") as HTMLElement | null;
+      if (!tr || !tableRef.current?.contains(tr)) return;
+      const id = tr.dataset.rowId ?? "";
+      const index = g().rowIndex.get(id) ?? -1;
+      if (index < 0) return;
+      if (g().props.cellNav) {
+        const hit = cellAt(e.target);
+        const rect = selRectNow();
+        if (hit && !(rect && inRect(rect, hit.at.row, hit.at.col))) moveTo(hit.at);
+      } else if (g().props.keyboard) {
+        setFocusIndex(index);
+        focusRow(id);
+      }
+    };
+    nav.current = { keydown, dblclick, pointerdown, copy, paste, focusCell, contextmenu, stop: nav.current?.stop };
   }
 
   React.useEffect(() => {
@@ -567,6 +589,14 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       nav.current?.stop?.();
     };
   }, [cellNav]);
+
+  React.useEffect(() => {
+    const el = tableEl;
+    if (!menuTargets || !el) return;
+    const contextmenu = (e: MouseEvent) => nav.current?.contextmenu(e);
+    el.addEventListener("contextmenu", contextmenu);
+    return () => el.removeEventListener("contextmenu", contextmenu);
+  }, [menuTargets, tableEl]);
 
   // When the focused row or cell goes away (filtered out, a page change, an
   // inline editor inside it closing), focus falls to the page. If the table
@@ -791,6 +821,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
           aria-selected={navCol !== undefined ? (isSelected || isActiveCell ? "true" : "false") : undefined}
           data-row={navCol !== undefined ? row.id : undefined}
           data-col={navCol !== undefined ? cell.column.id : undefined}
+          data-column={menuTargets ? cell.column.id : undefined}
         >
           {isInteractive ? (
             <EditableCell
@@ -834,6 +865,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       data-index={virt?.index}
       aria-rowindex={virt ? (props.headerRowCount ?? 1) + virt.index + 1 : undefined}
       data-dragging={rowDrag && dragId === row.id ? "true" : undefined}
+      data-row-id={menuTargets ? row.id : undefined}
       data-drop={rowDrag ? dropEdge(index) : undefined}
       tabIndex={keyboard ? (index === tabStop ? 0 : -1) : undefined}
       aria-label={keyboard ? rowLabel?.(row) : undefined}
