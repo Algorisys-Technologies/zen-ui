@@ -250,6 +250,15 @@ export const DEFAULT_MESSAGES = {
 
   // DataTable
   "dataTable.total": "Total",
+  "dataTable.export": "Export",
+  "dataTable.exportTo": "Export to",
+  "dataTable.exportExcel": "Excel (.xlsx)",
+  "dataTable.exportPdf": "PDF (.pdf)",
+  "dataTable.exportCsv": "CSV (.csv)",
+  "dataTable.exportOnlySelected": "{count, plural, one {Only the selected row} other {Only the # selected rows}}",
+  "dataTable.exportPreparing": "Preparing export…",
+  "dataTable.exportReady": "Export ready.",
+  "dataTable.exportFailed": "Export failed: {error}",
 
   // ViewSettingsDialog
   "viewSettings.title": "View settings",

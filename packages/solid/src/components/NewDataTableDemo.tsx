@@ -1,6 +1,7 @@
-import { createMemo, createSignal } from "solid-js";
+import { Show, createMemo, createSignal } from "solid-js";
 import type { ColumnDef } from "@tanstack/solid-table";
 import { DataTable } from "./data-table/data-table";
+import type { ExportFormat, ExportRequest } from "@algorisys/zen-ui-core/export-request";
 import { ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut } from "./context-menu/context-menu";
 import { Badge } from "./badge/badge";
 import { Button } from "./button/button";
@@ -251,6 +252,135 @@ const totalColumns: ColumnDef<TotalLine>[] = [
   { accessorKey: "amount", header: "Amount", meta: { aggregate: "sum", formatTotal: (v) => `₹${inrTotal.format(v as number)}` }, cell: (c) => <span class="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span> },
   { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
 ];
+
+// --- Section 26: export on the server ----------------------------------------
+// A stand-in for your server: 100,000 ledger lines that never come to the browser.
+// The table asks it for one page at a time; Export hands it an ExportRequest.
+type Entry = { id: string; date: string; account: string; party: string; amount: number };
+const LEDGER_SIZE = 100_000;
+const ACCOUNTS = ["Sales", "Purchases", "Bank", "Cash", "Debtors", "Creditors"];
+const PARTIES = ["Acme Traders", "Bharat Steels", "Coastal Agencies", "Deccan Engineering", "Eastern Mills"];
+const entryAt = (i: number): Entry => ({
+  id: `GL-${String(i + 1).padStart(6, "0")}`,
+  date: `2026-${String(1 + (i % 12)).padStart(2, "0")}-${String(1 + ((i * 7) % 28)).padStart(2, "0")}`,
+  account: ACCOUNTS[(i * 13) % ACCOUNTS.length],
+  party: PARTIES[(i * 7) % PARTIES.length],
+  amount: Math.round(((i * 7919) % 2_500_000) + 99) / 100,
+});
+const mockServer = {
+  /** The rows matching a search, column filters and sort: what a SQL query would select. */
+  match(search: string, filters: { id: string; value: unknown }[], sort: { id: string; desc: boolean }[]) {
+    const s = search.trim().toLowerCase();
+    const textOf = (v: unknown) => (v && typeof v === "object" && "value" in (v as object) ? String((v as { value: unknown }).value ?? "") : String(v ?? "")).toLowerCase();
+    const idx: number[] = [];
+    for (let i = 0; i < LEDGER_SIZE; i++) {
+      const e = entryAt(i);
+      if (s && !`${e.id} ${e.account} ${e.party}`.toLowerCase().includes(s)) continue;
+      if (filters.some((f) => !String(e[f.id as keyof Entry]).toLowerCase().includes(textOf(f.value)))) continue;
+      idx.push(i);
+    }
+    const [first] = sort;
+    if (first) {
+      const k = first.id as keyof Entry;
+      idx.sort((a, b) => { const x = entryAt(a)[k], y = entryAt(b)[k]; return (x < y ? -1 : x > y ? 1 : 0) * (first.desc ? -1 : 1); });
+    }
+    return idx;
+  },
+};
+const entryColumns: ColumnDef<Entry>[] = [
+  { accessorKey: "id", header: "Entry" },
+  { accessorKey: "date", header: "Date", meta: { exportFormat: { kind: "date" } } },
+  { accessorKey: "account", header: "Account" },
+  { accessorKey: "party", header: "Party" },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    meta: { exportFormat: { kind: "amount", currency: "INR", precision: 2 } },
+    cell: (c) => <span class="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span>,
+  },
+];
+
+/** Section 26's table, wired to the mock server. */
+const ServerLedger = () => {
+  const pageSize = 25;
+  const [page, setPage] = createSignal(0);
+  const [sorting, setSorting] = createSignal<{ id: string; desc: boolean }[]>([]);
+  const [filters, setFilters] = createSignal<{ id: string; value: unknown }[]>([]);
+  const [search, setSearch] = createSignal("");
+  const [selection, setSelection] = createSignal<Record<string, boolean>>({});
+  const [lastRequest, setLastRequest] = createSignal("");
+  const [serverSaid, setServerSaid] = createSignal("");
+  const [failNext, setFailNext] = createSignal(false);
+  const matching = createMemo(() => mockServer.match(search(), filters(), sorting()));
+  const pageRows = createMemo(() => matching().slice(page() * pageSize, (page() + 1) * pageSize).map(entryAt));
+  const fmt = new Intl.NumberFormat("en-IN");
+  /** The mock server's export endpoint. */
+  const serve = async (format: ExportFormat, request: ExportRequest): Promise<Blob | void> => {
+    setLastRequest(JSON.stringify(request, null, 2));
+    await new Promise((r) => setTimeout(r, 700)); // the server at work
+    if (failNext()) {
+      setFailNext(false);
+      throw new Error("the server is busy, try again");
+    }
+    const rows = request.scope.kind === "selected" ? request.scope.ids.length : mockServer.match(request.filters.search ?? "", request.filters.columns, request.sort).length;
+    if (format !== "csv") {
+      setServerSaid(`Your server would now build ledger.${format} from this request: ${fmt.format(rows)} rows. (This demo has no ${format} writer; CSV below is real.)`);
+      return;
+    }
+    // CSV: built from ALL the matching rows, not the page.
+    const ids = request.scope.kind === "selected" ? request.scope.ids : mockServer.match(request.filters.search ?? "", request.filters.columns, request.sort).map((i) => entryAt(i).id);
+    const byId = (id: string) => entryAt(Number(id.slice(3)) - 1);
+    const cols = request.columns;
+    const lines = [cols.map((c) => c.header).join(","), ...ids.map((id) => cols.map((c) => String(byId(id)[c.id as keyof Entry])).join(","))];
+    setServerSaid(`The server built ledger.csv: ${fmt.format(ids.length)} rows.`);
+    return new Blob([lines.join("\n")], { type: "text/csv" });
+  };
+  return (
+    <div class="zen-flex zen-w-full zen-flex-col zen-gap-3">
+      <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg" data-testid="ledger-counts">
+        The server holds <strong>{fmt.format(LEDGER_SIZE)}</strong> entries; {fmt.format(matching().length)} match; the browser has <strong>{pageRows().length}</strong>.
+      </p>
+      <DataTable
+        data={pageRows()}
+        columns={entryColumns}
+        getRowId={(e) => e.id}
+        enableSorting
+        manualSorting
+        sorting={sorting()}
+        onSortingChange={(s) => { setSorting(s); setPage(0); }}
+        enableColumnFilters
+        enablePerColumnFilters
+        manualFiltering
+        columnFilters={filters()}
+        onColumnFiltersChange={(f) => { setFilters(f); setPage(0); }}
+        globalFilter={search()}
+        onGlobalFilterChange={(v) => { setSearch(v); setPage(0); }}
+        enableRowSelection
+        rowSelection={selection()}
+        onRowSelectionChange={setSelection}
+        enablePagination
+        pageSize={pageSize}
+        manualPagination={{ pageIndex: page(), pageCount: Math.max(1, Math.ceil(matching().length / pageSize)), pageSize, onPageChange: setPage }}
+        exportFilename="ledger"
+        exportTitle="General ledger"
+        exportContext={{ ledger: "FY 2026-27" }}
+        onExport={serve}
+      />
+      <label class="zen-flex zen-items-center zen-gap-2 zen-text-sm">
+        <input type="checkbox" checked={failNext()} onChange={(e) => setFailNext(e.currentTarget.checked)} /> Make the next export fail (to see the error)
+      </label>
+      <Show when={serverSaid()}>
+        <p class="zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-sm" data-testid="server-said">{serverSaid()}</p>
+      </Show>
+      <Show when={lastRequest()}>
+        <details open>
+          <summary class="zen-cursor-pointer zen-text-sm zen-text-zen-muted-fg">What your server received</summary>
+          <pre class="zen-m-0 zen-mt-2 zen-max-h-72 zen-overflow-auto zen-rounded-zen-md zen-bg-zen-muted zen-p-3 zen-text-xs" data-testid="export-request">{lastRequest()}</pre>
+        </details>
+      </Show>
+    </div>
+  );
+};
 
 const NewDataTableDemo = () => {
   const [serverPage, setServerPage] = createSignal(0);
@@ -1138,6 +1268,30 @@ const columns = [
         >
           <div data-testid="totals-grouped">
             <DataTable data={LINES} columns={totalColumns} enableGrouping initialGrouping={["customer"]} />
+          </div>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">26. Export on the server</h2>
+        <CodeExample
+          title="onExport: the browser describes, the server builds"
+          description="For data too large for the browser. Export hands your server an ExportRequest: the visible columns (header, width, format, total), filters, sort, grouping, locale, and all matching rows or the selected ids (even on pages never loaded). Your endpoint queries the full data and returns the file. Try a search, a sort, or selecting rows on two pages, then Export."
+          code={`<DataTable
+  data={page.rows} manualPagination={…} manualSorting manualFiltering
+  getRowId={(e) => e.id} enableRowSelection
+  exportFilename="ledger" exportTitle="General ledger"
+  onExport={(format, request) =>
+    fetch("/api/method/myapp.export_ledger", {
+      method: "POST", body: JSON.stringify(request),
+    }).then((r) => (r.ok ? r.blob() : Promise.reject(new Error(r.statusText))))}
+/>
+
+// The server (yours): read request.columns / filters / sort / scope,
+// query the full ledger, write the .xlsx / .pdf / .csv, send it back.`}
+        >
+          <div data-testid="server-ledger" class="zen-w-full">
+            <ServerLedger />
           </div>
         </CodeExample>
       </section>

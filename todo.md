@@ -97,6 +97,17 @@ issue / PR when its turn comes.
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
 
+## Parity: DataTable server-side export (onExport, ExportRequest) (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `export-request` (shared already).
+      The request must be identical across bindings (same column order, same
+      inferred formats, same filter shapes) — a server is written once.
+      Selected ids come from the selection STATE (ids), not loaded rows.
+- [ ] Not in this cut: an "export the current page" scope; a progress
+      indicator for a background-job export (onExport could return a handle);
+      a client-side .xlsx writer for small offline tables (owner: export is the
+      server's; revisit only if asked).
+
 ## Parity: DataTable totals (meta.aggregate) and the no-variant filter fix (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass, on core's `aggregate` (shared already). In

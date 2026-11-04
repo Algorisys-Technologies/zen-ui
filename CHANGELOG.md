@@ -16,6 +16,23 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **Server-side export: DataTable `onExport`** (Solid). For data too large to
+  be in the browser: the Export menu (Excel, PDF, CSV; "only the n selected
+  rows" when there is a selection) hands the app an `ExportRequest`, a few KB
+  describing exactly what the user sees: the visible columns in order with
+  header, width, alignment, format (`meta.exportFormat`) and total; the
+  search, per-column filters, sort and grouping; the locale; every matching
+  row, or the selected ids (including rows on pages the browser no longer
+  holds); plus `exportContext` (a FilterBuilder tree, a view id). The app's
+  server queries the full data and returns the file: a Blob is downloaded, a
+  `{ url }` followed, a rejected Promise shown as the reason, with a busy
+  state meanwhile. zen-ui runs nothing on the server. Without `onExport`, the
+  client-side CSV / JSON export is unchanged. Core's new
+  `@algorisys/zen-ui-core/export-request` (`buildExportRequest`, and
+  `parseExportRequest` for JavaScript servers: validates, never throws), checked
+  by `bun run check:export-request`. Integration guide, with a Frappe sketch:
+  docs/server-export.md. Demo: DataTable section 26, a 100,000-row ledger behind
+  a mock server.
 - **Grid totals: `meta.aggregate` on a DataTable column** (Solid). `"sum"`,
   `"count"`, `"avg"`, `"min"`, `"max"` or a function, per column: DataTable
   fills the footer (a "Total" label in the first visible column without one),

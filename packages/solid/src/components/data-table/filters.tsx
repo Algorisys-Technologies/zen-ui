@@ -50,6 +50,12 @@ declare module "@tanstack/solid-table" {
     aggregate?: "sum" | "count" | "avg" | "min" | "max" | ((values: unknown[], rows: unknown[]) => unknown);
     /** How the total and subtotals show. Default: the locale's number at the column's own decimal places. */
     formatTotal?: (value: unknown) => JSX.Element;
+    /**
+     * How a server-side export should format this column (DataTable onExport):
+     * `{ kind: "amount", currency: "INR" }`, `{ kind: "date" }`… Default:
+     * "number" for a column with a total or a number filter, else "text".
+     */
+    exportFormat?: import("@algorisys/zen-ui-core/export-request").ExportColumnFormat;
   }
 }
 

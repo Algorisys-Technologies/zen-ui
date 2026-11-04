@@ -91,6 +91,7 @@ import {
 } from "./table";
 import { FilterCell, filterFnByVariant, textFilterFn, type FilterVariant } from "./filters";
 import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
+import { buildExportRequest, EXPORT_FILE, type ExportColumn, type ExportFormat, type ExportRequest } from "@algorisys/zen-ui-core/export-request";
 import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
 import { useLocale } from "../locale/locale";
 import {
@@ -168,6 +169,25 @@ export interface DataTableProps<TData, TValue = unknown> {
   enableExport?: boolean;
   exportFilename?: string;
   exportOnlySelected?: boolean;
+  /**
+   * Export on the SERVER: for data too large to be in the browser (a table
+   * showing one page of a million rows). The Export menu then offers
+   * `exportFormats` and hands your server an ExportRequest: exactly what the
+   * user is looking at (visible columns in order with header, width, format and
+   * total; filters, sort, grouping; locale; all matching rows, or the selected
+   * ids, even ones on pages never loaded). Your endpoint queries the full data
+   * and renders the file. Return a Blob (downloaded as `exportFilename`), a
+   * `{ url }` (opened as a download), or nothing (you handled it). A rejected
+   * Promise is shown as the reason. Without it, Export is the client-side CSV
+   * of the loaded rows, as before.
+   */
+  onExport?: (format: ExportFormat, request: ExportRequest) => void | Blob | { url: string; filename?: string } | Promise<void | Blob | { url: string; filename?: string }>;
+  /** The formats the server export offers, in menu order. Default xlsx, pdf, csv. */
+  exportFormats?: ExportFormat[];
+  /** Extra state for the server (a FilterBuilder tree, a saved view's id): sent as `request.context`. */
+  exportContext?: Record<string, unknown>;
+  /** A title for the exported document (a report heading). */
+  exportTitle?: string;
   enableColumnSeparators?: boolean;
   enableRowOrdering?: boolean;
   onRowOrderChange?: (orderedIds: string[]) => void;
@@ -383,6 +403,10 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "enableExport",
     "exportFilename",
     "exportOnlySelected",
+    "onExport",
+    "exportFormats",
+    "exportContext",
+    "exportTitle",
     "stickyHeader",
     "enableColumnPinning",
     "columnPinning",
@@ -1166,9 +1190,20 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
         enableColumnVisibility={!!props.enableColumnVisibility}
         enableColumnPinning={!!props.enableColumnPinning}
         enableGrouping={groupingActive()}
-        enableExport={!!props.enableExport}
+        enableExport={!!props.enableExport || !!props.onExport}
         exportFilename={props.exportFilename ?? "data-table"}
         exportOnlySelected={!!props.exportOnlySelected}
+        serverExport={
+          props.onExport
+            ? {
+                onExport: props.onExport,
+                formats: props.exportFormats ?? ["xlsx", "pdf", "csv"],
+                context: () => props.exportContext,
+                title: () => props.exportTitle,
+                search: () => globalFilter(),
+              }
+            : undefined
+        }
         globalFilter={globalFilter()}
         globalFilterPlaceholder={props.globalFilterPlaceholder ?? "Search…"}
         onGlobalFilterChange={(v) => {
@@ -1229,6 +1264,7 @@ function Toolbar<TData>(props: {
   enableExport: boolean;
   exportFilename: string;
   exportOnlySelected: boolean;
+  serverExport?: ServerExportConfig;
   globalFilter: string;
   globalFilterPlaceholder: string;
   onGlobalFilterChange: (v: string) => void;
@@ -1251,11 +1287,18 @@ function Toolbar<TData>(props: {
         </Show>
         <div class="zen-ml-auto zen-flex zen-items-center zen-gap-2">
           <Show when={props.enableExport}>
-            <ExportMenu
-              table={props.table}
-              filename={props.exportFilename}
-              onlySelected={props.exportOnlySelected}
-            />
+            <Show
+              when={props.serverExport}
+              fallback={
+                <ExportMenu
+                  table={props.table}
+                  filename={props.exportFilename}
+                  onlySelected={props.exportOnlySelected}
+                />
+              }
+            >
+              {(server) => <ServerExportMenu table={props.table} filename={props.exportFilename} config={server()} />}
+            </Show>
           </Show>
           <Show when={props.enableGrouping}>
             <GroupByMenu table={props.table} />
@@ -1556,6 +1599,119 @@ function ExportMenu<TData>(props: {
         <DropdownMenuItem onSelect={exportJson}>JSON (.json)</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/* ---------------------------- ServerExportMenu --------------------------- */
+interface ServerExportConfig {
+  onExport: NonNullable<DataTableProps<unknown>["onExport"]>;
+  formats: ExportFormat[];
+  context: () => Record<string, unknown> | undefined;
+  title: () => string | undefined;
+  search: () => string;
+}
+
+/**
+ * Export on the server: describe what is on screen (ExportRequest), hand it to
+ * the app, and deal with what comes back. The rows themselves never leave the
+ * server: only the description does, so the file can be any size.
+ */
+function ServerExportMenu<TData>(props: { table: TanStackTable<TData>; filename: string; config: ServerExportConfig }) {
+  const loc = useLocale();
+  const [busy, setBusy] = createSignal<ExportFormat | null>(null);
+  const [error, setError] = createSignal("");
+  const [status, setStatus] = createSignal("");
+  const [onlySelected, setOnlySelected] = createSignal(false);
+  // Selection is kept by id, so rows selected on pages never loaded count too.
+  const selectedIds = () => Object.keys(props.table.getState().rowSelection ?? {}).filter((id) => props.table.getState().rowSelection[id]);
+
+  const columns = (): ExportColumn[] =>
+    props.table
+      .getVisibleLeafColumns()
+      // Data columns only: DataTable's own (__select__, __expand__, __drag__) are "__"-prefixed,
+      // the same rule the client-side export uses.
+      .filter((c) => !c.id.startsWith("__"))
+      .map((c) => {
+        const meta = (c.columnDef.meta ?? {}) as { aggregate?: unknown; exportFormat?: ExportColumn["format"]; filterVariant?: string };
+        const format: ExportColumn["format"] =
+          meta.exportFormat ?? (meta.aggregate || meta.filterVariant === "number" || meta.filterVariant === "numberRange" ? { kind: "number" } : { kind: "text" });
+        const numeric = format.kind !== "text" && format.kind !== "date" && format.kind !== "datetime" && format.kind !== "boolean";
+        return {
+          id: c.id,
+          header: headerLabel(c),
+          width: Math.round(c.getSize()),
+          align: numeric ? "end" : "start",
+          format,
+          ...(meta.aggregate ? { total: typeof meta.aggregate === "string" ? (meta.aggregate as ExportColumn["total"]) : "custom" } : {}),
+        };
+      });
+
+  const run = async (format: ExportFormat) => {
+    if (busy()) return;
+    setError("");
+    setStatus(loc.t("dataTable.exportPreparing"));
+    setBusy(format);
+    const state = props.table.getState();
+    const request = buildExportRequest({
+      format,
+      filename: props.filename,
+      title: props.config.title(),
+      locale: loc.locale() ?? (typeof navigator !== "undefined" ? navigator.language : undefined),
+      selectedIds: onlySelected() ? selectedIds() : null,
+      columns: columns(),
+      sort: state.sorting,
+      search: props.config.search(),
+      columnFilters: state.columnFilters,
+      grouping: state.grouping,
+      context: props.config.context(),
+    });
+    try {
+      const result = await props.config.onExport(format, request);
+      const name = `${props.filename}.${EXPORT_FILE[format].extension}`;
+      if (result instanceof Blob) downloadBlob(result, name);
+      else if (result && typeof result === "object" && "url" in result) {
+        const a = document.createElement("a");
+        a.href = result.url;
+        a.download = result.filename ?? name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      setStatus(loc.t("dataTable.exportReady"));
+    } catch (e) {
+      const message = loc.t("dataTable.exportFailed", { error: String((e as Error)?.message ?? e) });
+      setError(message);
+      setStatus("");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const label = (f: ExportFormat) => loc.t(f === "xlsx" ? "dataTable.exportExcel" : f === "pdf" ? "dataTable.exportPdf" : "dataTable.exportCsv");
+  return (
+    <div class="zen-flex zen-items-center zen-gap-2">
+      <Show when={error()}>
+        <span role="alert" class="zen-text-sm zen-text-zen-error" data-export-error="">{error()}</span>
+      </Show>
+      <span class="zen-sr-only" role="status">{status()}</span>
+      <DropdownMenu>
+        <DropdownMenuTrigger as={Button} variant="outline" color="neutral" size="sm" loading={!!busy()} disabled={!!busy()} aria-busy={busy() ? "true" : undefined}>
+          {busy() ? loc.t("dataTable.exportPreparing") : loc.t("dataTable.export")}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent class="zen-min-w-52">
+          <DropdownMenuLabel>{loc.t("dataTable.exportTo")}</DropdownMenuLabel>
+          <For each={props.config.formats}>
+            {(f) => <DropdownMenuItem onSelect={() => void run(f)}>{label(f)}</DropdownMenuItem>}
+          </For>
+          <Show when={selectedIds().length > 0}>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem checked={onlySelected()} onChange={setOnlySelected}>
+              {loc.t("dataTable.exportOnlySelected", { count: selectedIds().length })}
+            </DropdownMenuCheckboxItem>
+          </Show>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 
