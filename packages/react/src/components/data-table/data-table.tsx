@@ -65,8 +65,6 @@ import {
   SelectValue,
 } from "../form/select/select";
 import {
-  Table,
-  TableBody,
   TableCell,
   TableFooter,
   TableHead,
@@ -79,6 +77,7 @@ import {
   type CellEditPayload,
   type EditingState,
 } from "./edit-cell";
+import { BodyTable } from "./body-table";
 
 /**
  * DataTable — headless via @tanstack/react-table, optionally virtualized
@@ -337,6 +336,23 @@ export interface DataTableProps<TData, TValue = unknown> {
   onCellEdit?: (payload: CellEditPayload) => void;
 
   /**
+   * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
+   * Home/End and PageUp/PageDown move between rows (the key logic is
+   * @algorisys/zen-ui-core/row-keys); Enter calls `onRowActivate`; with
+   * `enableRowSelection`, Space toggles the row and Ctrl/Cmd+A every row on
+   * the page. Keys with Alt are left alone (an app's own shortcuts), and so is
+   * anything typed in a field, select or combobox inside a row.
+   *
+   * The plain body only, for now: a row-ordering table or the older
+   * `enableVirtualization` grid ignores it.
+   */
+  enableKeyboardNavigation?: boolean;
+  /** Enter on a focused row. The event carries its modifiers, so Ctrl+Enter can mean something else. */
+  onRowActivate?: (row: Row<TData>, event: React.KeyboardEvent<HTMLTableRowElement>) => void;
+  /** A row's accessible name, read as focus moves onto it. */
+  rowLabel?: (row: Row<TData>) => string;
+
+  /**
    * Pin the header row to the top of a scroll viewport. In virtualized mode
    * the header is already sticky and this prop is ignored. In non-virtualized
    * mode the body is wrapped in a `maxBodyHeight` scroll container so the
@@ -433,6 +449,9 @@ export function DataTable<TData, TValue = unknown>({
   enablePagination = false,
   enableColumnFilters = false,
   enableRowSelection = false,
+  enableKeyboardNavigation = false,
+  onRowActivate,
+  rowLabel,
   enableColumnVisibility = false,
   enableVirtualization = false,
   enableColumnSeparators = false,
@@ -1086,168 +1105,58 @@ export function DataTable<TData, TValue = unknown>({
     ? { maxHeight: maxBodyHeight }
     : undefined;
 
+  const footer = hasFooter ? (
+    <TableFooter>
+      {table.getFooterGroups().map((fg) => (
+        <TableRow key={fg.id}>
+          {fg.headers.map((header) => (
+            <TableCell key={header.id} colSpan={header.colSpan}>
+              {header.isPlaceholder
+                ? null
+                : flexRender(header.column.columnDef.footer, header.getContext())}
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </TableFooter>
+  ) : null;
+
   const tableBody = (
-    <Table
+    <BodyTable
+      table={table}
+      header={
+        enableColumnOrdering ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleColumnDragEnd}>
+            <SortableContext items={visibleColumnIds} strategy={horizontalListSortingStrategy}>
+              {headerRows}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          headerRows
+        )
+      }
+      footer={footer}
+      loading={loading}
+      emptyMessage={emptyMessage}
+      colSpan={augmentedColumns.length}
       containerClassName={fillHeight ? "zen-min-h-0 zen-flex-1" : undefined}
       containerStyle={tableContainerStyle}
-    >
-      {enableColumnOrdering ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleColumnDragEnd}
-        >
-          <SortableContext
-            items={visibleColumnIds}
-            strategy={horizontalListSortingStrategy}
-          >
-            {headerRows}
-          </SortableContext>
-        </DndContext>
-      ) : (
-        headerRows
-      )}
-      <TableBody>
-        {loading ? (
-          <TableRow>
-            <TableCell
-              colSpan={augmentedColumns.length}
-              className="zen-text-center zen-text-zen-muted-fg zen-py-6"
-            >
-              Loading…
-            </TableCell>
-          </TableRow>
-        ) : rows.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={augmentedColumns.length}
-              className="zen-text-center zen-text-zen-muted-fg zen-py-6"
-            >
-              {emptyMessage}
-            </TableCell>
-          </TableRow>
-        ) : (
-          rows.map((row) =>
-            rowOrderingActive ? (
-              <SortableRow
-                key={row.id}
-                id={row.id}
-                selected={row.getIsSelected()}
-                cellClassName={sepCellClass}
-                className={rowClassName?.(row)}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const pin = pinStyle(cell.column);
-                  const isEditing =
-                    editingCell?.rowId === row.id &&
-                    editingCell?.columnId === cell.column.id;
-                  return (
-                    <TableCell
-                      key={cell.id}
-                      className={sepCellClass}
-                      style={pin}
-                    >
-                      <EditableCell
-                        cell={cell}
-                        editing={isEditing}
-                        onStartEdit={() => startEdit(row.id, cell.column.id)}
-                        onCommit={(v) => commitEdit(row.id, cell.column.id, v)}
-                        onCancel={cancelEdit}
-                      >
-                        {renderCell(cell)}
-                      </EditableCell>
-                    </TableCell>
-                  );
-                })}
-              </SortableRow>
-            ) : (
-              <React.Fragment key={row.id}>
-                <TableRow
-                  data-state={row.getIsSelected() ? "selected" : undefined}
-                  data-grouped={row.getIsGrouped() ? "true" : undefined}
-                  className={cn(
-                    row.getIsGrouped() && "zen-bg-zen-muted/40 zen-font-medium",
-                    rowClassName?.(row),
-                  )}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const pin = pinStyle(cell.column);
-                    const isEditing =
-                      editingCell?.rowId === row.id &&
-                      editingCell?.columnId === cell.column.id;
-                    /* Disable inline-edit for group-header and
-                     * aggregated cells — the rendered value isn't a
-                     * single row's field. */
-                    const isInteractive =
-                      !cell.getIsGrouped() &&
-                      !cell.getIsAggregated() &&
-                      !cell.getIsPlaceholder();
-                    const content = renderCell(cell);
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        className={sepCellClass}
-                        style={pin}
-                      >
-                        {isInteractive ? (
-                          <EditableCell
-                            cell={cell}
-                            editing={isEditing}
-                            onStartEdit={() => startEdit(row.id, cell.column.id)}
-                            onCommit={(v) => commitEdit(row.id, cell.column.id, v)}
-                            onCancel={cancelEdit}
-                          >
-                            {content}
-                          </EditableCell>
-                        ) : (
-                          content
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-                {/* Expanded sub-row: a single full-width <td> spanning every
-                 * visible column. Renders only when the toggle is open. */}
-                {expansionEnabled && row.getIsExpanded() && renderSubRow ? (
-                  <TableRow data-expanded-of={row.id}>
-                    <TableCell
-                      colSpan={row.getVisibleCells().length}
-                      className="zen-p-0 zen-bg-zen-muted/30"
-                    >
-                      {renderSubRow(row)}
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-              </React.Fragment>
-            ),
-          )
-        )}
-      </TableBody>
-      {/* A footer row, but only when a column actually declares one.
-       *
-       * TanStack has carried `footer` on every ColumnDef since v8 and this
-       * rendered none of them, so a column total had nowhere to go — the one
-       * thing a financial table always needs. Rendered only when at least one
-       * column defines it, so every existing table keeps its exact markup. */}
-      {hasFooter ? (
-        <TableFooter>
-          {table.getFooterGroups().map((fg) => (
-            <TableRow key={fg.id}>
-              {fg.headers.map((header) => (
-                <TableCell key={header.id} colSpan={header.colSpan}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.footer,
-                        header.getContext(),
-                      )}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableFooter>
-      ) : null}
-    </Table>
+      sepCellClass={sepCellClass}
+      pinStyle={pinStyle}
+      editingCell={editingCell}
+      startEdit={startEdit}
+      commitEdit={commitEdit}
+      cancelEdit={cancelEdit}
+      rowClassName={rowClassName}
+      renderCell={renderCell}
+      expansionEnabled={rowOrderingActive ? false : expansionEnabled}
+      renderSubRow={rowOrderingActive ? undefined : renderSubRow}
+      rowOrderingActive={rowOrderingActive}
+      keyboard={!rowOrderingActive && enableKeyboardNavigation}
+      selectable={enableRowSelection}
+      onRowActivate={onRowActivate}
+      rowLabel={rowLabel}
+    />
   );
 
   return (
@@ -1853,43 +1762,6 @@ function DragHandle({ id }: { id: string }) {
         <circle cx="15" cy="18" r="1.6" />
       </svg>
     </button>
-  );
-}
-
-function SortableRow({
-  id,
-  selected,
-  className,
-  children,
-}: {
-  id: string;
-  selected: boolean;
-  cellClassName: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  const {
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  return (
-    <TableRow
-      ref={setNodeRef}
-      data-state={selected ? "selected" : undefined}
-      className={className}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.6 : 1,
-        position: isDragging ? "relative" : undefined,
-        zIndex: isDragging ? 1 : undefined,
-      }}
-    >
-      {children}
-    </TableRow>
   );
 }
 
