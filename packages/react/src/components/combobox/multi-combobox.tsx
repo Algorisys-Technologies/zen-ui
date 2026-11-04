@@ -173,7 +173,11 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
       labelCacheRef.current.set(o.value, o.label);
     }
   }, [allOptions]);
-  const labelFor = (v: string) => labelCacheRef.current.get(v) ?? v;
+  // The current options first: the cache is filled by an effect, AFTER the
+  // first render, so a controlled initial value read from it alone painted its
+  // raw values as chips ("engineer") until something else re-rendered.
+  const labelFor = (v: string) =>
+    allOptions.find((o) => o.value === v)?.label ?? labelCacheRef.current.get(v) ?? v;
 
   const update = (next: string[]) => {
     if (!isControlled) setInternalValue(next);
