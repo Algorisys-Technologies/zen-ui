@@ -477,7 +477,7 @@ const NewDataTableDemo = () => {
         <h2 class="zen-text-base zen-font-semibold zen-mb-2">6c. Cell navigation — work in it like a spreadsheet</h2>
         <CodeExample
           title="enableCellNavigation: cell by cell, ranges, copy and paste"
-          description="Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. Amount is computed, so paste and Delete leave it alone."
+          description="Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. A cell takes only what its editor could produce: Amount is computed, so paste and Delete leave it alone, and UOM is a select with no empty option, so Delete leaves it as it is and a paste must match one of its options."
           code={`<DataTable
   data={lines()}
   columns={columns} // meta: { editable: true, editVariant: "number" | "select" }
