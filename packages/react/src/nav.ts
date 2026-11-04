@@ -180,6 +180,7 @@ export const NAV: NavGroup[] = [
       { to: "/value-help", label: "ValueHelp", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/react/src/components/NewValueHelpDemo.tsx" },
       { to: "/view-settings", label: "ViewSettingsDialog", description: "Sort / group / filter settings; commits on OK", source: "packages/react/src/components/NewViewSettingsDemo.tsx" },
       { to: "/filter-builder", label: "FilterBuilder", description: "Nested AND/OR conditions on any field as one serialisable object, for advanced list filters, report criteria and saved views; says in words what it filters", source: "packages/react/src/components/NewFilterBuilderDemo.tsx" },
+      { to: "/view-manager", label: "ViewManager", description: "Saved views beside the page title: name, save, save as, set as default, manage and share a list screen's filters, sort and columns as one object; storage stays the app's", source: "packages/react/src/components/NewViewManagerDemo.tsx" },
       { to: "/filter-bar", label: "FilterBar", description: "List Report filter area — fields, Go, and Adapt filters", source: "packages/react/src/components/NewFilterBarDemo.tsx" },
     ],
   },

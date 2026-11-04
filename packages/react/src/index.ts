@@ -307,6 +307,10 @@ export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
 export { DocumentTabs } from "./components/document-tabs/document-tabs";
 export type { DocumentTabsProps, DocumentTab } from "./components/document-tabs/document-tabs";
 
+// ViewManager (saved views beside a list screen's title; storage is the app's)
+export { ViewManager } from "./components/view-manager/view-manager";
+export type { ViewManagerProps, SavedView } from "./components/view-manager/view-manager";
+
 // SkipToContent (a11y keyboard bypass for the app frame — WCAG 2.4.1)
 export { SkipToContent, SKIP_TO_CONTENT_CLASS } from "./components/skip-to-content/skip-to-content";
 export type { SkipToContentProps } from "./components/skip-to-content/skip-to-content";

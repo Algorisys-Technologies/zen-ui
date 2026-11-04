@@ -167,6 +167,7 @@ import NewObjectPageDemo from "./components/NewObjectPageDemo";
 import NewSelectDialogDemo from "./components/NewSelectDialogDemo";
 import NewValueHelpDemo from "./components/NewValueHelpDemo";
 import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
+import NewViewManagerDemo from "./components/NewViewManagerDemo";
 import NewFilterBarDemo from "./components/NewFilterBarDemo";
 import NewFilterBuilderDemo from "./components/NewFilterBuilderDemo";
 import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
@@ -442,6 +443,7 @@ const App: React.FC = () => {
             <Route path="/value-help" element={<NewValueHelpDemo />} />
             <Route path="/view-settings" element={<NewViewSettingsDemo />} />
             <Route path="/filter-builder" element={<NewFilterBuilderDemo />} />
+            <Route path="/view-manager" element={<NewViewManagerDemo />} />
             <Route path="/filter-bar" element={<NewFilterBarDemo />} />
             <Route path="/page-header" element={<NewPageHeaderDemo />} />
             <Route path="/stat-card" element={<NewStatCardDemo />} />
