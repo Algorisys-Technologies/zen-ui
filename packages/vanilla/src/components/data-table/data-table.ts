@@ -24,6 +24,7 @@ import {
   type ExportRequest,
 } from "@algorisys/zen-ui-core/export-request";
 import { DropdownMenu, type DropdownMenuHandle, type DropdownMenuItemSpec } from "../dropdown-menu/dropdown-menu";
+import { ContextMenu, type ContextMenuHandle } from "../context-menu/context-menu";
 
 /**
  * DataTable — the headless data grid, hand-written for the vanilla binding.
@@ -123,6 +124,16 @@ export interface DataTableColumn<TData> {
   footer?: (rows: TData[]) => Child;
   /** Per-column extras: totals (`aggregate`, `formatTotal`), server export (`exportFormat`). */
   meta?: DataTableColumnMeta;
+}
+
+/** What a DataTable context menu is for: see DataTableProps.contextMenu. */
+export interface DataTableMenuTarget<TData> {
+  /** The row right-clicked, or focused when the menu key was pressed. */
+  row: TData;
+  /** The cell's column, when a cell was the target. */
+  column?: DataTableColumn<TData>;
+  /** The rows the action is for: the selected rows when the target row is selected, else just the row. */
+  selection: TData[];
 }
 
 export interface SortingColumn {
@@ -225,6 +236,23 @@ export interface DataTableProps<TData> {
    * through, across pages (default), or the rows on this page.
    */
   totalsOver?: "filtered" | "page";
+
+  /**
+   * A right-click menu for the rows: return ContextMenu items (the specs
+   * DropdownMenu and ContextMenu take) for the target: the row, the cell's
+   * column, and the selection it acts on. Right-clicking a row focuses it (with
+   * enableKeyboardNavigation), as on a desktop; the menu key and Shift+F10 open
+   * the menu for the focused row; focus returns there when it closes. Outside
+   * the rows (the header, the footer) the browser keeps its own menu.
+   *
+   *   contextMenu: ({ row, selection }) => [
+   *     { label: "Open in new tab", onSelect: () => openInNewTab(row) },
+   *     { label: "Delete…", variant: "destructive", onSelect: () => remove(selection) },
+   *   ],
+   *
+   * The plain body only: the `enableVirtualization` grid ignores it.
+   */
+  contextMenu?: (target: DataTableMenuTarget<TData>) => DropdownMenuItemSpec[];
 
   /** Stable row-id resolver. Defaults to the row's array index. */
   getRowId?: (row: TData, index: number) => string;
@@ -334,6 +362,7 @@ export function DataTable<TData>(
    * focus without a repaint and a repaint can put focus back where it was. */
   let rowEls: HTMLElement[] = [];
   let rowElById = new Map<string, HTMLElement>();
+  let displayById = new Map<string, DisplayRow>();
   const rowIdOfEl = new WeakMap<Element, string>();
 
   const disposer = new Disposer();
@@ -795,6 +824,72 @@ export function DataTable<TData>(
     }
   }
 
+  /* ----- context menu ----- */
+  /* contextMenu: a right-click on a row or cell, or the menu key / Shift+F10
+   * on a focused one, opens the caller's items for it. Anywhere else (the
+   * header, the footer, empty space) the browser keeps its own menu: the
+   * ContextMenu is disabled while there is no target, which is what leaves the
+   * browser its menu. The target is read before ContextMenu decides: in its
+   * onContextMenu hook for a right-click, and in a capture listener for the
+   * keys (ContextMenu checks `disabled` before it handles the key). */
+  let cm: ContextMenuHandle | null = null;
+  const menuActive = (): boolean => !!current.contextMenu && !isVirt();
+
+  function menuTargetFrom(node: EventTarget | null): DataTableMenuTarget<TData> | null {
+    const tr = (node as Element | null)?.closest?.("tr[data-row-id]") as HTMLElement | null;
+    if (!tr || !containerEl.contains(tr)) return null;
+    const id = tr.dataset.rowId ?? "";
+    const r = displayById.get(id);
+    if (!r) return null;
+    const colKey = ((node as Element).closest("td[data-column]") as HTMLElement | null)?.dataset.column;
+    const column = colKey !== undefined ? colById(colKey) : undefined;
+    // A right-click on a selected row acts on the whole selection, as in a file manager.
+    const sel = effSelection();
+    const selection = sel.has(id)
+      ? current.data.filter((row, index) => sel.has(rowIdOf(row, index)))
+      : [r.row];
+    return { row: r.row, column, selection };
+  }
+
+  /** Point the menu at what the event is for, or disable it (the browser's menu) when nothing. */
+  function takeMenuTarget(node: EventTarget | null): DataTableMenuTarget<TData> | null {
+    const target = current.contextMenu ? menuTargetFrom(node) : null;
+    cm?.update(target ? { disabled: false, items: current.contextMenu!(target) } : { disabled: true });
+    return target;
+  }
+
+  function ensureContextMenu(): void {
+    if (cm || !menuActive()) return;
+    cm = ContextMenu({
+      class: "zen-contents",
+      contentClass: "zen-min-w-48",
+      items: [],
+      disabled: true,
+      onContextMenu: (e) => {
+        const target = takeMenuTarget(e.target);
+        // A right-click makes its row the focused one, as on a desktop, so the
+        // menu is for it and focus returns there.
+        if (target && keyboardActive()) {
+          const tr = (e.target as Element).closest("tr[data-row-id]") as HTMLElement | null;
+          const i = tr ? rowEls.indexOf(tr) : -1;
+          if (tr && i >= 0) {
+            setTabStop(i);
+            tr.focus({ preventScroll: true });
+          }
+        }
+      },
+    });
+    const onKeyCapture = (e: KeyboardEvent) => {
+      if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) takeMenuTarget(document.activeElement);
+    };
+    const handle = cm;
+    handle.el.addEventListener("keydown", onKeyCapture, true);
+    disposer.add(() => {
+      handle.el.removeEventListener("keydown", onKeyCapture, true);
+      handle.destroy();
+    });
+  }
+
   /* ----- keyboard rows ----- */
   const keyboardActive = (): boolean => !!current.enableKeyboardNavigation && !isVirt();
 
@@ -884,6 +979,7 @@ export function DataTable<TData>(
       cn("zen-relative zen-w-full zen-overflow-auto", current.fillHeight && "zen-min-h-0 zen-flex-1"),
     );
     if (stickyActive && !current.fillHeight) wrapper.style.maxHeight = `${bodyHeight()}px`;
+    tableWrapper = wrapper;
 
     const table = h(
       "table",
@@ -968,6 +1064,9 @@ export function DataTable<TData>(
         rowEls.push(tr);
         rowElById.set(id, tr);
         rowIdOfEl.set(tr, id);
+        displayById.set(id, r);
+        // A context menu is attached: rows and cells say which they are.
+        if (menuActive()) tr.setAttribute("data-row-id", id);
         if (keyboard) {
           tr.setAttribute("tabindex", i === tabStop ? "0" : "-1");
           const label = current.rowLabel?.(r.row, r.index);
@@ -994,6 +1093,7 @@ export function DataTable<TData>(
 
         for (const col of leafColumns()) {
           const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+          if (menuActive()) td.setAttribute("data-column", colId(col));
           const content = renderCell(col, r.row, r.index);
           collectInto(content, mounted);
           td.append(...toNodes(content));
@@ -1228,14 +1328,22 @@ export function DataTable<TData>(
 
   /* ----- the single render pass ----- */
   let lastDisplay: DisplayRow[] = [];
+  /* The table's own scroller, as last painted. A repaint builds a new one, which
+   * would start at the top: a row selected far down a scrolling table would
+   * jump the list back to its first row under the user. */
+  let tableWrapper: HTMLElement | null = null;
   function sync(): void {
     const focusMark = captureFocus();
+    const scrolled = tableWrapper?.isConnected
+      ? { top: tableWrapper.scrollTop, left: tableWrapper.scrollLeft }
+      : null;
     clearMounted();
     const processed = processRows();
     const display = computeDisplay(processed);
     lastDisplay = display;
     rowEls = [];
     rowElById = new Map();
+    displayById = new Map();
 
     const mode: "virt" | "table" = isVirt() ? "virt" : "table";
     if (mode !== builtMode) {
@@ -1260,7 +1368,14 @@ export function DataTable<TData>(
     }
 
     if (mode === "table") {
-      containerEl.replaceChildren(buildTable(processed, display));
+      ensureContextMenu();
+      if (cm && menuActive()) {
+        // The rows live inside the ContextMenu's area (display: contents).
+        cm.el.replaceChildren(buildTable(processed, display));
+        if (cm.el.parentElement !== containerEl) containerEl.replaceChildren(cm.el);
+      } else {
+        containerEl.replaceChildren(buildTable(processed, display));
+      }
     } else {
       paintVirtHeader(processed);
       virt!.update({
@@ -1268,6 +1383,11 @@ export function DataTable<TData>(
         estimateSize: rowHeight(),
         maxHeight: bodyHeight(),
       } as Partial<{ items: DisplayRow[] }>);
+    }
+
+    if (mode === "table" && scrolled && tableWrapper && (scrolled.top || scrolled.left)) {
+      tableWrapper.scrollTop = scrolled.top;
+      tableWrapper.scrollLeft = scrolled.left;
     }
 
     if (current.loading) containerEl.setAttribute("aria-busy", "true");

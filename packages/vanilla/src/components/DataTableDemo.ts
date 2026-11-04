@@ -66,6 +66,7 @@ const makePeople = (count: number): Person[] =>
 const SMALL = makePeople(8);
 const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
+const MENU_PEOPLE = makePeople(1000);
 
 const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
@@ -450,6 +451,65 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
             enableVirtualization: true,
             maxBodyHeight: 400,
           }).el,
+      },
+      {
+        title: "6d. Context menu on rows",
+        codeTitle: "contextMenu: a right-click menu for the row, or the selected rows",
+        codeDescription:
+          "Right-click a row, or focus one (click it, then use the arrows) and press the menu key or Shift+F10. The row becomes the focused one and the menu is for it; select a few rows first and a right-click on one of them acts on all of them. The header keeps the browser's own menu.",
+        code: `DataTable({
+  data: people,
+  columns,
+  getRowId: (p) => p.id,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  contextMenu: ({ row, selection }) => [
+    { type: "label", label: selection.length > 1 ? \`\${selection.length} rows\` : row.name },
+    { label: "Open in new tab", onSelect: () => openInNewTab(row) },
+    { label: "Copy name", onSelect: () => copy(selection) },
+    { type: "separator" },
+    { label: "Delete…", variant: "destructive", onSelect: () => remove(selection) },
+  ],
+  fillHeight: true,
+});`,
+        render: () => {
+          const action = document.createElement("span");
+          action.dataset.testid = "menu-action";
+          action.textContent = "Nothing chosen yet.";
+          const note = document.createElement("p");
+          note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+          note.setAttribute("aria-live", "polite");
+          note.append(action);
+          const say = (text: string) => (action.textContent = text);
+          const frame = document.createElement("div");
+          frame.className = "zen-flex zen-h-[360px] zen-flex-col";
+          frame.append(
+            DataTable({
+              data: MENU_PEOPLE,
+              columns,
+              getRowId: (p) => p.id,
+              enableRowSelection: true,
+              enableKeyboardNavigation: true,
+              rowLabel: (row) => row.name,
+              contextMenu: ({ row, selection }) => [
+                { type: "label", label: selection.length > 1 ? `${selection.length} rows` : row.name },
+                { label: "Open in new tab", shortcut: "Ctrl+Enter", onSelect: () => say(`Opened ${row.name} in a new tab`) },
+                { label: "Copy name", onSelect: () => say(`Copied ${selection.map((r) => r.name).join(", ")}`) },
+                { label: "Duplicate", onSelect: () => say(`Duplicated ${row.name}`) },
+                { type: "separator" },
+                {
+                  label: "Delete…",
+                  variant: "destructive",
+                  onSelect: () => say(`Asked to delete ${selection.length} row${selection.length === 1 ? "" : "s"}`),
+                },
+              ],
+              fillHeight: true,
+            }).el,
+          );
+          const wrap = document.createElement("div");
+          wrap.append(frame, note);
+          return wrap;
+        },
       },
       {
         title: "7. Server-driven pagination (manual)",

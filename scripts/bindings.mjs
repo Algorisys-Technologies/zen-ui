@@ -29,7 +29,9 @@ const DATA_DRIVEN_DIVERGENT = [
   "BannerDescription", "BannerTitle", "CalendarMode", "CalendarSelected", "CameraHandle", "CheckboxHandle",
   "CheckedState", "Child", "CollapsibleContent", "CollapsibleTrigger", "Command", "CommandEmpty", "CommandGroup", "CommandInput",
   "CommandItem", "CommandList", "CommandLoading", "CommandSeparator", "DEFAULT_EMAIL_DOMAINS", "DataTableCellContext",
-  "DataTableColumn", "DateTimePickerHandle", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter",
+  // DataTableColumnMeta is the vanilla column's `meta` (React types its ColumnDef meta by
+  // augmenting TanStack's ColumnMeta, which a hand-written column has no TanStack to augment).
+  "DataTableColumn", "DataTableColumnMeta", "DateTimePickerHandle", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter",
   "DialogHandle", "DialogHeader", "DialogOverlay", "DialogPortal", "DialogTitle", "DialogTrigger",
   "DropdownMenuActionItem", "DropdownMenuAlign", "DropdownMenuCheckboxItem", "DropdownMenuCheckboxItemSpec", "DropdownMenuContent", "DropdownMenuGroup",
   "DropdownMenuHandle", "DropdownMenuItem", "DropdownMenuItemSpec", "DropdownMenuLabel", "DropdownMenuLabelItem", "DropdownMenuPortal",
