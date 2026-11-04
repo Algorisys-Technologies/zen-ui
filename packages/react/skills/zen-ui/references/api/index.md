@@ -52,6 +52,7 @@ real props; guessing prop names is how agents invent APIs.
 - [page.md](page.md) — `Page`, `Bar`, `PageProps`, `BarProps`
 - [page-header.md](page-header.md) — `PageHeader`, `PageHeaderProps`
 - [toolbar.md](toolbar.md) — `Toolbar`, `ToolbarProps`, `ToolbarAction`
+- [document-tabs.md](document-tabs.md) — `DocumentTabs`, `DocumentTabsProps`, `DocumentTab`
 - [skip-to-content.md](skip-to-content.md) — `SkipToContent`, `SKIP_TO_CONTENT_CLASS`, `SkipToContentProps`
 - [shellbar.md](shellbar.md) — `ShellBar`, `ShellBarProps`, `ShellBarItem`, `ShellBarMenuItem`, `ShellBarProfile`
 - [flexible-column-layout.md](flexible-column-layout.md) — `FlexibleColumnLayout`, `FlexibleColumnLayoutProps`, `FlexibleColumnLayoutType`, `FlexibleColumnLayoutChangeDetail`, `FlexibleColumnName`
@@ -88,6 +89,7 @@ real props; guessing prop names is how agents invent APIs.
 - [theme-theme.md](theme-theme.md) — `Theme`, `ThemeProps`
 - [message-popover.md](message-popover.md) — `MessagePopover`, `Message`, `MessageType`, `MessagePopoverProps`
 - [direction.md](direction.md) — `DirectionProvider`, `Direction`, `DirectionProviderProps`
+- [locale.md](locale.md) — `LocaleProvider`, `useLocale`, `LocaleProviderProps`, `LocaleContextValue`, `MessageKey`, `ZenMessages`
 - [card.md](card.md) — `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `cardVariants`, `CardProps`
 - [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
 - [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`
