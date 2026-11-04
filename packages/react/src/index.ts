@@ -298,6 +298,10 @@ export type { PageHeaderProps } from "./components/page-header/page-header";
 export { Toolbar } from "./components/toolbar/toolbar";
 export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
 
+// DocumentTabs (Zen-shaped: a workspace's open documents; the panels are the app's)
+export { DocumentTabs } from "./components/document-tabs/document-tabs";
+export type { DocumentTabsProps, DocumentTab } from "./components/document-tabs/document-tabs";
+
 // SkipToContent (a11y keyboard bypass for the app frame — WCAG 2.4.1)
 export { SkipToContent, SKIP_TO_CONTENT_CLASS } from "./components/skip-to-content/skip-to-content";
 export type { SkipToContentProps } from "./components/skip-to-content/skip-to-content";

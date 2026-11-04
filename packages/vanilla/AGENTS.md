@@ -156,6 +156,7 @@ description, then import the name from your binding's package.
 - **Icon** — zen-ui icon set (48 glyphs); inherits text colour, decorative by default
 - **Object atoms** — ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker
 - **Button family** — ToggleButton, SegmentedButton, SplitButton
+- **Document tabs** — A workspace's open documents as closable, pinnable tabs with an all-tabs menu
 - **Toolbar** — Actions that collapse into an overflow menu when they do not fit
 - **Tree** — Hierarchical expandable list with full ARIA keyboard navigation
 
