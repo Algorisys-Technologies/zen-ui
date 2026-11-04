@@ -11,6 +11,7 @@ import { Button } from "../button/button";
 import { Input, type InputHandle } from "../form/input/input";
 import { Select } from "../form/select/select";
 import { VirtualizedItems } from "../listbox/virtualized-items";
+import { useLocale } from "../locale/locale";
 import { ownsArrowKeys, rowKeyTarget } from "@algorisys/zen-ui-core/row-keys";
 
 /**
@@ -244,6 +245,8 @@ export function DataTable<TData>(
   props: DataTableProps<TData>,
 ): ZenComponent<DataTableProps<TData>> {
   let current: DataTableProps<TData> = { ...props };
+  // The LocaleProvider building this table, read now (see locale.ts).
+  const loc = useLocale();
 
   /* internal (uncontrolled) state */
   let sortingInner: SortingState = current.sorting ? [...current.sorting] : [];
@@ -500,12 +503,10 @@ export function DataTable<TData>(
     btn.append(document.createTextNode(headerText(col)), sortIndicator(sorted));
     const idx = sortIndexOf(id);
     if (idx !== null) {
-      const badge = h(
-        "span",
-        "zen-text-[1rem] zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5",
-      );
+      // At the header's own size (it was a 16px raw-rem literal beside 12px text).
+      const badge = h("span", "zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5");
       badge.setAttribute("aria-hidden", "true");
-      badge.title = `Sort priority ${idx}`;
+      badge.title = loc.t("dataTable.sortPriority", { n: idx });
       badge.textContent = String(idx);
       btn.append(badge);
     }
