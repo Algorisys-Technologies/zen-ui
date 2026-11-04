@@ -49,6 +49,7 @@ import "./planning-calendar";
 import "./date-picker";
 import "./date-range-picker";
 import "./date-time-picker";
+import "./context-menu";
 import "./dialog";
 import "./divider";
 import "./dropdown-menu";

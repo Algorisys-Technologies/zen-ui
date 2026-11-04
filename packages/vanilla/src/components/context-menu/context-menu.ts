@@ -142,7 +142,8 @@ export function ContextMenu(props: ContextMenuProps): ContextMenuHandle {
     // Radix's ContextMenuContent: to the right of the pointer, 2px off, top-aligned,
     // flipping to the left when it would leave the viewport.
     rootHandle = engine.mountMenu(
-      current.items,
+      // A custom element may connect before its items are set.
+      current.items ?? [],
       pointAt(at.x, at.y),
       "right",
       "start",
@@ -324,11 +325,14 @@ export function ContextMenu(props: ContextMenuProps): ContextMenuHandle {
       close(true);
     },
     update(next) {
+      const prev = current;
       current = { ...current, ...next };
-      if ("class" in next || "disabled" in next) paintArea();
-      if ("children" in next) setChildren(area, current.children);
+      // Only what changed: a custom element re-sends every prop on every update,
+      // and re-setting the same children would detach the focused row.
+      if (current.class !== prev.class || current.disabled !== prev.disabled) paintArea();
+      if ("children" in next && current.children !== prev.children) setChildren(area, current.children);
       if (current.disabled && mounted) close(true);
-      else if (mounted && ("items" in next || "contentClass" in next)) {
+      else if (mounted && (current.items !== prev.items || current.contentClass !== prev.contentClass)) {
         // Rebuild the open menu in place, at the same point, keeping where focus
         // returns to (a checkbox's onCheckedChange updates, then the menu closes).
         unmount();
