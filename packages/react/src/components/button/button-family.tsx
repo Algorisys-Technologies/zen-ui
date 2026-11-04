@@ -124,18 +124,34 @@ SegmentedButton.displayName = "SegmentedButton";
 
 export interface SegmentedButtonItemProps extends Omit<ButtonProps, "value"> {
   value: string;
+  /**
+   * A count beside the label, for choices that filter a list ("Paid 4"):
+   * a muted chip in tabular figures, inverted when the item is selected. The
+   * item's name reads "Paid, 4".
+   */
+  count?: number | React.ReactNode;
 }
 
 export const SegmentedButtonItem = React.forwardRef<HTMLButtonElement, SegmentedButtonItemProps>(
-  ({ value, className, onClick, ...props }, ref) => {
+  ({ value, className, onClick, count, children, ...props }, ref) => {
     const ctx = useSegmented();
     const selected = ctx.value === value;
+    const hasCount = count !== undefined;
     return (
       <Button
         ref={ref}
         type="button"
         role="radio"
         aria-checked={selected}
+        // "Paid, 4". Chrome pads a visually hidden separator with spaces of its
+        // own ("Paid , 4"), so a plain-text label is named directly; any other
+        // label keeps the hidden separator below. A caller's aria-label wins
+        // (it is in `props`, spread after this).
+        aria-label={
+          hasCount && typeof children === "string" && (typeof count === "number" || typeof count === "string")
+            ? `${children}, ${count}`
+            : undefined
+        }
         variant="ghost"
         size={ctx.size}
         className={cn(
@@ -147,7 +163,27 @@ export const SegmentedButtonItem = React.forwardRef<HTMLButtonElement, Segmented
           if (!e.defaultPrevented) ctx.select(value);
         }}
         {...props}
-      />
+      >
+        {/* Without a count the children pass through untouched (asChild's Slot
+            wants exactly one child). */}
+        {hasCount ? (
+          <>
+            {children}
+            <span className="zen-sr-only">, </span>
+            <span
+              data-count=""
+              className={cn(
+                "zen-ml-1.5 zen-min-w-5 zen-rounded-zen-sm zen-px-1.5 zen-text-center zen-text-xs zen-font-medium zen-tabular-nums",
+                selected ? "zen-bg-zen-primary zen-text-zen-primary-fg" : "zen-bg-zen-muted zen-text-zen-muted-fg",
+              )}
+            >
+              {count}
+            </span>
+          </>
+        ) : (
+          children
+        )}
+      </Button>
     );
   },
 );
