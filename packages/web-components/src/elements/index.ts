@@ -119,6 +119,7 @@ import "./toolbar";
 import "./document-tabs";
 import "./tooltip";
 import "./tree";
+import "./tree-select";
 import "./value-help";
 import "./view-settings";
 import "./virtualized-items";
