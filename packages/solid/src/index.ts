@@ -454,6 +454,32 @@ export type {
   DropdownMenuRadioItemProps,
 } from "./components/dropdown-menu/dropdown-menu";
 
+export {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuCheckboxItem,
+  ContextMenuRadioItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuGroup,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
+} from "./components/context-menu/context-menu";
+export type {
+  ContextMenuProps,
+  ContextMenuTriggerProps,
+  ContextMenuContentProps,
+  ContextMenuItemProps,
+  ContextMenuCheckboxItemProps,
+  ContextMenuRadioItemProps,
+} from "./components/context-menu/context-menu";
+
 export { Select } from "./components/form/select/select";
 export type { SelectProps, SelectOption } from "./components/form/select/select";
 
@@ -586,6 +612,7 @@ export type {
 export type {
   DataTableProps,
   DataTableManualPagination,
+  DataTableMenuTarget,
 } from "./components/data-table/data-table";
 export { TreeTable } from "./components/tree-table/tree-table";
 export { PlanningCalendar } from "./components/planning-calendar/planning-calendar";

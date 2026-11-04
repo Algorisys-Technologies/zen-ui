@@ -77,6 +77,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu/dropdown-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "../context-menu/context-menu";
 import { Input } from "../form/input/input";
 import { Select } from "../form/select/select";
 import {
@@ -105,6 +106,16 @@ import {
  * Every capability is opt-in via a flag. See the React binding's
  * data-table.tsx jsdoc for the full feature matrix.
  */
+
+/** What a DataTable context menu is for: see DataTableProps.contextMenu. */
+export interface DataTableMenuTarget<TData> {
+  /** The row right-clicked, or focused when the menu key was pressed. */
+  row: Row<TData>;
+  /** The cell's column, when a cell was the target. */
+  column?: Column<TData, unknown>;
+  /** The rows the action is for: the selected rows when the target row is selected, else just the row. */
+  selection: Row<TData>[];
+}
 
 export interface DataTableManualPagination {
   pageIndex: number;
@@ -198,6 +209,20 @@ export interface DataTableProps<TData, TValue = unknown> {
    * enableRowVirtualization, not with the older enableVirtualization.
    */
   enableCellNavigation?: boolean;
+
+  /**
+   * A right-click menu for the rows: return ContextMenu items for the target
+   * (the row, the cell's column, and the selection it acts on). Right-clicking
+   * a row or cell focuses it, as on a desktop; the menu key and Shift+F10 open
+   * the menu for the focused row or cell; focus returns there when it closes.
+   * Outside the rows (the header, the footer) the browser keeps its own menu.
+   *
+   *   contextMenu={({ row, selection }) => (<>
+   *     <ContextMenuItem onSelect={() => openInNewTab(row.original)}>Open in new tab</ContextMenuItem>
+   *     <ContextMenuItem variant="destructive" onSelect={() => remove(selection)}>Delete…</ContextMenuItem>
+   *   </>)}
+   */
+  contextMenu?: (target: DataTableMenuTarget<TData>) => JSX.Element;
 
   /**
    * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
@@ -358,6 +383,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "onCellEdit",
     "onCellsEdit",
     "enableCellNavigation",
+    "contextMenu",
     "headerVariant",
     "pageSize",
     "pageSizeOptions",
@@ -451,6 +477,14 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
   const legacyVirtual = () => !!props.enableVirtualization && !rowVirtual();
   const rowOrderingActive = () => !!props.enableRowOrdering && !legacyVirtual();
   const virtualRowDrag = () => rowOrderingActive() && rowVirtual();
+  // Passed to BodyTable as accessor calls, not as `a && b` / `a ? b : c`
+  // expressions: Solid compiles those in a prop into a memo created on every
+  // read, and a read from a native event handler (no owner) leaves one behind
+  // each time, subscribed to the props it reads. Measured: a right-click left
+  // a computation outside any root.
+  const keyboardRows = () => !!props.enableKeyboardNavigation && !props.enableCellNavigation;
+  const bodyExpansion = () => (virtualRowDrag() ? false : expansionEnabled());
+  const bodySubRow = () => (virtualRowDrag() ? undefined : props.renderSubRow);
   const groupingActive = () => !!props.enableGrouping && !legacyVirtual();
   const subRowActive = () => !!props.renderSubRow && !legacyVirtual();
   const expansionEnabled = () => subRowActive() || groupingActive();
@@ -877,6 +911,147 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     return flexRender(cell.column.columnDef.cell, cell.getContext());
   };
 
+  /* ------------------------------ context menu ------------------------------
+   * contextMenu: a right-click on a row or cell, or the menu key / Shift+F10
+   * on a focused one, opens the caller's items for it. Anywhere else (the
+   * header, the footer, empty space) the browser keeps its own menu. */
+  const [menuTarget, setMenuTarget] = createSignal<DataTableMenuTarget<TData> | null>(null);
+  const menuTargetFrom = (el: EventTarget | null): DataTableMenuTarget<TData> | null => {
+    const node = el as Element | null;
+    const tr = node?.closest?.("tr[data-row-id], tr[data-expanded-of]") as HTMLElement | null;
+    const id = tr?.dataset.rowId ?? tr?.dataset.expandedOf;
+    if (!id) return null;
+    let row: Row<TData>;
+    try {
+      row = table.getRow(id);
+    } catch {
+      return null;
+    }
+    const colId = (node?.closest?.("td[data-column]") as HTMLElement | null)?.dataset.column;
+    const column = colId ? table.getColumn(colId) : undefined;
+    // A right-click on a selected row acts on the whole selection, as in a file manager.
+    const selection = row.getIsSelected() ? table.getSelectedRowModel().rows : [row];
+    return { row, column, selection };
+  };
+
+  const tableBody = () => (
+    <Show
+      when={legacyVirtual()}
+      fallback={
+        <Show
+          when={rowOrderingActive() && !virtualRowDrag()}
+          fallback={
+            <BodyTable
+              table={table}
+              loading={!!props.loading}
+              emptyMessage={props.emptyMessage ?? "No results."}
+              maxBodyHeight={props.maxBodyHeight ?? 480}
+              fillHeight={!!props.fillHeight}
+              stickyHeaderActive={stickyHeaderActive()}
+              sepHeadClass={sepHeadClass()}
+              sepCellClass={sepCellClass()}
+              stickyRowClass={stickyRowClass()}
+              headerVariantThead={headerVariantTheadClass()}
+              headerVariantRow={headerVariantRowClass()}
+              headerStickyBg={headerStickyBg()}
+              headerPinStyle={headerPinStyle}
+              pinStyle={pinStyle}
+              enableColumnResizing={!!props.enableColumnResizing}
+              enableColumnOrdering={!!props.enableColumnOrdering}
+              enablePerColumnFilters={!!props.enablePerColumnFilters}
+              filterOperators={props.enableFilterOperators !== false}
+              visibleColumnIds={visibleColumnIds()}
+              onColumnDragEnd={handleColumnDragEnd}
+              editingCell={editingCell()}
+              startEdit={startEdit}
+              commitEdit={commitEdit}
+              cancelEdit={cancelEdit}
+              rowClassName={props.rowClassName}
+              renderCell={renderCellContent}
+              expansionEnabled={bodyExpansion()}
+              renderSubRow={bodySubRow()}
+              rowDrag={virtualRowDrag()}
+              onRowMove={handleRowMove}
+              keyboard={keyboardRows()}
+              cellNav={!!props.enableCellNavigation}
+              menuTargets={!!props.contextMenu}
+              editCells={editCells}
+              selectable={!!props.enableRowSelection}
+              onRowActivate={props.onRowActivate}
+              rowLabel={props.rowLabel}
+              virtualize={rowVirtual()}
+              estimatedRowHeight={props.rowEstimatedHeight}
+            />
+          }
+        >
+          <DragDropProvider
+            collisionDetector={closestCenter}
+            onDragEnd={handleRowDragEnd}
+          >
+            <DragDropSensors />
+            <SortableProvider ids={table.getRowModel().rows.map((r) => r.id)}>
+              <BodyTable
+                table={table}
+                loading={!!props.loading}
+                emptyMessage={props.emptyMessage ?? "No results."}
+                maxBodyHeight={props.maxBodyHeight ?? 480}
+                fillHeight={!!props.fillHeight}
+                stickyHeaderActive={stickyHeaderActive()}
+                sepHeadClass={sepHeadClass()}
+                sepCellClass={sepCellClass()}
+                stickyRowClass={stickyRowClass()}
+                headerVariantThead={headerVariantTheadClass()}
+                headerVariantRow={headerVariantRowClass()}
+                headerStickyBg={headerStickyBg()}
+                headerPinStyle={headerPinStyle}
+                pinStyle={pinStyle}
+                enableColumnResizing={!!props.enableColumnResizing}
+                enableColumnOrdering={!!props.enableColumnOrdering}
+                enablePerColumnFilters={!!props.enablePerColumnFilters}
+              filterOperators={props.enableFilterOperators !== false}
+                visibleColumnIds={visibleColumnIds()}
+                onColumnDragEnd={handleColumnDragEnd}
+                editingCell={editingCell()}
+                startEdit={startEdit}
+                commitEdit={commitEdit}
+                cancelEdit={cancelEdit}
+                rowClassName={props.rowClassName}
+                renderCell={renderCellContent}
+                expansionEnabled={false}
+                renderSubRow={undefined}
+                rowOrderingActive
+              />
+            </SortableProvider>
+          </DragDropProvider>
+        </Show>
+      }
+    >
+      <VirtualizedBody
+        table={table}
+        maxHeight={props.maxBodyHeight ?? 480}
+        estimatedRowHeight={props.rowEstimatedHeight ?? 44}
+        emptyMessage={props.emptyMessage ?? "No results."}
+        loading={!!props.loading}
+        enableColumnPinning={!!props.enableColumnPinning}
+        enableColumnResizing={!!props.enableColumnResizing}
+        enableColumnOrdering={!!props.enableColumnOrdering}
+        enablePerColumnFilters={!!props.enablePerColumnFilters}
+        filterOperators={props.enableFilterOperators !== false}
+        visibleColumnIds={visibleColumnIds()}
+        onColumnDragEnd={handleColumnDragEnd}
+        editingCell={editingCell()}
+        onStartEdit={startEdit}
+        onCommitEdit={commitEdit}
+        onCancelEdit={cancelEdit}
+        rowClassName={props.rowClassName}
+        headerVariant={props.headerVariant ?? "plain"}
+        pinStyle={pinStyle}
+        headerPinStyle={headerPinStyle}
+        headerStickyBg={headerStickyBg()}
+      />
+    </Show>
+  );
+
   return (
     <div
       class={cn(
@@ -911,119 +1086,24 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
         )}
         aria-busy={props.loading || undefined}
       >
-        <Show
-          when={legacyVirtual()}
-          fallback={
-            <Show
-              when={rowOrderingActive() && !virtualRowDrag()}
-              fallback={
-                <BodyTable
-                  table={table}
-                  loading={!!props.loading}
-                  emptyMessage={props.emptyMessage ?? "No results."}
-                  maxBodyHeight={props.maxBodyHeight ?? 480}
-                  fillHeight={!!props.fillHeight}
-                  stickyHeaderActive={stickyHeaderActive()}
-                  sepHeadClass={sepHeadClass()}
-                  sepCellClass={sepCellClass()}
-                  stickyRowClass={stickyRowClass()}
-                  headerVariantThead={headerVariantTheadClass()}
-                  headerVariantRow={headerVariantRowClass()}
-                  headerStickyBg={headerStickyBg()}
-                  headerPinStyle={headerPinStyle}
-                  pinStyle={pinStyle}
-                  enableColumnResizing={!!props.enableColumnResizing}
-                  enableColumnOrdering={!!props.enableColumnOrdering}
-                  enablePerColumnFilters={!!props.enablePerColumnFilters}
-                  filterOperators={props.enableFilterOperators !== false}
-                  visibleColumnIds={visibleColumnIds()}
-                  onColumnDragEnd={handleColumnDragEnd}
-                  editingCell={editingCell()}
-                  startEdit={startEdit}
-                  commitEdit={commitEdit}
-                  cancelEdit={cancelEdit}
-                  rowClassName={props.rowClassName}
-                  renderCell={renderCellContent}
-                  expansionEnabled={virtualRowDrag() ? false : expansionEnabled()}
-                  renderSubRow={virtualRowDrag() ? undefined : props.renderSubRow}
-                  rowDrag={virtualRowDrag()}
-                  onRowMove={handleRowMove}
-                  keyboard={!!props.enableKeyboardNavigation && !props.enableCellNavigation}
-                  cellNav={!!props.enableCellNavigation}
-                  editCells={editCells}
-                  selectable={!!props.enableRowSelection}
-                  onRowActivate={props.onRowActivate}
-                  rowLabel={props.rowLabel}
-                  virtualize={rowVirtual()}
-                  estimatedRowHeight={props.rowEstimatedHeight}
-                />
-              }
+        <Show when={props.contextMenu} fallback={tableBody()}>
+          <ContextMenu>
+            <ContextMenuTrigger
+              class="zen-contents"
+              disabled={!menuTarget()}
+              onContextMenu={(e: MouseEvent) => setMenuTarget(menuTargetFrom(e.target))}
+              onKeyDown={(e: KeyboardEvent) => {
+                if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) {
+                  setMenuTarget(menuTargetFrom(document.activeElement));
+                }
+              }}
             >
-              <DragDropProvider
-                collisionDetector={closestCenter}
-                onDragEnd={handleRowDragEnd}
-              >
-                <DragDropSensors />
-                <SortableProvider ids={table.getRowModel().rows.map((r) => r.id)}>
-                  <BodyTable
-                    table={table}
-                    loading={!!props.loading}
-                    emptyMessage={props.emptyMessage ?? "No results."}
-                    maxBodyHeight={props.maxBodyHeight ?? 480}
-                    fillHeight={!!props.fillHeight}
-                    stickyHeaderActive={stickyHeaderActive()}
-                    sepHeadClass={sepHeadClass()}
-                    sepCellClass={sepCellClass()}
-                    stickyRowClass={stickyRowClass()}
-                    headerVariantThead={headerVariantTheadClass()}
-                    headerVariantRow={headerVariantRowClass()}
-                    headerStickyBg={headerStickyBg()}
-                    headerPinStyle={headerPinStyle}
-                    pinStyle={pinStyle}
-                    enableColumnResizing={!!props.enableColumnResizing}
-                    enableColumnOrdering={!!props.enableColumnOrdering}
-                    enablePerColumnFilters={!!props.enablePerColumnFilters}
-                  filterOperators={props.enableFilterOperators !== false}
-                    visibleColumnIds={visibleColumnIds()}
-                    onColumnDragEnd={handleColumnDragEnd}
-                    editingCell={editingCell()}
-                    startEdit={startEdit}
-                    commitEdit={commitEdit}
-                    cancelEdit={cancelEdit}
-                    rowClassName={props.rowClassName}
-                    renderCell={renderCellContent}
-                    expansionEnabled={false}
-                    renderSubRow={undefined}
-                    rowOrderingActive
-                  />
-                </SortableProvider>
-              </DragDropProvider>
-            </Show>
-          }
-        >
-          <VirtualizedBody
-            table={table}
-            maxHeight={props.maxBodyHeight ?? 480}
-            estimatedRowHeight={props.rowEstimatedHeight ?? 44}
-            emptyMessage={props.emptyMessage ?? "No results."}
-            loading={!!props.loading}
-            enableColumnPinning={!!props.enableColumnPinning}
-            enableColumnResizing={!!props.enableColumnResizing}
-            enableColumnOrdering={!!props.enableColumnOrdering}
-            enablePerColumnFilters={!!props.enablePerColumnFilters}
-            filterOperators={props.enableFilterOperators !== false}
-            visibleColumnIds={visibleColumnIds()}
-            onColumnDragEnd={handleColumnDragEnd}
-            editingCell={editingCell()}
-            onStartEdit={startEdit}
-            onCommitEdit={commitEdit}
-            onCancelEdit={cancelEdit}
-            rowClassName={props.rowClassName}
-            headerVariant={props.headerVariant ?? "plain"}
-            pinStyle={pinStyle}
-            headerPinStyle={headerPinStyle}
-            headerStickyBg={headerStickyBg()}
-          />
+              {tableBody()}
+            </ContextMenuTrigger>
+            <ContextMenuContent class="zen-min-w-48">
+              <Show when={menuTarget()}>{(target) => props.contextMenu!(target())}</Show>
+            </ContextMenuContent>
+          </ContextMenu>
         </Show>
       </div>
 
@@ -1522,6 +1602,8 @@ interface BodyTableProps<TData> {
   /** Move cell by cell (enableCellNavigation): see the cell navigation section. */
   cellNav?: boolean;
   editCells?: (edits: CellEditPayload[]) => void;
+  /** A context menu is attached: rows and cells say which they are, and a right-click focuses them. */
+  menuTargets?: boolean;
   onRowMove?: (from: number, to: number) => void;
 }
 
@@ -1982,6 +2064,31 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
     });
   });
 
+  // A right-click makes its row or cell the focused one, as on a desktop, so
+  // the menu is for it and focus returns there. Inside a cell selection it
+  // leaves the selection alone: the menu acts on it.
+  const onRowContextMenu = (e: MouseEvent) => {
+    const tr = (e.target as Element | null)?.closest?.("tr[data-row-id]") as HTMLElement | null;
+    if (!tr || !tableEl?.contains(tr)) return;
+    const id = tr.dataset.rowId ?? "";
+    const index = rowIndexOf(id);
+    if (index < 0) return;
+    if (props.cellNav) {
+      const hit = cellAt(e.target);
+      const rect = selRect();
+      if (hit && !(rect && inRect(rect, hit.at.row, hit.at.col))) moveTo(hit.at);
+    } else if (props.keyboard) {
+      setFocusIndex(index);
+      focusRow(id);
+    }
+  };
+  onMount(() => {
+    if (!props.menuTargets || !tableEl) return;
+    const table = tableEl;
+    table.addEventListener("contextmenu", onRowContextMenu);
+    onCleanup(() => table.removeEventListener("contextmenu", onRowContextMenu));
+  });
+
   onMount(() => {
     if (!props.cellNav || !tableEl) return;
     const table = tableEl;
@@ -2148,6 +2255,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
       data-state={row.getIsSelected() ? "selected" : undefined}
       data-grouped={row.getIsGrouped() ? "true" : undefined}
       data-dragging={props.rowDrag && dragId() === row.id ? "true" : undefined}
+      data-row-id={props.menuTargets ? row.id : undefined}
       data-drop={props.rowDrag ? dropEdge(index()) : undefined}
       class={cn(
         row.getIsGrouped() && "zen-bg-zen-muted/40 zen-font-medium",
@@ -2214,6 +2322,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
               aria-selected={navCol() !== undefined ? (isSelected() || isActiveCell() ? "true" : "false") : undefined}
               data-row={navCol() !== undefined ? row.id : undefined}
               data-col={navCol() !== undefined ? cell.column.id : undefined}
+              data-column={props.menuTargets ? cell.column.id : undefined}
             >
               <Show
                 when={isInteractive()}

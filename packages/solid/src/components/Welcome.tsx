@@ -1,6 +1,6 @@
-import { For } from "solid-js";
+import { For, Show } from "solid-js";
 import { A } from "@solidjs/router";
-import { NAV } from "../nav";
+import { NAV, isNew } from "../nav";
 import { useTheme } from "../lib/theme";
 
 /**
@@ -110,8 +110,13 @@ const Welcome = () => {
                     >
                       <CardPreview route={item.path} />
                       <div class="zen-p-4">
-                        <div class="zen-text-sm zen-font-semibold zen-text-zen-foreground">
+                        <div class="zen-flex zen-items-center zen-gap-2 zen-text-sm zen-font-semibold zen-text-zen-foreground">
                           {item.label}
+                          <Show when={isNew(item)}>
+                            <span class="zen-rounded-zen-sm zen-bg-zen-primary-soft zen-px-1.5 zen-py-px zen-text-xs zen-font-medium zen-text-zen-primary-soft-fg">
+                              New
+                            </span>
+                          </Show>
                         </div>
                         <p class="zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg">
                           {item.description}

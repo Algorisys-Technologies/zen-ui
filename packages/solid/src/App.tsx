@@ -1,7 +1,7 @@
 import { type Component, type ParentProps, ErrorBoundary, For, Show, createSignal } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import { useTheme } from "./lib/theme";
-import { NAV } from "./nav";
+import { NAV, isNew } from "./nav";
 import ReleaseNotes from "./components/ReleaseNotes";
 import { Search } from "./components/form/search/search";
 
@@ -262,6 +262,11 @@ const App: Component<ParentProps> = (props) => {
                             end
                           >
                             {item.label}
+                            <Show when={isNew(item)}>
+                              <span class="zen-ml-1.5 zen-rounded-zen-sm zen-bg-zen-primary-soft zen-px-1.5 zen-py-px zen-text-xs zen-font-medium zen-text-zen-primary-soft-fg">
+                                New
+                              </span>
+                            </Show>
                           </A>
                         </li>
                       )}

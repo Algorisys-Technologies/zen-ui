@@ -16,6 +16,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **ContextMenu** (Solid; React, vanilla and web components follow). The menu
+  a right-click opens, at the pointer; from the keyboard (the menu key or
+  Shift+F10) at the focused element's corner with its first item active; on a
+  long press on touch. Focus returns to what it was opened on. Its items,
+  groups, labels, separators and submenus are DropdownMenu's (in Kobalte the
+  two menus share them), re-exported under ContextMenu names. Demo at
+  /context-menu.
+- **DataTable `contextMenu`** (Solid): a right-click menu for rows. It receives
+  the row, the cell's column and the selection to act on (every selected row
+  when the target row is selected). A right-click focuses its row or cell; the
+  menu key and Shift+F10 open the menu for the focused one; the header and
+  footer keep the browser's own menu. Works with keyboard rows, cell
+  navigation and row virtualization. Demo section "6d".
 - **DataTable `enableCellNavigation`** (Solid; React, vanilla and web
   components follow): work in a table cell by cell, as in a spreadsheet.
   - Keys: one tab stop for the table; arrows, PageUp/PageDown, Home/End and

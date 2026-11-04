@@ -54,6 +54,42 @@ issue / PR when its turn comes.
       down; Ctrl+Insert to add a row, as the ERP's ChildGrid does), then move
       ChildGrid onto DataTable.
 
+## Parity: ContextMenu and DataTable `contextMenu` (Solid only, 2026-11-04)
+
+- [ ] **Port to React (Radix `@radix-ui/react-context-menu`, the shadcn parts),
+      then vanilla, then web-components.** From Solid's
+      `context-menu/context-menu.tsx`: the menu key and Shift+F10 open it at the
+      focused element's corner (a dispatched contextmenu; the browser's own
+      keyboard contextmenu suppressed only while the key is held, never a
+      button-2 one), the first item focused when opened by key, focus returned
+      to what it was opened on. DataTable: `contextMenu(target)`, `data-row-id`
+      / `data-column` only when set, a right-click focuses the row or cell,
+      `DataTableMenuTarget` exported. Add the /context-menu demo and "6d".
+- [ ] **Never pass `a && b` or `a ? b : c` as a child component's prop when it
+      can be read from a native handler.** Solid compiles them into a memo per
+      read; read outside an owner, each leaks a computation. Pass an accessor
+      call. Found and fixed in DataTable's BodyTable props (2026-11-04); worth a
+      sweep of the other components' native handlers.
+
+## Demo site: the "New" tag (owner, 2026-11-04)
+
+- [ ] Solid's `nav.ts` entries take `since` (the version a component first ships
+      in) and the sidebar and catalogue mark them **New** while that is the
+      current release's minor or later, so the mark expires on its own. Mark
+      every new component with `since`. Port the field and the pill to the
+      React, vanilla and web-components demos with their components.
+- [ ] The Solid demo header says "107 components" and the catalogue heading
+      "COMPONENTS (108)": two counts of the same list disagree. Find which.
+
+## ERPNext review: section C (from the commercial suites, 2026-11-04)
+
+- [ ] Read with the owner's decisions: typed dates (DatePicker has no text
+      input, confirmed), a table combobox, grid totals (DataTable already renders
+      a column `footer`; missing are declarative aggregates, a sticky totals row
+      and group subtotals), xlsx/PDF export, a filter builder, barcode and QR
+      generation; then scheduler, smart-paste/AI hooks, hierarchy diagrams, a
+      file manager. ERPNext docs/zen-ui-desktop-erp-review.md.
+
 ## Demos: two build JSX outside a root (found 2026-11-04)
 
 - [ ] `NewDiffViewDemo.tsx` (line ~35) and `NewObjectPageDemo.tsx` build

@@ -6,6 +6,8 @@
  * Adding a component: add it here, add its <Route> in main.tsx. Nothing else.
  */
 
+import { RELEASE_NOTES } from "./release-notes";
+
 export type NavItem = {
   path: string;
   label: string;
@@ -23,7 +25,24 @@ export type NavItem = {
    * and matches the component the route really renders.
    */
   source?: string;
+  /**
+   * The version this component first ships in. While that is the current
+   * release's minor version or a later one, the sidebar and the catalogue mark
+   * it "New"; one minor release later the mark goes by itself, so nobody has
+   * to remember to take it off.
+   */
+  since?: string;
 };
+
+/** "12.2.0" -> 12002: major and minor, comparable as a number. */
+const minorOf = (version: string) => {
+  const [major = 0, minor = 0] = version.split(".").map(Number);
+  return major * 1000 + minor;
+};
+
+/** Whether an entry is marked New, against the latest release in RELEASE_NOTES. */
+export const isNew = (item: NavItem): boolean =>
+  !!item.since && minorOf(item.since) >= minorOf(RELEASE_NOTES[0]?.version ?? "0.0.0");
 
 export type NavGroup = {
   group: string;
@@ -129,6 +148,7 @@ export const NAV: NavGroup[] = [
       { label: "Dialog", path: "/dialog", description: "Modal surface, plus AlertDialog for destructive confirms", source: "packages/solid/src/components/NewDialogDemo.tsx" },
       { label: "Sheet", path: "/sheet", description: "Slide-in side panel; right / left / top / bottom", source: "packages/solid/src/components/NewSheetDemo.tsx" },
       { label: "DropdownMenu", path: "/dropdown-menu", description: "Action menus, sub-menus, checkbox / radio items", source: "packages/solid/src/components/NewDropdownMenuDemo.tsx" },
+      { label: "ContextMenu", path: "/context-menu", description: "Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press", source: "packages/solid/src/components/NewContextMenuDemo.tsx" , since: "12.2.0" },
       { label: "Toast", path: "/toast", description: "Imperative toast() + Toaster viewport; variants and actions", source: "packages/solid/src/components/NewToastDemo.tsx" },
     ],
   },
@@ -233,7 +253,7 @@ export const NAV: NavGroup[] = [
       { label: "Icon", path: "/icon", description: "zen-ui icon set (48 glyphs); inherits text colour, decorative by default", source: "packages/solid/src/components/NewIconDemo.tsx" },
       { label: "Object atoms", path: "/object", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/solid/src/components/NewObjectDemo.tsx" },
       { label: "Button family", path: "/button-family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/solid/src/components/NewButtonFamilyDemo.tsx" },
-      { label: "Document tabs", path: "/document-tabs", description: "A workspace's open documents as closable, pinnable tabs with an all-tabs menu", source: "packages/solid/src/components/NewDocumentTabsDemo.tsx" },
+      { label: "Document tabs", path: "/document-tabs", description: "A workspace's open documents as closable, pinnable tabs with an all-tabs menu", source: "packages/solid/src/components/NewDocumentTabsDemo.tsx" , since: "12.2.0" },
       { label: "Toolbar", path: "/toolbar", description: "Actions that collapse into an overflow menu when they do not fit", source: "packages/solid/src/components/NewToolbarDemo.tsx" },
       { label: "Tree", path: "/tree", description: "Hierarchical expandable list with full ARIA keyboard navigation", source: "packages/solid/src/components/NewTreeDemo.tsx" },
     ],

@@ -1,6 +1,7 @@
 import { createMemo, createSignal } from "solid-js";
 import type { ColumnDef } from "@tanstack/solid-table";
 import { DataTable } from "./data-table/data-table";
+import { ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut } from "./context-menu/context-menu";
 import { Badge } from "./badge/badge";
 import { Button } from "./button/button";
 import { CodeExample } from "./demo-helpers";
@@ -243,6 +244,7 @@ const NewDataTableDemo = () => {
   const [virtGrouping, setVirtGrouping] = createSignal<string[]>([]);
   const [lines, setLines] = createSignal(makeLines(2000));
   const [lastEdit, setLastEdit] = createSignal("");
+  const [menuAction, setMenuAction] = createSignal("");
   const applyLineEdits = (edits: { rowId: string; columnId: string; value: unknown }[]) => {
     const byRow = new Map<string, Record<string, unknown>>();
     for (const e of edits) byRow.set(e.rowId, { ...byRow.get(e.rowId), [e.columnId]: e.value });
@@ -503,6 +505,64 @@ const NewDataTableDemo = () => {
           </div>
           <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
             <span data-testid="cells-edited">{lastEdit() || "No changes yet."}</span>
+          </p>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">6d. Context menu on rows</h2>
+        <CodeExample
+          title="contextMenu: a right-click menu for the row, or the selected rows"
+          description="Right-click a row, or focus one (click it, then use the arrows) and press the menu key or Shift+F10. The row becomes the focused one and the menu is for it; select a few rows first and a right-click on one of them acts on all of them. The header keeps the browser's own menu."
+          code={`<DataTable
+  data={people}
+  columns={columns}
+  getRowId={(p) => p.id}
+  enableRowSelection
+  enableKeyboardNavigation
+  enableRowVirtualization
+  contextMenu={({ row, selection }) => (<>
+    <ContextMenuLabel>{selection.length > 1 ? \`\${selection.length} rows\` : row.original.name}</ContextMenuLabel>
+    <ContextMenuItem onSelect={() => openInNewTab(row.original)}>Open in new tab</ContextMenuItem>
+    <ContextMenuItem onSelect={() => copy(selection)}>Copy name</ContextMenuItem>
+    <ContextMenuSeparator />
+    <ContextMenuItem variant="destructive" onSelect={() => remove(selection)}>Delete…</ContextMenuItem>
+  </>)}
+  fillHeight
+/>`}
+        >
+          <div class="zen-flex zen-h-[360px] zen-flex-col">
+            <DataTable
+              data={HUGE.slice(0, 1000)}
+              columns={columns}
+              getRowId={(p) => p.id}
+              enableRowSelection
+              enableKeyboardNavigation
+              enableRowVirtualization
+              rowLabel={(row) => row.original.name}
+              contextMenu={({ row, selection }) => (
+                <>
+                  <ContextMenuLabel>
+                    {selection.length > 1 ? `${selection.length} rows` : row.original.name}
+                  </ContextMenuLabel>
+                  <ContextMenuItem onSelect={() => setMenuAction(`Opened ${row.original.name} in a new tab`)}>
+                    Open in new tab<ContextMenuShortcut>Ctrl+Enter</ContextMenuShortcut>
+                  </ContextMenuItem>
+                  <ContextMenuItem onSelect={() => setMenuAction(`Copied ${selection.map((r) => r.original.name).join(", ")}`)}>
+                    Copy name
+                  </ContextMenuItem>
+                  <ContextMenuItem onSelect={() => setMenuAction(`Duplicated ${row.original.name}`)}>Duplicate</ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem variant="destructive" onSelect={() => setMenuAction(`Asked to delete ${selection.length} row${selection.length === 1 ? "" : "s"}`)}>
+                    Delete…
+                  </ContextMenuItem>
+                </>
+              )}
+              fillHeight
+            />
+          </div>
+          <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            <span data-testid="menu-action">{menuAction() || "Nothing chosen yet."}</span>
           </p>
         </CodeExample>
       </section>
