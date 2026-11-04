@@ -280,7 +280,9 @@ export interface DataTableProps<TData> {
 const TABLE_ROW_CLASS = cn(
   "zen-border-b zen-border-zen-border",
   "zen-transition-[background-color,box-shadow,outline-color] zen-duration-100",
-  "hover:zen-bg-zen-muted/50 hover:zen-shadow-zen-sm",
+  // --zen-table-row-hover (core tokens.css), default the muted colour this
+  // always drew; the old "/50" generated no CSS of its own over a var().
+  "hover:zen-[background-color:var(--zen-table-row-hover)] hover:zen-shadow-zen-sm",
   "data-[state=selected]:zen-bg-zen-primary-soft",
   "data-[state=selected]:zen-[box-shadow:0_4px_12px_0_var(--zen-color-primary-soft)]",
   "data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1 data-[state=selected]:-zen-outline-offset-1 data-[state=selected]:zen-outline-zen-primary",
@@ -294,9 +296,9 @@ const ROW_FOCUS_CLASS = [
 const TABLE_HEAD_CLASS =
   "zen-h-zen-head zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-text-start zen-align-middle zen-[font-size:var(--zen-table-head-font-size)] zen-[line-height:var(--zen-line-height-xs)] zen-[font-weight:var(--zen-table-head-font-weight)] zen-[text-transform:var(--zen-table-head-text-transform)] zen-[letter-spacing:var(--zen-table-head-letter-spacing)] zen-text-zen-muted-fg";
 const TABLE_CELL_CLASS =
-  "zen-px-2 zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground";
+  "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground";
 const VIRT_CELL_CLASS =
-  "zen-px-2 zen-py-zen-cell-y zen-flex zen-items-center zen-text-sm zen-text-zen-foreground zen-min-w-0 zen-overflow-hidden";
+  "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-flex zen-items-center zen-text-sm zen-text-zen-foreground zen-min-w-0 zen-overflow-hidden";
 const VIRT_HEAD_CLASS =
   "zen-h-zen-head zen-flex zen-items-center zen-text-xs zen-font-medium zen-text-zen-muted-fg zen-relative";
 
