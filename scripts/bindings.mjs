@@ -36,11 +36,20 @@ const DATA_DRIVEN_DIVERGENT = [
   "DropdownMenuRadioGroup", "DropdownMenuRadioGroupSpec", "DropdownMenuRadioItem", "DropdownMenuRadioOption", "DropdownMenuSeparator", "DropdownMenuSeparatorItem",
   "DropdownMenuShortcut", "DropdownMenuSide", "DropdownMenuSub", "DropdownMenuSubContent", "DropdownMenuSubSpec", "DropdownMenuSubTrigger",
   "DropdownMenuTrigger", "FieldApi", "FieldState", "Form", "FormControl", "FormController",
+  // ContextMenu (parity A3), same decision as DropdownMenu above and for the same
+  // reason: React's compound parts are wired through context, and with no
+  // framework there is none, so ContextMenu takes the SAME `items` specs as
+  // DropdownMenu (one renderer, one look). Its `el` is React's ContextMenuTrigger;
+  // the rest are rows of data, and `ContextMenuHandle` is the returned handle.
+  "ContextMenuCheckboxItem", "ContextMenuContent", "ContextMenuGroup", "ContextMenuHandle", "ContextMenuItem",
+  "ContextMenuLabel", "ContextMenuPortal", "ContextMenuRadioGroup", "ContextMenuRadioItem", "ContextMenuSeparator",
+  "ContextMenuShortcut", "ContextMenuSub", "ContextMenuSubContent", "ContextMenuSubTrigger", "ContextMenuTrigger",
   "FormErrors", "FormFieldConfig", "FormOptions", "FormSchema", "INPUT_CLASS", "IconHandle",
   "NATIVE_SELECT_CLASS", "NativeSelectOption",
   "InputHandle", "InputOTPGroup", "InputOTPSeparator", "InputOTPSlot", "MaskInputHandle", "NotificationsInboxHandle",
   // AmountField / QuantityField return a handle like NumberField's (parity A1).
   "AmountFieldHandle", "QuantityFieldHandle",
+  "ShortcutHelpHandle", "ShortcutRegistry",
   "NumberFieldHandle", "PasswordInputHandle", "PopoverAlign", "PopoverAnchor", "PopoverContent", "PopoverHandle", "PopoverSide",
   "PopoverTrigger", "RatingSize", "SearchHandle", "SelectDialogHandle", "SelectableCard", "SelectableCardItemSpec", "SheetClose",
   "SheetContent", "SheetDescription", "SheetFooter", "SheetHandle", "SheetHeader", "SheetOverlay",

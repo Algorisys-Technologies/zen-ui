@@ -43,6 +43,9 @@ export type { SelectProps, SelectOption } from "./components/form/select/select"
 
 export { Combobox } from "./components/combobox/combobox";
 export type { ComboboxProps, ComboboxOption } from "./components/combobox/combobox";
+// TreeSelect (pick one node from a hierarchy; tree logic in core)
+export { TreeSelect } from "./components/tree-select/tree-select";
+export type { TreeSelectProps, TreeSelectNode } from "./components/tree-select/tree-select";
 
 // ---- Wave A: display primitives ------------------------------------------
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants } from "./components/card/card";
@@ -161,6 +164,10 @@ export { Stepper } from "./components/stepper/stepper";
 export type { StepperProps, StepperStep, StepStatus, StepperApi, StepperHandle, StepperNavigationOptions } from "./components/stepper/stepper";
 export { Toolbar } from "./components/toolbar/toolbar";
 export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
+
+// DocumentTabs (Zen-shaped: a workspace's open documents; the panels are the app's)
+export { DocumentTabs } from "./components/document-tabs/document-tabs";
+export type { DocumentTabsProps, DocumentTab } from "./components/document-tabs/document-tabs";
 export { Carousel } from "./components/carousel/carousel";
 export type { CarouselProps } from "./components/carousel/carousel";
 
@@ -172,6 +179,8 @@ export { formatMediaTime, MIN_MEDIA_RANGE } from "@algorisys/zen-ui-core/media";
 export type { MediaRange, MediaRangeMode, WaveformClip } from "@algorisys/zen-ui-core/media";
 export { DropdownMenu } from "./components/dropdown-menu/dropdown-menu";
 export type { DropdownMenuProps, DropdownMenuHandle, DropdownMenuItemSpec, DropdownMenuActionItem, DropdownMenuLabelItem, DropdownMenuSeparatorItem, DropdownMenuCheckboxItemSpec, DropdownMenuRadioGroupSpec, DropdownMenuRadioOption, DropdownMenuSubSpec, DropdownMenuSide, DropdownMenuAlign } from "./components/dropdown-menu/dropdown-menu";
+export { ContextMenu } from "./components/context-menu/context-menu";
+export type { ContextMenuProps, ContextMenuHandle } from "./components/context-menu/context-menu";
 export { FileUpload } from "./components/file-upload/file-upload";
 export type { FileUploadProps, FileRejection } from "./components/file-upload/file-upload";
 export { ColorPicker, ColorPalette } from "./components/color-picker/color-picker";
@@ -188,6 +197,9 @@ export type { SidebarContextValue, SidebarProviderProps, SidebarProviderHandle, 
 
 export { Calendar, DatePicker } from "./components/form/date-picker/date-picker";
 export type { CalendarProps, CalendarMode, CalendarSelected, DateRange, DatePickerProps } from "./components/form/date-picker/date-picker";
+// DateInput (a typed date in the locale's order; the calendar as a second way in)
+export { DateInput, isTypedDate } from "./components/form/date-picker/date-input";
+export type { DateInputProps, DateOrder } from "./components/form/date-picker/date-input";
 export { NotificationsInbox } from "./components/notifications-inbox/notifications-inbox";
 export type { NotificationsInboxProps, NotificationsInboxHandle, Notification } from "./components/notifications-inbox/notifications-inbox";
 export { VirtualizedItems } from "./components/listbox/virtualized-items";
@@ -467,3 +479,23 @@ export { DiffView } from "./components/diff-view/diff-view";
 export type { DiffViewProps } from "./components/diff-view/diff-view";
 export { computeDiff, parseSnapshot, isKeyed } from "@algorisys/zen-ui-core/diff";
 export type { DiffRow, DiffKind, DiffOptions, DiffSnapshot } from "@algorisys/zen-ui-core/diff";
+// Keyboard shortcuts: key caps, a registry with scopes, and the "?" overlay
+export {
+  ShortcutProvider,
+  ShortcutHelp,
+  Kbd,
+  useShortcut,
+  useShortcuts,
+  keyshortcut,
+  shortcutLabel,
+  detectPlatform,
+} from "./components/shortcuts/shortcuts";
+export type {
+  ShortcutOptions,
+  ShortcutProviderProps,
+  ShortcutHelpProps,
+  ShortcutHelpGroup,
+  ShortcutHelpHandle,
+  KbdProps,
+  ShortcutRegistry,
+} from "./components/shortcuts/shortcuts";

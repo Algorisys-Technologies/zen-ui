@@ -18,19 +18,19 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 |---|---|---|---|---|
 | L | LocaleProvider / useLocale | ok (e94479a) | ok | ok (re-export; `<zen-locale-provider>` with unit S) |
 | A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | ok | ok | ok |
-| A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | wip | wip |
-| A3 | ContextMenu | ok | wip | wip |
-| A4 | DocumentTabs | ok | wip | wip |
+| A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | ok | ok |
+| A3 | ContextMenu | ok | ok | ok |
+| A4 | DocumentTabs | ok | ok | ok |
 | A5 | Tile, TileGrid | ok | ok | ok |
 | A6 | QRCode, Barcode | ok | ok | ok |
-| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | wip | wip |
-| A8 | TreeSelect | ok | — | — |
+| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | ok | ok |
+| A8 | TreeSelect | ok | wip | wip |
 | A9 | LookupField | ok | — | — |
-| A10 | FilterBuilder | ok | — | — |
-| A11 | ViewManager | ok | — | — |
-| A12 | Sidebar collapseMode / overlay / badges / header label | ok | — | — |
-| A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | — | — |
-| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok (contextMenu: D2 wip) | — | — |
+| A10 | FilterBuilder | ok | wip | wip |
+| A11 | ViewManager | ok | wip | wip |
+| A12 | Sidebar collapseMode / overlay / badges / header label | ok | wip | wip |
+| A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | wip | wip |
+| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok | wip | wip |
 | S | Strings: the binding's components read the message catalogue; check:strings per binding | — | — | — |
 
 ## Log
@@ -138,3 +138,33 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   Six orphaned preview servers from finished agents stopped.
 - 2026-11-05: wave 2 launched: D2 React (DataTable contextMenu), vanilla+WC
   A2, A3, A4, A7. Agent notes for vanilla in the scratchpad VANILLA-NOTES.md.
+- 2026-11-05: D2 React merged (DataTable contextMenu 10/10, + 8/8 with cell
+  navigation in a temporary build; /data-table 32 -> 33 sections, none changed).
+  **check:parity: Solid <-> React clean in both directions.** Radix reads the
+  trigger's `disabled` during the same event, so the target is committed in the
+  capture phase with flushSync (a header right-click after a row's otherwise
+  opened the row's menu).
+- 2026-11-05: A4 vanilla+WC merged (DocumentTabs 35/35 on both, results file
+  byte-identical to React's; update({tabs}) reconciles by id and keeps focus).
+- 2026-11-05: D vanilla+WC, A8 vanilla+WC, A12 vanilla+WC launched.
+- 2026-11-05: A7 vanilla+WC merged (DateInput 28/28, calendar keys 31/31 on
+  both; 107/109 routes identical per binding, /date-picker extended, `/` count).
+  Vanilla's calendar had NO arrow keys before (measured); default DatePicker
+  focus (the panel) unchanged. Shift+arrows follow React; disabled days are
+  stepped over (react-day-picker does; Solid does not — noted). WC names the
+  inner input via `input-id` / `input-aria-label` (as <zen-tag-input>).
+  Known: vanilla Calendar/DatePicker hard-code "Previous month", "Next month",
+  "Pick a date" (unit S). A10 vanilla+WC launched.
+- 2026-11-05: A2 vanilla+WC merged (Shortcuts 12/12 both; vanilla registry
+  15/15; WC 7/7). Vanilla ShortcutProvider takes a children function like
+  LocaleProvider and useShortcut returns its release; WC uses one document
+  registry (`documentShortcuts()`) with <zen-shortcut> / <zen-kbd> /
+  <zen-shortcut-help>, since a provider element cannot reach parsed children.
+- 2026-11-05: A3 vanilla+WC merged (ContextMenu 11/11 + 4/4 + 11/11 both).
+  Data-driven like vanilla DropdownMenu (same item specs and drawing code, in
+  the new `menu-engine.ts`; DropdownMenu's 11 menus byte-identical). React's 14
+  compound part names are divergences in bindings.mjs, as DropdownMenu's are.
+  Noted, not changed: vanilla DropdownMenu opened from the keyboard under a
+  resting mouse loses first-item focus to the row under the cursor
+  (ContextMenu uses pointermove and does not).
+- 2026-11-05: A11 and A13 vanilla+WC launched.

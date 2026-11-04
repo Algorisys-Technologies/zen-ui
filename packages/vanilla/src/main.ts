@@ -26,6 +26,7 @@ import SearchDemo from "./components/SearchDemo";
 import PasswordInputDemo from "./components/PasswordInputDemo";
 import SelectDemo from "./components/SelectDemo";
 import ComboboxDemo from "./components/ComboboxDemo";
+import TreeSelectDemo from "./components/TreeSelectDemo";
 import SeparatorDemo from "./components/SeparatorDemo";
 import ProgressDemo from "./components/ProgressDemo";
 import LoadingDemo from "./components/LoadingDemo";
@@ -39,6 +40,7 @@ import MessagePopoverDemo from "./components/MessagePopoverDemo";
 import StackDemo from "./components/StackDemo";
 import StatCardDemo from "./components/StatCardDemo";
 import TileDemo from "./components/TileDemo";
+import DocumentTabsDemo from "./components/DocumentTabsDemo";
 import CardDemo from "./components/CardDemo";
 import PaperDemo from "./components/PaperDemo";
 import EmptyStateDemo from "./components/EmptyStateDemo";
@@ -52,6 +54,7 @@ import SwitchDemo from "./components/SwitchDemo";
 import PageHeaderDemo from "./components/PageHeaderDemo";
 import NumberFieldDemo from "./components/NumberFieldDemo";
 import AmountFieldDemo from "./components/AmountFieldDemo";
+import ShortcutsDemo from "./components/ShortcutsDemo";
 import TextareaDemo from "./components/TextareaDemo";
 import SliderDemo from "./components/SliderDemo";
 import CheckboxDemo from "./components/CheckboxDemo";
@@ -75,6 +78,7 @@ import StepperDemo from "./components/StepperDemo";
 import ToolbarDemo from "./components/ToolbarDemo";
 import CarouselDemo from "./components/CarouselDemo";
 import DropdownMenuDemo from "./components/DropdownMenuDemo";
+import ContextMenuDemo from "./components/ContextMenuDemo";
 import FileUploadDemo from "./components/FileUploadDemo";
 import ColorPickerDemo from "./components/ColorPickerDemo";
 import MultiComboboxDemo from "./components/MultiComboboxDemo";
@@ -82,6 +86,7 @@ import ShellBarDemo from "./components/ShellBarDemo";
 import SkipToContentDemo from "./components/SkipToContentDemo";
 import SidebarDemo from "./components/SidebarDemo";
 import DatePickerDemo from "./components/DatePickerDemo";
+import DateInputDemo from "./components/DateInputDemo";
 import NotificationsInboxDemo from "./components/NotificationsInboxDemo";
 import VirtualizedItemsDemo from "./components/VirtualizedItemsDemo";
 import FilterBarDemo from "./components/FilterBarDemo";
@@ -145,6 +150,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/password-input": PasswordInputDemo,
   "/select": SelectDemo,
   "/combobox": ComboboxDemo,
+  "/tree-select": TreeSelectDemo,
   "/separator": SeparatorDemo,
   "/progress": ProgressDemo,
   "/loading": LoadingDemo,
@@ -192,14 +198,17 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/scroll-area": ScrollAreaDemo,
   "/stepper": StepperDemo,
   "/toolbar": ToolbarDemo,
+  "/document-tabs": DocumentTabsDemo,
   "/carousel": CarouselDemo,
   "/dropdown-menu": DropdownMenuDemo,
+  "/context-menu": ContextMenuDemo,
   "/file-upload": FileUploadDemo,
   "/color-picker": ColorPickerDemo,
   "/multi-combobox": MultiComboboxDemo,
   "/skip-to-content": SkipToContentDemo,
   "/shellbar": ShellBarDemo,
   "/sidebar": SidebarDemo,
+  "/date-input": DateInputDemo,
   "/date-picker": DatePickerDemo,
   "/notifications-inbox": NotificationsInboxDemo,
   "/virtualized-items": VirtualizedItemsDemo,
@@ -215,6 +224,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/object-page": ObjectPageLayoutDemo,
   "/dynamic-date-range": DynamicDateRangeDemo,
   "/toast": ToastDemo,
+  "/shortcuts": ShortcutsDemo,
   "/rich-text": RichTextDemo,
   "/camera": CameraDemo,
   "/barcode": BarcodeDemo,
