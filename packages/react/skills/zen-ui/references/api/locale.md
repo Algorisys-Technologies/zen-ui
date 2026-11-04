@@ -563,6 +563,36 @@ SKILL.md.
 - `productionSchedule.collapseResource: string`
 - `productionSchedule.expandResource: string`
 - `map.loading: string`
+- `loading.label: string`
+- `timePicker.period: string`
+- `dynamicDateRange.last: string`
+- `dynamicDateRange.next: string`
+- `combobox.searching: string`
+- `countdown.remaining: string`
+- `countdown.labelRemaining: string`
+- `camera.capture: string`
+- `camera.loading: string`
+- `chunkUploader.progress: string`
+- `chunkUploader.uploaded: string`
+- `chunkUploader.failed: string`
+- `chunkUploader.paused: string`
+- `chunkUploader.ready: string`
+- `chunkUploader.retry: string`
+- `chunkUploader.resume: string`
+- `chunkUploader.upload: string`
+- `chunkUploader.fileUploaded: string`
+- `chunkUploader.fileFailed: string`
+- `codeEditor.loadingEditor: string`
+- `chart.loading: string`
+- `filterBar.noFilters: string`
+- `qrScanner.cameraView: string`
+- `qrScanner.cameraBlocked: string`
+- `richText.preview: string`
+- `dataTable.loading: string`
+- `dataTable.editCell: string`
+- `dataTable.all: string`
+- `pivot.filterLabel: string`
+- `pivot.searchLabel: string`
 
 ### Other exports
 
