@@ -232,7 +232,10 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
           this.dispatchEvent(
             new CustomEvent(evt, { detail: args.length <= 1 ? args[0] : args, bubbles: true }),
           );
-          user?.(...args);
+          // Returned, not dropped: a factory may wait on what its callback
+          // gives back (ViewManager's dialogs wait on a save's Promise and show
+          // its error). Only an ASSIGNED callback can answer; a listener cannot.
+          return user?.(...args);
         };
       }
 

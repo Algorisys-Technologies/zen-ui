@@ -124,6 +124,7 @@ import "./tooltip";
 import "./tree";
 import "./value-help";
 import "./view-settings";
+import "./view-manager";
 import "./virtualized-items";
 import "./waveform";
 

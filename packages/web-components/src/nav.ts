@@ -169,6 +169,7 @@ export const NAV: NavGroup[] = [
       { to: "/select-dialog", label: "SelectDialog", description: "Searchable list picker — single commits on click, multi commits on OK", source: "packages/web-components/src/components/SelectDialogDemo.ts" },
       { to: "/value-help", label: "ValueHelp", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/web-components/src/components/ValueHelpDemo.ts" },
       { to: "/view-settings", label: "ViewSettingsDialog", description: "Sort / group / filter settings; commits on OK", source: "packages/web-components/src/components/ViewSettingsDemo.ts" },
+      { to: "/view-manager", label: "ViewManager", description: "Saved views beside the page title: name, save, save as, set as default, manage and share a list screen's filters, sort and columns as one object; storage stays the app's", source: "packages/web-components/src/components/ViewManagerDemo.ts" },
     ],
   },
   {
