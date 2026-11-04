@@ -217,6 +217,7 @@ export const NAV: NavGroup[] = [
       { label: "ProductionSchedule", path: "/production-schedule", description: "Shop-floor schedule \u2014 work centres as rows holding many operations in lanes, changeovers drawn as time the machine is busy making nothing, finite capacity with overload, and a load histogram of booked over available WORKING hours", source: "packages/solid/src/components/NewProductionScheduleDemo.tsx" },
       { label: "Pivot", path: "/pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/solid/src/components/NewPivotDemo.tsx" },
       { label: "Combobox", path: "/combobox", description: "Sync options or async onSearch with debounced loading", source: "packages/solid/src/components/NewComboboxDemo.tsx" , updated: "12.2.0" },
+      { label: "TreeSelect", path: "/tree-select", description: "Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors", source: "packages/solid/src/components/NewTreeSelectDemo.tsx", since: "12.2.0" },
       { label: "MultiCombobox", path: "/multi-combobox", description: "Multi-select with chip trigger + overflow collapse", source: "packages/solid/src/components/NewMultiComboboxDemo.tsx" },
       { label: "VirtualizedItems", path: "/lazy-options", description: "Drop-in windowing for huge option lists", source: "packages/solid/src/components/NewLazyOptionsDemo.tsx" },
     ],

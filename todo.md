@@ -81,6 +81,17 @@ issue / PR when its turn comes.
       call. Found and fixed in DataTable's BodyTable props (2026-11-04); worth a
       sweep of the other components' native handlers.
 
+## Parity: TreeSelect (Solid only, 2026-11-04)
+
+- [ ] Port with the parity pass, on core's `tree-select` (shared already):
+      combobox + role="tree" popup with aria-activedescendant; typing into the
+      closed field starts a fresh search; the first pickable match active; ← →
+      are the text's while there is text; only a key scrolls the list (hover
+      would slide it under the pointer); groups in leavesOnly are operable, not
+      aria-disabled. Demo /tree-select. ERPNext review B4.
+- [ ] A tree mode for ValueHelp (B4's second half), and async children for big
+      trees.
+
 ## Parity: Tile and TileGrid (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass: tiles as links / buttons / plain elements by

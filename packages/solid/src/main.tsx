@@ -46,6 +46,7 @@ import NewSheetDemo from "./components/NewSheetDemo";
 import NewDropdownMenuDemo from "./components/NewDropdownMenuDemo";
 import NewContextMenuDemo from "./components/NewContextMenuDemo";
 import NewTileDemo from "./components/NewTileDemo";
+import NewTreeSelectDemo from "./components/NewTreeSelectDemo";
 import NewSelectDemo from "./components/NewSelectDemo";
 import NewScrollAreaDemo from "./components/NewScrollAreaDemo";
 import NewToastDemo from "./components/NewToastDemo";
@@ -180,6 +181,7 @@ render(
       <Route path="/dropdown-menu" component={NewDropdownMenuDemo} />
       <Route path="/context-menu" component={NewContextMenuDemo} />
       <Route path="/tile" component={NewTileDemo} />
+      <Route path="/tree-select" component={NewTreeSelectDemo} />
       <Route path="/select" component={NewSelectDemo} />
       <Route path="/scroll-area" component={NewScrollAreaDemo} />
       <Route path="/toast" component={NewToastDemo} />

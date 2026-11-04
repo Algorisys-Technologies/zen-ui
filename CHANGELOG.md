@@ -16,6 +16,17 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **TreeSelect** (Solid; new): pick one node from a hierarchy, the chart of
+  accounts, item groups, cost centres. Type to search: every match shows under
+  its ancestors (opened), so "Cash" and "Cash Credit" read as the different
+  accounts they are, and the first match you can pick is the active one.
+  `leavesOnly` lets only end nodes be picked (groups open and close);
+  `showPath` shows "Assets › Current Assets › Bank" in the closed field;
+  `invalid`, `disabled`, `id` for `<label for>`. Keys as a tree view (→ opens or
+  steps in, ← closes or steps out), focus staying in the field with
+  aria-activedescendant. The pure half is core's new
+  `@algorisys/zen-ui-core/tree-select`, checked by `bun run check:tree-select`
+  (809 assertions; fails 20 with ancestors dropped on purpose).
 - **Tile and TileGrid** (Solid; new): a launchpad. A tile has a mark (two
   letters or an icon), a name and a live line ("131 records"); it is a link
   with `href` (`as` takes a router link) or a button with `onClick`, and has

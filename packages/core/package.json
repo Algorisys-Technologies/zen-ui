@@ -32,6 +32,7 @@
     "./flexible-column-layout": "./src/flexible-column-layout.ts",
     "./row-keys": "./src/row-keys.ts",
     "./grid-range": "./src/grid-range.ts",
+    "./tree-select": "./src/tree-select.ts",
     "./countdown": "./src/countdown.ts",
     "./chunk-upload": "./src/chunk-upload.ts",
     "./spreadsheet": "./src/spreadsheet.ts",

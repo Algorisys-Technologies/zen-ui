@@ -595,6 +595,8 @@ export type {
 } from "@algorisys/zen-ui-core/pivot";
 
 export { Tile, TileGrid } from "./components/tile/tile";
+export { TreeSelect } from "./components/tree-select/tree-select";
+export type { TreeSelectProps, TreeSelectNode } from "./components/tree-select/tree-select";
 export type { TileProps, TileGridProps } from "./components/tile/tile";
 export { DataTable } from "./components/data-table/data-table";
 export {
