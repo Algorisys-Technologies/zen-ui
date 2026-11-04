@@ -73,6 +73,7 @@ import RatingDemo from "./components/RatingDemo";
 import ScrollAreaDemo from "./components/ScrollAreaDemo";
 import StepperDemo from "./components/StepperDemo";
 import ToolbarDemo from "./components/ToolbarDemo";
+import DocumentTabsDemo from "./components/DocumentTabsDemo";
 import CarouselDemo from "./components/CarouselDemo";
 import DropdownMenuDemo from "./components/DropdownMenuDemo";
 import FileUploadDemo from "./components/FileUploadDemo";
@@ -192,6 +193,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/scroll-area": ScrollAreaDemo,
   "/stepper": StepperDemo,
   "/toolbar": ToolbarDemo,
+  "/document-tabs": DocumentTabsDemo,
   "/carousel": CarouselDemo,
   "/dropdown-menu": DropdownMenuDemo,
   "/file-upload": FileUploadDemo,
