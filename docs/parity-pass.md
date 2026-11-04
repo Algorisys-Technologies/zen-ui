@@ -254,4 +254,8 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
   Left: ProductionSchedule's "h"/"m" units in Solid/React (vanilla has keys);
   NotificationsInbox older dates use the browser locale (changing it changes
   output).
-- 2026-11-05: **all units done.** Full ship gate running (measure only).
+- 2026-11-05: **all units done.** Full gate on the integrated tree: check 0;
+  lint 0 in all four; four demo builds; visual-check 121/120/117/117 routes,
+  no runtime errors; schedule-dom:all 0; check:dist FAILS one React budget
+  (both schedules 76/75 kB): the catalogue (9.3 kB gzip) now reaches every
+  React component. Not raised: an owner decision (handoff.md).

@@ -39,6 +39,19 @@ that verified Solid.
 
 ## Decisions waiting for the owner
 
+0. **`check:dist` fails one size budget, and it should not be raised
+   silently.** React "both schedules" is 76 kB gzip against a 75 kB budget;
+   every React case grew ~10 kB (nine components 58 -> 68, Gantt 56 -> 66,
+   ProductionSchedule 60 -> 70 at its 70 limit). The whole of it is the
+   message catalogue: 722 messages, **9.3 kB gzip minified**, imported as one
+   object by every translated component, so a bundler cannot keep only the
+   keys a page uses. (Solid has paid this since 12.2.0; only its Button is
+   budgeted.) Options: (a) accept it as the cost of translation and raise the
+   React budgets by 10 kB with this measurement as the reason; (b) split the
+   catalogue so each component ships only its own namespace's defaults
+   (a refactor in core and all four bindings; keeps the budgets). Until one is
+   chosen, the release gate is red on this one line.
+
 1. **Ship 12.3.0?** Not done: "ship it" was not said. CLAUDE.md's ship step
    `git merge --ff-only dev` cannot work any more (main has had merge commits
    since 12.0.1); 12.1.0–12.2.0 used "Merge dev into main". Choose: document
@@ -51,6 +64,13 @@ that verified Solid.
    likely React) since before 12.1.1; fixing it changes every label's height
    (todo.md, next major).
 
+## Gate on the integrated tree (2026-11-05, after every merge)
+
+`bun run check` 0 · lint 0 problems in all four (282 / 280 / 269 / 255 files)
+· all four demo builds · visual-check react 121, solid 120, vanilla 117, WC 117
+routes, no runtime errors · `check:schedule-dom:all` 0 · `check:dist` 1 (the
+budget above; everything else in it passes).
+
 ## Verify
 
 ```bash
@@ -61,6 +81,5 @@ node scripts/visual-check.mjs react   # builds needed first: bun run build etc.
 
 ## Next
 
-Merge the three running units (vanilla DataTable editing / cell nav / virt;
-React strings; vanilla + WC strings and `<zen-locale-provider>`), then the
-full gate, then wait for "ship it".
+Every unit is merged. Decide the size budget (0 above), then "ship it" for
+12.3.0 (CLAUDE.md procedure + the dist-pkg / npm-package-react refresh).
