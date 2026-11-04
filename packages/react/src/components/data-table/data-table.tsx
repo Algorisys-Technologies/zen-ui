@@ -87,7 +87,7 @@ import {
   type CellEditPayload,
   type EditingState,
 } from "./edit-cell";
-import { BodyTable } from "./body-table";
+import { BodyTable, RowDragContext } from "./body-table";
 
 /**
  * DataTable — headless via @tanstack/react-table, optionally virtualized
@@ -150,7 +150,27 @@ export interface DataTableProps<TData, TValue = unknown> {
   enableColumnFilters?: boolean;
   enableRowSelection?: boolean;
   enableColumnVisibility?: boolean;
+  /**
+   * The older virtualized body: a grid of divs, not the table, so it renders
+   * differently and cannot group, expand sub-rows, reorder rows or take
+   * keyboard navigation. Kept as it is for the tables already built on it;
+   * new tables want `enableRowVirtualization`.
+   */
   enableVirtualization?: boolean;
+  /**
+   * Render only the rows in view, inside the regular table: the same rows,
+   * cells and features as an unvirtualized table (grouping, sub-rows,
+   * keyboard navigation, cell navigation, editing, pinning, a sticky header,
+   * `fillHeight`), for thousands of rows. Heights are measured, so group rows
+   * and expanded sub-rows may differ from the rest. The rows scroll inside
+   * the table: give it `fillHeight` or it is capped at `maxBodyHeight`.
+   * Columns keep their widths as rows come and go (the table lays out from
+   * the header). With `enableRowOrdering`, rows are dragged by the table
+   * itself, to anywhere in it (it scrolls near its edges; Esc cancels), and
+   * expanded panels are off. Wins over `enableVirtualization` when both are
+   * set.
+   */
+  enableRowVirtualization?: boolean;
   /** Drag column headers sideways to reorder. Persists nothing — caller can lift onColumnOrderChange. */
   enableColumnOrdering?: boolean;
   onColumnOrderChange?: (order: string[]) => void;
@@ -516,6 +536,7 @@ export function DataTable<TData, TValue = unknown>({
   rowLabel,
   enableColumnVisibility = false,
   enableVirtualization = false,
+  enableRowVirtualization = false,
   enableColumnSeparators = false,
   enableRowOrdering = false,
   onRowOrderChange,
@@ -557,7 +578,7 @@ export function DataTable<TData, TValue = unknown>({
   pageSize = 10,
   pageSizeOptions = [10, 20, 50, 100],
   maxBodyHeight = 480,
-  rowEstimatedHeight = 44,
+  rowEstimatedHeight,
   globalFilterPlaceholder = "Search…",
   emptyMessage = "No results.",
   loading = false,
@@ -655,9 +676,15 @@ export function DataTable<TData, TValue = unknown>({
    * or absolute-position-incompatible drag (enableRowOrdering) is
    * silently disabled when virt is on. Dev-mode warnings below tell
    * callers which combo was rejected. */
-  const rowOrderingActive = enableRowOrdering && !enableVirtualization;
-  const groupingActive = enableGrouping && !enableVirtualization;
-  const subRowActive = !!renderSubRow && !enableVirtualization;
+  /* Row virtualization renders the regular table and keeps all three; only
+   * the older div-grid body gates them. Its rows are dragged by BodyTable
+   * itself rather than dnd-kit, which can drop only on a mounted row. */
+  const rowVirtual = enableRowVirtualization;
+  const legacyVirtual = enableVirtualization && !rowVirtual;
+  const rowOrderingActive = enableRowOrdering && !legacyVirtual;
+  const virtualRowDrag = rowOrderingActive && rowVirtual;
+  const groupingActive = enableGrouping && !legacyVirtual;
+  const subRowActive = !!renderSubRow && !legacyVirtual;
   /* renderSubRow OR grouping — both rely on getExpandedRowModel.
    * Both are already virt-gated above. */
   const expansionEnabled = subRowActive || groupingActive;
@@ -666,7 +693,7 @@ export function DataTable<TData, TValue = unknown>({
    * with enableVirtualization. We deliberately log instead of throwing
    * so production builds don't crash on a stale prop combo. */
   React.useEffect(() => {
-    if (!enableVirtualization) return;
+    if (!legacyVirtual) return;
     /* Vite + most bundlers replace import.meta.env.DEV statically at
      * build time, so the warning block tree-shakes out of production. */
     if (!import.meta.env?.DEV) return;
@@ -690,7 +717,7 @@ export function DataTable<TData, TValue = unknown>({
           "aggregated values as scalars). Disable virtualization to use grouping.",
       );
     }
-  }, [enableVirtualization, enableRowOrdering, renderSubRow, enableGrouping]);
+  }, [legacyVirtual, enableRowOrdering, renderSubRow, enableGrouping]);
 
   /* The table, for the column filters below, which are built before it. */
   const tableRef = React.useRef<TanStackTable<TData> | null>(null);
@@ -1009,6 +1036,10 @@ export function DataTable<TData, TValue = unknown>({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
   const rowIds = React.useMemo(() => rows.map((r) => r.id), [rows]);
+  /* A virtualized drag reports positions, not a dnd-kit event. */
+  const handleRowMove = (from: number, to: number) => {
+    onRowOrderChange?.(arrayMove(rowIds, from, to));
+  };
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -1057,7 +1088,8 @@ export function DataTable<TData, TValue = unknown>({
 
   /* Sticky header is meaningful only outside virtualized mode (the
    * virtualized body already pins its header). */
-  const stickyHeaderActive = (stickyHeader || fillHeight) && !enableVirtualization;
+  /* Row virtualization scrolls the rows inside the table, so its header sticks. */
+  const stickyHeaderActive = (stickyHeader || fillHeight || rowVirtual) && !legacyVirtual;
 
   /* Effective column IDs in display order, for the horizontal SortableContext */
   const visibleColumnIds = React.useMemo(
@@ -1224,6 +1256,8 @@ export function DataTable<TData, TValue = unknown>({
     </TableFooter>
   ) : null;
 
+  /* Rows sorted by dnd-kit: unvirtualized row ordering. */
+  const sortableRows = rowOrderingActive && !virtualRowDrag;
   const tableBody = (
     <BodyTable
       table={table}
@@ -1254,9 +1288,14 @@ export function DataTable<TData, TValue = unknown>({
       renderCell={renderCell}
       expansionEnabled={rowOrderingActive ? false : expansionEnabled}
       renderSubRow={rowOrderingActive ? undefined : renderSubRow}
-      rowOrderingActive={rowOrderingActive}
-      keyboard={!rowOrderingActive && enableKeyboardNavigation && !enableCellNavigation}
-      cellNav={!rowOrderingActive && enableCellNavigation}
+      rowOrderingActive={rowOrderingActive && !virtualRowDrag}
+      keyboard={!sortableRows && enableKeyboardNavigation && !enableCellNavigation}
+      cellNav={!sortableRows && enableCellNavigation}
+      virtualize={rowVirtual}
+      estimatedRowHeight={rowEstimatedHeight}
+      headerRowCount={table.getHeaderGroups().length * (enablePerColumnFilters ? 2 : 1)}
+      rowDrag={virtualRowDrag}
+      onRowMove={handleRowMove}
       editCells={editCells}
       selectable={enableRowSelection}
       onRowActivate={onRowActivate}
@@ -1311,11 +1350,11 @@ export function DataTable<TData, TValue = unknown>({
         )}
         aria-busy={loading || undefined}
       >
-        {enableVirtualization ? (
+        {legacyVirtual ? (
           <VirtualizedBody
             table={table}
             maxHeight={maxBodyHeight}
-            estimatedRowHeight={rowEstimatedHeight}
+            estimatedRowHeight={rowEstimatedHeight ?? 44}
             emptyMessage={emptyMessage}
             loading={loading}
             enableColumnPinning={enableColumnPinning}
@@ -1332,7 +1371,7 @@ export function DataTable<TData, TValue = unknown>({
             rowClassName={rowClassName}
             headerVariant={headerVariant}
           />
-        ) : rowOrderingActive ? (
+        ) : sortableRows ? (
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -2117,7 +2156,41 @@ function savePersistedState(
 }
 
 /* ----------------------------- Drag handle + sortable row ------------ */
+const dragHandleClass = cn(
+  "zen-cursor-grab active:zen-cursor-grabbing zen-inline-flex zen-items-center zen-justify-center",
+  "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0",
+  "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
+  "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+);
+const GripIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <circle cx="9" cy="6" r="1.6" />
+    <circle cx="15" cy="6" r="1.6" />
+    <circle cx="9" cy="12" r="1.6" />
+    <circle cx="15" cy="12" r="1.6" />
+    <circle cx="9" cy="18" r="1.6" />
+    <circle cx="15" cy="18" r="1.6" />
+  </svg>
+);
+
+/* A virtualized body drags its rows itself (RowDragContext); otherwise the
+ * handle is dnd-kit's. */
 function DragHandle({ id }: { id: string }) {
+  const drag = React.useContext(RowDragContext);
+  if (!drag?.active) return <SortableDragHandle id={id} />;
+  return (
+    <button
+      type="button"
+      aria-label="Drag to reorder row"
+      className={cn(dragHandleClass, "zen-touch-none")}
+      onPointerDown={(e) => drag.start(id, e)}
+    >
+      <GripIcon />
+    </button>
+  );
+}
+
+function SortableDragHandle({ id }: { id: string }) {
   const { attributes, listeners, setActivatorNodeRef } = useSortable({ id });
   return (
     <button
@@ -2126,21 +2199,9 @@ function DragHandle({ id }: { id: string }) {
       {...attributes}
       {...listeners}
       aria-label="Drag to reorder row"
-      className={cn(
-        "zen-cursor-grab active:zen-cursor-grabbing zen-inline-flex zen-items-center zen-justify-center",
-        "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0",
-        "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
-        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-      )}
+      className={dragHandleClass}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <circle cx="9" cy="6" r="1.6" />
-        <circle cx="15" cy="6" r="1.6" />
-        <circle cx="9" cy="12" r="1.6" />
-        <circle cx="15" cy="12" r="1.6" />
-        <circle cx="9" cy="18" r="1.6" />
-        <circle cx="15" cy="18" r="1.6" />
-      </svg>
+      <GripIcon />
     </button>
   );
 }

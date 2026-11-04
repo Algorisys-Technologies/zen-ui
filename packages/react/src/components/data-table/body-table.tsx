@@ -2,6 +2,12 @@ import * as React from "react";
 import type { Cell, Column, Row, Table as TanStackTable } from "@tanstack/react-table";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  defaultRangeExtractor,
+  measureElement as measureRowElement,
+  useVirtualizer,
+  type Range,
+} from "@tanstack/react-virtual";
 import { cellKeyTarget, ownsArrowKeys, rowKeyTarget, type GridCell } from "@algorisys/zen-ui-core/row-keys";
 import {
   clampRange,
@@ -56,7 +62,29 @@ export interface BodyTableProps<TData> {
   /** Move cell by cell (enableCellNavigation): see the cell navigation section. */
   cellNav?: boolean;
   editCells?: (edits: CellEditPayload[]) => void;
+  /** Render only the rows in view (enableRowVirtualization). Fixed for the table's life. */
+  virtualize?: boolean;
+  /** Unset: learned from the first row measured. */
+  estimatedRowHeight?: number;
+  /** Header rows above the body, for aria-rowcount / aria-rowindex. */
+  headerRowCount?: number;
+  /** Drag rows by their handle, virtualized: see startDrag. */
+  rowDrag?: boolean;
+  onRowMove?: (from: number, to: number) => void;
 }
+
+/** One rendered body row when virtualized: a data row, or the panel an expanded row opens. */
+interface BodyItem<TData> {
+  kind: "row" | "sub";
+  row: Row<TData>;
+}
+type VirtRow = { index: number; measure: (el: Element | null) => void };
+
+/** Provided by a virtualized body that drags its rows itself (see BodyTable's startDrag). */
+export const RowDragContext = React.createContext<{
+  active: boolean;
+  start: (rowId: string, e: React.PointerEvent) => void;
+} | null>(null);
 
 type EditMeta = {
   editable?: boolean | ((row: unknown) => boolean);
@@ -89,10 +117,40 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
     onRowActivate,
     rowLabel,
     cellNav,
+    virtualize,
+    rowDrag,
   } = props;
   const rows = table.getRowModel().rows;
   const tableRef = React.useRef<HTMLTableElement>(null);
+  // The <table> as state too, for VirtualRows: a child's layout effects run
+  // before its ancestors' refs are attached, so on the first commit the
+  // virtualizer would find no scroller, and nothing would ask it again.
+  const [tableEl, setTableEl] = React.useState<HTMLTableElement | null>(null);
+  const setTableRef = React.useCallback((el: HTMLTableElement | null) => {
+    tableRef.current = el;
+    setTableEl(el);
+  }, []);
   const rowIndex = React.useMemo(() => new Map(rows.map((r, i) => [r.id, i])), [rows]);
+  const colCount = table.getAllLeafColumns().length;
+
+  // Virtualized, the body is a flat list of items, an expanded row's panel
+  // being an item of its own so it is measured on its own.
+  const items = React.useMemo<BodyItem<TData>[]>(() => {
+    if (!virtualize) return [];
+    const out: BodyItem<TData>[] = [];
+    for (const row of rows) {
+      out.push({ kind: "row", row });
+      if (expansionEnabled && renderSubRow && row.getIsExpanded() && !row.getIsGrouped()) out.push({ kind: "sub", row });
+    }
+    return out;
+  }, [virtualize, rows, expansionEnabled, renderSubRow]);
+  // Where a row sits among the items (the virtualizer's index), by id.
+  const itemIndex = React.useMemo(() => {
+    const m = new Map<string, number>();
+    items.forEach((it, i) => it.kind === "row" && m.set(it.row.id, i));
+    return m;
+  }, [items]);
+  const virtual = React.useRef<VirtualRowsApi | null>(null);
 
   // Keyboard rows: a roving tabindex, so the table is one tab stop and the
   // arrows move within it. The index is clamped when the rows change under it
@@ -100,7 +158,39 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
   const [focusIndex, setFocusIndex] = React.useState(0);
   const tabStop = Math.min(focusIndex, Math.max(rows.length - 1, 0));
   const rowRefs = React.useRef(new Map<string, HTMLTableRowElement>());
-  const focusRow = (id: string) => rowRefs.current.get(id)?.focus();
+  // Virtualized, the row the keys move to may not be mounted yet: it is
+  // scrolled into view, and focused by its ref when it arrives.
+  const pendingFocus = React.useRef<string | null>(null);
+  // Once the rows it passed are measured, the focused row may sit a little
+  // off from where the jump put it: nudge the scroller (only the scroller;
+  // scrollIntoView would scroll the page too) so the row is whole, below the
+  // sticky header.
+  const keepInView = (id: string) => {
+    const tableEl = tableRef.current;
+    const el = rowRefs.current.get(id);
+    const scroller = tableEl?.parentElement;
+    if (!el || !scroller || document.activeElement !== el) return;
+    const top = tableEl?.tHead?.getBoundingClientRect().bottom ?? scroller.getBoundingClientRect().top;
+    const bottom = scroller.getBoundingClientRect().top + scroller.clientHeight;
+    const r = el.getBoundingClientRect();
+    if (r.top < top) scroller.scrollTop -= top - r.top;
+    else if (r.bottom > bottom) scroller.scrollTop += r.bottom - bottom;
+  };
+  const itemIndexRef = React.useRef(itemIndex);
+  itemIndexRef.current = itemIndex;
+  const focusRow = (id: string) => {
+    const api = virtual.current;
+    if (!api) {
+      rowRefs.current.get(id)?.focus();
+      return;
+    }
+    const at = itemIndexRef.current.get(id);
+    if (at !== undefined) api.scrollToItem(at);
+    const el = rowRefs.current.get(id);
+    if (el) el.focus({ preventScroll: true });
+    else pendingFocus.current = id;
+    requestAnimationFrame(() => requestAnimationFrame(() => keepInView(id)));
+  };
 
   const onRowKeyDown = (e: React.KeyboardEvent<HTMLTableRowElement>, row: Row<TData>, index: number) => {
     if (e.altKey || ownsArrowKeys(e.target)) return;
@@ -244,6 +334,11 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       const col = g().navCols[at.col];
       if (!row || !col) return;
       const key = cellKey(row.id, col.id);
+      const api = virtual.current;
+      if (api) {
+        const at = itemIndexRef.current.get(row.id);
+        if (at !== undefined) api.scrollToItem(at);
+      }
       const el = cellRefs.current.get(key);
       if (el) el.focus({ preventScroll: true });
       else pendingCellFocus.current = key;
@@ -260,6 +355,12 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
     // view.
     const extendTo = (to: GridCell) => {
       setSelection({ anchor: activeNow(), focus: to });
+      const row = g().rows[to.row];
+      const api = virtual.current;
+      if (api && row) {
+        const at = itemIndexRef.current.get(row.id);
+        if (at !== undefined) api.scrollToItem(at);
+      }
     };
     // The text a cell copies: its value, as a spreadsheet would take it.
     const cellText = (row: Row<TData>, col: Column<TData, unknown>) => {
@@ -518,6 +619,125 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
     return () => clearTimeout(t);
   }, [rows]);
 
+  // Dragging rows, virtualized. dnd-kit can drop only onto a mounted row and
+  // most are not, so the drop position comes from the virtualizer's layout,
+  // the table scrolls itself while the pointer is near its top or bottom edge,
+  // and the dragged row stays mounted. Esc cancels. Everything a drag adds to
+  // the window is removed when it ends, or when the table goes.
+  const [dragId, setDragIdState] = React.useState<string | null>(null);
+  /** Where the dragged row would land: before the row at this index (rows.length: after the last). */
+  const [dropIndex, setDropIndexState] = React.useState<number | null>(null);
+  const dropIndexRef = React.useRef<number | null>(null);
+  const stopDrag = React.useRef<(() => void) | undefined>(undefined);
+  React.useEffect(() => () => stopDrag.current?.(), []);
+  const startDrag = (rowId: string, e: React.PointerEvent) => {
+    const tableEl = tableRef.current;
+    const scroller = tableEl?.parentElement;
+    const api = virtual.current;
+    if (e.button !== 0 || !api || !scroller) return;
+    e.preventDefault(); // no text selection, no compatibility mouse events
+    stopDrag.current?.();
+    const setDropIndex = (i: number | null) => {
+      dropIndexRef.current = i;
+      setDropIndexState(i);
+    };
+    let pointerY = e.clientY;
+    let frame = 0;
+    const band = () => {
+      const rect = scroller.getBoundingClientRect();
+      const top = tableEl?.tHead?.getBoundingClientRect().bottom ?? rect.top;
+      return { rect, top, bottom: rect.top + scroller.clientHeight };
+    };
+    const locate = () => {
+      const { rect, top, bottom } = band();
+      const y = Math.min(Math.max(pointerY, top), bottom - 1);
+      const offset = scroller.scrollTop + (y - rect.top);
+      const hit = api.itemAt(offset);
+      if (!hit) return;
+      // No expanded panels while rows are dragged, so items are rows.
+      setDropIndex(offset > (hit.start + hit.end) / 2 ? hit.index + 1 : hit.index);
+    };
+    // Near an edge the table scrolls, faster the further past it the pointer is.
+    const EDGE = 40;
+    const tick = () => {
+      const { top, bottom } = band();
+      const over =
+        pointerY < top + EDGE ? pointerY - (top + EDGE) : pointerY > bottom - EDGE ? pointerY - (bottom - EDGE) : 0;
+      if (over) {
+        scroller.scrollTop += Math.max(-200, Math.min(200, Math.round(over / 3) || Math.sign(over)));
+        locate();
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    const finish = (commit: boolean) => {
+      const from = grid.current.rowIndex.get(rowId);
+      const to = dropIndexRef.current;
+      stop();
+      if (!commit || from === undefined || to === null) return;
+      const target = to > from ? to - 1 : to;
+      if (target !== from) grid.current.props.onRowMove?.(from, target);
+    };
+    const onMove = (ev: PointerEvent) => {
+      pointerY = ev.clientY;
+      locate();
+    };
+    const onUp = () => finish(true);
+    const onCancel = () => finish(false);
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key !== "Escape") return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      finish(false);
+    };
+    const stop = () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("keydown", onKey, true);
+      setDragIdState(null);
+      setDropIndex(null);
+      stopDrag.current = undefined;
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    window.addEventListener("keydown", onKey, true);
+    stopDrag.current = stop;
+    setDragIdState(rowId);
+    locate();
+    frame = requestAnimationFrame(tick);
+  };
+  const dropEdge = (index: number): "before" | "after" | undefined => {
+    if (dropIndex === null) return undefined;
+    if (dropIndex === index) return "before";
+    return dropIndex === rows.length && index === rows.length - 1 ? "after" : undefined;
+  };
+  const dropShadow = (index: number): React.CSSProperties | undefined => {
+    const edge = dropEdge(index);
+    return edge ? { boxShadow: `inset 0 ${edge === "before" ? 2 : -2}px 0 0 var(--zen-color-primary)` } : undefined;
+  };
+  const startDragRef = React.useRef(startDrag);
+  startDragRef.current = startDrag;
+  const rowDragValue = React.useMemo(
+    () => ({ active: !!rowDrag, start: (id: string, e: React.PointerEvent) => startDragRef.current(id, e) }),
+    [rowDrag],
+  );
+
+  // Virtualized, some rows stay mounted wherever the scroll is: the keyboard's
+  // tab stop, so the table never loses its one tab stop or the focus it holds;
+  // the row being edited, so a half-typed value is not thrown away; and the
+  // row being dragged. (VirtualRows de-duplicates: a row focused AND edited is
+  // mounted once.)
+  const keep: number[] = [];
+  if (virtualize) {
+    const stop = rows[cellNav ? active.row : tabStop];
+    if ((keyboard || cellNav) && stop) keep.push(itemIndex.get(stop.id) ?? -1);
+    if (editingCell) keep.push(itemIndex.get(editingCell.rowId) ?? -1);
+    if (dragId !== null) keep.push(itemIndex.get(dragId) ?? -1);
+  }
+  const keepKey = keep.filter((i) => i >= 0).join(",");
+
   const cellRef = (key: string) => (el: HTMLTableCellElement | null) => {
     if (!el) {
       cellRefs.current.delete(key);
@@ -547,9 +767,11 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       const navCol = cellNav ? navColIndex.get(cell.column.id) : undefined;
       const isActiveCell = navCol !== undefined && index === active.row && navCol === active.col;
       const isSelected = navCol !== undefined && !!selRect && multiSelected && inRect(selRect, index, navCol);
-      // A pinned cell paints its own background, so its selection has to be
-      // painted there too.
-      const style = pin && isSelected ? { ...pin, background: "var(--zen-color-primary-soft)" } : pin;
+      // The drop line is drawn on the cells: a row's own box-shadow is not
+      // painted in a collapsed-border table. A pinned cell paints its own
+      // background, so its selection has to be painted there too.
+      let style = rowDrag ? { ...pin, ...dropShadow(index) } : pin;
+      if (pin && isSelected) style = { ...style, background: "var(--zen-color-primary-soft)" };
       return (
         <TableCell
           key={cell.id}
@@ -589,16 +811,30 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       );
     });
 
-  const dataRow = (row: Row<TData>, index: number) => (
+  const dataRow = (row: Row<TData>, index: number, virt?: VirtRow) => (
     <TableRow
+      key={virt ? `row:${row.id}` : undefined}
       ref={
-        keyboard
+        keyboard || virt
           ? (el: HTMLTableRowElement | null) => {
-              if (el) rowRefs.current.set(row.id, el);
-              else rowRefs.current.delete(row.id);
+              virt?.measure(el);
+              if (!keyboard) return;
+              if (!el) {
+                rowRefs.current.delete(row.id);
+                return;
+              }
+              rowRefs.current.set(row.id, el);
+              if (pendingFocus.current === row.id) {
+                pendingFocus.current = null;
+                queueMicrotask(() => el.focus({ preventScroll: true }));
+              }
             }
           : undefined
       }
+      data-index={virt?.index}
+      aria-rowindex={virt ? (props.headerRowCount ?? 1) + virt.index + 1 : undefined}
+      data-dragging={rowDrag && dragId === row.id ? "true" : undefined}
+      data-drop={rowDrag ? dropEdge(index) : undefined}
       tabIndex={keyboard ? (index === tabStop ? 0 : -1) : undefined}
       aria-label={keyboard ? rowLabel?.(row) : undefined}
       aria-selected={keyboard && selectable ? (row.getIsSelected() ? "true" : "false") : undefined}
@@ -608,6 +844,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       data-grouped={row.getIsGrouped() ? "true" : undefined}
       className={cn(
         row.getIsGrouped() && "zen-bg-zen-muted/40 zen-font-medium",
+        rowDrag && dragId === row.id && "zen-opacity-50",
         keyboard &&
           "focus-visible:zen-outline focus-visible:zen-outline-2 focus-visible:-zen-outline-offset-2 focus-visible:zen-outline-zen-ring",
         rowClassName?.(row),
@@ -617,24 +854,22 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
     </TableRow>
   );
 
-  const subRowPanel = (row: Row<TData>) => (
-    <TableRow data-expanded-of={row.id}>
+  const subRowPanel = (row: Row<TData>, virt?: VirtRow) => (
+    <TableRow
+      key={virt ? `sub:${row.id}` : undefined}
+      ref={virt?.measure}
+      data-expanded-of={row.id}
+      data-index={virt?.index}
+      aria-rowindex={virt ? (props.headerRowCount ?? 1) + virt.index + 1 : undefined}
+    >
       <TableCell colSpan={row.getVisibleCells().length} className="zen-p-0 zen-bg-zen-muted/30">
         {renderSubRow!(row)}
       </TableCell>
     </TableRow>
   );
 
-  return (
-    <Table
-      ref={tableRef}
-      containerClassName={props.containerClassName}
-      containerStyle={props.containerStyle}
-      role={cellNav ? "grid" : undefined}
-      aria-multiselectable={cellNav ? "true" : undefined}
-    >
-      {props.header}
-      <TableBody>
+  const body = (
+    <TableBody>
         {loading ? (
           <TableRow>
             <TableCell colSpan={colSpan} className="zen-text-center zen-text-zen-muted-fg zen-py-6">
@@ -647,6 +882,21 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
               {emptyMessage}
             </TableCell>
           </TableRow>
+        ) : virtualize ? (
+          <VirtualRows
+            items={items}
+            tableEl={tableEl}
+            estimatedRowHeight={props.estimatedRowHeight}
+            colCount={colCount}
+            keepKey={keepKey}
+            onReady={(api) => (virtual.current = api)}
+          >
+            {(item, virt) =>
+              item.kind === "row"
+                ? dataRow(item.row, rowIndex.get(item.row.id) ?? 0, virt)
+                : subRowPanel(item.row, virt)
+            }
+          </VirtualRows>
         ) : (
           rows.map((row, index) =>
             rowOrderingActive ? (
@@ -680,8 +930,182 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
           )
         )}
       </TableBody>
+  );
+
+  return (
+    <Table
+      ref={setTableRef}
+      containerClassName={props.containerClassName}
+      containerStyle={
+        virtualize
+          ? // The spacer rows change height as the window moves, and the
+            // browser's scroll anchoring "corrects" the scroll for that on its
+            // own: a jump to a row far off landed at the top instead.
+            { ...props.containerStyle, overflowAnchor: "none" }
+          : props.containerStyle
+      }
+      // Virtualized, the columns are laid out from the header, not from
+      // whichever rows happen to be mounted, so they hold still as you scroll.
+      className={virtualize ? "zen-table-fixed" : undefined}
+      aria-rowcount={virtualize ? (props.headerRowCount ?? 1) + items.length : undefined}
+      role={cellNav ? "grid" : undefined}
+      aria-multiselectable={cellNav ? "true" : undefined}
+    >
+      {props.header}
+      {rowDrag ? <RowDragContext.Provider value={rowDragValue}>{body}</RowDragContext.Provider> : body}
       {props.footer}
     </Table>
+  );
+}
+
+/* ----------------------------- VirtualRows --------------------------- */
+/** What BodyTable may ask of its VirtualRows: scroll to an item, find the item at an offset. */
+interface VirtualRowsApi {
+  scrollToItem: (index: number) => void;
+  /** The item at a content offset in the scroller (header included), measured or estimated. */
+  itemAt: (offset: number) => { index: number; start: number; end: number } | undefined;
+}
+
+// The regular table's rows, only those in view (enableRowVirtualization). The
+// rows it skips are stood in for by spacer rows of their height, so the table
+// stays one table: header, column widths, sticky cells and footer are the
+// plain body's, and so is every row. Rows are measured as they mount, so a
+// group row or an expanded panel may be taller than the rest.
+function VirtualRows<TData>({
+  items,
+  tableEl,
+  estimatedRowHeight,
+  colCount,
+  keepKey,
+  onReady,
+  children,
+}: {
+  items: BodyItem<TData>[];
+  tableEl: HTMLTableElement | null;
+  estimatedRowHeight?: number;
+  colCount: number;
+  /** Item indices to keep mounted wherever the scroll is, comma-joined. */
+  keepKey: string;
+  onReady: (api: VirtualRowsApi) => void;
+  children: (item: BodyItem<TData>, virt: VirtRow) => React.ReactNode;
+}) {
+  // The header shares the rows' scroller but sticks at its top: the rows
+  // start below it, and a row scrolled to must not land underneath it.
+  const [headerHeight, setHeaderHeight] = React.useState(0);
+  React.useLayoutEffect(() => {
+    const head = tableEl?.tHead;
+    if (!head) return;
+    setHeaderHeight(head.offsetHeight);
+    const ro = new ResizeObserver(() => setHeaderHeight(head.offsetHeight));
+    ro.observe(head);
+    return () => ro.disconnect();
+  }, [tableEl]);
+
+  // Rows not mounted yet are placed by an estimate. Unless the caller gives
+  // one, it is the first row measured, so it follows density and theme.
+  const estimate = React.useRef(estimatedRowHeight ?? 40);
+  const learned = React.useRef(estimatedRowHeight !== undefined);
+
+  // Both are new functions whenever what they read changes: the virtualizer
+  // recomputes only when they change identity, and a sort keeps the count.
+  const getItemKey = React.useCallback(
+    (index: number) => {
+      const item = items[index];
+      return item ? `${item.kind}:${item.row.id}` : index;
+    },
+    [items],
+  );
+  const rangeExtractor = React.useCallback(
+    (range: Range) => {
+      const base = defaultRangeExtractor(range);
+      // A row may be kept for more than one reason (focused AND edited): an
+      // index listed twice would mount it twice.
+      const keep = keepKey ? keepKey.split(",").map(Number) : [];
+      const extra = [...new Set(keep)].filter((i) => i < range.count && !base.includes(i));
+      return extra.length ? [...base, ...extra].sort((x, y) => x - y) : base;
+    },
+    [keepKey],
+  );
+  const virtualizer = useVirtualizer<HTMLElement, Element>({
+    count: items.length,
+    getScrollElement: () => tableEl?.parentElement ?? null,
+    estimateSize: () => estimate.current,
+    measureElement: (el, entry, instance) => {
+      const size = measureRowElement(el, entry, instance);
+      if (!learned.current && entry && size > 0) {
+        learned.current = true;
+        // Re-estimate every unmeasured row from it: the jump to a row far
+        // away lands where that row really is.
+        queueMicrotask(() => {
+          estimate.current = size;
+          instance.measure();
+        });
+      }
+      return size;
+    },
+    getItemKey,
+    rangeExtractor,
+    scrollMargin: headerHeight,
+    scrollPaddingStart: headerHeight,
+    overscan: 8,
+    // Rows are measured from their ref, during React's commit: a synchronous
+    // re-render from there is what flushSync warns about.
+    useFlushSync: false,
+  });
+  React.useLayoutEffect(() => {
+    onReady({
+      scrollToItem: (index) => virtualizer.scrollToIndex(index, { align: "auto" }),
+      itemAt: (offset) => {
+        const item = virtualizer.getVirtualItemForOffset(offset);
+        return item && { index: item.index, start: item.start, end: item.end };
+      },
+    });
+  }, [virtualizer, onReady]);
+
+  // A list update can move a mounted row among its siblings, and moving a
+  // focused element drops its focus, with nothing to tell that blur from a
+  // click elsewhere. So the focus held in the body before an update is put
+  // back after it, only when the update is what took it: nothing else has
+  // focus. (An editor's blur during the move is React's commit, when React
+  // dispatches no events, so it does not save.)
+  const held = React.useRef<HTMLElement | null>(null);
+  if (typeof document !== "undefined") {
+    const a = document.activeElement;
+    const body = tableEl?.tBodies[0];
+    held.current = body && a instanceof HTMLElement && body.contains(a) ? a : null;
+  }
+  React.useLayoutEffect(() => {
+    const el = held.current;
+    if (!el || !el.isConnected || document.activeElement === el) return;
+    if (document.activeElement && document.activeElement !== document.body) return;
+    el.focus({ preventScroll: true });
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
+  const spacer = (height: number, key: string) => (
+    <tr key={key} aria-hidden="true" data-virtual-spacer="">
+      <td colSpan={colCount} style={{ height, padding: 0, border: 0 }} />
+    </tr>
+  );
+  // Item starts include the header (scrollMargin); the total size does not.
+  const last = virtualItems[virtualItems.length - 1];
+  const bottomGap = last ? virtualizer.getTotalSize() - (last.end - headerHeight) : 0;
+  return (
+    <>
+      {virtualItems.map((vi, p) => {
+        // A gap before this item: the unmounted rows above it (more than the
+        // window's edge when this is a kept row far from the rest).
+        const gap = vi.start - (p === 0 ? headerHeight : virtualItems[p - 1].end);
+        const item = items[vi.index];
+        return (
+          <React.Fragment key={vi.key}>
+            {gap > 0 ? spacer(gap, "gap") : null}
+            {item ? children(item, { index: vi.index, measure: virtualizer.measureElement }) : null}
+          </React.Fragment>
+        );
+      })}
+      {bottomGap > 0 ? spacer(bottomGap, "bottom") : null}
+    </>
   );
 }
 

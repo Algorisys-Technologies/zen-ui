@@ -60,6 +60,7 @@ const makePeople = (count: number): Person[] =>
 const SMALL = makePeople(8);
 const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
+const HUGE = makePeople(10_000);
 
 const statusBadgeColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
@@ -409,6 +410,8 @@ const NewDataTableDemo: React.FC = () => {
   };
 
   const [activated, setActivated] = useState("");
+  const [virtGrouping, setVirtGrouping] = useState<string[]>([]);
+  const [virtOpened, setVirtOpened] = useState("");
   const [lines, setLines] = useState(() => makeLines(2000));
   const [lastEdit, setLastEdit] = useState("");
   const applyLineEdits = (edits: { rowId: string; columnId: string; value: unknown }[]) => {
@@ -589,6 +592,66 @@ const NewDataTableDemo: React.FC = () => {
       </section>
 
       <section className="demo-section">
+        <h2>6b. Row virtualization — 10 000 rows, every feature on</h2>
+        <CodeExample
+          title="enableRowVirtualization keeps grouping, expanding, selection and the keyboard"
+          description="Only the rows in view are rendered, inside the regular table. Group by role, expand a row, or click a row and move with ↑/↓, PageUp/PageDown and Home/End: the focused row is scrolled into view and stays mounted while you scroll away."
+          code={`<DataTable
+  data={tenThousandPeople}
+  columns={columns}
+  enableRowVirtualization
+  enableSorting
+  enableGrouping
+  grouping={grouping}
+  onGroupingChange={setGrouping}
+  enableRowSelection
+  enableKeyboardNavigation
+  onRowActivate={(row) => open(row.original)}
+  renderSubRow={(row) => <Details person={row.original} />}
+  fillHeight // inside a frame with a height; or maxBodyHeight={420}
+/>`}
+        >
+          <div className="zen-flex zen-gap-2 zen-mb-3">
+            <Button
+              size="sm"
+              variant="outline"
+              aria-pressed={virtGrouping.length > 0}
+              onClick={() => setVirtGrouping(virtGrouping.length ? [] : ["role"])}
+            >
+              {virtGrouping.length ? "Ungroup" : "Group by role"}
+            </Button>
+          </div>
+          {/* fillHeight: the table fills this frame, as a list that is a page's main pane. */}
+          <div className="zen-flex zen-h-[440px] zen-flex-col">
+            <DataTable
+              data={HUGE}
+              columns={groupedColumns}
+              getRowId={(p) => p.id}
+              enableRowVirtualization
+              enableSorting
+              enableGrouping
+              grouping={virtGrouping}
+              onGroupingChange={setVirtGrouping}
+              enableRowSelection
+              enableKeyboardNavigation
+              rowLabel={(row) => row.original.name ?? "Group"}
+              onRowActivate={(row) => setVirtOpened(row.original.name)}
+              renderSubRow={(row) => (
+                <div className="zen-px-4 zen-py-3 zen-text-sm zen-text-zen-muted-fg">
+                  {row.original.email} · {row.original.department}, {row.original.location} · reports to{" "}
+                  {row.original.manager}
+                </div>
+              )}
+              fillHeight
+            />
+          </div>
+          <p className="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            Opened: <span data-testid="virt-activated">{virtOpened || "nothing yet"}</span>
+          </p>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
         <h2>6c. Cell navigation — work in it like a spreadsheet</h2>
         <CodeExample
           title="enableCellNavigation: cell by cell, ranges, copy and paste"
@@ -610,6 +673,7 @@ const NewDataTableDemo: React.FC = () => {
               columns={lineColumns}
               getRowId={(l) => l.id}
               enableCellNavigation
+              enableRowVirtualization
               onCellEdit={(edit) => applyLineEdits([edit])}
               onCellsEdit={applyLineEdits}
               fillHeight
