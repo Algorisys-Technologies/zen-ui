@@ -104,10 +104,31 @@ export type TabsListProps = Omit<
   };
 
 export const TabsList = (props: TabsListProps) => {
-  const [local, rest] = splitProps(props, ["variant", "orientation", "class", "children"]);
+  const [local, rest] = splitProps(props, ["variant", "orientation", "class", "children", "ref"]);
+  // Kobalte's list swallows Esc (preventDefault, though a tab list can never
+  // be emptied), so Tabs inside a Dialog, Sheet or Popover made Esc do nothing
+  // while a tab had focus: ValueHelp opens with focus on one. A native listener
+  // on the list (Solid's onKeyDown is delegated to the document, too late to
+  // stop anything) holds the key back and sends a fresh, unprevented copy on
+  // from the list's parent, so what contains the tabs hears exactly one Esc.
+  const bind = (el: HTMLDivElement) => {
+    el.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape" || e.isComposing || !el.parentElement) return;
+      e.stopPropagation();
+      el.parentElement.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: e.key, code: e.code, bubbles: true, cancelable: true,
+          ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey,
+        }),
+      );
+    });
+    const r = local.ref as ((el: HTMLDivElement) => void) | undefined;
+    if (typeof r === "function") r(el);
+  };
   return (
     <KTabs.List
       {...rest}
+      ref={bind}
       data-variant={local.variant ?? "underline"}
       class={cn(
         tabsListVariants({ variant: local.variant, orientation: local.orientation }),
