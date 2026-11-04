@@ -44,9 +44,6 @@ const NOT_YET_SWEPT = new Set<string>(
   binding !== "vanilla"
     ? []
     : [
-        // Being edited by the vanilla DataTable port at the time of the vanilla sweep (unit S).
-        "data-table/data-table.ts",
-        "data-table/table.ts",
       ],
 );
 

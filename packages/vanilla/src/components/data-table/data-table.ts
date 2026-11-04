@@ -563,7 +563,7 @@ export function DataTable<TData>(
   if (current.enableColumnFilters) {
     filterInput = Input({
       value: globalFilterInner,
-      placeholder: current.globalFilterPlaceholder ?? "Search…",
+      placeholder: current.globalFilterPlaceholder ?? loc.t("dataTable.search"),
       class: "zen-max-w-xs",
       onInput: (e) => {
         const v = (e.target as HTMLInputElement).value;
@@ -765,12 +765,10 @@ export function DataTable<TData>(
     const sorted = sortStateOf(id);
     const btn = h("button", SORT_BTN_CLASS);
     (btn as HTMLButtonElement).type = "button";
-    const label =
-      sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none";
-    btn.setAttribute(
-      "aria-label",
-      `Sort by ${headerText(col)}, currently ${label}`,
+    const label = loc.t(
+      sorted === "asc" ? "dataTable.sortAscending" : sorted === "desc" ? "dataTable.sortDescending" : "dataTable.sortNone",
     );
+    btn.setAttribute("aria-label", loc.t("dataTable.sortBy", { column: headerText(col), state: label }));
     btn.append(document.createTextNode(headerText(col)), sortIndicator(sorted));
     const idx = sortIndexOf(id);
     if (idx !== null) {
@@ -1722,7 +1720,7 @@ export function DataTable<TData>(
       const cb = Checkbox({
         checked: selected,
         onCheckedChange: () => toggleRow(id),
-        "aria-label": `Select row ${r.index + 1}`,
+        "aria-label": loc.t("dataTable.selectRow", { n: r.index + 1 }),
       });
       comps.push(cb);
       td.append(cb.el);
@@ -2150,7 +2148,7 @@ export function DataTable<TData>(
       const cb = Checkbox({
         checked: headerCheckState(processed),
         onCheckedChange: () => toggleAll(processed),
-        "aria-label": "Select all rows",
+        "aria-label": loc.t("dataTable.selectAll"),
       });
       mounted.push(cb);
       th.append(cb.el);
@@ -2185,9 +2183,9 @@ export function DataTable<TData>(
     /* tbody */
     const tbody = h("tbody", "[&_tr:last-child]:zen-border-0");
     if (current.loading) {
-      tbody.append(messageRow("Loading…"));
+      tbody.append(messageRow(loc.t("dataTable.loading")));
     } else if (display.length === 0) {
-      tbody.append(messageRow(current.emptyMessage ?? "No results."));
+      tbody.append(messageRow(current.emptyMessage ?? loc.t("dataTable.noResults")));
     } else if (virtual) {
       // One spacer as tall as every row, so the scroll a repaint restores is
       // there to restore; the window replaces it once the table is in place.
@@ -2278,7 +2276,7 @@ export function DataTable<TData>(
       const cb = Checkbox({
         checked: headerCheckState(processed),
         onCheckedChange: () => toggleAll(processed),
-        "aria-label": "Select all rows",
+        "aria-label": loc.t("dataTable.selectAll"),
       });
       mounted.push(cb);
       cell.append(cb.el);
@@ -2329,7 +2327,7 @@ export function DataTable<TData>(
         Checkbox({
           checked: selected,
           onCheckedChange: () => toggleRow(id),
-          "aria-label": `Select row ${index + 1}`,
+          "aria-label": loc.t("dataTable.selectRow", { n: index + 1 }),
         }).el,
       );
       rowEl.append(cell);
@@ -2360,15 +2358,15 @@ export function DataTable<TData>(
 
     const info = h("div", "zen-text-zen-muted-fg");
     info.textContent = current.enableRowSelection
-      ? `${selectedCount} of ${totalCount} row(s) selected.`
-      : `Page ${pageIndex + 1} of ${Math.max(pageCount, 1)}`;
+      ? loc.t("dataTable.selectedOf", { selected: selectedCount, total: totalCount })
+      : loc.t("dataTable.pageOf", { page: pageIndex + 1, pages: Math.max(pageCount, 1) });
 
     const right = h("div", "zen-flex zen-items-center zen-gap-3");
 
     if (!manual) {
       const group = h("div", "zen-flex zen-items-center zen-gap-2");
       const lbl = h("span", "zen-text-zen-muted-fg");
-      lbl.textContent = "Rows per page";
+      lbl.textContent = loc.t("dataTable.rowsPerPage");
       const selWrap = h("div");
       selWrap.style.width = "88px";
       const opts = current.pageSizeOptions ?? [10, 20, 50, 100];
@@ -2415,10 +2413,10 @@ export function DataTable<TData>(
       mounted.push(b);
       nav.append(b.el);
     };
-    navBtn("«", "First page", !canPrev, () => setPage(0));
-    navBtn("‹", "Previous page", !canPrev, () => setPage(pageIndex - 1));
-    navBtn("›", "Next page", !canNext, () => setPage(pageIndex + 1));
-    navBtn("»", "Last page", !canNext, () => setPage(pageCount - 1));
+    navBtn("«", loc.t("dataTable.firstPage"), !canPrev, () => setPage(0));
+    navBtn("‹", loc.t("dataTable.previousPage"), !canPrev, () => setPage(pageIndex - 1));
+    navBtn("›", loc.t("dataTable.nextPage"), !canNext, () => setPage(pageIndex + 1));
+    navBtn("»", loc.t("dataTable.lastPage"), !canNext, () => setPage(pageCount - 1));
     right.append(nav);
 
     paginationEl.append(info, right);
