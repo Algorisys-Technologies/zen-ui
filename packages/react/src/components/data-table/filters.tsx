@@ -69,7 +69,7 @@ declare module "@tanstack/react-table" {
 const empty = (s: unknown) =>
   s === null || s === undefined || (typeof s === "string" && s.length === 0);
 
-const textFilterFn: FilterFn<unknown> = (row, columnId, filter) => {
+export const textFilterFn: FilterFn<unknown> = (row, columnId, filter) => {
   const f = filter as TextFilterValue | string | undefined;
   // Back-compat: if someone passes a bare string, treat as "contains".
   const op: TextOp = typeof f === "object" && f ? f.op : "contains";

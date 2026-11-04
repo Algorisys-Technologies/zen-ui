@@ -71,7 +71,8 @@ import {
   TableHeader,
   TableRow,
 } from "./table";
-import { FilterCell, filterFnByVariant, type FilterVariant } from "./filters";
+import { FilterCell, filterFnByVariant, textFilterFn, type FilterVariant } from "./filters";
+import { useLocale } from "../locale/locale";
 import {
   EditableCell,
   type CellEditPayload,
@@ -618,6 +619,9 @@ export function DataTable<TData, TValue = unknown>({
     }
   }, [enableVirtualization, enableRowOrdering, renderSubRow, enableGrouping]);
 
+  /* The table, for the column filters below, which are built before it. */
+  const tableRef = React.useRef<TanStackTable<TData> | null>(null);
+
   /* Prepend leading columns: drag-grip (if enabled) then select-checkbox
    * (if enabled). Both are opt-in. For user columns we also auto-attach
    * the variant-matching `filterFn` (text/number/select/…) when `meta.
@@ -709,6 +713,13 @@ export function DataTable<TData, TValue = unknown>({
             meta.filterVariant
           ] as unknown as FilterFn<TData>,
         };
+      }
+      /* A column with no filterFn and no filterVariant: the operator select
+       * stores `{ op, value }`, which TanStack's own "auto" filter cannot read
+       * (it compared the cell with "[object Object]" and matched nothing). */
+      if (!meta?.filterVariant && !col.filterFn) {
+        const id = col.id ?? (col as { accessorKey?: string }).accessorKey;
+        if (id) return { ...col, filterFn: operatorAwareAuto(String(id), tableRef) };
       }
       return col;
     });
@@ -837,6 +848,7 @@ export function DataTable<TData, TValue = unknown>({
     getGroupedRowModel: groupingActive ? getGroupedRowModel() : undefined,
   });
 
+  tableRef.current = table;
   const rows = table.getRowModel().rows;
 
   /* Cell-content renderer that handles the four TanStack cell modes
@@ -1241,6 +1253,37 @@ export function DataTable<TData, TValue = unknown>({
       )}
     </div>
   );
+}
+
+/**
+ * The filter for a column with no filterFn and no filterVariant. An
+ * `{ op, value }` (the operator select's) goes to the text filter that
+ * understands it; ANYTHING ELSE, and the filter's autoRemove and
+ * resolveFilterValue, go to exactly the filter TanStack would have picked for
+ * the column itself, so a bare string, a number range or a boolean behaves as
+ * it always did. One per column: the auto filter, and resolveFilterValue
+ * (which is given no column), are per column.
+ */
+function operatorAwareAuto<TData>(
+  columnId: string,
+  tableRef: React.RefObject<TanStackTable<TData> | null>,
+): FilterFn<TData> {
+  const auto = () =>
+    tableRef.current?.getColumn(columnId)?.getAutoFilterFn() as FilterFn<TData> | undefined;
+  const isOp = (v: unknown): v is { op: string; value: unknown } =>
+    !!v && typeof v === "object" && "op" in v;
+  const fn: FilterFn<TData> = (row, id, value, addMeta) => {
+    if (isOp(value)) return (textFilterFn as unknown as FilterFn<TData>)(row, id, value, addMeta);
+    const a = auto();
+    return a ? a(row, id, value, addMeta) : true;
+  };
+  fn.autoRemove = (value, column) =>
+    isOp(value)
+      ? String(value.value ?? "").trim() === ""
+      : (auto()?.autoRemove?.(value, column) ?? false);
+  fn.resolveFilterValue = (value) =>
+    isOp(value) ? value : (auto()?.resolveFilterValue?.(value) ?? value);
+  return fn;
 }
 
 /* ----------------------------- Toolbar ------------------------------- */
@@ -1917,13 +1960,19 @@ function HeaderCell<TData, TValue>({
   /** Variant-aware bg for sticky header cells (page bg or primary-soft). */
   stickyBg?: string;
 }) {
+  const loc = useLocale();
   if (header.isPlaceholder) return <TableHead />;
   const canSort = header.column.getCanSort();
   const sorted = header.column.getIsSorted();
   const sortLabel =
     sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none";
+  /* A priority means something only when two or more columns are sorted: a
+   * lone "1" next to the only sorted column read as stray text. */
   const sortIndex =
-    header.column.getSortIndex() >= 0 ? header.column.getSortIndex() + 1 : null;
+    header.getContext().table.getState().sorting.length > 1 &&
+    header.column.getSortIndex() >= 0
+      ? header.column.getSortIndex() + 1
+      : null;
   const isResizing = header.column.getIsResizing();
 
   /* Wrapped in <SortableHeader> when column-reorder is on so the cell
@@ -1951,8 +2000,8 @@ function HeaderCell<TData, TValue>({
           {sortIndex !== null ? (
             <span
               aria-hidden
-              className="zen-text-[1rem] zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5"
-              title={`Sort priority ${sortIndex}`}
+              className="zen-font-semibold zen-text-zen-muted-fg zen-ml-0.5"
+              title={loc.t("dataTable.sortPriority", { n: sortIndex })}
             >
               {sortIndex}
             </span>
