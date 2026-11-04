@@ -17,20 +17,20 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 | unit | what | React | vanilla | WC |
 |---|---|---|---|---|
 | L | LocaleProvider / useLocale | ok (e94479a) | ok | ok (re-export; `<zen-locale-provider>` with unit S) |
-| A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | ok | — | — |
-| A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | — | — |
-| A3 | ContextMenu | ok | — | — |
-| A4 | DocumentTabs | ok | — | — |
-| A5 | Tile, TileGrid | ok | — | wip |
-| A6 | QRCode, Barcode | ok | — | wip |
-| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | — | — |
+| A1 | AmountField, QuantityField, ObjectNumber `number=`; /amount-field, /localization | ok | ok | ok |
+| A2 | Shortcuts: Kbd, ShortcutProvider, useShortcut, ShortcutHelp | ok | wip | wip |
+| A3 | ContextMenu | ok | wip | wip |
+| A4 | DocumentTabs | ok | wip | wip |
+| A5 | Tile, TileGrid | ok | ok | ok |
+| A6 | QRCode, Barcode | ok | ok | ok |
+| A7 | DateInput; Calendar arrow keys; DatePicker `initialFocus` | ok | wip | wip |
 | A8 | TreeSelect | ok | — | — |
 | A9 | LookupField | ok | — | — |
 | A10 | FilterBuilder | ok | — | — |
-| A11 | ViewManager | wip | — | — |
-| A12 | Sidebar collapseMode / overlay / badges / header label | wip | — | — |
-| A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | wip | — | — |
-| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | wip | — | — |
+| A11 | ViewManager | ok | — | — |
+| A12 | Sidebar collapseMode / overlay / badges / header label | ok | — | — |
+| A13 | Gaps batch (ShellBar search, SegmentedButtonItem count, StatCard lg + chart, MicroBarChart baseline, ObjectStatus stamp, table tokens, invalid on Combobox/Select, closeLabel, list resets, warning-text) | ok | — | — |
+| D | DataTable: keyboard rows, cell navigation, row virtualization + drag, contextMenu, totals, server export, the editor / sort-priority / group-row fixes | ok (contextMenu: D2 wip) | — | — |
 | S | Strings: the binding's components read the message catalogue; check:strings per binding | — | — | — |
 
 ## Log
@@ -103,3 +103,38 @@ after vanilla. `check:parity` stays red until the last unit lands in all four.
 - 2026-11-05: vanilla phase begins. Each vanilla agent ports, verifies, commits,
   THEN builds the WC elements over the verified factory (binding order kept
   within one agent). First: A5+A6.
+- 2026-11-05: A11 React merged (ViewManager 25/25 unedited + 21/21; DropdownMenu
+  RadioItem `closeOnSelect`, default true = Radix's; dialogs mount content only
+  while open, since Radix sends no onOpenChange for a programmatic open).
+  Merge conflict in dropdown-menu.tsx resolved by hand (A3's shared classes +
+  A11's onSelect).
+- 2026-11-05: A12 React merged (Sidebar 11/11 + 9/9). Fixes measured in React:
+  rail header spill (14 of 198 elements differ, all on the collapsed rail),
+  asChild link blue/underlined.
+- 2026-11-05: React follow-ups merged: FilterBuilder dates are a typed DateInput
+  (21/21 + 9/9); MultiCombobox showed raw values as chips on first paint (fixed;
+  18 snapshot lines differ, all raw value -> label). Solid unaffected.
+- 2026-11-05: A13 React merged (gaps: 32/32 drive, 8/8 SSR; 111/119 routes
+  identical, 7 extended at the end, /document-viewer timed out both runs;
+  8,865 computed styles identical except the intended Breadcrumb / Stepper list
+  resets and one StatCard underline). Visible on forms that already set
+  aria-invalid: Input / SelectTrigger now take the error border (Solid's rule).
+  It found a SOLID 12.2.0 regression: StatCard figures 8px taller (cn dropped
+  leading-none after the size class) — fixed 42f7dd94. Label has the same
+  order since before 12.1.1: todo.md, next major.
+- 2026-11-05: D React merged (DataTable: keyboard rows 18/18, cell nav 26/26,
+  row virt 24/24 + leak check, totals 12/12, export 16/16 with ExportRequest
+  byte-identical to Solid's, drag 7/7; 27 existing sections identical). Also
+  fixed in React: the select editor never saved a pick; the no-variant column
+  filter matched nothing. `body-table.tsx` split out of data-table.tsx.
+- 2026-11-05: A5+A6 and A1 vanilla+WC merged (Tile 10/10, Barcode 16/16 with
+  all codes decoded, AmountField 25/25, locale 8/8, in BOTH bindings;
+  /object routes byte-identical). Known WC limits: elements capture children
+  once (a tile added later goes in via the rendered grid); no
+  <zen-locale-provider>; an attribute cannot clear a controlled value.
+- 2026-11-05: scripts fixed: visual-check used fixed ports that another
+  session's servers held, screenshotting the wrong build (free port + group
+  kill now, 5fdc860a); snapshot-routes read only Solid's nav (474c00b0).
+  Six orphaned preview servers from finished agents stopped.
+- 2026-11-05: wave 2 launched: D2 React (DataTable contextMenu), vanilla+WC
+  A2, A3, A4, A7. Agent notes for vanilla in the scratchpad VANILLA-NOTES.md.
