@@ -2,7 +2,7 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
 import { formatAmount, formatNumber } from "@algorisys/zen-ui-core/number-format";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 import { Icon, type IconName } from "../icon/icon";
 
 /**
@@ -218,12 +218,12 @@ ObjectIdentifier.displayName = "ObjectIdentifier";
 
 export type ObjectMarkerType = "flagged" | "favorite" | "draft" | "locked" | "unsaved";
 
-const MARKER: Record<ObjectMarkerType, { icon: IconName; label: string }> = {
-  flagged: { icon: "flag", label: "Flagged" },
-  favorite: { icon: "star", label: "Favorite" },
-  draft: { icon: "draft", label: "Draft" },
-  locked: { icon: "lock", label: "Locked" },
-  unsaved: { icon: "edit", label: "Unsaved changes" },
+const MARKER: Record<ObjectMarkerType, { icon: IconName; label: MessageKey }> = {
+  flagged: { icon: "flag", label: "objectMarker.flagged" },
+  favorite: { icon: "star", label: "objectMarker.favorite" },
+  draft: { icon: "draft", label: "objectMarker.draft" },
+  locked: { icon: "lock", label: "objectMarker.locked" },
+  unsaved: { icon: "edit", label: "objectMarker.unsaved" },
 };
 
 export interface ObjectMarkerProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -236,8 +236,9 @@ export interface ObjectMarkerProps extends React.HTMLAttributes<HTMLSpanElement>
 
 export const ObjectMarker = React.forwardRef<HTMLSpanElement, ObjectMarkerProps>(
   ({ type, showLabel = false, label, className, ...props }, ref) => {
+    const loc = useLocale();
     const m = MARKER[type];
-    const text = label ?? m.label;
+    const text = label ?? loc.t(m.label);
     return (
       <span
         ref={ref}

@@ -113,8 +113,10 @@ export const Chart = ({
         )}
         style={{ height }}
       >
+        {/* i18n-ignore-start: a developer install notice (add the peer dependency), not a word for end users */}
         Chart needs the optional peer dependency <code className="zen-mx-1">recharts</code> — install
         it to render this.
+        {/* i18n-ignore-end */}
       </div>
     );
   }

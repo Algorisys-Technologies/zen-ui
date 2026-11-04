@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../form/select/select";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * Filter variants for per-column filters in DataTable.
@@ -162,20 +162,20 @@ export const filterFnByVariant: Record<FilterVariant, FilterFn<unknown>> = {
 
 /* ---------------------------- variant inputs ------------------------------ */
 
-const TEXT_OPS: { value: TextOp; label: string; symbol: string }[] = [
-  { value: "contains", label: "Contains", symbol: "≈" },
-  { value: "equals", label: "Equals", symbol: "=" },
-  { value: "starts", label: "Starts with", symbol: "a…" },
-  { value: "ends", label: "Ends with", symbol: "…a" },
+const TEXT_OPS: { value: TextOp; label: MessageKey; symbol: string }[] = [
+  { value: "contains", label: "dataTable.textOp.contains", symbol: "≈" },
+  { value: "equals", label: "dataTable.textOp.equals", symbol: "=" },
+  { value: "starts", label: "dataTable.textOp.starts", symbol: "a…" },
+  { value: "ends", label: "dataTable.textOp.ends", symbol: "…a" },
 ];
 
-const NUMBER_OPS: { value: NumberOp; label: string; symbol: string }[] = [
-  { value: "eq", label: "Equals", symbol: "=" },
-  { value: "ne", label: "Not equal", symbol: "≠" },
-  { value: "gt", label: "Greater than", symbol: ">" },
-  { value: "lt", label: "Less than", symbol: "<" },
-  { value: "gte", label: "Greater or equal", symbol: "≥" },
-  { value: "lte", label: "Less or equal", symbol: "≤" },
+const NUMBER_OPS: { value: NumberOp; label: MessageKey; symbol: string }[] = [
+  { value: "eq", label: "dataTable.numberOp.eq", symbol: "=" },
+  { value: "ne", label: "dataTable.numberOp.ne", symbol: "≠" },
+  { value: "gt", label: "dataTable.numberOp.gt", symbol: ">" },
+  { value: "lt", label: "dataTable.numberOp.lt", symbol: "<" },
+  { value: "gte", label: "dataTable.numberOp.gte", symbol: "≥" },
+  { value: "lte", label: "dataTable.numberOp.lte", symbol: "≤" },
 ];
 
 /** Tiny op-button styled to fit alongside the value input in a filter row. */
@@ -187,16 +187,17 @@ function OpSelect<T extends string>({
 }: {
   value: T;
   onChange: (next: T) => void;
-  options: { value: T; label: string; symbol: string }[];
+  options: { value: T; label: MessageKey; symbol: string }[];
   ariaLabel: string;
 }) {
+  const loc = useLocale();
   const current = options.find((o) => o.value === value) ?? options[0];
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as T)}
       aria-label={ariaLabel}
-      title={current.label}
+      title={loc.t(current.label)}
       className={cn(
         "zen-h-7 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
         "zen-px-1 zen-text-xs zen-cursor-pointer",
@@ -244,7 +245,7 @@ function TextFilter({
           value={op}
           onChange={(o) => setNext({ op: o })}
           options={TEXT_OPS}
-          ariaLabel={`${headerLabel(column)} filter operator`}
+          ariaLabel={loc.t("dataTable.filterOperator", { column: headerLabel(column) })}
         />
       ) : null}
       <Input
@@ -271,7 +272,7 @@ function NumberFilter({ column }: { column: Column<unknown> }) {
           column.setFilterValue({ op: o, value } satisfies NumberFilterValue)
         }
         options={NUMBER_OPS}
-        ariaLabel={`${headerLabel(column)} filter operator`}
+        ariaLabel={loc.t("dataTable.filterOperator", { column: headerLabel(column) })}
       />
       <NumberField
         value={value ?? undefined}

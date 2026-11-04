@@ -1,6 +1,7 @@
-import { type JSX, splitProps, mergeProps, Show } from "solid-js";
+import { type JSX, splitProps, Show } from "solid-js";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Loading — animated spinner. No Kobalte primitive (none exists); same
@@ -46,14 +47,15 @@ export type LoadingProps = VariantProps<typeof spinnerVariants> &
   };
 
 export const Loading = (rawProps: LoadingProps) => {
-  const props = mergeProps({ label: "Loading" }, rawProps);
-  const [local, rest] = splitProps(props, ["class", "size", "color", "label"]);
+  const loc = useLocale();
+  const [local, rest] = splitProps(rawProps, ["class", "size", "color", "label"]);
+  const label = () => local.label ?? loc.t("loading.label");
   return (
     <span style={{ display: "inline-flex", "align-items": "center", gap: "6px" }}>
       <svg
-        role={local.label ? "status" : "presentation"}
-        aria-label={local.label || undefined}
-        aria-hidden={local.label ? undefined : true}
+        role={label() ? "status" : "presentation"}
+        aria-label={label() || undefined}
+        aria-hidden={label() ? undefined : true}
         viewBox="0 0 24 24"
         fill="none"
         class={cn(spinnerVariants({ size: local.size, color: local.color }), local.class)}
@@ -62,7 +64,7 @@ export const Loading = (rawProps: LoadingProps) => {
         <circle class="zen-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
         <path class="zen-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
       </svg>
-      <Show when={local.label}>
+      <Show when={label()}>
         <span
           style={{
             position: "absolute",
@@ -76,7 +78,7 @@ export const Loading = (rawProps: LoadingProps) => {
             border: 0,
           }}
         >
-          {local.label}
+          {label()}
         </span>
       </Show>
     </span>

@@ -3,7 +3,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { Icon } from "../icon/icon";
 import type { IconName } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * MessagePopover — the aggregated validation summary a long form owes its user.
@@ -74,15 +74,15 @@ export interface MessagePopoverProps {
 const SEVERITY: {
   type: MessageType;
   icon: IconName;
-  label: string;
-  plural: string;
+  /** The severity's name in the trigger's summary ("…, most severe: error"). */
+  label: MessageKey;
   text: string;
   soft: string;
 }[] = [
-  { type: "error", icon: "error", label: "Error", plural: "Errors", text: "zen-text-zen-error", soft: "zen-bg-zen-error-soft" },
-  { type: "warning", icon: "warn", label: "Warning", plural: "Warnings", text: "zen-text-zen-warning", soft: "zen-bg-zen-warning-soft" },
-  { type: "success", icon: "check-circle", label: "Success", plural: "Successes", text: "zen-text-zen-success", soft: "zen-bg-zen-success-soft" },
-  { type: "info", icon: "info", label: "Information", plural: "Information", text: "zen-text-zen-info", soft: "zen-bg-zen-info-soft" },
+  { type: "error", icon: "error", label: "messagePopover.severity.error", text: "zen-text-zen-error", soft: "zen-bg-zen-error-soft" },
+  { type: "warning", icon: "warn", label: "messagePopover.severity.warning", text: "zen-text-zen-warning", soft: "zen-bg-zen-warning-soft" },
+  { type: "success", icon: "check-circle", label: "messagePopover.severity.success", text: "zen-text-zen-success", soft: "zen-bg-zen-success-soft" },
+  { type: "info", icon: "info", label: "messagePopover.severity.info", text: "zen-text-zen-info", soft: "zen-bg-zen-info-soft" },
 ];
 
 const meta = (type: MessageType) => SEVERITY.find((s) => s.type === type)!;
@@ -148,9 +148,13 @@ const MessagePopover = React.forwardRef<HTMLButtonElement, MessagePopoverProps>(
     const label =
       triggerLabel ??
       (messages.length === 0
-        ? "No messages"
-        : `${messages.length} message${messages.length === 1 ? "" : "s"}` +
-          (worst ? `, most severe: ${meta(worst.type).label.toLowerCase()}` : ""));
+        ? loc.t("messagePopover.noMessages")
+        : worst
+          ? loc.t("messagePopover.countMostSevere", {
+              messages: loc.t("messagePopover.count", { count: messages.length }),
+              severity: loc.t(meta(worst.type).label),
+            })
+          : loc.t("messagePopover.count", { count: messages.length }));
 
     /* Where to send focus once the popover has finished closing. */
     const pendingTarget = React.useRef<string | null>(null);
@@ -218,7 +222,7 @@ const MessagePopover = React.forwardRef<HTMLButtonElement, MessagePopoverProps>(
               className="zen-flex zen-flex-wrap zen-gap-1 zen-border-b zen-border-zen-border zen-p-2"
             >
               <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
-                All {messages.length}
+                {loc.t("messagePopover.all", { count: messages.length })}
               </FilterChip>
               {present.map((s) => (
                 <FilterChip

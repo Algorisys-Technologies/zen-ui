@@ -825,6 +825,35 @@ export const DEFAULT_MESSAGES = {
   "productionSchedule.barSpan": "{name}, {start} to {end}{changeover}{progress}",
   "productionSchedule.barChangeover": ", including changeover",
   "productionSchedule.barProgress": ", {percent} percent complete",
+  // Found by check:strings widened past attributes (S2): words Solid and React
+  // built in helpers, ternaries and data tables that no key covered yet. The
+  // English is what each binding showed. Solid's camera says more than vanilla's
+  // (the https hint, the error name), so it keeps its own keys, as pivot.filterLabel did.
+  "camera.unavailableHttps": "Camera is unavailable — this browser has no getUserMedia, or the page is not on https/localhost.",
+  "camera.noCameraFound": "No camera found.",
+  "camera.failedToStart": "Camera failed to start.",
+  "camera.failedToStartNamed": "Camera failed to start ({name}).",
+  "dataTable.textOp.contains": "Contains",
+  "dataTable.textOp.equals": "Equals",
+  "dataTable.textOp.starts": "Starts with",
+  "dataTable.textOp.ends": "Ends with",
+  "dataTable.numberOp.eq": "Equals",
+  "dataTable.numberOp.ne": "Not equal",
+  "dataTable.numberOp.gt": "Greater than",
+  "dataTable.numberOp.lt": "Less than",
+  "dataTable.numberOp.gte": "Greater or equal",
+  "dataTable.numberOp.lte": "Less or equal",
+  "dataTable.filterOperator": "{column} filter operator",
+  "dataTable.groupBy": "Group by",
+  "dataTable.groupByCount": "Group by ({count})",
+  "dataTable.nSelected": "{count} selected",
+  "dataTable.selectAllMatching": "Select all {count} matching",
+  "dataTable.manageColumns": "Manage columns",
+  "dataTable.toggleColumns": "Toggle columns",
+  "dataTable.pinColumnTo": "Pin {label} to {side}",
+  "dataTable.unpinColumnFrom": "Unpin {label} from {side}",
+  "dataTable.sideLeft": "left",
+  "dataTable.sideRight": "right",
 } as const satisfies Record<string, string>;
 
 export type MessageKey = keyof typeof DEFAULT_MESSAGES;

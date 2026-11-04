@@ -42,24 +42,26 @@ export interface ColorPickerProps {
   className?: string;
 }
 
-const DEFAULT_COLORS: ColorOption[] = [
-  { value: "#ef4444", label: "Red" },
-  { value: "#f97316", label: "Orange" },
-  { value: "#facc15", label: "Yellow" },
-  { value: "#22c55e", label: "Green" },
-  { value: "#3b82f6", label: "Blue" },
-  { value: "#6366f1", label: "Indigo" },
-  { value: "#a855f7", label: "Purple" },
-  { value: "#ec4899", label: "Pink" },
-  { value: "#78716c", label: "Stone" },
-  { value: "#000000", label: "Black" },
-];
+// The default swatches name their colour through the catalogue, so a translated app
+// announces "Rot", not "Red". Resolved where a locale is in scope.
+const DEFAULT_COLORS = [
+  { value: "#ef4444", key: "colorPicker.red" },
+  { value: "#f97316", key: "colorPicker.orange" },
+  { value: "#facc15", key: "colorPicker.yellow" },
+  { value: "#22c55e", key: "colorPicker.green" },
+  { value: "#3b82f6", key: "colorPicker.blue" },
+  { value: "#6366f1", key: "colorPicker.indigo" },
+  { value: "#a855f7", key: "colorPicker.purple" },
+  { value: "#ec4899", key: "colorPicker.pink" },
+  { value: "#78716c", key: "colorPicker.stone" },
+  { value: "#000000", key: "colorPicker.black" },
+] as const;
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   value: valueProp,
   defaultValue,
   onValueChange,
-  colors = DEFAULT_COLORS,
+  colors: colorsProp,
   allowCustom = true,
   label: labelProp,
   placeholder: placeholderProp,
@@ -67,6 +69,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   className,
 }) => {
   const loc = useLocale();
+  const colors = colorsProp ?? DEFAULT_COLORS.map((c): ColorOption => ({ value: c.value, label: loc.t(c.key) }));
   const label = labelProp ?? loc.t("colorPicker.chooseAColour");
   const placeholder = placeholderProp ?? loc.t("colorPicker.pickAColour");
   const [inner, setInner] = React.useState(() => normalizeHex(defaultValue ?? "") ?? "");

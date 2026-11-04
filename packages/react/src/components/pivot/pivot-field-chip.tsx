@@ -121,7 +121,7 @@ export const PivotFieldChip: React.FC<PivotFieldChipProps> = (props) => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuLabel>Move {label} to</DropdownMenuLabel>
+                <DropdownMenuLabel>{loc.t("pivot.moveTo", { label: label })}</DropdownMenuLabel>
                 {PIVOT_ZONES.filter((z) => z !== "available" && z !== zone).map((z) => (
                   <DropdownMenuItem key={z} onSelect={() => onMoveToZone(z)}>
                     {zoneName(z)}

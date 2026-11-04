@@ -23,7 +23,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * ScheduleGrid — the chrome every schedule chart needs, and none of what any
@@ -118,13 +118,13 @@ const SCROLLER_MAX_PX = 512;
 const CELL_FOCUS_CLASS =
   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-inset focus-visible:zen-ring-zen-ring";
 
-const VIEW_LABEL: Record<GanttView, string> = {
-  fit: "Fit",
-  day: "Day",
-  week: "Week",
-  month: "Month",
-  quarter: "Quarter",
-  year: "Year",
+const VIEW_LABEL: Record<GanttView, MessageKey> = {
+  fit: "scheduleGrid.views.fit",
+  day: "scheduleGrid.views.day",
+  week: "scheduleGrid.views.week",
+  month: "scheduleGrid.views.month",
+  quarter: "scheduleGrid.views.quarter",
+  year: "scheduleGrid.views.year",
 };
 
 /* Fit first: it is the default, and the one that answers "what does this plan
@@ -672,7 +672,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
                   aria-pressed={props.view === v}
                   onClick={() => props.onViewChange(v)}
                 >
-                  {VIEW_LABEL[v]}
+                  {loc.t(VIEW_LABEL[v])}
                 </Button>
               )}
             </For>

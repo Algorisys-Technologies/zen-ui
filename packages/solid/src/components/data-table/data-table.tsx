@@ -1321,7 +1321,7 @@ function GroupByMenu<TData>(props: { table: TanStackTable<TData> }) {
     <Show when={groupable().length > 0}>
       <DropdownMenu>
         <DropdownMenuTrigger as={Button} variant="outline" color="neutral" size="sm">
-          {activeCount() ? `Group by (${activeCount()})` : "Group by"}
+          {activeCount() ? loc.t("dataTable.groupByCount", { count: activeCount() }) : loc.t("dataTable.groupBy")}
         </DropdownMenuTrigger>
         <DropdownMenuContent class="zen-min-w-44">
           <DropdownMenuLabel>{loc.t("dataTable.groupRowsBy")}</DropdownMenuLabel>
@@ -1387,7 +1387,7 @@ function BulkActionBar<TData>(props: {
             aria-label={loc.t("dataTable.bulkActions")}
           >
             <span class="zen-text-sm zen-font-medium" aria-live="polite" aria-atomic="true">
-              {selectedCount()} selected
+              {loc.t("dataTable.nSelected", { count: selectedCount() })}
             </span>
             <Show when={showCrossPage()}>
               <button
@@ -1400,7 +1400,7 @@ function BulkActionBar<TData>(props: {
                   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
                 )}
               >
-                Select all {totalFiltered()} matching
+                {loc.t("dataTable.selectAllMatching", { count: totalFiltered() })}
               </button>
             </Show>
             <div class="zen-ml-auto zen-flex zen-items-center zen-gap-2">
@@ -1463,7 +1463,7 @@ function ActiveFilterChips<TData>(props: { table: TanStackTable<TData> }) {
       }
       return "";
     }
-    if (typeof value === "boolean") return value ? "Yes" : "No";
+    if (typeof value === "boolean") return value ? loc.t("dataTable.yes") : loc.t("dataTable.no");
     return String(value);
   };
 
@@ -1735,7 +1735,7 @@ function ColumnsMenu<TData>(props: {
         </DropdownMenuTrigger>
         <DropdownMenuContent class="zen-min-w-56">
           <DropdownMenuLabel>
-            {props.enableColumnPinning ? "Manage columns" : "Toggle columns"}
+            {props.enableColumnPinning ? loc.t("dataTable.manageColumns") : loc.t("dataTable.toggleColumns")}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <For each={hideable()}>
@@ -1799,15 +1799,17 @@ function PinButton(props: {
   onClick: (e: MouseEvent) => void;
 }) {
   const loc = useLocale();
+  const side = () => loc.t(props.side === "left" ? "dataTable.sideLeft" : "dataTable.sideRight");
   return (
     <button
       type="button"
       onClick={(e) => props.onClick(e)}
-      aria-label={
-        props.active ? `Unpin ${props.label} from ${props.side}` : `Pin ${props.label} to ${props.side}`
-      }
+      aria-label={loc.t(props.active ? "dataTable.unpinColumnFrom" : "dataTable.pinColumnTo", {
+        label: props.label,
+        side: side(),
+      })}
       aria-pressed={props.active}
-      title={loc.t(props.active ? "dataTable.unpinFrom" : "dataTable.pinTo", { side: props.side })}
+      title={loc.t(props.active ? "dataTable.unpinFrom" : "dataTable.pinTo", { side: side() })}
       class={cn(
         "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
         "zen-border-0 zen-cursor-pointer zen-text-xs",
@@ -1877,6 +1879,7 @@ interface BodyItem<TData> {
 }
 
 function BodyTable<TData>(props: BodyTableProps<TData>) {
+  const loc = useLocale();
   const rows = () => props.table.getRowModel().rows;
   const totalOf = (column: { columnDef: { meta?: unknown } }) => !!(column.columnDef.meta as { aggregate?: unknown } | undefined)?.aggregate;
   const hasTotals = () => props.table.getAllLeafColumns().some(totalOf);
@@ -2735,7 +2738,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
                   colSpan={colCount()}
                   class="zen-text-center zen-text-zen-muted-fg zen-py-6"
                 >
-                  {props.loading ? "Loading…" : props.emptyMessage}
+                  {props.loading ? loc.t("dataTable.loading") : props.emptyMessage}
                 </TableCell>
               </TableRow>
             }
@@ -3351,6 +3354,7 @@ function VirtualizedBody<TData>(props: {
   headerPinStyle: (col: Column<TData, unknown>) => JSX.CSSProperties | undefined;
   headerStickyBg: string;
 }) {
+  const loc = useLocale();
   let parentRef: HTMLDivElement | undefined;
   const rows = () => props.table.getRowModel().rows;
   const virtualizer = createVirtualizer({
@@ -3498,7 +3502,7 @@ function VirtualizedBody<TData>(props: {
                 color: "var(--zen-color-muted-fg)",
               }}
             >
-              {props.loading ? "Loading…" : props.emptyMessage}
+              {props.loading ? loc.t("dataTable.loading") : props.emptyMessage}
             </div>
           }
         >

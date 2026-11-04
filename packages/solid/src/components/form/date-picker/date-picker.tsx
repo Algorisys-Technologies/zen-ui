@@ -53,7 +53,16 @@ interface CommonCalendarProps {
   class?: string;
 }
 
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+// Column headers, Sunday first. Catalogue keys, so a translated app names its own days.
+const WEEKDAYS = [
+  "calendar.weekday.su",
+  "calendar.weekday.mo",
+  "calendar.weekday.tu",
+  "calendar.weekday.we",
+  "calendar.weekday.th",
+  "calendar.weekday.fr",
+  "calendar.weekday.sa",
+] as const;
 
 const sameDay = (a: Date | undefined, b: Date | undefined): boolean =>
   !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -253,7 +262,7 @@ export const Calendar = (props: CalendarProps) => {
                     <tr>
                       <For each={WEEKDAYS}>
                         {(d) => (
-                          <th class="zen-h-8 zen-w-8 zen-text-xs zen-font-normal zen-text-zen-muted-fg">{d}</th>
+                          <th class="zen-h-8 zen-w-8 zen-text-xs zen-font-normal zen-text-zen-muted-fg">{loc.t(d)}</th>
                         )}
                       </For>
                     </tr>

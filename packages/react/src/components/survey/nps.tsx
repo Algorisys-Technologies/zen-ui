@@ -1,7 +1,7 @@
 import * as React from "react";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * NPS — Net Promoter Score input. The canonical "How likely are you to
@@ -49,10 +49,10 @@ type Bucket = "detractor" | "passive" | "promoter";
 const bucketOf = (n: number): Bucket =>
   n <= 6 ? "detractor" : n <= 8 ? "passive" : "promoter";
 
-const bucketLabel: Record<Bucket, string> = {
-  detractor: "Detractor",
-  passive: "Passive",
-  promoter: "Promoter",
+const bucketLabel: Record<Bucket, MessageKey> = {
+  detractor: "nps.detractor",
+  passive: "nps.passive",
+  promoter: "nps.promoter",
 };
 
 export const NPS = React.forwardRef<HTMLDivElement, NPSProps>(
@@ -184,7 +184,7 @@ export const NPS = React.forwardRef<HTMLDivElement, NPSProps>(
             )}
             aria-live="polite"
           >
-            {value} · {bucketLabel[bucketOf(value)]}
+            {value} · {loc.t(bucketLabel[bucketOf(value)])}
           </p>
         ) : null}
         {name && value !== undefined ? (

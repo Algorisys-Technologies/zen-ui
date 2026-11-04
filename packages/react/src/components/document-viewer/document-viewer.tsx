@@ -301,7 +301,7 @@ export const DocumentViewer = ({
       } catch {
         if (mine !== token.current || cancelled) return;
         setStatus("error");
-        setError("This is a PDF, and pdfjs-dist is not installed. Add it to render PDFs.");
+        setError("This is a PDF, and pdfjs-dist is not installed. Add it to render PDFs."); // i18n-ignore (a developer install notice)
         return;
       }
       if (mine !== token.current || cancelled) return;
@@ -313,7 +313,8 @@ export const DocumentViewer = ({
       if (globals && !globals.workerSrc) {
         setStatus("error");
         setError(
-          'PDFs need a pdf.js worker. Pass workerSrc — in Vite: import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url".',
+          // i18n-ignore-next-line (a developer setup notice: the fix is code, not a word for users)
+        'PDFs need a pdf.js worker. Pass workerSrc — in Vite: import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url".',
         );
         return;
       }
@@ -330,7 +331,7 @@ export const DocumentViewer = ({
       } catch (e) {
         if (mine !== token.current || cancelled) return;
         setStatus("error");
-        setError(e instanceof Error ? e.message : "Could not open this PDF.");
+        setError(e instanceof Error ? e.message : loc.t("documentViewer.pdfFailed"));
       }
     };
     void load();
@@ -420,7 +421,7 @@ export const DocumentViewer = ({
             }}
             onError={() => {
               setStatus("error");
-              setError("Could not load this image.");
+              setError(loc.t("documentViewer.imageFailed"));
             }}
             /* Sized rather than transformed: a CSS scale() leaves the element's
                layout box at its old size, so the scroller never learns the

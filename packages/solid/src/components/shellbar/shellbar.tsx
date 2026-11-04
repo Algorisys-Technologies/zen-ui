@@ -440,8 +440,8 @@ export const ShellBar = (props: ShellBarProps) => {
                   shape="square"
                   aria-label={
                     local.notificationCount
-                      ? `Notifications, ${local.notificationCount} unread`
-                      : "Notifications"
+                      ? loc.t("shellbar.notificationsUnread", { count: local.notificationCount })
+                      : loc.t("shellbar.notifications")
                   }
                   onClick={() => local.onNotificationsClick?.()}
                 >

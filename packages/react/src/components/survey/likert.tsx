@@ -1,6 +1,7 @@
 import * as React from "react";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * Likert — n-point agree/disagree scale. The third leg of the survey
@@ -59,13 +60,17 @@ export interface LikertOption {
   renderOption?: () => React.ReactNode;
 }
 
-const DEFAULT_OPTIONS: LikertOption[] = [
-  { value: "strongly_disagree", label: "Strongly disagree", shortLabel: "SD" },
-  { value: "disagree", label: "Disagree", shortLabel: "D" },
-  { value: "neutral", label: "Neutral", shortLabel: "N" },
-  { value: "agree", label: "Agree", shortLabel: "A" },
-  { value: "strongly_agree", label: "Strongly agree", shortLabel: "SA" },
-];
+// The five-point agreement scale. Its words come from the catalogue (likert.<value>
+// and likert.<value>Short), resolved where a locale is in scope.
+const DEFAULT_SCALE = [
+  ["strongly_disagree", "likert.stronglyDisagree", "likert.stronglyDisagreeShort"],
+  ["disagree", "likert.disagree", "likert.disagreeShort"],
+  ["neutral", "likert.neutral", "likert.neutralShort"],
+  ["agree", "likert.agree", "likert.agreeShort"],
+  ["strongly_agree", "likert.stronglyAgree", "likert.stronglyAgreeShort"],
+] as const;
+const defaultOptions = (t: (key: MessageKey) => string): LikertOption[] =>
+  DEFAULT_SCALE.map(([value, label, short]) => ({ value, label: t(label), shortLabel: t(short) }));
 
 export interface LikertProps {
   value?: string;
@@ -101,7 +106,7 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
       defaultValue,
       onValueChange,
       question,
-      options = DEFAULT_OPTIONS,
+      options: optionsProp,
       layout = "segmented",
       minLabel,
       maxLabel,
@@ -112,6 +117,8 @@ export const Likert = React.forwardRef<HTMLDivElement, LikertProps>(
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const options = optionsProp ?? defaultOptions(loc.t);
     const [inner, setInner] = React.useState<string | undefined>(defaultValue);
     const isControlled = valueProp !== undefined;
     const value = isControlled ? valueProp : inner;

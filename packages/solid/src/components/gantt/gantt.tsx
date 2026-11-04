@@ -36,7 +36,7 @@ import {
   createScrollerMetrics,
   type ScheduleColumn,
 } from "./schedule-grid";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * Gantt — what the project is doing, and what is waiting on what.
@@ -192,11 +192,11 @@ const PANE_PX: Record<GanttPaneColumn, number> = {
   variance: 72,
 };
 
-const PANE_LABEL: Record<GanttPaneColumn, string> = {
-  name: "Task",
-  assignees: "Assignees",
-  status: "Status",
-  variance: "Variance",
+const PANE_LABEL: Record<GanttPaneColumn, MessageKey> = {
+  name: "gantt.column.name",
+  assignees: "gantt.column.assignees",
+  status: "gantt.column.status",
+  variance: "gantt.column.variance",
 };
 
 /**
@@ -264,11 +264,11 @@ const STATUS_COLOR: Record<GanttTaskStatus, "neutral" | "info" | "error" | "succ
   complete: "success",
 };
 
-const STATUS_LABEL: Record<GanttTaskStatus, string> = {
-  "not-started": "Not started",
-  "on-track": "On track",
-  delayed: "Delayed",
-  complete: "Complete",
+const STATUS_LABEL: Record<GanttTaskStatus, MessageKey> = {
+  "not-started": "gantt.status.notStarted",
+  "on-track": "gantt.status.onTrack",
+  delayed: "gantt.status.delayed",
+  complete: "gantt.status.complete",
 };
 
 const initialsOf = (assignee: GanttAssignee): string =>
@@ -427,7 +427,7 @@ export const Gantt = (props: GanttProps) => {
   const paneColumns = createMemo<ScheduleColumn<Row>[]>(() =>
     requestedPane().map((key) => ({
       key,
-      label: PANE_LABEL[key],
+      label: loc.t(PANE_LABEL[key]),
       width: PANE_PX[key],
       colIndex: COL_INDEX[key],
       class: key === "name" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
@@ -520,7 +520,7 @@ export const Gantt = (props: GanttProps) => {
           onDateChange={setDate}
           onToggle={(row) => toggle(row.task.id)}
           onActivate={(row) => props.onTaskClick?.(row.task, row)}
-          ariaLabel="Project schedule"
+          ariaLabel={loc.t("gantt.projectSchedule")}
           class={props.class}
           scrollerRef={scroller.ref}
           scroller={scroller.element}
@@ -589,7 +589,7 @@ const GanttPaneCell = (props: { column: GanttPaneColumn; row: Row; onToggle: (id
 
       <Show when={props.column === "status"}>
         <Badge variant="soft" color={STATUS_COLOR[props.row.status]} class="zen-truncate">
-          {task().statusLabel ?? STATUS_LABEL[props.row.status]}
+          {task().statusLabel ?? loc.t(STATUS_LABEL[props.row.status])}
         </Badge>
       </Show>
 
@@ -622,6 +622,7 @@ const GanttTrack = (props: {
   placement: PlanningPlacement | null;
   onTaskClick?: (task: GanttTask, row: Row) => void;
 }) => {
+  const loc = useLocale();
   const task = () => props.row.task;
   const progress = () => props.row.progress ?? 0;
   const widthPx = () => (props.placement ? (props.placement.widthPct / 100) * props.axisWidth : 0);
@@ -689,7 +690,7 @@ const GanttTrack = (props: {
            with no data and wrong for THIS one: the reader arrowed to the
            timeline expecting a bar, and "blank" does not distinguish "no dates"
            from "starts after the range you are looking at". */
-        <span class="zen-sr-only">{props.row.span ? "Not scheduled in this range" : "No dates"}</span>
+        <span class="zen-sr-only">{props.row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}</span>
       }
     >
       {(placement) => (
@@ -726,9 +727,12 @@ const GanttTrack = (props: {
             }`}
           >
             <span class="zen-sr-only">
-              {`${formatDay(props.row.span!.start)} to ${formatDay(props.row.span!.end)}, ${STATUS_LABEL[props.row.status]}${
-                props.row.progress === null ? "" : `, ${Math.round(progress())} percent complete`
-              }`}
+              {loc.t(props.row.progress === null ? "gantt.barSpan" : "gantt.barSpanProgress", {
+                start: formatDay(props.row.span!.start),
+                end: formatDay(props.row.span!.end),
+                status: loc.t(STATUS_LABEL[props.row.status]),
+                percent: Math.round(progress()),
+              })}
             </span>
             {/* The bar broken at the gaps where no work happens. The pieces sit
                 INSIDE one button rather than being buttons themselves: the job

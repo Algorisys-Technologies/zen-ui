@@ -94,12 +94,13 @@ export interface TimelineItem {
  * caller passes `open`.
  */
 const TimelineBody = ({ item }: { item: TimelineItem }) => {
+  const loc = useLocale();
   const [internal, setInternal] = React.useState(!!item.defaultOpen);
   const open = item.open ?? internal;
 
   const label =
     item.collapseLabel === undefined
-      ? "Details"
+      ? loc.t("timeline.details")
       : typeof item.collapseLabel === "function"
         ? item.collapseLabel(open)
         : item.collapseLabel;

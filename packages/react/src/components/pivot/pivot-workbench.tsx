@@ -266,7 +266,7 @@ export const PivotWorkbench: React.FC<PivotWorkbenchProps> = ({
                       onLayoutApply?.(draft);
                     }}
                   >
-                    View Data
+                    {loc.t("pivot.viewData")}
                   </Button>
                 </div>
               </div>

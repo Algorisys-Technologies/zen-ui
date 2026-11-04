@@ -245,7 +245,12 @@ export const ShortcutHelp = (props: ShortcutHelpProps) => {
   };
   // eslint-disable-next-line solid/reactivity -- the opening key is fixed for the overlay's life
   const openKey = props.openKey === undefined ? "?" : props.openKey;
-  if (openKey) useShortcut(openKey, () => setOpen(true), { description: "Show these keys", group: "General" });
+  if (openKey) {
+    useShortcut(openKey, () => setOpen(true), {
+      description: loc.t("shortcuts.showTheseKeys"),
+      group: loc.t("shortcuts.general"),
+    });
+  }
 
   const groups = createMemo(() => {
     const byGroup = new Map<string, { keys: string[]; description: string }[]>();
