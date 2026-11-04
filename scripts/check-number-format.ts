@@ -83,6 +83,18 @@ for (const [t, loc] of [
 eq("a leading decimal is fine", P(".5", "en-IN"), 0.5);
 eq("a trailing decimal is fine", P("5.", "en-IN"), 5);
 
+// A malformed locale must not throw: it behaves as no locale.
+for (const bad of ["zz-!!", "en_IN", "", "123"]) {
+  let ok = true;
+  try {
+    eq(`formatNumber with locale ${JSON.stringify(bad)} = the default locale's`, formatNumber(1234.5, { locale: bad, precision: 2 }), formatNumber(1234.5, { precision: 2 }));
+    eq(`parseNumber with locale ${JSON.stringify(bad)}`, P("1234.5", bad), 1234.5);
+    eq(`formatAmount with locale ${JSON.stringify(bad)}`, formatAmount(5, "INR", { locale: bad }), formatAmount(5, "INR"));
+    formatPercent(5, { locale: bad });
+  } catch { ok = false; }
+  eq(`locale ${JSON.stringify(bad)} never throws`, ok, true);
+}
+
 // Round trips over generated numbers in 14 locales.
 const LOCALES = ["en-IN", "en-US", "de-DE", "fr-FR", "de-CH", "es-ES", "hi-IN", "hi-IN-u-nu-deva", "ar-EG", "ja-JP", "pt-BR", "it-IT", "sv-SE", "en-GB"];
 let seed = 3;

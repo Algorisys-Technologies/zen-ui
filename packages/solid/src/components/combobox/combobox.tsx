@@ -8,6 +8,7 @@ import {
 } from "solid-js";
 import { Combobox as KCombobox } from "@kobalte/core/combobox";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Combobox — searchable single-select built on Kobalte Combobox.
@@ -99,6 +100,7 @@ export type ComboboxProps = {
 const CREATE_SENTINEL = "__zen_create__";
 
 export const Combobox = (rawProps: ComboboxProps) => {
+  const loc = useLocale();
   const [props] = splitProps(rawProps, [
     "options",
     "onSearch",
@@ -147,7 +149,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
           ...baseOptions(),
           {
             value: CREATE_SENTINEL,
-            label: `${props.createLabel ?? "Create"} “${typed()}”`,
+            label: loc.t("combobox.createOption", { verb: props.createLabel ?? loc.t("combobox.create"), text: typed() }),
           },
         ]
       : baseOptions(),
@@ -220,7 +222,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
       }}
       onInputChange={onInputChange}
       disabled={props.disabled}
-      placeholder={props.placeholder ?? "Select…"}
+      placeholder={props.placeholder ?? loc.t("combobox.placeholder")}
       itemComponent={(itemProps) => (
         <KCombobox.Item
           item={itemProps.item}
@@ -251,7 +253,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
       >
         <KCombobox.Input
           class="zen-flex-1 zen-min-w-0 zen-bg-transparent zen-border-0 zen-outline-none zen-text-sm placeholder:zen-text-zen-muted-fg"
-          placeholder={props.searchPlaceholder ?? "Search…"}
+          placeholder={props.searchPlaceholder ?? loc.t("combobox.searchPlaceholder")}
         />
         <KCombobox.Trigger class="zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg">
           <KCombobox.Icon>
@@ -266,12 +268,12 @@ export const Combobox = (rawProps: ComboboxProps) => {
           )}
         >
           <Show when={asyncLoading()}>
-            <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">Loading…</div>
+            <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">{loc.t("combobox.loading")}</div>
           </Show>
           <KCombobox.Listbox class="zen-max-h-72 zen-overflow-y-auto" />
           <Show when={effectiveOptions().length === 0 && !asyncLoading()}>
             <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">
-              {props.emptyMessage ?? "No results."}
+              {props.emptyMessage ?? loc.t("combobox.noResults")}
             </div>
           </Show>
         </KCombobox.Content>

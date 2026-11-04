@@ -18,6 +18,21 @@
  * what was typed.
  */
 
+/**
+ * The locale if Intl accepts it, else undefined (the browser's). A malformed
+ * tag from an app's settings must not stop a page from rendering: Intl throws
+ * a RangeError on one.
+ */
+export function validLocale(locale?: string): string | undefined {
+  if (!locale) return undefined;
+  try {
+    Intl.getCanonicalLocales(locale);
+    return locale;
+  } catch {
+    return undefined;
+  }
+}
+
 export interface NumberParts {
   /** The decimal mark: "." or "," (or "٫" in Arabic). */
   decimal: string;
@@ -30,7 +45,8 @@ export interface NumberParts {
 const partsCache = new Map<string, NumberParts>();
 
 /** The marks and digits a locale writes numbers with. */
-export function numberParts(locale?: string): NumberParts {
+export function numberParts(rawLocale?: string): NumberParts {
+  const locale = validLocale(rawLocale);
   const key = locale ?? "";
   const hit = partsCache.get(key);
   if (hit) return hit;
@@ -78,7 +94,7 @@ export interface FormatOptions {
 
 /** A plain number: 1,23,456.5 (en-IN), 123.456,5 (de-DE). */
 export function formatNumber(n: number, o: FormatOptions & { maxPrecision?: number } = {}): string {
-  return new Intl.NumberFormat(o.locale, {
+  return new Intl.NumberFormat(validLocale(o.locale), {
     useGrouping: o.grouping ?? true,
     ...(o.precision !== undefined
       ? { minimumFractionDigits: o.precision, maximumFractionDigits: o.precision }
@@ -97,8 +113,9 @@ export interface AmountOptions extends FormatOptions {
 export function formatAmount(n: number, currency: string, o: AmountOptions = {}): string {
   const precision = o.precision ?? currencyPrecision(currency);
   const value = roundTo(n, precision);
+  const locale = validLocale(o.locale);
   if (o.display === "none") {
-    return new Intl.NumberFormat(o.locale, {
+    return new Intl.NumberFormat(locale, {
       style: "decimal",
       useGrouping: o.grouping ?? true,
       minimumFractionDigits: precision,
@@ -106,7 +123,7 @@ export function formatAmount(n: number, currency: string, o: AmountOptions = {})
       ...(o.accounting ? {} : {}),
     }).format(value);
   }
-  return new Intl.NumberFormat(o.locale, {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     currencyDisplay: o.display ?? "symbol",
@@ -128,7 +145,7 @@ export function formatQuantity(n: number, unit?: string, o: FormatOptions = {}):
  * stores a discount or a tax rate, not Intl's ratio (0.125).
  */
 export function formatPercent(value: number, o: FormatOptions = {}): string {
-  return new Intl.NumberFormat(o.locale, {
+  return new Intl.NumberFormat(validLocale(o.locale), {
     style: "percent",
     useGrouping: o.grouping ?? true,
     minimumFractionDigits: o.precision ?? 0,
@@ -168,7 +185,7 @@ export function parseNumber(text: string, o: ParseOptions = {}): number | null |
     for (const display of ["symbol", "narrowSymbol", "code", "name"] as const) {
       try {
         // Every plural form the locale names it with ("dollar", "dollars"…), longest first.
-        const f = new Intl.NumberFormat(o.locale, { style: "currency", currency: o.currency, currencyDisplay: display });
+        const f = new Intl.NumberFormat(validLocale(o.locale), { style: "currency", currency: o.currency, currencyDisplay: display });
         const forms = new Set([0, 1, 2, 3, 5, 11, 21, 101, 1000.5, 1e6].map((v) => f.formatToParts(v).find((x) => x.type === "currency")?.value ?? ""));
         for (const cur of [...forms].filter(Boolean).sort((x, y) => y.length - x.length)) t = t.split(cur).join(" ");
       } catch {

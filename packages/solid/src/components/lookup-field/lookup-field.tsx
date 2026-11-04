@@ -4,6 +4,7 @@ import { filterLookup, highlightRanges, queryWords } from "@algorisys/zen-ui-cor
 import { cn } from "../../lib/cn";
 import { createAnchoredPlacement } from "../../lib/anchored";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * LookupField — pick a row from a table of choices: an item, a customer, an
@@ -96,6 +97,7 @@ const cellText = <T,>(col: LookupColumn<T>, row: T): string => {
 const PAGE = 10;
 
 export function LookupField<T>(props: LookupFieldProps<T>) {
+  const loc = useLocale();
   const [local] = splitProps(props, [
     "columns", "rows", "onSearch", "minQueryLength", "debounce", "rowKey", "rowLabel", "value", "defaultValue",
     "onValueChange", "onValueHelp", "maxRows", "placeholder", "emptyMessage", "invalid", "disabled", "id",
@@ -304,11 +306,11 @@ export function LookupField<T>(props: LookupFieldProps<T>) {
   const template = () => local.columns.map((c) => c.width ?? "minmax(0,1fr)").join(" ");
   const status = () => {
     if (!open()) return "";
-    if (tooShort()) return `Type ${minChars()} or more characters to search`;
-    if (loading()) return "Searching…";
-    if (failed()) return "The search failed";
-    if (rows().length === 0) return local.emptyMessage ?? "No matches";
-    return `${rows().length} ${rows().length === 1 ? "result" : "results"}`;
+    if (tooShort()) return loc.t("lookupField.typeMore", { count: minChars() });
+    if (loading()) return loc.t("lookupField.searching");
+    if (failed()) return loc.t("lookupField.failed");
+    if (rows().length === 0) return local.emptyMessage ?? loc.t("lookupField.noMatches");
+    return loc.t("lookupField.results", { count: rows().length });
   };
 
   return (
@@ -363,8 +365,8 @@ export function LookupField<T>(props: LookupFieldProps<T>) {
           <button
             type="button"
             tabIndex={-1}
-            aria-label="Search all (F4)"
-            title="Search all (F4)"
+            aria-label={loc.t("lookupField.searchAll")}
+            title={loc.t("lookupField.searchAll")}
             disabled={local.disabled}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
@@ -380,7 +382,7 @@ export function LookupField<T>(props: LookupFieldProps<T>) {
         <button
           type="button"
           tabIndex={-1}
-          aria-label={open() ? "Close" : "Open"}
+          aria-label={open() ? loc.t("common.close") : loc.t("common.open")}
           disabled={local.disabled}
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => {

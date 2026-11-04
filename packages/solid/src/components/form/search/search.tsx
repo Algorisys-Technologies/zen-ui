@@ -1,5 +1,6 @@
 import { type JSX, splitProps, createSignal, Show } from "solid-js";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * Search — a search input as a component, not a pattern reinvented per screen.
@@ -36,6 +37,7 @@ const sizes: Record<SearchSize, { field: string; pad: string; icon: string }> = 
 };
 
 export const Search = (props: SearchProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "class",
     "value",
@@ -101,7 +103,7 @@ export const Search = (props: SearchProps) => {
       <Show when={current().length > 0 && !local.disabled}>
         <button
           type="button"
-          aria-label={local.clearLabel ?? "Clear search"}
+          aria-label={local.clearLabel ?? loc.t("search.clear")}
           onClick={clear}
           class={cn(
             "zen-absolute zen-top-1/2 -zen-translate-y-1/2 zen-end-2.5",

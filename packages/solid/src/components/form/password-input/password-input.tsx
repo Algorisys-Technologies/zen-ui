@@ -1,5 +1,6 @@
 import { type JSX, splitProps, createSignal, createEffect, onCleanup, Show } from "solid-js";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * PasswordInput — a password field with a show/hide toggle. Solid port of the
@@ -26,6 +27,7 @@ export interface PasswordInputProps
 }
 
 export const PasswordInput = (props: PasswordInputProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["class", "showLabel", "hideLabel", "disabled", "autoHideMs"]);
   const [visible, setVisible] = createSignal(false);
   // Each reveal starts its own countdown; hiding (or unmounting) clears it.
@@ -53,7 +55,7 @@ export const PasswordInput = (props: PasswordInputProps) => {
       <button
         type="button"
         disabled={local.disabled}
-        aria-label={visible() ? local.hideLabel ?? "Hide password" : local.showLabel ?? "Show password"}
+        aria-label={visible() ? local.hideLabel ?? loc.t("passwordInput.hide") : local.showLabel ?? loc.t("passwordInput.show")}
         aria-pressed={visible()}
         onClick={() => setVisible((v) => !v)}
         class={cn(

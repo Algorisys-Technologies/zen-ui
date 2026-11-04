@@ -97,14 +97,30 @@ issue / PR when its turn comes.
       so the label, aria-keyshortcuts and the registered key cannot disagree.
 - [ ] F6 pane cycling (review A3) can be one more registration on this.
 
+## B1: translatable strings — batches 2 and 3 (2026-11-04)
+
+- [ ] Batch 2: tables and data (DataTable, url-data-table, tree-table,
+      Pagination, Pivot*, SpreadsheetGrid, Chart, MicroChart).
+- [ ] Batch 3: everything else on check:strings' NOT_YET_SWEPT list, plus
+      words generated in CORE (FilterBuilder's operator words and summary
+      sentence from core filter.ts; DynamicDateRange's period names from core
+      date-range.ts; Barcode/QR error reasons from core barcode.ts). Core
+      functions take English today; give them a message lookup (same keys), so
+      describeFilter etc. translate too.
+- [ ] Combobox takes no `id` and no `aria-label`, so nothing names it except a
+      wrapping label (pre-existing; found writing the Localization demo).
+- [ ] Each batch: route snapshots must be identical to the baseline for every
+      pre-existing route (see "Regression proof" above). Batch 1 measured.
+- [ ] Parity: React / vanilla / web-components read the same core catalogue;
+      check:strings to be extended to each binding in the parity pass.
+
 ## Parity: AmountField, QuantityField, LocaleProvider, ObjectNumber number= (Solid only, 2026-11-04)
 
 - [ ] Port with the parity pass, on core's `number-format` (shared already).
       LocaleProvider is OPTIONAL everywhere: a component reads its own prop,
       then the provider, then the old behaviour. Demo /amount-field.
       ERPNext review B2.
-- [ ] The field hints ("Amount in Indian Rupee. You can type 2.5L…") are
-      English; they move to the message catalogue with B1.
+- [x] The field hints moved to the message catalogue (B1 batch 1).
 - [ ] Not in this cut: a DataTable amount column / cell editor on AmountField;
       ↑↓ stepping in AmountField (NumberField has it).
 

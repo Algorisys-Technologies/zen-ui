@@ -1,6 +1,7 @@
 import { type JSX, Show, splitProps } from "solid-js";
 import * as KDialog from "@kobalte/core/dialog";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Dialog — Solid port of the modal overlay primitive, built on
@@ -81,6 +82,7 @@ export type DialogContentProps = Omit<
 };
 
 export const DialogContent = (props: DialogContentProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, ["class", "children", "showCloseButton", "variant"]);
   const showClose = () => local.showCloseButton ?? true;
   const paper = () => local.variant === "paper";
@@ -133,7 +135,7 @@ export const DialogContent = (props: DialogContentProps) => {
         {local.children}
         {showClose() ? (
           <KDialog.CloseButton
-            aria-label="Close"
+            aria-label={loc.t("common.close")}
             class={cn(
               "zen-absolute zen-end-3 zen-top-3 zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center",
               "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg",

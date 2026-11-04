@@ -26,6 +26,7 @@ import { Select } from "../form/select/select";
 import { DateInput } from "../form/date-picker/date-input";
 import { MultiCombobox } from "../combobox/multi-combobox";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 export type { FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator };
 
@@ -64,12 +65,7 @@ export type FilterBuilderProps = {
 };
 
 type MatchMode = "all" | "any" | "none" | "notAll";
-const MATCH_OPTIONS: { value: MatchMode; label: string }[] = [
-  { value: "all", label: "All of" },
-  { value: "any", label: "Any of" },
-  { value: "none", label: "None of" },
-  { value: "notAll", label: "Not all of" },
-];
+const MATCH_MODES: MatchMode[] = ["all", "any", "none", "notAll"];
 const modeOf = (g: FilterGroup): MatchMode =>
   g.join === "and" ? (g.not ? "notAll" : "all") : g.not ? "none" : "any";
 const groupOf = (m: MatchMode): Pick<FilterGroup, "join" | "not"> => ({
@@ -90,6 +86,7 @@ const toIso = (d: Date | null): string | null => {
 };
 
 export const FilterBuilder = (props: FilterBuilderProps) => {
+  const loc = useLocale();
   const [local] = splitProps(props, [
     "fields", "value", "defaultValue", "onValueChange", "maxDepth", "showSummary", "formatValue", "aria-label", "class",
   ]);
@@ -164,6 +161,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
   // Option lists are built once per input, not per render: Kobalte reports the
   // selection again when its options change identity, and an edit answering that
   // report rebuilt the options, which reported again (a stack overflow, measured).
+  const matchOptions = createMemo(() => MATCH_MODES.map((value) => ({ value, label: loc.t(`filterBuilder.${value}`) })));
   const fieldOptions = createMemo(() => local.fields.map((f) => ({ value: f.id, label: f.label })));
   const opOptions = new Map<string, { value: string; label: string }[]>();
   const operatorOptions = (type: FilterField["type"]) => {
@@ -205,7 +203,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
       set(updateNode(root(), p.c.id, patch));
     };
     const SrLabel = (q: { part: string; text: string }) => (
-      <label for={controlId(p.c.id, q.part)} class="zen-sr-only">{`Condition ${n()}, ${q.text}`}</label>
+      <label for={controlId(p.c.id, q.part)} class="zen-sr-only">{q.text}</label>
     );
     const valueEditor = (which: "value" | "valueTo") => {
       const id = controlId(props.id, which);
@@ -241,7 +239,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
       <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2" data-filter-condition={p.c.id}>
         <Select
           id={controlId(p.c.id, "field")}
-          aria-label={`Condition ${n()}, field`}
+          aria-label={loc.t("filterBuilder.field", { n: n() })}
           options={fieldOptions()}
           value={p.c.field}
           onChange={(id) => {
@@ -253,7 +251,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
         />
         <Select
           id={controlId(p.c.id, "op")}
-          aria-label={`Condition ${n()}, operator`}
+          aria-label={loc.t("filterBuilder.operator", { n: n() })}
           options={opList()}
           value={p.c.op}
           onChange={(op) => op && op !== p.c.op && set(changeOperator(root(), p.c.id, op as FilterOperator))}
@@ -262,21 +260,21 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
         <Show when={arity() === "list"}>
           <div class="zen-min-w-48 zen-flex-1">
             <MultiCombobox
-              aria-label={`Condition ${n()}, values`}
+              aria-label={loc.t("filterBuilder.values", { n: n() })}
               options={choices()}
               value={chosen()}
               onValueChange={(vs) => setValue({ value: vs })}
-              placeholder="Choose…"
+              placeholder={loc.t("filterBuilder.choose")}
             />
           </div>
         </Show>
         <Show when={arity() === 1 || arity() === 2}>
-          <SrLabel part="value" text={arity() === 2 ? "from" : "value"} />
+          <SrLabel part="value" text={loc.t(arity() === 2 ? "filterBuilder.from" : "filterBuilder.value", { n: n() })} />
           {valueEditor("value")}
         </Show>
         <Show when={arity() === 2}>
-          <span class="zen-text-sm zen-text-zen-muted-fg" aria-hidden="true">and</span>
-          <SrLabel part="valueTo" text="to" />
+          <span class="zen-text-sm zen-text-zen-muted-fg" aria-hidden="true">{loc.t("filterBuilder.and")}</span>
+          <SrLabel part="valueTo" text={loc.t("filterBuilder.to", { n: n() })} />
           {valueEditor("valueTo")}
         </Show>
         <Button
@@ -284,8 +282,8 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
           color="neutral"
           shape="square"
           size="sm"
-          aria-label={`Remove condition ${n()}`}
-          title="Remove condition"
+          aria-label={loc.t("filterBuilder.removeConditionN", { n: n() })}
+          title={loc.t("filterBuilder.removeCondition")}
           onClick={() => remove(props.id, props.parentId)}
           class="zen-ms-auto zen-shrink-0"
         >
@@ -310,7 +308,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
     return (
       <div
         role="group"
-        aria-label={nested() ? `Group: ${MATCH_OPTIONS.find((o) => o.value === modeOf(p.g))?.label.toLowerCase()} these` : local["aria-label"] ?? "Filter"}
+        aria-label={nested() ? loc.t("filterBuilder.groupLabel", { match: loc.t(`filterBuilder.${modeOf(p.g)}`).toLowerCase() }) : local["aria-label"] ?? loc.t("filterBuilder.label")}
         data-filter-group={p.g.id}
         class={cn(
           "zen-flex zen-flex-col zen-gap-2",
@@ -318,15 +316,15 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
         )}
       >
         <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2">
-          <label for={controlId(p.g.id, "match")} class="zen-text-sm zen-text-zen-muted-fg">Match</label>
+          <label for={controlId(p.g.id, "match")} class="zen-text-sm zen-text-zen-muted-fg">{loc.t("filterBuilder.match")}</label>
           <Select
             id={controlId(p.g.id, "match")}
-            options={MATCH_OPTIONS}
+            options={matchOptions()}
             value={modeOf(p.g)}
             onChange={(m) => m && m !== modeOf(p.g) && set(updateNode(root(), p.g.id, groupOf(m as MatchMode)))}
             class="zen-w-36"
           />
-          <span class="zen-text-sm zen-text-zen-muted-fg">these conditions</span>
+          <span class="zen-text-sm zen-text-zen-muted-fg">{loc.t("filterBuilder.theseConditions")}</span>
           <Show when={nested() && props.parentId}>
             <Button
               variant="ghost"
@@ -335,7 +333,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
               onClick={() => remove(props.id, props.parentId!)}
               class="zen-ms-auto"
             >
-              Remove group
+              {loc.t("filterBuilder.removeGroup")}
             </Button>
           </Show>
         </div>
@@ -352,7 +350,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
           </For>
           <Show when={p.g.children.length === 0}>
             <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
-              {nested() ? "An empty group filters nothing." : "No conditions: every row matches."}
+              {nested() ? loc.t("filterBuilder.emptyGroup") : loc.t("filterBuilder.emptyRoot")}
             </p>
           </Show>
         </div>
@@ -365,11 +363,11 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
             iconLeft={<Icon name="plus" size={14} />}
             onClick={() => addCondition(p.g)}
           >
-            Condition
+            {loc.t("filterBuilder.addCondition")}
           </Button>
           <Show when={p.depth + 1 < maxDepth()}>
             <Button variant="ghost" color="neutral" size="sm" iconLeft={<Icon name="plus" size={14} />} onClick={() => addGroup(p.g)}>
-              Group
+              {loc.t("filterBuilder.addGroup")}
             </Button>
           </Show>
         </div>
@@ -382,8 +380,8 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
       <GroupView id={root().id} depth={0} />
       <Show when={local.showSummary !== false}>
         <p class="zen-m-0 zen-text-sm" aria-live="polite" data-filter-summary="">
-          <span class="zen-text-zen-muted-fg">Shows: </span>
-          {summary() || "every row (no condition is finished yet)"}
+          <span class="zen-text-zen-muted-fg">{loc.t("filterBuilder.shows")}</span>
+          {summary() || loc.t("filterBuilder.showsEverything")}
         </p>
       </Show>
     </div>

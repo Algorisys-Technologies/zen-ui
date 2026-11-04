@@ -3,6 +3,7 @@ import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { Checkbox } from "../form/checkbox/checkbox";
 import { Icon, type IconName } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * The searchable item list shared by the pickers — SelectDialog's whole body,
@@ -36,7 +37,8 @@ export const SelectSearchField = (props: {
   placeholder?: string;
   class?: string;
 }) => {
-  const placeholder = () => props.placeholder ?? "Search";
+  const loc = useLocale();
+  const placeholder = () => props.placeholder ?? loc.t("selectList.placeholder");
   return (
     <div class={cn("zen-relative", props.class)}>
       <Icon
@@ -63,41 +65,44 @@ export const SelectListBody = (props: {
   onToggle: (id: string) => void;
   onPick: (id: string) => void;
   emptyText?: string;
-}) => (
-  <Show
-    when={props.items.length > 0}
-    fallback={
-      <p class="zen-m-0 zen-px-4 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-        {props.emptyText ?? "No matching items"}
-      </p>
-    }
-  >
-    <ul class="zen-m-0 zen-flex zen-list-none zen-flex-col zen-p-0">
-      <For each={props.items}>
-        {(item) => (
-          <li>
-            <Show
-              when={props.multiple}
-              fallback={
-                <SingleRow
+}) => {
+  const loc = useLocale();
+  return (
+    <Show
+      when={props.items.length > 0}
+      fallback={
+        <p class="zen-m-0 zen-px-4 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg">
+          {props.emptyText ?? loc.t("selectList.empty")}
+        </p>
+      }
+    >
+      <ul class="zen-m-0 zen-flex zen-list-none zen-flex-col zen-p-0">
+        <For each={props.items}>
+          {(item) => (
+            <li>
+              <Show
+                when={props.multiple}
+                fallback={
+                  <SingleRow
+                    item={item}
+                    current={props.selected.includes(item.id)}
+                    onPick={() => props.onPick(item.id)}
+                  />
+                }
+              >
+                <MultiRow
                   item={item}
-                  current={props.selected.includes(item.id)}
-                  onPick={() => props.onPick(item.id)}
+                  checked={props.selected.includes(item.id)}
+                  onToggle={() => props.onToggle(item.id)}
                 />
-              }
-            >
-              <MultiRow
-                item={item}
-                checked={props.selected.includes(item.id)}
-                onToggle={() => props.onToggle(item.id)}
-              />
-            </Show>
-          </li>
-        )}
-      </For>
-    </ul>
-  </Show>
-);
+              </Show>
+            </li>
+          )}
+        </For>
+      </ul>
+    </Show>
+  );
+};
 
 const ROW_CLASS =
   "zen-flex zen-w-full zen-items-center zen-gap-3 zen-rounded-zen-sm zen-px-4 zen-py-2.5 zen-text-start";

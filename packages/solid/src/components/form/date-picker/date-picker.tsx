@@ -2,6 +2,7 @@ import { For, Show, createMemo, createSignal, splitProps } from "solid-js";
 import { cn } from "../../../lib/cn";
 import { Button } from "../../button/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover/popover";
+import { useLocale } from "../../locale/locale";
 
 /**
  * Calendar — custom month-grid built for the Solid binding (no
@@ -89,6 +90,7 @@ const monthMatrix = (anchor: Date): Date[][] => {
 };
 
 export const Calendar = (props: CalendarProps) => {
+  const loc = useLocale();
   // Seeds which MONTH opens, once: `defaultMonth`, else the month of `selected`,
   // else today. `props.selected` is read reactively further down (isSelected /
   // inRange / the day cells), so the SELECTION renders correctly regardless —
@@ -183,7 +185,7 @@ export const Calendar = (props: CalendarProps) => {
                       type="button"
                       onClick={() => setViewMonth(addMonths(viewMonth(), -1))}
                       class="zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer hover:zen-bg-zen-muted"
-                      aria-label="Previous month"
+                      aria-label={loc.t("calendar.previousMonth")}
                     >
                       ‹
                     </button>
@@ -194,7 +196,7 @@ export const Calendar = (props: CalendarProps) => {
                       type="button"
                       onClick={() => setViewMonth(addMonths(viewMonth(), 1))}
                       class="zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer hover:zen-bg-zen-muted"
-                      aria-label="Next month"
+                      aria-label={loc.t("calendar.nextMonth")}
                     >
                       ›
                     </button>
@@ -278,6 +280,7 @@ export type DatePickerProps = {
 };
 
 export const DatePicker = (rawProps: DatePickerProps) => {
+  const loc = useLocale();
   const [props] = splitProps(rawProps, [
     "value",
     "defaultValue",
@@ -314,7 +317,7 @@ export const DatePicker = (rawProps: DatePickerProps) => {
           props.class,
         )}
       >
-        {date() ? fmt(date()!) : (props.placeholder ?? "Pick a date")}
+        {date() ? fmt(date()!) : (props.placeholder ?? loc.t("datePicker.placeholder"))}
       </PopoverTrigger>
       <PopoverContent class="zen-w-auto zen-p-0">
         <Calendar

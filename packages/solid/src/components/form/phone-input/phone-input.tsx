@@ -3,6 +3,7 @@ import { cn } from "../../../lib/cn";
 import { Input } from "../input/input";
 import { Select, type SelectOption } from "../select/select";
 import { COUNTRY_CODES, COUNTRY_NAMES } from "./phone-input.constants";
+import { useLocale } from "../../locale/locale";
 
 /**
  * PhoneInput — composition of Select (country dial-code) and Input
@@ -41,6 +42,7 @@ const COUNTRY_LIST: { dialCode: string; name: string }[] = Object.entries(
 const DEFAULT_COUNTRIES = COUNTRY_LIST.filter((c) => c.dialCode);
 
 export const PhoneInput = (rawProps: PhoneInputProps) => {
+  const loc = useLocale();
   const [props] = splitProps(rawProps, [
     "value",
     "defaultValue",
@@ -94,7 +96,7 @@ export const PhoneInput = (rawProps: PhoneInputProps) => {
         <Input
           type="tel"
           inputMode="tel"
-          placeholder={props.placeholder ?? "Phone number"}
+          placeholder={props.placeholder ?? loc.t("phoneInput.placeholder")}
           value={current().number}
           onInput={(e) => update({ ...current(), number: e.currentTarget.value })}
           disabled={props.disabled}

@@ -11,6 +11,7 @@ import {
 import { cn } from "../../../lib/cn";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "../../popover/popover";
 import { Calendar } from "./date-picker";
+import { useLocale } from "../../locale/locale";
 
 export type { DateOrder };
 
@@ -62,6 +63,7 @@ const sameDay = (a: Date | null | undefined, b: Date | null | undefined) =>
   (!a && !b) || (!!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate());
 
 export const DateInput = (props: DateInputProps) => {
+  const loc = useLocale();
   const [local] = splitProps(props, [
     "value", "defaultValue", "onValueChange", "onInvalidInput", "locale", "order", "min", "max",
     "isDateDisabled", "placeholder", "invalid", "disabled", "id", "aria-label", "aria-labelledby", "width", "class",
@@ -174,13 +176,13 @@ export const DateInput = (props: DateInputProps) => {
           class="zen-min-w-0 zen-flex-1 zen-border-0 zen-bg-transparent zen-text-sm zen-tabular-nums zen-text-zen-foreground zen-outline-none placeholder:zen-text-zen-muted-fg"
         />
         <span id={hintId} class="zen-sr-only">
-          {`Type a date as ${patternFor(order())}, or t for today, +7 for a week ahead. Arrow keys move a day.`}
+          {loc.t("dateInput.hint", { pattern: patternFor(order()) })}
         </span>
         <PopoverTrigger
           type="button"
           tabIndex={-1}
           disabled={local.disabled}
-          aria-label="Choose a date"
+          aria-label={loc.t("dateInput.chooseDate")}
           class="zen-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-border-0 zen-bg-transparent zen-p-0.5 zen-text-zen-muted-fg hover:zen-text-zen-foreground"
         >
           <CalendarIcon />
@@ -193,7 +195,7 @@ export const DateInput = (props: DateInputProps) => {
           const panel = e.currentTarget as HTMLElement;
           const day =
             panel.querySelector<HTMLButtonElement>('button[aria-pressed="true"]:not(:disabled)') ??
-            panel.querySelector<HTMLButtonElement>(`button[aria-label="${new Date().toDateString()}"]:not(:disabled)`);
+            panel.querySelector<HTMLButtonElement>(`button[aria-label="${new Date().toDateString()}"]:not(:disabled)`); // i18n-ignore (a selector, not text)
           if (day) {
             e.preventDefault();
             day.focus();

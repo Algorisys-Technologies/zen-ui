@@ -1,5 +1,6 @@
 import { type JSX, createMemo, createSignal, splitProps } from "solid-js";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * NumberField — shadcn-style number input with optional stepper buttons.
@@ -24,6 +25,7 @@ export type NumberFieldProps = Omit<
 };
 
 export const NumberField = (props: NumberFieldProps) => {
+  const loc = useLocale();
   const [local, rest] = splitProps(props, [
     "class",
     "value",
@@ -77,7 +79,7 @@ export const NumberField = (props: NumberFieldProps) => {
     >
       <button
         type="button"
-        aria-label="Decrement"
+        aria-label={loc.t("numberField.decrement")}
         onClick={dec}
         disabled={local.disabled || atMin()}
         class={cn(
@@ -116,7 +118,7 @@ export const NumberField = (props: NumberFieldProps) => {
       />
       <button
         type="button"
-        aria-label="Increment"
+        aria-label={loc.t("numberField.increment")}
         onClick={inc}
         disabled={local.disabled || atMax()}
         class={cn(

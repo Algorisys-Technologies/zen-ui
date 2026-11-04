@@ -4,6 +4,7 @@ import { Button } from "../../button/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover/popover";
 import { Calendar } from "./date-picker";
 import { TimePicker } from "../time-picker/time-picker";
+import { useLocale } from "../../locale/locale";
 
 /**
  * DateTimePicker — Solid port. Combines a single-month Calendar with a
@@ -55,6 +56,7 @@ const defaultFormatTime = (d: Date, fmt: Format) =>
   });
 
 export const DateTimePicker = (rawProps: DateTimePickerProps) => {
+  const loc = useLocale();
   const [props] = splitProps(rawProps, [
     "value",
     "defaultValue",
@@ -102,7 +104,7 @@ export const DateTimePicker = (rawProps: DateTimePickerProps) => {
 
   const triggerLabel = () => {
     const d = date();
-    if (!d) return props.placeholder ?? "Pick date & time";
+    if (!d) return props.placeholder ?? loc.t("dateTimePicker.placeholder");
     const fmtD = props.formatDate ?? defaultFormatDate;
     const fmtT = props.formatTime ?? defaultFormatTime;
     return `${fmtD(d)} ${fmtT(d, props.format ?? "24h")}`;
@@ -132,7 +134,7 @@ export const DateTimePicker = (rawProps: DateTimePickerProps) => {
           disabled={typeof props.disabled === "function" ? props.disabled : undefined}
         />
         <div class="zen-flex zen-items-center zen-justify-between zen-gap-3 zen-border-t zen-border-zen-border zen-px-3 zen-py-2.5">
-          <label class="zen-text-xs zen-text-zen-muted-fg">Time</label>
+          <label class="zen-text-xs zen-text-zen-muted-fg">{loc.t("dateTimePicker.time")}</label>
           <TimePicker
             value={dateToTimeString(date(), !!props.showSeconds)}
             onValueChange={onTimeChange}

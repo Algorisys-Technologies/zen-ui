@@ -211,6 +211,7 @@ function currencyName(currency: string, locale?: string) {
  * (check:number-format).
  */
 export const AmountField = (props: AmountFieldProps) => {
+  const loc = useLocale();
   const ctx = useLocale();
   const locale = () => props.locale ?? ctx.locale();
   const currency = () => props.currency ?? ctx.currency();
@@ -222,7 +223,7 @@ export const AmountField = (props: AmountFieldProps) => {
       currency={currency}
       display={(n) => (currency() ? formatAmount(n, currency()!, { locale: locale(), display: "none", precision: precision() }) : formatNumber(n, { locale: locale(), precision: precision() }))}
       adornment={() => (currency() ? currencyAdornment(currency()!, locale()) : null)}
-      hint={() => `${currency() ? `Amount in ${currencyName(currency()!, locale())}. ` : ""}You can type 2.5L for 2,50,000, 1.2Cr, or 15k.`}
+      hint={() => `${currency() ? `${loc.t("amountField.inCurrency", { currency: currencyName(currency()!, locale()) })} ` : ""}${loc.t("amountField.shorthand")}`}
     />
   );
 };
@@ -235,6 +236,7 @@ export const AmountField = (props: AmountFieldProps) => {
  *   <QuantityField unit="Kg" precision={3} value={qty()} onValueChange={setQty} />
  */
 export const QuantityField = (props: QuantityFieldProps) => {
+  const loc = useLocale();
   const ctx = useLocale();
   const locale = () => props.locale ?? ctx.locale();
   const precision = () => props.precision ?? 0;
@@ -244,7 +246,7 @@ export const QuantityField = (props: QuantityFieldProps) => {
       precision={precision}
       display={(n) => formatNumber(n, { locale: locale(), precision: precision() })}
       adornment={() => (props.unit ? { text: props.unit, before: false } : null)}
-      hint={() => `${props.unit ? `Quantity in ${props.unit}. ` : ""}You can type 2.5k for 2,500.`}
+      hint={() => `${props.unit ? `${loc.t("quantityField.inUnit", { unit: props.unit })} ` : ""}${loc.t("quantityField.shorthand")}`}
     />
   );
 };

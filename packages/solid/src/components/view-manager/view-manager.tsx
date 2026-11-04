@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 export type { SavedView };
 
@@ -79,12 +80,13 @@ let seq = 0;
 const newId = () => `view-${Date.now().toString(36)}-${(++seq).toString(36)}`;
 
 export function ViewManager<S>(props: ViewManagerProps<S>) {
+  const loc = useLocale();
   const [local] = splitProps(props, [
     "views", "activeId", "state", "standardState", "standardName", "onSelect", "onSave", "onCreate", "onRename",
     "onDelete", "onDefaultChange", "onShare", "aria-label", "class",
   ]);
   const active = createMemo(() => local.views.find((v) => v.id === local.activeId) ?? null);
-  const standardName = () => local.standardName ?? "Standard";
+  const standardName = () => local.standardName ?? loc.t("viewManager.standard");
   const name = () => active()?.name ?? standardName();
   const modified = createMemo(() => isViewModified(local.state, active(), local.standardState));
   const isDefault = () => (active() ? !!active()!.isDefault : !local.views.some((v) => v.isDefault));
@@ -102,9 +104,9 @@ export function ViewManager<S>(props: ViewManagerProps<S>) {
     if (!v || v.readOnly || !local.onSave) return;
     try {
       await local.onSave({ ...v, state: local.state });
-      announce(`Saved “${v.name}”.`);
+      announce(loc.t("viewManager.saved", { name: v.name }));
     } catch (e) {
-      announce(`Could not save “${v.name}”: ${(e as Error)?.message ?? e}`);
+      announce(loc.t("viewManager.saveFailed", { name: v.name, error: String((e as Error)?.message ?? e) }));
     }
   };
 
@@ -113,26 +115,26 @@ export function ViewManager<S>(props: ViewManagerProps<S>) {
     const view: SavedView<S> = { id: newId(), name: viewName.trim(), state: local.state };
     await local.onCreate!(view);
     if (asDefault) await local.onDefaultChange?.(view.id);
-    announce(`Saved “${view.name}”.`);
+    announce(loc.t("viewManager.saved", { name: view.name }));
   };
 
   return (
     <div class={cn("zen-inline-flex zen-items-center", local.class)}>
       <DropdownMenu>
         <DropdownMenuTrigger
-          aria-label={`${local["aria-label"] ?? "View"}: ${name()}${modified() ? ", modified" : ""}`}
+          aria-label={loc.t(modified() ? "viewManager.triggerModified" : "viewManager.trigger", { label: local["aria-label"] ?? loc.t("viewManager.label"), name: name() })}
           class="zen-inline-flex zen-cursor-pointer zen-items-center zen-gap-1.5 zen-rounded-zen-md zen-border-0 zen-bg-transparent zen-px-1.5 zen-py-1 zen-text-zen-foreground hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
         >
           <span class="zen-text-lg zen-font-semibold" data-view-name="">{name()}</span>
           <Show when={modified()}>
             <span class="zen-rounded-zen-sm zen-bg-zen-muted zen-px-1.5 zen-py-0.5 zen-text-xs zen-font-medium zen-text-zen-muted-fg" data-view-modified="">
-              Modified
+              {loc.t("viewManager.modified")}
             </span>
           </Show>
           <Icon name="chevron-down" size={16} class="zen-text-zen-muted-fg" />
         </DropdownMenuTrigger>
         <DropdownMenuContent class="zen-min-w-64">
-          <DropdownMenuLabel>Views</DropdownMenuLabel>
+          <DropdownMenuLabel>{loc.t("viewManager.views")}</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={local.activeId ?? STANDARD}
             onChange={(id: string) => {
@@ -154,18 +156,18 @@ export function ViewManager<S>(props: ViewManagerProps<S>) {
           <DropdownMenuSeparator />
           <Show when={local.onSave}>
             <DropdownMenuItem disabled={!active() || !!active()?.readOnly || !modified()} onSelect={() => void save()}>
-              Save
+              {loc.t("viewManager.save")}
             </DropdownMenuItem>
           </Show>
           <Show when={local.onCreate}>
-            <DropdownMenuItem onSelect={() => setSaveAsOpen(true)}>Save as…</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setSaveAsOpen(true)}>{loc.t("viewManager.saveAs")}</DropdownMenuItem>
           </Show>
           <Show when={local.onDefaultChange}>
             <DropdownMenuItem
               disabled={isDefault()}
               onSelect={() => void local.onDefaultChange?.(active()?.id ?? null)}
             >
-              {active() ? "Open with this view" : `Open with ${standardName()}`}
+              {active() ? loc.t("viewManager.openWithThis") : loc.t("viewManager.openWith", { name: standardName() })}
             </DropdownMenuItem>
           </Show>
           <Show when={local.onShare}>
@@ -173,16 +175,16 @@ export function ViewManager<S>(props: ViewManagerProps<S>) {
               onSelect={() => {
                 const v = active() ?? { id: STANDARD, name: standardName(), state: local.state };
                 local.onShare!({ ...v, state: local.state }, encodeView({ name: v.name, state: local.state }));
-                announce(`Link to “${v.name}” copied.`);
+                announce(loc.t("viewManager.linkCopied", { name: v.name }));
               }}
             >
-              Copy link
+              {loc.t("viewManager.copyLink")}
             </DropdownMenuItem>
           </Show>
           <Show when={local.onRename || local.onDelete || local.onDefaultChange}>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={local.views.length === 0} onSelect={() => setManageOpen(true)}>
-              Manage views…
+              {loc.t("viewManager.manage")}
             </DropdownMenuItem>
           </Show>
         </DropdownMenuContent>
@@ -193,7 +195,7 @@ export function ViewManager<S>(props: ViewManagerProps<S>) {
         open={saveAsOpen()}
         onOpenChange={setSaveAsOpen}
         views={local.views}
-        suggested={freeViewName(active()?.name ?? "New view", local.views)}
+        suggested={freeViewName(active()?.name ?? loc.t("viewManager.newView"), local.views)}
         canDefault={!!local.onDefaultChange}
         onSave={saveAs}
       />
@@ -210,17 +212,20 @@ export function ViewManager<S>(props: ViewManagerProps<S>) {
   );
 }
 
-const ViewLabel = (p: { name: string; isDefault: boolean; shared?: boolean; readOnly?: boolean }) => (
-  <span class="zen-flex zen-w-full zen-items-center zen-gap-2">
-    <span class="zen-min-w-0 zen-flex-1 zen-truncate">{p.name}</span>
-    <Show when={p.shared}>
-      <span class="zen-text-xs zen-text-zen-muted-fg">Shared</span>
-    </Show>
-    <Show when={p.isDefault}>
-      <span class="zen-text-xs zen-text-zen-muted-fg">Default</span>
-    </Show>
-  </span>
-);
+const ViewLabel = (p: { name: string; isDefault: boolean; shared?: boolean; readOnly?: boolean }) => {
+  const loc = useLocale();
+  return (
+    <span class="zen-flex zen-w-full zen-items-center zen-gap-2">
+      <span class="zen-min-w-0 zen-flex-1 zen-truncate">{p.name}</span>
+      <Show when={p.shared}>
+        <span class="zen-text-xs zen-text-zen-muted-fg">{loc.t("viewManager.shared")}</span>
+      </Show>
+      <Show when={p.isDefault}>
+        <span class="zen-text-xs zen-text-zen-muted-fg">{loc.t("viewManager.default")}</span>
+      </Show>
+    </span>
+  );
+};
 
 /** Save as: a name (checked as you type once you have tried), and whether it opens by default. */
 const SaveAsDialog = (p: {
@@ -231,6 +236,7 @@ const SaveAsDialog = (p: {
   canDefault: boolean;
   onSave: (name: string, asDefault: boolean) => Promise<void>;
 }) => {
+  const loc = useLocale();
   const id = createUniqueId();
   const [name, setName] = createSignal("");
   const [asDefault, setAsDefault] = createSignal(false);
@@ -261,7 +267,7 @@ const SaveAsDialog = (p: {
       await p.onSave(name(), asDefault());
       p.onOpenChange(false);
     } catch (e) {
-      setFailure(`Not saved: ${(e as Error)?.message ?? e}`);
+      setFailure(loc.t("viewManager.notSaved", { error: String((e as Error)?.message ?? e) }));
     } finally {
       setPending(false);
     }
@@ -270,8 +276,8 @@ const SaveAsDialog = (p: {
     <Dialog open={p.open} onOpenChange={p.onOpenChange}>
       <DialogContent class="zen-max-w-md">
         <DialogHeader>
-          <DialogTitle>Save view as</DialogTitle>
-          <DialogDescription>Saves the filters, sort and columns on screen now under a new name.</DialogDescription>
+          <DialogTitle>{loc.t("viewManager.saveAsTitle")}</DialogTitle>
+          <DialogDescription>{loc.t("viewManager.saveAsDescription")}</DialogDescription>
         </DialogHeader>
         <form
           class="zen-flex zen-flex-col zen-gap-3"
@@ -281,7 +287,7 @@ const SaveAsDialog = (p: {
           }}
         >
           <div class="zen-flex zen-flex-col zen-gap-1.5">
-            <label for={`${id}-name`} class="zen-text-sm zen-font-medium">Name</label>
+            <label for={`${id}-name`} class="zen-text-sm zen-font-medium">{loc.t("viewManager.name")}</label>
             <Input
               id={`${id}-name`}
               value={name()}
@@ -295,14 +301,14 @@ const SaveAsDialog = (p: {
             </p>
           </div>
           <Show when={p.canDefault}>
-            <Checkbox checked={asDefault()} onChange={setAsDefault} label="Open the screen with this view" />
+            <Checkbox checked={asDefault()} onChange={setAsDefault} label={loc.t("viewManager.openByDefault")} />
           </Show>
           <DialogFooter>
             <Button type="button" variant="outline" color="neutral" onClick={() => p.onOpenChange(false)}>
-              Cancel
+              {loc.t("common.cancel")}
             </Button>
             <Button type="submit" loading={pending()}>
-              Save
+              {loc.t("viewManager.save")}
             </Button>
           </DialogFooter>
         </form>
@@ -321,6 +327,7 @@ const ManageDialog = (p: {
   onDelete?: (id: string) => void | Promise<void>;
   onDefaultChange?: (id: string | null) => void | Promise<void>;
 }) => {
+  const loc = useLocale();
   const id = createUniqueId();
   const [problems, setProblems] = createSignal<Record<string, string>>({});
   /** The row whose Delete was pressed once: the second press deletes. */
@@ -345,7 +352,7 @@ const ManageDialog = (p: {
       await p.onRename?.(v.id, next.trim());
       setProblems((x) => ({ ...x, [v.id]: "" }));
     } catch (e) {
-      setProblems((x) => ({ ...x, [v.id]: `Not renamed: ${(e as Error)?.message ?? e}` }));
+      setProblems((x) => ({ ...x, [v.id]: loc.t("viewManager.notRenamed", { error: String((e as Error)?.message ?? e) }) }));
       input.value = v.name;
     }
   };
@@ -353,18 +360,18 @@ const ManageDialog = (p: {
     <Dialog open={p.open} onOpenChange={p.onOpenChange}>
       <DialogContent class="zen-max-w-lg">
         <DialogHeader>
-          <DialogTitle>Manage views</DialogTitle>
-          <DialogDescription>Rename or delete your views, and choose the one the screen opens with.</DialogDescription>
+          <DialogTitle>{loc.t("viewManager.manageTitle")}</DialogTitle>
+          <DialogDescription>{loc.t("viewManager.manageDescription")}</DialogDescription>
         </DialogHeader>
         <table class="zen-w-full zen-border-collapse zen-text-sm">
           <thead>
             <tr class="zen-text-xs zen-text-zen-muted-fg">
-              <th class="zen-py-1.5 zen-text-start zen-font-medium">Name</th>
+              <th class="zen-py-1.5 zen-text-start zen-font-medium">{loc.t("viewManager.name")}</th>
               <Show when={p.onDefaultChange}>
-                <th class="zen-w-20 zen-py-1.5 zen-text-center zen-font-medium">Default</th>
+                <th class="zen-w-20 zen-py-1.5 zen-text-center zen-font-medium">{loc.t("viewManager.default")}</th>
               </Show>
               <Show when={p.onDelete}>
-                <th class="zen-w-12 zen-py-1.5"><span class="zen-sr-only">Delete</span></th>
+                <th class="zen-w-12 zen-py-1.5"><span class="zen-sr-only">{loc.t("common.delete")}</span></th>
               </Show>
             </tr>
           </thead>
@@ -376,7 +383,7 @@ const ManageDialog = (p: {
                   <input
                     type="radio"
                     name={`${id}-default`}
-                    aria-label={`Open with ${p.standardName}`}
+                    aria-label={loc.t("viewManager.openWith", { name: p.standardName })}
                     checked={!p.views.some((v) => v.isDefault)}
                     onChange={() => void p.onDefaultChange?.(null)}
                   />
@@ -395,13 +402,13 @@ const ManageDialog = (p: {
                       when={!v().readOnly && p.onRename}
                       fallback={
                         <span>
-                          {v().name} <span class="zen-text-xs zen-text-zen-muted-fg">{v().shared ? "· shared with you" : "· read only"}</span>
+                          {v().name} <span class="zen-text-xs zen-text-zen-muted-fg">{v().shared ? loc.t("viewManager.sharedWithYou") : loc.t("viewManager.readOnly")}</span>
                         </span>
                       }
                     >
                       <Input
                         value={v().name}
-                        aria-label={`Name of “${v().name}”`}
+                        aria-label={loc.t("viewManager.nameOf", { name: v().name })}
                         aria-invalid={problems()[v().id] ? "true" : undefined}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
@@ -421,7 +428,7 @@ const ManageDialog = (p: {
                       <input
                         type="radio"
                         name={`${id}-default`}
-                        aria-label={`Open with “${v().name}”`}
+                        aria-label={loc.t("viewManager.openWithQuoted", { name: v().name })}
                         checked={!!v().isDefault}
                         onChange={() => void p.onDefaultChange?.(v().id)}
                       />
@@ -438,8 +445,8 @@ const ManageDialog = (p: {
                           color={confirming() === viewId ? "error" : "neutral"}
                           shape={confirming() === viewId ? undefined : "square"}
                           size="sm"
-                          aria-label={confirming() === viewId ? `Confirm: delete “${v().name}”` : `Delete “${v().name}”`}
-                          title={confirming() === viewId ? "Press again to delete" : "Delete"}
+                          aria-label={confirming() === viewId ? loc.t("viewManager.confirmDelete", { name: v().name }) : loc.t("viewManager.deleteView", { name: v().name })}
+                          title={confirming() === viewId ? loc.t("viewManager.pressAgain") : loc.t("common.delete")}
                           onBlur={() => setConfirming(null)}
                           onKeyDown={(e) => {
                             if (e.key === "Escape" && confirming() === viewId) {
@@ -452,7 +459,7 @@ const ManageDialog = (p: {
                           onClick={() => (confirming() === viewId ? void remove(viewId) : setConfirming(viewId))}
                         >
                           <Show when={confirming() === viewId} fallback={<Icon name="trash" size={16} />}>
-                            Delete
+                            {loc.t("common.delete")}
                           </Show>
                         </Button>
                       </Show>
@@ -465,7 +472,7 @@ const ManageDialog = (p: {
           </tbody>
         </table>
         <DialogFooter>
-          <Button ref={done} type="button" onClick={() => p.onOpenChange(false)}>Done</Button>
+          <Button ref={done} type="button" onClick={() => p.onOpenChange(false)}>{loc.t("common.done")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

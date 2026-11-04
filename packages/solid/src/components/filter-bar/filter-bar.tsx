@@ -2,6 +2,7 @@ import { type JSX, createSignal, For, Show } from "solid-js";
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { SelectDialog } from "../select-dialog/select-dialog";
+import { useLocale } from "../locale/locale";
 
 /**
  * FilterBar — the structured filter area above a table. The gap analysis
@@ -66,6 +67,7 @@ export interface FilterBarProps {
 }
 
 export const FilterBar = (props: FilterBarProps) => {
+  const loc = useLocale();
   const [expanded, setExpanded] = createSignal(props.defaultExpanded ?? true);
   const [adaptOpen, setAdaptOpen] = createSignal(false);
   // Read once, on purpose: this is the uncontrolled default, and it mirrors
@@ -86,7 +88,7 @@ export const FilterBar = (props: FilterBarProps) => {
 
   // Field order is the caller's, not the order the user ticked them in Adapt.
   const shown = () => props.fields.filter((f) => visible().includes(f.id));
-  const adaptLabel = () => props.adaptLabel ?? "Adapt filters";
+  const adaptLabel = () => props.adaptLabel ?? loc.t("filterBar.adapt");
 
   return (
     <div
@@ -100,7 +102,7 @@ export const FilterBar = (props: FilterBarProps) => {
           <button
             type="button"
             aria-expanded={expanded()}
-            aria-label={expanded() ? "Collapse filters" : "Expand filters"}
+            aria-label={expanded() ? loc.t("filterBar.collapse") : loc.t("filterBar.expand")}
             onClick={() => setExpanded((v) => !v)}
             class="zen-inline-flex zen-h-7 zen-w-7 zen-shrink-0 zen-cursor-pointer zen-items-center zen-justify-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
           >
@@ -141,12 +143,12 @@ export const FilterBar = (props: FilterBarProps) => {
               size="sm"
               onClick={() => props.onClear?.()}
             >
-              {props.clearLabel ?? "Clear"}
+              {props.clearLabel ?? loc.t("common.clear")}
             </Button>
           </Show>
           <Show when={props.onGo}>
             <Button type="button" size="sm" onClick={() => props.onGo?.()}>
-              {props.goLabel ?? "Go"}
+              {props.goLabel ?? loc.t("filterBar.go")}
             </Button>
           </Show>
         </div>
@@ -179,7 +181,7 @@ export const FilterBar = (props: FilterBarProps) => {
           open={adaptOpen()}
           onOpenChange={setAdaptOpen}
           title={adaptLabel()}
-          description="Choose which filters appear on the bar."
+          description={loc.t("filterBar.adaptDescription")}
           items={props.fields.map((f) => ({ id: f.id, label: f.label }))}
           multiple
           selectedIds={visible()}

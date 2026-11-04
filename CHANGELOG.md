@@ -16,6 +16,23 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **Every built-in string can be translated (B1, batch 1 of 3)** (Solid).
+  One catalogue, `@algorisys/zen-ui-core/messages`, English by default;
+  `LocaleProvider messages={…}` translates any subset of it, the rest stays
+  English, and a nested provider inherits what it leaves out. Plural forms
+  follow each language's own rules (ICU-style `{count, plural, one {…} other
+  {…}}`, decided by Intl.PluralRules: Hindi counts 0 as "one", Arabic has six
+  forms). A component's own label props still win. This batch covers the form
+  controls and dialogs: Dialog, Combobox, MultiCombobox, Calendar, DatePicker,
+  DateInput, DateRangePicker, DateTimePicker, TimePicker (its AM/PM too),
+  NumberField, PasswordInput, PhoneInput, Search, TagInput, AmountField,
+  QuantityField, LookupField, TreeSelect, FilterBar, SelectList, SelectDialog,
+  ValueHelp (its operator names too), ViewSettingsDialog, FilterBuilder and
+  ViewManager. A demo page, Localization, shows a partial Hindi translation.
+- `bun run check:strings` fails on a hard-coded user-visible string in any
+  swept component, and in any NEW component (components still to sweep are
+  listed, and the list only shrinks). `bun run check:messages` checks the
+  catalogue (placeholders, plurals in en / hi / ar, well-formed entries).
 - **AmountField and QuantityField** (Solid; new): amounts and quantities as
   clerks type and read them. Raw digits while editing, formatted at rest in the
   locale's grouping (1,25,000.00 in India, 1.250,00 in Germany, Arabic-Indic
@@ -323,6 +340,10 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **A malformed locale threw instead of falling back** (core number-format,
+  new messages): `Intl` raises a RangeError on a tag like "en_IN", so an app
+  passing one to AmountField or LocaleProvider would stop rendering. Now it
+  behaves as no locale (the browser's).
 - **check:lookup's sweep was far narrower than it claimed**: its random
   generator overflowed a double (`seed * 1103515245`), lost its low bits and
   picked 3 of 12 entries, so 12 distinct cells of 144 were tested and never a

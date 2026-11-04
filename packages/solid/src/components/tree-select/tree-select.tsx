@@ -22,6 +22,7 @@ import {
 import { cn } from "../../lib/cn";
 import { createAnchoredPlacement } from "../../lib/anchored";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 export type { TreeSelectNode };
 
@@ -73,6 +74,7 @@ export type TreeSelectProps = {
 };
 
 export const TreeSelect = (props: TreeSelectProps) => {
+  const loc = useLocale();
   const [local] = splitProps(props, [
     "items",
     "value",
@@ -297,7 +299,7 @@ export const TreeSelect = (props: TreeSelectProps) => {
         <button
           type="button"
           tabIndex={-1}
-          aria-label={open() ? "Close" : "Open"}
+          aria-label={open() ? loc.t("common.close") : loc.t("common.open")}
           disabled={local.disabled}
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
@@ -328,7 +330,7 @@ export const TreeSelect = (props: TreeSelectProps) => {
         >
           <Show
             when={rows().length > 0}
-            fallback={<div class="zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-fg">{local.emptyMessage ?? "No matches"}</div>}
+            fallback={<div class="zen-px-2 zen-py-1.5 zen-text-sm zen-text-zen-muted-fg">{local.emptyMessage ?? loc.t("treeSelect.noMatches")}</div>}
           >
             <For each={rows()}>
               {(row, i) => {
