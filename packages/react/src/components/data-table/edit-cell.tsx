@@ -196,24 +196,30 @@ function SelectEditor({
   onCancel,
   options,
 }: EditorProps & { options: { label: string; value: string }[] }) {
+  const end = useEndsOnce(onCommit, onCancel);
   return (
     <div
       className={editorWrapClass}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
-          onCancel();
+          end.cancel();
         }
       }}
     >
+      {/* Controlled, so a pick reaches onValueChange at once. Uncontrolled,
+          Radix reports the new value from an effect, after the close that
+          follows the pick had already cancelled the edit and unmounted this:
+          a pick never saved. Picking calls onValueChange, then onOpenChange
+          (false); the edit ends once, so the close after a pick is ignored. */}
       <Select
-        defaultValue={String(initialValue ?? "")}
-        onValueChange={(v) => onCommit(v)}
+        value={String(initialValue ?? "")}
+        onValueChange={(v) => end.commit(v)}
         open
         onOpenChange={(open) => {
           // Closing the popover without picking = cancel back to the
           // last rendered value.
-          if (!open) onCancel();
+          if (!open) end.cancel();
         }}
       >
         <SelectTrigger className="zen-h-7 zen-text-sm">
@@ -242,6 +248,14 @@ export interface EditableCellProps<TData> {
   onCancel: () => void;
   /** The cell's rendered (non-edit) content. */
   children: React.ReactNode;
+  /**
+   * The table moves focus cell by cell (enableCellNavigation): the cell itself
+   * is the focus target and starts the edit, so the display is not a button
+   * of its own.
+   */
+  navigable?: boolean;
+  /** What was typed to start this edit. */
+  seed?: string;
 }
 
 /**
@@ -255,6 +269,8 @@ export function EditableCell<TData>({
   onCommit,
   onCancel,
   children,
+  navigable,
+  seed,
 }: EditableCellProps<TData>) {
   const meta = cell.column.columnDef.meta as
     | {
@@ -273,7 +289,22 @@ export function EditableCell<TData>({
   if (editing) {
     const variant = meta?.editVariant ?? "text";
     const value = cell.getValue();
-    const props = { initialValue: value, onCommit, onCancel };
+    // Typing a character starts the edit from it: a digit for a number,
+    // anything for text; a select just opens.
+    const initialValue =
+      seed === undefined || variant === "select"
+        ? value
+        : variant === "number"
+        ? /^[0-9]$/.test(seed)
+          ? Number(seed)
+          : null
+        : seed;
+    const props = {
+      initialValue,
+      seeded: seed !== undefined && variant !== "select",
+      onCommit,
+      onCancel,
+    };
     switch (variant) {
       case "number":
         return <NumberEditor {...props} />;
@@ -283,6 +314,17 @@ export function EditableCell<TData>({
       default:
         return <TextEditor {...props} />;
     }
+  }
+
+  if (navigable) {
+    return (
+      <div
+        onDoubleClick={onStartEdit}
+        className="zen-w-full zen-h-full zen-inline-flex zen-items-center zen-cursor-text"
+      >
+        {children}
+      </div>
+    );
   }
 
   const colHeader = cell.column.columnDef.header;

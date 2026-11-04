@@ -192,6 +192,36 @@ const sizedColumns: ColumnDef<Person>[] = [
   { accessorKey: "lastSeen", header: "Last seen", size: 140 },
 ];
 
+/* An order's lines, for the cell-navigation grid (section 6c). */
+type Line = { id: string; item: string; qty: number; rate: number; uom: string; note: string };
+const UOMS = ["Nos", "Kg", "Box", "Litre"];
+const makeLines = (count: number): Line[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `l-${i + 1}`,
+    item: `ITEM-${String(1000 + i)}`,
+    qty: 1 + (i % 12),
+    rate: 50 + ((i * 37) % 950),
+    uom: UOMS[i % UOMS.length],
+    note: "",
+  }));
+const lineColumns: ColumnDef<Line>[] = [
+  { accessorKey: "item", header: "Item", meta: { editable: true } },
+  { accessorKey: "qty", header: "Qty", meta: { editable: true, editVariant: "number" } },
+  {
+    accessorKey: "uom",
+    header: "UOM",
+    meta: { editable: true, editVariant: "select", editOptions: UOMS.map((u) => ({ label: u, value: u })) },
+  },
+  { accessorKey: "rate", header: "Rate (₹)", meta: { editable: true, editVariant: "number" } },
+  {
+    id: "amount",
+    header: "Amount (₹)",
+    accessorFn: (l) => l.qty * l.rate,
+    cell: (info) => (info.getValue() as number).toLocaleString("en-IN"),
+  },
+  { accessorKey: "note", header: "Note", meta: { editable: true } },
+];
+
 /* -------------------------- section 26: totals --------------------- */
 type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
 const TOTAL_CUSTOMERS = ["Acme Traders", "Bharat Steels", "Coastal Agencies"];
@@ -379,6 +409,14 @@ const NewDataTableDemo: React.FC = () => {
   };
 
   const [activated, setActivated] = useState("");
+  const [lines, setLines] = useState(() => makeLines(2000));
+  const [lastEdit, setLastEdit] = useState("");
+  const applyLineEdits = (edits: { rowId: string; columnId: string; value: unknown }[]) => {
+    const byRow = new Map<string, Record<string, unknown>>();
+    for (const e of edits) byRow.set(e.rowId, { ...byRow.get(e.rowId), [e.columnId]: e.value });
+    setLines((prev) => prev.map((l) => (byRow.has(l.id) ? { ...l, ...byRow.get(l.id) } : l)));
+    setLastEdit(`${edits.length} cell${edits.length === 1 ? "" : "s"} changed`);
+  };
 
   return (
     <div className="demo-page">
@@ -547,6 +585,39 @@ const NewDataTableDemo: React.FC = () => {
             enableVirtualization
             maxBodyHeight={400}
           />
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>6c. Cell navigation — work in it like a spreadsheet</h2>
+        <CodeExample
+          title="enableCellNavigation: cell by cell, ranges, copy and paste"
+          description="Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. A cell takes only what its editor could produce: Amount is computed, so paste and Delete leave it alone, and UOM is a select with no empty option, so Delete leaves it as it is and a paste must match one of its options."
+          code={`<DataTable
+  data={lines}
+  columns={columns} // meta: { editable: true, editVariant: "number" | "select" }
+  getRowId={(l) => l.id}
+  enableCellNavigation
+  enableRowVirtualization
+  onCellEdit={(edit) => apply([edit])}
+  onCellsEdit={(edits) => apply(edits)} // a paste, or Delete over a range
+  fillHeight
+/>`}
+        >
+          <div className="zen-flex zen-h-[420px] zen-flex-col">
+            <DataTable
+              data={lines}
+              columns={lineColumns}
+              getRowId={(l) => l.id}
+              enableCellNavigation
+              onCellEdit={(edit) => applyLineEdits([edit])}
+              onCellsEdit={applyLineEdits}
+              fillHeight
+            />
+          </div>
+          <p className="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            <span data-testid="cells-edited">{lastEdit || "No changes yet."}</span>
+          </p>
         </CodeExample>
       </section>
 

@@ -370,6 +370,27 @@ export interface DataTableProps<TData, TValue = unknown> {
    * so rowId is stable across re-renders.
    */
   onCellEdit?: (payload: CellEditPayload) => void;
+  /**
+   * Several cells changed at once: a paste, or Delete over a selection, with
+   * enableCellNavigation. Without it each change goes to onCellEdit.
+   */
+  onCellsEdit?: (edits: CellEditPayload[]) => void;
+
+  /**
+   * Work in the table cell by cell, as in a spreadsheet. One tab stop for the
+   * table; the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End move
+   * between cells (the arithmetic is @algorisys/zen-ui-core/row-keys'
+   * cellKeyTarget, and ← → follow the text direction). Enter or F2 edits an
+   * editable cell, typing starts editing with what was typed, Esc returns to
+   * the cell, and Enter in an editor moves down, Tab across. Shift with the
+   * arrows, Shift+click or a drag selects a range; Ctrl+A selects every cell.
+   * Copy writes the range as a spreadsheet does (tab-separated), paste fills
+   * editable cells from the active one (from Excel, Sheets or this table),
+   * and Delete clears them; see onCellsEdit. Replaces
+   * enableKeyboardNavigation's row focus when both are set. Not with
+   * enableRowOrdering or the older enableVirtualization.
+   */
+  enableCellNavigation?: boolean;
 
   /**
    * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
@@ -529,6 +550,8 @@ export function DataTable<TData, TValue = unknown>({
   initialColumnPinning,
   onColumnPinningChange,
   onCellEdit,
+  onCellsEdit,
+  enableCellNavigation = false,
   headerVariant = "plain",
 
   pageSize = 10,
@@ -602,10 +625,15 @@ export function DataTable<TData, TValue = unknown>({
    * upgrade later but for v1 we keep it simple. */
   const [editingCell, setEditingCell] = React.useState<EditingState | null>(null);
   const startEdit = React.useCallback(
-    (rowId: string, columnId: string) =>
-      setEditingCell({ rowId, columnId }),
+    (rowId: string, columnId: string, seed?: string) =>
+      setEditingCell(seed === undefined ? { rowId, columnId } : { rowId, columnId, seed }),
     [],
   );
+  const editCells = (edits: CellEditPayload[]) => {
+    if (edits.length === 0) return;
+    if (onCellsEdit) onCellsEdit(edits);
+    else for (const edit of edits) onCellEdit?.(edit);
+  };
   const commitEdit = React.useCallback(
     (rowId: string, columnId: string, value: unknown) => {
       setEditingCell(null);
@@ -1227,7 +1255,9 @@ export function DataTable<TData, TValue = unknown>({
       expansionEnabled={rowOrderingActive ? false : expansionEnabled}
       renderSubRow={rowOrderingActive ? undefined : renderSubRow}
       rowOrderingActive={rowOrderingActive}
-      keyboard={!rowOrderingActive && enableKeyboardNavigation}
+      keyboard={!rowOrderingActive && enableKeyboardNavigation && !enableCellNavigation}
+      cellNav={!rowOrderingActive && enableCellNavigation}
+      editCells={editCells}
       selectable={enableRowSelection}
       onRowActivate={onRowActivate}
       rowLabel={rowLabel}
