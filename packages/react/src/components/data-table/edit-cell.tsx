@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../form/select/select";
+import { useLocale } from "../locale/locale";
 
 /**
  * Inline cell editing.
@@ -272,6 +273,7 @@ export function EditableCell<TData>({
   navigable,
   seed,
 }: EditableCellProps<TData>) {
+  const loc = useLocale();
   const meta = cell.column.columnDef.meta as
     | {
         editable?: boolean | ((row: TData) => boolean);
@@ -340,7 +342,7 @@ export function EditableCell<TData>({
       }}
       tabIndex={0}
       role="button"
-      aria-label={`Edit ${columnName}`}
+      aria-label={loc.t("dataTable.editCell", { column: columnName })}
       className={cn(
         "zen-w-full zen-h-full zen-inline-flex zen-items-center zen-cursor-text",
         "zen-rounded-zen-sm",

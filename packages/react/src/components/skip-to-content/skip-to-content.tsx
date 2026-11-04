@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * SkipToContent — the keyboard bypass every app frame owes its users.
@@ -30,11 +31,14 @@ export const SKIP_TO_CONTENT_CLASS = [
 ].join(" ");
 
 const SkipToContent = React.forwardRef<HTMLAnchorElement, SkipToContentProps>(
-  ({ className, href = "#main-content", children = "Skip to main content", ...props }, ref) => (
-    <a ref={ref} href={href} className={cn(SKIP_TO_CONTENT_CLASS, className)} {...props}>
-      {children}
-    </a>
-  ),
+  ({ className, href = "#main-content", children, ...props }, ref) => {
+    const loc = useLocale();
+    return (
+      <a ref={ref} href={href} className={cn(SKIP_TO_CONTENT_CLASS, className)} {...props}>
+        {children ?? loc.t("skipToContent.skipToMainContent")}
+      </a>
+    );
+  },
 );
 SkipToContent.displayName = "SkipToContent";
 

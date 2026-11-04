@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * PasswordInput — a password field with a show/hide toggle.
@@ -30,7 +31,8 @@ export interface PasswordInputProps
 }
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ className, showLabel = "Show password", hideLabel = "Hide password", disabled, autoHideMs, ...props }, ref) => {
+  ({ className, showLabel, hideLabel, disabled, autoHideMs, ...props }, ref) => {
+    const loc = useLocale();
     const [visible, setVisible] = React.useState(false);
     // Each reveal starts its own countdown; hiding (or unmounting) clears it.
     React.useEffect(() => {
@@ -57,7 +59,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
         <button
           type="button"
           disabled={disabled}
-          aria-label={visible ? hideLabel : showLabel}
+          aria-label={visible ? (hideLabel ?? loc.t("passwordInput.hide")) : (showLabel ?? loc.t("passwordInput.show"))}
           aria-pressed={visible}
           onClick={() => setVisible((v) => !v)}
           className={cn(

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * TimePicker — segmented numeric time input.
@@ -101,6 +102,7 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
     },
     ref,
   ) => {
+    const loc = useLocale();
     const isControlled = value !== undefined;
     const [internal, setInternal] = React.useState<Parts>(() =>
       partsFromString(defaultValue, showSeconds),
@@ -282,7 +284,7 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
         ref={ref}
         id={id}
         role="group"
-        aria-label={ariaLabel ?? "Time"}
+        aria-label={ariaLabel ?? loc.t("timePicker.label")}
         aria-labelledby={ariaLabelledBy}
         aria-disabled={disabled || undefined}
         aria-readonly={readOnly || undefined}
@@ -312,7 +314,7 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
             }}
             tabIndex={disabled ? -1 : 0}
             role="spinbutton"
-            aria-label="Hours"
+            aria-label={loc.t("timePicker.hours")}
             aria-valuemin={segMin("h")}
             aria-valuemax={segMax("h")}
             aria-valuenow={displayHour ?? undefined}
@@ -332,7 +334,7 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
             }}
             tabIndex={disabled ? -1 : 0}
             role="spinbutton"
-            aria-label="Minutes"
+            aria-label={loc.t("timePicker.minutes")}
             aria-valuemin={0}
             aria-valuemax={59}
             aria-valuenow={parts.m ?? undefined}
@@ -354,7 +356,7 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
                 }}
                 tabIndex={disabled ? -1 : 0}
                 role="spinbutton"
-                aria-label="Seconds"
+                aria-label={loc.t("timePicker.seconds")}
                 aria-valuemin={0}
                 aria-valuemax={59}
                 aria-valuenow={parts.s ?? undefined}
@@ -374,13 +376,13 @@ const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(
               }}
               tabIndex={disabled ? -1 : 0}
               role="spinbutton"
-              aria-label="AM/PM"
-              aria-valuetext={period}
+              aria-label={loc.t("timePicker.period")}
+              aria-valuetext={period === "AM" ? loc.t("timePicker.am") : loc.t("timePicker.pm")}
               onKeyDown={handlePeriodKeyDown}
               onFocus={handleFocus("p")}
               className={cn(segmentClass("p"), "zen-ml-1 zen-uppercase")}
             >
-              {period}
+              {period === "AM" ? loc.t("timePicker.am") : loc.t("timePicker.pm")}
             </div>
           )}
         </div>

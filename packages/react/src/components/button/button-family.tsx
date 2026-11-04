@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * Button family — the three Fiori-shaped button forms zen-ui was missing.
@@ -201,9 +202,11 @@ export interface SplitButtonProps extends ButtonProps {
 
 export const SplitButton = React.forwardRef<HTMLButtonElement, SplitButtonProps>(
   (
-    { menu, menuLabel = "More actions", menuAlign = "end", variant = "solid", color = "primary", size = "md", className, children, disabled, ...props },
+    { menu, menuLabel, menuAlign = "end", variant = "solid", color = "primary", size = "md", className, children, disabled, ...props },
     ref,
-  ) => (
+  ) => {
+    const loc = useLocale();
+    return (
     // Two real buttons, not one with a nested trigger: a <button> inside a
     // <button> is invalid HTML and breaks keyboard semantics.
     <div className={cn("zen-inline-flex zen-items-stretch", className)}>
@@ -227,7 +230,7 @@ export const SplitButton = React.forwardRef<HTMLButtonElement, SplitButtonProps>
             color={color}
             size={size}
             disabled={disabled}
-            aria-label={menuLabel}
+            aria-label={menuLabel ?? loc.t("buttonFamily.moreActions")}
             className="zen-rounded-l-none zen-border-l zen-border-l-zen-border zen-px-2"
           >
             <Icon name="chevron-down" size={14} />
@@ -236,6 +239,7 @@ export const SplitButton = React.forwardRef<HTMLButtonElement, SplitButtonProps>
         <DropdownMenuContent align={menuAlign}>{menu}</DropdownMenuContent>
       </DropdownMenu>
     </div>
-  ),
+    );
+  },
 );
 SplitButton.displayName = "SplitButton";

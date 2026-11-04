@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../form/select/select";
+import { useLocale } from "../locale/locale";
 
 /**
  * Filter variants for per-column filters in DataTable.
@@ -219,6 +220,7 @@ function TextFilter({
   column: Column<unknown>;
   operators?: boolean;
 }) {
+  const loc = useLocale();
   const raw = column.getFilterValue() as TextFilterValue | string | undefined;
   const isObj = typeof raw === "object" && raw !== null;
   const op = isObj ? (raw as TextFilterValue).op : "contains";
@@ -248,8 +250,8 @@ function TextFilter({
       <Input
         value={value}
         onChange={(e) => setNext({ value: e.target.value })}
-        placeholder="Filter…"
-        aria-label={`Filter ${headerLabel(column)}`}
+        placeholder={loc.t("dataTable.filterPlaceholder")}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
@@ -257,6 +259,7 @@ function TextFilter({
 }
 
 function NumberFilter({ column }: { column: Column<unknown> }) {
+  const loc = useLocale();
   const raw = column.getFilterValue() as NumberFilterValue | undefined;
   const op = raw?.op ?? "eq";
   const value = raw?.value ?? null;
@@ -279,7 +282,7 @@ function NumberFilter({ column }: { column: Column<unknown> }) {
           } satisfies NumberFilterValue)
         }
         placeholder="…"
-        aria-label={`Filter ${headerLabel(column)}`}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
@@ -287,6 +290,7 @@ function NumberFilter({ column }: { column: Column<unknown> }) {
 }
 
 function NumberRangeFilter({ column }: { column: Column<unknown> }) {
+  const loc = useLocale();
   const [min, max] = (column.getFilterValue() as NumberRangeFilterValue | undefined) ?? [
     null,
     null,
@@ -298,8 +302,8 @@ function NumberRangeFilter({ column }: { column: Column<unknown> }) {
         onValueChange={(v) =>
           column.setFilterValue([v ?? null, max] satisfies NumberRangeFilterValue)
         }
-        placeholder="min"
-        aria-label={`${headerLabel(column)} minimum`}
+        placeholder={loc.t("dataTable.min")}
+        aria-label={loc.t("dataTable.columnMinimum", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
       <span className="zen-text-zen-muted-fg zen-text-xs" aria-hidden>
@@ -310,8 +314,8 @@ function NumberRangeFilter({ column }: { column: Column<unknown> }) {
         onValueChange={(v) =>
           column.setFilterValue([min, v ?? null] satisfies NumberRangeFilterValue)
         }
-        placeholder="max"
-        aria-label={`${headerLabel(column)} maximum`}
+        placeholder={loc.t("dataTable.max")}
+        aria-label={loc.t("dataTable.columnMaximum", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
     </div>
@@ -325,6 +329,7 @@ function SelectFilter({
   column: Column<unknown>;
   options: { label: string; value: string }[];
 }) {
+  const loc = useLocale();
   const value = (column.getFilterValue() as string | undefined) ?? "";
   return (
     <Select
@@ -334,13 +339,13 @@ function SelectFilter({
       }
     >
       <SelectTrigger
-        aria-label={`Filter ${headerLabel(column)}`}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs"
       >
-        <SelectValue placeholder="All" />
+        <SelectValue placeholder={loc.t("dataTable.all")} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="__all__">All</SelectItem>
+        <SelectItem value="__all__">{loc.t("dataTable.all")}</SelectItem>
         {options.map((o) => (
           <SelectItem key={o.value} value={o.value}>
             {o.label}
@@ -352,6 +357,7 @@ function SelectFilter({
 }
 
 function BooleanFilter({ column }: { column: Column<unknown> }) {
+  const loc = useLocale();
   const value = column.getFilterValue();
   const current =
     value === true || value === "true"
@@ -366,16 +372,16 @@ function BooleanFilter({ column }: { column: Column<unknown> }) {
         const v = e.target.value;
         column.setFilterValue(v === "any" ? undefined : v === "true");
       }}
-      aria-label={`Filter ${headerLabel(column)}`}
+      aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(column) })}
       className={cn(
         "zen-h-7 zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
         "zen-px-2 zen-text-xs zen-cursor-pointer",
         "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
     >
-      <option value="any">Any</option>
-      <option value="true">Yes</option>
-      <option value="false">No</option>
+      <option value="any">{loc.t("dataTable.any")}</option>
+      <option value="true">{loc.t("dataTable.yes")}</option>
+      <option value="false">{loc.t("dataTable.no")}</option>
     </select>
   );
 }

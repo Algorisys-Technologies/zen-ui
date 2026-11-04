@@ -9,8 +9,10 @@ import {
   type DateRangeOperator,
   type DateRangeValue,
   type OperatorMeta,
+  type DateRangeTranslate,
   type ResolvedRange,
 } from "@algorisys/zen-ui-core/date-range";
+import { useLocale, type MessageKey } from "../../locale/locale";
 import { cn } from "../../../lib/cn";
 import { Button } from "../../button/button";
 import { Icon } from "../../icon/icon";
@@ -65,11 +67,15 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
   operators,
   weekStartsOn = 0,
   now,
-  placeholder = "Select a period",
+  placeholder: placeholderProp,
   disabled,
   formatDate = (d) => d.toLocaleDateString(),
   className,
 }) => {
+  const loc = useLocale();
+  const placeholder = placeholderProp ?? loc.t("dynamicDateRange.selectAPeriod");
+  // Core builds its phrases by catalogue key through this, so a translation reaches them too.
+  const say: DateRangeTranslate = (key, values) => loc.t(key as MessageKey, values);
   const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<DateRangeValue | undefined>(defaultValue);
   const isControlled = value !== undefined;
@@ -144,7 +150,7 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
     setOpen(false);
   };
 
-  const label = current ? formatDateRangeValue(current, formatDate) : placeholder;
+  const label = current ? formatDateRangeValue(current, formatDate, say) : placeholder;
   const resolvedNow = current ? resolveDateRange(current, clock, { weekStartsOn }) : {};
 
   return (
@@ -161,7 +167,7 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
           {current && (resolvedNow.from || resolvedNow.to) ? (
             // The trigger says "Last 7 days"; this says which 7. Both matter —
             // the name is the intent, the dates are the fact.
-            <span className="zen-text-xs zen-text-zen-muted-fg">({describe(resolvedNow, formatDate)})</span>
+            <span className="zen-text-xs zen-text-zen-muted-fg">({describe(resolvedNow, formatDate, say)})</span>
           ) : null}
         </Button>
       </PopoverTrigger>
@@ -170,13 +176,13 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
         <div className="zen-flex zen-max-w-[34rem] zen-flex-col zen-gap-0 sm:zen-flex-row">
           <div
             role="listbox"
-            aria-label="Period"
+            aria-label={loc.t("dynamicDateRange.period")}
             className="zen-max-h-72 zen-w-48 zen-shrink-0 zen-overflow-y-auto zen-border-b zen-border-zen-border zen-p-1 sm:zen-border-b-0 sm:zen-border-r"
           >
             {groups.map(([group, items]) => (
               <div key={group}>
                 <div className="zen-px-2 zen-pb-1 zen-pt-2 zen-text-xs zen-font-medium zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">
-                  {group}
+                  {loc.t(`dateRange.group.${group}` as MessageKey)}
                 </div>
                 {items.map((o) => (
                   <button
@@ -194,7 +200,7 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
                         : "zen-bg-transparent zen-text-zen-foreground hover:zen-bg-zen-muted",
                     )}
                   >
-                    {o.label}
+                    {loc.t(`dateRange.op.${o.operator}` as MessageKey)}
                   </button>
                 ))}
               </div>
@@ -204,7 +210,7 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
           <div className="zen-flex zen-min-w-[16rem] zen-flex-col zen-gap-3 zen-p-3">
             {!draft ? (
               <p className="zen-m-0 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-                Pick a period on the left.
+                {loc.t("dynamicDateRange.pickAPeriodOnThe")}
               </p>
             ) : null}
 
@@ -212,7 +218,7 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
               <div className="zen-flex zen-flex-col zen-gap-2">
                 <label className="zen-flex zen-items-center zen-gap-2 zen-text-sm">
                   <span className="zen-text-zen-muted-fg">
-                    {draft.operator.startsWith("LAST") ? "Last" : "Next"}
+                    {draft.operator.startsWith("LAST") ? loc.t("dynamicDateRange.last") : loc.t("dynamicDateRange.next")}
                   </span>
                   <Input
                     type="number"
@@ -222,10 +228,10 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
                       const n = Number(e.target.value);
                       setDraft({ ...draft, count: Number.isFinite(n) ? n : 0 });
                     }}
-                    aria-label={`Number of ${meta.unit}s`}
+                    aria-label={loc.t(`dynamicDateRange.numberOf.${meta.unit}` as MessageKey)}
                     className="zen-h-8 zen-w-20"
                   />
-                  <span className="zen-text-zen-muted-fg">{meta.unit}s</span>
+                  <span className="zen-text-zen-muted-fg">{loc.t(`dynamicDateRange.units.${meta.unit}` as MessageKey)}</span>
                 </label>
                 <label className="zen-flex zen-cursor-pointer zen-items-center zen-gap-2 zen-text-sm zen-text-zen-muted-fg">
                   <input
@@ -235,7 +241,7 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
                   />
                   {/* Named for what it does to the dates, not "includeCurrent" —
                       the whole hazard is that the difference is invisible. */}
-                  Include the current {meta.unit}
+                  {loc.t(`dynamicDateRange.includeCurrent.${meta.unit}` as MessageKey)}
                 </label>
               </div>
             ) : null}
@@ -267,16 +273,16 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
                 aria-live="polite"
                 className="zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs zen-text-zen-muted-fg"
               >
-                {previewValid ? describe(preview, formatDate) : "—"}
+                {previewValid ? describe(preview, formatDate, say) : "—"}
               </div>
             ) : null}
 
             <div className="zen-flex zen-justify-end zen-gap-2">
               <Button variant="ghost" color="neutral" size="sm" onClick={() => setOpen(false)}>
-                Cancel
+                {loc.t("dynamicDateRange.cancel")}
               </Button>
               <Button size="sm" disabled={!draft || !previewValid} onClick={() => commit(draft)}>
-                Apply
+                {loc.t("dynamicDateRange.apply")}
               </Button>
             </div>
           </div>
@@ -288,9 +294,9 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
 DynamicDateRange.displayName = "DynamicDateRange";
 
 /** "1 Jul – 7 Jul", "from 1 Jul", "until 7 Jul". */
-const describe = (r: ResolvedRange, formatDate: (d: Date) => string): string => {
-  if (r.from && r.to) return `${formatDate(r.from)} – ${formatDate(r.to)}`;
-  if (r.from) return `from ${formatDate(r.from)}`;
-  if (r.to) return `until ${formatDate(r.to)}`;
+const describe = (r: ResolvedRange, formatDate: (d: Date) => string, say: DateRangeTranslate): string => {
+  if (r.from && r.to) return say("dateRange.span", { from: formatDate(r.from), to: formatDate(r.to) });
+  if (r.from) return say("dateRange.from", { date: formatDate(r.from) });
+  if (r.to) return say("dateRange.until", { date: formatDate(r.to) });
   return "—";
 };

@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "../select/select";
 import { COUNTRY_CODES, COUNTRY_NAMES } from "./phone-input.constants";
+import { useLocale } from "../../locale/locale";
 
 /**
  * PhoneInput — composition of the new Select (country dial-code) and Input
@@ -57,13 +58,15 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
       defaultValue,
       onValueChange,
       countries = DEFAULT_COUNTRIES,
-      placeholder = "Phone number",
+      placeholder: placeholderProp,
       disabled,
       name,
       className,
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const placeholder = placeholderProp ?? loc.t("phoneInput.placeholder");
     const initial: PhoneValue =
       defaultValue ?? value ?? { country: countries[0]?.dialCode ?? "+1", number: "" };
     const [internal, setInternal] = React.useState<PhoneValue>(initial);

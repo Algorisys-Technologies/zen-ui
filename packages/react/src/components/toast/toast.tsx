@@ -2,6 +2,7 @@ import * as React from "react";
 import * as ToastPrimitive from "@radix-ui/react-toast";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Toast — transient notification on @radix-ui/react-toast.
@@ -110,11 +111,13 @@ ToastAction.displayName = ToastPrimitive.Action.displayName;
 const ToastClose = React.forwardRef<
   React.ElementRef<typeof ToastPrimitive.Close>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitive.Close>
->(({ className, ...props }, ref) => (
+>(({ className, ...props }, ref) => {
+  const loc = useLocale();
+  return (
   <ToastPrimitive.Close
     ref={ref}
     toast-close=""
-    aria-label="Close"
+    aria-label={loc.t("common.close")}
     className={cn(
       "zen-absolute zen-end-2 zen-top-2 zen-inline-flex zen-h-6 zen-w-6 zen-items-center zen-justify-center",
       "zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-opacity-70",
@@ -129,7 +132,8 @@ const ToastClose = React.forwardRef<
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   </ToastPrimitive.Close>
-));
+  );
+});
 ToastClose.displayName = ToastPrimitive.Close.displayName;
 
 const ToastTitle = React.forwardRef<

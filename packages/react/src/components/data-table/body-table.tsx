@@ -23,6 +23,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Table, TableBody, TableCell, TableRow } from "./table";
 import { EditableCell, type CellEditPayload, type EditingState } from "./edit-cell";
+import { useLocale } from "../locale/locale";
 
 /**
  * The body of the (unvirtualized-by-grid) DataTable: the <table>, its rows
@@ -98,6 +99,7 @@ const cellKey = (rowId: string, colId: string) => `${rowId}\u0000${colId}`;
 const ORIGIN: GridCell = { row: 0, col: 0 };
 
 export function BodyTable<TData>(props: BodyTableProps<TData>) {
+  const loc = useLocale();
   const {
     table,
     loading,
@@ -905,7 +907,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
         {loading ? (
           <TableRow>
             <TableCell colSpan={colSpan} className="zen-text-center zen-text-zen-muted-fg zen-py-6">
-              Loading…
+              {loc.t("dataTable.loading")}
             </TableCell>
           </TableRow>
         ) : rows.length === 0 ? (

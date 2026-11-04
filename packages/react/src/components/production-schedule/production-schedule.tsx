@@ -44,6 +44,7 @@ import {
   useScrollerMetrics,
   type ScheduleColumn,
 } from "../gantt/schedule-grid";
+import { useLocale } from "../locale/locale";
 
 /**
  * ProductionSchedule — what each machine is doing, and whether it can.
@@ -339,6 +340,7 @@ export const ProductionSchedule = ({
   emptyState,
   className,
 }: ProductionScheduleProps) => {
+  const loc = useLocale();
   const [innerView, setInnerView] = React.useState<GanttView>(defaultView ?? "fit");
   const [innerDate, setInnerDate] = React.useState<Date>(defaultDate ?? new Date());
   const [innerExpanded, setInnerExpanded] = React.useState<string[] | null>(defaultExpanded ?? null);
@@ -696,7 +698,7 @@ export const ProductionSchedule = ({
           className,
         )}
         role="status"
-        aria-label="Loading production schedule"
+        aria-label={loc.t("productionSchedule.loadingProductionSchedule")}
       >
         {Array.from({ length: loadingRows }, (_, i) => (
           <div key={i} className="zen-flex zen-items-center zen-gap-3">
@@ -720,9 +722,9 @@ export const ProductionSchedule = ({
             <EmptyStateIcon>
               <Icon name="cog" size={22} />
             </EmptyStateIcon>
-            <EmptyStateTitle>No resources</EmptyStateTitle>
+            <EmptyStateTitle>{loc.t("productionSchedule.noResources")}</EmptyStateTitle>
             <EmptyStateDescription>
-              Add a work centre and book an operation on it, and the schedule will appear here.
+              {loc.t("productionSchedule.addAWorkCentreAnd")}
             </EmptyStateDescription>
           </EmptyState>
         )}
@@ -790,6 +792,7 @@ const ProductionPaneCell = ({
   float?: ProductionFloat;
   onToggle: (id: string) => void;
 }) => {
+  const loc = useLocale();
   const { resource } = row;
 
   if (column === "resource") {
@@ -802,7 +805,7 @@ const ProductionPaneCell = ({
                arrowing to the first column and pressing the forward arrow. */
             tabIndex={-1}
             onClick={() => onToggle(resource.id)}
-            aria-label={row.expanded ? `Collapse ${resource.name}` : `Expand ${resource.name}`}
+            aria-label={loc.t(row.expanded ? "productionSchedule.collapseResource" : "productionSchedule.expandResource", { name: resource.name })}
             className="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
           >
             <Icon
@@ -844,7 +847,7 @@ const ProductionPaneCell = ({
             name="warn"
             size={13}
             className="zen-ms-auto zen-shrink-0 zen-text-zen-error"
-            title="Over capacity"
+            title={loc.t("productionSchedule.overCapacity")}
           />
         )}
       </>
@@ -1235,13 +1238,15 @@ const ProductionLoadStrip = ({
   axisWidth: number;
   paneWidth: number;
   buckets: ProductionLoadBucket[];
-}) => (
+}) => {
+  const loc = useLocale();
+  return (
   <>
     <div
       className="zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-3 zen-text-xs zen-font-semibold zen-text-zen-muted-fg"
       style={{ width: paneWidth, insetInlineStart: 0, height: FOOTER_PX }}
     >
-      Load
+      {loc.t("productionSchedule.load")}
     </div>
     <div className="zen-flex" style={{ width: axisWidth, height: FOOTER_PX }}>
       {columns.map((column, i) => {
@@ -1285,4 +1290,5 @@ const ProductionLoadStrip = ({
       })}
     </div>
   </>
-);
+  );
+};

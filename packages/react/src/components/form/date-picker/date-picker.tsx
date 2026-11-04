@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../popover/popover";
+import { useLocale } from "../../locale/locale";
 
 /**
  * Calendar — bare react-day-picker, styled. Use directly when you want an
@@ -103,12 +104,14 @@ const DatePicker: React.FC<DatePickerProps> = ({
   value,
   defaultValue,
   onValueChange,
-  placeholder = "Pick a date",
+  placeholder: placeholderProp,
   disabled,
   className,
   formatDate = (d) => d.toLocaleDateString(),
   initialFocus = "first",
 }) => {
+  const loc = useLocale();
+  const placeholder = placeholderProp ?? loc.t("datePicker.placeholder");
   const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<Date | undefined>(defaultValue);
   const isControlled = value !== undefined;

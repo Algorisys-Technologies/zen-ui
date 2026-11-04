@@ -4,6 +4,7 @@ import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
 import { DataTable } from "../data-table/data-table";
 import { Search } from "../form/search/search";
+import { useLocale } from "../locale/locale";
 
 /**
  * UrlDataTable — a DataTable whose entire state lives in the URL.
@@ -212,10 +213,10 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
   params,
   onParamsChange,
   search = false,
-  searchPlaceholder = "Search…",
+  searchPlaceholder: searchPlaceholderProp,
   filters,
   actions,
-  actionsLabel = "Actions",
+  actionsLabel: actionsLabelProp,
   page = 1,
   pageCount = 1,
   pageSize,
@@ -225,6 +226,9 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
   paramNames,
   className,
 }: UrlDataTableProps<TRow>) {
+  const loc = useLocale();
+  const searchPlaceholder = searchPlaceholderProp ?? loc.t("dataTable.search");
+  const actionsLabel = actionsLabelProp ?? loc.t("dataTable.actions");
   const names = { ...DEFAULT_PARAMS, ...paramNames };
 
   const sorting = React.useMemo(
@@ -334,9 +338,9 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
         // makes "no" indistinguishable from "not answered".
         if (typeof value === "boolean") {
           return value ? (
-            <span className="zen-font-medium zen-text-zen-success">Yes</span>
+            <span className="zen-font-medium zen-text-zen-success">{loc.t("dataTable.yes")}</span>
           ) : (
-            <span className="zen-text-zen-muted-fg">No</span>
+            <span className="zen-text-zen-muted-fg">{loc.t("dataTable.no")}</span>
           );
         }
 
@@ -370,7 +374,7 @@ export function UrlDataTable<TRow extends Record<string, unknown>>({
     }
 
     return defs;
-  }, [columns, actions, actionsLabel]);
+  }, [columns, actions, actionsLabel, loc]);
 
   const hasPerColumnFilters = columns.some((c) => c.search);
   const hasSortableColumn = columns.some((c) => c.sort);

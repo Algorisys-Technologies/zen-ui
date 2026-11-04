@@ -1,6 +1,7 @@
 import * as React from "react";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * NPS — Net Promoter Score input. The canonical "How likely are you to
@@ -60,9 +61,9 @@ export const NPS = React.forwardRef<HTMLDivElement, NPSProps>(
       value: valueProp,
       defaultValue,
       onValueChange,
-      label = "How likely are you to recommend us?",
-      lowLabel = "Not at all likely",
-      highLabel = "Extremely likely",
+      label: labelProp,
+      lowLabel: lowLabelProp,
+      highLabel: highLabelProp,
       disabled,
       readOnly,
       className,
@@ -71,6 +72,10 @@ export const NPS = React.forwardRef<HTMLDivElement, NPSProps>(
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const label = labelProp ?? loc.t("nps.howLikelyAreYouTo");
+    const lowLabel = lowLabelProp ?? loc.t("nps.notAtAllLikely");
+    const highLabel = highLabelProp ?? loc.t("nps.extremelyLikely");
     const [inner, setInner] = React.useState<number | undefined>(defaultValue);
     const isControlled = valueProp !== undefined;
     const value = isControlled ? valueProp : inner;

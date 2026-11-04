@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Micro charts — trend marks small enough to live inside something else.
@@ -117,6 +118,7 @@ export const MicroLineChart = ({
   label,
   className,
 }: MicroLineChartProps) => {
+  const loc = useLocale();
   const vs = values ?? [];
   if (vs.length === 0) return null;
   const pad = 2;
@@ -132,7 +134,7 @@ export const MicroLineChart = ({
       width={width}
       height={height}
       color={color}
-      label={label ?? `Line chart, ${vs.length} points, ${trend(vs)}`}
+      label={label ?? loc.t("microChart.line", { count: vs.length, trend: loc.t(`microChart.${trend(vs)}`) })}
       className={className}
     >
       {area && (
@@ -181,6 +183,7 @@ export const MicroBarChart = ({
   baseline,
   className,
 }: MicroBarChartProps) => {
+  const loc = useLocale();
   const vs = values ?? [];
   if (vs.length === 0) return null;
   const gap = 2;
@@ -210,7 +213,7 @@ export const MicroBarChart = ({
       width={width}
       height={height}
       color={color}
-      label={label ?? `Bar chart, ${vs.length} bars`}
+      label={label ?? loc.t("microChart.bar", { count: vs.length })}
       className={className}
     >
       {bars.map((b, i) => (
@@ -241,6 +244,7 @@ export const MicroBulletChart = ({
   label,
   className,
 }: MicroBulletChartProps) => {
+  const loc = useLocale();
   const frac = (n: number) => {
     const span = max - min;
     return span === 0 ? 0 : Math.min(1, Math.max(0, (n - min) / span));
@@ -251,7 +255,12 @@ export const MicroBulletChart = ({
       width={width}
       height={height}
       color={color}
-      label={label ?? `${value} of ${max}` + (target !== undefined ? `, target ${target}` : "")}
+      label={
+        label ??
+        (target !== undefined
+          ? loc.t("microChart.bulletTarget", { value, max, target })
+          : loc.t("microChart.bullet", { value, max }))
+      }
       className={className}
     >
       <rect
@@ -301,6 +310,7 @@ export const MicroDeltaChart = ({
   label,
   className,
 }: MicroDeltaChartProps) => {
+  const loc = useLocale();
   const delta = to - from;
   /* Colour is DERIVED, not passed: the whole point of a delta is the direction,
    * and letting a caller paint a fall green would defeat it. Override `color`
@@ -318,7 +328,12 @@ export const MicroDeltaChart = ({
       color={resolved}
       label={
         label ??
-        `${from} to ${to}, ${delta > 0 ? "up" : delta < 0 ? "down" : "unchanged"} ${Math.abs(delta)}`
+        loc.t("microChart.delta", {
+          from,
+          to,
+          direction: loc.t(delta > 0 ? "microChart.up" : delta < 0 ? "microChart.down" : "microChart.unchanged"),
+          amount: Math.abs(delta),
+        })
       }
       className={className}
     >
@@ -362,6 +377,7 @@ export const MicroRadialChart = ({
   label,
   className,
 }: MicroRadialChartProps) => {
+  const loc = useLocale();
   const pct = max === 0 ? 0 : Math.min(1, Math.max(0, value / max));
   const size = Math.min(width, height);
   const r = size / 2 - 3;
@@ -372,7 +388,7 @@ export const MicroRadialChart = ({
       width={width}
       height={height}
       color={color}
-      label={label ?? `${Math.round(pct * 100)} percent`}
+      label={label ?? loc.t("microChart.percent", { value: Math.round(pct * 100) })}
       className={className}
     >
       <g transform={`rotate(-90 ${width / 2} ${height / 2})`}>

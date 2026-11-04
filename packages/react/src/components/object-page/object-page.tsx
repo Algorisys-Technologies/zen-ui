@@ -1,6 +1,7 @@
 import * as React from "react";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * ObjectPageLayout — the object detail page: a title bar that stays, an
@@ -125,7 +126,7 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
       header,
       title,
       showAnchorBar = true,
-      anchorBarLabel = "Object page sections",
+      anchorBarLabel: anchorBarLabelProp,
       headingLevel = 2,
       className,
       children,
@@ -133,6 +134,8 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const anchorBarLabel = anchorBarLabelProp ?? loc.t("objectPage.objectPageSections");
     const TitleTag = headingTag(headingLevel);
     const SectionTag = headingTag(headingLevel + 1);
     const SubTag = headingTag(headingLevel + 2);

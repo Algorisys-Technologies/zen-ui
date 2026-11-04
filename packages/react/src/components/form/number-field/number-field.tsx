@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * NumberField — shadcn-style. Number input with optional increment /
@@ -39,6 +40,7 @@ const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
     },
     ref,
   ) => {
+    const loc = useLocale();
     const [internal, setInternal] = React.useState<number | null>(
       defaultValue ?? null,
     );
@@ -78,7 +80,7 @@ const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
       >
         <button
           type="button"
-          aria-label="Decrement"
+          aria-label={loc.t("numberField.decrement")}
           onClick={dec}
           disabled={disabled || atMin}
           className={cn(
@@ -119,7 +121,7 @@ const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
         />
         <button
           type="button"
-          aria-label="Increment"
+          aria-label={loc.t("numberField.increment")}
           onClick={inc}
           disabled={disabled || atMax}
           className={cn(

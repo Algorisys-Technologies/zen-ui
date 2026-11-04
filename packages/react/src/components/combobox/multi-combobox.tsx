@@ -16,6 +16,7 @@ import {
   CommandLoading,
 } from "./command";
 import type { ComboboxOption } from "./combobox";
+import { useLocale } from "../locale/locale";
 
 /**
  * MultiCombobox — multi-select sibling of Combobox. Selected values
@@ -91,13 +92,13 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
   value,
   defaultValue,
   onValueChange,
-  placeholder = "Select…",
-  searchPlaceholder = "Search…",
-  emptyMessage = "No results.",
+  placeholder: placeholderProp,
+  searchPlaceholder: searchPlaceholderProp,
+  emptyMessage: emptyMessageProp,
   debounceMs = 250,
   creatable,
   onCreate,
-  createLabel = "Create",
+  createLabel: createLabelProp,
   width = 240,
   maxDisplayed = 3,
   disabled,
@@ -105,6 +106,11 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
   className,
   showClearAll = true,
 }) => {
+  const loc = useLocale();
+  const placeholder = placeholderProp ?? loc.t("combobox.placeholder");
+  const searchPlaceholder = searchPlaceholderProp ?? loc.t("combobox.searchPlaceholder");
+  const emptyMessage = emptyMessageProp ?? loc.t("combobox.noResults");
+  const createLabel = createLabelProp ?? loc.t("combobox.create");
   const isAsync = typeof onSearch === "function";
 
   const [internalValue, setInternalValue] = React.useState<string[]>(
@@ -272,7 +278,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
           />
           <CommandList>
             {isAsync && asyncLoading ? (
-              <CommandLoading>Searching…</CommandLoading>
+              <CommandLoading>{loc.t("combobox.searching")}</CommandLoading>
             ) : null}
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
@@ -328,7 +334,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
                 >
                   <PlusIcon style={{ marginRight: 6 }} />
                   <span className="zen-flex-1">
-                    {createLabel} “{typed}”
+                    {loc.t("combobox.createOption", { verb: createLabel, text: typed })}
                   </span>
                 </CommandItem>
               </CommandGroup>
@@ -359,7 +365,9 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
 const Chip: React.FC<{
   label: string;
   onRemove: (e: React.SyntheticEvent) => void;
-}> = ({ label, onRemove }) => (
+}> = ({ label, onRemove }) => {
+  const loc = useLocale();
+  return (
   <span
     className={cn(
       "zen-inline-flex zen-items-center zen-gap-1 zen-px-1.5 zen-py-0.5",
@@ -385,7 +393,7 @@ const Chip: React.FC<{
       /* stopPropagation on pointerdown so the click doesn't trigger
        * the parent Popover trigger (which would open the menu when
        * the user just wanted to remove a chip). */
-      aria-label={`Remove ${label}`}
+      aria-label={loc.t("combobox.remove", { label })}
       className={cn(
         "zen-inline-flex zen-items-center zen-justify-center",
         "zen-h-3.5 zen-w-3.5 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -409,7 +417,8 @@ const Chip: React.FC<{
       </svg>
     </span>
   </span>
-);
+  );
+};
 
 const ChevronIcon = () => (
   <svg

@@ -2,6 +2,7 @@ import * as React from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * PivotGrid — a table windowed in BOTH directions.
@@ -57,6 +58,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
   label,
   onVisibleRangeChange,
 }) => {
+  const loc = useLocale();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [scrollLeft, setScrollLeft] = React.useState(0);
   const [viewportWidth, setViewportWidth] = React.useState(0);
@@ -132,7 +134,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
         ref={scrollRef}
         className="zen-min-h-0 zen-w-full zen-min-w-0 zen-flex-1 zen-overflow-auto zen-overscroll-contain zen-border-l zen-border-t zen-border-zen-border zen-bg-zen-background"
         role="region"
-        aria-label={label ?? "Pivot grid"}
+        aria-label={label ?? loc.t("pivot.grid")}
         tabIndex={0}
         onScroll={(e) => setScrollLeft(e.currentTarget.scrollLeft)}
       >

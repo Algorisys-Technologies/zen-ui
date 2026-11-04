@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
+import { useLocale } from "../locale/locale";
 
 /**
  * ProctorStreamGrid and ProctorFlagOverlay — many live candidates on one screen,
@@ -115,6 +116,7 @@ const StreamVideo = ({
   muted?: boolean;
   label: string;
 }) => {
+  const loc = useLocale();
   const ref = React.useRef<HTMLVideoElement>(null);
 
   React.useEffect(() => {
@@ -131,7 +133,7 @@ const StreamVideo = ({
         {poster ? (
           <img src={poster} alt="" className="zen-h-full zen-w-full zen-object-cover" />
         ) : (
-          <span className="zen-text-xs zen-text-zen-muted-fg">No video</span>
+          <span className="zen-text-xs zen-text-zen-muted-fg">{loc.t("proctor.noVideo")}</span>
         )}
       </div>
     );
@@ -177,13 +179,14 @@ export const ProctorStreamGrid = ({
   emptyMessage,
   className,
 }: ProctorStreamGridProps) => {
+  const loc = useLocale();
   const shown = max ? participants.slice(0, max) : participants;
   const hidden = participants.length - shown.length;
 
   if (participants.length === 0) {
     return (
       <p className="zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg">
-        {emptyMessage ?? "Nobody is connected."}
+        {emptyMessage ?? loc.t("proctor.nobodyIsConnected")}
       </p>
     );
   }
@@ -217,7 +220,7 @@ export const ProctorStreamGrid = ({
                     stream={p.stream}
                     poster={p.poster}
                     muted={p.muted}
-                    label={typeof p.name === "string" ? `${p.name} video` : "Candidate video"}
+                    label={typeof p.name === "string" ? loc.t("proctor.nameVideo", { name: p.name }) : loc.t("proctor.candidateVideo")}
                   />
                   <span className="zen-absolute zen-start-1 zen-top-1">
                     <Badge variant="solid" color={STATUS_COLOR[p.status ?? "live"]}>
@@ -241,7 +244,7 @@ export const ProctorStreamGrid = ({
                   {flags.length > 0 ? (
                     <span className="zen-shrink-0 zen-text-xs zen-tabular-nums zen-text-zen-error">
                       {flags.length}
-                      <span className="zen-sr-only"> flags raised</span>
+                      <span className="zen-sr-only">{loc.t("proctor.flagsRaised")}</span>
                     </span>
                   ) : null}
                   {renderActions ? (

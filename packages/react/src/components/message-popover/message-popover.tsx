@@ -3,6 +3,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { Icon } from "../icon/icon";
 import type { IconName } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * MessagePopover — the aggregated validation summary a long form owes its user.
@@ -111,13 +112,15 @@ const MessagePopover = React.forwardRef<HTMLButtonElement, MessagePopoverProps>(
       messages,
       onMessageSelect,
       disableNavigation = false,
-      emptyMessage = "No messages",
+      emptyMessage: emptyMessageProp,
       maxBodyHeight = 320,
       triggerLabel,
       className,
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const emptyMessage = emptyMessageProp ?? loc.t("messagePopover.noMessages");
     const [open, setOpen] = React.useState(false);
     const [filter, setFilter] = React.useState<MessageType | "all">("all");
 
@@ -211,7 +214,7 @@ const MessagePopover = React.forwardRef<HTMLButtonElement, MessagePopoverProps>(
           {present.length > 1 ? (
             <div
               role="group"
-              aria-label="Filter by severity"
+              aria-label={loc.t("messagePopover.filterBySeverity")}
               className="zen-flex zen-flex-wrap zen-gap-1 zen-border-b zen-border-zen-border zen-p-2"
             >
               <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>

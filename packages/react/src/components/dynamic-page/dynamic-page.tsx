@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * DynamicPage — a page whose header COLLAPSES ("snaps") as the content scrolls,
@@ -288,13 +289,14 @@ export const DynamicPageHeader = React.forwardRef<HTMLDivElement, DynamicPageHea
     {
       className,
       children,
-      "aria-label": ariaLabel = "Page header",
-      pinLabel = "Pin header",
-      unpinLabel = "Unpin header",
+      "aria-label": ariaLabel,
+      pinLabel,
+      unpinLabel,
       ...props
     },
     ref,
   ) => {
+    const loc = useLocale();
     const { headerExpanded, pinned, setPinned, headerPinnable, headerId, setHeaderEl } =
       useDynamicPage("DynamicPageHeader");
 
@@ -307,7 +309,7 @@ export const DynamicPageHeader = React.forwardRef<HTMLDivElement, DynamicPageHea
         }}
         id={headerId}
         role="region"
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? loc.t("dynamicPage.pageHeader")}
         data-state={headerExpanded ? "expanded" : "collapsed"}
         className={cn(
           // 1fr → 0fr on a grid row collapses to zero without anyone measuring
@@ -340,7 +342,7 @@ export const DynamicPageHeader = React.forwardRef<HTMLDivElement, DynamicPageHea
               <button
                 type="button"
                 aria-pressed={pinned}
-                aria-label={pinned ? unpinLabel : pinLabel}
+                aria-label={pinned ? (unpinLabel ?? loc.t("dynamicPage.unpinHeader")) : (pinLabel ?? loc.t("dynamicPage.pinHeader"))}
                 onClick={() => setPinned(!pinned)}
                 className={cn(
                   "zen-inline-flex zen-h-7 zen-w-7 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-md zen-bg-transparent zen-text-zen-muted-fg zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",

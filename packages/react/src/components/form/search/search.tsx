@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * Search — a search input as a component, not a pattern reinvented per screen.
@@ -42,9 +43,11 @@ const sizes: Record<SearchSize, { field: string; pad: string; icon: string }> = 
 
 const Search = React.forwardRef<HTMLInputElement, SearchProps>(
   (
-    { className, value, defaultValue, onValueChange, onClear, size = "md", clearLabel = "Clear search", disabled, ...props },
+    { className, value, defaultValue, onValueChange, onClear, size = "md", clearLabel: clearLabelProp, disabled, ...props },
     forwardedRef,
   ) => {
+    const loc = useLocale();
+    const clearLabel = clearLabelProp ?? loc.t("search.clear");
     const innerRef = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(forwardedRef, () => innerRef.current as HTMLInputElement);
 

@@ -8,6 +8,7 @@ import {
   type CountdownLevel,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * TimerBadge and TestCountdownBar — how long is left, and what that means.
@@ -139,6 +140,7 @@ export const TimerBadge = ({
   className,
   ...core
 }: TimerBadgeProps) => {
+  const loc = useLocale();
   const { ms, level, text } = useCountdown(core);
 
   return (
@@ -151,7 +153,9 @@ export const TimerBadge = ({
        */
       aria-live="off"
       aria-label={
-        typeof label === "string" ? `${label}: ${text} remaining` : `${text} remaining`
+        typeof label === "string"
+          ? loc.t("countdown.labelRemaining", { label, time: text })
+          : loc.t("countdown.remaining", { time: text })
       }
       data-level={level}
       className={cn(
@@ -172,9 +176,9 @@ export const TimerBadge = ({
       </span>
       {/* The state in words, for anyone who cannot use the colour. */}
       {level === "critical" && ms > 0 ? (
-        <span className="zen-sr-only">Less than a minute remaining</span>
+        <span className="zen-sr-only">{loc.t("countdown.lessThanAMinuteRemaining")}</span>
       ) : null}
-      {level === "expired" ? <span className="zen-sr-only">Time is up</span> : null}
+      {level === "expired" ? <span className="zen-sr-only">{loc.t("countdown.timeIsUp")}</span> : null}
     </span>
   );
 };
@@ -203,6 +207,7 @@ export const TestCountdownBar = ({
   className,
   ...core
 }: TestCountdownBarProps) => {
+  const loc = useLocale();
   const { level } = useCountdown({ ...core, onExpire: undefined, onThreshold: undefined });
 
   return (
@@ -226,7 +231,7 @@ export const TestCountdownBar = ({
       {children ? <div className="zen-flex zen-min-w-0 zen-items-center zen-gap-3">{children}</div> : null}
       <div className="zen-ms-auto zen-flex zen-items-center zen-gap-2">
         {/* The one that owns the callbacks, so they fire once rather than twice. */}
-        <TimerBadge label="Time left" {...core} />
+        <TimerBadge label={loc.t("countdown.timeLeft")} {...core} />
         {actions}
       </div>
     </header>

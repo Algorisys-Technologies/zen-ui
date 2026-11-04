@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../../lib/cn";
+import { useLocale } from "../../locale/locale";
 
 /**
  * TagInput — type-and-press-Enter chip input. The text input lives at
@@ -54,7 +55,7 @@ export const TagInput = React.forwardRef<HTMLInputElement, TagInputProps>(
       value: valueProp,
       defaultValue,
       onValueChange,
-      placeholder = "Add a tag…",
+      placeholder: placeholderProp,
       disabled,
       max,
       delimiters = [","],
@@ -67,6 +68,8 @@ export const TagInput = React.forwardRef<HTMLInputElement, TagInputProps>(
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const placeholder = placeholderProp ?? loc.t("tagInput.placeholder");
     const [tagsInner, setTagsInner] = React.useState<string[]>(
       defaultValue ?? [],
     );
@@ -190,7 +193,7 @@ export const TagInput = React.forwardRef<HTMLInputElement, TagInputProps>(
               <button
                 type="button"
                 onClick={() => removeAt(i)}
-                aria-label={`Remove ${tag}`}
+                aria-label={loc.t("tagInput.remove", { tag })}
                 disabled={disabled}
                 className={cn(
                   "zen-inline-flex zen-items-center zen-justify-center",

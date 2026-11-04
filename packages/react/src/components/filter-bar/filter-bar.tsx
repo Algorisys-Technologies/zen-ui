@@ -2,6 +2,7 @@ import * as React from "react";
 import { cn } from "@algorisys/zen-ui-core";
 import { Button } from "../button/button";
 import { SelectDialog } from "../select-dialog/select-dialog";
+import { useLocale } from "../locale/locale";
 
 /**
  * FilterBar — the structured filter area above a table. The gap analysis
@@ -73,11 +74,15 @@ export const FilterBar = ({
   adaptable = true,
   collapsible = true,
   defaultExpanded = true,
-  goLabel = "Go",
-  clearLabel = "Clear",
-  adaptLabel = "Adapt filters",
+  goLabel: goLabelProp,
+  clearLabel: clearLabelProp,
+  adaptLabel: adaptLabelProp,
   className,
 }: FilterBarProps) => {
+  const loc = useLocale();
+  const goLabel = goLabelProp ?? loc.t("filterBar.go");
+  const clearLabel = clearLabelProp ?? loc.t("common.clear");
+  const adaptLabel = adaptLabelProp ?? loc.t("filterBar.adapt");
   const [expanded, setExpanded] = React.useState(defaultExpanded);
   const [adaptOpen, setAdaptOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<string[]>(() =>
@@ -107,7 +112,7 @@ export const FilterBar = ({
           <button
             type="button"
             aria-expanded={expanded}
-            aria-label={expanded ? "Collapse filters" : "Expand filters"}
+            aria-label={expanded ? loc.t("filterBar.collapse") : loc.t("filterBar.expand")}
             onClick={() => setExpanded((v) => !v)}
             className="zen-inline-flex zen-h-7 zen-w-7 zen-shrink-0 zen-cursor-pointer zen-items-center zen-justify-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
           >
@@ -165,7 +170,7 @@ export const FilterBar = ({
           </div>
         ) : (
           <p className="zen-m-0 zen-py-2 zen-text-sm zen-text-zen-muted-fg">
-            No filters shown. Use {adaptLabel} to add some.
+            {loc.t("filterBar.noFilters", { adapt: adaptLabel })}
           </p>
         )
       ) : null}
@@ -175,7 +180,7 @@ export const FilterBar = ({
           open={adaptOpen}
           onOpenChange={setAdaptOpen}
           title={adaptLabel}
-          description="Choose which filters appear on the bar."
+          description={loc.t("filterBar.adaptDescription")}
           items={fields.map((f) => ({ id: f.id, label: f.label }))}
           multiple
           selectedIds={visible}

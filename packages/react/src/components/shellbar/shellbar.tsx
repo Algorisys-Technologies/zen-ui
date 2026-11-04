@@ -12,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * ShellBar — the global application header: logo, product title, search,
@@ -140,13 +141,13 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
       searchable = false,
       search,
       onSearch,
-      searchPlaceholder = "Search",
+      searchPlaceholder: searchPlaceholderProp,
       notificationCount,
       onNotificationsClick,
       profile,
       items,
       onLogoClick,
-      overflowLabel = "More actions",
+      overflowLabel: overflowLabelProp,
       className,
       children,
       "aria-label": ariaLabel,
@@ -154,6 +155,9 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const searchPlaceholder = searchPlaceholderProp ?? loc.t("shellbar.search");
+    const overflowLabel = overflowLabelProp ?? loc.t("shellbar.moreActions");
     const containerRef = React.useRef<HTMLDivElement>(null);
     const brandingRef = React.useRef<HTMLDivElement>(null);
     const fixedRef = React.useRef<HTMLDivElement>(null);
@@ -309,7 +313,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
     return (
       <header
         ref={ref}
-        aria-label={ariaLabel ?? primaryTitle ?? "Application header"}
+        aria-label={ariaLabel ?? primaryTitle ?? loc.t("shellbar.applicationHeader")}
         className={cn(
           "zen-w-full zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-3",
           className,
@@ -333,7 +337,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                   color="neutral"
                   size="sm"
                   shape="square"
-                  aria-label="Home"
+                  aria-label={loc.t("shellbar.home")}
                   onClick={onLogoClick}
                 >
                   {logo}
@@ -542,7 +546,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                 color="neutral"
                 size="sm"
                 shape="square"
-                aria-label="Close search"
+                aria-label={loc.t("shellbar.closeSearch")}
                 onClick={closeSearch}
               >
                 <Icon name="x" size={16} />

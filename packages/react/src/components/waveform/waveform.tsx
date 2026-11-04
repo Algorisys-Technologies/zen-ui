@@ -9,6 +9,7 @@ import {
   waveformPath,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Waveform — an audio lane: peaks rendered as a filled envelope, with an
@@ -92,12 +93,14 @@ export const Waveform = React.forwardRef<HTMLDivElement, WaveformProps>(
       minClipDuration = MIN_MEDIA_RANGE,
       formatTime = formatMediaTime,
       clipClass,
-      label = "Audio waveform",
+      label: labelProp,
       className,
       ...props
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const label = labelProp ?? loc.t("waveform.audioWaveform");
     const laneRef = React.useRef<HTMLDivElement | null>(null);
     const [dragging, setDragging] = React.useState<"move" | "start" | "end" | null>(null);
     const [dragTip, setDragTip] = React.useState<{ pct: number; text: string } | null>(null);
@@ -245,7 +248,7 @@ export const Waveform = React.forwardRef<HTMLDivElement, WaveformProps>(
                 role="slider"
                 tabIndex={0}
                 aria-orientation="horizontal"
-                aria-label="Clip position"
+                aria-label={loc.t("waveform.clipPosition")}
                 aria-valuemin={0}
                 aria-valuemax={duration - (clip.end - clip.start)}
                 aria-valuenow={clip.offset}
@@ -272,7 +275,7 @@ export const Waveform = React.forwardRef<HTMLDivElement, WaveformProps>(
                     role="slider"
                     tabIndex={0}
                     aria-orientation="horizontal"
-                    aria-label={`Clip trim ${edge}`}
+                    aria-label={loc.t(edge === "start" ? "waveform.trimStart" : "waveform.trimEnd")}
                     aria-valuemin={edge === "start" ? 0 : clip.start + minClipDuration}
                     aria-valuemax={edge === "start" ? clip.end - minClipDuration : audioDuration}
                     aria-valuenow={clip[edge]}

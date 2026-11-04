@@ -2,6 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "../../lib/cn";
 import { Popover, PopoverTrigger, PopoverContent } from "../popover/popover";
+import { useLocale } from "../locale/locale";
 
 /**
  * Sidebar — collapsible navigation shell. A lightweight, context-driven app
@@ -616,12 +617,13 @@ export const SidebarTrigger = React.forwardRef<
   HTMLButtonElement,
   SidebarTriggerProps
 >(({ className, asChild = false, onClick, children, ...props }, ref) => {
+  const loc = useLocale();
   const { toggle } = useSidebar();
   const Comp = asChild ? Slot : "button";
   return (
     <Comp
       ref={ref}
-      aria-label="Toggle sidebar"
+      aria-label={loc.t("sidebar.toggleSidebar")}
       // An open overlay closes on a pointerdown outside it; the toggle is
       // exempt, so pressing it closes the overlay once (its own click) rather
       // than closing it and then toggling it straight back open.
