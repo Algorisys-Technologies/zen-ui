@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Camera — webcam capture wrapping `react-webcam` (an OPTIONAL peer dependency).
@@ -30,9 +31,11 @@ export const Camera = ({
   facingMode = "user",
   screenshotFormat = "image/jpeg",
   mirrored = true,
-  captureLabel = "Capture",
+  captureLabel: captureLabelProp,
   className,
 }: CameraProps) => {
+  const loc = useLocale();
+  const captureLabel = captureLabelProp ?? loc.t("camera.capture");
   const ref = React.useRef<any>(null);
 
   const capture = React.useCallback(() => {
@@ -48,7 +51,7 @@ export const Camera = ({
             className="zen-flex zen-items-center zen-justify-center zen-text-sm zen-text-zen-muted-fg"
             style={{ width, height }}
           >
-            Loading camera…
+            {loc.t("camera.loading")}
           </div>
         }
       >

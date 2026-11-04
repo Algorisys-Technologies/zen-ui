@@ -11,6 +11,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Progress } from "../progress/progress";
+import { useLocale } from "../locale/locale";
 
 /**
  * ChunkUploader — a large file, sent in pieces, with progress you can pause and
@@ -95,6 +96,7 @@ export const ChunkUploader = ({
   showProgress = true,
   className,
 }: ChunkUploaderProps) => {
+  const loc = useLocale();
   const [status, setStatus] = React.useState<ChunkUploadStatus>("idle");
   const [done, setDone] = React.useState(0);
   const [error, setError] = React.useState<string>("");
@@ -205,7 +207,7 @@ export const ChunkUploader = ({
   if (!file) {
     return (
       <p className={cn("zen-m-0 zen-text-sm zen-text-zen-muted-fg", className)}>
-        No file selected.
+        {loc.t("chunkUploader.noFileSelected")}
       </p>
     );
   }
@@ -217,7 +219,12 @@ export const ChunkUploader = ({
           {file.name}
         </span>
         <span className="zen-shrink-0 zen-text-xs zen-tabular-nums zen-text-zen-muted-fg">
-          {formatBytes(bytesDone)} / {formatBytes(file.size)} · {done}/{chunks.length} chunks
+          {loc.t("chunkUploader.progress", {
+            done: formatBytes(bytesDone),
+            size: formatBytes(file.size),
+            chunk: done,
+            count: chunks.length,
+          })}
         </span>
       </div>
 
@@ -237,14 +244,14 @@ export const ChunkUploader = ({
           )}
         >
           {status === "complete"
-            ? "Uploaded"
+            ? loc.t("chunkUploader.uploaded")
             : status === "error"
-              ? `Failed: ${error}`
+              ? loc.t("chunkUploader.failed", { error })
               : status === "paused"
-                ? "Paused"
+                ? loc.t("chunkUploader.paused")
                 : status === "uploading"
                   ? `${percent}%`
-                  : "Ready"}
+                  : loc.t("chunkUploader.ready")}
         </span>
 
         <span className="zen-ms-auto zen-flex zen-gap-2">
@@ -256,13 +263,17 @@ export const ChunkUploader = ({
                 pausedRef.current = true;
               }}
             >
-              Pause
+              {loc.t("chunkUploader.pause")}
             </Button>
           ) : null}
           {status === "paused" || status === "error" || (status === "idle" && !autoStart) ? (
             /* Resume, not restart: the cursor sits on the chunk that failed. */
             <Button size="sm" onClick={() => void run()}>
-              {status === "error" ? "Retry" : status === "paused" ? "Resume" : "Upload"}
+              {status === "error"
+                ? loc.t("chunkUploader.retry")
+                : status === "paused"
+                  ? loc.t("chunkUploader.resume")
+                  : loc.t("chunkUploader.upload")}
             </Button>
           ) : null}
         </span>
@@ -272,9 +283,9 @@ export const ChunkUploader = ({
           upload announcing every step is unusable with a screen reader. */}
       <span className="zen-sr-only" aria-live="polite">
         {status === "complete"
-          ? `${file.name} uploaded`
+          ? loc.t("chunkUploader.fileUploaded", { name: file.name })
           : status === "error"
-            ? `${file.name} failed to upload: ${error}`
+            ? loc.t("chunkUploader.fileFailed", { name: file.name, error })
             : ""}
       </span>
     </div>

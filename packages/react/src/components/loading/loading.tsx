@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Loading — animated spinner. No Radix primitive (none exists);
@@ -46,7 +47,10 @@ export interface LoadingProps
 }
 
 const Loading = React.forwardRef<SVGSVGElement, LoadingProps>(
-  ({ className, size, color, label = "Loading", ...props }, ref) => (
+  ({ className, size, color, label: labelProp, ...props }, ref) => {
+    const loc = useLocale();
+    const label = labelProp ?? loc.t("loading.label");
+    return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
       <svg
         ref={ref}
@@ -90,7 +94,8 @@ const Loading = React.forwardRef<SVGSVGElement, LoadingProps>(
         </span>
       ) : null}
     </span>
-  ),
+    );
+  },
 );
 Loading.displayName = "Loading";
 

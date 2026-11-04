@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * PageHeader — a heading with a back affordance and one action.
@@ -49,9 +50,11 @@ export interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElemen
 
 export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
   (
-    { title, subtitle, onBack, backLabel = "Back", actions, info, breadcrumb, className, ...props },
+    { title, subtitle, onBack, backLabel, actions, info, breadcrumb, className, ...props },
     ref,
-  ) => (
+  ) => {
+    const loc = useLocale();
+    return (
     <div ref={ref} className={cn("zen-flex zen-flex-col zen-gap-2", className)} {...props}>
       {breadcrumb}
       {/* items-start, not items-center: a subtitle that wraps to two or three
@@ -62,7 +65,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
           <button
             type="button"
             onClick={onBack}
-            aria-label={backLabel}
+            aria-label={backLabel ?? loc.t("pageHeader.back")}
             // h-8 matches the title's line box, so the control sits on the
             // title's line rather than floating above it.
             className={cn(
@@ -96,6 +99,7 @@ export const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
         ) : null}
       </div>
     </div>
-  ),
+    );
+  },
 );
 PageHeader.displayName = "PageHeader";

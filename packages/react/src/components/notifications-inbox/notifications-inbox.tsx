@@ -5,6 +5,7 @@ import {
   PopoverTrigger,
 } from "../popover/popover";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * NotificationsInbox — bell icon trigger that opens a Popover panel of
@@ -136,8 +137,8 @@ const NotificationsInbox = React.forwardRef<
       onMarkAllRead,
       onItemSelect,
       onViewAll,
-      emptyMessage = "You're all caught up.",
-      triggerLabel = "Notifications",
+      emptyMessage: emptyMessageProp,
+      triggerLabel: triggerLabelProp,
       maxHeight = 420,
       align = "end",
       open,
@@ -148,6 +149,9 @@ const NotificationsInbox = React.forwardRef<
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const emptyMessage = emptyMessageProp ?? loc.t("notificationsInbox.youReAllCaughtUp");
+    const triggerLabel = triggerLabelProp ?? loc.t("notificationsInbox.notifications");
     /* Bucket the feed into day-groups once per render. `now` is captured
      * at render time so all relative-time calcs in this pass agree. */
     // `notifications` is a deliberate dependency even though the factory does
@@ -228,7 +232,7 @@ const NotificationsInbox = React.forwardRef<
                   "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-p-0",
                 )}
               >
-                Mark all as read
+                {loc.t("notificationsInbox.markAllAsRead")}
               </button>
             )}
           </div>
@@ -272,7 +276,7 @@ const NotificationsInbox = React.forwardRef<
                   "zen-bg-transparent zen-border-0 zen-cursor-pointer",
                 )}
               >
-                View all
+                {loc.t("notificationsInbox.viewAll")}
               </button>
             </div>
           )}

@@ -1,7 +1,8 @@
 /**
- * No hard-coded user-visible strings in the Solid components (review B1).
+ * No hard-coded user-visible strings in a binding's components (review B1).
  *
- *   bun run check:strings
+ *   bun run check:strings            # Solid
+ *   bun run check:strings react      # React (bun run check:strings:react)
  *
  * Every string a component shows or announces comes from the message
  * catalogue (@algorisys/zen-ui-core/messages, through useLocale().t), so an
@@ -18,9 +19,18 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
-const ROOT = "packages/solid/src/components";
+// The binding to scan. Both keep their library components one folder each under
+// src/components/, and spell the text attributes the same way (React's
+// `className` is not one of them: none of the patterns below name it).
+const BINDINGS = ["solid", "react"] as const;
+const binding = (process.argv[2] ?? "solid") as (typeof BINDINGS)[number];
+if (!BINDINGS.includes(binding)) {
+  console.error(`usage: bun run scripts/check-strings.ts [${BINDINGS.join("|")}]`);
+  process.exit(2);
+}
+const ROOT = `packages/${binding}/src/components`;
 // Swept in later batches (B1, 2026-11-04). Delete a line when its component is swept.
-const NOT_YET_SWEPT = new Set<string>([]);
+const NOT_YET_SWEPT = new Set<string>(binding === "solid" ? [] : []);
 
 const PATTERNS: [string, RegExp][] = [
   ["text attribute", /\b(aria-label|aria-description|aria-roledescription|title|placeholder|label|description|emptyText|emptyMessage|alt|fallback)="[^"]*[A-Za-z]{2}[^"]*"/],
@@ -33,6 +43,10 @@ const PATTERNS: [string, RegExp][] = [
   ["English template default", /\?\? `[^`]*[A-Za-z][a-z]{2,} [^`]*`/],
   ["lowercase JSX text", />\s*[,(]?\s*[a-z]+ [a-z]+(?: [a-z]+)*[.…:!?)]?\s*<\//],
   ["JSX text", />\s*[A-Z][a-z]+(?:[ ,'’.:…-]+[A-Za-z]+)*[.…:!?]?\s*<\//],
+  // React's idiom for a default: a destructured prop default (`placeholder = "Search"`),
+  // where Solid writes `local.placeholder ?? loc.t(…)`. Only label-like names; a
+  // variant (`variant = "solid"`) or a displayName is not text, and `==` is a comparison.
+  ["English prop default", /(?:^|[\s{,(])\w*(?:[Ll]abel|[Tt]ext|[Mm]essage|[Pp]laceholder|[Tt]itle|[Dd]escription|[Hh]eading) = "[^"]*[A-Za-z]{2}[^"]*"\s*(?:[,})]|$)/],
   ["JSX text line", /^\s+[A-Z][a-z]+(?:[ ,'’-]+[a-z]+)*[.…:!?]?\s*$/],
 ];
 
@@ -79,5 +93,7 @@ const stale = [...NOT_YET_SWEPT].filter((f) => !files.some((p) => relative(ROOT,
 for (const r of report) console.error(`FAIL ${r}`);
 for (const s of stale) console.error(`FAIL NOT_YET_SWEPT names a file that does not exist: ${s}`);
 const dirty = new Set(report.map((r) => r.split(":")[0])).size;
-console.log(`${swept - dirty} of ${swept} components clean of hard-coded strings${dirty ? ` (${offences} strings in ${dirty})` : ""}; ${NOT_YET_SWEPT.size} not yet swept (${pending} strings waiting)`);
+// A scan of nothing is not a pass.
+if (files.length === 0) { console.error(`FAIL no component files under ${ROOT}`); process.exit(1); }
+console.log(`${binding}: ${swept - dirty} of ${swept} components clean of hard-coded strings${dirty ? ` (${offences} strings in ${dirty})` : ""}; ${NOT_YET_SWEPT.size} not yet swept (${pending} strings waiting)`);
 process.exit(offences || stale.length ? 1 : 0);

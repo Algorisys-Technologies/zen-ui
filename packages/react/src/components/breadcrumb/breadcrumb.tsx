@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Breadcrumb — navigation trail primitive. Radix has no Breadcrumb, so this is
@@ -23,7 +24,10 @@ import { cn } from "../../lib/cn";
 export const Breadcrumb = React.forwardRef<
   HTMLElement,
   React.ComponentPropsWithoutRef<"nav"> & { separator?: React.ReactNode }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />);
+>(({ ...props }, ref) => {
+  const loc = useLocale();
+  return <nav ref={ref} aria-label={loc.t("breadcrumb.label")} {...props} />;
+});
 Breadcrumb.displayName = "Breadcrumb";
 
 export const BreadcrumbList = React.forwardRef<
@@ -108,7 +112,9 @@ BreadcrumbSeparator.displayName = "BreadcrumbSeparator";
 export const BreadcrumbEllipsis = ({
   className,
   ...props
-}: React.ComponentProps<"span">) => (
+}: React.ComponentProps<"span">) => {
+  const loc = useLocale();
+  return (
   <span
     role="presentation"
     aria-hidden="true"
@@ -116,7 +122,8 @@ export const BreadcrumbEllipsis = ({
     {...props}
   >
     &#8230;
-    <span className="zen-sr-only">More</span>
+    <span className="zen-sr-only">{loc.t("breadcrumb.more")}</span>
   </span>
-);
+  );
+};
 BreadcrumbEllipsis.displayName = "BreadcrumbEllipsis";

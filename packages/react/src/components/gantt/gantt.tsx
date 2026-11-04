@@ -36,6 +36,7 @@ import {
   useScrollerMetrics,
   type ScheduleColumn,
 } from "./schedule-grid";
+import { useLocale } from "../locale/locale";
 
 /**
  * Gantt — what the project is doing, and what is waiting on what.
@@ -358,6 +359,7 @@ export const Gantt = ({
   emptyState,
   className,
 }: GanttProps) => {
+  const loc = useLocale();
   /* Fit, not month, and certainly not week. A seven-day window is right for a
      calendar and wrong for a plan; a month is right for a plan that fits in one
      and wrong for the majority that do not. Fit is the only default that is
@@ -528,7 +530,7 @@ export const Gantt = ({
           className,
         )}
         role="status"
-        aria-label="Loading schedule"
+        aria-label={loc.t("gantt.loadingSchedule")}
       >
         {Array.from({ length: loadingRows }, (_, i) => (
           <div key={i} className="zen-flex zen-items-center zen-gap-3">
@@ -554,9 +556,9 @@ export const Gantt = ({
             <EmptyStateIcon>
               <Icon name="calendar" size={22} />
             </EmptyStateIcon>
-            <EmptyStateTitle>Nothing scheduled</EmptyStateTitle>
+            <EmptyStateTitle>{loc.t("gantt.nothingScheduled")}</EmptyStateTitle>
             <EmptyStateDescription>
-              Add a task with a start and an end date and it will appear on the timeline.
+              {loc.t("gantt.addATaskWithA")}
             </EmptyStateDescription>
           </EmptyState>
         )}
@@ -604,6 +606,7 @@ const GanttPaneCell = ({
   row: Row;
   onToggle: (id: string) => void;
 }) => {
+  const loc = useLocale();
   const { task } = row;
 
   if (column === "name") {
@@ -617,7 +620,7 @@ const GanttPaneCell = ({
                by a tab stop per parent. */
             tabIndex={-1}
             onClick={() => onToggle(task.id)}
-            aria-label={row.expanded ? `Collapse ${task.name}` : `Expand ${task.name}`}
+            aria-label={loc.t(row.expanded ? "gantt.collapseTask" : "gantt.expandTask", { name: task.name })}
             className="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
           >
             <Icon

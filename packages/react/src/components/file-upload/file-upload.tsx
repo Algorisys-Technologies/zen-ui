@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
+import { useLocale } from "../locale/locale";
 
 /**
  * FileUpload — drag-and-drop zone wrapping a native <input type="file">.
@@ -102,6 +103,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
     },
     forwardedRef,
   ) => {
+    const loc = useLocale();
     const [internal, setInternal] = React.useState<File[]>(defaultValue ?? []);
     const isControlled = value !== undefined;
     const files = isControlled ? (value as File[]) : internal;
@@ -206,8 +208,8 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           <div className="zen-text-sm">
             {label ?? (
               <>
-                <span className="zen-font-medium">Click to upload</span>{" "}
-                <span className="zen-text-zen-muted-fg">or drag and drop</span>
+                <span className="zen-font-medium">{loc.t("fileUpload.clickToUpload")}</span>{" "}
+                <span className="zen-text-zen-muted-fg">{loc.t("fileUpload.orDragAndDrop")}</span>
               </>
             )}
           </div>
@@ -257,7 +259,7 @@ const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                   variant="ghost"
                   color="neutral"
                   size="sm"
-                  aria-label={`Remove ${file.name}`}
+                  aria-label={loc.t("fileUpload.removeFile", { name: file.name })}
                   onClick={(e) => {
                     e.stopPropagation();
                     removeFile(idx);

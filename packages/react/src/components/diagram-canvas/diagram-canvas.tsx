@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * DiagramCanvas — an embedded diagram editor, for a system-design answer.
@@ -104,9 +105,11 @@ export const DiagramCanvas = ({
   src,
   sandbox = "allow-scripts allow-same-origin allow-popups allow-forms allow-downloads",
   height = "32rem",
-  title = "Diagram editor",
+  title: titleProp,
   className,
 }: DiagramCanvasProps) => {
+  const loc = useLocale();
+  const title = titleProp ?? loc.t("diagramCanvas.diagramEditor");
   const url = src ?? (provider === "yappydraw" ? DEFAULT_YAPPYDRAW_EMBED_URL : DEFAULT_DIAGRAM_EMBED_URL);
   const frameRef = React.useRef<HTMLIFrameElement>(null);
 
@@ -301,16 +304,19 @@ export interface ArchitectureDrawProps extends DiagramCanvasProps {
  * own actions, rather than a bare frame the caller has to wrap every time.
  */
 export const ArchitectureDraw = ({
-  label = "System design",
+  label,
   actions,
   className,
   ...canvas
-}: ArchitectureDrawProps) => (
+}: ArchitectureDrawProps) => {
+  const loc = useLocale();
+  return (
   <div className={cn("zen-flex zen-w-full zen-flex-col zen-gap-2", className)}>
     <div className="zen-flex zen-items-center zen-gap-2">
-      <span className="zen-text-sm zen-font-medium zen-text-zen-foreground">{label}</span>
+      <span className="zen-text-sm zen-font-medium zen-text-zen-foreground">{label ?? loc.t("diagramCanvas.systemDesign")}</span>
       {actions ? <span className="zen-ms-auto zen-flex zen-gap-2">{actions}</span> : null}
     </div>
     <DiagramCanvas {...canvas} />
   </div>
-);
+  );
+};

@@ -5,6 +5,7 @@ import { Button } from "../button/button";
 import { Input } from "../form/input/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { ColorPalette } from "./color-palette";
+import { useLocale } from "../locale/locale";
 
 /**
  * ColorPicker — a swatch that opens a palette, a hex field and the platform's
@@ -60,11 +61,14 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   onValueChange,
   colors = DEFAULT_COLORS,
   allowCustom = true,
-  label = "Choose a colour",
-  placeholder = "Pick a colour",
+  label: labelProp,
+  placeholder: placeholderProp,
   disabled,
   className,
 }) => {
+  const loc = useLocale();
+  const label = labelProp ?? loc.t("colorPicker.chooseAColour");
+  const placeholder = placeholderProp ?? loc.t("colorPicker.pickAColour");
   const [inner, setInner] = React.useState(() => normalizeHex(defaultValue ?? "") ?? "");
   const isControlled = valueProp !== undefined;
   const value = isControlled ? (normalizeHex(valueProp) ?? "") : inner;
@@ -124,9 +128,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 "zen-border zen-border-zen-border",
               )}
               style={{ backgroundColor: value || "transparent" }}
-              title="Custom colour"
+              title={loc.t("colorPicker.customColour")}
             >
-              <span className="zen-sr-only">Custom colour</span>
+              <span className="zen-sr-only">{loc.t("colorPicker.customColour")}</span>
               <input
                 type="color"
                 value={value || "#000000"}
@@ -142,7 +146,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 update(e.target.value);
               }}
               placeholder="#3b82f6"
-              aria-label="Hex colour"
+              aria-label={loc.t("colorPicker.hexColour")}
               spellCheck={false}
               autoComplete="off"
               className="zen-h-8 zen-w-28 zen-font-mono zen-text-xs"

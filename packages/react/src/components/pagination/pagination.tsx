@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Pagination — standalone, controlled page navigator. zen-ui's DataTable has
@@ -90,6 +91,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
     },
     ref,
   ) => {
+    const loc = useLocale();
     const items = usePaginationRange({ page, pageCount, siblingCount, boundaryCount });
     const go = (p: number) => {
       const next = Math.min(Math.max(p, 1), pageCount);
@@ -101,7 +103,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
     return (
       <nav
         ref={ref}
-        aria-label="pagination"
+        aria-label={loc.t("pagination.label")}
         className={cn("zen-flex zen-items-center zen-gap-1", className)}
         {...props}
       >
@@ -111,7 +113,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
             className={cn(itemBase, "hover:zen-bg-zen-muted")}
             onClick={() => go(page - 1)}
             disabled={page <= 1}
-            aria-label="Go to previous page"
+            aria-label={loc.t("pagination.previous")}
           >
             &#8249;
           </button>
@@ -148,7 +150,7 @@ export const Pagination = React.forwardRef<HTMLElement, PaginationProps>(
             className={cn(itemBase, "hover:zen-bg-zen-muted")}
             onClick={() => go(page + 1)}
             disabled={page >= pageCount}
-            aria-label="Go to next page"
+            aria-label={loc.t("pagination.next")}
           >
             &#8250;
           </button>
