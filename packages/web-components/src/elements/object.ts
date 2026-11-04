@@ -18,10 +18,19 @@ defineZenElement<ObjectStatusProps>({
 });
 
 // `value`/`unit` are Child -> JS properties. No `children` prop -> no slot.
+// `number` (formatted here, in `locale`, at `currency`'s or `precision`'s places)
+// is an attribute; `value`, when set, still wins.
 defineZenElement<ObjectNumberProps>({
   tag: "zen-object-number",
   factory: ObjectNumber,
-  attrs: { state: "string", emphasized: "boolean" },
+  attrs: {
+    state: "string",
+    emphasized: "boolean",
+    number: "number",
+    currency: "string",
+    precision: "number",
+    locale: "string",
+  },
   props: ["value", "unit"],
   childrenProp: false,
 });
