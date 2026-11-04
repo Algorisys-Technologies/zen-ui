@@ -143,6 +143,7 @@ real props; guessing prop names is how agents invent APIs.
 - [virtualized-items.md](virtualized-items.md) — `VirtualizedItems`, `VirtualizedItemsProps`, `VirtualizedItemsDenseProps`, `VirtualizedItemsSparseProps`
 - [combobox.md](combobox.md) — `Combobox`, `ComboboxOption`, `ComboboxProps`
 - [tree-select.md](tree-select.md) — `TreeSelect`, `TreeSelectProps`, `TreeSelectNode`
+- [lookup-field.md](lookup-field.md) — `LookupField`, `LookupFieldProps`, `LookupColumn`
 - [multi-combobox.md](multi-combobox.md) — `MultiCombobox`, `MultiComboboxProps`
 - [command.md](command.md) — `Command`, `CommandInput`, `CommandList`, `CommandEmpty`, `CommandLoading`, `CommandGroup`, `CommandItem`, `CommandSeparator`
 - [breadcrumb.md](breadcrumb.md) — `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`, `BreadcrumbSeparator`, `BreadcrumbEllipsis`

@@ -116,6 +116,7 @@ import NewProductionScheduleDemo from "./components/NewProductionScheduleDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewTreeSelectDemo from "./components/NewTreeSelectDemo";
+import NewLookupFieldDemo from "./components/NewLookupFieldDemo";
 import NewAlertDemo from "./components/NewAlertDemo";
 import NewDialogDemo from "./components/NewDialogDemo";
 import NewToastDemo from "./components/NewToastDemo";
@@ -384,6 +385,7 @@ const App: React.FC = () => {
             <Route path="/lazy-options" element={<NewLazyOptionsDemo />} />
             <Route path="/combobox" element={<NewComboboxDemo />} />
             <Route path="/tree-select" element={<NewTreeSelectDemo />} />
+            <Route path="/lookup-field" element={<NewLookupFieldDemo />} />
             <Route path="/alert" element={<NewAlertDemo />} />
             <Route path="/dialog" element={<NewDialogDemo />} />
             <Route path="/toast" element={<NewToastDemo />} />
