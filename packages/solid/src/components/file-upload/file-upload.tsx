@@ -185,7 +185,7 @@ export const FileUpload = (props: FileUploadProps) => {
       </div>
 
       <Show when={showFileList() && files().length > 0}>
-        <ul class="zen-flex zen-flex-col zen-gap-1 zen-text-sm">
+        <ul class="zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-1 zen-p-0 zen-text-sm">
           <For each={files()}>
             {(file, idx) => (
               <li class="zen-flex zen-items-center zen-gap-3 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2">

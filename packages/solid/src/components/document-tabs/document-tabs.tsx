@@ -61,6 +61,12 @@ export type DocumentTabsProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "onSele
   /** Accessible name of the strip. */
   label?: string;
   allTabsLabel?: string;
+  /**
+   * The close button's tooltip, per tab: say how else to close it, e.g.
+   * `() => "Close (Alt+W)"`. Default "Close". Its accessible name stays
+   * "Close <tab label>", so it is clear which tab it closes.
+   */
+  closeLabel?: (tab: DocumentTab) => string;
 };
 
 export const DocumentTabs = (props: DocumentTabsProps) => {
@@ -73,6 +79,7 @@ export const DocumentTabs = (props: DocumentTabsProps) => {
     "panelId",
     "label",
     "allTabsLabel",
+    "closeLabel",
     "class",
   ]);
 
@@ -242,7 +249,7 @@ export const DocumentTabs = (props: DocumentTabsProps) => {
                     type="button"
                     tabIndex={-1}
                     aria-label={`Close ${t.label}`}
-                    title="Close"
+                    title={local.closeLabel?.(t) ?? "Close"}
                     class={cn(iconButton, !active() && !t.dirty && "zen-opacity-0 group-hover:zen-opacity-100 group-focus-within:zen-opacity-100")}
                     onClick={() => close(t)}
                   >

@@ -751,6 +751,29 @@
 @keyframes zen-slide-out-bottom{ from { transform: translateY(0); } to { transform: translateY(100%); } }
 
 /* ===================================================================== *
+ * Tables — the look of a table's header, cells and hovered row          *
+ *                                                                       *
+ * Set these instead of overriding the table's classes. The defaults are *
+ * exactly what the tables always drew (an app wanting uppercase,        *
+ * letter-spaced headers sets two values). Cell padding across is here;  *
+ * padding down is density's (--zen-table-cell-padding-y, below).        *
+ * ===================================================================== */
+:root {
+  --zen-table-head-font-size: var(--zen-font-size-xs);
+  --zen-table-head-font-weight: var(--zen-font-weight-medium);
+  --zen-table-head-text-transform: none;
+  --zen-table-head-letter-spacing: normal;
+  --zen-table-cell-padding-x: 0.5rem;
+  --zen-table-row-hover: var(--zen-color-muted);
+}
+
+/* The object page's section titles ("GENERAL", "ITEMS"): an app that sets one
+ * size for every small uppercase label sets this too. Default: today's size. */
+:root {
+  --zen-object-page-section-title-size: var(--zen-font-size-sm);
+}
+
+/* ===================================================================== *
  * Density — how much room controls, rows and sections take              *
  *                                                                       *
  * Comfortable is the default and is exactly the sizes the components    *

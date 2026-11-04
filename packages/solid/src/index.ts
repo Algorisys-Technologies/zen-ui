@@ -992,6 +992,8 @@ export {
   SidebarProvider,
   SidebarTrigger,
   SidebarHeader,
+  SidebarHeaderLabel,
+  SidebarMenuBadge,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,

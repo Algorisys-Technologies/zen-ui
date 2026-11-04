@@ -38,6 +38,16 @@ const [bio, setBio] = createSignal("");
         <Textarea placeholder="Tell us about your project…" rows={4} />
       </div>
     </DemoSection>
+    <DemoSection
+      title="Invalid"
+      codeTitle='aria-invalid="true"'
+      codeDescription="A field the form has marked invalid takes the error border, as Select and Combobox do."
+      code={`<Input aria-invalid="true" placeholder="GSTIN" />`}
+    >
+      <div class="zen-w-64" data-testid="input-invalid">
+        <Input aria-invalid="true" placeholder="GSTIN" />
+      </div>
+    </DemoSection>
   </DemoPage>
 );
 

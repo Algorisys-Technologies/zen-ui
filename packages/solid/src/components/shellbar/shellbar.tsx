@@ -82,6 +82,15 @@ export type ShellBarProps = Omit<JSX.HTMLAttributes<HTMLElement>, "onSearch" | "
   /** Turns the title into a product-switcher dropdown. */
   menuItems?: ShellBarMenuItem[];
   searchable?: boolean;
+  /**
+   * Your own search control in the bar, in place of the built-in field: a
+   * command palette's trigger, say. Laid out by the bar like its own search.
+   * Pass a function to change with the space: `compact` is true where the
+   * built-in field would have shrunk to an icon, so the control can too.
+   *
+   *   search={(bar) => <PaletteButton iconOnly={bar.compact} />}
+   */
+  search?: JSX.Element | ((bar: { readonly compact: boolean }) => JSX.Element);
   onSearch?: (value: string) => void;
   /** Placeholder AND the search field's visually-hidden label. */
   searchPlaceholder?: string;
@@ -110,6 +119,7 @@ export const ShellBar = (props: ShellBarProps) => {
     "secondaryTitle",
     "menuItems",
     "searchable",
+    "search",
     "onSearch",
     "searchPlaceholder",
     "notificationCount",
@@ -362,7 +372,19 @@ export const ShellBar = (props: ShellBarProps) => {
           </div>
 
           <div ref={fixedRef} class="zen-flex zen-shrink-0 zen-items-center zen-gap-2">
-            <Show when={local.searchable}>
+            <Show when={local.search !== undefined}>
+              <div class="zen-flex zen-min-w-0 zen-items-center" data-shellbar-search="">
+                {(() => {
+                  const search = local.search;
+                  // Called once per control, not once per resize: `compact` is
+                  // a getter, read where the control uses it.
+                  return typeof search === "function"
+                    ? untrack(() => search({ get compact() { return searchCollapsed(); } }))
+                    : search;
+                })()}
+              </div>
+            </Show>
+            <Show when={local.searchable && local.search === undefined}>
               <Show
                 when={searchCollapsed()}
                 fallback={
@@ -485,7 +507,7 @@ export const ShellBar = (props: ShellBarProps) => {
         </div>
 
         {/* --------------------------------------------- collapsed search */}
-        <Show when={local.searchable && searchCollapsed() && searchOpen()}>
+        <Show when={local.searchable && local.search === undefined && searchCollapsed() && searchOpen()}>
           <div
             class="zen-absolute zen-inset-0 zen-z-10 zen-flex zen-items-center zen-gap-2 zen-bg-zen-background"
             onKeyDown={(e) => {

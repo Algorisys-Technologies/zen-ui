@@ -442,7 +442,7 @@ export const ObjectPageLayout = (props: ObjectPageLayoutProps) => {
               <Dynamic
                 component={headingTag(level() + 1)}
                 id={`${s.id}-title`}
-                class="zen-m-0 zen-mb-3 zen-text-sm zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg"
+                class="zen-m-0 zen-mb-3 zen-[font-size:var(--zen-object-page-section-title-size)] zen-[line-height:var(--zen-line-height-sm)] zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg"
               >
                 {s.title}
               </Dynamic>

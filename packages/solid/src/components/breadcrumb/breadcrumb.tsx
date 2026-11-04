@@ -64,6 +64,9 @@ export const BreadcrumbList = (props: BreadcrumbListProps) => {
   return (
     <ol
       class={cn(
+        // Its own reset: without the opt-in preflight every separator <li>
+        // drew a list marker ("Home1. › Accounts2. ›") and the row stood 44px.
+        "zen-m-0 zen-list-none zen-p-0",
         "zen-flex zen-flex-wrap zen-items-center zen-gap-1.5 zen-break-words zen-text-sm zen-text-zen-muted-fg sm:zen-gap-2.5",
         local.class,
       )}

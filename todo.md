@@ -6,6 +6,16 @@ issue / PR when its turn comes.
 
 ---
 
+## Order of work (owner, 2026-11-04)
+
+1. **Finish Solid first.** New components and the ERPNext review items are
+   built and settled in Solid only.
+2. **Then parity, in this order: React, then vanilla, then web-components.**
+   Every "Parity: … (Solid only)" item below is part of that pass. React stays
+   the API reference: where Solid's shape would not suit React, reconcile before
+   porting, not after.
+
+
 ## Parity: DataTable `enableRowVirtualization` (Solid only, 2026-11-04)
 
 - [ ] **Port to React, then vanilla, then web-components**, from the Solid
@@ -70,6 +80,44 @@ issue / PR when its turn comes.
       read; read outside an owner, each leaks a computation. Pass an accessor
       call. Found and fixed in DataTable's BodyTable props (2026-11-04); worth a
       sweep of the other components' native handlers.
+
+## Parity: the gaps-report batch (Solid only, 2026-11-04)
+
+- [ ] Port with the rest of the parity pass (ERPNext docs/zen-ui-component-gaps.md
+      items 2–11): ShellBar `search` (with `bar.compact`); SegmentedButtonItem
+      `count` (named "Paid, 4"); StatCard `size="lg"` and `chart`, and the
+      card-link underline fix; MicroBarChart `baseline`; ObjectStatus `stamp`
+      (soft-fg colours); the table tokens read by each binding's table
+      primitives and DataTable header buttons; the ObjectPage section-title
+      token; Combobox and Select `invalid`, Input's aria-invalid border, and
+      Select's aria-invalid; DocumentTabs `closeLabel`; the list resets
+      (Breadcrumb, Stepper, FileUpload: check each binding's own lists).
+
+## Parity: Sidebar collapse modes and counts (Solid only, 2026-11-04)
+
+- [ ] Port `collapseMode`, `overlay` (container-width breakpoint; Esc, outside
+      click and link-follow close it; focus in and back; leaving overlay restores
+      the earlier state), `SidebarHeaderLabel`, `SidebarMenuBadge`,
+      `SidebarMenuSub badge`, the header-on-the-rail fix, and the menu button's
+      link styling to React, vanilla and web-components, with demo sections 3
+      and 4. Gaps report item 1 (ERPNext docs/zen-ui-component-gaps.md).
+
+## Decide: MicroBarChart's default baseline (2026-11-04)
+
+- [ ] MicroBarChart stretches the values' range over its height by default, so
+      a bar's length is not its value (31 against 55 drew as a sliver against a
+      full bar). Fine for a sparkline's shape, misleading for any figure read
+      as an amount. `baseline="zero"` is opt-in now (Solid); making it the
+      default is a visible change for every existing chart, so a major-version
+      call for the owner. React's MicroBarChart likely shares the behaviour.
+
+## Decide: warning text contrast (found 2026-11-04)
+
+- [ ] `--zen-color-warning` as text on white is 1.77:1 (body text needs 4.5:1);
+      `--zen-color-warning-soft-fg` is 5.23:1. ObjectStatus (plain, `state="warning"`)
+      and ObjectNumber use the plain colour for text, so warning statuses are
+      hard to read. The new stamp uses soft-fg. Switching the existing text to
+      soft-fg is a visible change: the owner's call (a fix, or a major).
 
 ## Demo site: the "New" tag (owner, 2026-11-04)
 

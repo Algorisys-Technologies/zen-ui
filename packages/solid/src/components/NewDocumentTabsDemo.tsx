@@ -56,10 +56,11 @@ const NewDocumentTabsDemo = () => {
   onSelect={setActive}
   onClose={close}
   onPinChange={pin}
+  closeLabel={() => "Close (Alt+W)"}
 />`}
       >
         <div class="zen-w-full zen-rounded-zen-md zen-border zen-border-zen-border">
-          <DocumentTabs tabs={tabs()} activeId={active()} onSelect={(id) => { setActive(id); setLog(`selected ${id}`); }} onClose={close} onPinChange={pin} />
+          <DocumentTabs tabs={tabs()} activeId={active()} onSelect={(id) => { setActive(id); setLog(`selected ${id}`); }} onClose={close} onPinChange={pin} closeLabel={() => "Close (Alt+W)"} />
           <p class="zen-m-0 zen-p-3 zen-text-sm zen-text-zen-muted-fg" role="status">{log()}</p>
         </div>
       </DemoSection>

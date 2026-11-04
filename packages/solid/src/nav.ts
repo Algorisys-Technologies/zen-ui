@@ -32,6 +32,14 @@ export type NavItem = {
    * to remember to take it off.
    */
   since?: string;
+  /**
+   * The version this component last changed in (a feature or a fix worth
+   * knowing). While that is the current release's minor or later, and it is
+   * not New, the sidebar and the catalogue mark it "Updated"; like New, the
+   * mark goes by itself one minor release later. Set it when you change a
+   * component, alongside the CHANGELOG entry.
+   */
+  updated?: string;
 };
 
 /** "12.2.0" -> 12002: major and minor, comparable as a number. */
@@ -40,9 +48,14 @@ const minorOf = (version: string) => {
   return major * 1000 + minor;
 };
 
+const currentMinor = () => minorOf(RELEASE_NOTES[0]?.version ?? "0.0.0");
+
 /** Whether an entry is marked New, against the latest release in RELEASE_NOTES. */
-export const isNew = (item: NavItem): boolean =>
-  !!item.since && minorOf(item.since) >= minorOf(RELEASE_NOTES[0]?.version ?? "0.0.0");
+export const isNew = (item: NavItem): boolean => !!item.since && minorOf(item.since) >= currentMinor();
+
+/** Whether an entry is marked Updated: changed in this release line, and not New. */
+export const isUpdated = (item: NavItem): boolean =>
+  !isNew(item) && !!item.updated && minorOf(item.updated) >= currentMinor();
 
 export type NavGroup = {
   group: string;
@@ -86,7 +99,7 @@ export const NAV: NavGroup[] = [
       { label: "Carousel", path: "/carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/solid/src/components/NewCarouselDemo.tsx" },
       { label: "Card", path: "/card", description: "Surface primitive + SelectableCard for goal pickers / plan selectors", source: "packages/solid/src/components/NewCardDemo.tsx" },
       { label: "Paper", path: "/paper", description: "Document surface — reading measure, document typography, and a paper Dialog variant", source: "packages/solid/src/components/NewPaperDemo.tsx" },
-      { label: "StatCard", path: "/stat-card", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/solid/src/components/NewStatCardDemo.tsx" },
+      { label: "StatCard", path: "/stat-card", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/solid/src/components/NewStatCardDemo.tsx" , updated: "12.2.0" },
       { label: "Skeleton", path: "/skeleton", description: "Animated muted-box placeholder; size it with utility classes", source: "packages/solid/src/components/NewSkeletonDemo.tsx" },
       { label: "Loading", path: "/loading", description: "Animated spinner with sr-only label; colour=current inside buttons", source: "packages/solid/src/components/NewLoadingDemo.tsx" },
       { label: "FAB", path: "/fab", description: "Fixed-position floating action button + speed-dial menu", source: "packages/solid/src/components/NewFABDemo.tsx" },
@@ -104,7 +117,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Flows",
     items: [
-      { label: "Stepper", path: "/stepper", description: "Multi-step wizard; horizontal / vertical, linear / non-linear", source: "packages/solid/src/components/NewStepperDemo.tsx" },
+      { label: "Stepper", path: "/stepper", description: "Multi-step wizard; horizontal / vertical, linear / non-linear", source: "packages/solid/src/components/NewStepperDemo.tsx" , updated: "12.2.0" },
     ],
   },
   {
@@ -130,7 +143,7 @@ export const NAV: NavGroup[] = [
       { label: "Checkbox", path: "/checkbox", description: "Binary + indeterminate tri-state; sizes, form submission", source: "packages/solid/src/components/NewCheckboxDemo.tsx" },
       { label: "RadioGroup", path: "/radio-group", description: "Roving tabindex, arrow-key nav, form submission", source: "packages/solid/src/components/NewRadioGroupDemo.tsx" },
       { label: "Slider", path: "/slider", description: "Single + range, vertical, full keyboard control", source: "packages/solid/src/components/NewSliderDemo.tsx" },
-      { label: "Select", path: "/select", description: "Keyboard nav, option groups, form submission", source: "packages/solid/src/components/NewSelectDemo.tsx" },
+      { label: "Select", path: "/select", description: "Keyboard nav, option groups, form submission", source: "packages/solid/src/components/NewSelectDemo.tsx" , updated: "12.2.0" },
     ],
   },
   {
@@ -160,15 +173,15 @@ export const NAV: NavGroup[] = [
       // unreachable from the sidebar and missing from the catalogue — the
       // "add it to nav.ts" rule, violated quietly. It is why this demo
       // counted 68 components against React's 70.
-      { label: "Breadcrumb", path: "/breadcrumb", description: "Hierarchical navigation path; collapsible ellipsis for deep trees", source: "packages/solid/src/components/NewBreadcrumbDemo.tsx" },
+      { label: "Breadcrumb", path: "/breadcrumb", description: "Hierarchical navigation path; collapsible ellipsis for deep trees", source: "packages/solid/src/components/NewBreadcrumbDemo.tsx" , updated: "12.2.0" },
       { label: "Pagination", path: "/pagination", description: "Page navigation with truncated ranges", source: "packages/solid/src/components/NewPaginationDemo.tsx" },
-      { label: "Sidebar", path: "/sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/solid/src/components/NewSidebarDemo.tsx" },
+      { label: "Sidebar", path: "/sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/solid/src/components/NewSidebarDemo.tsx" , updated: "12.2.0" },
     ],
   },
   {
     group: "Form (custom)",
     items: [
-      { label: "Input", path: "/input", description: "Styled input + textarea; all native attributes pass through", source: "packages/solid/src/components/NewInputDemo.tsx" },
+      { label: "Input", path: "/input", description: "Styled input + textarea; all native attributes pass through", source: "packages/solid/src/components/NewInputDemo.tsx" , updated: "12.2.0" },
       { label: "Label", path: "/label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/solid/src/components/NewLabelDemo.tsx" },
       { label: "Search", path: "/search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/solid/src/components/SearchDemo.tsx" },
       { label: "PasswordInput", path: "/password-input", description: "Password field with a show / hide toggle; every native input attribute passes through", source: "packages/solid/src/components/PasswordInputDemo.tsx" },
@@ -177,15 +190,15 @@ export const NAV: NavGroup[] = [
       { label: "PhoneInput", path: "/phone-input", description: "Composition: Select (country) + Input (number)", source: "packages/solid/src/components/NewPhoneInputDemo.tsx" },
       { label: "InputOTP", path: "/otp", description: "One input per digit, zero-dep; paste / autocomplete / a11y", source: "packages/solid/src/components/NewOTPDemo.tsx" },
       { label: "MaskInput", path: "/mask-input", description: "Fixed-template input — 99-9999, aa-99; the mask decides what may be typed", source: "packages/solid/src/components/NewMaskInputDemo.tsx" },
-      { label: "FileUpload", path: "/file-upload", description: "Drag-and-drop or browse; accept / max-size validation, progress", source: "packages/solid/src/components/NewFileUploadDemo.tsx" },
+      { label: "FileUpload", path: "/file-upload", description: "Drag-and-drop or browse; accept / max-size validation, progress", source: "packages/solid/src/components/NewFileUploadDemo.tsx" , updated: "12.2.0" },
     ],
   },
   {
     group: "Data",
     items: [
-      { label: "DataTable", path: "/data-table", description: "TanStack Table + Virtual; sorting, filtering, grouping, windowing", source: "packages/solid/src/components/NewDataTableDemo.tsx" },
+      { label: "DataTable", path: "/data-table", description: "TanStack Table + Virtual; sorting, filtering, grouping, windowing", source: "packages/solid/src/components/NewDataTableDemo.tsx" , updated: "12.2.0" },
       { label: "TreeTable", path: "/tree-table", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/solid/src/components/NewTreeTableDemo.tsx" },
-      { label: "Micro charts", path: "/micro-chart", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/solid/src/components/NewMicroChartDemo.tsx" },
+      { label: "Micro charts", path: "/micro-chart", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/solid/src/components/NewMicroChartDemo.tsx" , updated: "12.2.0" },
       { label: "TimerBadge / TestCountdownBar", path: "/countdown", description: "Exam clock from a deadline, not a decrementing number — colour thresholds, auto-expire hook, sticky bar", source: "packages/solid/src/components/NewCountdownDemo.tsx" },
       { label: "CodeEditor / IDEWindow", path: "/code-editor", description: "Monaco wrapper — language, theme, read-only, Ctrl+Enter run hook; file list beside it", source: "packages/solid/src/components/NewCodeEditorDemo.tsx" },
       { label: "SpreadsheetGrid / SheetCalculator", path: "/spreadsheet-grid", description: "Editable cells with a real formula evaluator; errors render as errors, never a plausible number", source: "packages/solid/src/components/NewSpreadsheetGridDemo.tsx" },
@@ -202,7 +215,7 @@ export const NAV: NavGroup[] = [
       { label: "Gantt", path: "/gantt", description: "Project schedule \u2014 a collapsing task tree beside bars on a shared clock, with percent-complete fills, slip chips and dependency arrows", source: "packages/solid/src/components/NewGanttDemo.tsx" },
       { label: "ProductionSchedule", path: "/production-schedule", description: "Shop-floor schedule \u2014 work centres as rows holding many operations in lanes, changeovers drawn as time the machine is busy making nothing, finite capacity with overload, and a load histogram of booked over available WORKING hours", source: "packages/solid/src/components/NewProductionScheduleDemo.tsx" },
       { label: "Pivot", path: "/pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/solid/src/components/NewPivotDemo.tsx" },
-      { label: "Combobox", path: "/combobox", description: "Sync options or async onSearch with debounced loading", source: "packages/solid/src/components/NewComboboxDemo.tsx" },
+      { label: "Combobox", path: "/combobox", description: "Sync options or async onSearch with debounced loading", source: "packages/solid/src/components/NewComboboxDemo.tsx" , updated: "12.2.0" },
       { label: "MultiCombobox", path: "/multi-combobox", description: "Multi-select with chip trigger + overflow collapse", source: "packages/solid/src/components/NewMultiComboboxDemo.tsx" },
       { label: "VirtualizedItems", path: "/lazy-options", description: "Drop-in windowing for huge option lists", source: "packages/solid/src/components/NewLazyOptionsDemo.tsx" },
     ],
@@ -251,8 +264,8 @@ export const NAV: NavGroup[] = [
     group: "Zen-shaped",
     items: [
       { label: "Icon", path: "/icon", description: "zen-ui icon set (48 glyphs); inherits text colour, decorative by default", source: "packages/solid/src/components/NewIconDemo.tsx" },
-      { label: "Object atoms", path: "/object", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/solid/src/components/NewObjectDemo.tsx" },
-      { label: "Button family", path: "/button-family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/solid/src/components/NewButtonFamilyDemo.tsx" },
+      { label: "Object atoms", path: "/object", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/solid/src/components/NewObjectDemo.tsx" , updated: "12.2.0" },
+      { label: "Button family", path: "/button-family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/solid/src/components/NewButtonFamilyDemo.tsx" , updated: "12.2.0" },
       { label: "Document tabs", path: "/document-tabs", description: "A workspace's open documents as closable, pinnable tabs with an all-tabs menu", source: "packages/solid/src/components/NewDocumentTabsDemo.tsx" , since: "12.2.0" },
       { label: "Toolbar", path: "/toolbar", description: "Actions that collapse into an overflow menu when they do not fit", source: "packages/solid/src/components/NewToolbarDemo.tsx" },
       { label: "Tree", path: "/tree", description: "Hierarchical expandable list with full ARIA keyboard navigation", source: "packages/solid/src/components/NewTreeDemo.tsx" },
@@ -272,10 +285,10 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "PageHeader", path: "/page-header", description: "A heading with a back affordance and one action — the light one", source: "packages/solid/src/components/NewPageHeaderDemo.tsx" },
       { label: "SkipToContent", path: "/skip-to-content", description: "Keyboard bypass — the first Tab reveals a link that jumps past the app chrome to the content (WCAG 2.4.1)", source: "packages/solid/src/components/SkipToContentDemo.tsx" },
-      { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/components/NewShellBarDemo.tsx" },
+      { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/components/NewShellBarDemo.tsx" , updated: "12.2.0" },
       { label: "FlexibleColumnLayout", path: "/flexible-column-layout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/solid/src/components/NewFlexibleColumnLayoutDemo.tsx" },
       { label: "DynamicPage", path: "/dynamic-page", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/solid/src/components/NewDynamicPageDemo.tsx" },
-      { label: "ObjectPageLayout", path: "/object-page", description: "Anchored sections with scroll-spy navigation", source: "packages/solid/src/components/NewObjectPageDemo.tsx" },
+      { label: "ObjectPageLayout", path: "/object-page", description: "Anchored sections with scroll-spy navigation", source: "packages/solid/src/components/NewObjectPageDemo.tsx" , updated: "12.2.0" },
     ],
   },
   {

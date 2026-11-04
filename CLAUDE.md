@@ -387,6 +387,13 @@ sidebar and the landing-page catalogue. Adding a component means: add it to
 `nav.ts`, add its `<Route>`. Nothing else. (They were previously two hand-kept
 lists and drifted 16 entries apart.)
 
+**Mark what changed, in `nav.ts` (Solid so far).** A new component gets
+`since: "<the version it ships in>"`; a component you change (a feature or a
+fix a user would notice) gets `updated: "<that version>"`. The demo site marks
+them **New** / **Updated** while that version is the current release's minor or
+later, and the mark expires by itself one minor release later — so set it with
+the CHANGELOG entry, and never remove one by hand.
+
 `AGENTS.md` (repo root, plus one per package, published in each package's
 `files`) is the guide a consumer's LLM agent reads to pick the right component
 and binding. It is **generated from the React `nav.ts` `description` fields** by

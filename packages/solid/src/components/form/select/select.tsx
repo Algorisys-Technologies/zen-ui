@@ -47,6 +47,8 @@ export type SelectProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "on
   label?: string;
   /** Optional error message shown below the trigger. */
   errorMessage?: string;
+  /** Marked invalid without a message (the form shows its own): aria-invalid and the error border. */
+  invalid?: boolean;
   /** Open the list when the select mounts, as an inline editor does. */
   defaultOpen?: boolean;
   /** The list opened or closed. */
@@ -66,6 +68,7 @@ export const Select = (props: SelectProps) => {
     "class",
     "label",
     "errorMessage",
+    "invalid",
     "id",
   ]);
 
@@ -86,7 +89,7 @@ export const Select = (props: SelectProps) => {
       disabled={local.disabled}
       required={local.required}
       name={local.name}
-      validationState={local.errorMessage ? "invalid" : "valid"}
+      validationState={local.errorMessage || local.invalid ? "invalid" : "valid"}
       itemComponent={(itemProps) => (
         <KSelect.Item
           item={itemProps.item}
@@ -114,6 +117,9 @@ export const Select = (props: SelectProps) => {
           Kobalte root, so `<label for={id}>` associates and names the control. */}
       <KSelect.Trigger
         id={local.id}
+        // Kobalte marks the trigger data-invalid only; a screen reader is told
+        // through aria-invalid, on the control that has focus.
+        aria-invalid={local.errorMessage || local.invalid ? "true" : undefined}
         class={cn(
           "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-zen-control zen-px-zen-control-x zen-w-full",
           "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-sm zen-text-zen-foreground",

@@ -16,6 +16,56 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **Demo site: "New" and "Updated" tags** (Solid demo). `nav.ts` entries take
+  `since` and `updated` versions; the sidebar and the catalogue mark them while
+  that is the current release's minor or later, and the marks expire by
+  themselves. Fourteen components are marked Updated for this release,
+  ContextMenu and Document tabs New.
+- **Combobox `invalid` and Select `invalid`** (Solid): marked aria-invalid with
+  the error border, for a form that shows its own message (Select's
+  `errorMessage` still prints one). **Input** takes the error border when it has
+  `aria-invalid="true"`.
+- **DocumentTabs `closeLabel(tab)`** (Solid): the close button's tooltip, e.g.
+  "Close (Alt+W)"; its accessible name stays "Close <tab>".
+- **`--zen-object-page-section-title-size`** (core; Solid reads it): the size of
+  ObjectPage's section titles. Default: today's size.
+- **Table tokens** (core; Solid's table reads them, the other bindings follow):
+  `--zen-table-head-font-size`, `--zen-table-head-font-weight`,
+  `--zen-table-head-text-transform`, `--zen-table-head-letter-spacing`,
+  `--zen-table-cell-padding-x` and `--zen-table-row-hover`. Set values instead
+  of overriding classes; the defaults are what the tables always drew (computed
+  styles measured identical before and after).
+- **ObjectStatus `stamp`** (Solid): a document's status as a stamp, a ruled
+  box in the state's colour, uppercase and letter-spaced, never rotated
+  (DRAFT, SUBMITTED, CANCELLED), with no icon unless one is given. Its colours
+  are the readable soft-fg text colours (warning's plain colour is 1.77:1 on
+  white).
+- **StatCard `size="lg"` and `chart`** (Solid): the hero of a dashboard row,
+  with a larger figure and a small chart under it across the card (a skeleton
+  while loading). Cards without them render as before.
+- **MicroBarChart `baseline="zero"`** (Solid): bars measured from zero, so a
+  bar's length is its value and two bars compare as their numbers do (negative
+  values hang below a zero line). The default stays `"range"`, which stretches
+  the values' own range over the height, as a sparkline does.
+- **SegmentedButtonItem `count`** (Solid): a count beside the label, for
+  choices that filter a list ("All 206 · Paid 4 · Overdue 1"), as a muted chip
+  in tabular figures, inverted when selected. The item is named "Paid, 4".
+- **ShellBar `search`** (Solid): your own control in the bar's search place,
+  a command palette's trigger, say, laid out by the bar. As a function it is
+  told when the bar is compact (`bar.compact`, where the built-in field would
+  shrink to an icon), so the control can shrink too. Replaces `searchable`'s
+  field when both are given.
+- **Sidebar: two more ways to collapse, and counts** (Solid; the other bindings
+  follow).
+  - `SidebarProvider collapseMode="hidden"`: collapsing hides the sidebar
+    entirely, for a menu with no icons; a hidden sidebar is inert.
+  - `SidebarProvider overlay` (`true`, or `{ below: 900 }`): the sidebar starts
+    closed and opens over the content, takes focus, and closes on Esc, a click
+    outside it or following a link in it. The width is the sidebar's
+    container's, not the window's; widening past it restores the sidebar as it
+    was.
+  - `SidebarMenuBadge` (a count at a row's end) and `SidebarMenuSub badge` (on
+    a group, before its chevron); `SidebarHeaderLabel` for the app's name.
 - **ContextMenu** (Solid; React, vanilla and web components follow). The menu
   a right-click opens, at the pointer; from the keyboard (the menu key or
   Shift+F10) at the focused element's corner with its first item active; on a
@@ -140,6 +190,20 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **Breadcrumb showed list numbers without the opt-in preflight** (Solid):
+  "Home1. › Accounts2. ›", 44px high instead of 20. Its list resets its own
+  margin, indent and markers now, as do Stepper's and FileUpload's lists,
+  which had the same dependence.
+- **Select never told a screen reader it was invalid** (Solid): the trigger
+  carried `data-invalid` only. It has `aria-invalid` now.
+- **StatCard with `href` underlined every word in the card** (Solid): an `<a>`
+  keeps the browser's underline without the opt-in preflight. It no longer does.
+- **Sidebar: the header's text spilled out of the collapsed rail** over the
+  page (Solid). On the rail the header now stacks, and its text is read by
+  screen readers but not shown, as the menu's labels already were.
+- **Sidebar: a menu button rendered as a link was underlined and link-blue**
+  (Solid, `as={A}` or `as="a"` without the opt-in preflight). It now looks like
+  the button version; `SidebarMenuSubButton` already did.
 - **DataTable: Esc in an inline text editor saved the edit instead of
   discarding it** (Solid, every table). Cancelling removed the input, and
   removing a focused input fires its blur, which saved. Measured in the demo

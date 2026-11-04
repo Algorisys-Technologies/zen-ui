@@ -354,6 +354,33 @@ const NewButtonFamilyDemo = () => {
           </div>
         </div>
       </DemoSection>
+
+      <DemoSection
+        title="11. SegmentedButton — filter tabs with counts"
+        codeTitle="count on each item: a list's status filter"
+        codeDescription="A single choice that filters a list rather than switching panels, so SegmentedButton, not Tabs. Each item carries its count; the selected one's is inverted, and the item reads as “Paid, 4”."
+        code={`<SegmentedButton value={status()} onValueChange={setStatus} aria-label="Status">
+  <SegmentedButtonItem value="all" count={206}>All</SegmentedButtonItem>
+  <SegmentedButtonItem value="paid" count={4}>Paid</SegmentedButtonItem>
+  <SegmentedButtonItem value="overdue" count={1}>Overdue</SegmentedButtonItem>
+  <SegmentedButtonItem value="cancelled" count={201}>Cancelled</SegmentedButtonItem>
+</SegmentedButton>`}
+      >
+        {(() => {
+          const [status, setStatus] = createSignal("all");
+          return (
+            <div class="zen-flex zen-flex-col zen-gap-2">
+              <SegmentedButton value={status()} onValueChange={setStatus} aria-label="Status" data-testid="status-tabs">
+                <SegmentedButtonItem value="all" count={206}>All</SegmentedButtonItem>
+                <SegmentedButtonItem value="paid" count={4}>Paid</SegmentedButtonItem>
+                <SegmentedButtonItem value="overdue" count={1}>Overdue</SegmentedButtonItem>
+                <SegmentedButtonItem value="cancelled" count={201}>Cancelled</SegmentedButtonItem>
+              </SegmentedButton>
+              <p class="zen-text-sm zen-text-zen-muted-fg">Showing: {status()}</p>
+            </div>
+          );
+        })()}
+      </DemoSection>
     </DemoPage>
   );
 };

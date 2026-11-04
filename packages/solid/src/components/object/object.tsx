@@ -68,7 +68,24 @@ export type ObjectStatusProps = Omit<JSX.HTMLAttributes<HTMLSpanElement>, "color
      * not carry meaning.
      */
     stateAnnouncement?: string;
+    /**
+     * A document's status as a stamp: a ruled box in the state's colour,
+     * uppercase and letter-spaced, never rotated (DRAFT, SUBMITTED, CANCELLED).
+     * No icon unless one is given. The neutral state is a muted grey.
+     */
+    stamp?: boolean;
   };
+
+// The soft-fg colours, not the plain state colours: warning's plain colour is
+// 1.77:1 on white, unreadable as text; its soft-fg is 5.23:1. For success,
+// error and info the two are the same colour (measured on the default theme).
+const STAMP_TEXT: Record<ObjectState, string> = {
+  none: "zen-text-zen-muted-fg",
+  success: "zen-text-zen-success-soft-fg",
+  warning: "zen-text-zen-warning-soft-fg",
+  error: "zen-text-zen-error-soft-fg",
+  info: "zen-text-zen-info-soft-fg",
+};
 
 export const ObjectStatus = (props: ObjectStatusProps) => {
   const [local, rest] = splitProps(props, [
@@ -76,18 +93,29 @@ export const ObjectStatus = (props: ObjectStatusProps) => {
     "icon",
     "inverted",
     "stateAnnouncement",
+    "stamp",
     "class",
     "children",
   ]);
   const state = () => local.state ?? "none";
   const resolved = () =>
-    local.icon === null ? null : (local.icon ?? (state() === "none" ? null : STATE_ICON[state() as Exclude<ObjectState, "none">]));
+    local.icon === null || (local.stamp && local.icon === undefined)
+      ? null
+      : (local.icon ?? (state() === "none" ? null : STATE_ICON[state() as Exclude<ObjectState, "none">]));
 
   return (
     <span
       class={cn(
         objectStatusVariants({ inverted: local.inverted }),
-        local.inverted ? STATE_INVERTED[state()] : STATE_TEXT[state()],
+        local.stamp
+          ? cn(
+              "zen-rounded-zen-sm zen-border zen-border-solid zen-border-current zen-px-1.5 zen-py-px",
+              "zen-text-xs zen-font-semibold zen-uppercase zen-tracking-wider",
+              STAMP_TEXT[state()],
+            )
+          : local.inverted
+            ? STATE_INVERTED[state()]
+            : STATE_TEXT[state()],
         local.class,
       )}
       {...rest}

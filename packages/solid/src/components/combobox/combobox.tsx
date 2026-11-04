@@ -81,6 +81,12 @@ export type ComboboxProps = {
   createLabel?: string;
   width?: number | string;
   disabled?: boolean;
+  /**
+   * The value is not acceptable (a required field left empty, say): the field
+   * is marked aria-invalid and its border takes the error colour, as Select's
+   * does with an errorMessage.
+   */
+  invalid?: boolean;
   class?: string;
 };
 
@@ -108,6 +114,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
     "createLabel",
     "width",
     "disabled",
+    "invalid",
     "class",
   ]);
 
@@ -188,6 +195,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
 
   return (
     <KCombobox<ComboboxOption>
+      validationState={props.invalid ? "invalid" : "valid"}
       options={effectiveOptions()}
       optionValue="value"
       optionTextValue="label"
@@ -237,6 +245,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
           "zen-inline-flex zen-items-center zen-gap-2 zen-h-zen-control zen-px-zen-control-x",
           "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background",
           "focus-within:zen-outline-none focus-within:zen-ring-2 focus-within:zen-ring-zen-ring focus-within:zen-ring-offset-2",
+          "data-[invalid]:zen-border-zen-error",
         )}
         style={{ width: typeof props.width === "number" ? `${props.width}px` : (props.width ?? "240px") }}
       >

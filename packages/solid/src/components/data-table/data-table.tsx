@@ -2875,7 +2875,7 @@ function HeaderCell<TData, TValue>(props: {
       <Show
         when={canSort()}
         fallback={
-          <span class="zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
+          <span class="zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
             {flexRender(header().column.columnDef.header, header().getContext())}
           </span>
         }
@@ -2889,7 +2889,7 @@ function HeaderCell<TData, TValue>(props: {
               : header().column.id
           }, currently ${sortLabel()}`}
           class={cn(
-            "zen-w-full zen-h-full zen-px-2 zen-py-2",
+            "zen-w-full zen-h-full zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2",
             "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
             "zen-bg-transparent zen-border-0 zen-cursor-pointer",
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
@@ -3306,7 +3306,7 @@ function VirtHeaderCellInner<TData, TValue>(props: {
         <Show
           when={canSort()}
           fallback={
-            <span class="zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
+            <span class="zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-inline-flex zen-items-center zen-gap-1">
               {flexRender(props.header.column.columnDef.header, props.header.getContext())}
             </span>
           }
