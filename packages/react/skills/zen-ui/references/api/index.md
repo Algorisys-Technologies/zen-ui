@@ -61,6 +61,7 @@ real props; guessing prop names is how agents invent APIs.
 - [dynamic-page.md](dynamic-page.md) — `DynamicPage`, `DynamicPageTitle`, `DynamicPageHeader`, `DynamicPageFooter`, `DynamicPageProps`, `DynamicPageTitleProps`, `DynamicPageHeaderProps`, `DynamicPageFooterProps`
 - [view-settings-dialog.md](view-settings-dialog.md) — `ViewSettingsDialog`, `ViewSettingsDialogProps`, `ViewSettingsValue`, `ViewSettingsItem`, `ViewSettingsFilterGroup`
 - [filter-bar.md](filter-bar.md) — `FilterBar`, `FilterBarProps`, `FilterBarField`
+- [filter-builder.md](filter-builder.md) — `FilterBuilder`, `FilterBuilderProps`, `FilterField`, `FilterGroup`, `FilterNode`, `FilterCondition`, `FilterOperator`
 - [value-help.md](value-help.md) — `ValueHelp`, `ValueHelpProps`, `ValueHelpCondition`, `ValueHelpOperator`, `ValueHelpResult`
 - [select-dialog.md](select-dialog.md) — `SelectDialog`, `SelectDialogProps`, `SelectDialogItem`
 - [object-page.md](object-page.md) — `ObjectPageLayout`, `ObjectPageLayoutProps`, `ObjectPageSection`, `ObjectPageSubSection`

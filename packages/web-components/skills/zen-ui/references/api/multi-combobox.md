@@ -28,6 +28,7 @@ SKILL.md.
 - `width?: string | number | undefined` — Trigger button min width. Defaults to 240.
 - `maxDisplayed?: number | undefined` — Cap how many chips show in the trigger before collapsing into "+N more". Default 3.
 - `disabled?: boolean | undefined`
+- `aria-label?: string | undefined` — Names the field for assistive tech, when no visible label does.
 - `className?: string | undefined`
 - `showClearAll?: boolean | undefined` — Show a "Clear all" button inside the popover when ≥ 1 selected. Default true.
 

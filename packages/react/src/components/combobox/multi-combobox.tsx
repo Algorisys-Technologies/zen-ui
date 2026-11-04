@@ -77,6 +77,8 @@ export interface MultiComboboxProps {
    *  "+N more". Default 3. */
   maxDisplayed?: number;
   disabled?: boolean;
+  /** Names the field for assistive tech, when no visible label does. */
+  "aria-label"?: string;
   className?: string;
   /** Show a "Clear all" button inside the popover when ≥ 1 selected.
    *  Default true. */
@@ -99,6 +101,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
   width = 240,
   maxDisplayed = 3,
   disabled,
+  "aria-label": ariaLabel,
   className,
   showClearAll = true,
 }) => {
@@ -217,6 +220,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
           color="neutral"
           role="combobox"
           aria-expanded={open}
+          aria-label={ariaLabel}
           disabled={disabled}
           className={cn(
             "zen-justify-between zen-font-normal zen-text-start zen-min-h-10 zen-h-auto zen-py-1.5",
