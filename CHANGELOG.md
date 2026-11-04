@@ -16,6 +16,25 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **DataTable `enableCellNavigation`** (Solid; React, vanilla and web
+  components follow): work in a table cell by cell, as in a spreadsheet.
+  - Keys: one tab stop for the table; arrows, PageUp/PageDown, Home/End and
+    Ctrl+Home/End move between cells (← → follow the text direction). Enter or
+    F2 edits, typing starts editing with the character typed, Esc returns to
+    the cell; in an editor Enter saves and moves down, Tab saves and moves
+    across.
+  - Ranges: Shift with the arrows, Shift+click or a drag; Ctrl+A selects every
+    cell; Esc collapses back to the active cell.
+  - Clipboard: copy writes the range as tab-separated text (what spreadsheets
+    exchange); paste fills editable cells from the active one, numbers parsed
+    ("1,500" is 1500), select cells matched by value or label, anything a cell
+    cannot take skipped; Delete clears a range. Several cells at once go to the
+    new `onCellsEdit(edits)`, or to `onCellEdit` one by one without it.
+  - Works with and without `enableRowVirtualization`: the active cell stays
+    mounted, and a jump to a cell far away scrolls it into view.
+  - The pure half is core's new `@algorisys/zen-ui-core/grid-range` (ranges,
+    the clipboard format, where a paste lands), checked by
+    `bun run check:grid-range`.
 - **DataTable `enableRowVirtualization`** (Solid; React, vanilla and web
   components follow, see todo.md). Renders only the rows in view, inside the
   regular table, so a virtualized table keeps everything an ordinary one has:
@@ -108,6 +127,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   all).
 
 ### Fixed
+- **DataTable: Esc in an inline text editor saved the edit instead of
+  discarding it** (Solid, every table). Cancelling removed the input, and
+  removing a focused input fires its blur, which saved. Measured in the demo
+  before and after. An editor now ends once.
+- **DataTable lost keyboard focus whenever its data changed** (Solid, with
+  `enableKeyboardNavigation`): new data rebuilds the rows, the focused one with
+  them, and focus fell to the page. It now returns to the same row. Saving an
+  inline edit was the usual trigger.
+- **DataTable with `enableRowVirtualization`: a jump to a row far away could
+  land at the top of the table.** The browser's scroll anchoring adjusted the
+  scroll as spacer rows changed height; it is off for the virtualized
+  scroller.
 - **DataTable: the inline number editor opened without focus** (Solid; React
   has the same bug, fixed with its port), so typing went nowhere until the
   field was clicked again. It now takes focus with its value selected.

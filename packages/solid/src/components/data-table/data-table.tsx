@@ -54,7 +54,17 @@ import {
   type DragEvent,
 } from "@thisbeyond/solid-dnd";
 
-import { ownsArrowKeys, rowKeyTarget } from "@algorisys/zen-ui-core/row-keys";
+import { cellKeyTarget, ownsArrowKeys, rowKeyTarget, type GridCell } from "@algorisys/zen-ui-core/row-keys";
+import {
+  clampRange,
+  inRect,
+  parseTsv,
+  pastePlan,
+  rangeRect,
+  toTsv,
+  type CellRange,
+  type CellRect,
+} from "@algorisys/zen-ui-core/grid-range";
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Checkbox } from "../form/checkbox/checkbox";
@@ -167,6 +177,27 @@ export interface DataTableProps<TData, TValue = unknown> {
   }) => JSX.Element;
 
   onCellEdit?: (payload: CellEditPayload) => void;
+  /**
+   * Several cells changed at once: a paste, or Delete over a selection, with
+   * enableCellNavigation. Without it each change goes to onCellEdit.
+   */
+  onCellsEdit?: (edits: CellEditPayload[]) => void;
+
+  /**
+   * Work in the table cell by cell, as in a spreadsheet. One tab stop for the
+   * table; the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End move
+   * between cells (the arithmetic is @algorisys/zen-ui-core/row-keys'
+   * cellKeyTarget, and ← → follow the text direction). Enter or F2 edits an
+   * editable cell, typing starts editing with what was typed, Esc returns to
+   * the cell, and Enter in an editor moves down, Tab across. Shift with the
+   * arrows, Shift+click or a drag selects a range; Ctrl+A selects every cell.
+   * Copy writes the range as a spreadsheet does (tab-separated), paste fills
+   * editable cells from the active one (from Excel, Sheets or this table),
+   * and Delete clears them; see onCellsEdit. Replaces
+   * enableKeyboardNavigation's row focus when both are set. Works with
+   * enableRowVirtualization, not with the older enableVirtualization.
+   */
+  enableCellNavigation?: boolean;
 
   /**
    * Rows take keyboard focus, with one tab stop for the whole table: ↑/↓,
@@ -325,6 +356,8 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "initialColumnPinning",
     "onColumnPinningChange",
     "onCellEdit",
+    "onCellsEdit",
+    "enableCellNavigation",
     "headerVariant",
     "pageSize",
     "pageSizeOptions",
@@ -396,13 +429,18 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
   const grouping = () => props.grouping ?? groupingInner();
 
   const [editingCell, setEditingCell] = createSignal<EditingState | null>(null);
-  const startEdit = (rowId: string, columnId: string) =>
-    setEditingCell({ rowId, columnId });
+  const startEdit = (rowId: string, columnId: string, seed?: string) =>
+    setEditingCell(seed === undefined ? { rowId, columnId } : { rowId, columnId, seed });
   const commitEdit = (rowId: string, columnId: string, value: unknown) => {
     setEditingCell(null);
     props.onCellEdit?.({ rowId, columnId, value });
   };
   const cancelEdit = () => setEditingCell(null);
+  const editCells = (edits: CellEditPayload[]) => {
+    if (edits.length === 0) return;
+    if (props.onCellsEdit) props.onCellsEdit(edits);
+    else for (const edit of edits) props.onCellEdit?.(edit);
+  };
 
   /* feature gating */
   // The older div-grid body is the one that cannot group, expand or reorder;
@@ -910,7 +948,9 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
                   renderSubRow={virtualRowDrag() ? undefined : props.renderSubRow}
                   rowDrag={virtualRowDrag()}
                   onRowMove={handleRowMove}
-                  keyboard={!!props.enableKeyboardNavigation}
+                  keyboard={!!props.enableKeyboardNavigation && !props.enableCellNavigation}
+                  cellNav={!!props.enableCellNavigation}
+                  editCells={editCells}
                   selectable={!!props.enableRowSelection}
                   onRowActivate={props.onRowActivate}
                   rowLabel={props.rowLabel}
@@ -1462,7 +1502,7 @@ interface BodyTableProps<TData> {
   visibleColumnIds: string[];
   onColumnDragEnd: (e: DragEvent) => void;
   editingCell: EditingState | null;
-  startEdit: (rowId: string, columnId: string) => void;
+  startEdit: (rowId: string, columnId: string, seed?: string) => void;
   commitEdit: (rowId: string, columnId: string, value: unknown) => void;
   cancelEdit: () => void;
   rowClassName?: (row: Row<TData>) => string | undefined;
@@ -1479,6 +1519,9 @@ interface BodyTableProps<TData> {
   estimatedRowHeight?: number;
   /** Drag rows by their handle, virtualized: see startDrag. */
   rowDrag?: boolean;
+  /** Move cell by cell (enableCellNavigation): see the cell navigation section. */
+  cellNav?: boolean;
+  editCells?: (edits: CellEditPayload[]) => void;
   onRowMove?: (from: number, to: number) => void;
 }
 
@@ -1592,6 +1635,372 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
     }
   };
 
+  /* ---------------------------- cell navigation ---------------------------
+   * enableCellNavigation. The grid's cells are the data columns in view (not
+   * the select, expand or drag columns) by the data rows (not the expanded
+   * panels). One cell is active, the table's single tab stop; a selection is
+   * a rectangle from an anchor to a focus, the arithmetic in core's
+   * grid-range. Keys, pointer, copy and paste are read by listeners on the
+   * table itself, one of each, not one per cell. */
+  const navCols = createMemo(() =>
+    props.cellNav
+      ? props.table.getVisibleLeafColumns().filter((c) => !c.id.startsWith("__"))
+      : [],
+  );
+  const navColIndex = createMemo(() => new Map(navCols().map((c, i) => [c.id, i])));
+  const [activeCell, setActiveCell] = createSignal<GridCell>({ row: 0, col: 0 });
+  const [selection, setSelection] = createSignal<CellRange>({
+    anchor: { row: 0, col: 0 },
+    focus: { row: 0, col: 0 },
+  });
+  // Rows and columns come and go (a filter, a page, a hidden column): the
+  // active cell and the selection are always kept inside the grid.
+  const active = (): GridCell => {
+    const r = clampRange({ anchor: activeCell(), focus: activeCell() }, rows().length, navCols().length);
+    return r ? r.anchor : { row: 0, col: 0 };
+  };
+  const selRect = () => {
+    const r = clampRange(selection(), rows().length, navCols().length);
+    return r ? rangeRect(r) : null;
+  };
+  const multiSelected = () => {
+    const r = selRect();
+    return !!r && (r.top !== r.bottom || r.left !== r.right);
+  };
+  const cellKey = (rowId: string, colId: string) => `${rowId}\u0000${colId}`;
+  const cellRefs = new Map<string, HTMLTableCellElement>();
+  let pendingCellFocus: string | null = null;
+  const rowIndexOf = (rowId: string) =>
+    props.virtualize ? (positions().rowIndex.get(rowId) ?? -1) : rows().findIndex((r) => r.id === rowId);
+  const cellAt = (target: EventTarget | null): { td: HTMLTableCellElement; at: GridCell } | null => {
+    const td = (target as Element | null)?.closest?.("td[data-col]") as HTMLTableCellElement | null;
+    if (!td || !tableEl?.contains(td)) return null;
+    const row = rowIndexOf(td.dataset.row ?? "");
+    const col = navColIndex().get(td.dataset.col ?? "");
+    return row < 0 || col === undefined ? null : { td, at: { row, col } };
+  };
+  const metaOf = (col: Column<TData, unknown>) =>
+    col.columnDef.meta as
+      | {
+          editable?: boolean | ((row: TData) => boolean);
+          editVariant?: "text" | "number" | "select";
+          editOptions?: { label: string; value: string }[];
+        }
+      | undefined;
+  const isEditable = (row: Row<TData>, col: Column<TData, unknown>) => {
+    if (row.getIsGrouped()) return false;
+    const m = metaOf(col);
+    return typeof m?.editable === "function" ? m.editable(row.original) : !!m?.editable;
+  };
+
+  // Keep a focused cell whole in view: below the sticky header, and clear of
+  // pinned columns. Only the table's own scroller moves; a table that does not
+  // scroll leaves it to the page.
+  const keepCellInView = (key: string) => {
+    const el = cellRefs.get(key);
+    const scroller = tableEl?.parentElement;
+    if (!el || !scroller || document.activeElement !== el) return;
+    const box = scroller.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    if (scroller.scrollHeight > scroller.clientHeight) {
+      const top = tableEl?.tHead?.getBoundingClientRect().bottom ?? box.top;
+      const bottom = box.top + scroller.clientHeight;
+      if (r.top < top) scroller.scrollTop -= top - r.top;
+      else if (r.bottom > bottom) scroller.scrollTop += r.bottom - bottom;
+    } else if (r.top < 0 || r.bottom > window.innerHeight) {
+      el.scrollIntoView({ block: "nearest" });
+    }
+    if (scroller.scrollWidth > scroller.clientWidth && getComputedStyle(el).position !== "sticky") {
+      let left = box.left;
+      let right = box.left + scroller.clientWidth;
+      for (const c of Array.from(el.parentElement?.children ?? [])) {
+        if (c === el || getComputedStyle(c).position !== "sticky") continue;
+        const cr = c.getBoundingClientRect();
+        if (cr.right <= r.left + 1) left = Math.max(left, cr.right);
+        else if (cr.left >= r.right - 1) right = Math.min(right, cr.left);
+      }
+      if (r.left < left) scroller.scrollLeft -= left - r.left;
+      else if (r.right > right) scroller.scrollLeft += r.right - right;
+    }
+  };
+  const focusCell = (at: GridCell) => {
+    const row = rows()[at.row];
+    const col = navCols()[at.col];
+    if (!row || !col) return;
+    const key = cellKey(row.id, col.id);
+    if (virtual) {
+      const itemIndex = positions().itemIndex.get(row.id);
+      if (itemIndex !== undefined) virtual.scrollToItem(itemIndex);
+    }
+    const el = cellRefs.get(key);
+    if (el) el.focus({ preventScroll: true });
+    else pendingCellFocus = key;
+    keepCellInView(key);
+    requestAnimationFrame(() => requestAnimationFrame(() => keepCellInView(key)));
+  };
+  const moveTo = (at: GridCell) => {
+    setActiveCell(at);
+    setSelection({ anchor: at, focus: at });
+    focusCell(at);
+  };
+  // Shift extends the selection from the active cell, which stays where it is;
+  // the far corner is scrolled to, so a range can reach rows not yet in view.
+  const extendTo = (to: GridCell) => {
+    setSelection({ anchor: active(), focus: to });
+    const row = rows()[to.row];
+    if (virtual && row) {
+      const itemIndex = positions().itemIndex.get(row.id);
+      if (itemIndex !== undefined) virtual.scrollToItem(itemIndex);
+    }
+  };
+
+  // The text a cell copies: its value, as a spreadsheet would take it.
+  const cellText = (row: Row<TData>, col: Column<TData, unknown>) => {
+    const v = row.getValue(col.id);
+    if (v === null || v === undefined) return "";
+    if (v instanceof Date) return v.toISOString();
+    if (typeof v === "object") return JSON.stringify(v);
+    return String(v);
+  };
+  // A pasted or cleared value, as the column's editor would have produced it;
+  // null when the column cannot take it (not editable, not a number, not one
+  // of a select's options), and that cell is left alone.
+  const valueFor = (row: Row<TData>, col: Column<TData, unknown>, text: string): { value: unknown } | null => {
+    if (!isEditable(row, col)) return null;
+    const m = metaOf(col);
+    if (m?.editVariant === "number") {
+      const t = text.trim();
+      if (t === "") return { value: null };
+      const n = Number(t.replace(/[,\s]/g, ""));
+      return Number.isFinite(n) ? { value: n } : null;
+    }
+    if (m?.editVariant === "select") {
+      const options = m.editOptions ?? [];
+      const hit =
+        options.find((o) => o.value === text) ??
+        options.find((o) => o.label.toLowerCase() === text.trim().toLowerCase());
+      return hit ? { value: hit.value } : null;
+    }
+    return { value: text };
+  };
+  const editRect = (rect: CellRect, textAt: (row: number, col: number) => string) => {
+    const edits: CellEditPayload[] = [];
+    for (let r = rect.top; r <= rect.bottom; r++) {
+      const row = rows()[r];
+      if (!row) continue;
+      for (let c = rect.left; c <= rect.right; c++) {
+        const col = navCols()[c];
+        if (!col) continue;
+        const v = valueFor(row, col, textAt(r, c));
+        if (v) edits.push({ rowId: row.id, columnId: col.id, value: v.value });
+      }
+    }
+    return edits;
+  };
+
+  // After an editor's own Enter, Esc or blur has closed it, focus returns to
+  // the grid. The editor handles those keys after this table sees them (its
+  // handlers are delegated to the document), so the return waits a task.
+  const afterEdit = (to: GridCell) => setTimeout(() => moveTo(to));
+
+  const onGridKeyDown = (e: KeyboardEvent) => {
+    const hit = cellAt(e.target);
+    if (!hit) return;
+    const { td, at } = hit;
+    if (e.target !== td) {
+      // Inside the cell: an editor, or a control the cell renders.
+      if (!props.editingCell) return;
+      if (e.key === "Escape") afterEdit(at);
+      else if (e.key === "Enter" && !e.shiftKey) afterEdit({ row: Math.min(at.row + 1, rows().length - 1), col: at.col });
+      else if (e.key === "Tab") {
+        // Across, committing on the way: the editor saves when it loses focus.
+        e.preventDefault();
+        moveTo({ row: at.row, col: Math.min(Math.max(at.col + (e.shiftKey ? -1 : 1), 0), navCols().length - 1) });
+      }
+      return;
+    }
+    if (e.altKey) return;
+    const ctrl = e.ctrlKey || e.metaKey;
+    const rtl = getComputedStyle(td).direction === "rtl";
+    const key = rtl && e.key === "ArrowLeft" ? "ArrowRight" : rtl && e.key === "ArrowRight" ? "ArrowLeft" : e.key;
+    const to = cellKeyTarget(key, e.shiftKey ? selection().focus : at, rows().length, navCols().length, ctrl);
+    if (to) {
+      e.preventDefault();
+      if (e.shiftKey) extendTo(to);
+      else moveTo(to);
+      return;
+    }
+    const row = rows()[at.row];
+    const col = navCols()[at.col];
+    if (!row || !col) return;
+    if (ctrl && key.toLowerCase() === "a") {
+      e.preventDefault();
+      setSelection({ anchor: { row: 0, col: 0 }, focus: { row: rows().length - 1, col: navCols().length - 1 } });
+    } else if (key === "Escape" && multiSelected()) {
+      e.preventDefault();
+      setSelection({ anchor: at, focus: at });
+    } else if ((key === "Enter" || key === "F2") && isEditable(row, col)) {
+      e.preventDefault();
+      props.startEdit(row.id, col.id);
+    } else if ((key === "Delete" || key === "Backspace") && selRect()) {
+      e.preventDefault();
+      props.editCells?.(editRect(selRect()!, () => ""));
+    } else if (key.length === 1 && !ctrl && isEditable(row, col)) {
+      e.preventDefault();
+      props.startEdit(row.id, col.id, key);
+    }
+  };
+
+  const onGridDblClick = (e: MouseEvent) => {
+    const hit = cellAt(e.target);
+    if (!hit || props.editingCell) return;
+    const row = rows()[hit.at.row];
+    const col = navCols()[hit.at.col];
+    if (row && col && isEditable(row, col)) props.startEdit(row.id, col.id);
+  };
+
+  // Pointer: a press makes a cell active, Shift+press extends to it, a drag
+  // selects what it crosses. Text selection is held off during the drag.
+  let stopSelecting: (() => void) | undefined;
+  const onGridPointerDown = (e: PointerEvent) => {
+    if (e.button !== 0) return;
+    const hit = cellAt(e.target);
+    if (!hit) return;
+    if (props.editingCell && hit.td.contains(document.activeElement) && document.activeElement !== hit.td) return;
+    if (e.shiftKey) {
+      e.preventDefault();
+      extendTo(hit.at);
+      return;
+    }
+    setActiveCell(hit.at);
+    setSelection({ anchor: hit.at, focus: hit.at });
+    stopSelecting?.();
+    const table = tableEl;
+    if (!table) return;
+    const userSelect = table.style.userSelect;
+    const onOver = (ev: PointerEvent) => {
+      const over = cellAt(ev.target);
+      if (!over) return;
+      table.style.userSelect = "none";
+      setSelection({ anchor: active(), focus: over.at });
+    };
+    const stop = () => {
+      table.removeEventListener("pointerover", onOver);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+      table.style.userSelect = userSelect;
+      stopSelecting = undefined;
+    };
+    table.addEventListener("pointerover", onOver);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    stopSelecting = stop;
+  };
+
+  // Copy and paste reach the focused cell (the active one) as events: the
+  // clipboard is read and written through them, so no permission is asked.
+  const onGridCopy = (e: ClipboardEvent) => {
+    if (props.editingCell || !cellAt(document.activeElement)) return;
+    const rect = selRect();
+    if (!rect || !e.clipboardData) return;
+    const lines: string[][] = [];
+    for (let r = rect.top; r <= rect.bottom; r++) {
+      const row = rows()[r];
+      if (!row) continue;
+      const line: string[] = [];
+      for (let c = rect.left; c <= rect.right; c++) {
+        const col = navCols()[c];
+        line.push(col ? cellText(row, col) : "");
+      }
+      lines.push(line);
+    }
+    e.clipboardData.setData("text/plain", toTsv(lines));
+    e.preventDefault();
+  };
+  const onGridPaste = (e: ClipboardEvent) => {
+    if (props.editingCell || !cellAt(document.activeElement)) return;
+    const text = e.clipboardData?.getData("text/plain");
+    const rect = selRect();
+    if (!text || !rect) return;
+    e.preventDefault();
+    const plan = pastePlan(parseTsv(text), rect, rows().length, navCols().length);
+    if (plan.length === 0) return;
+    const byCell = new Map(plan.map((t) => [`${t.row}:${t.col}`, t.value]));
+    const bottom = Math.max(...plan.map((t) => t.row));
+    const right = Math.max(...plan.map((t) => t.col));
+    const pasted = { top: rect.top, left: rect.left, bottom, right };
+    props.editCells?.(editRect(pasted, (r, c) => byCell.get(`${r}:${c}`) ?? ""));
+    // What was pasted is selected, as a spreadsheet shows it.
+    setSelection({ anchor: { row: rect.top, col: rect.left }, focus: { row: bottom, col: right } });
+  };
+
+  // New data gives TanStack new Row objects, so every row is rebuilt, the
+  // focused cell (or row) with them, and focus falls to the page. If the table
+  // held focus, it goes back to the active cell or row once the rebuild is
+  // done. Saving an edit is the usual case: Tab's move lands on a cell that
+  // the save then rebuilds.
+  //
+  // "Held focus" is kept from the table's own focus events, not read from
+  // document.activeElement, which is the page during a blur. A blur towards
+  // nothing that leaves its element in place is a click elsewhere: the table
+  // gives focus up. One whose element has gone is a rebuild: it does not.
+  let tableHasFocus = false;
+  const onTableFocusIn = () => (tableHasFocus = true);
+  const onTableFocusOut = (e: FocusEvent) => {
+    const to = e.relatedTarget as Node | null;
+    if (to) {
+      if (!tableEl?.contains(to)) tableHasFocus = false;
+      return;
+    }
+    const from = e.target as Element;
+    setTimeout(() => {
+      const now = document.activeElement;
+      if (from.isConnected && (!now || now === document.body)) tableHasFocus = false;
+    });
+  };
+  createEffect(() => {
+    rows();
+    if (!tableHasFocus) return;
+    setTimeout(() => {
+      const now = document.activeElement;
+      if (!tableHasFocus || (now && now !== document.body)) return;
+      if (props.cellNav) focusCell(active());
+      else {
+        const stop = rows()[tabStop()];
+        if (stop) focusRow(stop.id);
+      }
+    });
+  });
+  onMount(() => {
+    if (!(props.cellNav || props.keyboard) || !tableEl) return;
+    const table = tableEl;
+    table.addEventListener("focusin", onTableFocusIn);
+    table.addEventListener("focusout", onTableFocusOut);
+    onCleanup(() => {
+      table.removeEventListener("focusin", onTableFocusIn);
+      table.removeEventListener("focusout", onTableFocusOut);
+    });
+  });
+
+  onMount(() => {
+    if (!props.cellNav || !tableEl) return;
+    const table = tableEl;
+    // Capture: the grid reads a key before the editor inside the cell does.
+    table.addEventListener("keydown", onGridKeyDown, true);
+    table.addEventListener("dblclick", onGridDblClick);
+    table.addEventListener("pointerdown", onGridPointerDown);
+    table.addEventListener("copy", onGridCopy);
+    table.addEventListener("paste", onGridPaste);
+    onCleanup(() => {
+      table.removeEventListener("keydown", onGridKeyDown, true);
+      table.removeEventListener("dblclick", onGridDblClick);
+      table.removeEventListener("pointerdown", onGridPointerDown);
+      table.removeEventListener("copy", onGridCopy);
+      table.removeEventListener("paste", onGridPaste);
+      stopSelecting?.();
+    });
+  });
+
   // Dragging rows, virtualized. solid-dnd can drop only onto a mounted row and
   // most are not, so the drop position comes from the virtualizer's layout,
   // the table scrolls itself while the pointer is near its top or bottom edge,
@@ -1695,8 +2104,8 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
     if (!props.virtualize) return [];
     const { itemIndex } = positions();
     const keep: number[] = [];
-    const stop = rows()[tabStop()];
-    if (props.keyboard && stop) keep.push(itemIndex.get(stop.id) ?? -1);
+    const stop = rows()[props.cellNav ? active().row : tabStop()];
+    if ((props.keyboard || props.cellNav) && stop) keep.push(itemIndex.get(stop.id) ?? -1);
     const editing = props.editingCell?.rowId;
     if (editing !== undefined) keep.push(itemIndex.get(editing) ?? -1);
     const dragged = dragId();
@@ -1758,11 +2167,54 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
             !cell.getIsGrouped() &&
             !cell.getIsAggregated() &&
             !cell.getIsPlaceholder();
+          // Cell navigation: this cell's place in the grid (none for the
+          // select, expand and drag columns), whether it is the active cell
+          // (the tab stop) and whether the selection covers it.
+          const navCol = () => (props.cellNav ? navColIndex().get(cell.column.id) : undefined);
+          const isActiveCell = () => navCol() !== undefined && index() === active().row && navCol() === active().col;
+          const isSelected = () => {
+            const c = navCol();
+            const rect = selRect();
+            return c !== undefined && !!rect && multiSelected() && inRect(rect, index(), c);
+          };
           // The drop line is drawn on the cells: a row's own box-shadow is not
-          // painted in a collapsed-border table.
-          const style = () => (props.rowDrag ? { ...pin, ...dropShadow(index()) } : pin);
+          // painted in a collapsed-border table. A pinned cell paints its own
+          // background, so its selection has to be painted there too.
+          const style = () => {
+            let st = props.rowDrag ? { ...pin, ...dropShadow(index()) } : pin;
+            if (pin && isSelected()) st = { ...st, background: "var(--zen-color-primary-soft)" };
+            return st;
+          };
           return (
-            <TableCell class={props.sepCellClass} style={style()}>
+            <TableCell
+              ref={(el: HTMLTableCellElement) => {
+                if (navCol() === undefined) return;
+                const key = cellKey(row.id, cell.column.id);
+                cellRefs.set(key, el);
+                onCleanup(() => {
+                  if (cellRefs.get(key) === el) cellRefs.delete(key);
+                });
+                if (pendingCellFocus === key) {
+                  pendingCellFocus = null;
+                  queueMicrotask(() => {
+                    el.focus({ preventScroll: true });
+                    keepCellInView(key);
+                  });
+                }
+              }}
+              class={cn(
+                props.sepCellClass,
+                navCol() !== undefined &&
+                  "focus:zen-outline focus:zen-outline-2 focus:-zen-outline-offset-2 focus:zen-outline-zen-ring",
+                isSelected() && "zen-bg-zen-primary-soft",
+              )}
+              style={style()}
+              role={props.cellNav ? "gridcell" : undefined}
+              tabIndex={navCol() === undefined ? undefined : isActiveCell() ? 0 : -1}
+              aria-selected={navCol() !== undefined ? (isSelected() || isActiveCell() ? "true" : "false") : undefined}
+              data-row={navCol() !== undefined ? row.id : undefined}
+              data-col={navCol() !== undefined ? cell.column.id : undefined}
+            >
               <Show
                 when={isInteractive()}
                 fallback={props.renderCell(cell)}
@@ -1773,6 +2225,8 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
                   onStartEdit={() => props.startEdit(row.id, cell.column.id)}
                   onCommit={(v) => props.commitEdit(row.id, cell.column.id, v)}
                   onCancel={props.cancelEdit}
+                  navigable={navCol() !== undefined}
+                  seed={isEditing() ? props.editingCell?.seed : undefined}
                 >
                   {props.renderCell(cell)}
                 </EditableCell>
@@ -1868,11 +2322,19 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
     <Table
       ref={tableEl}
       containerClass={props.fillHeight ? "zen-min-h-0 zen-flex-1" : undefined}
-      containerStyle={props.stickyHeaderActive && !props.fillHeight ? { "max-height": `${props.maxBodyHeight}px` } : undefined}
+      containerStyle={{
+        ...(props.stickyHeaderActive && !props.fillHeight ? { "max-height": `${props.maxBodyHeight}px` } : {}),
+        // Virtualized, the spacer rows change height as the window moves, and
+        // the browser's scroll anchoring "corrects" the scroll for that on its
+        // own: a jump to a row far off landed at the top instead.
+        ...(props.virtualize ? { "overflow-anchor": "none" } : {}),
+      }}
       // Virtualized, the columns are laid out from the header, not from
       // whichever rows happen to be mounted, so they hold still as you scroll.
       class={props.virtualize ? "zen-table-fixed" : undefined}
       aria-rowcount={props.virtualize ? headerRowCount() + items().length : undefined}
+      role={props.cellNav ? "grid" : undefined}
+      aria-multiselectable={props.cellNav ? "true" : undefined}
     >
       <Show
         when={props.enableColumnOrdering}

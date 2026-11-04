@@ -24,6 +24,8 @@ export interface CellEditPayload {
 export interface EditingState {
   rowId: string;
   columnId: string;
+  /** What was typed to start the edit (cell navigation): the editor starts from it. */
+  seed?: string;
 }
 
 declare module "@tanstack/solid-table" {
@@ -37,6 +39,8 @@ declare module "@tanstack/solid-table" {
 
 interface EditorProps {
   initialValue: unknown;
+  /** The edit began by typing: keep the cursor after what was typed, not select it. */
+  seeded?: boolean;
   onCommit: (value: unknown) => void;
   onCancel: () => void;
 }
@@ -55,10 +59,24 @@ const editorWrapClass =
 function TextEditor(props: EditorProps) {
   const rowMove = useContext(RowMoveContext);
   const [value, setValue] = createSignal(String(props.initialValue ?? ""));
+  // An editor ends once. Cancelling removes the input, and removing a focused
+  // input fires its blur, which would otherwise save what Esc threw away.
+  let done = false;
+  const commit = () => {
+    if (done) return;
+    done = true;
+    props.onCommit(value());
+  };
+  const cancel = () => {
+    if (done) return;
+    done = true;
+    props.onCancel();
+  };
   let ref: HTMLInputElement | undefined;
   onMount(() => {
     ref?.focus();
-    ref?.select();
+    if (props.seeded) ref?.setSelectionRange(ref.value.length, ref.value.length);
+    else ref?.select();
   });
   return (
     <div class={editorWrapClass}>
@@ -69,14 +87,14 @@ function TextEditor(props: EditorProps) {
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
-            props.onCommit(value());
+            commit();
           } else if (e.key === "Escape") {
             e.preventDefault();
-            props.onCancel();
+            cancel();
           }
         }}
         onBlur={() => {
-          if (!rowMove?.moving) props.onCommit(value());
+          if (!rowMove?.moving) commit();
         }}
         class="zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1"
       />
@@ -96,6 +114,18 @@ function NumberEditor(props: EditorProps) {
   const [value, setValue] = createSignal<number | null>(
     Number.isNaN(initial as number) ? null : initial,
   );
+  // Ends once: see TextEditor.
+  let done = false;
+  const commit = () => {
+    if (done) return;
+    done = true;
+    props.onCommit(value());
+  };
+  const cancel = () => {
+    if (done) return;
+    done = true;
+    props.onCancel();
+  };
   const rowMove = useContext(RowMoveContext);
   // NumberField does not hand out its input, so it is found and focused here:
   // without this the editor opened with focus nowhere and typing went to the
@@ -104,7 +134,8 @@ function NumberEditor(props: EditorProps) {
   onMount(() => {
     const input = wrap?.querySelector("input");
     input?.focus();
-    input?.select();
+    // A number input has no settable cursor; focusing leaves it after the value.
+    if (!props.seeded) input?.select();
   });
   return (
     <div
@@ -113,17 +144,15 @@ function NumberEditor(props: EditorProps) {
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
-          props.onCommit(value());
+          commit();
         } else if (e.key === "Escape") {
           e.preventDefault();
-          props.onCancel();
+          cancel();
         }
       }}
       onFocusOut={(e) => {
         if (rowMove?.moving) return;
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-          props.onCommit(value());
-        }
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) commit();
       }}
       tabIndex={-1}
     >
@@ -178,6 +207,14 @@ export interface EditableCellProps<TData> {
   onCommit: (value: unknown) => void;
   onCancel: () => void;
   children: JSX.Element;
+  /**
+   * The table moves focus cell by cell (enableCellNavigation): the cell itself
+   * is the focus target and starts the edit, so the display is not a button
+   * of its own.
+   */
+  navigable?: boolean;
+  /** What was typed to start this edit. */
+  seed?: string;
 }
 
 export function EditableCell<TData>(props: EditableCellProps<TData>) {
@@ -205,6 +242,17 @@ export function EditableCell<TData>(props: EditableCellProps<TData>) {
       <Show
         when={props.editing}
         fallback={
+          <Show
+            when={!props.navigable}
+            fallback={
+              <div
+                onDblClick={props.onStartEdit}
+                class="zen-w-full zen-h-full zen-inline-flex zen-items-center zen-cursor-text"
+              >
+                {props.children}
+              </div>
+            }
+          >
           <div
             onDblClick={props.onStartEdit}
             onKeyDown={(e) => {
@@ -228,6 +276,7 @@ export function EditableCell<TData>(props: EditableCellProps<TData>) {
           >
             {props.children}
           </div>
+          </Show>
         }
       >
         {/* eslint-disable solid/components-return-once --
@@ -241,8 +290,18 @@ export function EditableCell<TData>(props: EditableCellProps<TData>) {
         {(() => {
           const variant = meta()?.editVariant ?? "text";
           const value = props.cell.getValue();
+          // Typing a character starts the edit from it: a digit for a number,
+          // anything for text; a select just opens.
+          const seed = props.seed;
+          const initialValue =
+            seed === undefined || variant === "select"
+              ? value
+              : variant === "number"
+                ? /^[0-9]$/.test(seed) ? Number(seed) : null
+                : seed;
           const editorProps: EditorProps = {
-            initialValue: value,
+            initialValue,
+            seeded: seed !== undefined && variant !== "select",
             onCommit: props.onCommit,
             onCancel: props.onCancel,
           };

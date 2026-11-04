@@ -61,6 +61,36 @@ const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
 const HUGE = makePeople(10_000);
 
+/* An order's lines, for the cell-navigation grid. */
+type Line = { id: string; item: string; qty: number; rate: number; uom: string; note: string };
+const UOMS = ["Nos", "Kg", "Box", "Litre"];
+const makeLines = (count: number): Line[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `l-${i + 1}`,
+    item: `ITEM-${String(1000 + i)}`,
+    qty: 1 + (i % 12),
+    rate: 50 + ((i * 37) % 950),
+    uom: UOMS[i % UOMS.length],
+    note: "",
+  }));
+const lineColumns: ColumnDef<Line>[] = [
+  { accessorKey: "item", header: "Item", meta: { editable: true } },
+  { accessorKey: "qty", header: "Qty", meta: { editable: true, editVariant: "number" } },
+  {
+    accessorKey: "uom",
+    header: "UOM",
+    meta: { editable: true, editVariant: "select", editOptions: UOMS.map((u) => ({ label: u, value: u })) },
+  },
+  { accessorKey: "rate", header: "Rate (₹)", meta: { editable: true, editVariant: "number" } },
+  {
+    id: "amount",
+    header: "Amount (₹)",
+    accessorFn: (l) => l.qty * l.rate,
+    cell: (info) => (info.getValue() as number).toLocaleString("en-IN"),
+  },
+  { accessorKey: "note", header: "Note", meta: { editable: true } },
+];
+
 const statusBadgeColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
 
@@ -211,6 +241,14 @@ const NewDataTableDemo = () => {
   const [editRows, setEditRows] = createSignal<Person[]>(makePeople(8));
   const [activated, setActivated] = createSignal("");
   const [virtGrouping, setVirtGrouping] = createSignal<string[]>([]);
+  const [lines, setLines] = createSignal(makeLines(2000));
+  const [lastEdit, setLastEdit] = createSignal("");
+  const applyLineEdits = (edits: { rowId: string; columnId: string; value: unknown }[]) => {
+    const byRow = new Map<string, Record<string, unknown>>();
+    for (const e of edits) byRow.set(e.rowId, { ...byRow.get(e.rowId), [e.columnId]: e.value });
+    setLines(lines().map((l) => (byRow.has(l.id) ? { ...l, ...byRow.get(l.id) } : l)));
+    setLastEdit(`${edits.length} cell${edits.length === 1 ? "" : "s"} changed`);
+  };
   const [virtOpened, setVirtOpened] = createSignal("");
 
   return (
@@ -431,6 +469,40 @@ const NewDataTableDemo = () => {
           </div>
           <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
             Opened: <span data-testid="virt-activated">{virtOpened() || "nothing yet"}</span>
+          </p>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">6c. Cell navigation — work in it like a spreadsheet</h2>
+        <CodeExample
+          title="enableCellNavigation: cell by cell, ranges, copy and paste"
+          description="Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. Amount is computed, so paste and Delete leave it alone."
+          code={`<DataTable
+  data={lines()}
+  columns={columns} // meta: { editable: true, editVariant: "number" | "select" }
+  getRowId={(l) => l.id}
+  enableCellNavigation
+  enableRowVirtualization
+  onCellEdit={(edit) => apply([edit])}
+  onCellsEdit={(edits) => apply(edits)} // a paste, or Delete over a range
+  fillHeight
+/>`}
+        >
+          <div class="zen-flex zen-h-[420px] zen-flex-col">
+            <DataTable
+              data={lines()}
+              columns={lineColumns}
+              getRowId={(l) => l.id}
+              enableCellNavigation
+              enableRowVirtualization
+              onCellEdit={(edit) => applyLineEdits([edit])}
+              onCellsEdit={applyLineEdits}
+              fillHeight
+            />
+          </div>
+          <p class="zen-text-sm zen-text-zen-muted-fg zen-mt-2" aria-live="polite">
+            <span data-testid="cells-edited">{lastEdit() || "No changes yet."}</span>
           </p>
         </CodeExample>
       </section>

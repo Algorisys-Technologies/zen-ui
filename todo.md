@@ -36,6 +36,37 @@ issue / PR when its turn comes.
 - [ ] **Keyboard reordering of rows** (both bodies): the drag handle has no
       keyboard path yet.
 
+## Parity: DataTable `enableCellNavigation` (Solid only, 2026-11-04)
+
+- [ ] **Port to React, then vanilla, then web-components**, from the Solid
+      BodyTable's "cell navigation" section: one capture-phase keydown and one
+      pointerdown / copy / paste / dblclick listener on the table (not per
+      cell), the active cell as the tab stop, Shift extends from the active
+      cell, the far corner scrolled to, RTL swapping ← →, Enter/Tab/Esc out of
+      an editor handled after the editor (a task later, since editors'
+      handlers are delegated), `keepCellInView` clear of the sticky header and
+      pinned columns. Core's `grid-range` is shared already. Also: the typed
+      seed (`EditingState.seed`), `EditableCell` `navigable`, `onCellsEdit`,
+      editors that end once (React: check whether Esc saves there too), focus
+      restored after a row rebuild (for keyboard rows as well), and
+      `overflow-anchor: none` on the virtualized scroller. Add the "6c" demo.
+- [ ] **Fill handle and row adding** in cell mode (drag a cell's corner to copy
+      down; Ctrl+Insert to add a row, as the ERP's ChildGrid does), then move
+      ChildGrid onto DataTable.
+
+## Demos: two build JSX outside a root (found 2026-11-04)
+
+- [ ] `NewDiffViewDemo.tsx` (line ~35) and `NewObjectPageDemo.tsx` build
+      components at module load, so Solid warns "computations created outside
+      a `createRoot`" on every demo page. Move that JSX into the components.
+
+## Architecture: themeless core, themes as a package (owner, 2026-11-04)
+
+- [ ] **For discussion.** The owner wants zen-ui themeless, with themes in a
+      separate package or folder: a headless use, the default theme, and
+      extending a theme. Today the bindings ship styled components on
+      `--zen-*` tokens, and core carries tokens.css with the five themes.
+
 ## From the ERPNext port (2026-11-04)
 
 - [ ] **BreadcrumbList's `<ol>` keeps the browser's list style**: without the
