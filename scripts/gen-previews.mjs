@@ -305,7 +305,14 @@ for (const binding of which) {
     }
         return "OK";
       })(),
-    );
+    ).catch((err) => {
+      // The page died under the route (a renderer crash, or one killed for
+      // memory: this machine runs earlyoom, which prefers chrome-headless).
+      // The same rule as a failed screenshot: reported, not fatal, and the
+      // route still gets a file. It used to abort every binding's previews.
+      failed.push(`${route}: page failed: ${String(err?.message ?? err).split("\n")[0]}`);
+      return "TIMEOUT";
+    });
     if (outcome === "TIMEOUT") {
       unrendered.push(`${route} (hit the per-route ceiling)`);
       // The wedged page is not reused: the abandoned capture is still working
