@@ -253,7 +253,12 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
       // always show it. Opt-in also means a framework `@zen-value-change` binding
       // (which is addEventListener under the hood) wires the callback correctly.
       for (const [prop, evt] of Object.entries(events)) {
-        if (!this._listened.has(evt) && !(prop in this._bag)) continue;
+        // `=== undefined`, not `in`: assigning undefined is how a caller CLEARS a
+        // callback (`el.onBack = undefined`), and the key stays in _bag when it
+        // does. With `in`, the affordance it gates could never be taken away
+        // again: measured on AnalyticChart, whose drilled-in bars kept looking
+        // clickable after `el.onSelect = undefined`.
+        if (!this._listened.has(evt) && this._bag[prop] === undefined) continue;
         const user = this._bag[prop] as ((...a: unknown[]) => void) | undefined;
         props[prop] = (...args: unknown[]) => {
           this.dispatchEvent(

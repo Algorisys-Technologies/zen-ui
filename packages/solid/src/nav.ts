@@ -263,6 +263,7 @@ export const NAV: NavGroup[] = [
     group: "Heavy / optional (lazy peer deps)",
     items: [
       { label: "Chart", path: "/chart", description: "Line / bar / area / pie / donut; dependency-free SVG in the Solid binding", source: "packages/solid/src/components/NewChartDemo.tsx" },
+      { label: "AnalyticChart", path: "/analytic-chart", description: "Interactive business charts: bar, line, area, combo with two axes, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, and your own types; click to drill down or filter, a table view, PNG and CSV download", source: "packages/solid/src/components/NewAnalyticChartDemo.tsx", since: "12.4.0" },
       { label: "RichText", path: "/rich-text", description: "Lazy-loaded WYSIWYG editor; jodit is an optional peer dep", source: "packages/solid/src/components/NewRichTextDemo.tsx" },
       { label: "Map", path: "/map", description: "Lazy-loaded map with markers; leaflet is an optional peer dep", source: "packages/solid/src/components/NewMapDemo.tsx" },
       { label: "Camera", path: "/camera", description: "Camera capture via getUserMedia; no peer dep", source: "packages/solid/src/components/NewCameraDemo.tsx" },
@@ -298,7 +299,7 @@ export const NAV: NavGroup[] = [
       { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/components/NewShellBarDemo.tsx" , updated: "12.2.0" },
       { label: "FlexibleColumnLayout", path: "/flexible-column-layout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/solid/src/components/NewFlexibleColumnLayoutDemo.tsx" },
       { label: "DynamicPage", path: "/dynamic-page", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/solid/src/components/NewDynamicPageDemo.tsx" },
-      { label: "ObjectPageLayout", path: "/object-page", description: "Anchored sections with scroll-spy navigation", source: "packages/solid/src/components/NewObjectPageDemo.tsx" , updated: "12.2.0" },
+      { label: "ObjectPageLayout", path: "/object-page", description: "Anchored sections with scroll-spy navigation", source: "packages/solid/src/components/NewObjectPageDemo.tsx" , updated: "12.3.1" },
     ],
   },
   {

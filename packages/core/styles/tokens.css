@@ -306,6 +306,39 @@
 }
 
 /* ===================================================================== *
+ * CHART — categorical series colours (AnalyticChart)                    *
+ *                                                                       *
+ * Their own tokens, NOT the semantic ones: built from error / success / *
+ * warning, an ordinary category came out danger-red and read as bad     *
+ * news. Positive / negative (waterfall up / down) stay semantic and are *
+ * `--zen-chart-positive` / `--zen-chart-negative`.                      *
+ *                                                                       *
+ * The ORDER is the colour-blind safety, not taste: every adjacent pair  *
+ * clears CVD ΔE ≥ 8 (worst 9.1 light, 8.4 dark) and normal-vision       *
+ * ΔE ≥ 15, validated on #ffffff, paper's #FDFBF6 and dark's #0F172A.    *
+ * Re-validate before reordering or re-stepping one. On light surfaces   *
+ * slots 3–5 are under 3:1; the chart's table view is the relief.        *
+ *                                                                       *
+ * One set for every light theme, declared on each so a nested           *
+ * data-theme picks the right set by inheritance; this block must stay   *
+ * BEFORE the dark one, which overrides it at equal specificity.         *
+ * ===================================================================== */
+:root,
+[data-theme="default"],
+[data-theme="zen-theme"],
+[data-theme="paper"],
+[data-theme="blue"] {
+  --zen-chart-1: #2a78d6; /* blue    */
+  --zen-chart-2: #eb6834; /* orange  */
+  --zen-chart-3: #1baf7a; /* aqua    */
+  --zen-chart-4: #eda100; /* yellow  */
+  --zen-chart-5: #e87ba4; /* magenta */
+  --zen-chart-6: #008300; /* green   */
+  --zen-chart-7: #6250d6; /* violet  */
+  --zen-chart-8: #e34948; /* red     */
+}
+
+/* ===================================================================== *
  * DARK — surface-inverted variant of default                            *
  *                                                                       *
  * Shipped for free since it falls out of the same token mechanism. Set *
@@ -341,6 +374,16 @@
   --zen-color-error-fg: #0B1228;
   --zen-color-error-soft: #341818;
   --zen-color-error-soft-fg: #F5A0A0;
+
+  /* The same eight hues, stepped for the navy surface (all ≥ 3:1). */
+  --zen-chart-1: #3987e5;
+  --zen-chart-2: #d95926;
+  --zen-chart-3: #199e70;
+  --zen-chart-4: #c98500;
+  --zen-chart-5: #d55181;
+  --zen-chart-6: #008300;
+  --zen-chart-7: #9085e9;
+  --zen-chart-8: #e66767;
 
   --zen-color-background: #0F172A;
   --zen-color-foreground: #E5E7EB;

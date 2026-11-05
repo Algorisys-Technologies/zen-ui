@@ -150,6 +150,7 @@ description, then import the name from your binding's package.
 ### Heavy / optional (lazy peer deps)
 
 - **Chart (recharts)** — Lazy-loaded line / bar / area / pie / donut; recharts is an optional peer dep
+- **AnalyticChart** — Interactive business charts: bar, line, area, combo with two axes, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, and your own types; click to drill down or filter, a table view, PNG and CSV download
 - **RichText (jodit)** — Lazy-loaded WYSIWYG editor; jodit-pro-react is an optional peer dep
 - **Map (leaflet)** — Lazy-loaded map with markers; leaflet + react-leaflet are optional peer deps
 - **Camera (webcam)** — Lazy-loaded camera capture; react-webcam is an optional peer dep

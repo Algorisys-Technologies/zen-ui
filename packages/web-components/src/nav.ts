@@ -180,6 +180,7 @@ export const NAV: NavGroup[] = [
       { to: "/camera", label: "Camera (webcam)", description: "Webcam capture via getUserMedia; onCapture returns a data-URL screenshot painted from an offscreen canvas", source: "packages/web-components/src/components/CameraDemo.ts" },
       { to: "/map", label: "Map (leaflet)", description: "Lazy-loaded map with markers; leaflet is an optional peer dep", source: "packages/web-components/src/components/MapDemo.ts" },
       { to: "/chart", label: "Chart", description: "Line / bar / area / pie / donut; dependency-free SVG in the vanilla binding", source: "packages/web-components/src/components/ChartDemo.ts" },
+      { to: "/analytic-chart", label: "AnalyticChart", description: "Interactive business charts: bar, line, area, combo with two axes, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, and your own types; click to drill down or filter, a table view, PNG and CSV download", source: "packages/web-components/src/components/AnalyticChartDemo.ts", since: "12.4.0" },
       { to: "/code-editor", label: "CodeEditor / IDEWindow", description: "Monaco wrapper — language, theme, read-only, Ctrl+Enter run hook; file list beside it", source: "packages/web-components/src/components/CodeEditorDemo.ts" },
       { to: "/document-viewer", label: "DocumentViewer", description: "Show a scanned document — image or PDF, with zoom, fit, rotate and page count; the other half of FileUpload", source: "packages/web-components/src/components/DocumentViewerDemo.ts" },
       { to: "/diagram-canvas", label: "DiagramCanvas / ArchitectureDraw", description: "Embedded diagrams.net or YappyDraw editor over postMessage; draw.io XML or Yappy JSON in and out", source: "packages/web-components/src/components/DiagramCanvasDemo.ts" },
@@ -215,7 +216,7 @@ export const NAV: NavGroup[] = [
       { to: "/shellbar", label: "ShellBar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/web-components/src/components/ShellBarDemo.ts", updated: "12.3.0" },
       { to: "/flexible-column-layout", label: "FlexibleColumnLayout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/web-components/src/components/FlexibleColumnLayoutDemo.ts" },
       { to: "/dynamic-page", label: "DynamicPage", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/web-components/src/components/DynamicPageDemo.ts" },
-      { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/web-components/src/components/ObjectPageLayoutDemo.ts", updated: "12.3.0" },
+      { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/web-components/src/components/ObjectPageLayoutDemo.ts", updated: "12.3.1" },
     ],
   },
 ];

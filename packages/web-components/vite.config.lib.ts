@@ -24,7 +24,8 @@ export default defineConfig({
       fileName: "index",
     },
     rollupOptions: {
-      external: ["leaflet", "leaflet/dist/leaflet.css", "jodit"],
+      // echarts: AnalyticChart's renderer, loaded on first chart, every subpath.
+      external: ["leaflet", "leaflet/dist/leaflet.css", "jodit", "echarts", /^echarts\//],
       output: {
         // One file per module + `sideEffects` in package.json is what makes the
         // library tree-shakeable — NEITHER WORKS ALONE. See the React binding's

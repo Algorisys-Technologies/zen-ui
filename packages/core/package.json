@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-core",
-  "version": "12.3.0",
+  "version": "12.4.0",
   "license": "PolyForm-Noncommercial-1.0.0",
   "private": true,
   "type": "module",
@@ -17,6 +17,8 @@
     "./color": "./src/color.ts",
     "./date-range": "./src/date-range.ts",
     "./chart": "./src/chart.ts",
+    "./analytic-chart": "./src/analytic-chart.ts",
+    "./analytic-chart-echarts": "./src/analytic-chart-echarts.ts",
     "./pivot": "./src/pivot.ts",
     "./virtual-window": "./src/virtual-window.ts",
     "./planning": "./src/planning.ts",
@@ -62,5 +64,8 @@
   },
   "scripts": {
     "build:types": "tsc -p tsconfig.types.json"
+  },
+  "devDependencies": {
+    "echarts": "^6.1.0"
   }
 }

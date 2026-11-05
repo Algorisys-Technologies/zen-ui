@@ -15,6 +15,61 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.4.0] - 2026-11-05
+
+### Added
+- **AnalyticChart** (every binding; `<zen-analytic-chart>` in web components):
+  interactive business charts drawn by ECharts, an optional peer loaded on the
+  first chart, so an app that never charts pays nothing. Twelve built-in kinds
+  (bar, line, area, combo with a second axis, pie, donut, waterfall, funnel,
+  gauge, heatmap, scatter, treemap); a kind is a registry entry, so an app adds
+  its own with `registerChartKind` (the demos register a radar). Click a mark
+  for `onSelect` (`zen-select`): drill-down and filtering are the caller's
+  state. A Chart / Table switch, PNG and CSV download; the table is the
+  keyboard and screen-reader path, its first cell a button that selects what a
+  click on the mark does. Without echarts it shows the table and a one-line
+  note instead of throwing. Everything but the drawing lives in
+  `@algorisys/zen-ui-core/analytic-chart`; the ECharts controller in
+  `…/analytic-chart-echarts`. `check:analytic-chart` (97 assertions) is in
+  `bun run check`. Built Solid first, then React, vanilla, web components;
+  each driven in a browser with one probe: all 12 charts draw, click and
+  keyboard select, CSV / PNG, filter, drill-down, light / dark, RTL, the
+  missing-peer fallback, no page errors. Bundle budgets unchanged (one Button
+  17–18 kB); no echarts code in any `dist`; a strict consumer of the react and
+  web-components tarballs, echarts NOT installed, gets 0 type errors.
+- **`--zen-chart-1…8`**: a categorical series palette, one light set for every
+  light theme and stepped values in `dark`, validated for colour-blind
+  separation on each theme's surface (adjacent CVD ΔE ≥ 8.4, normal ≥ 19.3).
+  AnalyticChart's default palette; it used to be built from the semantic
+  tokens, which painted plain categories danger-red. Optional
+  `--zen-chart-positive` / `--zen-chart-negative` override a waterfall's
+  up / down steps (default: success / error).
+
+### Fixed
+- **web components: clearing a callback property did nothing.** An element
+  passed a callback to its factory when the event had a listener OR the
+  property was in its bag, and `el.onBack = undefined` leaves the key there,
+  so an affordance a callback gates (PageHeader's back button, a chart's
+  clickable marks) could never be taken away again. An assigned `undefined`
+  now counts as unset. Found porting AnalyticChart's drill-down, whose
+  quarter bars kept a pointer cursor; `visual-check` over all 118 WC routes
+  shows no runtime errors.
+- **Solid: `build:lib` left stale server chunks in `dist/server`**, which
+  `files: ["dist"]` would publish. The server build only started emitting
+  hashed chunks with AnalyticChart's dynamic import; `build:lib` now clears
+  `dist/server` as it already cleared `dist/assets`.
+- **ObjectPageLayout: an absolutely placed child escaped the scroll area**
+  (every binding; reported from ERPNext). The scroller had `overflow-y: auto`
+  but no position, so an absolutely placed descendant with no positioned
+  ancestor in between, such as a visually-hidden native control, took its
+  containing block from outside the page: overflow neither clipped nor
+  scrolled it, and in a shell without a scroll container of its own it
+  stretched the page. The scroller is `position: relative` now. Measured in
+  each demo with a hidden checkbox in the last section: it scrolls with the
+  content and is clipped (was: fixed outside the scroller), and of the 6 / 6 /
+  18 / 18 absolutely placed elements already in the demo object pages, none
+  visible changes anchor; anchor jumps land as before.
+
 ## [12.3.0] - 2026-11-05
 
 ### Added
@@ -54,9 +109,12 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - **DataTable** in React: keyboard rows, cell navigation, row virtualization
     with row drag, totals, server export (the ExportRequest is byte-identical
     across Solid, React, vanilla and web components for the same table state)
-    and `contextMenu`. In vanilla and web components: keyboard rows, totals,
-    server export and `contextMenu`; cell navigation and row virtualization
-    follow once vanilla's DataTable has inline editing.
+    and `contextMenu`. In vanilla and web components: inline editing,
+    keyboard rows, cell navigation with copy and paste, row virtualization,
+    totals, server export and `contextMenu`. Still missing there (pre-existing,
+    todo.md): grouping, per-column filters, expandable rows. Corrected after
+    release: the 12.3.0 notes first said cell navigation and virtualization
+    were still to come in vanilla.
   - **Every built-in word is translatable in every binding.** React's and
     vanilla's components now take their words from the message catalogue as
     Solid's do (Solid 135, React 139, vanilla 128 components; nothing exempt),

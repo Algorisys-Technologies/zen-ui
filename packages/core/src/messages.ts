@@ -854,6 +854,22 @@ export const DEFAULT_MESSAGES = {
   "dataTable.unpinColumnFrom": "Unpin {label} from {side}",
   "dataTable.sideLeft": "left",
   "dataTable.sideRight": "right",
+  "analyticChart.view": "View",
+  "analyticChart.chart": "Chart",
+  "analyticChart.table": "Table",
+  "analyticChart.downloadPng": "Download PNG",
+  "analyticChart.downloadCsv": "Download CSV",
+  "analyticChart.png": "PNG",
+  "analyticChart.csv": "CSV",
+  "analyticChart.loading": "Loading chart…",
+  "analyticChart.noData": "No data to chart",
+  "analyticChart.unavailable": "This chart needs the echarts package, so its data is shown as a table.",
+  "analyticChart.change": "Change",
+  "analyticChart.runningTotal": "Running total",
+  "analyticChart.total": "Total",
+  "analyticChart.value": "Value",
+  "analyticChart.max": "Maximum",
+  "analyticChart.target": "Target",
 } as const satisfies Record<string, string>;
 
 export type MessageKey = keyof typeof DEFAULT_MESSAGES;

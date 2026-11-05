@@ -153,6 +153,8 @@ real props; guessing prop names is how agents invent APIs.
 - [pagination.md](pagination.md) — `Pagination`, `usePaginationRange`, `PaginationProps`
 - [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarHeaderLabel`, `SidebarMenuBadge`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
 - [chart-chart.md](chart-chart.md) — `Chart`, `ChartProps`, `ChartSeries`
+- [analytic-chart-analytic-chart.md](analytic-chart-analytic-chart.md) — `AnalyticChart`, `AnalyticChartProps`
+- [zen-ui-core-analytic-chart.md](zen-ui-core-analytic-chart.md) — `registerChartKind`, `getChartKind`, `chartKinds`, `selectionAt`, `makeFormatter`, `cartesianFrame`, `legendOf`, `seriesOf`, `toNumber`, `AnalyticChartSpec`, `AnalyticSeries`, `ChartKind`, `ChartContext`, `ChartSelection`, `ChartTable`, `ChartTheme`, `ChartRow`, `ValueFormat`, `EChartsOption`
 - [zen-ui-core-chart.md](zen-ui-core-chart.md) — `Slice`, `CHART_PALETTE`
 - [rich-text.md](rich-text.md) — `renderMath`, `RichText`, `RichTextProps`
 - [map.md](map.md) — `Map`, `MapProps`, `MapMarker`

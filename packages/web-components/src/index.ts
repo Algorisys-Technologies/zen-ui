@@ -180,6 +180,34 @@ export type {
   GridCell,
 } from "@algorisys/zen-ui-vanilla";
 
+// AnalyticChart: the factory, its pure helpers and types, re-exported verbatim
+// like the rest of vanilla's surface. <zen-analytic-chart> is the element.
+export {
+  AnalyticChart,
+  registerChartKind,
+  getChartKind,
+  chartKinds,
+  selectionAt,
+  makeFormatter,
+  cartesianFrame,
+  legendOf,
+  seriesOf,
+  toNumber,
+} from "@algorisys/zen-ui-vanilla";
+export type {
+  AnalyticChartProps,
+  AnalyticChartSpec,
+  AnalyticSeries,
+  ChartKind,
+  ChartContext,
+  ChartSelection,
+  ChartTable,
+  ChartTheme,
+  ChartRow,
+  ValueFormat,
+  EChartsOption,
+} from "@algorisys/zen-ui-vanilla";
+
 // The custom-element layer's own surface.
 export { defineZenElement } from "./lib/define";
 export type { ElementDef, AttrType } from "./lib/define";
