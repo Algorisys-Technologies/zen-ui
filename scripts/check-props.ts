@@ -53,13 +53,10 @@ const ALWAYS = new Set(["class", "id", "style", "children", "ref", "asChild"]);
  * is debt with a home: closing it means deleting the line.
  */
 const KNOWN: Record<string, string> = {
-  // docs/vanilla-data-table.md, phases 1-5.
+  // docs/vanilla-data-table.md, phases 2-5 (phase 1, columns, closed these:
+  // visibility, ordering, resizing, pinning, persistKey).
   ...Object.fromEntries(
     [
-      "enableColumnVisibility", "columnVisibility", "onColumnVisibilityChange",
-      "enableColumnOrdering", "onColumnOrderChange", "enableColumnResizing",
-      "enableColumnPinning", "columnPinning", "initialColumnPinning", "onColumnPinningChange",
-      "persistKey",
       "enablePerColumnFilters", "enableFilterOperators", "columnFilters", "onColumnFiltersChange", "manualFiltering",
       "manualSorting",
       "renderSubRow", "expanded", "onExpandedChange",

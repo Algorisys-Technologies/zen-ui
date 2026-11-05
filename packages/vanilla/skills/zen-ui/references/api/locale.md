@@ -750,6 +750,8 @@ SKILL.md.
 - `dataTable.toggleColumns: string`
 - `dataTable.pinColumnTo: string`
 - `dataTable.resetColumns: string`
+- `dataTable.showColumn: string`
+- `dataTable.pinNone: string`
 - `dataTable.moveColumnHint: string`
 - `dataTable.unpinColumnFrom: string`
 - `dataTable.sideLeft: string`

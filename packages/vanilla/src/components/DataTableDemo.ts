@@ -75,6 +75,25 @@ const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
 
 /* -------------------------- columns -------------------------------- */
+// Section 29: the same four columns React's and Solid's section uses.
+const MANAGE_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", size: 180 },
+  { accessorKey: "role", header: "Role", size: 120 },
+  { accessorKey: "department", header: "Department", size: 150 },
+  { accessorKey: "salary", header: "Salary", size: 140, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+// Section 30: wide enough to scroll sideways.
+const WIDE_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", size: 180 },
+  { accessorKey: "email", header: "Email", size: 260 },
+  { accessorKey: "phone", header: "Phone", size: 170 },
+  { accessorKey: "role", header: "Role", size: 120 },
+  { accessorKey: "department", header: "Department", size: 160 },
+  { accessorKey: "location", header: "Location", size: 150 },
+  { accessorKey: "manager", header: "Manager", size: 180 },
+  { accessorKey: "salary", header: "Salary", size: 140, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+
 const columns: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name" },
   { accessorKey: "email", header: "Email" },
@@ -999,6 +1018,64 @@ DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true })
               onExport: (_format: ExportFormat, request: ExportRequest) =>
             // A stand-in for your endpoint: the visible columns, as CSV.
             Promise.resolve(new Blob([request.columns.map((c) => c.header).join(",") + "\n"], { type: "text/csv" })),
+            }).el,
+          );
+          return box;
+        },
+      },
+      {
+        title: "29. Manage columns from the keyboard",
+        codeTitle: "enableColumnVisibility, enableColumnOrdering, enableColumnResizing, persistKey",
+        codeDescription:
+          "Open Columns (Enter works): arrow to a column and press Alt+↑ or Alt+↓ to move it, Space to hide it; Reset columns restores order, widths, visibility and pinning. Drag a header sideways to move it. Tab to a header's right edge and use the arrow keys to resize it (Shift for bigger steps), or drag the edge. The layout is remembered (persistKey) until you reset it.",
+        code: `DataTable({
+  data: people, columns, enableSorting: true,
+  enableColumnVisibility: true, enableColumnOrdering: true, enableColumnResizing: true,
+  persistKey: "demo-manage-columns",
+});`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "manage-columns";
+          box.append(
+            DataTable({
+              data: SMALL,
+              columns: MANAGE_COLUMNS,
+              enableSorting: true,
+              enableColumnVisibility: true,
+              enableColumnOrdering: true,
+              enableColumnResizing: true,
+              persistKey: "demo-manage-columns",
+            }).el,
+          );
+          return box;
+        },
+      },
+      {
+        title: "30. Pinned columns",
+        codeTitle: "enableColumnPinning + initialColumnPinning",
+        codeDescription:
+          "Scroll sideways: Name stays on the left, Salary on the right. Change it from Columns: each column has its own submenu (show it; not pinned, left or right), all of it reachable from the keyboard.",
+        code: `DataTable({
+  data: people, columns: wideColumns, enableColumnVisibility: true,
+  enableColumnPinning: true, initialColumnPinning: { left: ["name"], right: ["salary"] },
+  enableColumnResizing: true,
+});`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "pinned-columns";
+          box.append(
+            DataTable({
+              data: MEDIUM,
+              columns: WIDE_COLUMNS,
+              enableColumnVisibility: true,
+              enableColumnPinning: true,
+              initialColumnPinning: { left: ["name"], right: ["salary"] },
+              enableColumnResizing: true,
+              enableRowSelection: true,
+              maxBodyHeight: 320,
+              stickyHeader: true,
             }).el,
           );
           return box;

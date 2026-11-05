@@ -2,7 +2,7 @@
  * DataTable column management's pure contract: a column's name, moving a
  * column by one place, and the keyboard resize step.
  */
-import { clampColumnSize, columnLabel, columnResizeDelta, moveColumn } from "../packages/core/src/columns";
+import { clampColumnSize, columnLabel, columnLayout, columnResizeDelta, moveColumn, orderedColumnIds } from "../packages/core/src/columns";
 
 let f = 0;
 let n = 0;
@@ -49,6 +49,21 @@ t(clampColumnSize(30, -64), 20, "stops at the default minimum");
 t(clampColumnSize(30, -64, 50), 50, "…or the column's own");
 t(clampColumnSize(390, 64, 20, 400), 400, "stops at the column's maximum");
 t(clampColumnSize(100.4, 16), 116, "whole pixels");
+
+console.log("\norderedColumnIds");
+const ids = ["a", "b", "c", "d"];
+t(orderedColumnIds(ids), ["a", "b", "c", "d"], "no order: definition order");
+t(orderedColumnIds(ids, ["c", "a"]), ["c", "a", "b", "d"], "listed ids first, the rest in definition order");
+t(orderedColumnIds(ids, ["zz", "b", "b"]), ["b", "a", "c", "d"], "unknown and repeated ids are dropped");
+
+console.log("\ncolumnLayout");
+t(columnLayout(ids), { left: [], center: ["a", "b", "c", "d"], right: [] }, "nothing set: all in the centre");
+t(columnLayout(ids, { visibility: { b: false, c: true } }), { left: [], center: ["a", "c", "d"], right: [] }, "false hides; true and absent show");
+t(columnLayout(ids, { order: ["d", "c"], pinning: { left: ["b"], right: ["a"] } }), { left: ["b"], center: ["d", "c"], right: ["a"] }, "pinned sides, the centre in column order");
+t(columnLayout(ids, { pinning: { left: ["c", "a"] } }).left, ["c", "a"], "left pins keep the pin list's order");
+t(columnLayout(ids, { visibility: { a: false }, pinning: { left: ["a"] } }).left, [], "a hidden pinned column is not shown");
+t(columnLayout(ids, { pinning: { left: ["a"], right: ["a"] } }), { left: ["a"], center: ["b", "c", "d"], right: [] }, "pinned to both sides counts as left");
+t(columnLayout(ids, { pinning: { left: ["zz"] } }).left, [], "an unknown pinned id is ignored");
 
 console.log(f ? `\n${f} FAILED (of ${n})` : `\nall ${n} passed`);
 process.exit(f ? 1 : 0);

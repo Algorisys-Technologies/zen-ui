@@ -62,6 +62,23 @@ issue / PR when its turn comes.
       `rowClassName`.
 - [ ] DataTable in vanilla: docs/vanilla-data-table.md (27 props, phases 1–5).
 
+## DataTable columns: follow-ups from the vanilla port (2026-11-05)
+
+- [ ] **A column's `size` is only a hint in the regular table, in every
+      binding.** Table layout is automatic and the table is 100% wide, so the
+      browser squeezes sized columns to fit: measured in React's pinning demo
+      at 1100px, Name 86 of 180px, Manager 84 of 180, and the table does not
+      scroll at all, which leaves pinning nothing to do. Fix in all bindings
+      together (a min-width per cell, or the table at least its total size),
+      measured with the route snapshots: it changes every sized table.
+- [ ] **Pinning in the older div-grid body (`enableVirtualization`)**: React
+      and Solid have it; vanilla's port did not reach it. Same for live width
+      feedback while dragging a resize handle there (applies on release).
+- [ ] **Converge the Columns menu's pinning UI**: vanilla's submenu per column
+      (Show column; Not pinned / Pin to left / Pin to right) is keyboard-
+      reachable; React's and Solid's in-row pin buttons are not (see the
+      12.4–12.6 section). Bring React and Solid to the submenu.
+
 ## Message catalogue: split per namespace (owner, 2026-11-05)
 
 12.3.0 shipped the parity pass with three React size budgets raised 10 kB

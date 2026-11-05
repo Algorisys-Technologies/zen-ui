@@ -76,7 +76,17 @@ lint ×4, `visual-check`, the route-snapshot comparison for vanilla and WC.
   It also surfaced React/Solid divergences (RichText `math` / `onImageUpload`,
   CodeEditor `loading` vs `loaderConfig`, PivotFilterMenu sort, DirectionProvider
   `locale`) and TreeTable's 7 controlled-state props in vanilla.
-- [ ] Phase 1: columns
+- [x] Phase 1: columns (2026-11-05). Visibility, ordering (header drag +
+  Alt+↑/↓ in the Columns menu), resizing (separator: drag or arrows), pinning
+  (sticky, offsets measured after layout, selection column sticks too),
+  `persistKey` (the same `zen-dt:` entry React and Solid write; measured
+  identical), Reset columns, `toolbarPlacement` for the Columns menu; vanilla
+  and `<zen-data-table>`. Driven in a browser by keyboard and pointer in both,
+  with the probe React and Solid passed. Not in this phase: pinning in the
+  older div-grid body (`enableVirtualization`), and live feedback while
+  dragging a resize handle there (the width applies on release). The Columns
+  menu with pinning uses a submenu per column (show; not pinned / left /
+  right), keyboard-reachable, unlike React's and Solid's pin buttons.
 - [ ] Phase 2: filters, server sorting
 - [ ] Phase 3: expandable rows
 - [ ] Phase 4: grouping

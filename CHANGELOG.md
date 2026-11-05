@@ -15,6 +15,30 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **Vanilla / web-components DataTable: column management** (phase 1 of
+  docs/vanilla-data-table.md). `enableColumnVisibility` (a Columns menu with
+  Reset columns), `enableColumnOrdering` (drag a header; Alt+ArrowUp /
+  Alt+ArrowDown on a column in the menu), `enableColumnResizing` (a focusable
+  `role="separator"`: drag it or arrow keys, 16px / Shift 64px),
+  `enableColumnPinning` + `columnPinning` / `initialColumnPinning` (sticky
+  columns, the selection column sticking with them), `persistKey` (the same
+  `zen-dt:` entry React and Solid write: a saved layout reads across bindings),
+  controlled `columnVisibility` and the `on…Change` callbacks; columns take
+  `enableHiding`, `enableResizing`, `minSize`, `maxSize`. On
+  `<zen-data-table>`: `enable-column-*` and `persist-key` attributes,
+  `zen-column-visibility-change` / `-order-change` / `-pinning-change` events.
+  Pure layout in core (`columnLayout`, `orderedColumnIds`; check:columns 36).
+  Driven in a browser by keyboard and pointer in both bindings with the probe
+  React and Solid passed; the saved entry measured byte-identical.
+  check:props: 11 DataTable gaps closed (33 known remain, 16 DataTable).
+  With pinning, the vanilla Columns menu gives each column a submenu (Show
+  column; Not pinned / Pin to left / Pin to right), all reachable by keyboard.
+- **`check:props`**: prop parity across bindings (see 12.6.0's follow-up);
+  in `bun run check`.
+- Vanilla DropdownMenu checkbox items take `id`, `onKeyDown` and
+  `keyshortcuts` (what the Columns menu's Alt+Arrow reorder needs).
+
 ## [12.6.0] - 2026-11-05
 
 ### Added

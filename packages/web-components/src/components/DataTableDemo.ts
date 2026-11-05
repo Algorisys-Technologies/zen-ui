@@ -81,6 +81,25 @@ function table(data: Person[], attrs: Record<string, string> = {}): HTMLElement 
 }
 
 /* -------------------------- columns -------------------------------- */
+// Section 29: the same four columns React's and Solid's section uses.
+const MANAGE_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", size: 180 },
+  { accessorKey: "role", header: "Role", size: 120 },
+  { accessorKey: "department", header: "Department", size: 150 },
+  { accessorKey: "salary", header: "Salary", size: 140, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+// Section 30: wide enough to scroll sideways.
+const WIDE_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", size: 180 },
+  { accessorKey: "email", header: "Email", size: 260 },
+  { accessorKey: "phone", header: "Phone", size: 170 },
+  { accessorKey: "role", header: "Role", size: 120 },
+  { accessorKey: "department", header: "Department", size: 160 },
+  { accessorKey: "location", header: "Location", size: 150 },
+  { accessorKey: "manager", header: "Manager", size: 180 },
+  { accessorKey: "salary", header: "Salary", size: 140, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+
 const columns: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name" },
   { accessorKey: "email", header: "Email" },
@@ -931,6 +950,54 @@ table.onExport = (format, request) =>
             // A stand-in for your endpoint: the visible columns, as CSV.
             Promise.resolve(new Blob([request.columns.map((c) => c.header).join(",") + "\n"], { type: "text/csv" }));
           box.append(el);
+          return box;
+        },
+      },
+      {
+        title: "29. Manage columns from the keyboard",
+        codeTitle: "enable-column-visibility, -ordering, -resizing, persist-key",
+        codeDescription:
+          "Open Columns (Enter works): arrow to a column and press Alt+↑ or Alt+↓ to move it, Space to hide it; Reset columns restores order, widths, visibility and pinning. Drag a header sideways to move it. Tab to a header's right edge and use the arrow keys to resize it (Shift for bigger steps), or drag the edge. The layout is remembered (persist-key) until you reset it.",
+        code: `<zen-data-table enable-sorting enable-column-visibility enable-column-ordering
+  enable-column-resizing persist-key="demo-manage-columns"></zen-data-table>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "manage-columns";
+          const t = el("zen-data-table", {
+            "enable-sorting": "",
+            "enable-column-visibility": "",
+            "enable-column-ordering": "",
+            "enable-column-resizing": "",
+            "persist-key": "demo-manage-columns",
+          });
+          (t as unknown as { columns: DataTableColumn<Person>[] }).columns = MANAGE_COLUMNS;
+          (t as unknown as { data: Person[] }).data = SMALL;
+          box.append(t);
+          return box;
+        },
+      },
+      {
+        title: "30. Pinned columns",
+        codeTitle: "enable-column-pinning + initialColumnPinning",
+        codeDescription:
+          "Scroll sideways: Name stays on the left, Salary on the right. Change it from Columns: each column has its own submenu (show it; not pinned, left or right), all of it reachable from the keyboard.",
+        code: `<zen-data-table enable-column-visibility enable-column-pinning enable-column-resizing></zen-data-table>
+<script>el.initialColumnPinning = { left: ["name"], right: ["salary"] };</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "pinned-columns";
+          const t = el("zen-data-table", {
+            "enable-column-visibility": "",
+            "enable-column-pinning": "",
+            "enable-column-resizing": "",
+            "enable-row-selection": "",
+            "sticky-header": "",
+            "max-body-height": "320",
+          });
+          Object.assign(t, { columns: WIDE_COLUMNS, data: MEDIUM, initialColumnPinning: { left: ["name"], right: ["salary"] } });
+          box.append(t);
           return box;
         },
       },

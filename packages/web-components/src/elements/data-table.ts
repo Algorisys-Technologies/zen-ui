@@ -17,7 +17,9 @@ import { defineZenElement } from "../lib/define";
 // value }), `zen-cells-edit` (detail: the edits, a paste or a Delete over a
 // range with enable-cell-navigation; when nobody listens for it, each edit
 // fires zen-cell-edit instead, as onCellsEdit absent does in the factory) and
-// `zen-row-order-change` (detail: the row ids in their new order).
+// `zen-row-order-change` (detail: the row ids in their new order). Column
+// layout: `zen-column-visibility-change` / `-order-change` / `-pinning-change`
+// (detail: the new state); `persist-key` remembers it across reloads.
 defineZenElement<DataTableProps<Record<string, unknown>>>({
   tag: "zen-data-table",
   factory: DataTable,
@@ -39,6 +41,11 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "export-filename": "string",
     "header-variant": "string",
     "toolbar-placement": "string",
+    "enable-column-visibility": "boolean",
+    "enable-column-ordering": "boolean",
+    "enable-column-resizing": "boolean",
+    "enable-column-pinning": "boolean",
+    "persist-key": "string",
     "sticky-header": "boolean",
     "page-size": "number",
     "max-body-height": "number",
@@ -55,6 +62,9 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "pageSizeOptions",
     "getRowId",
     "rowClassName",
+    "columnVisibility",
+    "columnPinning",
+    "initialColumnPinning",
     "manualPagination",
     "sorting",
     "rowSelection",
@@ -72,6 +82,9 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     onCellEdit: "zen-cell-edit",
     onCellsEdit: "zen-cells-edit",
     onRowOrderChange: "zen-row-order-change",
+    onColumnVisibilityChange: "zen-column-visibility-change",
+    onColumnOrderChange: "zen-column-order-change",
+    onColumnPinningChange: "zen-column-pinning-change",
   },
   childrenProp: false,
 });
