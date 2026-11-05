@@ -15,6 +15,75 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.7.0] - 2026-11-06
+
+### Added
+- **Vanilla / web-components DataTable: column management** (phase 1 of
+  docs/vanilla-data-table.md). `enableColumnVisibility` (a Columns menu with
+  Reset columns), `enableColumnOrdering` (drag a header; Alt+ArrowUp /
+  Alt+ArrowDown on a column in the menu), `enableColumnResizing` (a focusable
+  `role="separator"`: drag it or arrow keys, 16px / Shift 64px),
+  `enableColumnPinning` + `columnPinning` / `initialColumnPinning` (sticky
+  columns, the selection column sticking with them), `persistKey` (the same
+  `zen-dt:` entry React and Solid write: a saved layout reads across bindings),
+  controlled `columnVisibility` and the `on…Change` callbacks; columns take
+  `enableHiding`, `enableResizing`, `minSize`, `maxSize`. On
+  `<zen-data-table>`: `enable-column-*` and `persist-key` attributes,
+  `zen-column-visibility-change` / `-order-change` / `-pinning-change` events.
+  Pure layout in core (`columnLayout`, `orderedColumnIds`; check:columns 36).
+  Driven in a browser by keyboard and pointer in both bindings with the probe
+  React and Solid passed; the saved entry measured byte-identical.
+  check:props: 11 DataTable gaps closed (33 known remain, 16 DataTable).
+  With pinning, the vanilla Columns menu gives each column a submenu (Show
+  column; Not pinned / Pin to left / Pin to right), all reachable by keyboard.
+- **Vanilla / web-components DataTable: per-column filters and server-side
+  filtering and sorting** (phase 2). `enablePerColumnFilters` with
+  `meta.filterVariant` (text and number with operators, numberRange, select,
+  boolean) and `meta.filterOptions`; active filters as removable chips with
+  Clear all (the search term too, as React shows it); `enableFilterOperators`
+  (off: text filters are bare strings); controlled `columnFilters` +
+  `onColumnFiltersChange`; `manualFiltering` / `manualSorting`. On
+  `<zen-data-table>`: `enable-per-column-filters`, `enable-filter-operators`,
+  `manual-filtering`, `manual-sorting`, `zen-column-filters-change`. The
+  matching lives in core/column-filter (check:column-filter, 35), measured
+  identical to React's TanStack FilterFns over 570 value/filter/variant
+  combinations. Filter inputs are kept across repaints so typing keeps focus,
+  caret and IME composition. The filter types (FilterVariant, TextOp, …) are
+  exported, as from React and Solid. check:props: 6 more closed.
+- **Vanilla / web-components DataTable: expandable rows** (phase 3).
+  `renderSubRow` (a chevron column; the open row shows a full-width detail
+  row), controlled `expanded` + `onExpandedChange`; on `<zen-data-table>` the
+  `renderSubRow` / `expanded` properties and `zen-expanded-change`. In row
+  virtualization an open row and its detail are one measured item.
+  check:props: 3 more closed (10 known remain in DataTable).
+- **Vanilla / web-components DataTable: row grouping** (phase 4).
+  `enableGrouping`, controlled `grouping` / `initialGrouping` +
+  `onGroupingChange`; a "Group by" / "Group by (N)" menu; group rows
+  "value (N)" that expand and collapse (by keyboard too), subtotals from
+  `meta.aggregate`, nesting by several columns, grouped columns leading, and
+  pages that count group rows (TanStack's semantics, measured on React's demo:
+  the subtotals match it). Columns opt out with `enableGrouping: false`. On
+  `<zen-data-table>`: `enable-grouping`, `grouping` / `initialGrouping`,
+  `zen-grouping-change`. check:props: 4 more closed.
+- **Vanilla / web-components DataTable: client export and bulk actions**
+  (phase 5, the last). `enableExport` (CSV / JSON of the filtered rows in data
+  order, React's formats), `exportOnlySelected`, `renderBulkActions` (count,
+  "Select all N matching" after a whole page is selected, your actions,
+  clear). With it vanilla's DataTable has every prop React's and Solid's have:
+  check:props lists 0 DataTable gaps (27 at the start).
+- **`check:props`**: prop parity across bindings (see 12.6.0's follow-up);
+  in `bun run check`.
+- Vanilla DropdownMenu checkbox items take `id`, `onKeyDown` and
+  `keyshortcuts` (what the Columns menu's Alt+Arrow reorder needs).
+
+### Fixed
+- **Vanilla Select and NumberField: an `aria-label` named nothing.** Both put
+  `aria-*` on their wrapper `div`, so the combobox / number input itself was
+  announced unnamed (React and Solid put it on the control). They go on the
+  control now; Select also stops leaking `value` / `onValueChange` onto the
+  wrapper as attributes, and keeps a caller's `aria-describedby` alongside its
+  error message. Found by the per-column filter probe.
+
 ## [12.6.0] - 2026-11-05
 
 ### Added

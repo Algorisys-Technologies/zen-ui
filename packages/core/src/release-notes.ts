@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.7.0",
+    date: "2026-11-06",
+    kind: "new",
+    title: "Vanilla and web-components DataTable: every React and Solid feature",
+    detail: "Show, hide, move, resize and pin columns; per-column filters; server filtering and sorting; expandable rows; grouping with subtotals; CSV / JSON export and bulk actions.",
+  },
+  {
+    version: "12.7.0",
+    date: "2026-11-06",
+    kind: "fixed",
+    title: "Vanilla Select and NumberField: an aria-label now names the control",
+    detail: "It landed on a wrapper, so screen readers announced the control without a name.",
+  },
+  {
     version: "12.6.0",
     date: "2026-11-05",
     kind: "new",

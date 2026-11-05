@@ -83,3 +83,45 @@ export function columnResizeDelta(key: string, opts: { shift?: boolean; rtl?: bo
 export function clampColumnSize(size: number, delta: number, min = 20, max = Number.MAX_SAFE_INTEGER): number {
   return Math.min(Math.max(Math.round(size + delta), min), max);
 }
+
+/** A table's column layout state: TanStack's columnOrder / Visibility / Pinning. */
+export interface ColumnLayoutState {
+  /** Ids first, in this order; the rest follow in definition order. */
+  order?: readonly string[];
+  /** `false` hides a column; anything else (or absent) shows it. */
+  visibility?: Readonly<Record<string, boolean>>;
+  pinning?: { left?: readonly string[]; right?: readonly string[] };
+}
+
+/**
+ * Leaf ids in `order`, as TanStack orders them: the ids `order` names (that
+ * exist), in that order, then every other id in definition order. Hidden and
+ * pinned columns included: this is the Columns menu's order.
+ */
+export function orderedColumnIds(ids: readonly string[], order: readonly string[] = []): string[] {
+  const known = new Set(ids);
+  const first = order.filter((id, i) => known.has(id) && order.indexOf(id) === i);
+  const listed = new Set(first);
+  return [...first, ...ids.filter((id) => !listed.has(id))];
+}
+
+/**
+ * The visible columns, split the way they render: left-pinned (in the pin
+ * list's order), then the rest in column order, then right-pinned. A column
+ * pinned to both sides counts as left; a hidden pinned column is not shown.
+ */
+export function columnLayout(
+  ids: readonly string[],
+  state: ColumnLayoutState = {},
+): { left: string[]; center: string[]; right: string[] } {
+  const visible = (id: string) => state.visibility?.[id] !== false;
+  const known = new Set(ids);
+  const pick = (list: readonly string[] = []) =>
+    list.filter((id, i) => known.has(id) && visible(id) && list.indexOf(id) === i);
+  const left = pick(state.pinning?.left);
+  const leftSet = new Set(left);
+  const right = pick(state.pinning?.right).filter((id) => !leftSet.has(id));
+  const pinned = new Set([...left, ...right]);
+  const center = orderedColumnIds(ids, state.order).filter((id) => visible(id) && !pinned.has(id));
+  return { left, center, right };
+}

@@ -164,7 +164,23 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   };
 
   const render = () => {
-    const { options, class: className, label, errorMessage, invalid, disabled, name, placeholder: _p, ...rest } = current;
+    const {
+      options,
+      class: className,
+      label,
+      errorMessage,
+      invalid,
+      disabled,
+      name,
+      placeholder: _p,
+      // Read through `current` where they are used; not attributes for the wrapper.
+      value: _v,
+      onValueChange: _ovc,
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledBy,
+      "aria-describedby": ariaDescribedBy,
+      ...rest
+    } = current as SelectProps & Record<string, unknown>;
 
     el.className = cn("zen-relative zen-w-full", className);
     el.replaceChildren();
@@ -184,14 +200,24 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     trigger.setAttribute("aria-haspopup", "listbox");
     trigger.setAttribute("aria-expanded", String(open));
     trigger.setAttribute("aria-controls", `${id}-listbox`);
-    if (errorMessage) {
-      trigger.setAttribute("aria-invalid", "true");
-      trigger.setAttribute("aria-describedby", `${id}-error`);
-    } else {
-      if (invalid) trigger.setAttribute("aria-invalid", "true");
-      else trigger.removeAttribute("aria-invalid");
-      trigger.removeAttribute("aria-describedby");
+    // The combobox is what a screen reader names, so its label goes on the
+    // trigger, not the wrapper div (where it named nothing: an unnamed
+    // combobox). The same fix the Solid Select had.
+    for (const [attr, v] of [
+      ["aria-label", ariaLabel],
+      ["aria-labelledby", ariaLabelledBy],
+    ] as const) {
+      if (typeof v === "string" && v) trigger.setAttribute(attr, v);
+      else trigger.removeAttribute(attr);
     }
+    // Described by the caller's ids and, with an error, the error message.
+    const described = [typeof ariaDescribedBy === "string" ? ariaDescribedBy : "", errorMessage ? `${id}-error` : ""]
+      .filter(Boolean)
+      .join(" ");
+    if (described) trigger.setAttribute("aria-describedby", described);
+    else trigger.removeAttribute("aria-describedby");
+    if (errorMessage || invalid) trigger.setAttribute("aria-invalid", "true");
+    else trigger.removeAttribute("aria-invalid");
     trigger.disabled = Boolean(disabled);
     trigger.className = cn(
       "zen-flex zen-items-center zen-justify-between zen-gap-2 zen-h-zen-control zen-px-zen-control-x zen-w-full",

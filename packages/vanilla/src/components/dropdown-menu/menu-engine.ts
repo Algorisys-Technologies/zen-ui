@@ -60,6 +60,13 @@ export interface DropdownMenuCheckboxItemSpec {
    * `onSelect={(e) => e.preventDefault()}`).
    */
   closeOnSelect?: boolean;
+  /** Set as `data-item-id`, so a caller can find the row again (to refocus it). */
+  id?: string;
+  /** Keys on the row, before the menu's own: call `preventDefault()` +
+   *  `stopPropagation()` to take a key (DataTable's Alt+ArrowUp/Down reorder). */
+  onKeyDown?: (e: KeyboardEvent, row: HTMLElement) => void;
+  /** `aria-keyshortcuts`: announces a key the row handles itself. */
+  keyshortcuts?: string;
 }
 
 export interface DropdownMenuRadioOption {
@@ -305,6 +312,13 @@ export function createMenuEngine({
       item.setAttribute("aria-checked", String(Boolean(s.checked)));
       item.setAttribute("data-state", s.checked ? "checked" : "unchecked");
       item.tabIndex = -1;
+      if (s.id !== undefined) item.dataset.itemId = s.id;
+      if (s.keyshortcuts) item.setAttribute("aria-keyshortcuts", s.keyshortcuts);
+      if (s.onKeyDown) {
+        const onKey = (e: KeyboardEvent) => s.onKeyDown!(e, item);
+        item.addEventListener("keydown", onKey);
+        disposer.add(() => item.removeEventListener("keydown", onKey));
+      }
       if (s.disabled) item.setAttribute("aria-disabled", "true");
       item.className = CHECK_ITEM_CLASS;
       const indicator = svgSpan(INDICATOR_CLASS, CHECK_ICON);

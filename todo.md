@@ -49,6 +49,48 @@ issue / PR when its turn comes.
       text-transform / letter-spacing without the preflight, as DataTable's sort
       label did. Measure with the head tokens set, the way 12.6.0 did.
 
+## Prop divergences found by check:props (2026-11-05)
+
+`scripts/check-props.ts` KNOWN lists them; each closed one is a deleted line.
+- [ ] RichText `math`, `onImageUpload`: React only (Solid, vanilla lack them).
+- [ ] CodeEditor: React `loading` vs Solid `loaderConfig`; reconcile to one API
+      (vanilla has both).
+- [ ] PivotFilterMenu `onSort` / `sortDirection`: Solid only.
+- [ ] DirectionProvider `locale`: Solid only.
+- [ ] TreeTable controlled state in vanilla: `expanded`, `globalFilter`,
+      `onGlobalFilterChange`, `sorting`, `onSortingChange`, `rowSelection`,
+      `rowClassName`.
+- [x] DataTable in vanilla: docs/vanilla-data-table.md (27 props, phases 1–5). ✓ 2026-11-05: all five phases; check:props 0 DataTable gaps.
+
+## DataTable columns: follow-ups from the vanilla port (2026-11-05)
+
+- [ ] **A column's `size` is only a hint in the regular table, in every
+      binding.** Table layout is automatic and the table is 100% wide, so the
+      browser squeezes sized columns to fit: measured in React's pinning demo
+      at 1100px, Name 86 of 180px, Manager 84 of 180, and the table does not
+      scroll at all, which leaves pinning nothing to do. Fix in all bindings
+      together (a min-width per cell, or the table at least its total size),
+      measured with the route snapshots: it changes every sized table.
+- [ ] **The per-column filter row's controls are badly sized in every
+      binding**: a text filter beside its operator select is squeezed to a stub
+      in a narrow column (React's Name filter measures ~28px), and number
+      filters use the full-height NumberField with −/+ steppers, so a range
+      filter is wider than most columns. Fix together: a min width for filter
+      cells, and a compact number input without steppers in the filter row.
+- [ ] **Grouping in vanilla with row virtualization or the div grid**: phase 4
+      grouped the regular table only. React and Solid group in both.
+- [ ] **React / Solid show an always-empty "Expand" column when grouping
+      without `renderSubRow`** (the group expander lives in the group cell).
+      Vanilla shows the expand column only for `renderSubRow`; drop it in React
+      and Solid too, measured with the route snapshots.
+- [ ] **Pinning in the older div-grid body (`enableVirtualization`)**: React
+      and Solid have it; vanilla's port did not reach it. Same for live width
+      feedback while dragging a resize handle there (applies on release).
+- [ ] **Converge the Columns menu's pinning UI**: vanilla's submenu per column
+      (Show column; Not pinned / Pin to left / Pin to right) is keyboard-
+      reachable; React's and Solid's in-row pin buttons are not (see the
+      12.4–12.6 section). Bring React and Solid to the submenu.
+
 ## Message catalogue: split per namespace (owner, 2026-11-05)
 
 12.3.0 shipped the parity pass with three React size budgets raised 10 kB
@@ -69,9 +111,9 @@ minified), so a bundler keeps all of it.
 
 ## Vanilla DataTable: the features it never had (found 2026-11-05)
 
-- [ ] Grouping (and so group subtotals), per-column filters (and so
+- [x] Grouping (and so group subtotals), per-column filters (and so
       `enableFilterOperators`), expandable rows (`renderSubRow`), column
-      visibility / pinning / resizing / ordering. React and Solid have them;
+      visibility / pinning / resizing / ordering. ✓ 2026-11-05: the vanilla port. React and Solid have them;
       the parity pass ported only 12.2.0's additions. check:parity cannot see
       a missing PROP, which is how this stayed hidden.
 

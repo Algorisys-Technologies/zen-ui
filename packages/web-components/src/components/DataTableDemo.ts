@@ -81,6 +81,69 @@ function table(data: Person[], attrs: Record<string, string> = {}): HTMLElement 
 }
 
 /* -------------------------- columns -------------------------------- */
+/** Section 33: what an expanded row shows. */
+function personDetail(p: Person): HTMLElement {
+  const d = document.createElement("div");
+  d.className = "zen-px-6 zen-py-3 zen-text-sm zen-text-zen-muted-fg";
+  d.dataset.detail = p.id;
+  d.textContent = `${p.name} · ${p.department}, ${p.location} · reports to ${p.manager} · ${p.phone}`;
+  return d;
+}
+
+// Section 34: React's grouping demo (section 23), with zen totals as subtotals.
+const GROUP_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "role", header: "Role" },
+  { accessorKey: "name", header: "Name", enableGrouping: false },
+  { accessorKey: "salary", header: "Salary", enableGrouping: false, meta: { aggregate: "sum" }, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+  { accessorKey: "status", header: "Status", meta: { aggregate: "count" } },
+  { accessorKey: "department", header: "Department" },
+];
+
+// Sections 31-32: one column per filter variant.
+const FILTER_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "status", header: "Status", meta: { filterVariant: "select", filterOptions: STATUSES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "joinedYear", header: "Joined", meta: { filterVariant: "number" } },
+  { accessorKey: "salary", header: "Salary", meta: { filterVariant: "numberRange" }, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+  { id: "admin", header: "Admin", accessorFn: (p) => p.role === "Admin", meta: { filterVariant: "boolean" }, cell: ({ row }) => (row.role === "Admin" ? "Yes" : "No") },
+];
+const SERVER_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "salary", header: "Salary", cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+/** A stand-in for your endpoint: it reads the request the table reports. */
+function serverQuery(filters: { id: string; value: unknown }[], sorting: { id: string; desc: boolean }[]): Person[] {
+  let rows = MEDIUM.filter((p) =>
+    filters.every((f) =>
+      f.id === "name" ? p.name.toLowerCase().includes(String(f.value).toLowerCase()) : f.id === "role" ? p.role === f.value : true,
+    ),
+  );
+  const s = sorting[0];
+  if (s) rows = [...rows].sort((a, b) => (a[s.id as keyof Person] > b[s.id as keyof Person] ? 1 : -1) * (s.desc ? -1 : 1));
+  return rows;
+}
+
+// Section 29: the same four columns React's and Solid's section uses.
+const MANAGE_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", size: 180 },
+  { accessorKey: "role", header: "Role", size: 120 },
+  { accessorKey: "department", header: "Department", size: 150 },
+  { accessorKey: "salary", header: "Salary", size: 140, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+// Section 30: wide enough to scroll sideways.
+const WIDE_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", size: 180 },
+  { accessorKey: "email", header: "Email", size: 260 },
+  { accessorKey: "phone", header: "Phone", size: 170 },
+  { accessorKey: "role", header: "Role", size: 120 },
+  { accessorKey: "department", header: "Department", size: 160 },
+  { accessorKey: "location", header: "Location", size: 150 },
+  { accessorKey: "manager", header: "Manager", size: 180 },
+  { accessorKey: "salary", header: "Salary", size: 140, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+
 const columns: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name" },
   { accessorKey: "email", header: "Email" },
@@ -931,6 +994,194 @@ table.onExport = (format, request) =>
             // A stand-in for your endpoint: the visible columns, as CSV.
             Promise.resolve(new Blob([request.columns.map((c) => c.header).join(",") + "\n"], { type: "text/csv" }));
           box.append(el);
+          return box;
+        },
+      },
+      {
+        title: "29. Manage columns from the keyboard",
+        codeTitle: "enable-column-visibility, -ordering, -resizing, persist-key",
+        codeDescription:
+          "Open Columns (Enter works): arrow to a column and press Alt+↑ or Alt+↓ to move it, Space to hide it; Reset columns restores order, widths, visibility and pinning. Drag a header sideways to move it. Tab to a header's right edge and use the arrow keys to resize it (Shift for bigger steps), or drag the edge. The layout is remembered (persist-key) until you reset it.",
+        code: `<zen-data-table enable-sorting enable-column-visibility enable-column-ordering
+  enable-column-resizing persist-key="demo-manage-columns"></zen-data-table>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "manage-columns";
+          const t = el("zen-data-table", {
+            "enable-sorting": "",
+            "enable-column-visibility": "",
+            "enable-column-ordering": "",
+            "enable-column-resizing": "",
+            "persist-key": "demo-manage-columns",
+          });
+          (t as unknown as { columns: DataTableColumn<Person>[] }).columns = MANAGE_COLUMNS;
+          (t as unknown as { data: Person[] }).data = SMALL;
+          box.append(t);
+          return box;
+        },
+      },
+      {
+        title: "30. Pinned columns",
+        codeTitle: "enable-column-pinning + initialColumnPinning",
+        codeDescription:
+          "Scroll sideways: Name stays on the left, Salary on the right. Change it from Columns: each column has its own submenu (show it; not pinned, left or right), all of it reachable from the keyboard.",
+        code: `<zen-data-table enable-column-visibility enable-column-pinning enable-column-resizing></zen-data-table>
+<script>el.initialColumnPinning = { left: ["name"], right: ["salary"] };</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "pinned-columns";
+          const t = el("zen-data-table", {
+            "enable-column-visibility": "",
+            "enable-column-pinning": "",
+            "enable-column-resizing": "",
+            "enable-row-selection": "",
+            "sticky-header": "",
+            "max-body-height": "320",
+          });
+          Object.assign(t, { columns: WIDE_COLUMNS, data: MEDIUM, initialColumnPinning: { left: ["name"], right: ["salary"] } });
+          box.append(t);
+          return box;
+        },
+      },
+      {
+        title: "31. Per-column filters",
+        codeTitle: "enable-per-column-filters + meta.filterVariant",
+        codeDescription:
+          "A filter row under the header: text with an operator (contains, equals, starts, ends), a select, a number with an operator, a range, and yes / no. Active filters show as chips above the table; remove one, or Clear all.",
+        code: `<zen-data-table enable-per-column-filters enable-column-filters enable-sorting enable-pagination></zen-data-table>
+<script>el.columns = [ …, { accessorKey: "salary", header: "Salary", meta: { filterVariant: "numberRange" } } ];</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "column-filters";
+          const t = el("zen-data-table", { "enable-per-column-filters": "", "enable-column-filters": "", "enable-sorting": "", "enable-pagination": "" });
+          Object.assign(t, { columns: FILTER_COLUMNS, data: MEDIUM });
+          box.append(t);
+          return box;
+        },
+      },
+      {
+        title: "32. Filtering and sorting on the server",
+        codeTitle: "manual-filtering + manual-sorting, enable-filter-operators=\"false\"",
+        codeDescription:
+          "The table takes data as already filtered and sorted, and reports each change for you to re-fetch. Operators are off: a server that only does contains / equals must not be offered starts-with. Below: what your endpoint would receive.",
+        code: `<zen-data-table enable-sorting enable-per-column-filters enable-filter-operators="false"
+  manual-filtering manual-sorting></zen-data-table>
+<script>
+  el.addEventListener("zen-column-filters-change", (e) => refetch({ filters: e.detail }));
+  el.addEventListener("zen-sorting-change", (e) => refetch({ sorting: e.detail }));
+</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-2";
+          box.dataset.testid = "server-filters";
+          const said = document.createElement("pre");
+          said.className = "zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs";
+          said.dataset.testid = "server-request";
+          let filters: { id: string; value: unknown }[] = [];
+          let sorting: { id: string; desc: boolean }[] = [];
+          const t = el("zen-data-table", {
+            "enable-sorting": "",
+            "enable-per-column-filters": "",
+            "enable-filter-operators": "false",
+            "manual-filtering": "",
+            "manual-sorting": "",
+          }) as HTMLElement & { data: Person[] };
+          const refetch = () => {
+            said.textContent = JSON.stringify({ filters, sorting });
+            t.data = serverQuery(filters, sorting);
+          };
+          t.addEventListener("zen-column-filters-change", (e) => {
+            filters = (e as CustomEvent).detail;
+            refetch();
+          });
+          t.addEventListener("zen-sorting-change", (e) => {
+            sorting = (e as CustomEvent).detail;
+            refetch();
+          });
+          Object.assign(t, { columns: SERVER_COLUMNS, data: serverQuery(filters, sorting) });
+          said.textContent = JSON.stringify({ filters, sorting });
+          box.append(t, said);
+          return box;
+        },
+      },
+      {
+        title: "33. Expandable rows",
+        codeTitle: "renderSubRow (+ expanded / zen-expanded-change)",
+        codeDescription:
+          "A chevron column toggles a detail row under each row. It works in a paged table and inside row virtualization, where an open row and its detail scroll as one.",
+        code: `<zen-data-table enable-pagination></zen-data-table>
+<script>el.renderSubRow = ({ row }) => personDetail(row);</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-4";
+          box.dataset.testid = "expandable";
+          const paged = el("zen-data-table", { "enable-pagination": "" });
+          Object.assign(paged, { columns, data: MEDIUM, getRowId: (p: Person) => p.id, renderSubRow: ({ row }: { row: Person }) => personDetail(row) });
+          const pw = document.createElement("div");
+          pw.dataset.testid = "expandable-paged";
+          pw.append(paged);
+          const virt = el("zen-data-table", { "enable-row-virtualization": "", "max-body-height": "320" });
+          Object.assign(virt, { columns, data: LARGE, getRowId: (p: Person) => p.id, renderSubRow: ({ row }: { row: Person }) => personDetail(row) });
+          const vw = document.createElement("div");
+          vw.dataset.testid = "expandable-virtual";
+          vw.append(virt);
+          box.append(pw, vw);
+          return box;
+        },
+      },
+      {
+        title: "34. Row grouping",
+        codeTitle: "enable-grouping + initialGrouping, subtotals from meta.aggregate",
+        codeDescription:
+          'Rows that share the grouped column\'s value nest under a "value (N)" row that expands and collapses. Columns with meta.aggregate show the group\'s subtotal there. The Group by menu adds and removes columns; grouping by two nests them.',
+        code: `<zen-data-table enable-grouping enable-sorting enable-pagination></zen-data-table>
+<script>el.initialGrouping = ["role"];</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "grouping";
+          const t = el("zen-data-table", { "enable-grouping": "", "enable-sorting": "", "enable-pagination": "" });
+          Object.assign(t, { columns: GROUP_COLUMNS, data: MEDIUM, initialGrouping: ["role"] });
+          box.append(t);
+          return box;
+        },
+      },
+      {
+        title: "35. Export and bulk actions",
+        codeTitle: "enable-export + export-only-selected, renderBulkActions",
+        codeDescription:
+          "Select rows: a bar shows how many, offers to select every matching row when a whole page is selected, and holds your actions. Export downloads the selected rows (all rows when none is selected) as CSV or JSON.",
+        code: `<zen-data-table enable-row-selection enable-pagination enable-export export-only-selected></zen-data-table>
+<script>el.renderBulkActions = ({ rows, clear }) => [archiveButton(rows, clear)];</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-2";
+          box.dataset.testid = "bulk";
+          const said = document.createElement("p");
+          said.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+          said.dataset.testid = "bulk-said";
+          said.textContent = "Nothing done yet.";
+          const t = el("zen-data-table", { "enable-row-selection": "", "enable-pagination": "", "enable-export": "", "export-only-selected": "", "export-filename": "people" });
+          Object.assign(t, {
+            columns,
+            data: MEDIUM,
+            getRowId: (p: Person) => p.id,
+            renderBulkActions: ({ rows, ids, clear }: { rows: Person[]; ids: string[]; clear: () => void }) => {
+              const b = document.createElement("zen-button");
+              b.setAttribute("size", "sm");
+              b.setAttribute("variant", "outline");
+              b.textContent = "Archive";
+              b.addEventListener("click", () => {
+                said.textContent = `Archived ${rows.length}: ${ids.join(", ")}`;
+                clear();
+              });
+              return [b];
+            },
+          });
+          box.append(t, said);
           return box;
         },
       },

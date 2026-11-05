@@ -384,6 +384,13 @@ its demos):
   Checkbox → `Checkbox.Input`, RadioGroupItem → `ItemInput`, Select → the
   `Trigger` button. Verified: clicking the external label now toggles/selects the
   Solid control.
+- **Props** — `check:parity` compares EXPORTS and cannot see a missing PROP:
+  vanilla's DataTable lacked 27 of React's and Solid's props through releases
+  that called the bindings level. `check:props` (in `bun run check`) compares
+  every `XxxProps` interface declared in two or more bindings. Its `KNOWN`
+  list is the gap ledger and may only shrink: a new gap fails, and so does a
+  listed gap that has been closed. Add a prop to one binding only with a
+  `KNOWN` line saying why.
 
 Before adding anything new, check the delta:
 

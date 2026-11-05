@@ -252,6 +252,15 @@ export { Chart } from "./components/chart/chart";
 export type { ChartProps, ChartSeries } from "./components/chart/chart";
 export type { Slice } from "@algorisys/zen-ui-core/chart";
 export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
+// DataTable per-column filter types (meta.filterVariant), shared with React and Solid.
+export type {
+  FilterVariant,
+  TextOp,
+  TextFilterValue,
+  NumberOp,
+  NumberFilterValue,
+  NumberRangeFilterValue,
+} from "@algorisys/zen-ui-core/column-filter";
 
 // AnalyticChart (ECharts, optional peer dep, loaded on first chart)
 export { AnalyticChart } from "./components/analytic-chart/analytic-chart";
