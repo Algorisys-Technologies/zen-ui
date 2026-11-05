@@ -33,6 +33,27 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.5.0",
+    date: "2026-11-05",
+    kind: "fixed",
+    title: "Solid: menus no longer freeze the page when opened from the keyboard",
+    detail: "Enter, Space or the down arrow on any dropdown menu's button hung the tab, DataTable's Columns, Export and Group-by menus included.",
+  },
+  {
+    version: "12.5.0",
+    date: "2026-11-05",
+    kind: "new",
+    title: "DataTable: resize and reorder columns from the keyboard, and Reset columns",
+    detail: "Arrow keys on a header's edge resize it; Alt+↑ / Alt+↓ in the Columns menu moves a column; Reset columns restores the original layout.",
+  },
+  {
+    version: "12.5.0",
+    date: "2026-11-05",
+    kind: "new",
+    title: "DataTable: meta.label names a column whose header is a component",
+    detail: "Used by the Columns menu, screen-reader labels and export headings instead of the column id.",
+  },
+  {
     version: "12.4.0",
     date: "2026-11-05",
     kind: "new",

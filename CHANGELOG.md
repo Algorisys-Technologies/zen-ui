@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.5.0] - 2026-11-05
+
 ### Added
 - **DataTable `meta.label`** (React, Solid): a column's plain-text name, for
   when `header` is a function (a span that right-aligns a figure column, an
