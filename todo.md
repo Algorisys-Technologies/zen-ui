@@ -49,6 +49,19 @@ issue / PR when its turn comes.
       text-transform / letter-spacing without the preflight, as DataTable's sort
       label did. Measure with the head tokens set, the way 12.6.0 did.
 
+## Prop divergences found by check:props (2026-11-05)
+
+`scripts/check-props.ts` KNOWN lists them; each closed one is a deleted line.
+- [ ] RichText `math`, `onImageUpload`: React only (Solid, vanilla lack them).
+- [ ] CodeEditor: React `loading` vs Solid `loaderConfig`; reconcile to one API
+      (vanilla has both).
+- [ ] PivotFilterMenu `onSort` / `sortDirection`: Solid only.
+- [ ] DirectionProvider `locale`: Solid only.
+- [ ] TreeTable controlled state in vanilla: `expanded`, `globalFilter`,
+      `onGlobalFilterChange`, `sorting`, `onSortingChange`, `rowSelection`,
+      `rowClassName`.
+- [ ] DataTable in vanilla: docs/vanilla-data-table.md (27 props, phases 1–5).
+
 ## Message catalogue: split per namespace (owner, 2026-11-05)
 
 12.3.0 shipped the parity pass with three React size budgets raised 10 kB
