@@ -69,6 +69,8 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "rowClassName",
     "columnVisibility",
     "columnFilters",
+    "renderSubRow",
+    "expanded",
     "columnPinning",
     "initialColumnPinning",
     "manualPagination",
@@ -92,6 +94,7 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     onColumnOrderChange: "zen-column-order-change",
     onColumnPinningChange: "zen-column-pinning-change",
     onColumnFiltersChange: "zen-column-filters-change",
+    onExpandedChange: "zen-expanded-change",
   },
   childrenProp: false,
 });

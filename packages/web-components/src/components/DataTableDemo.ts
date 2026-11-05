@@ -81,6 +81,15 @@ function table(data: Person[], attrs: Record<string, string> = {}): HTMLElement 
 }
 
 /* -------------------------- columns -------------------------------- */
+/** Section 33: what an expanded row shows. */
+function personDetail(p: Person): HTMLElement {
+  const d = document.createElement("div");
+  d.className = "zen-px-6 zen-py-3 zen-text-sm zen-text-zen-muted-fg";
+  d.dataset.detail = p.id;
+  d.textContent = `${p.name} · ${p.department}, ${p.location} · reports to ${p.manager} · ${p.phone}`;
+  return d;
+}
+
 // Sections 31-32: one column per filter variant.
 const FILTER_COLUMNS: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name" },
@@ -1086,6 +1095,31 @@ table.onExport = (format, request) =>
           Object.assign(t, { columns: SERVER_COLUMNS, data: serverQuery(filters, sorting) });
           said.textContent = JSON.stringify({ filters, sorting });
           box.append(t, said);
+          return box;
+        },
+      },
+      {
+        title: "33. Expandable rows",
+        codeTitle: "renderSubRow (+ expanded / zen-expanded-change)",
+        codeDescription:
+          "A chevron column toggles a detail row under each row. It works in a paged table and inside row virtualization, where an open row and its detail scroll as one.",
+        code: `<zen-data-table enable-pagination></zen-data-table>
+<script>el.renderSubRow = ({ row }) => personDetail(row);</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-4";
+          box.dataset.testid = "expandable";
+          const paged = el("zen-data-table", { "enable-pagination": "" });
+          Object.assign(paged, { columns, data: MEDIUM, getRowId: (p: Person) => p.id, renderSubRow: ({ row }: { row: Person }) => personDetail(row) });
+          const pw = document.createElement("div");
+          pw.dataset.testid = "expandable-paged";
+          pw.append(paged);
+          const virt = el("zen-data-table", { "enable-row-virtualization": "", "max-body-height": "320" });
+          Object.assign(virt, { columns, data: LARGE, getRowId: (p: Person) => p.id, renderSubRow: ({ row }: { row: Person }) => personDetail(row) });
+          const vw = document.createElement("div");
+          vw.dataset.testid = "expandable-virtual";
+          vw.append(virt);
+          box.append(pw, vw);
           return box;
         },
       },

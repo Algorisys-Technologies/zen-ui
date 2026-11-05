@@ -95,6 +95,11 @@ lint ×4, `visual-check`, the route-snapshot comparison for vanilla and WC.
   Filter inputs persist across repaints (focus and caret kept while typing;
   IME composition respected). Found on the way and fixed: vanilla Select and
   NumberField put `aria-label` on their wrapper, so the control was unnamed.
-- [ ] Phase 3: expandable rows
+- [x] Phase 3: expandable rows (2026-11-05). `renderSubRow` (a chevron column
+  and a full-width detail row, React's markup), controlled `expanded` (`true`
+  or a record) + `onExpandedChange`; vanilla and `<zen-data-table>`. Works in
+  the paged table and inside row virtualization, where an open row and its
+  detail are mounted, moved and measured as one item (verified: unmounted far
+  away, re-paired on return, bottom reachable over 2,000 rows).
 - [ ] Phase 4: grouping
 - [ ] Phase 5: client export, bulk actions

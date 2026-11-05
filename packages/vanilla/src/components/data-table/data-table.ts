@@ -247,6 +247,16 @@ export interface DataTableProps<TData> {
   manualFiltering?: boolean;
   /** The server sorts: `data` is taken as already sorted; onSortingChange still reports. */
   manualSorting?: boolean;
+  /**
+   * Expandable rows: a chevron column toggles a full-width detail row under
+   * each row, rendered by this function. Not with `enableVirtualization`.
+   *
+   *   renderSubRow: ({ row }) => OrderDetails(row.id)
+   */
+  renderSubRow?: (ctx: { row: TData; index: number; id: string }) => Child;
+  /** Controlled expansion: `true` expands every row, or `{ [rowId]: true }`. */
+  expanded?: true | Record<string, boolean>;
+  onExpandedChange?: (expanded: true | Record<string, boolean>) => void;
   enableRowSelection?: boolean;
   /**
    * Where the toolbar's menu buttons sit (here: Export). `"top"` (default):
@@ -551,6 +561,7 @@ function svgNode(markup: string): SVGElement {
   return t.content.firstElementChild as SVGElement;
 }
 
+const EXPAND_CHEVRON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>`;
 const CHIP_X = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 const OP_SELECT_CLASS =
   "zen-h-7 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-1 zen-text-xs zen-cursor-pointer focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring";
@@ -616,6 +627,7 @@ export function DataTable<TData>(
   let columnSizingInner: Record<string, number> = persisted?.columnSizing ?? {};
   let visibilityInner: Record<string, boolean> = persisted?.columnVisibility ?? {};
   let columnFiltersInner: { id: string; value: unknown }[] = [];
+  let expandedInner: true | Record<string, boolean> = {};
   let pinningInner: { left: string[]; right: string[] } = normalisePinning(
     persisted?.columnPinning ?? current.initialColumnPinning,
   );
@@ -757,6 +769,27 @@ export function DataTable<TData>(
   const effGlobalFilter = (): string => current.globalFilter ?? globalFilterInner;
   const effColumnFilters = (): { id: string; value: unknown }[] => current.columnFilters ?? columnFiltersInner;
   const columnFilterValue = (id: string): unknown => effColumnFilters().find((f) => f.id === id)?.value;
+  const effExpanded = (): true | Record<string, boolean> => current.expanded ?? expandedInner;
+  /** Rows expand only into a detail renderer, and not in the div grid (React's rule too). */
+  const expansionActive = (): boolean => !!current.renderSubRow && !isVirt();
+  const isExpanded = (id: string): boolean => {
+    const e = effExpanded();
+    return e === true || !!e[id];
+  };
+  /* TanStack's toggle: from "all" (`true`), every row on screen stays open but this one. */
+  function toggleExpanded(id: string): void {
+    const e = effExpanded();
+    const next: Record<string, boolean> =
+      e === true ? Object.fromEntries(lastDisplay.map((r) => [rowIdOf(r.row, r.index), true])) : { ...e };
+    if (next[id]) delete next[id];
+    else next[id] = true;
+    if (current.expanded === undefined) expandedInner = next;
+    current.onExpandedChange?.(next);
+    sync();
+  }
+  /* A row's detail row, built with the row and kept beside it: the row window
+   * moves and measures the pair as one. */
+  let subElById = new Map<string, HTMLElement>();
   /** The older div-grid body (enableVirtualization), unless row virtualization wins. */
   const isVirt = (): boolean => !!current.enableVirtualization && !current.enableRowVirtualization;
   /** Only the rows in view, inside the regular table. */
@@ -2118,6 +2151,29 @@ export function DataTable<TData>(
       tr.append(td);
     }
 
+    if (expansionActive()) {
+      const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+      markUtilityPin(td, "__expand__");
+      const open = isExpanded(id);
+      const btn = h(
+        "button",
+        cn(
+          "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring zen-transition-transform",
+          open && "zen-rotate-90",
+        ),
+      ) as HTMLButtonElement;
+      btn.type = "button";
+      btn.setAttribute("aria-expanded", String(open));
+      btn.setAttribute("aria-label", loc.t(open ? "dataTable.collapseRow" : "dataTable.expandRow"));
+      btn.append(svgNode(EXPAND_CHEVRON));
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleExpanded(id);
+      });
+      td.append(btn);
+      tr.append(td);
+    }
+
     if (current.enableRowSelection) {
       const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
       markUtilityPin(td, "__select__");
@@ -2151,6 +2207,16 @@ export function DataTable<TData>(
     }
     rowComps.set(id, comps);
     if (dragRowId !== null) paintDragRow(tr, i);
+    if (expansionActive() && isExpanded(id)) {
+      // React's panel: the full width, flush, on a faint muted ground.
+      const sub = h("tr", TABLE_ROW_CLASS);
+      sub.setAttribute("data-expanded-of", id);
+      const td = h("td", "zen-p-0 zen-bg-zen-muted/30") as HTMLTableCellElement;
+      td.colSpan = tr.children.length;
+      td.append(...toNodes(current.renderSubRow!({ row: r.row, index: r.index, id })));
+      sub.append(td);
+      subElById.set(id, sub);
+    }
     return tr;
   }
 
@@ -2294,6 +2360,8 @@ export function DataTable<TData>(
       cellEls.delete(key);
     }
     rowElById.delete(id);
+    subElById.get(id)?.remove();
+    subElById.delete(id);
     tr.remove();
   }
 
@@ -2424,6 +2492,12 @@ export function DataTable<TData>(
           } else {
             tbody.insertBefore(tr, cursor);
           }
+          // Its detail row travels with it, and the cursor steps past both.
+          const sub = subElById.get(id);
+          if (sub) {
+            if (tr.nextSibling !== sub) tr.after(sub);
+            if (cursor === sub) cursor = sub.nextSibling;
+          }
           const gap = offsets[i] - prevEnd;
           if (gap > 0.5) tbody.insertBefore(spacerRow(gap), tr);
           prevEnd = offsets[i + 1];
@@ -2431,7 +2505,8 @@ export function DataTable<TData>(
         const tail = offsets[n] - prevEnd;
         if (tail > 0.5) tbody.append(spacerRow(tail));
         for (const [id, tr] of fresh) {
-          const size = tr.getBoundingClientRect().height;
+          // A row's size includes its open detail row: the pair is one item.
+          const size = tr.getBoundingClientRect().height + (subElById.get(id)?.getBoundingClientRect().height ?? 0);
           if (size <= 0) continue;
           if (!learned) {
             learned = true;
@@ -3053,6 +3128,15 @@ export function DataTable<TData>(
       htr.append(th);
     }
 
+    if (expansionActive()) {
+      const th = h("th", cn(TABLE_HEAD_CLASS, "zen-w-8"));
+      markUtilityPin(th, "__expand__");
+      const label = h("span", "zen-sr-only");
+      label.textContent = loc.t("dataTable.expand");
+      th.append(label);
+      htr.append(th);
+    }
+
     if (current.enableRowSelection) {
       const th = h("th", cn(TABLE_HEAD_CLASS, "zen-w-9"));
       markUtilityPin(th, "__select__");
@@ -3105,6 +3189,11 @@ export function DataTable<TData>(
         markUtilityPin(th, "__drag__");
         ftr.append(th);
       }
+      if (expansionActive()) {
+        const th = h("th", "zen-px-2 zen-py-1");
+        markUtilityPin(th, "__expand__");
+        ftr.append(th);
+      }
       if (current.enableRowSelection) {
         const th = h("th", "zen-px-2 zen-py-1");
         markUtilityPin(th, "__select__");
@@ -3128,7 +3217,11 @@ export function DataTable<TData>(
       for (const r of display) total += rowSizes.get(rowIdOf(r.row, r.index)) ?? estimate;
       tbody.append(spacerRow(total));
     } else {
-      display.forEach((r, i) => tbody.append(buildRow(r, i)));
+      display.forEach((r, i) => {
+        tbody.append(buildRow(r, i));
+        const sub = subElById.get(rowIdOf(r.row, r.index));
+        if (sub) tbody.append(sub);
+      });
     }
 
     /* tfoot — only when a column declares a footer or a total, so every
@@ -3152,6 +3245,11 @@ export function DataTable<TData>(
       if (rowOrderingActive()) {
         const td = h("td", hasTotals ? totalCellClass(false) : cn(TABLE_CELL_CLASS, sepCellClass()));
         markUtilityPin(td, "__drag__");
+        tr.append(td);
+      }
+      if (expansionActive()) {
+        const td = h("td", hasTotals ? totalCellClass(false) : cn(TABLE_CELL_CLASS, sepCellClass()));
+        markUtilityPin(td, "__expand__");
         tr.append(td);
       }
       if (hasTotals) {
@@ -3395,6 +3493,7 @@ export function DataTable<TData>(
     const display = computeDisplay(processed);
     lastDisplay = display;
     rowElById = new Map();
+    subElById = new Map();
     displayById = new Map();
     displayIndexById = new Map();
     display.forEach((r, i) => {

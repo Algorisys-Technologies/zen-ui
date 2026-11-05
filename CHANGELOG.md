@@ -48,6 +48,12 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   combinations. Filter inputs are kept across repaints so typing keeps focus,
   caret and IME composition. The filter types (FilterVariant, TextOp, …) are
   exported, as from React and Solid. check:props: 6 more closed.
+- **Vanilla / web-components DataTable: expandable rows** (phase 3).
+  `renderSubRow` (a chevron column; the open row shows a full-width detail
+  row), controlled `expanded` + `onExpandedChange`; on `<zen-data-table>` the
+  `renderSubRow` / `expanded` properties and `zen-expanded-change`. In row
+  virtualization an open row and its detail are one measured item.
+  check:props: 3 more closed (10 known remain in DataTable).
 - **`check:props`**: prop parity across bindings (see 12.6.0's follow-up);
   in `bun run check`.
 - Vanilla DropdownMenu checkbox items take `id`, `onKeyDown` and

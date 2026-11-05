@@ -75,6 +75,15 @@ const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
 
 /* -------------------------- columns -------------------------------- */
+/** Section 33: what an expanded row shows. */
+function personDetail(p: Person): HTMLElement {
+  const d = document.createElement("div");
+  d.className = "zen-px-6 zen-py-3 zen-text-sm zen-text-zen-muted-fg";
+  d.dataset.detail = p.id;
+  d.textContent = `${p.name} · ${p.department}, ${p.location} · reports to ${p.manager} · ${p.phone}`;
+  return d;
+}
+
 // Sections 31-32: one column per filter variant.
 const FILTER_COLUMNS: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name" },
@@ -1181,6 +1190,38 @@ DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true })
           });
           said.textContent = JSON.stringify({ filters, sorting });
           box.append(table.el, said);
+          return box;
+        },
+      },
+      {
+        title: "33. Expandable rows",
+        codeTitle: "renderSubRow (+ controlled expanded / onExpandedChange)",
+        codeDescription:
+          "A chevron column toggles a detail row under each row. It works in a paged table and inside row virtualization, where an open row and its detail scroll as one.",
+        code: `DataTable({ data: people, columns, enablePagination: true,
+  renderSubRow: ({ row }) => PersonDetail(row) })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-4";
+          box.dataset.testid = "expandable";
+          const paged = document.createElement("div");
+          paged.dataset.testid = "expandable-paged";
+          paged.append(
+            DataTable({ data: MEDIUM, columns, enablePagination: true, getRowId: (p) => p.id, renderSubRow: ({ row }) => personDetail(row) }).el,
+          );
+          const virt = document.createElement("div");
+          virt.dataset.testid = "expandable-virtual";
+          virt.append(
+            DataTable({
+              data: LARGE,
+              columns,
+              enableRowVirtualization: true,
+              maxBodyHeight: 320,
+              getRowId: (p) => p.id,
+              renderSubRow: ({ row }) => personDetail(row),
+            }).el,
+          );
+          box.append(paged, virt);
           return box;
         },
       },
