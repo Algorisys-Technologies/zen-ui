@@ -22,6 +22,33 @@ issue / PR when its turn comes.
 
 
 
+## Found during 12.4–12.6 (2026-11-05)
+
+- [ ] **Report the Kobalte freeze upstream.** `@kobalte/utils` 0.9.2 (latest)
+      `scrollIntoViewport` loops forever on a scrollable ancestor under a
+      modal scroll lock; zen-ui carries `patches/@kobalte%2Futils@0.9.2.patch`
+      (CHANGELOG 12.5.0). Drop the patch once upstream ships a fix, and check
+      the patch still applies whenever Kobalte is bumped.
+- [ ] **ContextMenu from the keyboard (Solid)**: same Kobalte menu code as the
+      DropdownMenu that froze. Untested; drive the menu key / Shift+F10 and
+      arrow through it.
+- [ ] **Columns menu with `enableColumnPinning` is not keyboard-operable**
+      (React, Solid): its rows are a Checkbox and pin buttons inside the menu,
+      and a menu moves focus between items only, so Tab reaches the first and
+      last focusable and nothing between. Needs items, not buttons (as the
+      Alt+↑/↓ reorder did).
+- [ ] **React closes the Columns menu on Space** (Radix CheckboxItem's default);
+      Solid keeps it open to toggle several. Parity: decide which, then match.
+- [ ] **CLAUDE.md "Ship it" says `git merge --ff-only dev`**, which cannot work:
+      `main` has carried "Merge dev into main" commits since ~12.1.0. Releases
+      12.4–12.6 used `--no-ff`. Update the procedure. Also: SSH pushes failed
+      intermittently on 12.6.0 (keyring agent); push each ref separately and
+      check `git ls-remote`, never trust a chained push.
+- [ ] **Buttons meant to look like the text around them** (ERPNext gaps doc,
+      item 13's suggested sweep): tree rows, tab triggers, menu items may drop
+      text-transform / letter-spacing without the preflight, as DataTable's sort
+      label did. Measure with the head tokens set, the way 12.6.0 did.
+
 ## Message catalogue: split per namespace (owner, 2026-11-05)
 
 12.3.0 shipped the parity pass with three React size budgets raised 10 kB
@@ -85,7 +112,7 @@ minified), so a bundler keeps all of it.
       server owns the predicate, and its chip showed "[object Object]"); Solid
       keeps them and writes `id:op:value` to the URL, with no such bug. React is
       the reference, but switching Solid off removes a working control: decide.
-- [ ] **Keyboard reordering of rows** (both bodies): the drag handle has no
+- [ ] **Keyboard reordering of rows** (both bodies): the drag handle has no (2026-11-05: partly — React unvirtualized rows reorder by keyboard (dnd-kit); virtualized and Solid do not.)
       keyboard path yet.
 
 ## Parity: DataTable `enableCellNavigation` (Solid only, 2026-11-04)
@@ -154,7 +181,7 @@ minified), so a bundler keeps all of it.
       visible column without a total), because grouping moves columns. Check
       React's DataTable for the no-variant filter bug too: an `{ op, value }`
       filter on a column with TanStack's auto filterFn matches nothing.
-- [ ] Not in this cut: a totals row for selected rows only; totals in
+- [ ] Not in this cut: a totals row for selected rows only; totals in (2026-11-05: partly — export request carries totals; client CSV does not; no selected-only totals.)
       the CSV / Excel export (C4 will want them).
 
 ## B1: translatable strings — batches 2 and 3 (2026-11-04)
@@ -341,7 +368,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Demo site: the "New" tag (owner, 2026-11-04)
 
-- [ ] Solid's `nav.ts` entries take `since` (the version a component first ships
+- [x] Solid's `nav.ts` entries take `since` (the version a component first ships ✓ 2026-11-05: New/Updated marks in all four demos (12.3.0).
       in) and the sidebar and catalogue mark them **New** while that is the
       current release's minor or later, so the mark expires on its own. Mark
       every new component with `since`. Port the field and the pill to the
@@ -352,7 +379,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## ERPNext review: section C (from the commercial suites, 2026-11-04)
 
-- [ ] Read with the owner's decisions: typed dates (DatePicker has no text
+- [ ] Read with the owner's decisions: typed dates (DatePicker has no text (2026-11-05: partly — most of section C shipped; smart paste, AI hooks, file manager not.)
       input, confirmed), a table combobox, grid totals (DataTable already renders
       a column `footer`; missing are declarative aggregates, a sticky totals row
       and group subtotals), xlsx/PDF export, a filter builder, barcode and QR
@@ -361,7 +388,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Demos: two build JSX outside a root (found 2026-11-04)
 
-- [ ] `NewDiffViewDemo.tsx` (line ~35) and `NewObjectPageDemo.tsx` build
+- [x] `NewDiffViewDemo.tsx` (line ~35) and `NewObjectPageDemo.tsx` build ✓ 2026-11-05: both build in components now.
       components at module load, so Solid warns "computations created outside
       a `createRoot`" on every demo page. Move that JSX into the components.
 
@@ -374,11 +401,11 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## From the ERPNext port (2026-11-04)
 
-- [ ] **BreadcrumbList's `<ol>` keeps the browser's list style**: without the
+- [x] **BreadcrumbList's `<ol>` keeps the browser's list style**: without the ✓ 2026-11-05: fixed in all bindings (12.1.x).
       opt-in preflight every BreadcrumbSeparator `<li>` shows "1." "2." and the
       row is 44px tall instead of 20. Reset list-style, margin and padding on
       the component itself (ERPNext docs/zen-ui-component-gaps.md, item 11).
-- [ ] **Desktop-app gaps the ERP reported**: Sidebar that can hide completely
+- [x] **Desktop-app gaps the ERP reported**: Sidebar that can hide completely ✓ 2026-11-05: collapseMode, counts, Tile, stamp shipped.
       when collapsed, and a narrow-screen overlay; counts on filter tabs;
       launchpad tiles; a KPI hero with a chart; a status stamp; table tokens.
       The owner is reviewing ERPNext's full report and will send it.
@@ -411,7 +438,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Demos: DataTable `fillHeight`, ShellBar `profile.menu` (2026-11-04)
 
-- [ ] **A demo section for each, in all four bindings.** Both shipped in every
+- [ ] **A demo section for each, in all four bindings.** Both shipped in every (2026-11-05: partly — fillHeight demoed in all four; ShellBar profile.menu in none.)
   binding with no demo: `fillHeight` (a list that is the page's main pane — needs
   a fixed-height frame to show anything) and `profile.menu` (a profile menu with
   radio groups). Driven in a real app (the ERPNext port) instead; add the
@@ -422,14 +449,14 @@ identical, the welcome catalogue the only change (the new entry).
 The migration on `ui-refactor` is feature-complete but hasn't been
 prepped for release. Decide each of these before any merge / publish.
 
-- [ ] **Branch strategy** — `master` is still at the initial commit.
+- [x] **Branch strategy** — `master` is still at the initial commit. ✓ 2026-11-05: main/dev flow with release tags.
       Open a PR for `ui-refactor` → `master`, or keep as a long-lived
       branch?
-- [ ] **CHANGELOG.md + version bump** — this is a breaking change set
+- [x] **CHANGELOG.md + version bump** — this is a breaking change set ✓ 2026-11-05: long since (3.0.0).
       (new exports, legacy types renamed `Legacy*`, primary export
       shapes changed). Recommend v3.0.0 with a written migration
       guide alongside.
-- [ ] **README update** — current README / DEV_GUIDE.md /
+- [x] **README update** — current README / DEV_GUIDE.md / ✓ 2026-11-05: README documents the current packages.
       library_usage.md still describe the legacy API.
 - [x] **Remote push** — stale as written. `origin` is
       `github.com:Algorisys-Technologies/zen-ui` and `dev` tracks `origin/dev`;
@@ -439,16 +466,16 @@ prepped for release. Decide each of these before any merge / publish.
       Cover at minimum: keyboard nav on DropdownMenu / Select,
       indeterminate Checkbox, Switch + RadioGroup form submission
       round-trips, asChild composition through Button's Slottable.
-- [ ] **`Math.random()` → `React.useId()` audit** — flagged in
+- [x] **`Math.random()` → `React.useId()` audit** — flagged in ✓ 2026-11-05: only demo data uses Math.random.
       docs/rp-review-1.md (P1-4). Migration mostly replaced these
       organically (Radix primitives use useId internally), but a final
       grep should confirm zero remaining call sites in the new code.
 - [ ] **Final tick-through of [docs/rp-review-1.md](docs/rp-review-1.md)
       P0/P1 items** — most are resolved by the migration; confirm and
       mark closed.
-- [ ] **Bundle size** — current Vite build emits a ~1.96 MB JS chunk.
+- [x] **Bundle size** — current Vite build emits a ~1.96 MB JS chunk. ✓ 2026-11-05: sideEffects + preserveModules; check:size.
       Code-split the library entry; split per-component imports.
-- [ ] **Drop heavy deps from `dependencies`** — `onnxruntime-web`
+- [x] **Drop heavy deps from `dependencies`** — `onnxruntime-web` ✓ 2026-11-05: none left in any package.json.
       (~10 MB), `raygun4js`, `regenerator-runtime`, `react-flags-select`
       should move to `peerDependencies` / `optionalDependencies` or be
       removed.
@@ -549,9 +576,9 @@ a global concern.
    - [x] **a11y polish** — aria-sort on headers, aria-colcount on virt,
          aria-busy on body during loading, aria-labelledby for "Rows
          per page", aria-live count in the bulk-action bar.
-   - [ ] **Excel / PDF export** — would pull in `xlsx` / `jspdf` deps;
+   - [ ] **Excel / PDF export** — would pull in `xlsx` / `jspdf` deps; (2026-11-05: partly — server-side via onExport only; no client writer, by decision.)
          CSV + JSON cover most needs today.
-   - [ ] **Tests** — none of the DataTable behaviors are unit-covered.
+   - [ ] **Tests** — none of the DataTable behaviors are unit-covered. (2026-11-05: partly — pure-logic checks exist; no behaviour tests.)
 
 2. [x] **Lazy-loaded options for Select + DropdownMenu** —
        `<VirtualizedItems>` helper shipped under
@@ -617,7 +644,7 @@ a global concern.
 
 - [ ] **Storybook (or Ladle)** alongside the demo app so each component
       has individual stories, controls, and a11y panel.
-- [ ] **Visual regression** via Chromatic / Playwright snapshots,
+- [ ] **Visual regression** via Chromatic / Playwright snapshots, (2026-11-05: partly — accessibility-tree snapshots exist; no pixel diffs, no CI.)
       gated on PR.
 - [ ] **Unit / interaction tests** with `vitest` +
       `@testing-library/react`. Cover keyboard nav and form submission
@@ -664,10 +691,10 @@ a global concern.
       rename the design tokens to shadcn defaults
       (`--primary`, `--background`, `--ring`, …) so consumers can
       `npx shadcn add card` and have it slot in.
-- [ ] **Code-split the bundle** — current Vite build emits a ~1.7 MB
+- [x] **Code-split the bundle** — current Vite build emits a ~1.7 MB ✓ 2026-11-05: same as Housekeeping: check:size.
       JS chunk. Tree-shake `svg_components.tsx` (42 KB of icons) and
       split per-component entries.
-- [ ] **Drop `onnxruntime-web`, `raygun4js`, `regenerator-runtime`** from
+- [x] **Drop `onnxruntime-web`, `raygun4js`, `regenerator-runtime`** from ✓ 2026-11-05: none left in any package.json.
       `dependencies` (or move to `peerDependencies`); they don't belong
       in a UI library.
 
@@ -764,7 +791,7 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
 
 - [ ] **Signature pad** — canvas-based drawing → SVG / data URL. Loan
       disclosure, T&Cs, healthcare consent.
-- [ ] **Camera capture / Selfie** — `getUserMedia` wrapper with
+- [x] **Camera capture / Selfie** — `getUserMedia` wrapper with ✓ 2026-11-05: Camera in all four.
       front/rear toggle, capture, retake. KYC liveness + profile photo.
 - [ ] **ID document upload** — specialized FileUpload variant with
       front + back slots, edge detection / glare warnings, crop,
@@ -826,12 +853,12 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
       (Shepherd / Driver.js patterns) for post-signup product tours.
 - [ ] **Confirmation-with-typing AlertDialog** — "Type DELETE to
       confirm". Variant of existing AlertDialog.
-- [ ] **Field error / success border state** — auto red/green ring
+- [ ] **Field error / success border state** — auto red/green ring (2026-11-05: partly — error border via aria-invalid; no success state.)
       after blur tied to RHF state. Visual sibling of FormMessage.
 
 ### Tier 4 — specialized but high-leverage in the right vertical
 
-- [ ] **Currency input** — NumberField + locale-aware formatting +
+- [x] **Currency input** — NumberField + locale-aware formatting + ✓ 2026-11-05: AmountField in all four.
       symbol prefix + thousand separators (₹1,00,000 vs $100,000).
 - [x] **Time picker** + **DateTime picker** — scheduling /
       appointments. _Shipped: segmented HH:MM(:SS) input, 12h / 24h,
@@ -843,9 +870,9 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
       device pairing. _Shipped: native `BarcodeDetector` (Chromium /
       Safari 17+) with `decode` escape hatch for browsers without it
       so the library doesn't bundle a heavy polyfill._
-- [ ] **Command palette** — `cmdk` already a dep via Combobox; surface
+- [ ] **Command palette** — `cmdk` already a dep via Combobox; surface (2026-11-05: partly — Command in React and Solid only.)
       as `<CommandPalette open shortcut="cmd+k">` for power-user apps.
-- [ ] **Map / geolocation picker** — pluggable Leaflet / Mapbox;
+- [ ] **Map / geolocation picker** — pluggable Leaflet / Mapbox; (2026-11-05: partly — Map with markers; no picking or near-me.)
       pick-a-pin or "near me" for service apps.
 
 ### Cross-cutting (patterns / hooks, not components)
@@ -858,7 +885,7 @@ UX research (Baymard, Stripe Elements, NNG, *Form Design Patterns*).
       AutoSaveIndicator + RestoreDraftPrompt.
 - [ ] **`useFormFlow` / step-graph** — non-linear stepper navigation
       where the next step depends on previous answers.
-- [ ] **RTL + locale audit** — token system already covers the visual
+- [x] **RTL + locale audit** — token system already covers the visual ✓ 2026-11-05: DirectionProvider; RTL audit ticked below.
       half; verify `dir="rtl"` works through every primitive (Radix
       handles most, but DataTable / DropdownMenu position calcs may
       need a pass).
@@ -888,14 +915,14 @@ slot work into the right tier of the library.
 
 ### Layout primitives (cross-cutting; both CRM and ERP need them)
 
-- [ ] **ResizablePanes / Splitter** — horizontal + vertical split with a
+- [x] **ResizablePanes / Splitter** — horizontal + vertical split with a ✓ 2026-11-05: Splitter in all four.
       draggable gutter; persists ratio in localStorage. Master-detail
       and side-by-side panels rely on this.
-- [ ] **MasterDetailLayout** — opinionated two-pane wrapper on top of
+- [ ] **MasterDetailLayout** — opinionated two-pane wrapper on top of (2026-11-05: partly — FlexibleColumnLayout covers it; no MasterDetailLayout.)
       ResizablePanes (list left, detail right, mobile = stacked).
-- [ ] **PageHeader** — title + subtitle + breadcrumb + actions slot.
+- [x] **PageHeader** — title + subtitle + breadcrumb + actions slot. ✓ 2026-11-05: PageHeader in all four.
       Every CRUD page rolls its own today; standardise.
-- [ ] **Toolbar** — action-bar primitive with overflow `…` menu when
+- [x] **Toolbar** — action-bar primitive with overflow `…` menu when ✓ 2026-11-05: Toolbar in all four.
       space is tight. Useful in card-detail, line-item rows, kanban
       column headers.
 
@@ -904,10 +931,10 @@ slot work into the right tier of the library.
 - [ ] **KanbanBoard** — multi-column draggable cards (@dnd-kit, already
       a dep). Drag between columns, optional WIP limits, swim lanes,
       virtualised column body for long lists. CRM-anchor component.
-- [ ] **Timeline / ActivityFeed** — chronological list of events with
+- [x] **Timeline / ActivityFeed** — chronological list of events with ✓ 2026-11-05: Timeline in all four.
       icon prefix + day-grouping + "load more". Deal history, customer
       interactions, audit log.
-- [ ] **TreeView** — hierarchical list with expand/collapse, drag-to-
+- [ ] **TreeView** — hierarchical list with expand/collapse, drag-to- (2026-11-05: partly — Tree in all four; no lazy load or drag-to-reparent.)
       reparent, lazy-load children. Chart of accounts, BOM, org tree,
       folder structures.
 - [ ] **PipelineStages** — read-only horizontal stage indicator (Lead
@@ -915,7 +942,7 @@ slot work into the right tier of the library.
       rather than navigation.
 - [ ] **ApprovalChain** — multi-stage approval indicator with avatars +
       status per stage. ERP / workflow staple.
-- [ ] **AuditTrail** — who-changed-what diff list. Shaped like Timeline
+- [ ] **AuditTrail** — who-changed-what diff list. Shaped like Timeline (2026-11-05: partly — DiffView in Timeline; no AuditTrail component.)
       but rows are `{ field, oldValue, newValue, by, at }`.
 - [x] **NotificationsInbox** — bell + dropdown panel with read/unread,
       grouping by day, action buttons inline. _Shipped: Popover-backed
@@ -923,7 +950,7 @@ slot work into the right tier of the library.
       day-grouped sections (Today / Yesterday / weekday / date),
       per-row actions slot, controlled open, `onItemSelect` +
       `onMarkAllRead` + optional `onViewAll` footer link._
-- [ ] **UserMenu / WorkspaceSwitcher** — top-right account chip + org
+- [ ] **UserMenu / WorkspaceSwitcher** — top-right account chip + org (2026-11-05: partly — ShellBar profile menu; no workspace switcher.)
       switcher. Universal across CRM/ERP/SaaS.
 
 ### Form / input primitives (record-detail editors)
@@ -931,7 +958,7 @@ slot work into the right tier of the library.
 - [ ] **InlineEdit** — standalone click-to-edit text/select/date field
       for record-detail pages. DataTable already has cell-level edit;
       this is the surface for single-record screens.
-- [ ] **LookupField** — code+description autocomplete with "create
+- [ ] **LookupField** — code+description autocomplete with "create (2026-11-05: partly — LookupField in all four; no create-new.)
       new on the fly" (vendor / customer / item picker). Scan-by-code
       semantics are different from MultiCombobox's filter-by-substring.
 - [ ] **AddressBlock** — composite (line1 / line2 / city / state / zip
@@ -942,7 +969,7 @@ slot work into the right tier of the library.
       registry.
 - [ ] **MentionsInput** — `@username` autocomplete on a Textarea.
       Cmdk-powered, similar in shape to MultiCombobox.
-- [ ] **ContextMenu** — right-click menu. Radix `ContextMenu` exists
+- [x] **ContextMenu** — right-click menu. Radix `ContextMenu` exists ✓ 2026-11-05: ContextMenu in all four.
       and is unwrapped; ~30-min wrap to land it.
 
 ### Form composition compounds (ERP master + transaction shape)
@@ -950,7 +977,7 @@ slot work into the right tier of the library.
 - [ ] **LineItems / RepeatingFields** — header + row pattern (invoice
       header + N line items) with add / duplicate / delete / reorder,
       RHF `useFieldArray` integration. Drives ~80 % of ERP UIs.
-- [ ] **EditableGrid** — spreadsheet-feel data entry: Tab moves
+- [ ] **EditableGrid** — spreadsheet-feel data entry: Tab moves (2026-11-05: partly — SpreadsheetGrid + cell navigation; no copy-down.)
       cell→cell, paste-from-Excel, copy-down (Ctrl+D), formula cells.
       Distinct from DataTable's one-cell inline edit; this is the
       data-entry version. ERP-anchor component.
@@ -1047,7 +1074,7 @@ built — Tier 1 spent a day marked done while a row was missing.
         cards). `deploy.sh` generates previews for all four.
 
 
-- [ ] **SKILLS.md (or similar) so coding agents can drive this library.**
+- [x] **SKILLS.md (or similar) so coding agents can drive this library.** ✓ 2026-11-05: AGENTS.md + skills/zen-ui, generated.
       Requested 2026-07-15. Claude / Cursor / Antigravity currently have to
       infer the API from source. Wants: the `zen-` prefix rule and why variants
       sit outside it, the compound-component patterns, the parity rule (a
@@ -1057,7 +1084,7 @@ built — Tier 1 spent a day marked done while a row was missing.
       with a description. Decide: one root SKILLS.md, or a real Agent Skill
       (SKILL.md + frontmatter) that tools can auto-load.
 
-- [ ] **Global search across the demo** (requested) — a Cmd/Ctrl-K command
+- [ ] **Global search across the demo** (requested) — a Cmd/Ctrl-K command (2026-11-05: partly — sidebar filter only, no Cmd-K.)
       palette over every route. Natural fit: `Command` now exists in both
       bindings, and `src/nav.ts` is already the single source of truth for the
       sidebar AND the landing catalogue, so the palette can render from it with
@@ -1092,7 +1119,7 @@ built — Tier 1 spent a day marked done while a row was missing.
         exported is a promise, and this one would buy nothing a caller cannot
         write in four lines. Revisit only if a real layout concern shows up
         (persisted rail width, responsive collapse breakpoints).
-  - [ ] _Pre-existing demo cosmetic, both bindings_: `<strong>Acme</strong>` in
+  - [x] _Pre-existing demo cosmetic, both bindings_: `<strong>Acme</strong>` in ✓ 2026-11-05: [&>strong]:zen-sr-only in all bindings.
         the Sidebar demo's header does not hide when the rail collapses, so it
         spills over the page content. The demo's brand is caller-land, but
         `Sidebar` also has no `overflow-hidden` to contain it. Visible in
@@ -1118,7 +1145,7 @@ built — Tier 1 spent a day marked done while a row was missing.
           idle CPU, and it starved React's queue so route changes updated the URL
           without ever committing the new page. Keyed on booleans now. Solid was
           unaffected (fine-grained reactivity).
-- [ ] **Tier 2 — enterprise semantics. Roughly half.** Untracked here until
+- [ ] **Tier 2 — enterprise semantics. Roughly half.** Untracked here until (2026-11-05: partly — see its children.)
       2026-07-15: this section used to jump Tier 1 → Tier 3, so a whole tier of
       "high value, tractable to build" work was invisible. Small components that
       carry disproportionate weight in enterprise UIs — and unlike Tier 4, none
@@ -1149,7 +1176,7 @@ built — Tier 1 spent a day marked done while a row was missing.
         "This Quarter", "From…"). Shipped, all four bindings; 32 operators, engine
         in `core/date-range`, and the value stores the PERIOD rather than the two
         dates it resolves to, so a saved filter re-resolves. Verified 2026-07-20.
-  - [ ] Typography layer — ~~Link~~ / Title / Label / Text / ExpandableText
+  - [ ] Typography layer — ~~Link~~ / Title / Label / Text / ExpandableText (2026-11-05: partly — Link and Label done; Title, Text, ExpandableText not.)
         (show-more/less). **`Link` shipped, all four bindings.** The other four are
         still absent (verified 2026-07-20 — `Label` exists only as `FormLabel`).
         The *token* half closed separately: 17 `--zen-font-*` + 9 `--zen-line-*`
@@ -1163,7 +1190,7 @@ built — Tier 1 spent a day marked done while a row was missing.
         (`DropdownMenu` composes to it), Token / Tokenizer (`TagInput` is
         close), Wizard branching + validation gating (`Stepper` lacks it).
 
-- [ ] **Tier 3 — table ecosystem. 2 of 4 dialogs.** Persistence question settled
+- [ ] **Tier 3 — table ecosystem. 2 of 4 dialogs.** Persistence question settled (2026-11-05: partly — dialogs and TreeTable done; 1214 and 1414 remain.)
       2026-07-15: **build the stateless dialogs first**, defer anything that
       needs a store.
       - [x] SelectDialog — searchable list picker, single + multi select.
@@ -1211,7 +1238,7 @@ built — Tier 1 spent a day marked done while a row was missing.
             bindings. Verified 2026-07-20.
       - [x] FilterBar — filter fields + Go / Adapt Filters, variant slot. Shipped,
             all four bindings. Verified 2026-07-20. **Tier 3's dialogs are closed.**
-      - [ ] _Deferred until saved views have a home_: VariantManagement, p13n
+      - [ ] _Deferred until saved views have a home_: VariantManagement, p13n (2026-11-05: partly — ViewManager is the saved-views home; no p13n dialog.)
             dialog. Both are storage questions wearing a component costume.
       - [x] **TreeTable — DONE** (2026-07-21, all four bindings). The
             prop-vs-family question resolved to **family**, on the interaction
@@ -1327,11 +1354,11 @@ built — Tier 1 spent a day marked done while a row was missing.
                   element revives ISO strings — without it every appointment is
                   `Invalid Date`, every placement is null, and the grid renders
                   an empty axis with no error anywhere.
-            - [ ] _Nothing left in the accepted Tier 4 list._ Micro charts,
+            - [x] _Nothing left in the accepted Tier 4 list._ Micro charts, ✓ 2026-11-05: status line, true as written.
                   Timeline, UploadCollection and PlanningCalendar are all
                   shipped; the rest of the tier was dropped on substance in the
                   2026-07-21 triage.
-- [ ] **Gantt — web-components deferred, and Solid/vanilla now lag by two
+- [x] **Gantt — web-components deferred, and Solid/vanilla now lag by two ✓ 2026-11-05: WC element and quarter/year views exist.
       views** (2026-07-31, `feat/gantt`).
       React, Solid and vanilla are shipped and driven in a browser; the
       web-components element is NOT built, so **`check:parity` is red on that
@@ -1411,7 +1438,7 @@ built — Tier 1 spent a day marked done while a row was missing.
       element must revive ISO strings RECURSIVELY through `children`, or a task
       three levels down is `Invalid Date`, and its bar, its parent's rollup and
       every dependency arrow touching it vanish with no error anywhere.
-      - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of
+      - [ ] _Separate_: AnalyticalTable, spreadsheet export — extensions of (2026-11-05: partly — xlsx via onExport only; no AnalyticalTable.)
             DataTable, not dialogs around it.
 - [ ] **Tier 4 — build the whole tier** (decided 2026-07-15, overriding the
       recommendation below): smart controls, micro charts, launchpad tiles,
@@ -1535,7 +1562,7 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
       a11y as "a stated, tooled, per-component commitment rather than a best-effort".
       The `id`-on-wrapper bug and `SkipToContent` both closed; this is the half that
       survived.
-- [ ] **Small components, unranked** — `Toggletip` (the accessible middle between
+- [ ] **Small components, unranked** — `Toggletip` (the accessible middle between (2026-11-05: partly — Tile done; Toggletip, Tag, CopyButton, AspectRatio, CodeSnippet, Heading not.)
       Tooltip and Popover — content with interactive children must not live in a
       hover tooltip), `Tag` (dismissible; `Badge` is display-only and `TagInput` is
       an input, so neither covers it), `CopyButton`, `AspectRatio`, `CodeSnippet`,
@@ -1664,7 +1691,7 @@ motion tokens (with `prefers-reduced-motion`), and ContentSwitcher (closed by
           demo driven in RTL.
         - Remaining bare `ml/mr/pl/pr` in ordinary flow layout, which flexbox
           already mirrors. Only the ones tied to a positioned sibling mattered.
-- [ ] **Content density** (`cozy`/`compact`) — Fiori has a global density switch;
+- [x] **Content density** (`cozy`/`compact`) — Fiori has a global density switch; ✓ 2026-11-05: data-density="compact".
       zen-ui is fixed-size. Token-level, so one implementation. No demand recorded
       yet — do not build speculatively.
 - [ ] **Spacing scale ends** — `--zen-space-*` runs 0→64px in 11 steps. Carbon
@@ -1836,21 +1863,21 @@ behaviour change a consumer can observe.
       sweep but DialogContent is `overflow-hidden` and carries a transform,
       which becomes the containing block for `position: fixed`. Likely upstream.
       Same family as the `Dialog.Content` clobbering fixed in 3083781.
-- [ ] **Solid: `<Select aria-label>` never reaches the control.** It lands on a
+- [x] **Solid: `<Select aria-label>` never reaches the control.** It lands on a ✓ 2026-11-05: aria-label lands on the Trigger.
       wrapper `div[role=group]`, so the trigger has no accessible name and the
       label is announced on a group instead. React puts it on the trigger. Found
       alongside the above. Same class as the Checkbox/RadioGroupItem/Select `id`
       bug below — Kobalte roots swallow attributes meant for sub-parts.
 
-- [ ] Checkbox, RadioGroupItem and Select land a caller's `id` on the wrapper
+- [x] Checkbox, RadioGroupItem and Select land a caller's `id` on the wrapper ✓ 2026-11-05: id routed to the native control.
       rather than the native control, so `<label for>` will not associate —
       Kobalte derives sub-part ids from the root. Same class as the Switch bug
       already fixed.
-- [ ] Solid lint: 57 findings on its first-ever run (33 `solid/reactivity`,
+- [x] Solid lint: 57 findings on its first-ever run (33 `solid/reactivity`, ✓ 2026-11-05: Solid lint at 0.
       4 `solid/no-destructure` in data-table). These silently break reactivity
       and are invisible to tsc and the build. Fixing them changes runtime
       behaviour, so it deserves its own commit.
-- [ ] Demo section-count gap: React has ~305 code examples to Solid's 158,
+- [ ] Demo section-count gap: React has ~305 code examples to Solid's 158, (2026-11-05: partly — code examples React 659 vs Solid 515.)
       because Solid's demos have genuinely fewer SECTIONS. Closing it means
       adding sections, not snippets.
 - [ ] `Toast` is the last export gap: React wraps Radix Toast primitives, Solid
