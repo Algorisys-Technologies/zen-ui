@@ -77,6 +77,12 @@ issue / PR when its turn comes.
       filters use the full-height NumberField with −/+ steppers, so a range
       filter is wider than most columns. Fix together: a min width for filter
       cells, and a compact number input without steppers in the filter row.
+- [ ] **Grouping in vanilla with row virtualization or the div grid**: phase 4
+      grouped the regular table only. React and Solid group in both.
+- [ ] **React / Solid show an always-empty "Expand" column when grouping
+      without `renderSubRow`** (the group expander lives in the group cell).
+      Vanilla shows the expand column only for `renderSubRow`; drop it in React
+      and Solid too, measured with the route snapshots.
 - [ ] **Pinning in the older div-grid body (`enableVirtualization`)**: React
       and Solid have it; vanilla's port did not reach it. Same for live width
       feedback while dragging a resize handle there (applies on release).

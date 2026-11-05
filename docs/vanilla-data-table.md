@@ -101,7 +101,8 @@ lint ×4, `visual-check`, the route-snapshot comparison for vanilla and WC.
   the paged table and inside row virtualization, where an open row and its
   detail are mounted, moved and measured as one item (verified: unmounted far
   away, re-paired on return, bottom reachable over 2,000 rows).
-- [ ] Phase 4: grouping. Semantics, measured on React's demo (section 23)
+- [x] Phase 4: grouping (2026-11-05; verified by keyboard and pointer in
+  vanilla and WC: subtotals equal React's demo, 822,120 for Admin). Semantics, measured on React's demo (section 23)
   2026-11-05, and what vanilla does with them:
   - `grouping: string[]` (controlled `grouping`, `initialGrouping`,
     `onGroupingChange`), active with `enableGrouping`; a "Group by" /

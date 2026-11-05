@@ -90,6 +90,15 @@ function personDetail(p: Person): HTMLElement {
   return d;
 }
 
+// Section 34: React's grouping demo (section 23), with zen totals as subtotals.
+const GROUP_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "role", header: "Role" },
+  { accessorKey: "name", header: "Name", enableGrouping: false },
+  { accessorKey: "salary", header: "Salary", enableGrouping: false, meta: { aggregate: "sum" }, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+  { accessorKey: "status", header: "Status", meta: { aggregate: "count" } },
+  { accessorKey: "department", header: "Department" },
+];
+
 // Sections 31-32: one column per filter variant.
 const FILTER_COLUMNS: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name" },
@@ -1120,6 +1129,23 @@ table.onExport = (format, request) =>
           vw.dataset.testid = "expandable-virtual";
           vw.append(virt);
           box.append(pw, vw);
+          return box;
+        },
+      },
+      {
+        title: "34. Row grouping",
+        codeTitle: "enable-grouping + initialGrouping, subtotals from meta.aggregate",
+        codeDescription:
+          'Rows that share the grouped column\'s value nest under a "value (N)" row that expands and collapses. Columns with meta.aggregate show the group\'s subtotal there. The Group by menu adds and removes columns; grouping by two nests them.',
+        code: `<zen-data-table enable-grouping enable-sorting enable-pagination></zen-data-table>
+<script>el.initialGrouping = ["role"];</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "grouping";
+          const t = el("zen-data-table", { "enable-grouping": "", "enable-sorting": "", "enable-pagination": "" });
+          Object.assign(t, { columns: GROUP_COLUMNS, data: MEDIUM, initialGrouping: ["role"] });
+          box.append(t);
           return box;
         },
       },

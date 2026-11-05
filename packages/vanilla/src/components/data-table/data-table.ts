@@ -174,6 +174,8 @@ export interface DataTableColumn<TData> {
   enableHiding?: boolean;
   /** `false`: no filter cell for this column in the per-column filter row. */
   enableColumnFilter?: boolean;
+  /** `false` keeps the column out of the Group by menu. */
+  enableGrouping?: boolean;
   /** `false`: no resize handle on this column. */
   enableResizing?: boolean;
   /** Custom comparator for this column. Defaults to numeric / locale-string compare of the accessor value. */
@@ -254,6 +256,18 @@ export interface DataTableProps<TData> {
    *   renderSubRow: ({ row }) => OrderDetails(row.id)
    */
   renderSubRow?: (ctx: { row: TData; index: number; id: string }) => Child;
+  /**
+   * Row grouping: rows sharing a grouped column's value nest under a group
+   * row, "value (N)", that expands and collapses; columns with
+   * `meta.aggregate` show the group's subtotal there. A "Group by" menu adds
+   * and removes grouped columns (a column opts out with `enableGrouping: false`).
+   */
+  enableGrouping?: boolean;
+  /** Controlled grouping: column ids, outermost first. */
+  grouping?: string[];
+  /** Grouping to start with (uncontrolled). */
+  initialGrouping?: string[];
+  onGroupingChange?: (grouping: string[]) => void;
   /** Controlled expansion: `true` expands every row, or `{ [rowId]: true }`. */
   expanded?: true | Record<string, boolean>;
   onExpandedChange?: (expanded: true | Record<string, boolean>) => void;
@@ -562,6 +576,7 @@ function svgNode(markup: string): SVGElement {
 }
 
 const EXPAND_CHEVRON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>`;
+const GROUP_CHEVRON = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>`;
 const CHIP_X = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 const OP_SELECT_CLASS =
   "zen-h-7 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-1 zen-text-xs zen-cursor-pointer focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring";
@@ -628,6 +643,11 @@ export function DataTable<TData>(
   let visibilityInner: Record<string, boolean> = persisted?.columnVisibility ?? {};
   let columnFiltersInner: { id: string; value: unknown }[] = [];
   let expandedInner: true | Record<string, boolean> = {};
+  let groupingInner: string[] = [...(current.initialGrouping ?? [])];
+  /* With grouping, the page is a mix of group rows and rows; the rest of the
+   * table (keyboard, selection, export) still sees only the rows on it. */
+  let pageItems: BodyItem[] | null = null;
+  let pagingLength: number | null = null;
   let pinningInner: { left: string[]; right: string[] } = normalisePinning(
     persisted?.columnPinning ?? current.initialColumnPinning,
   );
@@ -686,6 +706,17 @@ export function DataTable<TData>(
     row: TData;
     index: number;
   }
+  /** A group row (enableGrouping): its rows are `leaves`, its "(N)" `children`. */
+  interface GroupItem {
+    kind: "group";
+    id: string;
+    depth: number;
+    columnId: string;
+    key: unknown;
+    leaves: DisplayRow[];
+    children: number;
+  }
+  type BodyItem = GroupItem | { kind: "row"; r: DisplayRow };
 
   /* ----- structure ----- */
   const rootClass = () =>
@@ -726,7 +757,8 @@ export function DataTable<TData>(
   let filterInput: InputHandle | null = null;
   if (
     current.enableColumnFilters ||
-    ((current.onExport || current.enableColumnVisibility) && current.toolbarPlacement !== "pagination")
+    ((current.onExport || current.enableColumnVisibility || current.enableGrouping) &&
+      current.toolbarPlacement !== "pagination")
   )
     el.append(toolbarEl);
   if (current.enableColumnFilters) {
@@ -770,6 +802,18 @@ export function DataTable<TData>(
   const effColumnFilters = (): { id: string; value: unknown }[] => current.columnFilters ?? columnFiltersInner;
   const columnFilterValue = (id: string): unknown => effColumnFilters().find((f) => f.id === id)?.value;
   const effExpanded = (): true | Record<string, boolean> => current.expanded ?? expandedInner;
+  const effGrouping = (): string[] => current.grouping ?? groupingInner;
+  /** Grouping applies to the regular table (not the div grid or row virtualization yet). */
+  const groupingActive = (): boolean =>
+    !!current.enableGrouping && effGrouping().length > 0 && !isVirt() && !rowVirt();
+  const canGroup = (col: DataTableColumn<TData>): boolean =>
+    !!current.enableGrouping && col.enableGrouping !== false && !!(col.accessorKey || col.accessorFn);
+  function setGrouping(next: string[]): void {
+    if (current.grouping === undefined) groupingInner = next;
+    current.onGroupingChange?.(next);
+    pageIndexInner = 0;
+    sync();
+  }
   /** Rows expand only into a detail renderer, and not in the div grid (React's rule too). */
   const expansionActive = (): boolean => !!current.renderSubRow && !isVirt();
   const isExpanded = (id: string): boolean => {
@@ -820,7 +864,13 @@ export function DataTable<TData>(
   const leafColumns = (): DataTableColumn<TData>[] => {
     if (leafCache) return leafCache;
     const l = layout();
-    return (leafCache = [...l.left, ...l.center, ...l.right].map((id) => colById(id)!).filter(Boolean));
+    let center = l.center;
+    // Grouped columns lead, in grouping order (TanStack's groupedColumnMode "reorder").
+    if (groupingActive()) {
+      const g = effGrouping().filter((id) => center.includes(id));
+      center = [...g, ...center.filter((id) => !g.includes(id))];
+    }
+    return (leafCache = [...l.left, ...center, ...l.right].map((id) => colById(id)!).filter(Boolean));
   };
   const invalidateColumns = () => {
     leafCache = null;
@@ -970,7 +1020,7 @@ export function DataTable<TData>(
   const pageCountOf = (processed: DisplayRow[]): number =>
     current.manualPagination
       ? current.manualPagination.pageCount
-      : Math.max(1, Math.ceil(processed.length / Math.max(1, effPageSize())));
+      : Math.max(1, Math.ceil((pagingLength ?? processed.length) / Math.max(1, effPageSize())));
 
   const paginationActive = (): boolean =>
     (!!current.enablePagination && !isVirt()) || !!current.manualPagination;
@@ -1253,10 +1303,12 @@ export function DataTable<TData>(
    * sits on the toolbar row or in the pager row (toolbarPlacement). Built once:
    * a menu button moved out and back on every repaint would lose focus. */
   const toolbarMenusEl = h("div", "zen-ml-auto zen-flex zen-items-center zen-gap-2");
-  const hasToolbarMenus = (): boolean => !!current.onExport || !!current.enableColumnVisibility;
+  const hasToolbarMenus = (): boolean =>
+    !!current.onExport || !!current.enableColumnVisibility || !!current.enableGrouping;
   function paintMenus(): void {
     paintExport();
     paintColumnsMenu();
+    paintGroupMenu();
     if (!hasToolbarMenus()) {
       toolbarMenusEl.remove();
       return;
@@ -1301,6 +1353,60 @@ export function DataTable<TData>(
         exporter.menu.update({ items });
       }
     }
+  }
+
+  /* ----- Group by menu ----- */
+  let groupMenu: { menu: DropdownMenuHandle; button: ZenComponent<ButtonProps> } | null = null;
+  const groupItemsSpec = (): DropdownMenuItemSpec[] =>
+    current.columns.filter(canGroup).map((col) => {
+      const id = colId(col);
+      return {
+        type: "checkbox" as const,
+        label: headerText(col),
+        checked: effGrouping().includes(id),
+        // From the live grouping, not the row's checked flag: the menu's rows
+        // can be a step behind while it closes.
+        onCheckedChange: () => {
+          const g = effGrouping();
+          setGrouping(g.includes(id) ? g.filter((x) => x !== id) : [...g, id]);
+        },
+      };
+    });
+  function paintGroupMenu(): void {
+    if (!current.enableGrouping || !current.columns.some(canGroup)) {
+      groupMenu?.menu.el.remove();
+      return;
+    }
+    const n = effGrouping().length;
+    const label = n ? loc.t("dataTable.groupByCount", { count: n }) : loc.t("dataTable.groupBy");
+    if (!groupMenu) {
+      const button = Button({ variant: "outline", color: "neutral", size: "sm", children: label });
+      const menu = DropdownMenu({
+        trigger: button,
+        items: groupItemsSpec(),
+        align: "end",
+        class: "zen-min-w-52",
+        // A choice repaints the table while the menu is still open, so the
+        // rows are refreshed as it closes, for the next opening.
+        onOpenChange: (open) => {
+          if (!open) groupMenu?.menu.update({ items: groupItemsSpec() });
+        },
+      });
+      groupMenu = { menu, button };
+      disposer.add(() => {
+        groupMenu?.menu.destroy();
+        groupMenu?.button.destroy();
+      });
+    } else {
+      groupMenu.button.update({ children: label });
+      if (!groupMenu.menu.isOpen) groupMenu.menu.update({ items: groupItemsSpec() });
+    }
+    // Export, Group by, Columns: React's order.
+    const el = groupMenu.menu.el;
+    const columnsEl = columnsMenu?.menu.el;
+    if (columnsEl && columnsEl.parentElement === toolbarMenusEl) {
+      if (el.nextElementSibling !== columnsEl) columnsEl.before(el);
+    } else if (el.parentElement !== toolbarMenusEl) toolbarMenusEl.append(el);
   }
 
   /* ----- Columns menu ----- */
@@ -2202,7 +2308,8 @@ export function DataTable<TData>(
       }
       if (menuActive()) td.setAttribute("data-column", columnId);
       cellEls.set(cellKey(id, columnId), td);
-      fillCell(td, col, r, id);
+      // Inside a group the grouped columns stay empty: the group row says it.
+      if (!(groupingActive() && effGrouping().includes(columnId))) fillCell(td, col, r, id);
       tr.append(td);
     }
     rowComps.set(id, comps);
@@ -2564,6 +2671,90 @@ export function DataTable<TData>(
         ro.disconnect();
       },
     };
+  }
+
+  /* ----- grouping ----- */
+  /* Rows (already filtered and sorted) nested by each grouped column in turn;
+   * a group lists its rows only while expanded. Groups keep the order their
+   * first row has, so sorting by the grouped column orders the groups. */
+  function groupItems(rows: DisplayRow[]): BodyItem[] {
+    const cols = effGrouping()
+      .map((id) => colById(id))
+      .filter((c): c is DataTableColumn<TData> => !!c);
+    const keyOf = (col: DataTableColumn<TData>, r: DisplayRow) => getValue(col, r.row, r.index);
+    const build = (list: DisplayRow[], depth: number, parent: string): BodyItem[] => {
+      if (depth >= cols.length) return list.map((r) => ({ kind: "row" as const, r }));
+      const col = cols[depth]!;
+      const groups = new Map<string, { key: unknown; rows: DisplayRow[] }>();
+      for (const r of list) {
+        const key = keyOf(col, r);
+        const k = String(key);
+        const g = groups.get(k);
+        if (g) g.rows.push(r);
+        else groups.set(k, { key, rows: [r] });
+      }
+      const out: BodyItem[] = [];
+      const next = cols[depth + 1];
+      for (const [k, g] of groups) {
+        const id = `${parent ? `${parent}>` : ""}${colId(col)}:${k}`;
+        const children = next ? new Set(g.rows.map((r) => String(keyOf(next, r)))).size : g.rows.length;
+        out.push({ kind: "group", id, depth, columnId: colId(col), key: g.key, leaves: g.rows, children });
+        if (isExpanded(id)) out.push(...build(g.rows, depth + 1, id));
+      }
+      return out;
+    };
+    return build(rows, 0, "");
+  }
+
+  /* A group row: in the column grouped at its depth, the toggle, the value
+   * (through the column's own cell) and "(N)"; a subtotal under each column
+   * with meta.aggregate; every other cell empty. */
+  function buildGroupRow(item: GroupItem): HTMLElement {
+    const tr = h("tr", TABLE_ROW_CLASS);
+    tr.dataset.group = item.id;
+    const utility = (key: string) => {
+      const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+      markUtilityPin(td, key);
+      tr.append(td);
+    };
+    if (rowOrderingActive()) utility("__drag__");
+    if (expansionActive()) utility("__expand__");
+    if (current.enableRowSelection) utility("__select__");
+    for (const col of leafColumns()) {
+      const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass()));
+      markPin(td, col);
+      if (colId(col) === item.columnId) {
+        const open = isExpanded(item.id);
+        const wrap = h("div", "zen-inline-flex zen-items-center zen-gap-1.5");
+        const btn = h(
+          "button",
+          cn(
+            "zen-inline-flex zen-items-center zen-justify-center zen-h-5 zen-w-5 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer zen-transition-transform zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+            open && "zen-rotate-90",
+          ),
+        ) as HTMLButtonElement;
+        btn.type = "button";
+        btn.setAttribute("aria-expanded", String(open));
+        btn.setAttribute("aria-label", loc.t(open ? "dataTable.collapseGroup" : "dataTable.expandGroup"));
+        btn.append(svgNode(GROUP_CHEVRON));
+        btn.addEventListener("click", () => toggleExpanded(item.id));
+        const value = h("span", "zen-font-medium");
+        const first = item.leaves[0]!;
+        value.append(
+          ...toNodes(col.cell ? col.cell({ row: first.row, value: item.key, index: first.index }) : String(item.key ?? "")),
+        );
+        const count = h("span", "zen-text-xs zen-text-zen-muted-fg");
+        count.textContent = `(${item.children})`;
+        wrap.append(btn, value, count);
+        td.append(wrap);
+      } else if (col.meta?.aggregate && !effGrouping().includes(colId(col))) {
+        // A column grouped at another depth is a placeholder here (TanStack's
+        // rule), even if it also has a total.
+        td.append(...toNodes(totalOf(col, item.leaves)));
+      }
+      tr.append(td);
+    }
+    return tr;
   }
 
   /* ----- per-column filters ----- */
@@ -3207,7 +3398,8 @@ export function DataTable<TData>(
     const tbody = h("tbody", "[&_tr:last-child]:zen-border-0");
     if (current.loading) {
       tbody.append(messageRow(loc.t("dataTable.loading")));
-    } else if (display.length === 0) {
+    } else if (display.length === 0 && !pageItems?.length) {
+      // (Collapsed groups are rows too: a page of group rows is not empty.)
       tbody.append(messageRow(current.emptyMessage ?? loc.t("dataTable.noResults")));
     } else if (virtual) {
       // One spacer as tall as every row, so the scroll a repaint restores is
@@ -3217,11 +3409,23 @@ export function DataTable<TData>(
       for (const r of display) total += rowSizes.get(rowIdOf(r.row, r.index)) ?? estimate;
       tbody.append(spacerRow(total));
     } else {
-      display.forEach((r, i) => {
-        tbody.append(buildRow(r, i));
-        const sub = subElById.get(rowIdOf(r.row, r.index));
-        if (sub) tbody.append(sub);
-      });
+      if (pageItems) {
+        let i = 0;
+        for (const it of pageItems) {
+          if (it.kind === "group") tbody.append(buildGroupRow(it));
+          else {
+            tbody.append(buildRow(it.r, i++));
+            const sub = subElById.get(rowIdOf(it.r.row, it.r.index));
+            if (sub) tbody.append(sub);
+          }
+        }
+      } else {
+        display.forEach((r, i) => {
+          tbody.append(buildRow(r, i));
+          const sub = subElById.get(rowIdOf(r.row, r.index));
+          if (sub) tbody.append(sub);
+        });
+      }
     }
 
     /* tfoot — only when a column declares a footer or a total, so every
@@ -3490,7 +3694,18 @@ export function DataTable<TData>(
     clearMounted();
     clearBody();
     const processed = processRows();
-    const display = computeDisplay(processed);
+    // Grouping pages over group rows and rows alike (TanStack's
+    // paginateExpandedRows); the rows on the page stay the table's display.
+    const items = groupingActive() ? groupItems(processed) : null;
+    pagingLength = items ? items.length : null;
+    if (items && current.enablePagination && !current.manualPagination) {
+      const size = effPageSize();
+      const start = Math.min(effPageIndex(), Math.max(0, Math.ceil(items.length / size) - 1)) * size;
+      pageItems = items.slice(start, start + size);
+    } else pageItems = items;
+    const display = pageItems
+      ? pageItems.flatMap((it) => (it.kind === "row" ? [it.r] : []))
+      : computeDisplay(processed);
     lastDisplay = display;
     rowElById = new Map();
     subElById = new Map();

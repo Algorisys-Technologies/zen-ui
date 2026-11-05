@@ -53,11 +53,11 @@ const ALWAYS = new Set(["class", "id", "style", "children", "ref", "asChild"]);
  * is debt with a home: closing it means deleting the line.
  */
 const KNOWN: Record<string, string> = {
-  // docs/vanilla-data-table.md, phases 4-5 (phases 1-3 closed columns,
-  // persistKey, per-column filters, manual filtering and sorting, expansion).
+  // docs/vanilla-data-table.md, phase 5 (phases 1-4 closed columns,
+  // persistKey, per-column filters, manual filtering and sorting, expansion,
+  // grouping).
   ...Object.fromEntries(
     [
-      "enableGrouping", "grouping", "initialGrouping", "onGroupingChange",
       "enableExport", "exportOnlySelected", "renderBulkActions",
     ].map((m) => [`DataTableProps.${m}`, "vanilla"]),
   ),

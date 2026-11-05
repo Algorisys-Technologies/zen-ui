@@ -54,6 +54,15 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `renderSubRow` / `expanded` properties and `zen-expanded-change`. In row
   virtualization an open row and its detail are one measured item.
   check:props: 3 more closed (10 known remain in DataTable).
+- **Vanilla / web-components DataTable: row grouping** (phase 4).
+  `enableGrouping`, controlled `grouping` / `initialGrouping` +
+  `onGroupingChange`; a "Group by" / "Group by (N)" menu; group rows
+  "value (N)" that expand and collapse (by keyboard too), subtotals from
+  `meta.aggregate`, nesting by several columns, grouped columns leading, and
+  pages that count group rows (TanStack's semantics, measured on React's demo:
+  the subtotals match it). Columns opt out with `enableGrouping: false`. On
+  `<zen-data-table>`: `enable-grouping`, `grouping` / `initialGrouping`,
+  `zen-grouping-change`. check:props: 4 more closed.
 - **`check:props`**: prop parity across bindings (see 12.6.0's follow-up);
   in `bun run check`.
 - Vanilla DropdownMenu checkbox items take `id`, `onKeyDown` and
