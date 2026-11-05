@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.7.0] - 2026-11-06
+
 ### Added
 - **Vanilla / web-components DataTable: column management** (phase 1 of
   docs/vanilla-data-table.md). `enableColumnVisibility` (a Columns menu with
