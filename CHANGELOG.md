@@ -63,6 +63,12 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the subtotals match it). Columns opt out with `enableGrouping: false`. On
   `<zen-data-table>`: `enable-grouping`, `grouping` / `initialGrouping`,
   `zen-grouping-change`. check:props: 4 more closed.
+- **Vanilla / web-components DataTable: client export and bulk actions**
+  (phase 5, the last). `enableExport` (CSV / JSON of the filtered rows in data
+  order, React's formats), `exportOnlySelected`, `renderBulkActions` (count,
+  "Select all N matching" after a whole page is selected, your actions,
+  clear). With it vanilla's DataTable has every prop React's and Solid's have:
+  check:props lists 0 DataTable gaps (27 at the start).
 - **`check:props`**: prop parity across bindings (see 12.6.0's follow-up);
   in `bun run check`.
 - Vanilla DropdownMenu checkbox items take `id`, `onKeyDown` and

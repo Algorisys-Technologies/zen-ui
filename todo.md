@@ -60,7 +60,7 @@ issue / PR when its turn comes.
 - [ ] TreeTable controlled state in vanilla: `expanded`, `globalFilter`,
       `onGlobalFilterChange`, `sorting`, `onSortingChange`, `rowSelection`,
       `rowClassName`.
-- [ ] DataTable in vanilla: docs/vanilla-data-table.md (27 props, phases 1–5).
+- [x] DataTable in vanilla: docs/vanilla-data-table.md (27 props, phases 1–5). ✓ 2026-11-05: all five phases; check:props 0 DataTable gaps.
 
 ## DataTable columns: follow-ups from the vanilla port (2026-11-05)
 
@@ -111,9 +111,9 @@ minified), so a bundler keeps all of it.
 
 ## Vanilla DataTable: the features it never had (found 2026-11-05)
 
-- [ ] Grouping (and so group subtotals), per-column filters (and so
+- [x] Grouping (and so group subtotals), per-column filters (and so
       `enableFilterOperators`), expandable rows (`renderSubRow`), column
-      visibility / pinning / resizing / ordering. React and Solid have them;
+      visibility / pinning / resizing / ordering. ✓ 2026-11-05: the vanilla port. React and Solid have them;
       the parity pass ported only 12.2.0's additions. check:parity cannot see
       a missing PROP, which is how this stayed hidden.
 

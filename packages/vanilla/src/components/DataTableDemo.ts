@@ -1263,6 +1263,51 @@ DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true })
           return box;
         },
       },
+      {
+        title: "35. Export and bulk actions",
+        codeTitle: "enableExport + exportOnlySelected, renderBulkActions",
+        codeDescription:
+          "Select rows: a bar shows how many, offers to select every matching row when a whole page is selected, and holds your actions. Export downloads the selected rows (all rows when none is selected) as CSV or JSON.",
+        code: `DataTable({ data: people, columns, enableRowSelection: true, enablePagination: true,
+  getRowId: (p) => p.id, enableExport: true, exportOnlySelected: true,
+  renderBulkActions: ({ rows, clear }) => [
+    Button({ size: "sm", variant: "outline", children: "Archive", onClick: () => archive(rows) }),
+  ] })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-2";
+          box.dataset.testid = "bulk";
+          const said = document.createElement("p");
+          said.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+          said.dataset.testid = "bulk-said";
+          said.textContent = "Nothing done yet.";
+          box.append(
+            DataTable({
+              data: MEDIUM,
+              columns,
+              enableRowSelection: true,
+              enablePagination: true,
+              getRowId: (p) => p.id,
+              enableExport: true,
+              exportOnlySelected: true,
+              exportFilename: "people",
+              renderBulkActions: ({ rows, ids, clear }) => [
+                Button({
+                  size: "sm",
+                  variant: "outline",
+                  children: "Archive",
+                  onClick: () => {
+                    said.textContent = `Archived ${rows.length}: ${ids.join(", ")}`;
+                    clear();
+                  },
+                }).el,
+              ],
+            }).el,
+            said,
+          );
+          return box;
+        },
+      },
     ],
   });
 }

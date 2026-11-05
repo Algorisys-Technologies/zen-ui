@@ -400,6 +400,19 @@ export interface DataTableProps<TData> {
   exportTitle?: string;
   /** Filename (without extension) for exports. Default "data-table". */
   exportFilename?: string;
+  /**
+   * An Export menu in the toolbar (CSV, JSON) of the filtered rows, in data
+   * order, the visible columns. `onExport` (the server builds the file) wins.
+   */
+  enableExport?: boolean;
+  /** Export only the selected rows (all filtered rows when none is selected). */
+  exportOnlySelected?: boolean;
+  /**
+   * A bar above the table while rows are selected: "N selected", "Select all
+   * N matching" when a whole page is selected, your actions, and a clear
+   * button. Gets the selected rows (data order), their ids, and `clear()`.
+   */
+  renderBulkActions?: (ctx: { rows: TData[]; ids: string[]; clear: () => void }) => Child;
 
   /**
    * Which rows a column's `meta.aggregate` totals: every row the filters let
@@ -561,6 +574,12 @@ const normalisePinning = (p?: { left?: string[]; right?: string[] }): { left: st
   left: [...(p?.left ?? [])],
   right: [...(p?.right ?? [])],
 });
+
+const csvEscape = (value: unknown): string => {
+  if (value === null || value === undefined) return "";
+  const text = String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+};
 
 function h(tag: string, className?: string): HTMLElement {
   const node = document.createElement(tag);
@@ -757,7 +776,7 @@ export function DataTable<TData>(
   let filterInput: InputHandle | null = null;
   if (
     current.enableColumnFilters ||
-    ((current.onExport || current.enableColumnVisibility || current.enableGrouping) &&
+    ((current.onExport || current.enableExport || current.enableColumnVisibility || current.enableGrouping) &&
       current.toolbarPlacement !== "pagination")
   )
     el.append(toolbarEl);
@@ -970,7 +989,7 @@ export function DataTable<TData>(
   };
 
   /* ----- row pipeline ----- */
-  function processRows(): DisplayRow[] {
+  function processRows(sort = true): DisplayRow[] {
     let rows: DisplayRow[] = current.data.map((row, index) => ({ row, index }));
 
     // A server-filtered table takes `data` as the answer (manualFiltering).
@@ -996,7 +1015,7 @@ export function DataTable<TData>(
     }
 
     const sorting = effSorting();
-    if (current.enableSorting && sorting.length && !current.manualSorting) {
+    if (sort && current.enableSorting && sorting.length && !current.manualSorting) {
       rows = [...rows].sort((a, b) => {
         for (const s of sorting) {
           const col = colById(s.id);
@@ -1304,7 +1323,7 @@ export function DataTable<TData>(
    * a menu button moved out and back on every repaint would lose focus. */
   const toolbarMenusEl = h("div", "zen-ml-auto zen-flex zen-items-center zen-gap-2");
   const hasToolbarMenus = (): boolean =>
-    !!current.onExport || !!current.enableColumnVisibility || !!current.enableGrouping;
+    !!current.onExport || !!current.enableExport || !!current.enableColumnVisibility || !!current.enableGrouping;
   function paintMenus(): void {
     paintExport();
     paintColumnsMenu();
@@ -1320,7 +1339,55 @@ export function DataTable<TData>(
     if (toolbarMenusEl.parentElement !== host) host.append(toolbarMenusEl);
   }
 
+  /* The client Export menu (enableExport): CSV / JSON of the filtered rows in
+   * data order, or the selected ones, React's formats exactly. */
+  let clientExport: { menu: DropdownMenuHandle; button: ZenComponent<ButtonProps> } | null = null;
+  function clientExportRows(): DisplayRow[] {
+    const filtered = processRows(false);
+    if (!current.exportOnlySelected) return filtered;
+    const sel = effSelection();
+    const picked = filtered.filter((r) => sel.has(rowIdOf(r.row, r.index)));
+    // Never an empty file: with nothing selected, the filtered rows.
+    return picked.length ? picked : filtered;
+  }
+  function exportClientCsv(): void {
+    const cols = leafColumns();
+    const header = cols.map((c) => csvEscape(headerText(c))).join(",");
+    const body = clientExportRows()
+      .map((r) => cols.map((c) => csvEscape(getValue(c, r.row, r.index))).join(","))
+      .join("\n");
+    downloadBlob(new Blob([`${header}\n${body}`], { type: "text/csv;charset=utf-8" }), `${exportFilename()}.csv`);
+  }
+  function exportClientJson(): void {
+    const cols = leafColumns();
+    const payload = clientExportRows().map((r) => Object.fromEntries(cols.map((c) => [colId(c), getValue(c, r.row, r.index)])));
+    downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }), `${exportFilename()}.json`);
+  }
+  const clientExportItems = (): DropdownMenuItemSpec[] => [
+    { type: "label", label: loc.t(current.exportOnlySelected ? "dataTable.exportSelectedRows" : "dataTable.exportVisibleRows") },
+    { type: "separator" },
+    { label: loc.t("dataTable.exportCsv"), onSelect: exportClientCsv },
+    { label: loc.t("dataTable.exportJson"), onSelect: exportClientJson },
+  ];
+  function paintClientExport(): void {
+    if (current.onExport || !current.enableExport) {
+      clientExport?.menu.el.remove();
+      return;
+    }
+    if (!clientExport) {
+      const button = Button({ variant: "outline", color: "neutral", size: "sm", children: loc.t("dataTable.export") });
+      const menu = DropdownMenu({ trigger: button, items: clientExportItems(), align: "end", class: "zen-min-w-44" });
+      clientExport = { menu, button };
+      disposer.add(() => {
+        clientExport?.menu.destroy();
+        clientExport?.button.destroy();
+      });
+    } else if (!clientExport.menu.isOpen) clientExport.menu.update({ items: clientExportItems() });
+    if (clientExport.menu.el.parentElement !== toolbarMenusEl) toolbarMenusEl.prepend(clientExport.menu.el);
+  }
+
   function paintExport(): void {
+    paintClientExport();
     if (!current.onExport) {
       if (exporter) exporter.menu.el.parentElement?.remove();
       return;
@@ -2996,6 +3063,73 @@ export function DataTable<TData>(
     return cell;
   }
 
+  /* The bulk-actions bar (renderBulkActions): React's BulkActionBar. Rebuilt
+   * only when the selection (or what it could grow to) changes, so a repaint
+   * for anything else does not take focus off one of your action buttons. */
+  const bulkEl = h(
+    "div",
+    "zen-flex zen-items-center zen-gap-3 zen-px-3 zen-py-2 zen-rounded-zen-md zen-bg-zen-primary-soft zen-border zen-border-zen-primary-soft zen-text-zen-primary-soft-fg",
+  );
+  bulkEl.setAttribute("role", "toolbar");
+  bulkEl.setAttribute("aria-label", loc.t("dataTable.bulkActions"));
+  let bulkSignature = "";
+  function paintBulk(processed: DisplayRow[]): void {
+    const sel = effSelection();
+    if (!current.renderBulkActions || sel.size === 0) {
+      bulkEl.remove();
+      bulkSignature = "";
+      return;
+    }
+    const picked = processed.filter((r) => sel.has(rowIdOf(r.row, r.index)));
+    const pageIds = lastDisplay.map((r) => rowIdOf(r.row, r.index));
+    const allPage = pageIds.length > 0 && pageIds.every((id) => sel.has(id));
+    const crossPage = allPage && sel.size < processed.length;
+    const signature = `${[...sel].sort().join(",")}|${processed.length}|${crossPage}`;
+    if (signature !== bulkSignature) {
+      bulkSignature = signature;
+      const count = h("span", "zen-text-sm zen-font-medium");
+      count.setAttribute("aria-live", "polite");
+      count.setAttribute("aria-atomic", "true");
+      count.textContent = loc.t("dataTable.nSelected", { count: sel.size });
+      const parts: HTMLElement[] = [count];
+      if (crossPage) {
+        const all = h(
+          "button",
+          "zen-text-xs zen-underline zen-underline-offset-2 zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-inherit hover:zen-opacity-80 focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+        ) as HTMLButtonElement;
+        all.type = "button";
+        all.textContent = loc.t("dataTable.selectAllMatching", { count: processed.length });
+        all.addEventListener("click", () => commitSelection(new Set(processed.map((r) => rowIdOf(r.row, r.index)))));
+        parts.push(all);
+      }
+      const right = h("div", "zen-ml-auto zen-flex zen-items-center zen-gap-2");
+      const clear = () => commitSelection(new Set());
+      right.append(
+        ...toNodes(
+          current.renderBulkActions({
+            rows: picked.map((r) => r.row),
+            ids: picked.map((r) => rowIdOf(r.row, r.index)),
+            clear,
+          }),
+        ),
+      );
+      const x = h(
+        "button",
+        "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-current zen-opacity-70 hover:zen-opacity-100 hover:zen-bg-black/10 focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
+      ) as HTMLButtonElement;
+      x.type = "button";
+      x.setAttribute("aria-label", loc.t("dataTable.clearSelection"));
+      x.append(svgNode(CHIP_X.replace('width="10" height="10"', 'width="14" height="14"')));
+      x.addEventListener("click", clear);
+      right.append(x);
+      parts.push(right);
+      bulkEl.replaceChildren(...parts);
+    }
+    // Toolbar, bulk bar, filter chips, table: React's order.
+    const anchor = chipsEl.isConnected ? chipsEl : containerEl;
+    if (bulkEl.nextElementSibling !== anchor) anchor.before(bulkEl);
+  }
+
   /* Active filters as chips above the table (React's ActiveFilterChips): the
    * search term and each column's filter, each removable, and Clear all. */
   const chipsEl = h("div", "zen-flex zen-flex-wrap zen-items-center zen-gap-2");
@@ -3783,6 +3917,7 @@ export function DataTable<TData>(
     paintPagination(processed);
     paintMenus();
     paintChips();
+    paintBulk(processed);
     // An empty slot is still a flex item, and would add the cluster's gap.
     // style.display, not `hidden`: its zen-flex class beats the [hidden] rule.
     pagerMenusEl.style.display = pagerMenusEl.childElementCount ? "" : "none";

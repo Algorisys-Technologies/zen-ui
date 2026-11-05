@@ -53,14 +53,6 @@ const ALWAYS = new Set(["class", "id", "style", "children", "ref", "asChild"]);
  * is debt with a home: closing it means deleting the line.
  */
 const KNOWN: Record<string, string> = {
-  // docs/vanilla-data-table.md, phase 5 (phases 1-4 closed columns,
-  // persistKey, per-column filters, manual filtering and sorting, expansion,
-  // grouping).
-  ...Object.fromEntries(
-    [
-      "enableExport", "exportOnlySelected", "renderBulkActions",
-    ].map((m) => [`DataTableProps.${m}`, "vanilla"]),
-  ),
   // TreeTable's controlled state, never ported to vanilla.
   ...Object.fromEntries(
     ["expanded", "globalFilter", "onGlobalFilterChange", "sorting", "onSortingChange", "rowSelection", "rowClass"].map(

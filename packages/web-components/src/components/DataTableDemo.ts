@@ -1149,6 +1149,42 @@ table.onExport = (format, request) =>
           return box;
         },
       },
+      {
+        title: "35. Export and bulk actions",
+        codeTitle: "enable-export + export-only-selected, renderBulkActions",
+        codeDescription:
+          "Select rows: a bar shows how many, offers to select every matching row when a whole page is selected, and holds your actions. Export downloads the selected rows (all rows when none is selected) as CSV or JSON.",
+        code: `<zen-data-table enable-row-selection enable-pagination enable-export export-only-selected></zen-data-table>
+<script>el.renderBulkActions = ({ rows, clear }) => [archiveButton(rows, clear)];</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-2";
+          box.dataset.testid = "bulk";
+          const said = document.createElement("p");
+          said.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+          said.dataset.testid = "bulk-said";
+          said.textContent = "Nothing done yet.";
+          const t = el("zen-data-table", { "enable-row-selection": "", "enable-pagination": "", "enable-export": "", "export-only-selected": "", "export-filename": "people" });
+          Object.assign(t, {
+            columns,
+            data: MEDIUM,
+            getRowId: (p: Person) => p.id,
+            renderBulkActions: ({ rows, ids, clear }: { rows: Person[]; ids: string[]; clear: () => void }) => {
+              const b = document.createElement("zen-button");
+              b.setAttribute("size", "sm");
+              b.setAttribute("variant", "outline");
+              b.textContent = "Archive";
+              b.addEventListener("click", () => {
+                said.textContent = `Archived ${rows.length}: ${ids.join(", ")}`;
+                clear();
+              });
+              return [b];
+            },
+          });
+          box.append(t, said);
+          return box;
+        },
+      },
     ],
   });
 }

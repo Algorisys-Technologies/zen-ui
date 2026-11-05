@@ -126,4 +126,12 @@ lint ×4, `visual-check`, the route-snapshot comparison for vanilla and WC.
     shows the expand column only for `renderSubRow`. Note for React/Solid.
   - Scope: the regular table. Grouping with `enableRowVirtualization` or the
     div grid is a follow-up.
-- [ ] Phase 5: client export, bulk actions
+- [x] Phase 5: client export, bulk actions (2026-11-05). `enableExport`
+  (CSV / JSON of the filtered rows in data order, React's formats),
+  `exportOnlySelected` (falls back to every row when none is selected),
+  `renderBulkActions` (React's bar: count, "Select all N matching", your
+  actions, clear); vanilla and `<zen-data-table>`.
+
+**The port is complete: check:props lists 0 DataTable gaps (was 27).**
+Follow-ups that were scoped out are in todo.md ("DataTable columns:
+follow-ups from the vanilla port").
