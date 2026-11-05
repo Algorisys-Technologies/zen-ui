@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.3.0] - 2026-11-05
+
 ### Added
 - **The New / Updated marks are in every demo**, not only Solid's: React,
   vanilla and web components read `since` / `updated` from their own `nav.ts`
