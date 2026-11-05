@@ -101,5 +101,28 @@ lint ×4, `visual-check`, the route-snapshot comparison for vanilla and WC.
   the paged table and inside row virtualization, where an open row and its
   detail are mounted, moved and measured as one item (verified: unmounted far
   away, re-paired on return, bottom reachable over 2,000 rows).
-- [ ] Phase 4: grouping
+- [ ] Phase 4: grouping. Semantics, measured on React's demo (section 23)
+  2026-11-05, and what vanilla does with them:
+  - `grouping: string[]` (controlled `grouping`, `initialGrouping`,
+    `onGroupingChange`), active with `enableGrouping`; a "Group by" /
+    "Group by (N)" menu of checkbox items, one per groupable column (an
+    accessor, `enableGrouping !== false`), between Export and Columns.
+  - Grouped columns move to the front of the data columns, in grouping order
+    (TanStack's `groupedColumnMode: "reorder"`). React also moves them ahead
+    of its utility columns; vanilla keeps utility columns first.
+  - Groups start collapsed. Group row id `${col}:${value}`, nested with `>`,
+    the key the shared `expanded` state uses.
+  - A group row: in the column grouped at its depth, a chevron button
+    (`aria-expanded`, "Expand group" / "Collapse group") + the value (through
+    the column's `cell`) + "(N)", N its direct children; columns with
+    `meta.aggregate` show the group's subtotal over its leaf rows; every other
+    cell is empty. Leaf rows leave the grouped columns' cells empty.
+  - Pagination counts the visible rows, group rows included (TanStack's
+    `paginateExpandedRows`). Groups appear in the order their first row has
+    after sorting, so sorting by the grouped column orders the groups.
+  - NOT copied: React shows an always-empty "Expand" column when grouping
+    without `renderSubRow` (the expander lives in the group cell); vanilla
+    shows the expand column only for `renderSubRow`. Note for React/Solid.
+  - Scope: the regular table. Grouping with `enableRowVirtualization` or the
+    div grid is a follow-up.
 - [ ] Phase 5: client export, bulk actions
