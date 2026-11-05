@@ -82,6 +82,13 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     browser's button colour. Measured unchanged in the demos.
 
 ### Fixed
+- **`bun run dev:all` died at start with ENOSPC.** Its router is a Vite server
+  rooted at the repo, so it watched every file in it, `.claude/worktrees`
+  included, for a server that only proxies. With the parity pass's 32 agent
+  worktrees on disk the machine's 65536 inotify watchers ran out, chokidar's
+  error went unhandled, and the hub exited. The router now watches nothing
+  (`server.watch: null`); the children still watch their own packages. Driven
+  after the fix: all five apps render through :5170, no page errors.
 - **Built-in strings in 18 places were still hard-coded after 12.2.0's "every string
   can be translated"** (Solid), which overstated it: `check:strings` could
   not see words inside an attribute EXPRESSION (`aria-label={open ? "Collapse
