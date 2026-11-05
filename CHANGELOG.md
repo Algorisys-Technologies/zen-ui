@@ -67,9 +67,12 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - **DataTable** in React: keyboard rows, cell navigation, row virtualization
     with row drag, totals, server export (the ExportRequest is byte-identical
     across Solid, React, vanilla and web components for the same table state)
-    and `contextMenu`. In vanilla and web components: keyboard rows, totals,
-    server export and `contextMenu`; cell navigation and row virtualization
-    follow once vanilla's DataTable has inline editing.
+    and `contextMenu`. In vanilla and web components: inline editing,
+    keyboard rows, cell navigation with copy and paste, row virtualization,
+    totals, server export and `contextMenu`. Still missing there (pre-existing,
+    todo.md): grouping, per-column filters, expandable rows. Corrected after
+    release: the 12.3.0 notes first said cell navigation and virtualization
+    were still to come in vanilla.
   - **Every built-in word is translatable in every binding.** React's and
     vanilla's components now take their words from the message catalogue as
     Solid's do (Solid 135, React 139, vanilla 128 components; nothing exempt),
