@@ -9,6 +9,7 @@ import {
 } from "../../lib/component";
 import { controllable } from "../../lib/state";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * DynamicPage — the vanilla port of the React reference.
@@ -417,6 +418,7 @@ export interface DynamicPageHeaderProps extends BaseProps {
 
 export function DynamicPageHeader(props: DynamicPageHeaderProps = {}): PartHandle<DynamicPageHeaderProps> {
   let current: DynamicPageHeaderProps = { ...props };
+  const loc = useLocale();
   let ctx: DynamicPageContext | null = null;
 
   // 1fr → 0fr on a grid row collapses to zero without anyone measuring the
@@ -449,7 +451,7 @@ export function DynamicPageHeader(props: DynamicPageHeaderProps = {}): PartHandl
   const render = () => {
     content.replaceChildren(...toNodes(current.children));
     el.setAttribute("role", "region");
-    el.setAttribute("aria-label", current["aria-label"] ?? "Page header");
+    el.setAttribute("aria-label", current["aria-label"] ?? loc.t("dynamicPage.pageHeader"));
     paint();
   };
 
@@ -481,7 +483,7 @@ export function DynamicPageHeader(props: DynamicPageHeaderProps = {}): PartHandl
         pinned && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
       );
       pinBtn.setAttribute("aria-pressed", String(pinned));
-      pinBtn.setAttribute("aria-label", pinned ? (current.unpinLabel ?? "Unpin header") : (current.pinLabel ?? "Pin header"));
+      pinBtn.setAttribute("aria-label", pinned ? (current.unpinLabel ?? loc.t("dynamicPage.unpinHeader")) : (current.pinLabel ?? loc.t("dynamicPage.pinHeader")));
       if (pinBtn.parentElement !== row) row.append(pinBtn);
     } else {
       pinBtn.remove();

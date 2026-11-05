@@ -4,7 +4,7 @@
 
 # sidebar — API (React, the parity reference)
 
-Exports: `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
+Exports: `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarHeaderLabel`, `SidebarMenuBadge`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-sidebar>`-style
@@ -17,12 +17,22 @@ SKILL.md.
 - `defaultCollapsed?: boolean | undefined` — uncontrolled initial collapsed state (default false)
 - `collapsed?: boolean | undefined` — controlled collapsed state
 - `onCollapsedChange?: ((collapsed: boolean) => void) | undefined`
+- `collapseMode?: "hidden" | "icon" | undefined` — What collapsing does: shrink to an icon rail (`"icon"`, the default), or hide the sidebar entirely (`"hidden"`), for a menu without icons. A hidden sidebar is inert: nothing in it can take focus.
+- `overlay?: boolean | { below: number; } | undefined` — Open over the content instead of beside it: `true` always, or `{ below: 900 }` while the sidebar's container is narrower than 900px. As an overlay it starts closed, takes focus when opened, and closes on Esc, a click outside it, or following a link inside it.
 
 ### Sidebar
 
 - …plus the underlying element's standard props (280 inherited).
 
 ### SidebarHeader
+
+- …plus the underlying element's standard props (280 inherited).
+
+### SidebarHeaderLabel
+
+- …plus the underlying element's standard props (280 inherited).
+
+### SidebarMenuBadge
 
 - …plus the underlying element's standard props (280 inherited).
 
@@ -64,6 +74,7 @@ SKILL.md.
 - `open?: boolean | undefined` — controlled expanded state
 - `onOpenChange?: ((open: boolean) => void) | undefined`
 - `active?: boolean | undefined` — mark the parent row as holding the current item
+- `badge?: React.ReactNode` — A count or status at the row's end ("29"), before the chevron.
 - `children?: React.ReactNode`
 - `className?: string | undefined`
 

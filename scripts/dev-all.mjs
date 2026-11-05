@@ -169,6 +169,12 @@ try {
       port: hubPort,
       strictPort: true,
       proxy: proxyTable,
+      // And it must watch nothing. Left at the default, a server rooted at the
+      // repo watches EVERY file in it, .claude/worktrees included: 32 agent
+      // worktrees exhausted the machine's 65536 inotify watchers, chokidar's
+      // ENOSPC was an unhandled 'error' event, and the hub died at start. The
+      // children watch their own packages; reloads never came from here.
+      watch: null,
     },
     plugins: [],
   });

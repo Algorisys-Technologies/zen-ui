@@ -33,6 +33,48 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.3.0",
+    date: "2026-11-05",
+    kind: "new",
+    title: "12.2.0's components and props in React, vanilla and web components",
+    detail: "AmountField, shortcuts, ContextMenu, DocumentTabs, Tile, QRCode and Barcode, DateInput, TreeSelect, LookupField, FilterBuilder, ViewManager, DataTable totals and export, Sidebar collapse modes: every binding now ships them.",
+  },
+  {
+    version: "12.3.0",
+    date: "2026-11-05",
+    kind: "new",
+    title: "Every built-in word can be translated, in every binding",
+    detail: "LocaleProvider in React and vanilla (children as a function in vanilla); <zen-locale-provider> in web components. What you leave out stays English.",
+  },
+  {
+    version: "12.3.0",
+    date: "2026-11-05",
+    kind: "fixed",
+    title: "A field marked aria-invalid now shows the error border (React, vanilla)",
+    detail: "It already told screen readers the field was wrong; now it shows it too, as Solid did.",
+  },
+  {
+    version: "12.3.0",
+    date: "2026-11-05",
+    kind: "fixed",
+    title: "StatCard figures back to their height before 12.2.0 (Solid)",
+    detail: "12.2.0 made every figure 8px taller.",
+  },
+  {
+    version: "12.3.0",
+    date: "2026-11-05",
+    kind: "fixed",
+    title: "Vanilla and web components no longer leak listeners on every opening",
+    detail: "About 25 components (Combobox, TreeSelect, …) left document listeners behind after their first open; since 7.0.0.",
+  },
+  {
+    version: "12.3.0",
+    date: "2026-11-05",
+    kind: "fixed",
+    title: "Web components: nested elements no longer render empty",
+    detail: "e.g. <zen-alert-title> inside <zen-alert>.",
+  },
+  {
     version: "12.2.0",
     date: "2026-11-04",
     kind: "new",

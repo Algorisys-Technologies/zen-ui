@@ -132,7 +132,7 @@ export const DiagramCanvas = (props: DiagramCanvasProps) => {
         /* A bridge that never answers is the normal failure when the origin is
            not allowlisted, so it must time out rather than hang forever. */
         setTimeout(() => {
-          if (pending.delete(id)) resolve({ ok: false, error: `Yappy.${method} timed out` });
+          if (pending.delete(id)) resolve({ ok: false, error: `Yappy.${method} timed out` }); // i18n-ignore (an RPC error for the caller's code, named by method)
         }, 4000);
       });
 

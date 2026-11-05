@@ -9,6 +9,7 @@ import {
   type ZenComponent,
 } from "../../lib/component";
 import { controllable } from "../../lib/state";
+import { useLocale } from "../locale/locale";
 
 /**
  * ObjectPageLayout — the vanilla port of the React reference.
@@ -131,6 +132,7 @@ export function ObjectPageLayout(
   props: ObjectPageLayoutProps,
 ): ZenComponent<ObjectPageLayoutProps> {
   let current: ObjectPageLayoutProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
 
@@ -376,7 +378,7 @@ export function ObjectPageLayout(
       header,
       title,
       showAnchorBar = true,
-      anchorBarLabel = "Object page sections",
+      anchorBarLabel = loc.t("objectPage.objectPageSections"),
       headingLevel = 2,
       class: className,
       children,
@@ -470,7 +472,7 @@ export function ObjectPageLayout(
       const sectionHeading = document.createElement(headingTag(headingLevel + 1));
       sectionHeading.id = `${s.id}-title`;
       sectionHeading.className =
-        "zen-m-0 zen-mb-3 zen-text-sm zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg";
+        "zen-m-0 zen-mb-3 zen-[font-size:var(--zen-object-page-section-title-size)] zen-[line-height:var(--zen-line-height-sm)] zen-font-semibold zen-uppercase zen-tracking-wide zen-text-zen-muted-fg";
       sectionHeading.append(...toNodes(s.title));
       section.append(sectionHeading);
 

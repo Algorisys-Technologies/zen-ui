@@ -297,7 +297,7 @@ export const IDEWindow = (props: IDEWindowProps) => {
                       class="zen-shrink-0 zen-rounded-zen-sm zen-bg-zen-muted zen-px-1 zen-text-xs zen-text-zen-muted-fg"
                       title={loc.t("codeEditor.readOnly")}
                     >
-                      RO
+                      {loc.t("codeEditor.readOnlyBadge")}
                     </span>
                   </Show>
                 </button>

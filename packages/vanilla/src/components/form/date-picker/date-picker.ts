@@ -7,6 +7,7 @@ import {
 import { controllable } from "../../../lib/state";
 import { Button } from "../../button/button";
 import { Popover } from "../../popover/popover";
+import { useLocale, withLocale } from "../../locale/locale";
 
 /**
  * Calendar + DatePicker — the vanilla binding's port.
@@ -59,7 +60,7 @@ export interface CalendarProps {
   class?: string;
 }
 
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const WEEKDAYS = ["su", "mo", "tu", "we", "th", "fr", "sa"] as const;
 
 const sameDay = (a: Date | undefined, b: Date | undefined): boolean =>
   !!a &&
@@ -114,6 +115,7 @@ const calendarIcon = (): Node => {
 
 export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
   let current: CalendarProps = { ...props };
+  const loc = useLocale();
   const root = document.createElement("div");
   const disposer = new Disposer();
 
@@ -194,13 +196,93 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
     b.type = "button";
     b.className =
       "zen-h-7 zen-w-7 zen-inline-flex zen-items-center zen-justify-center zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer hover:zen-bg-zen-muted";
-    b.setAttribute("aria-label", dir < 0 ? "Previous month" : "Next month");
+    b.setAttribute("aria-label", loc.t(dir < 0 ? "calendar.previousMonth" : "calendar.nextMonth"));
     b.textContent = dir < 0 ? "‹" : "›";
     b.addEventListener("click", () => {
       setViewMonth(addMonths(viewMonth(), dir));
       render();
     });
     return b;
+  };
+
+  /**
+   * The day buttons of the current render, so a key can find the one to focus
+   * after the page turns. Rebuilt by render(); the in-month copy of a day is
+   * preferred over the greyed copy a neighbouring month shows.
+   */
+  let dayButtons: { date: Date; btn: HTMLButtonElement; outside: boolean }[] = [];
+
+  /**
+   * Keys between days, as in any date grid and as React's react-day-picker
+   * does them: ← → a day (mirrored right to left), ↑ ↓ a week, Home / End the
+   * week's ends (Sunday-first, as the grid), PageUp / PageDown a month, and
+   * with Shift: ← → a month, ↑ ↓ and PageUp / PageDown a year. Crossing the
+   * visible months turns the page. A disabled day is stepped over in the same
+   * direction, as react-day-picker does, so focus never lands on nothing.
+   * These keys did nothing before, so nothing that worked changes.
+   */
+  const onDayKey = (e: KeyboardEvent, from: Date): void => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const rtl = getComputedStyle(e.currentTarget as Element).direction === "rtl";
+    const byDay = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+    // A month or a year on, keeping the day where the target month has it (31 Jan -> 28 Feb).
+    const byMonth = (d: Date, n: number) => {
+      const t = new Date(d.getFullYear(), d.getMonth() + n, 1);
+      const last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+      return new Date(t.getFullYear(), t.getMonth(), Math.min(d.getDate(), last));
+    };
+    const ahead = rtl ? -1 : 1;
+    let step: ((d: Date) => Date) | null = null;
+    // Where a disabled target sends focus next: on in the same direction.
+    let onward: ((d: Date) => Date) | null = null;
+    switch (e.key) {
+      case "ArrowLeft":
+        step = e.shiftKey ? (d) => byMonth(d, -ahead) : (d) => byDay(d, -ahead);
+        break;
+      case "ArrowRight":
+        step = e.shiftKey ? (d) => byMonth(d, ahead) : (d) => byDay(d, ahead);
+        break;
+      case "ArrowUp":
+        step = e.shiftKey ? (d) => byMonth(d, -12) : (d) => byDay(d, -7);
+        break;
+      case "ArrowDown":
+        step = e.shiftKey ? (d) => byMonth(d, 12) : (d) => byDay(d, 7);
+        break;
+      case "PageUp":
+        step = (d) => byMonth(d, e.shiftKey ? -12 : -1);
+        break;
+      case "PageDown":
+        step = (d) => byMonth(d, e.shiftKey ? 12 : 1);
+        break;
+      case "Home":
+        step = (d) => byDay(d, -d.getDay());
+        onward = (d) => byDay(d, -1);
+        break;
+      case "End":
+        step = (d) => byDay(d, 6 - d.getDay());
+        onward = (d) => byDay(d, 1);
+        break;
+    }
+    if (!step) return;
+    e.preventDefault();
+    let target = step(from);
+    const next = onward ?? step;
+    for (let i = 0; i < 365 && disabledFn(target); i++) target = next(target);
+    if (disabledFn(target)) return;
+
+    const first = monthStart(viewMonth());
+    const lastShown = addMonths(first, numberOfMonths() - 1);
+    const lastDay = new Date(lastShown.getFullYear(), lastShown.getMonth() + 1, 0);
+    if (target < first) {
+      setViewMonth(monthStart(target));
+      render();
+    } else if (target > lastDay) {
+      setViewMonth(addMonths(monthStart(target), -(numberOfMonths() - 1)));
+      render();
+    }
+    const t = target;
+    const match = dayButtons.filter((b) => sameDay(b.date, t));
+    (match.find((b) => !b.outside) ?? match[0])?.btn.focus();
   };
 
   const dayButton = (d: Date, month: Date): HTMLTableCellElement => {
@@ -232,6 +314,8 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
     );
     btn.textContent = String(d.getDate());
     btn.addEventListener("click", () => handleSelect(d));
+    btn.addEventListener("keydown", (e) => onDayKey(e, d));
+    dayButtons.push({ date: d, btn, outside: isOutside });
     td.append(btn);
     return td;
   };
@@ -264,7 +348,8 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
 
     const thead = document.createElement("thead");
     const hrow = document.createElement("tr");
-    for (const wd of WEEKDAYS) {
+    for (const day of WEEKDAYS) {
+      const wd = loc.t(`calendar.weekday.${day}`);
       const th = document.createElement("th");
       th.className = "zen-h-8 zen-w-8 zen-text-xs zen-font-normal zen-text-zen-muted-fg";
       th.textContent = wd;
@@ -289,6 +374,7 @@ export function Calendar(props: CalendarProps): ZenComponent<CalendarProps> {
     const container = document.createElement("div");
     container.className = "zen-flex zen-gap-4";
     const n = numberOfMonths();
+    dayButtons = [];
     for (let i = 0; i < n; i++) container.append(monthEl(i));
     // Day/nav buttons are recreated every render, so their listeners die with
     // the discarded nodes — nothing document-level is registered to leak.
@@ -322,10 +408,27 @@ export interface DatePickerProps {
   class?: string;
   /** Format shown in the trigger. Defaults to `toLocaleDateString()`. */
   formatDate?: (date: Date) => string;
+  /**
+   * Where focus lands when the calendar opens. "first" (default, as before):
+   * the calendar panel itself, as this binding always has. "selected": the
+   * chosen day (else today), so the arrow keys move between days at once; the
+   * calendar then opens on the chosen day's month. "selected" becomes the
+   * default in the next major version.
+   */
+  initialFocus?: "first" | "selected";
 }
+
+/**
+ * The day a calendar panel should open on: the chosen one, else today. Read
+ * from the day buttons' state, not their words, so it holds in any language.
+ */
+export const focusableDay = (panel: HTMLElement): HTMLButtonElement | null =>
+  panel.querySelector<HTMLButtonElement>('button[aria-pressed="true"]:not(:disabled)') ??
+  panel.querySelector<HTMLButtonElement>(`button[aria-label="${new Date().toDateString()}"]:not(:disabled)`);
 
 export function DatePicker(props: DatePickerProps): ZenComponent<DatePickerProps> {
   let current: DatePickerProps = { ...props };
+  const loc = useLocale();
 
   const state = controllable<Date | undefined>({
     value: current.value,
@@ -338,7 +441,7 @@ export function DatePicker(props: DatePickerProps): ZenComponent<DatePickerProps
 
   const label = (): Child => {
     const d = state.get();
-    return d ? fmt(d) : current.placeholder ?? "Pick a date";
+    return d ? fmt(d) : current.placeholder ?? loc.t("datePicker.placeholder");
   };
 
   const buttonClass = (): string =>
@@ -363,18 +466,22 @@ export function DatePicker(props: DatePickerProps): ZenComponent<DatePickerProps
     children: label(),
   });
 
-  const calendar = Calendar({
-    mode: "single",
-    selected: state.get(),
-    onSelect: (d) => {
-      state.set(d as Date | undefined);
-      // A controlled caller has not changed `value` yet, so state.get() is stale
-      // for one tick; refresh from what was just picked so the trigger tracks it
-      // uncontrolled and mirrors React's `if (d) setOpen(false)`.
-      if (d) popover.close();
-    },
-    disabled: dayDisabled(),
-  });
+  // Built later than the factory call, so inside the locale it was built in (see withLocale).
+  const makeCalendar = () => withLocale(loc, makeCalendarNow);
+  const makeCalendarNow = () =>
+    Calendar({
+      mode: "single",
+      selected: state.get(),
+      onSelect: (d) => {
+        state.set(d as Date | undefined);
+        // A controlled caller has not changed `value` yet, so state.get() is stale
+        // for one tick; refresh from what was just picked so the trigger tracks it
+        // uncontrolled and mirrors React's `if (d) setOpen(false)`.
+        if (d) popover.close();
+      },
+      disabled: dayDisabled(),
+    });
+  let calendar = makeCalendar();
 
   const refresh = (): void => {
     button.update({
@@ -390,6 +497,18 @@ export function DatePicker(props: DatePickerProps): ZenComponent<DatePickerProps
     children: calendar,
     align: "start",
     class: "zen-w-auto zen-p-0",
+    onOpenChange: (open) => {
+      if (!open || current.initialFocus !== "selected") return; // the panel, as before
+      // A fresh calendar, so it opens on the chosen day's month (React's
+      // defaultMonth), not wherever the last visit left it.
+      calendar.destroy();
+      calendar = makeCalendar();
+      popover.update({ children: calendar });
+      // The popover focuses its panel as it opens, after this; then the day.
+      queueMicrotask(() => {
+        if (popover.isOpen) focusableDay(calendar.el)?.focus();
+      });
+    },
   });
 
   const disposer = new Disposer();

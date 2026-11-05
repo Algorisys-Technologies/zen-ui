@@ -7,6 +7,8 @@
  * Adding a component: add it here, add its <Route> in App.tsx. Nothing else.
  */
 
+import { RELEASE_NOTES } from "./release-notes";
+
 export type NavItem = {
   to: string;
   label: string;
@@ -24,7 +26,37 @@ export type NavItem = {
    * and matches the component the route really renders.
    */
   source?: string;
+  /**
+   * The version this component first ships in. While that is the current
+   * release's minor version or a later one, the sidebar and the catalogue mark
+   * it "New"; one minor release later the mark goes by itself, so nobody has
+   * to remember to take it off.
+   */
+  since?: string;
+  /**
+   * The version this component last changed in (a feature or a fix worth
+   * knowing). While that is the current release's minor or later, and it is
+   * not New, the sidebar and the catalogue mark it "Updated"; like New, the
+   * mark goes by itself one minor release later. Set it when you change a
+   * component, alongside the CHANGELOG entry.
+   */
+  updated?: string;
 };
+
+/** "12.2.0" -> 12002: major and minor, comparable as a number. */
+const minorOf = (version: string) => {
+  const [major = 0, minor = 0] = version.split(".").map(Number);
+  return major * 1000 + minor;
+};
+
+const currentMinor = () => minorOf(RELEASE_NOTES[0]?.version ?? "0.0.0");
+
+/** Whether an entry is marked New, against the latest release in RELEASE_NOTES. */
+export const isNew = (item: NavItem): boolean => !!item.since && minorOf(item.since) >= currentMinor();
+
+/** Whether an entry is marked Updated: changed in this release line, and not New. */
+export const isUpdated = (item: NavItem): boolean =>
+  !isNew(item) && !!item.updated && minorOf(item.updated) >= currentMinor();
 
 export type NavGroup = {
   title: string;
@@ -60,12 +92,14 @@ export const NAV: NavGroup[] = [
       { to: "/popover", label: "Popover", description: "Anchored panel; asChild trigger, side/align, separate anchor", source: "packages/react/src/components/NewPopoverDemo.tsx" },
       { to: "/link", label: "Link", description: "Styled anchor; asChild for router links, external, disabled", source: "packages/react/src/components/NewLinkDemo.tsx" },
       { to: "/theme", label: "Theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/react/src/components/NewThemeDemo.tsx" },
+      { to: "/localization", label: "Localization", description: "Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use", source: "packages/react/src/components/NewLocaleDemo.tsx", since: "12.3.0" },
       { to: "/direction", label: "DirectionProvider", description: "Right-to-left support \u2014 tells menus, tabs and sliders which way the page reads", source: "packages/react/src/components/NewDirectionDemo.tsx" },
       { to: "/message-popover", label: "MessagePopover", description: "Aggregated form validation grouped by severity; click a message to land on the field", source: "packages/react/src/components/NewMessagePopoverDemo.tsx" },
       { to: "/page", label: "Page + Bar", description: "The Page whole-screen container and the three-slot Bar row \u2014 the structural frame pieces", source: "packages/react/src/components/NewPageDemo.tsx" },
       { to: "/color-picker", label: "ColorPicker", description: "Swatch palette + the platform picker; hex in, hex out", source: "packages/react/src/components/NewColorPickerDemo.tsx" },
       { to: "/carousel", label: "Carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/react/src/components/NewCarouselDemo.tsx" },
-      { to: "/dropdown-menu", label: "DropdownMenu", description: "Radix DropdownMenu \u2014 action menus, sub-menus, checkbox/radio items", source: "packages/react/src/components/NewDropdownMenuDemo.tsx" },
+      { to: "/dropdown-menu", label: "DropdownMenu", description: "Radix DropdownMenu \u2014 action menus, sub-menus, checkbox/radio items", source: "packages/react/src/components/NewDropdownMenuDemo.tsx", updated: "12.3.0" },
+      { to: "/context-menu", label: "ContextMenu", description: "Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press", source: "packages/react/src/components/NewContextMenuDemo.tsx", since: "12.3.0" },
       { to: "/separator", label: "Separator", description: "Radix Separator \u2014 horizontal / vertical with decorative semantics", source: "packages/react/src/components/NewSeparatorDemo.tsx" },
       { to: "/switch-new", label: "Switch", description: "Radix Switch \u2014 sizes, controlled / uncontrolled, form submission", source: "packages/react/src/components/NewSwitchDemo.tsx" },
       { to: "/checkbox-new", label: "Checkbox", description: "Radix Checkbox \u2014 native tri-state indeterminate, sizes", source: "packages/react/src/components/NewCheckboxDemo.tsx" },
@@ -75,22 +109,24 @@ export const NAV: NavGroup[] = [
       { to: "/badge-new", label: "Badge", description: "Styled span with variants \u00d7 colors, asChild for clickable", source: "packages/react/src/components/NewBadgeDemo.tsx" },
       { to: "/skeleton-new", label: "Skeleton", description: "Animated muted-box placeholder", source: "packages/react/src/components/NewSkeletonDemo.tsx" },
       { to: "/loading-new", label: "Loading", description: "Animated spinner with sr-only label, color=current for buttons", source: "packages/react/src/components/NewLoadingDemo.tsx" },
-      { to: "/select-new", label: "Select", description: "Radix Select \u2014 keyboard nav, groups, form submission", source: "packages/react/src/components/NewSelectDemo.tsx" },
+      { to: "/select-new", label: "Select", description: "Radix Select \u2014 keyboard nav, groups, form submission", source: "packages/react/src/components/NewSelectDemo.tsx", updated: "12.3.0" },
       { to: "/slider-new", label: "Slider", description: "Radix Slider \u2014 single + range, vertical, keyboard control", source: "packages/react/src/components/NewSliderDemo.tsx" },
       { to: "/scroll-area-new", label: "ScrollArea", description: "Radix ScrollArea \u2014 custom scrollbars, both axes", source: "packages/react/src/components/NewScrollAreaDemo.tsx" },
-      { to: "/input-new", label: "Input + Textarea", description: "Plain styled <input> / <textarea>, all native attrs", source: "packages/react/src/components/NewInputDemo.tsx" },
+      { to: "/input-new", label: "Input + Textarea", description: "Plain styled <input> / <textarea>, all native attrs", source: "packages/react/src/components/NewInputDemo.tsx", updated: "12.3.0" },
       { to: "/search", label: "Search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/react/src/components/SearchDemo.tsx" },
       { to: "/password-input", label: "PasswordInput", description: "Password field with a show / hide toggle; every native input attribute passes through", source: "packages/react/src/components/PasswordInputDemo.tsx" },
       { to: "/number-field-new", label: "NumberField", description: "Number input with \u2212/+ stepper, clamp, decimal step", source: "packages/react/src/components/NewNumberFieldDemo.tsx" },
+      { to: "/amount-field", label: "AmountField and QuantityField", description: "Amounts and quantities typed the way clerks do (1,25,000, 2.5L, 1.2Cr), formatted in the locale with the currency's own precision; LocaleProvider sets locale and currency once", source: "packages/react/src/components/NewAmountFieldDemo.tsx", since: "12.3.0" },
+      { to: "/date-input", label: "DateInput", description: "Type a date the way clerks do (150326, t, +7) in the locale's order, with the calendar as a second way in; impossible dates are kept and flagged, never rolled over", source: "packages/react/src/components/NewDateInputDemo.tsx", since: "12.3.0" },
       { to: "/date-picker-new", label: "DatePicker", description: "react-day-picker in a Radix Popover; inline Calendar too", source: "packages/react/src/components/NewDatePickerDemo.tsx" },
       { to: "/otp-new", label: "InputOTP", description: "one input per digit, zero-dep; paste / autocomplete / a11y", source: "packages/react/src/components/NewOTPDemo.tsx" },
       { to: "/mask-input", label: "MaskInput", description: "Fixed-template input — 99-9999, aa-99; the mask decides what may be typed", source: "packages/react/src/components/NewMaskInputDemo.tsx" },
       { to: "/phone-input-new", label: "PhoneInput", description: "Composition: Select (country) + Input (number)", source: "packages/react/src/components/NewPhoneInputDemo.tsx" },
       { to: "/fab-new", label: "FAB", description: "Fixed-position Button wrapper + DropdownMenu for speed-dial", source: "packages/react/src/components/NewFABDemo.tsx" },
       { to: "/form-new", label: "Form (RHF + Zod)", description: "react-hook-form + Zod resolver; FormField / FormItem / FormLabel / FormMessage", source: "packages/react/src/components/NewFormDemo.tsx" },
-      { to: "/data-table", label: "DataTable", description: "TanStack Table + Virtual; sorting, filtering, grouping, pinning, resizing, windowing", source: "packages/react/src/components/NewDataTableDemo.tsx" },
+      { to: "/data-table", label: "DataTable", description: "TanStack Table + Virtual; sorting, filtering, grouping, pinning, resizing, windowing", source: "packages/react/src/components/NewDataTableDemo.tsx", updated: "12.3.0" },
       { to: "/tree-table", label: "TreeTable", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/react/src/components/NewTreeTableDemo.tsx" },
-      { to: "/micro-chart", label: "Micro charts", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/react/src/components/NewMicroChartDemo.tsx" },
+      { to: "/micro-chart", label: "Micro charts", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/react/src/components/NewMicroChartDemo.tsx", updated: "12.3.0" },
       { to: "/countdown", label: "TimerBadge / TestCountdownBar", description: "Exam clock from a deadline, not a decrementing number — colour thresholds, auto-expire hook, sticky bar", source: "packages/react/src/components/NewCountdownDemo.tsx" },
       { to: "/code-editor", label: "CodeEditor / IDEWindow", description: "Monaco wrapper — language, theme, read-only, Ctrl+Enter run hook; file list beside it", source: "packages/react/src/components/NewCodeEditorDemo.tsx" },
       { to: "/spreadsheet-grid", label: "SpreadsheetGrid / SheetCalculator", description: "Editable cells with a real formula evaluator; errors render as errors, never a plausible number", source: "packages/react/src/components/NewSpreadsheetGridDemo.tsx" },
@@ -110,38 +146,43 @@ export const NAV: NavGroup[] = [
       { to: "/media-timeline", label: "MediaTimeline", description: "Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state", source: "packages/react/src/components/NewMediaTimelineDemo.tsx" },
       { to: "/waveform", label: "Waveform", description: "Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align", source: "packages/react/src/components/NewWaveformDemo.tsx" },
       { to: "/lazy-options", label: "Lazy options", description: "VirtualizedItems \u2014 drop-in windowing for huge option lists inside Combobox / Select", source: "packages/react/src/components/NewLazyOptionsDemo.tsx" },
-      { to: "/combobox", label: "Combobox + Async", description: "cmdk-backed; sync `options` or async `onSearch` with debounced loading", source: "packages/react/src/components/NewComboboxDemo.tsx" },
+      { to: "/combobox", label: "Combobox + Async", description: "cmdk-backed; sync `options` or async `onSearch` with debounced loading", source: "packages/react/src/components/NewComboboxDemo.tsx", updated: "12.3.0" },
+      { to: "/tree-select", label: "TreeSelect", description: "Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors", source: "packages/react/src/components/NewTreeSelectDemo.tsx", since: "12.3.0" },
+      { to: "/lookup-field", label: "LookupField", description: "Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search", source: "packages/react/src/components/NewLookupFieldDemo.tsx", since: "12.3.0" },
       { to: "/alert", label: "Alert", description: "Inline semantic callout; compound Icon / Title / Description / Actions API", source: "packages/react/src/components/NewAlertDemo.tsx" },
       { to: "/dialog", label: "Dialog + AlertDialog", description: "Radix Dialog modal surface, plus AlertDialog for destructive confirmations", source: "packages/react/src/components/NewDialogDemo.tsx" },
+      { to: "/shortcuts", label: "Shortcuts", description: "Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform", source: "packages/react/src/components/NewShortcutsDemo.tsx", since: "12.3.0" },
       { to: "/toast", label: "Toast", description: "Radix Toast \u2014 imperative toast() plus a Toaster viewport; variants and actions", source: "packages/react/src/components/NewToastDemo.tsx" },
-      { to: "/file-upload", label: "FileUpload", description: "Drag-and-drop or browse; accept / max-size validation with per-file progress", source: "packages/react/src/components/NewFileUploadDemo.tsx" },
+      { to: "/file-upload", label: "FileUpload", description: "Drag-and-drop or browse; accept / max-size validation with per-file progress", source: "packages/react/src/components/NewFileUploadDemo.tsx", updated: "12.3.0" },
       { to: "/form-bound", label: "Bound* fields", description: "BoundInput / BoundSelect / BoundSwitch \u2014 form-wired field wrappers, no boilerplate", source: "packages/react/src/components/NewBoundFieldsDemo.tsx" },
-      { to: "/stepper", label: "Stepper", description: "Multi-step wizard for onboarding + journey apps (horizontal / vertical, linear / non-linear)", source: "packages/react/src/components/NewStepperDemo.tsx" },
+      { to: "/stepper", label: "Stepper", description: "Multi-step wizard for onboarding + journey apps (horizontal / vertical, linear / non-linear)", source: "packages/react/src/components/NewStepperDemo.tsx", updated: "12.3.0" },
       { to: "/banner", label: "Banner", description: "Page-top persistent callout \u2014 verification reminders, maintenance windows, impersonation", source: "packages/react/src/components/NewBannerDemo.tsx" },
       { to: "/empty-state", label: "EmptyState", description: "First-run / no-data / no-results surface; icon + title + description + actions", source: "packages/react/src/components/NewEmptyStateDemo.tsx" },
-      { to: "/tabs", label: "Tabs", description: "Radix-backed tabbed navigation; underline + pills variants, horizontal / vertical", source: "packages/react/src/components/NewTabsDemo.tsx" },
+      { to: "/tabs", label: "Tabs", description: "Radix-backed tabbed navigation; underline + pills variants, horizontal / vertical", source: "packages/react/src/components/NewTabsDemo.tsx", updated: "12.3.0" },
       { to: "/accordion", label: "Accordion", description: "Radix-backed collapsible sections; single + multiple expand modes", source: "packages/react/src/components/NewAccordionDemo.tsx" },
       { to: "/collapsible", label: "Collapsible", description: "One region that shows and hides — the single disclosure Accordion overserves", source: "packages/react/src/components/NewCollapsibleDemo.tsx" },
       { to: "/native-select", label: "NativeSelect", description: "The platform <select>, styled to match Input — submits with no hidden input, opens as the OS picker on a phone", source: "packages/react/src/components/NewNativeSelectDemo.tsx" },
       { to: "/label", label: "Label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/react/src/components/NewLabelDemo.tsx" },
       { to: "/card", label: "Card", description: "Surface primitive + SelectableCard variant for goal pickers / plan selectors", source: "packages/react/src/components/NewCardDemo.tsx" },
       { to: "/paper", label: "Paper", description: "Document surface — reading measure, document typography, and a paper Dialog variant", source: "packages/react/src/components/NewPaperDemo.tsx" },
-      { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/react/src/components/NewStatCardDemo.tsx" },
+      { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/react/src/components/NewStatCardDemo.tsx", updated: "12.3.0" },
+      { to: "/tile", label: "Tile", description: "A launchpad: tiles with a mark, a name and a live count, in a grid that is one tab stop with arrow keys", source: "packages/react/src/components/NewTileDemo.tsx", since: "12.3.0" },
       { to: "/sheet", label: "Sheet / Drawer", description: "Slide-in side panel on Radix Dialog; right / left / top / bottom", source: "packages/react/src/components/NewSheetDemo.tsx" },
       { to: "/date-range-picker", label: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled", source: "packages/react/src/components/NewDateRangePickerDemo.tsx" },
       { to: "/dynamic-date-range", label: "DynamicDateRange", description: "Semantic periods — \"Last 7 days\", \"This quarter\"; stores the question, not the answer", source: "packages/react/src/components/NewDynamicDateRangeDemo.tsx" },
       { to: "/tag-input", label: "TagInput", description: "Type + Enter chip input; comma-paste splits, Backspace removes, per-tag validator, max-N", source: "packages/react/src/components/NewTagInputDemo.tsx" },
-      { to: "/multi-combobox", label: "MultiCombobox", description: "Multi-select Combobox with chip trigger + overflow collapse + sync / async option loading", source: "packages/react/src/components/NewMultiComboboxDemo.tsx" },
+      { to: "/multi-combobox", label: "MultiCombobox", description: "Multi-select Combobox with chip trigger + overflow collapse + sync / async option loading", source: "packages/react/src/components/NewMultiComboboxDemo.tsx", updated: "12.3.0" },
       { to: "/rating", label: "Rating", description: "5-star rating input; hover preview, arrow-key nav, sm / md / lg, customizable max", source: "packages/react/src/components/NewRatingDemo.tsx" },
       { to: "/nps", label: "NPS", description: "Net Promoter Score 0-10 strip with detractor / passive / promoter color buckets", source: "packages/react/src/components/NewNpsDemo.tsx" },
       { to: "/likert", label: "Likert", description: "n-point attitudinal scale; segmented + stacked layouts, custom option sets", source: "packages/react/src/components/NewLikertDemo.tsx" },
       { to: "/time-picker", label: "TimePicker", description: "Segmented HH:MM(:SS) input, 12h / 24h, AM/PM, auto-advance + arrow stepping", source: "packages/react/src/components/NewTimePickerDemo.tsx" },
       { to: "/date-time-picker", label: "DateTimePicker", description: "Calendar + TimePicker in one Popover; preserves time-of-day on day changes", source: "packages/react/src/components/NewDateTimePickerDemo.tsx" },
+      { to: "/barcode", label: "QRCode and Barcode", description: "Draw codes as SVG for screens and print: QR (the e-invoice's signed QR, gate passes; error correction L to H), Code 128, EAN-13 and Code 39, dark on light in every theme", source: "packages/react/src/components/NewBarcodeDemo.tsx", since: "12.3.0" },
       { to: "/qr-scanner", label: "QRScanner", description: "Camera-based QR / barcode scanner; native BarcodeDetector + custom-decoder escape hatch", source: "packages/react/src/components/NewQRScannerDemo.tsx" },
       { to: "/notifications-inbox", label: "NotificationsInbox", description: "Bell icon + popover panel; day-grouped feed with unread badge + per-row actions", source: "packages/react/src/components/NewNotificationsInboxDemo.tsx" },
-      { to: "/breadcrumb", label: "Breadcrumb", description: "Hierarchical navigation path; collapsible ellipsis for deep trees", source: "packages/react/src/components/NewBreadcrumbDemo.tsx" },
+      { to: "/breadcrumb", label: "Breadcrumb", description: "Hierarchical navigation path; collapsible ellipsis for deep trees", source: "packages/react/src/components/NewBreadcrumbDemo.tsx", updated: "12.3.0" },
       { to: "/pagination", label: "Pagination", description: "Page navigation with truncated ranges; usePaginationRange hook", source: "packages/react/src/components/NewPaginationDemo.tsx" },
-      { to: "/sidebar", label: "Sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/react/src/components/NewSidebarDemo.tsx" },
+      { to: "/sidebar", label: "Sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/react/src/components/NewSidebarDemo.tsx", updated: "12.3.0" },
     ],
   },
   {
@@ -157,8 +198,9 @@ export const NAV: NavGroup[] = [
     title: "Zen-shaped",
     items: [
       { to: "/icon", label: "Icon", description: "zen-ui icon set (48 glyphs); inherits text colour, decorative by default", source: "packages/react/src/components/NewIconDemo.tsx" },
-      { to: "/object", label: "Object atoms", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/react/src/components/NewObjectDemo.tsx" },
-      { to: "/button-family", label: "Button family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/react/src/components/NewButtonFamilyDemo.tsx" },
+      { to: "/object", label: "Object atoms", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/react/src/components/NewObjectDemo.tsx", updated: "12.3.0" },
+      { to: "/button-family", label: "Button family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/react/src/components/NewButtonFamilyDemo.tsx", updated: "12.3.0" },
+      { to: "/document-tabs", label: "Document tabs", description: "A workspace's open documents as closable, pinnable tabs with an all-tabs menu", source: "packages/react/src/components/NewDocumentTabsDemo.tsx", since: "12.3.0" },
       { to: "/toolbar", label: "Toolbar", description: "Actions that collapse into an overflow menu when they do not fit", source: "packages/react/src/components/NewToolbarDemo.tsx" },
       { to: "/tree", label: "Tree", description: "Hierarchical expandable list with full ARIA keyboard navigation", source: "packages/react/src/components/NewTreeDemo.tsx" },
     ],
@@ -167,8 +209,10 @@ export const NAV: NavGroup[] = [
     title: "Zen table ecosystem",
     items: [
       { to: "/select-dialog", label: "SelectDialog", description: "Searchable list picker — single commits on click, multi commits on OK", source: "packages/react/src/components/NewSelectDialogDemo.tsx" },
-      { to: "/value-help", label: "ValueHelp", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/react/src/components/NewValueHelpDemo.tsx" },
-      { to: "/view-settings", label: "ViewSettingsDialog", description: "Sort / group / filter settings; commits on OK", source: "packages/react/src/components/NewViewSettingsDemo.tsx" },
+      { to: "/value-help", label: "ValueHelp", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/react/src/components/NewValueHelpDemo.tsx", updated: "12.3.0" },
+      { to: "/view-settings", label: "ViewSettingsDialog", description: "Sort / group / filter settings; commits on OK", source: "packages/react/src/components/NewViewSettingsDemo.tsx", updated: "12.3.0" },
+      { to: "/filter-builder", label: "FilterBuilder", description: "Nested AND/OR conditions on any field as one serialisable object, for advanced list filters, report criteria and saved views; says in words what it filters", source: "packages/react/src/components/NewFilterBuilderDemo.tsx", since: "12.3.0" },
+      { to: "/view-manager", label: "ViewManager", description: "Saved views beside the page title: name, save, save as, set as default, manage and share a list screen's filters, sort and columns as one object; storage stays the app's", source: "packages/react/src/components/NewViewManagerDemo.tsx", since: "12.3.0" },
       { to: "/filter-bar", label: "FilterBar", description: "List Report filter area — fields, Go, and Adapt filters", source: "packages/react/src/components/NewFilterBarDemo.tsx" },
     ],
   },
@@ -177,10 +221,10 @@ export const NAV: NavGroup[] = [
     items: [
       { to: "/page-header", label: "PageHeader", description: "A heading with a back affordance and one action — the light one", source: "packages/react/src/components/NewPageHeaderDemo.tsx" },
       { to: "/skip-to-content", label: "SkipToContent", description: "Keyboard bypass — the first Tab reveals a link that jumps past the app chrome to the content (WCAG 2.4.1)", source: "packages/react/src/components/SkipToContentDemo.tsx" },
-      { to: "/shellbar", label: "ShellBar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/react/src/components/NewShellBarDemo.tsx" },
+      { to: "/shellbar", label: "ShellBar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/react/src/components/NewShellBarDemo.tsx", updated: "12.3.0" },
       { to: "/flexible-column-layout", label: "FlexibleColumnLayout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/react/src/components/NewFlexibleColumnLayoutDemo.tsx" },
       { to: "/dynamic-page", label: "DynamicPage", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/react/src/components/NewDynamicPageDemo.tsx" },
-      { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/react/src/components/NewObjectPageDemo.tsx" },
+      { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/react/src/components/NewObjectPageDemo.tsx", updated: "12.3.0" },
     ],
   },
   {

@@ -193,7 +193,7 @@ export const QRScanner = (props: QRScannerProps) => {
     >
       <video
         ref={videoEl}
-        aria-label={props["aria-label"] ?? "QR scanner camera view"}
+        aria-label={props["aria-label"] ?? loc.t("qrScanner.cameraView")}
         playsinline
         muted
         class={cn(
@@ -256,11 +256,13 @@ const DefaultFallback = (props: { status: Status }) => {
               when={props.status === "no-decoder"}
               fallback={<span>{loc.t("qrScanner.scannerIdle")}</span>}
             >
+              {/* i18n-ignore-start: a developer install notice (pass a decoder), not a word for end users */}
               <span>
                 This browser does not support the BarcodeDetector API. Pass a{" "}
                 <code>decode</code> prop (e.g. powered by jsQR) to enable
                 scanning.
               </span>
+              {/* i18n-ignore-end */}
             </Show>
           }
         >
@@ -268,10 +270,7 @@ const DefaultFallback = (props: { status: Status }) => {
         </Show>
       }
     >
-      <span>
-        Camera access was blocked. Allow camera permission in your browser
-        settings, then reload.
-      </span>
+      <span>{loc.t("qrScanner.cameraBlocked")}</span>
     </Show>
   );
 };

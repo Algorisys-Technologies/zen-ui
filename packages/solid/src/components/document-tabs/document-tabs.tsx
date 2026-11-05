@@ -230,16 +230,16 @@ export const DocumentTabs = (props: DocumentTabsProps) => {
                   <span class={cn("zen-truncate", active() && "zen-font-medium")}>{t.label}</span>
                   <Show when={t.dirty}>
                     <span class="zen-h-1.5 zen-w-1.5 zen-shrink-0 zen-rounded-full zen-bg-zen-primary" aria-hidden="true" />
-                    <span class="zen-sr-only">, unsaved changes</span>
+                    <span class="zen-sr-only">{loc.t("documentTabs.unsaved")}</span>
                   </Show>
                 </button>
                 <Show when={local.onPinChange}>
                   <button
                     type="button"
                     tabIndex={-1}
-                    aria-label={t.pinned ? `Unpin ${t.label}` : `Pin ${t.label}`}
+                    aria-label={loc.t(t.pinned ? "documentTabs.unpinTab" : "documentTabs.pinTab", { label: t.label })}
                     aria-pressed={t.pinned ? "true" : "false"}
-                    title={t.pinned ? "Unpin" : "Pin"}
+                    title={loc.t(t.pinned ? "documentTabs.unpin" : "documentTabs.pin")}
                     class={cn(iconButton, t.pinned ? "zen-text-zen-primary" : "zen-opacity-0 group-hover:zen-opacity-100 group-focus-within:zen-opacity-100")}
                     onClick={() => local.onPinChange?.(t.id, !t.pinned)}
                   >
@@ -267,7 +267,7 @@ export const DocumentTabs = (props: DocumentTabsProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger
             type="button"
-            aria-label={local.allTabsLabel ?? `All open documents (${local.tabs.length})`}
+            aria-label={local.allTabsLabel ?? loc.t("documentTabs.allOpenDocumentsCount", { count: local.tabs.length })}
             title={local.allTabsLabel ?? loc.t("documentTabs.allOpenDocuments")}
             class={cn(iconButton, "zen-h-auto zen-w-8 zen-rounded-none zen-border-l zen-border-zen-border")}
           >

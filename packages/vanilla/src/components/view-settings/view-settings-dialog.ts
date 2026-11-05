@@ -7,6 +7,7 @@ import { Switch } from "../form/switch/switch";
 import { Checkbox } from "../form/checkbox/checkbox";
 import { Icon, type IconName } from "../icon/icon";
 import { tabsListVariants, tabsTriggerVariants } from "../tabs/tabs";
+import { useLocale } from "../locale/locale";
 
 /**
  * ViewSettingsDialog — sort / group / filter settings for a list or table. The
@@ -116,6 +117,7 @@ let uid = 0;
 
 export function ViewSettingsDialog(props: ViewSettingsDialogProps): ViewSettingsDialogHandle {
   let current: ViewSettingsDialogProps = { ...props };
+  const loc = useLocale();
   const id = `zen-vsd-${++uid}`;
 
   let draft: ViewSettingsValue = { ...EMPTY };
@@ -297,10 +299,10 @@ export function ViewSettingsDialog(props: ViewSettingsDialogProps): ViewSettings
       },
       onToggle: pick,
       onPick: pick,
-      emptyText: kind === "sort" ? "No sort fields" : "No group fields",
+      emptyText: loc.t(kind === "sort" ? "viewSettings.noSortFields" : "viewSettings.noGroupFields"),
     });
     const toggle = buildDirectionToggle({
-      label: "Descending",
+      label: loc.t("viewSettings.descending"),
       getChecked: () => Boolean(kind === "sort" ? draft.sortDescending : draft.groupDescending),
       getDisabled: () => !getSel(),
       onChange: (v) => {
@@ -342,7 +344,7 @@ export function ViewSettingsDialog(props: ViewSettingsDialogProps): ViewSettings
         getSelected: () => draft.filters?.[g.id] ?? [],
         onToggle: (itemId) => toggleFilter(g.id, itemId, multiple),
         onPick: (itemId) => toggleFilter(g.id, itemId, multiple),
-        emptyText: "No values",
+        emptyText: loc.t("viewSettings.noValues"),
       });
       repaints.push(list.repaint);
       groupDiv.append(list.node);
@@ -353,10 +355,10 @@ export function ViewSettingsDialog(props: ViewSettingsDialogProps): ViewSettings
 
   const labelFor = (key: "sort" | "group" | "filter") =>
     key === "sort"
-      ? current.sortTabLabel ?? "Sort"
+      ? current.sortTabLabel ?? loc.t("viewSettings.sort")
       : key === "group"
-        ? current.groupTabLabel ?? "Group"
-        : current.filterTabLabel ?? "Filter";
+        ? current.groupTabLabel ?? loc.t("viewSettings.group")
+        : current.filterTabLabel ?? loc.t("viewSettings.filter");
 
   const paneFor = (key: "sort" | "group" | "filter"): Node[] =>
     key === "filter" ? [buildFilterPane()] : buildFieldPane(key);
@@ -466,11 +468,11 @@ export function ViewSettingsDialog(props: ViewSettingsDialogProps): ViewSettings
     contentDisposer = new Disposer();
     repaints = [];
 
-    const title = current.title ?? "View settings";
+    const title = current.title ?? loc.t("viewSettings.title");
     const description = current.description;
-    const confirmLabel = current.confirmLabel ?? "OK";
-    const cancelLabel = current.cancelLabel ?? "Cancel";
-    const resetLabel = current.resetLabel ?? "Reset";
+    const confirmLabel = current.confirmLabel ?? loc.t("common.ok");
+    const cancelLabel = current.cancelLabel ?? loc.t("common.cancel");
+    const resetLabel = current.resetLabel ?? loc.t("viewSettings.reset");
 
     const sections = [
       current.sortItems?.length ? "sort" : null,

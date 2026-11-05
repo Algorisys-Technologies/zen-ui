@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Alert — feedback / message banner. Compound API.
@@ -165,11 +166,13 @@ AlertActions.displayName = "AlertActions";
 export type AlertCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 const AlertClose = React.forwardRef<HTMLButtonElement, AlertCloseProps>(
-  ({ className, ...props }, ref) => (
+  ({ className, ...props }, ref) => {
+    const loc = useLocale();
+    return (
     <button
       ref={ref}
       type="button"
-      aria-label="Dismiss"
+      aria-label={loc.t("alert.dismiss")}
       className={cn(
         "zen-shrink-0 zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
         "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-current zen-opacity-70",
@@ -184,7 +187,8 @@ const AlertClose = React.forwardRef<HTMLButtonElement, AlertCloseProps>(
         <line x1="6" y1="6" x2="18" y2="18" />
       </svg>
     </button>
-  ),
+    );
+  },
 );
 AlertClose.displayName = "AlertClose";
 

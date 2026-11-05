@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import { NavLink, Routes, Route, useLocation } from "react-router-dom";
 import { NAV } from "./nav";
+import { NavTag } from "./components/NavTag";
 
 /**
  * Derived from NAV, never hand-counted: nav.ts is already the single source of
@@ -72,6 +73,7 @@ import ThemeSwitcher from "./components/theme-switcher";
 import NewButtonDemo from "./components/NewButtonDemo";
 import NewTooltipDemo from "./components/NewTooltipDemo";
 import NewDropdownMenuDemo from "./components/NewDropdownMenuDemo";
+import NewContextMenuDemo from "./components/NewContextMenuDemo";
 import NewSeparatorDemo from "./components/NewSeparatorDemo";
 import NewSwitchDemo from "./components/NewSwitchDemo";
 import NewCheckboxDemo from "./components/NewCheckboxDemo";
@@ -88,7 +90,9 @@ import NewInputDemo from "./components/NewInputDemo";
 import SearchDemo from "./components/SearchDemo";
 import PasswordInputDemo from "./components/PasswordInputDemo";
 import NewNumberFieldDemo from "./components/NewNumberFieldDemo";
+import NewAmountFieldDemo from "./components/NewAmountFieldDemo";
 import NewDatePickerDemo from "./components/NewDatePickerDemo";
+import NewDateInputDemo from "./components/NewDateInputDemo";
 import NewOTPDemo from "./components/NewOTPDemo";
 import NewPhoneInputDemo from "./components/NewPhoneInputDemo";
 import NewFABDemo from "./components/NewFABDemo";
@@ -113,9 +117,12 @@ import NewGanttDemo from "./components/NewGanttDemo";
 import NewProductionScheduleDemo from "./components/NewProductionScheduleDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
+import NewTreeSelectDemo from "./components/NewTreeSelectDemo";
+import NewLookupFieldDemo from "./components/NewLookupFieldDemo";
 import NewAlertDemo from "./components/NewAlertDemo";
 import NewDialogDemo from "./components/NewDialogDemo";
 import NewToastDemo from "./components/NewToastDemo";
+import NewShortcutsDemo from "./components/NewShortcutsDemo";
 import NewFileUploadDemo from "./components/NewFileUploadDemo";
 import NewBoundFieldsDemo from "./components/NewBoundFieldsDemo";
 import NewStepperDemo from "./components/NewStepperDemo";
@@ -137,6 +144,7 @@ import NewNpsDemo from "./components/NewNpsDemo";
 import NewLikertDemo from "./components/NewLikertDemo";
 import NewTimePickerDemo from "./components/NewTimePickerDemo";
 import NewDateTimePickerDemo from "./components/NewDateTimePickerDemo";
+import NewBarcodeDemo from "./components/NewBarcodeDemo";
 import NewQRScannerDemo from "./components/NewQRScannerDemo";
 import NewNotificationsInboxDemo from "./components/NewNotificationsInboxDemo";
 import NewBreadcrumbDemo from "./components/NewBreadcrumbDemo";
@@ -151,6 +159,7 @@ import NewObjectDemo from "./components/NewObjectDemo";
 import NewButtonFamilyDemo from "./components/NewButtonFamilyDemo";
 import NewTreeDemo from "./components/NewTreeDemo";
 import NewToolbarDemo from "./components/NewToolbarDemo";
+import NewDocumentTabsDemo from "./components/NewDocumentTabsDemo";
 import NewShellBarDemo from "./components/NewShellBarDemo";
 import SkipToContentDemo from "./components/SkipToContentDemo";
 import NewFlexibleColumnLayoutDemo from "./components/NewFlexibleColumnLayoutDemo";
@@ -159,15 +168,19 @@ import NewObjectPageDemo from "./components/NewObjectPageDemo";
 import NewSelectDialogDemo from "./components/NewSelectDialogDemo";
 import NewValueHelpDemo from "./components/NewValueHelpDemo";
 import NewViewSettingsDemo from "./components/NewViewSettingsDemo";
+import NewViewManagerDemo from "./components/NewViewManagerDemo";
 import NewFilterBarDemo from "./components/NewFilterBarDemo";
+import NewFilterBuilderDemo from "./components/NewFilterBuilderDemo";
 import NewPageHeaderDemo from "./components/NewPageHeaderDemo";
 import NewStatCardDemo from "./components/NewStatCardDemo";
+import NewTileDemo from "./components/NewTileDemo";
 import NewCustomizingDemo from "./components/NewCustomizingDemo";
 import NewMaskInputDemo from "./components/NewMaskInputDemo";
 import NewPopoverDemo from "./components/NewPopoverDemo";
 import NewLinkDemo from "./components/NewLinkDemo";
 import NewThemeDemo from "./components/NewThemeDemo";
 import NewDirectionDemo from "./components/NewDirectionDemo";
+import NewLocaleDemo from "./components/NewLocaleDemo";
 import NewPageDemo from "./components/NewPageDemo";
 import NewMessagePopoverDemo from "./components/NewMessagePopoverDemo";
 import NewColorPickerDemo from "./components/NewColorPickerDemo";
@@ -237,6 +250,7 @@ const Sidebar: React.FC<{ collapsed: boolean }> = ({ collapsed }) => {
                     }
                   >
                     {item.label}
+                    <NavTag item={item} className="zen-ml-1.5" />
                   </NavLink>
                 </li>
               ))}
@@ -332,6 +346,7 @@ const App: React.FC = () => {
             <Route path="/button-new" element={<NewButtonDemo />} />
             <Route path="/tooltip-new" element={<NewTooltipDemo />} />
             <Route path="/dropdown-menu" element={<NewDropdownMenuDemo />} />
+            <Route path="/context-menu" element={<NewContextMenuDemo />} />
             <Route path="/separator" element={<NewSeparatorDemo />} />
             <Route path="/switch-new" element={<NewSwitchDemo />} />
             <Route path="/checkbox-new" element={<NewCheckboxDemo />} />
@@ -348,6 +363,8 @@ const App: React.FC = () => {
             <Route path="/search" element={<SearchDemo />} />
             <Route path="/password-input" element={<PasswordInputDemo />} />
             <Route path="/number-field-new" element={<NewNumberFieldDemo />} />
+            <Route path="/amount-field" element={<NewAmountFieldDemo />} />
+            <Route path="/date-input" element={<NewDateInputDemo />} />
             <Route path="/date-picker-new" element={<NewDatePickerDemo />} />
             <Route path="/otp-new" element={<NewOTPDemo />} />
             <Route path="/phone-input-new" element={<NewPhoneInputDemo />} />
@@ -373,9 +390,12 @@ const App: React.FC = () => {
             <Route path="/production-schedule" element={<NewProductionScheduleDemo />} />
             <Route path="/lazy-options" element={<NewLazyOptionsDemo />} />
             <Route path="/combobox" element={<NewComboboxDemo />} />
+            <Route path="/tree-select" element={<NewTreeSelectDemo />} />
+            <Route path="/lookup-field" element={<NewLookupFieldDemo />} />
             <Route path="/alert" element={<NewAlertDemo />} />
             <Route path="/dialog" element={<NewDialogDemo />} />
             <Route path="/toast" element={<NewToastDemo />} />
+            <Route path="/shortcuts" element={<NewShortcutsDemo />} />
             <Route path="/file-upload" element={<NewFileUploadDemo />} />
             <Route path="/form-bound" element={<NewBoundFieldsDemo />} />
             <Route path="/stepper" element={<NewStepperDemo />} />
@@ -397,6 +417,7 @@ const App: React.FC = () => {
             <Route path="/likert" element={<NewLikertDemo />} />
             <Route path="/time-picker" element={<NewTimePickerDemo />} />
             <Route path="/date-time-picker" element={<NewDateTimePickerDemo />} />
+            <Route path="/barcode" element={<NewBarcodeDemo />} />
             <Route path="/qr-scanner" element={<NewQRScannerDemo />} />
             <Route path="/notifications-inbox" element={<NewNotificationsInboxDemo />} />
             <Route path="/breadcrumb" element={<NewBreadcrumbDemo />} />
@@ -410,6 +431,7 @@ const App: React.FC = () => {
             <Route path="/object" element={<NewObjectDemo />} />
             <Route path="/button-family" element={<NewButtonFamilyDemo />} />
             <Route path="/tree" element={<NewTreeDemo />} />
+            <Route path="/document-tabs" element={<NewDocumentTabsDemo />} />
             <Route path="/toolbar" element={<NewToolbarDemo />} />
             <Route path="/skip-to-content" element={<SkipToContentDemo />} />
             <Route path="/shellbar" element={<NewShellBarDemo />} />
@@ -422,14 +444,18 @@ const App: React.FC = () => {
             <Route path="/select-dialog" element={<NewSelectDialogDemo />} />
             <Route path="/value-help" element={<NewValueHelpDemo />} />
             <Route path="/view-settings" element={<NewViewSettingsDemo />} />
+            <Route path="/filter-builder" element={<NewFilterBuilderDemo />} />
+            <Route path="/view-manager" element={<NewViewManagerDemo />} />
             <Route path="/filter-bar" element={<NewFilterBarDemo />} />
             <Route path="/page-header" element={<NewPageHeaderDemo />} />
             <Route path="/stat-card" element={<NewStatCardDemo />} />
+            <Route path="/tile" element={<NewTileDemo />} />
             <Route path="/customizing" element={<NewCustomizingDemo />} />
             <Route path="/mask-input" element={<NewMaskInputDemo />} />
             <Route path="/popover" element={<NewPopoverDemo />} />
             <Route path="/link" element={<NewLinkDemo />} />
             <Route path="/theme" element={<NewThemeDemo />} />
+            <Route path="/localization" element={<NewLocaleDemo />} />
             <Route path="/direction" element={<NewDirectionDemo />} />
             <Route path="/page" element={<NewPageDemo />} />
             <Route path="/message-popover" element={<NewMessagePopoverDemo />} />

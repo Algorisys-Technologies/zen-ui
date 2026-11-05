@@ -150,8 +150,8 @@ export const TimerBadge = (props: TimerBadgeProps) => {
       aria-live="off"
       aria-label={
         typeof props.label === "string"
-          ? `${props.label}: ${clock.text()} remaining`
-          : `${clock.text()} remaining`
+          ? loc.t("countdown.labelRemaining", { label: props.label, time: clock.text() })
+          : loc.t("countdown.remaining", { time: clock.text() })
       }
       data-level={clock.level()}
       class={cn(

@@ -39,6 +39,7 @@ SKILL.md.
 ### SegmentedButtonItem
 
 - `value: string`
+- `count?: React.ReactNode` — A count beside the label, for choices that filter a list ("Paid 4"): a muted chip in tabular figures, inverted when the item is selected. The item's name reads "Paid, 4".
 - `size?: "sm" | "md" | "lg" | "xs" | "xl" | null | undefined`
 - `color?: "info" | "error" | "primary" | "neutral" | "success" | "warning" | null | undefined`
 - `asChild?: boolean | undefined` — Render the variant styles onto the child element (Radix Slot pattern).

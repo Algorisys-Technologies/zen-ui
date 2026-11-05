@@ -10,7 +10,8 @@ import { defineZenElement } from "../lib/define";
 //     items='[{"id":"a","label":"Add","icon":"plus"}]'></zen-shell-bar>
 //
 // `searchable` defaults false → boolean attr. The click-style callbacks map to
-// CustomEvents.
+// CustomEvents. `search` (your own control where the search field would be: a
+// node, or a function told `{ compact }`) is a JS property only.
 defineZenElement<ShellBarProps>({
   tag: "zen-shell-bar",
   factory: ShellBar,
@@ -24,7 +25,7 @@ defineZenElement<ShellBarProps>({
     items: "json",
     profile: "json",
   },
-  props: ["logo", "menuItems", "profile", "items"],
+  props: ["logo", "menuItems", "profile", "items", "search"],
   events: {
     onSearch: "zen-search",
     onNotificationsClick: "zen-notifications-click",

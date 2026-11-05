@@ -5,6 +5,7 @@ import { Button } from "../button/button";
 import { Input } from "../form/input/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { ColorPalette } from "./color-palette";
+import { useLocale } from "../locale/locale";
 
 /**
  * ColorPicker — a swatch that opens a palette, a hex field and the platform's
@@ -41,30 +42,36 @@ export interface ColorPickerProps {
   className?: string;
 }
 
-const DEFAULT_COLORS: ColorOption[] = [
-  { value: "#ef4444", label: "Red" },
-  { value: "#f97316", label: "Orange" },
-  { value: "#facc15", label: "Yellow" },
-  { value: "#22c55e", label: "Green" },
-  { value: "#3b82f6", label: "Blue" },
-  { value: "#6366f1", label: "Indigo" },
-  { value: "#a855f7", label: "Purple" },
-  { value: "#ec4899", label: "Pink" },
-  { value: "#78716c", label: "Stone" },
-  { value: "#000000", label: "Black" },
-];
+// The default swatches name their colour through the catalogue, so a translated app
+// announces "Rot", not "Red". Resolved where a locale is in scope.
+const DEFAULT_COLORS = [
+  { value: "#ef4444", key: "colorPicker.red" },
+  { value: "#f97316", key: "colorPicker.orange" },
+  { value: "#facc15", key: "colorPicker.yellow" },
+  { value: "#22c55e", key: "colorPicker.green" },
+  { value: "#3b82f6", key: "colorPicker.blue" },
+  { value: "#6366f1", key: "colorPicker.indigo" },
+  { value: "#a855f7", key: "colorPicker.purple" },
+  { value: "#ec4899", key: "colorPicker.pink" },
+  { value: "#78716c", key: "colorPicker.stone" },
+  { value: "#000000", key: "colorPicker.black" },
+] as const;
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   value: valueProp,
   defaultValue,
   onValueChange,
-  colors = DEFAULT_COLORS,
+  colors: colorsProp,
   allowCustom = true,
-  label = "Choose a colour",
-  placeholder = "Pick a colour",
+  label: labelProp,
+  placeholder: placeholderProp,
   disabled,
   className,
 }) => {
+  const loc = useLocale();
+  const colors = colorsProp ?? DEFAULT_COLORS.map((c): ColorOption => ({ value: c.value, label: loc.t(c.key) }));
+  const label = labelProp ?? loc.t("colorPicker.chooseAColour");
+  const placeholder = placeholderProp ?? loc.t("colorPicker.pickAColour");
   const [inner, setInner] = React.useState(() => normalizeHex(defaultValue ?? "") ?? "");
   const isControlled = valueProp !== undefined;
   const value = isControlled ? (normalizeHex(valueProp) ?? "") : inner;
@@ -124,9 +131,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 "zen-border zen-border-zen-border",
               )}
               style={{ backgroundColor: value || "transparent" }}
-              title="Custom colour"
+              title={loc.t("colorPicker.customColour")}
             >
-              <span className="zen-sr-only">Custom colour</span>
+              <span className="zen-sr-only">{loc.t("colorPicker.customColour")}</span>
               <input
                 type="color"
                 value={value || "#000000"}
@@ -142,7 +149,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 update(e.target.value);
               }}
               placeholder="#3b82f6"
-              aria-label="Hex colour"
+              aria-label={loc.t("colorPicker.hexColour")}
               spellCheck={false}
               autoComplete="off"
               className="zen-h-8 zen-w-28 zen-font-mono zen-text-xs"

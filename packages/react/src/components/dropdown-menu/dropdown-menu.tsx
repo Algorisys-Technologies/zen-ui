@@ -1,6 +1,18 @@
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { cn } from "../../lib/cn";
+import {
+  ChevronRightIcon,
+  CheckIcon,
+  DotIcon,
+  menuContentClass,
+  menuIndicatorItemClass,
+  menuIndicatorSlotClass,
+  menuItemClass,
+  menuLabelClass,
+  menuSeparatorClass,
+  menuShortcutClass,
+  menuSubTriggerClass,
+} from "./menu-parts";
 
 /**
  * DropdownMenu — built on @radix-ui/react-dropdown-menu.
@@ -54,12 +66,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
 >(({ className, inset, children, ...props }, ref) => (
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
-    className={cn(
-      "zen-flex zen-cursor-default zen-items-center zen-gap-2 zen-select-none zen-rounded-zen-sm zen-px-2 zen-py-zen-menu-y zen-text-sm zen-outline-none",
-      "data-[state=open]:zen-bg-zen-muted data-[highlighted]:zen-bg-zen-muted",
-      inset && "zen-pl-8",
-      className,
-    )}
+    className={menuSubTriggerClass(inset, className)}
     {...props}
   >
     {children}
@@ -74,10 +81,7 @@ const DropdownMenuSubContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.SubContent
     ref={ref}
-    className={cn(
-      "zen-z-50 zen-min-w-32 zen-overflow-hidden zen-rounded-zen-md zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md",
-      className,
-    )}
+    className={menuContentClass(className)}
     {...props}
   />
 ));
@@ -91,10 +95,7 @@ const DropdownMenuContent = React.forwardRef<
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
-      className={cn(
-        "zen-z-50 zen-min-w-32 zen-overflow-hidden zen-rounded-zen-md zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md",
-        className,
-      )}
+      className={menuContentClass(className)}
       {...props}
     />
   </DropdownMenuPrimitive.Portal>
@@ -110,15 +111,7 @@ const DropdownMenuItem = React.forwardRef<
 >(({ className, inset, variant = "default", ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
-    className={cn(
-      "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-gap-2 zen-rounded-zen-sm zen-px-2 zen-py-zen-menu-y zen-text-sm zen-outline-none",
-      "data-[highlighted]:zen-bg-zen-muted",
-      "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
-      variant === "destructive" &&
-        "zen-text-zen-error data-[highlighted]:zen-bg-zen-error-soft data-[highlighted]:zen-text-zen-error-soft-fg",
-      inset && "zen-pl-8",
-      className,
-    )}
+    className={menuItemClass(variant, inset, className)}
     {...props}
   />
 ));
@@ -130,16 +123,11 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 >(({ className, children, checked, ...props }, ref) => (
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
-    className={cn(
-      "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
-      "data-[highlighted]:zen-bg-zen-muted",
-      "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
-      className,
-    )}
+    className={menuIndicatorItemClass(className)}
     checked={checked}
     {...props}
   >
-    <span className="zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
+    <span className={menuIndicatorSlotClass}>
       <DropdownMenuPrimitive.ItemIndicator>
         <CheckIcon />
       </DropdownMenuPrimitive.ItemIndicator>
@@ -151,19 +139,31 @@ DropdownMenuCheckboxItem.displayName = DropdownMenuPrimitive.CheckboxItem.displa
 
 const DropdownMenuRadioItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem> & {
+    /**
+     * Close the menu when chosen. Default true, which is what Radix has always
+     * done here. Solid's default is false (Kobalte keeps radio items open); a
+     * picker that passes it explicitly behaves the same in both bindings.
+     */
+    closeOnSelect?: boolean;
+  }
+>(({ className, children, closeOnSelect = true, onSelect, ...props }, ref) => (
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
-    className={cn(
-      "zen-relative zen-flex zen-cursor-default zen-select-none zen-items-center zen-rounded-zen-sm zen-py-zen-menu-y zen-pl-8 zen-pr-2 zen-text-sm zen-outline-none",
-      "data-[highlighted]:zen-bg-zen-muted",
-      "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
-      className,
-    )}
+    // Unchanged when closing: the caller's onSelect is passed through as is.
+    // Radix keeps the menu open when onSelect's event is default-prevented.
+    onSelect={
+      closeOnSelect
+        ? onSelect
+        : (event) => {
+            onSelect?.(event);
+            event.preventDefault();
+          }
+    }
+    className={menuIndicatorItemClass(className)}
     {...props}
   >
-    <span className="zen-absolute zen-start-2 zen-flex zen-h-3.5 zen-w-3.5 zen-items-center zen-justify-center">
+    <span className={menuIndicatorSlotClass}>
       <DropdownMenuPrimitive.ItemIndicator>
         <DotIcon />
       </DropdownMenuPrimitive.ItemIndicator>
@@ -181,11 +181,7 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
-    className={cn(
-      "zen-px-2 zen-py-1.5 zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
-      inset && "zen-pl-8",
-      className,
-    )}
+    className={menuLabelClass(inset, className)}
     {...props}
   />
 ));
@@ -197,7 +193,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn("-zen-mx-1 zen-my-1 zen-h-px zen-bg-zen-border", className)}
+    className={menuSeparatorClass(className)}
     {...props}
   />
 ));
@@ -208,31 +204,11 @@ const DropdownMenuShortcut = ({
   ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => (
   <span
-    className={cn(
-      "zen-ml-auto zen-text-xs zen-tracking-widest zen-text-zen-muted-fg",
-      className,
-    )}
+    className={menuShortcutClass(className)}
     {...props}
   />
 );
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut";
-
-/* ----------------------------- inline icons (no external deps) ----------- */
-const CheckIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-const DotIcon = () => (
-  <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
-    <circle cx="12" cy="12" r="6" />
-  </svg>
-);
-const ChevronRightIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="zen-ml-auto">
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-);
 
 export {
   DropdownMenu,

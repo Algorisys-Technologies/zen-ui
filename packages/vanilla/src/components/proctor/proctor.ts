@@ -1,6 +1,7 @@
 import { cn } from "../../lib/cn";
 import { Badge } from "../badge/badge";
 import { applyProps, Disposer, setChildren, toNodes, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * ProctorStreamGrid and ProctorFlagOverlay — many live candidates on one screen,
@@ -73,6 +74,7 @@ export interface ProctorFlagOverlayProps extends BaseProps {
  */
 export function ProctorFlagOverlay(props: ProctorFlagOverlayProps): ZenComponent<ProctorFlagOverlayProps> {
   let current: ProctorFlagOverlayProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
   let chips: Array<{ destroy(): void }> = [];
@@ -108,7 +110,7 @@ export function ProctorFlagOverlay(props: ProctorFlagOverlayProps): ZenComponent
       }
       const rest_ = flags.length - shown.length;
       if (rest_ > 0) {
-        const more = Badge({ variant: "soft", color: "neutral", children: `+${rest_} more` });
+        const more = Badge({ variant: "soft", color: "neutral", children: loc.t("proctor.more", { count: rest_ }) });
         chips.push(more);
         el.append(more.el);
       }
@@ -155,6 +157,7 @@ export interface ProctorStreamGridProps extends BaseProps {
 
 export function ProctorStreamGrid(props: ProctorStreamGridProps): ZenComponent<ProctorStreamGridProps> {
   let current: ProctorStreamGridProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
   let parts: Array<{ destroy(): void }> = [];
@@ -183,7 +186,7 @@ export function ProctorStreamGrid(props: ProctorStreamGridProps): ZenComponent<P
       } else {
         const span = document.createElement("span");
         span.className = "zen-text-xs zen-text-zen-muted-fg";
-        span.textContent = "No video";
+        span.textContent = loc.t("proctor.noVideo");
         box.append(span);
       }
       return box;
@@ -200,7 +203,7 @@ export function ProctorStreamGrid(props: ProctorStreamGridProps): ZenComponent<P
     /* Always muted by default: thirty unmuted candidate streams is a wall of
        noise and an instant feedback loop. */
     video.muted = p.muted ?? true;
-    video.setAttribute("aria-label", typeof p.name === "string" ? `${p.name} video` : "Candidate video");
+    video.setAttribute("aria-label", typeof p.name === "string" ? loc.t("proctor.nameVideo", { name: p.name }) : loc.t("proctor.candidateVideo"));
     /* srcObject, never a blob URL: createObjectURL(MediaStream) is long removed,
        and assigning the same stream twice restarts playback. */
     if (video.srcObject !== (p.stream ?? null)) video.srcObject = p.stream ?? null;
@@ -231,7 +234,7 @@ export function ProctorStreamGrid(props: ProctorStreamGridProps): ZenComponent<P
       el.className = cn(className);
       const p = document.createElement("p");
       p.className = "zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      p.append(...toNodes(emptyMessage ?? "Nobody is connected."));
+      p.append(...toNodes(emptyMessage ?? loc.t("proctor.nobodyIsConnected")));
       el.append(p);
       removeProps?.();
       removeProps = applyProps(el, rest as Record<string, unknown>);
@@ -276,7 +279,7 @@ export function ProctorStreamGrid(props: ProctorStreamGridProps): ZenComponent<P
       const status = Badge({
         variant: "solid",
         color: STATUS_COLOR[p.status ?? "live"],
-        children: p.status ?? "live",
+        children: loc.t(`proctor.status.${p.status ?? "live"}`),
       });
       parts.push(status);
       statusWrap.append(status.el);
@@ -310,7 +313,7 @@ export function ProctorStreamGrid(props: ProctorStreamGridProps): ZenComponent<P
         count.textContent = String(flags.length);
         const sr = document.createElement("span");
         sr.className = "zen-sr-only";
-        sr.textContent = " flags raised";
+        sr.textContent = loc.t("proctor.flagsRaised");
         count.append(sr);
         foot.append(count);
       }
@@ -334,7 +337,7 @@ export function ProctorStreamGrid(props: ProctorStreamGridProps): ZenComponent<P
     if (hidden > 0) {
       const note = document.createElement("p");
       note.className = "zen-m-0 zen-text-xs zen-text-zen-muted-fg";
-      note.textContent = `Showing ${shown.length} of ${participants.length}. ${hidden} not rendered.`;
+      note.textContent = loc.t("proctor.showing", { shown: shown.length, total: participants.length, hidden });
       el.append(note);
     }
 

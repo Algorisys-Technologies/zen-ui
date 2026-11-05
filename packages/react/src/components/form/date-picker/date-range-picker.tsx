@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from "../../popover/popover";
 import { Calendar } from "./date-picker";
+import { useLocale } from "../../locale/locale";
 
 /**
  * DateRangePicker — pair-of-dates input. Trigger button shows a
@@ -50,14 +51,18 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   value,
   defaultValue,
   onValueChange,
-  placeholder = "Pick a date range",
+  placeholder: placeholderProp,
   disabled,
   className,
   numberOfMonths = 2,
   formatDate = (d) => d.toLocaleDateString(),
-  cancelLabel = "Cancel",
-  doneLabel = "Done",
+  cancelLabel: cancelLabelProp,
+  doneLabel: doneLabelProp,
 }) => {
+  const loc = useLocale();
+  const placeholder = placeholderProp ?? loc.t("dateRangePicker.placeholder");
+  const cancelLabel = cancelLabelProp ?? loc.t("common.cancel");
+  const doneLabel = doneLabelProp ?? loc.t("common.done");
   const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<DateRange | undefined>(
     defaultValue,

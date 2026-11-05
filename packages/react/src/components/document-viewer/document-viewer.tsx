@@ -12,6 +12,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * DocumentViewer — show a scanned document.
@@ -149,6 +150,7 @@ export const DocumentViewer = ({
   unsupportedMessage,
   className,
 }: DocumentViewerProps) => {
+  const loc = useLocale();
   const [zoomState, setZoomState] = React.useState(defaultZoom ?? 1);
   const [pageState, setPageState] = React.useState(Math.max(1, Math.floor(defaultPage ?? 1)));
   const [rotationState, setRotationState] = React.useState(defaultRotation ?? 0);
@@ -299,7 +301,7 @@ export const DocumentViewer = ({
       } catch {
         if (mine !== token.current || cancelled) return;
         setStatus("error");
-        setError("This is a PDF, and pdfjs-dist is not installed. Add it to render PDFs.");
+        setError("This is a PDF, and pdfjs-dist is not installed. Add it to render PDFs."); // i18n-ignore (a developer install notice)
         return;
       }
       if (mine !== token.current || cancelled) return;
@@ -311,7 +313,8 @@ export const DocumentViewer = ({
       if (globals && !globals.workerSrc) {
         setStatus("error");
         setError(
-          'PDFs need a pdf.js worker. Pass workerSrc — in Vite: import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url".',
+          // i18n-ignore-next-line (a developer setup notice: the fix is code, not a word for users)
+        'PDFs need a pdf.js worker. Pass workerSrc — in Vite: import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url".',
         );
         return;
       }
@@ -328,7 +331,7 @@ export const DocumentViewer = ({
       } catch (e) {
         if (mine !== token.current || cancelled) return;
         setStatus("error");
-        setError(e instanceof Error ? e.message : "Could not open this PDF.");
+        setError(e instanceof Error ? e.message : loc.t("documentViewer.pdfFailed"));
       }
     };
     void load();
@@ -356,7 +359,7 @@ export const DocumentViewer = ({
               {name}
             </span>
           )}
-          <Button variant="ghost" size="sm" aria-label="Zoom out" disabled={zoom <= minZoom} onClick={() => stepZoom(-1)}>
+          <Button variant="ghost" size="sm" aria-label={loc.t("documentViewer.zoomOut")} disabled={zoom <= minZoom} onClick={() => stepZoom(-1)}>
             <MinusIcon />
           </Button>
           {/* A live region: the percentage is the only feedback a zoom press
@@ -364,26 +367,26 @@ export const DocumentViewer = ({
           <span aria-live="polite" className="zen-min-w-12 zen-text-center zen-text-xs zen-tabular-nums zen-text-zen-muted-fg">
             {PERCENT(zoom)}
           </span>
-          <Button variant="ghost" size="sm" aria-label="Zoom in" disabled={zoom >= maxZoom} onClick={() => stepZoom(1)}>
+          <Button variant="ghost" size="sm" aria-label={loc.t("documentViewer.zoomIn")} disabled={zoom >= maxZoom} onClick={() => stepZoom(1)}>
             <PlusIcon />
           </Button>
           <Button variant="ghost" size="sm" onClick={fitNow}>
-            Fit
+            {loc.t("documentViewer.fit")}
           </Button>
-          <Button variant="ghost" size="sm" aria-label="Rotate 90 degrees" onClick={rotate}>
+          <Button variant="ghost" size="sm" aria-label={loc.t("documentViewer.rotate")} onClick={rotate}>
             <RotateIcon />
           </Button>
 
           {isPdf && pageCount > 1 && (
             <>
               <span className="zen-mx-1 zen-h-4 zen-w-px zen-bg-zen-border" aria-hidden />
-              <Button variant="ghost" size="sm" aria-label="Previous page" disabled={page <= 1} onClick={() => setPageTo(page - 1)}>
+              <Button variant="ghost" size="sm" aria-label={loc.t("documentViewer.previousPage")} disabled={page <= 1} onClick={() => setPageTo(page - 1)}>
                 <Icon name="chevron-left" size={16} className="rtl:zen-rotate-180" />
               </Button>
               <span className="zen-text-xs zen-tabular-nums zen-text-zen-muted-fg">
                 {page} / {pageCount}
               </span>
-              <Button variant="ghost" size="sm" aria-label="Next page" disabled={page >= pageCount} onClick={() => setPageTo(page + 1)}>
+              <Button variant="ghost" size="sm" aria-label={loc.t("documentViewer.nextPage")} disabled={page >= pageCount} onClick={() => setPageTo(page + 1)}>
                 <Icon name="chevron-right" size={16} className="rtl:zen-rotate-180" />
               </Button>
             </>
@@ -392,7 +395,7 @@ export const DocumentViewer = ({
           {onDownload && (
             <>
               <span className="zen-ms-auto" />
-              <Button variant="ghost" size="sm" aria-label="Download" onClick={() => onDownload(src, name)}>
+              <Button variant="ghost" size="sm" aria-label={loc.t("documentViewer.download")} onClick={() => onDownload(src, name)}>
                 <DownloadIcon />
               </Button>
             </>
@@ -408,7 +411,7 @@ export const DocumentViewer = ({
         {kind === "image" && (
           <img
             src={src}
-            alt={name ?? "Document"}
+            alt={name ?? loc.t("documentViewer.document")}
             onLoad={(e) => {
               setNaturalSize({
                 width: e.currentTarget.naturalWidth,
@@ -418,7 +421,7 @@ export const DocumentViewer = ({
             }}
             onError={() => {
               setStatus("error");
-              setError("Could not load this image.");
+              setError(loc.t("documentViewer.imageFailed"));
             }}
             /* Sized rather than transformed: a CSS scale() leaves the element's
                layout box at its old size, so the scroller never learns the
@@ -439,11 +442,11 @@ export const DocumentViewer = ({
           <div className="zen-m-auto zen-flex zen-flex-col zen-items-center zen-gap-2 zen-text-center">
             <FileIcon />
             <p className="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
-              {unsupportedMessage ?? "No preview for this file type."}
+              {unsupportedMessage ?? loc.t("documentViewer.noPreviewForThisFile")}
             </p>
             {onDownload && (
               <Button variant="outline" size="sm" onClick={() => onDownload(src, name)}>
-                Download
+                {loc.t("documentViewer.download")}
               </Button>
             )}
           </div>

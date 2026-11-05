@@ -3,6 +3,7 @@ import { Disposer, type ZenComponent } from "../../lib/component";
 import { controllable } from "../../lib/state";
 import { Button } from "../button/button";
 import { Popover } from "../popover/popover";
+import { useLocale } from "../locale/locale";
 
 /**
  * MultiCombobox — multi-select sibling of Combobox. Selected values render as
@@ -103,6 +104,7 @@ const arraysEqual = (a: string[], b: string[]) =>
 
 export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComboboxProps> {
   let current: MultiComboboxProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const isAsync = () => typeof current.onSearch === "function";
@@ -198,7 +200,7 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
     const x = document.createElement("span");
     x.setAttribute("role", "button");
     x.tabIndex = 0;
-    x.setAttribute("aria-label", `Remove ${label}`);
+    x.setAttribute("aria-label", loc.t("combobox.remove", { label }));
     x.className = cn(
       "zen-inline-flex zen-items-center zen-justify-center",
       "zen-h-3.5 zen-w-3.5 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -232,7 +234,7 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
     triggerEl.classList.toggle("zen-text-zen-muted-fg", sel.length === 0);
     chips.replaceChildren();
     if (sel.length === 0) {
-      chips.textContent = current.placeholder ?? "Select…";
+      chips.textContent = current.placeholder ?? loc.t("combobox.placeholder");
       return;
     }
     const visible = sel.slice(0, max);
@@ -241,7 +243,7 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
     if (overflow > 0) {
       const more = document.createElement("span");
       more.className = "zen-text-xs zen-text-zen-muted-fg zen-ml-0.5";
-      more.textContent = `+${overflow} more`;
+      more.textContent = loc.t("multiCombobox.more", { count: overflow });
       chips.append(more);
     }
   };
@@ -372,14 +374,14 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
     if (isAsync() && asyncLoading) {
       const loading = document.createElement("div");
       loading.className = "zen-py-4 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      loading.textContent = "Searching…";
+      loading.textContent = loc.t("combobox.searching");
       list.append(loading);
     }
 
     if (filtered.length === 0 && !showCreate && !(isAsync() && asyncLoading)) {
       const empty = document.createElement("div");
       empty.className = "zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      empty.textContent = current.emptyMessage ?? "No results.";
+      empty.textContent = current.emptyMessage ?? loc.t("combobox.noResults");
       list.append(empty);
     }
 
@@ -401,7 +403,7 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
       plus.style.marginRight = "6px";
       const text = document.createElement("span");
       text.className = "zen-flex-1";
-      text.textContent = `${current.createLabel ?? "Create"} “${typed}”`;
+      text.textContent = loc.t("combobox.createOption", { verb: current.createLabel ?? loc.t("combobox.create"), text: typed });
       row.append(plus, text);
 
       const act = () => {
@@ -441,7 +443,7 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
         "zen-bg-transparent zen-border-0 zen-cursor-pointer",
         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       );
-      btn.textContent = `Clear all (${selected().length})`;
+      btn.textContent = loc.t("multiCombobox.clearAll", { count: selected().length });
       btn.addEventListener("click", () => commit([]));
       footer.append(btn);
       // The footer lives after the scrolling list, inside the panel.

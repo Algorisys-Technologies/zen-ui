@@ -1,6 +1,8 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { formatAmount, formatNumber } from "@algorisys/zen-ui-core/number-format";
+import { useLocale, type MessageKey } from "../locale/locale";
 import { Icon, type IconName } from "../icon/icon";
 
 /**
@@ -28,7 +30,7 @@ export type ObjectState = "none" | "success" | "warning" | "error" | "info";
 const STATE_TEXT: Record<ObjectState, string> = {
   none: "zen-text-zen-foreground",
   success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   error: "zen-text-zen-error",
   info: "zen-text-zen-info",
 };
@@ -83,17 +85,45 @@ export interface ObjectStatusProps
    * carry meaning — without this, a status reads as bare text to assistive tech.
    */
   stateAnnouncement?: string;
+  /**
+   * A document's status as a stamp: a ruled box in the state's colour,
+   * uppercase and letter-spaced, never rotated (DRAFT, SUBMITTED, CANCELLED).
+   * No icon unless one is given. The neutral state is a muted grey.
+   */
+  stamp?: boolean;
 }
 
+// The soft-fg colours, not the plain state colours: warning's plain colour is
+// 1.77:1 on white, unreadable as text; its soft-fg is 5.23:1. For success,
+// error and info the two are the same colour (measured on the default theme).
+const STAMP_TEXT: Record<ObjectState, string> = {
+  none: "zen-text-zen-muted-fg",
+  success: "zen-text-zen-success-soft-fg",
+  warning: "zen-text-zen-warning-soft-fg",
+  error: "zen-text-zen-error-soft-fg",
+  info: "zen-text-zen-info-soft-fg",
+};
+
 export const ObjectStatus = React.forwardRef<HTMLSpanElement, ObjectStatusProps>(
-  ({ state = "none", icon, inverted, stateAnnouncement, className, children, ...props }, ref) => {
-    const resolved = icon === null ? null : (icon ?? (state === "none" ? null : STATE_ICON[state]));
+  ({ state = "none", icon, inverted, stateAnnouncement, stamp, className, children, ...props }, ref) => {
+    const resolved =
+      icon === null || (stamp && icon === undefined)
+        ? null
+        : (icon ?? (state === "none" ? null : STATE_ICON[state]));
     return (
       <span
         ref={ref}
         className={cn(
           objectStatusVariants({ inverted }),
-          inverted ? STATE_INVERTED[state] : STATE_TEXT[state],
+          stamp
+            ? cn(
+                "zen-rounded-zen-sm zen-border zen-border-solid zen-border-current zen-px-1.5 zen-py-px",
+                "zen-text-xs zen-font-semibold zen-uppercase zen-tracking-wider",
+                STAMP_TEXT[state],
+              )
+            : inverted
+              ? STATE_INVERTED[state]
+              : STATE_TEXT[state],
           className,
         )}
         {...props}
@@ -111,8 +141,22 @@ ObjectStatus.displayName = "ObjectStatus";
 
 export interface ObjectNumberProps
   extends Omit<React.HTMLAttributes<HTMLSpanElement>, "color"> {
-  /** Pre-formatted for the user's locale — this component does not format. */
-  value: React.ReactNode;
+  /**
+   * Shown as given: pre-formatted for the user's locale. To have the number
+   * formatted here instead, pass `number` (and `currency`) and leave this out.
+   */
+  value?: React.ReactNode;
+  /**
+   * A number to format in the locale (the `locale` prop, else LocaleProvider's,
+   * else the browser's): at the currency's precision with `currency`, else at
+   * `precision`. Used only when `value` is not given.
+   */
+  number?: number;
+  /** ISO 4217. Sets the precision (INR 2, JPY 0) and, without a `unit`, is shown as the unit: 1,250.00 INR. */
+  currency?: string;
+  /** Decimal places for `number`. Default: the currency's, else as many as it has. */
+  precision?: number;
+  locale?: string;
   unit?: React.ReactNode;
   state?: ObjectState;
   /** Larger and bolder — for the headline figure on an object page. */
@@ -120,21 +164,34 @@ export interface ObjectNumberProps
 }
 
 export const ObjectNumber = React.forwardRef<HTMLSpanElement, ObjectNumberProps>(
-  ({ value, unit, state = "none", emphasized = false, className, ...props }, ref) => (
-    <span
-      ref={ref}
-      className={cn(
-        "zen-inline-flex zen-items-baseline zen-gap-1 zen-tabular-nums",
-        emphasized ? "zen-text-lg zen-font-semibold" : "zen-text-sm zen-font-medium",
-        STATE_TEXT[state],
-        className,
-      )}
-      {...props}
-    >
-      <span>{value}</span>
-      {unit ? <span className="zen-text-xs zen-font-normal zen-opacity-80">{unit}</span> : null}
-    </span>
-  ),
+  ({ value, number, currency, precision, locale, unit, state = "none", emphasized = false, className, ...props }, ref) => {
+    const ctx = useLocale();
+    // `value` as given (the original behaviour); else `number`, formatted here.
+    const formatting = value === undefined && number !== undefined;
+    let shown: React.ReactNode = value;
+    if (formatting) {
+      const loc = locale ?? ctx.locale;
+      shown = currency
+        ? formatAmount(number, currency, { locale: loc, display: "none", precision })
+        : formatNumber(number, { locale: loc, precision });
+    }
+    const shownUnit = unit ?? (formatting ? currency : undefined);
+    return (
+      <span
+        ref={ref}
+        className={cn(
+          "zen-inline-flex zen-items-baseline zen-gap-1 zen-tabular-nums",
+          emphasized ? "zen-text-lg zen-font-semibold" : "zen-text-sm zen-font-medium",
+          STATE_TEXT[state],
+          className,
+        )}
+        {...props}
+      >
+        <span>{shown}</span>
+        {shownUnit ? <span className="zen-text-xs zen-font-normal zen-opacity-80">{shownUnit}</span> : null}
+      </span>
+    );
+  },
 );
 ObjectNumber.displayName = "ObjectNumber";
 
@@ -161,12 +218,12 @@ ObjectIdentifier.displayName = "ObjectIdentifier";
 
 export type ObjectMarkerType = "flagged" | "favorite" | "draft" | "locked" | "unsaved";
 
-const MARKER: Record<ObjectMarkerType, { icon: IconName; label: string }> = {
-  flagged: { icon: "flag", label: "Flagged" },
-  favorite: { icon: "star", label: "Favorite" },
-  draft: { icon: "draft", label: "Draft" },
-  locked: { icon: "lock", label: "Locked" },
-  unsaved: { icon: "edit", label: "Unsaved changes" },
+const MARKER: Record<ObjectMarkerType, { icon: IconName; label: MessageKey }> = {
+  flagged: { icon: "flag", label: "objectMarker.flagged" },
+  favorite: { icon: "star", label: "objectMarker.favorite" },
+  draft: { icon: "draft", label: "objectMarker.draft" },
+  locked: { icon: "lock", label: "objectMarker.locked" },
+  unsaved: { icon: "edit", label: "objectMarker.unsaved" },
 };
 
 export interface ObjectMarkerProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -179,8 +236,9 @@ export interface ObjectMarkerProps extends React.HTMLAttributes<HTMLSpanElement>
 
 export const ObjectMarker = React.forwardRef<HTMLSpanElement, ObjectMarkerProps>(
   ({ type, showLabel = false, label, className, ...props }, ref) => {
+    const loc = useLocale();
     const m = MARKER[type];
-    const text = label ?? m.label;
+    const text = label ?? loc.t(m.label);
     return (
       <span
         ref={ref}

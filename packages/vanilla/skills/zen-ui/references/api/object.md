@@ -16,12 +16,17 @@ SKILL.md.
 - `state?: ObjectState | undefined` — Semantic state. Drives colour and the default icon.
 - `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…` — Override the state's default icon, or pass `null` for no icon.
 - `stateAnnouncement?: string | undefined` — Screen-reader text naming the state, e.g. "Approved". Colour alone must not carry meaning — without this, a status reads as bare text to assistive tech.
+- `stamp?: boolean | undefined` — A document's status as a stamp: a ruled box in the state's colour, uppercase and letter-spaced, never rotated (DRAFT, SUBMITTED, CANCELLED). No icon unless one is given. The neutral state is a muted grey.
 - `inverted?: boolean | null | undefined`
 - …plus the underlying element's standard props (279 inherited).
 
 ### ObjectNumber
 
-- `value: React.ReactNode` — Pre-formatted for the user's locale — this component does not format.
+- `value?: React.ReactNode` — Shown as given: pre-formatted for the user's locale. To have the number formatted here instead, pass `number` (and `currency`) and leave this out.
+- `number?: number | undefined` — A number to format in the locale (the `locale` prop, else LocaleProvider's, else the browser's): at the currency's precision with `currency`, else at `precision`. Used only when `value` is not given.
+- `currency?: string | undefined` — ISO 4217. Sets the precision (INR 2, JPY 0) and, without a `unit`, is shown as the unit: 1,250.00 INR.
+- `precision?: number | undefined` — Decimal places for `number`. Default: the currency's, else as many as it has.
+- `locale?: string | undefined`
 - `unit?: React.ReactNode`
 - `state?: ObjectState | undefined`
 - `emphasized?: boolean | undefined` — Larger and bolder — for the headline figure on an object page.

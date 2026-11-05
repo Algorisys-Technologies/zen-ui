@@ -1,7 +1,7 @@
 import { type JSX, For, Show, createMemo } from "solid-js";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { cn } from "../../lib/cn";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * NotificationsInbox — Solid port. Bell trigger that opens a Popover
@@ -47,10 +47,13 @@ const startOfDay = (d: Date): Date => {
 const daysBetween = (a: Date, b: Date): number =>
   Math.round((startOfDay(b).getTime() - startOfDay(a).getTime()) / 86400000);
 
-const dayLabel = (d: Date, now: Date): string => {
+/** The catalogue lookup, passed in: these helpers run outside any component. */
+type T = (key: MessageKey, values?: Record<string, string | number>) => string;
+
+const dayLabel = (d: Date, now: Date, t: T): string => {
   const diff = daysBetween(d, now);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
+  if (diff === 0) return t("notificationsInbox.today");
+  if (diff === 1) return t("notificationsInbox.yesterday");
   if (diff < 7) return d.toLocaleDateString(undefined, { weekday: "long" });
   const sameYear = d.getFullYear() === now.getFullYear();
   return d.toLocaleDateString(undefined, {
@@ -60,12 +63,14 @@ const dayLabel = (d: Date, now: Date): string => {
   });
 };
 
-const relativeTime = (d: Date, now: Date): string => {
+/* Catalogue messages, not Intl.RelativeTimeFormat: its narrow English says "now"
+   where this said "just now", and older engines say "5 min. ago" for "5m ago". */
+const relativeTime = (d: Date, now: Date, t: T): string => {
   const sec = Math.floor((now.getTime() - d.getTime()) / 1000);
-  if (sec < 45) return "just now";
-  if (sec < 60 * 60) return `${Math.floor(sec / 60)}m ago`;
-  if (sec < 60 * 60 * 24) return `${Math.floor(sec / 3600)}h ago`;
-  if (sec < 60 * 60 * 24 * 7) return `${Math.floor(sec / 86400)}d ago`;
+  if (sec < 45) return t("notificationsInbox.justNow");
+  if (sec < 60 * 60) return t("notificationsInbox.minutesAgo", { count: Math.floor(sec / 60) });
+  if (sec < 60 * 60 * 24) return t("notificationsInbox.hoursAgo", { count: Math.floor(sec / 3600) });
+  if (sec < 60 * 60 * 24 * 7) return t("notificationsInbox.daysAgo", { count: Math.floor(sec / 86400) });
   return d.toLocaleDateString();
 };
 
@@ -74,10 +79,10 @@ interface Group {
   items: Notification[];
 }
 
-const groupByDay = (notifications: Notification[], now: Date): Group[] => {
+const groupByDay = (notifications: Notification[], now: Date, t: T): Group[] => {
   const groups: Group[] = [];
   for (const n of notifications) {
-    const label = dayLabel(toDate(n.timestamp), now);
+    const label = dayLabel(toDate(n.timestamp), now, t);
     const tail = groups[groups.length - 1];
     if (tail && tail.label === label) tail.items.push(n);
     else groups.push({ label, items: [n] });
@@ -91,7 +96,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
     void props.notifications;
     return new Date();
   });
-  const groups = createMemo(() => groupByDay(props.notifications, now()));
+  const groups = createMemo(() => groupByDay(props.notifications, now(), loc.t));
   const computedUnread = () =>
     props.unreadCount ?? props.notifications.filter((n) => !n.read).length;
   const hasUnread = () => computedUnread() > 0;
@@ -105,7 +110,7 @@ export const NotificationsInbox = (props: NotificationsInboxProps) => {
       <PopoverTrigger
         aria-label={
           hasUnread()
-            ? `${triggerLabel()}, ${computedUnread()} unread`
+            ? loc.t("notificationsInbox.unread", { label: triggerLabel(), count: computedUnread() })
             : triggerLabel()
         }
         class={cn(
@@ -219,6 +224,7 @@ const Row = (props: {
   now: Date;
   onSelect?: (n: Notification) => void;
 }) => {
+  const loc = useLocale();
   const n = () => props.notification;
   const interactive = () => !!props.onSelect || !!n().href;
   const activate = () => props.onSelect?.(n());
@@ -251,7 +257,7 @@ const Row = (props: {
         </Show>
         <div class="zen-mt-1 zen-flex zen-items-center zen-justify-between zen-gap-2">
           <span class="zen-text-[0.65rem] zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">
-            {relativeTime(toDate(n().timestamp), props.now)}
+            {relativeTime(toDate(n().timestamp), props.now, loc.t)}
           </span>
           <Show when={n().actions}>
             <div class="zen-flex zen-items-center zen-gap-1.5">{n().actions}</div>

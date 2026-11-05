@@ -10,6 +10,7 @@ import {
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { applyProps, Disposer, setChildren, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * SpreadsheetGrid — an editable grid of cells with formulas.
@@ -54,6 +55,7 @@ const HEADER_CELL =
 
 export function SpreadsheetGrid(props: SpreadsheetGridProps): ZenComponent<SpreadsheetGridProps> {
   let current: SpreadsheetGridProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -223,7 +225,7 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps): ZenComponent<Sprea
     corner.className = cn(HEADER_CELL, "zen-start-0 zen-top-0 zen-z-20 zen-w-10");
     const srRow = document.createElement("span");
     srRow.className = "zen-sr-only";
-    srRow.textContent = "Row";
+    srRow.textContent = loc.t("spreadsheet.row");
     corner.append(srRow);
     hr.append(corner);
     for (let c = 0; c < cols; c++) {

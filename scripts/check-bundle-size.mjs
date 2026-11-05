@@ -68,11 +68,18 @@ createRoot(document.getElementById("root")).render(<Card><Button>a</Button><Inpu
    * more than importing one. Duplicate that renderer — the obvious thing a
    * future change does when the seam gets awkward — and the pair goes to about
    * 108 kB, which this budget catches and nothing else in the repo would.
-   * Measured 2026-07-31: 55 / 53 / 60. */
+   * Measured 2026-07-31: 55 / 53 / 60.
+   *
+   * Raised by 10 kB each for 12.3.0, by decision and with the cause measured:
+   * every translated component imports the message catalogue as one object
+   * (722 messages, 9.3 kB gzip minified), so a bundler cannot keep only the
+   * keys a page uses. Measured 2026-11-05: 66 / 70 / 76. Splitting the
+   * catalogue per namespace would give it back (todo.md); a duplicated
+   * renderer still lands near 118 kB, well over these. */
   {
     binding: "react",
     name: "Gantt",
-    budgetKB: 70,
+    budgetKB: 80,
     code: `import { Gantt } from "@algorisys/zen-ui-react";
 import { createRoot } from "react-dom/client";
 createRoot(document.body).render(<Gantt tasks={[]} />);`,
@@ -80,7 +87,7 @@ createRoot(document.body).render(<Gantt tasks={[]} />);`,
   {
     binding: "react",
     name: "ProductionSchedule",
-    budgetKB: 70,
+    budgetKB: 80,
     code: `import { ProductionSchedule } from "@algorisys/zen-ui-react";
 import { createRoot } from "react-dom/client";
 createRoot(document.body).render(<ProductionSchedule resources={[]} operations={[]} />);`,
@@ -88,7 +95,7 @@ createRoot(document.body).render(<ProductionSchedule resources={[]} operations={
   {
     binding: "react",
     name: "both schedules (shared renderer)",
-    budgetKB: 75,
+    budgetKB: 85,
     code: `import { Gantt, ProductionSchedule } from "@algorisys/zen-ui-react";
 import { createRoot } from "react-dom/client";
 createRoot(document.body).render(<><Gantt tasks={[]} /><ProductionSchedule resources={[]} operations={[]} /></>);`,

@@ -1,4 +1,6 @@
 import "./demo-helpers.css";
+import type { NavItem } from "../nav";
+import { navTag } from "./NavTag";
 
 /**
  * DemoPage / DemoSection / CodeExample — the vanilla equivalents of the other
@@ -129,7 +131,7 @@ export function DemoPage(spec: {
  *  vanilla and web-components demos can share the shape without sharing a file. */
 type CatalogueGroup = {
   title: string;
-  items: { to: string; label: string; description?: string }[];
+  items: NavItem[];
   catalogue?: boolean;
 };
 
@@ -193,8 +195,10 @@ export function catalogue(nav: CatalogueGroup[]): HTMLElement {
       const body = document.createElement("div");
       body.className = "zen-p-4";
       const label = document.createElement("div");
-      label.className = "zen-text-sm zen-font-semibold zen-text-zen-foreground";
+      label.className = "zen-flex zen-items-center zen-gap-2 zen-text-sm zen-font-semibold zen-text-zen-foreground";
       label.textContent = item.label;
+      const tag = navTag(item);
+      if (tag) label.append(tag);
       const desc = document.createElement("p");
       desc.className = "zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg";
       desc.textContent = item.description ?? "";

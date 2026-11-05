@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "../../popover/popover";
 import { TimePicker } from "../time-picker/time-picker";
+import { useLocale } from "../../locale/locale";
 
 /**
  * DateTimePicker — date-input button that opens a Popover containing a
@@ -77,7 +78,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   value,
   defaultValue,
   onValueChange,
-  placeholder = "Pick date & time",
+  placeholder: placeholderProp,
   disabled,
   className,
   format = "24h",
@@ -86,6 +87,8 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   formatDate = defaultFormatDate,
   formatTime = defaultFormatTime,
 }) => {
+  const loc = useLocale();
+  const placeholder = placeholderProp ?? loc.t("dateTimePicker.placeholder");
   const [internal, setInternal] = React.useState<Date | undefined>(defaultValue);
   const isControlled = value !== undefined;
   const date = isControlled ? value : internal;
@@ -152,7 +155,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
           disabled={typeof disabled === "boolean" ? undefined : disabled}
         />
         <div className="zen-flex zen-items-center zen-justify-between zen-gap-3 zen-border-t zen-border-zen-border zen-px-3 zen-py-2.5">
-          <label className="zen-text-xs zen-text-zen-muted-fg">Time</label>
+          <label className="zen-text-xs zen-text-zen-muted-fg">{loc.t("dateTimePicker.time")}</label>
           <TimePicker
             value={dateToTimeString(date, showSeconds)}
             onValueChange={onTimeChange}

@@ -17,6 +17,7 @@ import {
   type ZenComponent,
 } from "../../lib/component";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * MediaTimeline — a filmstrip trim track. The vanilla port of the React
@@ -140,6 +141,7 @@ interface Row {
 
 export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTimelineProps> {
   let current: MediaTimelineProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   const rowCleanups = new Disposer();
   let removeProps: (() => void) | undefined;
@@ -337,7 +339,7 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
       h.setAttribute("role", "slider");
       h.tabIndex = 0;
       h.setAttribute("aria-orientation", "horizontal");
-      h.setAttribute("aria-label", `Range ${index + 1} ${edge}`);
+      h.setAttribute("aria-label", loc.t(edge === "start" ? "mediaTimeline.rangeStart" : "mediaTimeline.rangeEnd", { n: index + 1 }));
       h.className = HANDLE_CLASS(edge);
       const down = (e: PointerEvent) => {
         e.preventDefault();
@@ -389,7 +391,7 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
     if (current.onRangeRemove) {
       removeBtn = document.createElement("button");
       removeBtn.type = "button";
-      removeBtn.setAttribute("aria-label", `Remove range ${index + 1}`);
+      removeBtn.setAttribute("aria-label", loc.t("mediaTimeline.removeRange", { n: index + 1 }));
       removeBtn.className = cn(
         "zen-absolute zen-top-1 zen-left-1/2 -zen-translate-x-1/2 zen-z-10",
         "zen-flex zen-h-4 zen-w-4 zen-cursor-pointer zen-items-center zen-justify-center",
@@ -454,7 +456,7 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
     removeProps?.();
     removeProps = applyProps(el, pickRest());
 
-    track.setAttribute("aria-label", current.label ?? "Media timeline");
+    track.setAttribute("aria-label", current.label ?? loc.t("mediaTimeline.mediaTimeline"));
     track.className = cn(
       // Overlay lanes are shorter than filmstrip tracks — a per-mode default,
       // because the caller's `class` lands on the ROOT element.
@@ -509,7 +511,7 @@ export function MediaTimeline(props: MediaTimelineProps): ZenComponent<MediaTime
         row.root.setAttribute("role", "slider");
         row.root.tabIndex = 0;
         row.root.setAttribute("aria-orientation", "horizontal");
-        row.root.setAttribute("aria-label", `Range ${i + 1} position`);
+        row.root.setAttribute("aria-label", loc.t("mediaTimeline.rangePosition", { n: i + 1 }));
         row.root.setAttribute("aria-valuemin", "0");
         row.root.setAttribute("aria-valuemax", String(current.duration - (range.end - range.start)));
         row.root.setAttribute("aria-valuenow", String(range.start));

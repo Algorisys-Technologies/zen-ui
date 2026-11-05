@@ -21,9 +21,46 @@ issue / PR when its turn comes.
    When it is live, add it to "Ship it" in CLAUDE.md.
 
 
+
+## Message catalogue: split per namespace (owner, 2026-11-05)
+
+12.3.0 shipped the parity pass with three React size budgets raised 10 kB
+(Gantt 80, ProductionSchedule 80, both 85), by decision: every translated
+component imports `DEFAULT_MESSAGES` as one object (722 messages, 9.3 kB gzip
+minified), so a bundler keeps all of it.
+
+- [ ] Split the catalogue so each component imports only its own namespace's
+      defaults, in core and all four bindings, keeping `DEFAULT_MESSAGES` /
+      `ZenMessages` as the public union (additive). Then lower the three
+      budgets back (measured before: 56 / 60 / 66).
+## Raw rem literals in DataTable's edit-cell (found 2026-11-05)
+
+- [ ] `edit-cell` in Solid, React and vanilla uses `zen-m-[-0.5rem]
+      zen-p-[0.4rem]`, against CLAUDE.md's "no raw rem literals". Replace with
+      utilities or tokens of the SAME computed size (0.4rem is 6.4px: no
+      standard step), measured identical, in all three at once.
+
+## Vanilla DataTable: the features it never had (found 2026-11-05)
+
+- [ ] Grouping (and so group subtotals), per-column filters (and so
+      `enableFilterOperators`), expandable rows (`renderSubRow`), column
+      visibility / pinning / resizing / ordering. React and Solid have them;
+      the parity pass ported only 12.2.0's additions. check:parity cannot see
+      a missing PROP, which is how this stayed hidden.
+
+## Latent: Label's `leading-none` is dropped by its own size class (found 2026-11-05)
+
+- [ ] Solid Label (`form/label/label.tsx`) writes `cn("… zen-leading-none …",
+      SIZES[size])`, and `cn()` treats a later font-size as also setting
+      line-height, so `leading-none` never applies; React's `labelVariants`
+      (cva + cn) likely the same. Long-standing (before 12.1.1), so labels
+      have always rendered at the size's own line-height: fixing it changes
+      every label's height, which is a breaking visual change. Decide for the
+      next major; the same trap bit StatCard in 12.2.0 (fixed, see CHANGELOG).
+
 ## Parity: DataTable `enableRowVirtualization` (Solid only, 2026-11-04)
 
-- [ ] **Port to React, then vanilla, then web-components**, from the Solid
+- [x] **Port to React, then vanilla, then web-components**, from the Solid
       DataTable (`VirtualRows` and the `virtualize` path of `BodyTable`): spacer
       rows around the mounted window, the expanded panel as an item of its own,
       `getItemKey` / `rangeExtractor` returned as NEW functions when what they
@@ -39,7 +76,7 @@ issue / PR when its turn comes.
       every window listener removed on drop and on unmount), the de-duplicated
       kept rows (a row both focused and edited was mounted twice), and
       `RowMoveContext` (an editor ignores the blur a DOM move causes).
-- [ ] **Port this round's Solid DataTable fixes**: the inline number editor
+- [x] **Port this round's Solid DataTable fixes**: the inline number editor
       takes focus (React has the same bug); the select editor opens at once
       (React already does); sort priority only for 2+ sorted columns and no
       `zen-text-[1rem]` (React shows it always; vanilla has the size only).
@@ -53,7 +90,7 @@ issue / PR when its turn comes.
 
 ## Parity: DataTable `enableCellNavigation` (Solid only, 2026-11-04)
 
-- [ ] **Port to React, then vanilla, then web-components**, from the Solid
+- [x] **Port to React, then vanilla, then web-components**, from the Solid
       BodyTable's "cell navigation" section: one capture-phase keydown and one
       pointerdown / copy / paste / dblclick listener on the table (not per
       cell), the active cell as the tab stop, Shift extends from the active
@@ -71,7 +108,7 @@ issue / PR when its turn comes.
 
 ## Parity: ContextMenu and DataTable `contextMenu` (Solid only, 2026-11-04)
 
-- [ ] **Port to React (Radix `@radix-ui/react-context-menu`, the shadcn parts),
+- [x] **Port to React (Radix `@radix-ui/react-context-menu`, the shadcn parts),
       then vanilla, then web-components.** From Solid's
       `context-menu/context-menu.tsx`: the menu key and Shift+F10 open it at the
       focused element's corner (a dispatched contextmenu; the browser's own
@@ -88,7 +125,7 @@ issue / PR when its turn comes.
 
 ## Parity: Shortcuts (Solid only, 2026-11-04)
 
-- [ ] Port Kbd, the provider and hook (React: a context + useEffect; vanilla and
+- [x] Port Kbd, the provider and hook (React: a context + useEffect; vanilla and
       WC: a registry object and an element), ShortcutHelp, keyshortcut() and
       shortcutLabel(), on core's `keys` (shared already). Demo /shortcuts.
       ERPNext review A2.
@@ -99,7 +136,7 @@ issue / PR when its turn comes.
 
 ## Parity: DataTable server-side export (onExport, ExportRequest) (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `export-request` (shared already).
+- [x] Port with the parity pass, on core's `export-request` (shared already).
       The request must be identical across bindings (same column order, same
       inferred formats, same filter shapes) — a server is written once.
       Selected ids come from the selection STATE (ids), not loaded rows.
@@ -110,7 +147,7 @@ issue / PR when its turn comes.
 
 ## Parity: DataTable totals (meta.aggregate) and the no-variant filter fix (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `aggregate` (shared already). In
+- [x] Port with the parity pass, on core's `aggregate` (shared already). In
       Solid a footer function must RETURN A GETTER: flexRender mounts it as a
       component, whose body runs once, so a computed value never followed a
       filter (measured). The "Total" label is chosen at render time (first
@@ -137,12 +174,12 @@ issue / PR when its turn comes.
 - [x] Each batch: route snapshots must be identical to the baseline for every
       pre-existing route (see "Regression proof" above). Batches 1, 2 and 3
       measured: 120 of 120 identical after batch 3.
-- [ ] Parity: React / vanilla / web-components read the same core catalogue;
+- [x] Parity: React / vanilla / web-components read the same core catalogue;
       check:strings to be extended to each binding in the parity pass.
 
 ## Parity: AmountField, QuantityField, LocaleProvider, ObjectNumber number= (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `number-format` (shared already).
+- [x] Port with the parity pass, on core's `number-format` (shared already).
       LocaleProvider is OPTIONAL everywhere: a component reads its own prop,
       then the provider, then the old behaviour. Demo /amount-field.
       ERPNext review B2.
@@ -163,7 +200,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: ViewManager (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `views` (shared already). Kobalte
+- [x] Port with the parity pass, on core's `views` (shared already). Kobalte
       behaviours it had to work round, all found by driving it: radio items in
       a menu stay open by default (closeOnSelect for a picker); a dialog opened
       through `open` gets no onOpenChange (reset state in an effect on open);
@@ -176,7 +213,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: FilterBuilder (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `filter` (shared already). Three
+- [x] Port with the parity pass, on core's `filter` (shared already). Three
       Solid traps it hit, all measured: rows must be keyed by node ID (each edit
       builds a new tree; keying by object re-creates the row being typed into);
       the value editor must depend on the field's TYPE, memoised (reading the
@@ -191,7 +228,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: QRCode and Barcode (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `barcode` (shared already, with
+- [x] Port with the parity pass, on core's `barcode` (shared already, with
       `qrPath`): SVG, crispEdges, quiet zone drawn, dark on light via
       --zen-code-dark/--zen-code-light, the reason shown in place of a code that
       cannot be encoded. Demo /barcode. ERPNext review C6. Verify by decoding the
@@ -205,7 +242,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: LookupField (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `lookup` (shared already). The list
+- [x] Port with the parity pass, on core's `lookup` (shared already). The list
       is ONE grid with the header and rows as subgrids (separate grids per row
       could only align fixed widths: the flexible column was squeezed to "H…"
       while an alignment check passed); its placement is Solid's
@@ -219,7 +256,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: DateInput (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `date-input` (shared already): the
+- [x] Port with the parity pass, on core's `date-input` (shared already): the
       field reads on Enter / blur and keeps invalid text marked (never
       rewritten); Esc reverts; ↑ ↓ a day, Shift a month, within min / max /
       isDateDisabled; Alt+↓ opens the calendar FOCUSED ON THE CHOSEN DAY (else
@@ -237,7 +274,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: TreeSelect (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass, on core's `tree-select` (shared already):
+- [x] Port with the parity pass, on core's `tree-select` (shared already):
       combobox + role="tree" popup with aria-activedescendant; typing into the
       closed field starts a fresh search; the first pickable match active; ← →
       are the text's while there is text; only a key scrolls the list (hover
@@ -248,7 +285,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: Tile and TileGrid (Solid only, 2026-11-04)
 
-- [ ] Port with the parity pass: tiles as links / buttons / plain elements by
+- [x] Port with the parity pass: tiles as links / buttons / plain elements by
       what they do, `locked` (activatable), the one-tab-stop grid whose ↑↓ follow
       the laid-out columns (measured from offsetTop, so they survive a column
       dropping), `--zen-tile-min-width`, and the grid being full width. Demo
@@ -256,7 +293,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: the gaps-report batch (Solid only, 2026-11-04)
 
-- [ ] Port with the rest of the parity pass (ERPNext docs/zen-ui-component-gaps.md
+- [x] Port with the rest of the parity pass (ERPNext docs/zen-ui-component-gaps.md
       items 2–11): ShellBar `search` (with `bar.compact`); SegmentedButtonItem
       `count` (named "Paid, 4"); StatCard `size="lg"` and `chart`, and the
       card-link underline fix; MicroBarChart `baseline`; ObjectStatus `stamp`
@@ -268,7 +305,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: Sidebar collapse modes and counts (Solid only, 2026-11-04)
 
-- [ ] Port `collapseMode`, `overlay` (container-width breakpoint; Esc, outside
+- [x] Port `collapseMode`, `overlay` (container-width breakpoint; Esc, outside
       click and link-follow close it; focus in and back; leaving overlay restores
       the earlier state), `SidebarHeaderLabel`, `SidebarMenuBadge`,
       `SidebarMenuSub badge`, the header-on-the-rail fix, and the menu button's
@@ -350,7 +387,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: DocumentTabs (Solid only, 2026-11-03)
 
-- [ ] **Port DocumentTabs to React, then vanilla, then web-components**, from
+- [x] **Port DocumentTabs to React, then vanilla, then web-components**, from
       `packages/solid/src/components/document-tabs/document-tabs.tsx` (the
       reference for behaviour: manual activation, Delete closes, middle-click
       closes, strip-only scrolling, per-tab ResizeObserver so a font load or a
@@ -363,7 +400,7 @@ identical, the welcome catalogue the only change (the new entry).
 
 ## Parity: DataTable keyboard rows (Solid only, 2026-11-03)
 
-- [ ] **Port `enableKeyboardNavigation` / `onRowActivate` / `rowLabel` to React,
+- [x] **Port `enableKeyboardNavigation` / `onRowActivate` / `rowLabel` to React,
       then vanilla, then web-components**, from the Solid DataTable's plain
       body (`BodyTable`): roving tabindex on rows, the index clamped as rows
       change, keys from `@algorisys/zen-ui-core/row-keys` (`rowKeyTarget`,

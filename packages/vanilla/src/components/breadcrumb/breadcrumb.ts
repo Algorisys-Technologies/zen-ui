@@ -8,6 +8,7 @@ import {
   type Child,
   type ZenComponent,
 } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * Breadcrumb — navigation trail primitive. Radix/Kobalte have no Breadcrumb, so
@@ -35,13 +36,17 @@ export type BreadcrumbProps = BaseProps & {
 export const Breadcrumb = styled<BreadcrumbProps>({
   tag: "nav",
   own: ["separator"],
-  attrs: () => ({ "aria-label": "breadcrumb" }),
+  attrs: (_, loc) => ({ "aria-label": loc.t("breadcrumb.label") }),
 }) as (props?: BreadcrumbProps) => ZenComponent<BreadcrumbProps>;
 
 export const BreadcrumbList = styled({
   tag: "ol",
+  // Its own reset (zen-m-0 zen-list-none zen-p-0): zen-ui ships no list reset
+  // (the preflight is opt-in and does not touch lists), so every separator <li>
+  // drew a decimal marker and the list stood 40px in, 14px down. Measured in
+  // this demo and without the preflight.
   className:
-    "zen-flex zen-flex-wrap zen-items-center zen-gap-1.5 zen-break-words zen-text-sm zen-text-zen-muted-fg sm:zen-gap-2.5",
+    "zen-m-0 zen-list-none zen-p-0 zen-flex zen-flex-wrap zen-items-center zen-gap-1.5 zen-break-words zen-text-sm zen-text-zen-muted-fg sm:zen-gap-2.5",
 });
 
 export const BreadcrumbItem = styled({
@@ -152,6 +157,7 @@ export function BreadcrumbEllipsis(
   props: BreadcrumbEllipsisProps = {},
 ): ZenComponent<BreadcrumbEllipsisProps> {
   let current: BreadcrumbEllipsisProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("span");
   el.setAttribute("role", "presentation");
   el.setAttribute("aria-hidden", "true");
@@ -166,7 +172,7 @@ export function BreadcrumbEllipsis(
     );
     const sr = document.createElement("span");
     sr.className = "zen-sr-only";
-    sr.textContent = "More";
+    sr.textContent = loc.t("breadcrumb.more");
     el.replaceChildren(document.createTextNode("…"), sr);
     removeProps?.();
     removeProps = applyProps(el, rest as Record<string, unknown>);

@@ -3,7 +3,9 @@
  * tree (the text, names, roles and states a user and a screen reader get) of a
  * running demo, before a change and after; then compare-route-snapshots.mjs.
  *
- *   node scripts/snapshot-routes.mjs http://localhost:5173/builder-solid before.json [solid|react]
+ *   node scripts/snapshot-routes.mjs http://localhost:5173/builder-solid before.json [solid|react|vanilla|web-components]
+ *
+ * Any binding: Solid's nav.ts names routes `path:`, the others `to:`.
  *
  * Deterministic on purpose: a fixed clock and Math.random, a cleared
  * localStorage, generated ids masked. Two runs of unchanged code agree on every
@@ -17,11 +19,16 @@ const require = createRequire(new URL("../package.json", import.meta.url));
 const { chromium } = require("playwright");
 const [base, out, binding = "solid"] = process.argv.slice(2);
 if (!base || !out) {
-  console.error("usage: node scripts/snapshot-routes.mjs <demo base url> <out.json> [solid|react]");
+  console.error("usage: node scripts/snapshot-routes.mjs <demo base url> <out.json> [solid|react|vanilla|web-components]");
   process.exit(2);
 }
 const nav = readFileSync(new URL(`../packages/${binding}/src/nav.ts`, import.meta.url), "utf8");
-const routes = [...new Set([...nav.matchAll(/path: "(\/[^"]*)"/g)].map((m) => m[1]))];
+const routes = [...new Set([...nav.matchAll(/\b(?:path|to): "(\/[^"]*)"/g)].map((m) => m[1]))];
+// A snapshot of nothing compares "identical" to another snapshot of nothing.
+if (routes.length === 0) {
+  console.error(`no routes found in packages/${binding}/src/nav.ts`);
+  process.exit(1);
+}
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1366, height: 1000 }, locale: "en-US", timezoneId: "Asia/Kolkata" });
 // A fixed clock: demos that show "today" must snapshot the same on both runs.

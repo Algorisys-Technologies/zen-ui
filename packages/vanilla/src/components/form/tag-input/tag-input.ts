@@ -1,6 +1,7 @@
 import { cn } from "../../../lib/cn";
 import { Disposer, type ZenComponent } from "../../../lib/component";
 import { controllable } from "../../../lib/state";
+import { useLocale } from "../../locale/locale";
 
 /**
  * TagInput — type-and-press-Enter chip input. The text input lives at the
@@ -97,6 +98,7 @@ function removeGlyph(): SVGSVGElement {
 
 export function TagInput(props: TagInputProps): ZenComponent<TagInputProps, HTMLDivElement> {
   let current: TagInputProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const on = <K extends keyof HTMLElementEventMap>(
@@ -161,7 +163,7 @@ export function TagInput(props: TagInputProps): ZenComponent<TagInputProps, HTML
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = CHIP_REMOVE_CLASS;
-    btn.setAttribute("aria-label", `Remove ${tag}`);
+    btn.setAttribute("aria-label", loc.t("tagInput.remove", { tag }));
     btn.disabled = !!current.disabled;
     btn.addEventListener("click", () => removeAt(i));
     btn.append(removeGlyph());
@@ -171,7 +173,7 @@ export function TagInput(props: TagInputProps): ZenComponent<TagInputProps, HTML
   };
 
   const updatePlaceholder = () => {
-    input.placeholder = state.get().length === 0 ? current.placeholder ?? "Add a tag…" : "";
+    input.placeholder = state.get().length === 0 ? current.placeholder ?? loc.t("tagInput.placeholder") : "";
   };
 
   const renderChrome = () => {

@@ -393,7 +393,7 @@ export const MediaTimeline = (props: MediaTimelineProps) => {
                   role={independent() ? "slider" : undefined}
                   tabIndex={independent() ? 0 : undefined}
                   aria-orientation={independent() ? "horizontal" : undefined}
-                  aria-label={independent() ? `Range ${i + 1} position` : undefined}
+                  aria-label={independent() ? loc.t("mediaTimeline.rangePosition", { n: i + 1 }) : undefined}
                   aria-valuemin={independent() ? 0 : undefined}
                   aria-valuemax={
                     independent() ? local.duration - (range().end - range().start) : undefined

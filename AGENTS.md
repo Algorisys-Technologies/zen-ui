@@ -89,12 +89,14 @@ description, then import the name from your binding's package.
 - **Popover** — Anchored panel; asChild trigger, side/align, separate anchor
 - **Link** — Styled anchor; asChild for router links, external, disabled
 - **Theme** — Scopes a theme to a subtree — a dark panel inside a light page; nests, no JS
+- **Localization** — Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use
 - **DirectionProvider** — Right-to-left support — tells menus, tabs and sliders which way the page reads
 - **MessagePopover** — Aggregated form validation grouped by severity; click a message to land on the field
 - **Page + Bar** — The Page whole-screen container and the three-slot Bar row — the structural frame pieces
 - **ColorPicker** — Swatch palette + the platform picker; hex in, hex out
 - **Carousel** — Scroll-snap slide strip; every child is a slide, no autoplay
 - **DropdownMenu** — Radix DropdownMenu — action menus, sub-menus, checkbox/radio items
+- **ContextMenu** — Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press
 - **Separator** — Radix Separator — horizontal / vertical with decorative semantics
 - **Switch** — Radix Switch — sizes, controlled / uncontrolled, form submission
 - **Checkbox** — Radix Checkbox — native tri-state indeterminate, sizes
@@ -111,6 +113,8 @@ description, then import the name from your binding's package.
 - **Search** — Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times
 - **PasswordInput** — Password field with a show / hide toggle; every native input attribute passes through
 - **NumberField** — Number input with −/+ stepper, clamp, decimal step
+- **AmountField and QuantityField** — Amounts and quantities typed the way clerks do (1,25,000, 2.5L, 1.2Cr), formatted in the locale with the currency's own precision; LocaleProvider sets locale and currency once
+- **DateInput** — Type a date the way clerks do (150326, t, +7) in the locale's order, with the calendar as a second way in; impossible dates are kept and flagged, never rolled over
 - **DatePicker** — react-day-picker in a Radix Popover; inline Calendar too
 - **InputOTP** — one input per digit, zero-dep; paste / autocomplete / a11y
 - **MaskInput** — Fixed-template input — 99-9999, aa-99; the mask decides what may be typed
@@ -140,8 +144,11 @@ description, then import the name from your binding's package.
 - **Waveform** — Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align
 - **Lazy options** — VirtualizedItems — drop-in windowing for huge option lists inside Combobox / Select
 - **Combobox + Async** — cmdk-backed; sync `options` or async `onSearch` with debounced loading
+- **TreeSelect** — Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors
+- **LookupField** — Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search
 - **Alert** — Inline semantic callout; compound Icon / Title / Description / Actions API
 - **Dialog + AlertDialog** — Radix Dialog modal surface, plus AlertDialog for destructive confirmations
+- **Shortcuts** — Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform
 - **Toast** — Radix Toast — imperative toast() plus a Toaster viewport; variants and actions
 - **FileUpload** — Drag-and-drop or browse; accept / max-size validation with per-file progress
 - **Bound* fields** — BoundInput / BoundSelect / BoundSwitch — form-wired field wrappers, no boilerplate
@@ -156,6 +163,7 @@ description, then import the name from your binding's package.
 - **Card** — Surface primitive + SelectableCard variant for goal pickers / plan selectors
 - **Paper** — Document surface — reading measure, document typography, and a paper Dialog variant
 - **StatCard** — A labelled figure — icon, delta, and somewhere to go
+- **Tile** — A launchpad: tiles with a mark, a name and a live count, in a grid that is one tab stop with arrow keys
 - **Sheet / Drawer** — Slide-in side panel on Radix Dialog; right / left / top / bottom
 - **DateRangePicker** — Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled
 - **DynamicDateRange** — Semantic periods — "Last 7 days", "This quarter"; stores the question, not the answer
@@ -166,6 +174,7 @@ description, then import the name from your binding's package.
 - **Likert** — n-point attitudinal scale; segmented + stacked layouts, custom option sets
 - **TimePicker** — Segmented HH:MM(:SS) input, 12h / 24h, AM/PM, auto-advance + arrow stepping
 - **DateTimePicker** — Calendar + TimePicker in one Popover; preserves time-of-day on day changes
+- **QRCode and Barcode** — Draw codes as SVG for screens and print: QR (the e-invoice's signed QR, gate passes; error correction L to H), Code 128, EAN-13 and Code 39, dark on light in every theme
 - **QRScanner** — Camera-based QR / barcode scanner; native BarcodeDetector + custom-decoder escape hatch
 - **NotificationsInbox** — Bell icon + popover panel; day-grouped feed with unread badge + per-row actions
 - **Breadcrumb** — Hierarchical navigation path; collapsible ellipsis for deep trees
@@ -184,6 +193,7 @@ description, then import the name from your binding's package.
 - **Icon** — zen-ui icon set (48 glyphs); inherits text colour, decorative by default
 - **Object atoms** — ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker
 - **Button family** — ToggleButton, SegmentedButton, SplitButton
+- **Document tabs** — A workspace's open documents as closable, pinnable tabs with an all-tabs menu
 - **Toolbar** — Actions that collapse into an overflow menu when they do not fit
 - **Tree** — Hierarchical expandable list with full ARIA keyboard navigation
 
@@ -192,6 +202,8 @@ description, then import the name from your binding's package.
 - **SelectDialog** — Searchable list picker — single commits on click, multi commits on OK
 - **ValueHelp** — F4 lookup dialog — the list picker plus a condition builder
 - **ViewSettingsDialog** — Sort / group / filter settings; commits on OK
+- **FilterBuilder** — Nested AND/OR conditions on any field as one serialisable object, for advanced list filters, report criteria and saved views; says in words what it filters
+- **ViewManager** — Saved views beside the page title: name, save, save as, set as default, manage and share a list screen's filters, sort and columns as one object; storage stays the app's
 - **FilterBar** — List Report filter area — fields, Go, and Adapt filters
 
 ### Zen app frame

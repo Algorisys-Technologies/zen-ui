@@ -242,6 +242,38 @@ el.text = "Customer · 1000473";`,
           return container;
         },
       },
+      {
+        title: "11. ObjectStatus — stamp",
+        codeTitle: "stamp: a document's status, ruled and uppercase",
+        codeDescription:
+          "How a document wears its status at the top of its page: a ruled box in the state's colour, never rotated. Mapping the status words to states stays the app's.",
+        code: `<zen-object-status stamp state="none">Draft</zen-object-status>
+<zen-object-status stamp state="info">Submitted</zen-object-status>
+<zen-object-status stamp state="success">Paid</zen-object-status>
+<zen-object-status stamp state="error">Overdue</zen-object-status>
+<zen-object-status stamp state="none">Cancelled</zen-object-status>`,
+        render: () => {
+          const stamps: Array<[ObjectState, string]> = [
+            ["none", "Draft"],
+            ["info", "Submitted"],
+            ["success", "Paid"],
+            ["warning", "Partly paid"],
+            ["error", "Overdue"],
+            ["none", "Cancelled"],
+          ];
+          const d = document.createElement("div");
+          d.className = "zen-flex zen-flex-wrap zen-items-center zen-gap-3";
+          d.dataset.testid = "stamps";
+          d.append(
+            ...stamps.map(([state, text]) => {
+              const el = status({ state, text });
+              el.setAttribute("stamp", "");
+              return el;
+            }),
+          );
+          return d;
+        },
+      },
     ],
   });
 }

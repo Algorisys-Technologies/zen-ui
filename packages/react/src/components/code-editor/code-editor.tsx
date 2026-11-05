@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * CodeEditor — a code surface, wrapping `@monaco-editor/react` (an OPTIONAL
@@ -134,6 +135,7 @@ export const CodeEditor = ({
   loading,
   className,
 }: CodeEditorProps) => {
+  const loc = useLocale();
   /* Follows the document's theme when the caller does not pin one, so an editor
      inside a dark panel is not a white rectangle. */
   const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(theme ?? "light");
@@ -184,7 +186,7 @@ export const CodeEditor = ({
                 style={{ height }}
                 className="zen-flex zen-items-center zen-justify-center zen-text-sm zen-text-zen-muted-fg"
               >
-                Loading editor…
+                {loc.t("codeEditor.loadingEditor")}
               </div>
             )
           }
@@ -254,6 +256,7 @@ export const IDEWindow = ({
   height = "24rem",
   ...editor
 }: IDEWindowProps) => {
+  const loc = useLocale();
   const [internal, setInternal] = React.useState(defaultActivePath ?? files[0]?.path ?? "");
   const current = activePath ?? internal;
   const file = files.find((f) => f.path === current) ?? files[0];
@@ -272,7 +275,7 @@ export const IDEWindow = ({
     >
       {/* A real list, so a screen reader gets the file count. */}
       <nav
-        aria-label="Files"
+        aria-label={loc.t("codeEditor.files")}
         className="zen-w-48 zen-shrink-0 zen-overflow-y-auto zen-border-e zen-border-zen-border zen-bg-zen-muted"
         style={{ height }}
       >
@@ -295,9 +298,9 @@ export const IDEWindow = ({
                 {f.readOnly ? (
                   <span
                     className="zen-shrink-0 zen-rounded-zen-sm zen-bg-zen-muted zen-px-1 zen-text-[0.625rem] zen-text-zen-muted-fg"
-                    title="Read only"
+                    title={loc.t("codeEditor.readOnly")}
                   >
-                    RO
+                    {loc.t("codeEditor.readOnlyBadge")}
                   </span>
                 ) : null}
               </button>

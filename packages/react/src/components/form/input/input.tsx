@@ -22,6 +22,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         "placeholder:zen-text-zen-muted-fg",
         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
         "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
+        // Marked invalid by the form (aria-invalid="true"): the error border,
+        // as Select and Combobox show theirs.
+        "aria-[invalid=true]:zen-border-zen-error",
         "file:zen-border-0 file:zen-bg-transparent file:zen-text-sm file:zen-font-medium",
         className,
       )}

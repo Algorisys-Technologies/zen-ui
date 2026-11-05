@@ -2,6 +2,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Sheet — slide-in side panel built on Radix Dialog. Use when a Dialog
@@ -110,7 +111,9 @@ export interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   SheetContentProps
->(({ className, side = "right", showCloseButton = true, children, ...props }, ref) => (
+>(({ className, side = "right", showCloseButton = true, children, ...props }, ref) => {
+  const loc = useLocale();
+  return (
   <SheetPortal>
     <SheetOverlay />
     <DialogPrimitive.Content
@@ -121,7 +124,7 @@ const SheetContent = React.forwardRef<
       {children}
       {showCloseButton ? (
         <DialogPrimitive.Close
-          aria-label="Close sheet"
+          aria-label={loc.t("sheet.closeSheet")}
           className={cn(
             "zen-absolute zen-top-3 zen-end-3 zen-inline-flex zen-items-center zen-justify-center",
             "zen-h-7 zen-w-7 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -137,7 +140,8 @@ const SheetContent = React.forwardRef<
       ) : null}
     </DialogPrimitive.Content>
   </SheetPortal>
-));
+  );
+});
 SheetContent.displayName = DialogPrimitive.Content.displayName;
 
 const SheetHeader = ({

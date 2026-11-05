@@ -1,6 +1,7 @@
 import { cn } from "../../../lib/cn";
 import { applyProps, Disposer, type ZenComponent } from "../../../lib/component";
 import { controllable } from "../../../lib/state";
+import { useLocale } from "../../locale/locale";
 
 /**
  * NumberField — shadcn-style. A number <input> flanked by −/+ stepper buttons.
@@ -56,6 +57,7 @@ export type NumberFieldHandle = ZenComponent<NumberFieldProps, HTMLDivElement>;
 
 export function NumberField(props: NumberFieldProps): NumberFieldHandle {
   let current: NumberFieldProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const state = controllable<number | null>({
@@ -75,7 +77,7 @@ export function NumberField(props: NumberFieldProps): NumberFieldHandle {
 
   const dec = document.createElement("button");
   dec.type = "button";
-  dec.setAttribute("aria-label", "Decrement");
+  dec.setAttribute("aria-label", loc.t("numberField.decrement"));
   dec.className = BUTTON_CLASS;
   dec.textContent = "−"; // U+2212 MINUS SIGN
 
@@ -86,7 +88,7 @@ export function NumberField(props: NumberFieldProps): NumberFieldHandle {
 
   const inc = document.createElement("button");
   inc.type = "button";
-  inc.setAttribute("aria-label", "Increment");
+  inc.setAttribute("aria-label", loc.t("numberField.increment"));
   inc.className = BUTTON_CLASS;
   inc.textContent = "+";
 

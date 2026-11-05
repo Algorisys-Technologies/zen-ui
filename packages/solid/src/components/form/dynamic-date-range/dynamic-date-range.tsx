@@ -55,7 +55,7 @@ export type DynamicDateRangeProps = {
   class?: string;
 };
 
-const GROUP_ORDER = ["Day", "Week", "Month", "Quarter", "Year", "Rolling", "Fixed"] as const;
+const GROUP_ORDER = ["Day", "Week", "Month", "Quarter", "Year", "Rolling", "Fixed"] as const; // i18n-ignore (group ids: shown through dateRange.group.<id>)
 
 export const DynamicDateRange = (props: DynamicDateRangeProps) => {
   const loc = useLocale();
@@ -209,7 +209,7 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
                 <div class="zen-flex zen-flex-col zen-gap-2">
                   <label class="zen-flex zen-items-center zen-gap-2 zen-text-sm">
                     <span class="zen-text-zen-muted-fg">
-                      {d().operator.startsWith("LAST") ? "Last" : "Next"}
+                      {d().operator.startsWith("LAST") ? loc.t("dynamicDateRange.last") : loc.t("dynamicDateRange.next")}
                     </span>
                     <Input
                       type="number"

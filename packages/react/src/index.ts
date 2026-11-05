@@ -41,6 +41,10 @@ export type { PasswordInputProps } from "./components/form/password-input/passwo
 export { NumberField } from "./components/form/number-field/number-field";
 export type { NumberFieldProps } from "./components/form/number-field/number-field";
 
+// Form Components - AmountField / QuantityField (locale-formatted amounts and quantities)
+export { AmountField, QuantityField } from "./components/form/amount-field/amount-field";
+export type { AmountFieldProps, QuantityFieldProps } from "./components/form/amount-field/amount-field";
+
 // Form Components - DatePicker + Calendar (react-day-picker + Radix Popover)
 export {
   DatePicker,
@@ -50,6 +54,11 @@ export type {
   DatePickerProps,
   CalendarProps,
 } from "./components/form/date-picker/date-picker";
+
+// Form Components - DateInput (a typed date in the locale's order; the calendar as a second way in)
+export { DateInput, isTypedDate } from "./components/form/date-picker/date-input";
+export type { DateInputProps, DateOrder } from "./components/form/date-picker/date-input";
+
 // Survey primitives - Rating (5-star feedback input)
 export { Rating } from "./components/survey/rating";
 export type { RatingProps } from "./components/survey/rating";
@@ -80,6 +89,10 @@ export type { TimePickerProps } from "./components/form/time-picker/time-picker"
 // Form Components - DateTimePicker (Calendar + TimePicker in one Popover)
 export { DateTimePicker } from "./components/form/date-picker/date-time-picker";
 export type { DateTimePickerProps } from "./components/form/date-picker/date-time-picker";
+
+// QRCode and Barcode (codes drawn as SVG; the encoding is core's)
+export { QRCode, Barcode } from "./components/barcode/barcode";
+export type { QRCodeProps, BarcodeProps, BarcodeFormat, QrEcc } from "./components/barcode/barcode";
 
 // QR / Barcode scanner — native BarcodeDetector with custom-decoder escape hatch
 export { QRScanner } from "./components/qr-scanner/qr-scanner";
@@ -290,6 +303,14 @@ export type { PageHeaderProps } from "./components/page-header/page-header";
 export { Toolbar } from "./components/toolbar/toolbar";
 export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
 
+// DocumentTabs (Zen-shaped: a workspace's open documents; the panels are the app's)
+export { DocumentTabs } from "./components/document-tabs/document-tabs";
+export type { DocumentTabsProps, DocumentTab } from "./components/document-tabs/document-tabs";
+
+// ViewManager (saved views beside a list screen's title; storage is the app's)
+export { ViewManager } from "./components/view-manager/view-manager";
+export type { ViewManagerProps, SavedView } from "./components/view-manager/view-manager";
+
 // SkipToContent (a11y keyboard bypass for the app frame — WCAG 2.4.1)
 export { SkipToContent, SKIP_TO_CONTENT_CLASS } from "./components/skip-to-content/skip-to-content";
 export type { SkipToContentProps } from "./components/skip-to-content/skip-to-content";
@@ -338,6 +359,9 @@ export type {
 // FilterBar (Zen-shaped: the List Report filter area)
 export { FilterBar } from "./components/filter-bar/filter-bar";
 export type { FilterBarProps, FilterBarField } from "./components/filter-bar/filter-bar";
+// FilterBuilder — nested AND/OR conditions as one plain object (core's filter model)
+export { FilterBuilder } from "./components/filter-builder/filter-builder";
+export type { FilterBuilderProps, FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator } from "./components/filter-builder/filter-builder";
 
 // ValueHelp (Zen-shaped: the F4 lookup dialog — list + condition builder)
 export { ValueHelp } from "./components/value-help/value-help";
@@ -461,6 +485,52 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
 } from "./components/dropdown-menu/dropdown-menu";
+
+// Keyboard shortcuts: key caps, a registry with scopes, and the "?" overlay
+export {
+  ShortcutProvider,
+  ShortcutHelp,
+  Kbd,
+  useShortcut,
+  useShortcuts,
+  keyshortcut,
+  shortcutLabel,
+  detectPlatform,
+} from "./components/shortcuts/shortcuts";
+export type {
+  ShortcutOptions,
+  ShortcutProviderProps,
+  ShortcutHelpProps,
+  ShortcutHelpGroup,
+  KbdProps,
+} from "./components/shortcuts/shortcuts";
+
+// UI Components - ContextMenu (Radix-backed; looks exactly like DropdownMenu)
+export {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuCheckboxItem,
+  ContextMenuRadioItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuGroup,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
+} from "./components/context-menu/context-menu";
+export type {
+  ContextMenuProps,
+  ContextMenuTriggerProps,
+  ContextMenuContentProps,
+  ContextMenuItemProps,
+  ContextMenuCheckboxItemProps,
+  ContextMenuRadioItemProps,
+} from "./components/context-menu/context-menu";
 
 // UI Components - FAB (shadcn-style; composes the Button)
 export { FAB } from "./components/fab/fab";
@@ -592,6 +662,11 @@ export type { Message, MessageType, MessagePopoverProps } from "./components/mes
 export { DirectionProvider } from "./components/direction/direction";
 export type { Direction, DirectionProviderProps } from "./components/direction/direction";
 
+// LocaleProvider — the locale, currency and built-in words, set once (optional:
+// without it every component behaves as before).
+export { LocaleProvider, useLocale } from "./components/locale/locale";
+export type { LocaleProviderProps, LocaleContextValue, MessageKey, ZenMessages } from "./components/locale/locale";
+
 // UI Components - Card (generic surface + SelectableCard for "pick one")
 export {
   Card,
@@ -616,6 +691,10 @@ export {
   SelectableCardGroup,
 } from "./components/card/card.selectable";
 export type { SelectableCardProps } from "./components/card/card.selectable";
+
+// Tile and TileGrid (a launchpad: one tab stop, arrows by the columns as laid out)
+export { Tile, TileGrid } from "./components/tile/tile";
+export type { TileProps, TileGridProps } from "./components/tile/tile";
 
 export {
   Paper,
@@ -733,6 +812,7 @@ export { DataTable } from "./components/data-table/data-table";
 export type {
   DataTableProps,
   DataTableManualPagination,
+  DataTableMenuTarget,
 } from "./components/data-table/data-table";
 export {
   UrlDataTable,
@@ -985,6 +1065,12 @@ export type {
   ComboboxOption,
   ComboboxProps,
 } from "./components/combobox/combobox";
+// TreeSelect (pick one node from a hierarchy; tree logic in core)
+export { TreeSelect } from "./components/tree-select/tree-select";
+export type { TreeSelectProps, TreeSelectNode } from "./components/tree-select/tree-select";
+// LookupField (pick a row from a table of choices; search and ranking in core)
+export { LookupField } from "./components/lookup-field/lookup-field";
+export type { LookupFieldProps, LookupColumn } from "./components/lookup-field/lookup-field";
 export { MultiCombobox } from "./components/combobox/multi-combobox";
 export type { MultiComboboxProps } from "./components/combobox/multi-combobox";
 export {
@@ -1021,6 +1107,8 @@ export {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
+  SidebarHeaderLabel,
+  SidebarMenuBadge,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,

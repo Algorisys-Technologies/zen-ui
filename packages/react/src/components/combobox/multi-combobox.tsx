@@ -16,6 +16,7 @@ import {
   CommandLoading,
 } from "./command";
 import type { ComboboxOption } from "./combobox";
+import { useLocale } from "../locale/locale";
 
 /**
  * MultiCombobox — multi-select sibling of Combobox. Selected values
@@ -77,6 +78,8 @@ export interface MultiComboboxProps {
    *  "+N more". Default 3. */
   maxDisplayed?: number;
   disabled?: boolean;
+  /** Names the field for assistive tech, when no visible label does. */
+  "aria-label"?: string;
   className?: string;
   /** Show a "Clear all" button inside the popover when ≥ 1 selected.
    *  Default true. */
@@ -89,19 +92,25 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
   value,
   defaultValue,
   onValueChange,
-  placeholder = "Select…",
-  searchPlaceholder = "Search…",
-  emptyMessage = "No results.",
+  placeholder: placeholderProp,
+  searchPlaceholder: searchPlaceholderProp,
+  emptyMessage: emptyMessageProp,
   debounceMs = 250,
   creatable,
   onCreate,
-  createLabel = "Create",
+  createLabel: createLabelProp,
   width = 240,
   maxDisplayed = 3,
   disabled,
+  "aria-label": ariaLabel,
   className,
   showClearAll = true,
 }) => {
+  const loc = useLocale();
+  const placeholder = placeholderProp ?? loc.t("combobox.placeholder");
+  const searchPlaceholder = searchPlaceholderProp ?? loc.t("combobox.searchPlaceholder");
+  const emptyMessage = emptyMessageProp ?? loc.t("combobox.noResults");
+  const createLabel = createLabelProp ?? loc.t("combobox.create");
   const isAsync = typeof onSearch === "function";
 
   const [internalValue, setInternalValue] = React.useState<string[]>(
@@ -170,7 +179,11 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
       labelCacheRef.current.set(o.value, o.label);
     }
   }, [allOptions]);
-  const labelFor = (v: string) => labelCacheRef.current.get(v) ?? v;
+  // The current options first: the cache is filled by an effect, AFTER the
+  // first render, so a controlled initial value read from it alone painted its
+  // raw values as chips ("engineer") until something else re-rendered.
+  const labelFor = (v: string) =>
+    allOptions.find((o) => o.value === v)?.label ?? labelCacheRef.current.get(v) ?? v;
 
   const update = (next: string[]) => {
     if (!isControlled) setInternalValue(next);
@@ -217,6 +230,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
           color="neutral"
           role="combobox"
           aria-expanded={open}
+          aria-label={ariaLabel}
           disabled={disabled}
           className={cn(
             "zen-justify-between zen-font-normal zen-text-start zen-min-h-10 zen-h-auto zen-py-1.5",
@@ -264,7 +278,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
           />
           <CommandList>
             {isAsync && asyncLoading ? (
-              <CommandLoading>Searching…</CommandLoading>
+              <CommandLoading>{loc.t("combobox.searching")}</CommandLoading>
             ) : null}
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
@@ -320,7 +334,7 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
                 >
                   <PlusIcon style={{ marginRight: 6 }} />
                   <span className="zen-flex-1">
-                    {createLabel} “{typed}”
+                    {loc.t("combobox.createOption", { verb: createLabel, text: typed })}
                   </span>
                 </CommandItem>
               </CommandGroup>
@@ -351,7 +365,9 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
 const Chip: React.FC<{
   label: string;
   onRemove: (e: React.SyntheticEvent) => void;
-}> = ({ label, onRemove }) => (
+}> = ({ label, onRemove }) => {
+  const loc = useLocale();
+  return (
   <span
     className={cn(
       "zen-inline-flex zen-items-center zen-gap-1 zen-px-1.5 zen-py-0.5",
@@ -377,7 +393,7 @@ const Chip: React.FC<{
       /* stopPropagation on pointerdown so the click doesn't trigger
        * the parent Popover trigger (which would open the menu when
        * the user just wanted to remove a chip). */
-      aria-label={`Remove ${label}`}
+      aria-label={loc.t("combobox.remove", { label })}
       className={cn(
         "zen-inline-flex zen-items-center zen-justify-center",
         "zen-h-3.5 zen-w-3.5 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -401,7 +417,8 @@ const Chip: React.FC<{
       </svg>
     </span>
   </span>
-);
+  );
+};
 
 const ChevronIcon = () => (
   <svg

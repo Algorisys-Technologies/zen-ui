@@ -23,6 +23,7 @@ import {
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
 import { Icon } from "../icon/icon";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * ScheduleGrid — the chrome every schedule chart needs, and none of what any
@@ -156,13 +157,13 @@ const SCROLLER_MAX_PX = 512;
 const CELL_FOCUS_CLASS =
   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-inset focus-visible:zen-ring-zen-ring";
 
-const VIEW_LABEL: Record<GanttView, string> = {
-  fit: "Fit",
-  day: "Day",
-  week: "Week",
-  month: "Month",
-  quarter: "Quarter",
-  year: "Year",
+const VIEW_LABEL: Record<GanttView, MessageKey> = {
+  fit: "scheduleGrid.views.fit",
+  day: "scheduleGrid.views.day",
+  week: "scheduleGrid.views.week",
+  month: "scheduleGrid.views.month",
+  quarter: "scheduleGrid.views.quarter",
+  year: "scheduleGrid.views.year",
 };
 
 /* Fit first: it is the default, and it is the one that answers "what does this
@@ -526,6 +527,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   metrics: { top: number; height: number; width: number };
   setMetrics: React.Dispatch<React.SetStateAction<{ top: number; height: number; width: number }>>;
 }) {
+  const loc = useLocale();
   const { range, columns, columnWidths, axisWidth, paneWidth, isFit, paneKeys } = axis;
   /* Narrowed from `view` rather than from `axis.isFit`, so the compiler can see
      that "fit" cannot reach an anchored function. That refusal is the whole
@@ -801,19 +803,19 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
               <Button
                 variant="outline"
                 size="sm"
-                aria-label="Previous"
+                aria-label={loc.t("scheduleGrid.previous")}
                 onClick={() => onDateChange(shiftGanttAnchor(anchoredView, anchor, -1))}
               >
                 {/* Logical, not physical: under RTL the axis runs the other way. */}
                 <Icon name="chevron-left" size={14} className="rtl:zen-rotate-180" />
               </Button>
               <Button variant="outline" size="sm" onClick={() => onDateChange(now)}>
-                Today
+                {loc.t("scheduleGrid.today")}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                aria-label="Next"
+                aria-label={loc.t("scheduleGrid.next")}
                 onClick={() => onDateChange(shiftGanttAnchor(anchoredView, anchor, 1))}
               >
                 <Icon name="chevron-right" size={14} className="rtl:zen-rotate-180" />
@@ -834,7 +836,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
             {isFit ? ganttSpanLabel(range) : ganttRangeLabel(anchoredView, anchor)}
           </span>
 
-          <div className="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label="View">
+          <div className="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label={loc.t("scheduleGrid.view")}>
             {(views ?? ALL_VIEWS).map((v) => (
               <Button
                 key={v}
@@ -843,7 +845,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
                 aria-pressed={view === v}
                 onClick={() => onViewChange(v)}
               >
-                {VIEW_LABEL[v]}
+                {loc.t(VIEW_LABEL[v])}
               </Button>
             ))}
           </div>
@@ -907,7 +909,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
             <div
               role="columnheader"
               aria-colindex={timelineColIndex}
-              aria-label="Timeline"
+              aria-label={loc.t("scheduleGrid.timeline")}
               className="zen-flex"
               style={{ width: axisWidth }}
             >

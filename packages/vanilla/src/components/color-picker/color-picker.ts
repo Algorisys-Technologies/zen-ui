@@ -12,6 +12,7 @@ import { controllable } from "../../lib/state";
 import { Button } from "../button/button";
 import { Input, type InputHandle } from "../form/input/input";
 import { Popover, type PopoverHandle } from "../popover/popover";
+import { useLocale, type LocaleContextValue } from "../locale/locale";
 
 /**
  * ColorPicker + ColorPalette — the vanilla port of the React reference.
@@ -232,21 +233,22 @@ export interface ColorPickerProps {
   class?: string;
 }
 
-const DEFAULT_COLORS: ColorOption[] = [
-  { value: "#ef4444", label: "Red" },
-  { value: "#f97316", label: "Orange" },
-  { value: "#facc15", label: "Yellow" },
-  { value: "#22c55e", label: "Green" },
-  { value: "#3b82f6", label: "Blue" },
-  { value: "#6366f1", label: "Indigo" },
-  { value: "#a855f7", label: "Purple" },
-  { value: "#ec4899", label: "Pink" },
-  { value: "#78716c", label: "Stone" },
-  { value: "#000000", label: "Black" },
+const defaultColors = (loc: LocaleContextValue): ColorOption[] => [
+  { value: "#ef4444", label: loc.t("colorPicker.red") },
+  { value: "#f97316", label: loc.t("colorPicker.orange") },
+  { value: "#facc15", label: loc.t("colorPicker.yellow") },
+  { value: "#22c55e", label: loc.t("colorPicker.green") },
+  { value: "#3b82f6", label: loc.t("colorPicker.blue") },
+  { value: "#6366f1", label: loc.t("colorPicker.indigo") },
+  { value: "#a855f7", label: loc.t("colorPicker.purple") },
+  { value: "#ec4899", label: loc.t("colorPicker.pink") },
+  { value: "#78716c", label: loc.t("colorPicker.stone") },
+  { value: "#000000", label: loc.t("colorPicker.black") },
 ];
 
 export function ColorPicker(props: ColorPickerProps): ZenComponent<ColorPickerProps> {
   let current: ColorPickerProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   const inner = new Disposer();
 
@@ -274,7 +276,7 @@ export function ColorPicker(props: ColorPickerProps): ZenComponent<ColorPickerPr
     variant: "outline",
     color: "neutral",
     disabled: current.disabled,
-    "aria-label": current.label ?? "Choose a colour",
+    "aria-label": current.label ?? loc.t("colorPicker.chooseAColour"),
     class: cn("zen-justify-start zen-gap-2 zen-font-normal", current.class),
     children: [swatch, labelSpan],
   });
@@ -289,7 +291,7 @@ export function ColorPicker(props: ColorPickerProps): ZenComponent<ColorPickerPr
   const paintTrigger = () => {
     const value = state.get();
     swatch.style.backgroundColor = value || "transparent";
-    const named = (current.colors ?? DEFAULT_COLORS)
+    const named = (current.colors ?? defaultColors(loc))
       .map(toColorOption)
       .find((c) => normalizeHex(c.value) === value);
     labelSpan.className = cn(!value && "zen-text-zen-muted-fg");
@@ -297,7 +299,7 @@ export function ColorPicker(props: ColorPickerProps): ZenComponent<ColorPickerPr
       ? named
         ? colorLabel(named)
         : value
-      : (current.placeholder ?? "Pick a colour");
+      : (current.placeholder ?? loc.t("colorPicker.pickAColour"));
   };
 
   const paint = () => {
@@ -315,9 +317,9 @@ export function ColorPicker(props: ColorPickerProps): ZenComponent<ColorPickerPr
     hexInput = null;
     content.replaceChildren();
 
-    const colors = current.colors ?? DEFAULT_COLORS;
+    const colors = current.colors ?? defaultColors(loc);
     const allowCustom = current.allowCustom ?? true;
-    const label = current.label ?? "Choose a colour";
+    const label = current.label ?? loc.t("colorPicker.chooseAColour");
 
     if (colors.length) {
       palette = ColorPalette({ colors, value: state.get(), onValueChange: commit, label });
@@ -338,11 +340,11 @@ export function ColorPicker(props: ColorPickerProps): ZenComponent<ColorPickerPr
         "zen-border zen-border-zen-border",
       );
       swatchLabel.style.backgroundColor = state.get() || "transparent";
-      swatchLabel.title = "Custom colour";
+      swatchLabel.title = loc.t("colorPicker.customColour");
 
       const sr = document.createElement("span");
       sr.className = "zen-sr-only";
-      sr.textContent = "Custom colour";
+      sr.textContent = loc.t("colorPicker.customColour");
 
       colorInput = document.createElement("input");
       colorInput.type = "color";
@@ -357,7 +359,7 @@ export function ColorPicker(props: ColorPickerProps): ZenComponent<ColorPickerPr
 
       hexInput = Input({
         placeholder: "#3b82f6",
-        "aria-label": "Hex colour",
+        "aria-label": loc.t("colorPicker.hexColour"),
         class: "zen-h-8 zen-w-28 zen-font-mono zen-text-xs",
         onInput: () => commit(hexInput!.el.value),
       });
@@ -406,7 +408,7 @@ export function ColorPicker(props: ColorPickerProps): ZenComponent<ColorPickerPr
       if (next.value !== undefined) state.sync(normalizeHex(next.value) ?? "");
       triggerBtn.update({
         disabled: current.disabled,
-        "aria-label": current.label ?? "Choose a colour",
+        "aria-label": current.label ?? loc.t("colorPicker.chooseAColour"),
         class: cn("zen-justify-start zen-gap-2 zen-font-normal", current.class),
         children: [swatch, labelSpan],
       });

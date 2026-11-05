@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
+import { useLocale } from "../locale/locale";
 
 /**
  * RichText — WYSIWYG editor wrapping `jodit-pro-react` (an OPTIONAL peer
@@ -120,6 +121,7 @@ export const RichText = ({
   math,
   className,
 }: RichTextProps) => {
+  const loc = useLocale();
   const uploadRef = React.useRef(onImageUpload);
   uploadRef.current = onImageUpload;
 
@@ -187,16 +189,18 @@ export const RichText = ({
     <div className={className}>
       <RichTextBoundary
         fallback={
+          /* i18n-ignore-start: a developer install notice (add the peer dependency), not a word for end users */
           <div className="zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-muted zen-p-4 zen-text-sm zen-text-zen-muted-fg">
             <strong className="zen-font-medium zen-text-zen-foreground">
               RichText needs an optional peer dependency.
             </strong>{" "}
             Install <code>jodit-pro-react</code> to use this component.
           </div>
+          /* i18n-ignore-end */
         }
       >
         <React.Suspense
-          fallback={<div className="zen-text-sm zen-text-zen-muted-fg">Loading editor…</div>}
+          fallback={<div className="zen-text-sm zen-text-zen-muted-fg">{loc.t("richText.loadingEditor")}</div>}
         >
         <JoditEditor
           value={value}
@@ -209,7 +213,7 @@ export const RichText = ({
       {math ? (
         <figure className="zen-mt-2 zen-m-0 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-muted zen-p-3">
           <figcaption className="zen-mb-1 zen-text-xs zen-font-medium zen-text-zen-muted-fg">
-            Preview
+            {loc.t("richText.preview")}
           </figcaption>
           {/* The HTML is the author's own, already in the editor above; KaTeX
               output is markup by definition. Sanitise upstream if the author is

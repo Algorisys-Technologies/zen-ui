@@ -4,6 +4,7 @@ import { controllable } from "../../lib/state";
 import { dismissable } from "../../lib/dismissable";
 import { setPresence } from "../../lib/presence";
 import { Button } from "../button/button";
+import { useLocale } from "../locale/locale";
 
 /**
  * Combobox — a searchable single-select with optional async option loading.
@@ -97,6 +98,12 @@ export interface ComboboxProps {
   /** Trigger button's width. Defaults to 240. */
   width?: number | string;
   disabled?: boolean;
+  /**
+   * The value is not acceptable (a required field left empty, say): the field
+   * is marked aria-invalid and its border takes the error colour, as Select's
+   * does. The message itself is the form's to show.
+   */
+  invalid?: boolean;
   class?: string;
   id?: string;
   [key: `data-${string}`]: unknown;
@@ -124,6 +131,7 @@ interface Row {
 
 export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
   let current: ComboboxProps = { ...props };
+  const loc = useLocale();
   const id = current.id ?? `zen-combobox-${++uid}`;
 
   const el = document.createElement("div");
@@ -166,7 +174,9 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     variant: "outline",
     color: "neutral",
     disabled: current.disabled,
-    class: cn("zen-justify-between zen-font-normal", current.class),
+    // Marked invalid (aria-invalid="true"): the error border, as Input and
+    // Select show theirs.
+    class: cn("zen-justify-between zen-font-normal aria-[invalid=true]:zen-border-zen-error", current.class),
     style: { width: widthOf() },
     iconRight: svgNode(CHEVRON),
     children: labelSpan,
@@ -292,14 +302,14 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     if (isAsync() && asyncLoading) {
       const loading = document.createElement("div");
       loading.className = "zen-py-4 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      loading.textContent = "Searching…";
+      loading.textContent = loc.t("combobox.searching");
       list.append(loading);
     }
 
     if (!asyncLoading && visible.length === 0 && !showCreate) {
       const empty = document.createElement("div");
       empty.className = "zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      empty.textContent = current.emptyMessage ?? "No results.";
+      empty.textContent = current.emptyMessage ?? loc.t("combobox.noResults");
       list.append(empty);
     }
 
@@ -356,7 +366,7 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
       plus.style.marginRight = "6px";
       const text = document.createElement("span");
       text.style.flex = "1";
-      text.textContent = `${current.createLabel ?? "Create"} “${typed}”`;
+      text.textContent = loc.t("combobox.createOption", { verb: current.createLabel ?? loc.t("combobox.create"), text: typed });
       item.append(plus, text);
       const rowIndex = rows.length;
       item.addEventListener("click", () => doCreate(typed));
@@ -376,7 +386,7 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     const v = state.get();
     const opt = allOptions().find((o) => o.value === v) ?? null;
     if (opt) lastLabel = opt.label;
-    labelSpan.textContent = v && lastLabel ? lastLabel : current.placeholder ?? "Select…";
+    labelSpan.textContent = v && lastLabel ? lastLabel : current.placeholder ?? loc.t("combobox.placeholder");
     triggerEl.classList.toggle("zen-text-zen-muted-fg", !v);
   };
 
@@ -501,6 +511,7 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     "createLabel",
     "width",
     "disabled",
+    "invalid",
     "class",
     "id",
   ]);
@@ -511,10 +522,13 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     el.className = "zen-relative zen-inline-block";
     el.replaceChildren(triggerEl, panel);
 
-    input.placeholder = current.searchPlaceholder ?? "Search…";
+    input.placeholder = current.searchPlaceholder ?? loc.t("combobox.searchPlaceholder");
     triggerEl.style.width = widthOf();
     panel.style.width = widthOf();
     triggerEl.disabled = Boolean(current.disabled);
+    // On the trigger: the control that takes focus here.
+    if (current.invalid) triggerEl.setAttribute("aria-invalid", "true");
+    else triggerEl.removeAttribute("aria-invalid");
 
     paintTrigger();
     if (open) renderList();

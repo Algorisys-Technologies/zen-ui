@@ -43,6 +43,12 @@ export type { SelectProps, SelectOption } from "./components/form/select/select"
 
 export { Combobox } from "./components/combobox/combobox";
 export type { ComboboxProps, ComboboxOption } from "./components/combobox/combobox";
+// TreeSelect (pick one node from a hierarchy; tree logic in core)
+export { TreeSelect } from "./components/tree-select/tree-select";
+export type { TreeSelectProps, TreeSelectNode } from "./components/tree-select/tree-select";
+// LookupField (pick a row from a table of choices; search and ranking in core)
+export { LookupField } from "./components/lookup-field/lookup-field";
+export type { LookupFieldProps, LookupColumn } from "./components/lookup-field/lookup-field";
 
 // ---- Wave A: display primitives ------------------------------------------
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants } from "./components/card/card";
@@ -78,9 +84,13 @@ export { MessagePopover } from "./components/message-popover/message-popover";
 export type { Message, MessageType, MessagePopoverProps } from "./components/message-popover/message-popover";
 export { DirectionProvider } from "./components/direction/direction";
 export type { Direction, DirectionProviderProps } from "./components/direction/direction";
+export { LocaleProvider, useLocale, localeOf, withLocale, provideLocale } from "./components/locale/locale";
+export type { LocaleProviderProps, LocaleSettings, LocaleContextValue, MessageKey, ZenMessages } from "./components/locale/locale";
 
 export { StatCard } from "./components/stat-card/stat-card";
 export type { StatCardProps, StatCardColor, StatCardTrend } from "./components/stat-card/stat-card";
+export { Tile, TileGrid } from "./components/tile/tile";
+export type { TileProps, TileGridProps } from "./components/tile/tile";
 
 export { Progress } from "./components/progress/progress";
 export type { ProgressProps, ProgressSize, ProgressColor } from "./components/progress/progress";
@@ -112,6 +122,9 @@ export { PageHeader } from "./components/page-header/page-header";
 export type { PageHeaderProps } from "./components/page-header/page-header";
 export { NumberField } from "./components/form/number-field/number-field";
 export type { NumberFieldProps, NumberFieldHandle } from "./components/form/number-field/number-field";
+// AmountField / QuantityField (locale-formatted amounts and quantities)
+export { AmountField, QuantityField } from "./components/form/amount-field/amount-field";
+export type { AmountFieldProps, QuantityFieldProps, AmountFieldHandle, QuantityFieldHandle } from "./components/form/amount-field/amount-field";
 export { Textarea, TEXTAREA_CLASS } from "./components/form/input/textarea";
 export type { TextareaProps, TextareaHandle } from "./components/form/input/textarea";
 export { Slider } from "./components/form/slider/slider";
@@ -154,6 +167,10 @@ export { Stepper } from "./components/stepper/stepper";
 export type { StepperProps, StepperStep, StepStatus, StepperApi, StepperHandle, StepperNavigationOptions } from "./components/stepper/stepper";
 export { Toolbar } from "./components/toolbar/toolbar";
 export type { ToolbarProps, ToolbarAction } from "./components/toolbar/toolbar";
+
+// DocumentTabs (Zen-shaped: a workspace's open documents; the panels are the app's)
+export { DocumentTabs } from "./components/document-tabs/document-tabs";
+export type { DocumentTabsProps, DocumentTab } from "./components/document-tabs/document-tabs";
 export { Carousel } from "./components/carousel/carousel";
 export type { CarouselProps } from "./components/carousel/carousel";
 
@@ -165,6 +182,8 @@ export { formatMediaTime, MIN_MEDIA_RANGE } from "@algorisys/zen-ui-core/media";
 export type { MediaRange, MediaRangeMode, WaveformClip } from "@algorisys/zen-ui-core/media";
 export { DropdownMenu } from "./components/dropdown-menu/dropdown-menu";
 export type { DropdownMenuProps, DropdownMenuHandle, DropdownMenuItemSpec, DropdownMenuActionItem, DropdownMenuLabelItem, DropdownMenuSeparatorItem, DropdownMenuCheckboxItemSpec, DropdownMenuRadioGroupSpec, DropdownMenuRadioOption, DropdownMenuSubSpec, DropdownMenuSide, DropdownMenuAlign } from "./components/dropdown-menu/dropdown-menu";
+export { ContextMenu } from "./components/context-menu/context-menu";
+export type { ContextMenuProps, ContextMenuHandle } from "./components/context-menu/context-menu";
 export { FileUpload } from "./components/file-upload/file-upload";
 export type { FileUploadProps, FileRejection } from "./components/file-upload/file-upload";
 export { ColorPicker, ColorPalette } from "./components/color-picker/color-picker";
@@ -176,17 +195,23 @@ export { SkipToContent, SKIP_TO_CONTENT_CLASS } from "./components/skip-to-conte
 export type { SkipToContentProps, SkipToContentHandle } from "./components/skip-to-content/skip-to-content";
 export { ShellBar } from "./components/shellbar/shellbar";
 export type { ShellBarProps, ShellBarItem, ShellBarMenuItem, ShellBarProfile } from "./components/shellbar/shellbar";
-export { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarTrigger } from "./components/sidebar/sidebar";
-export type { SidebarContextValue, SidebarProviderProps, SidebarProviderHandle, SidebarProps, SidebarGroupLabelProps, SidebarMenuButtonProps, SidebarMenuSubProps, SidebarMenuSubButtonProps, SidebarTriggerProps } from "./components/sidebar/sidebar";
+export { SidebarProvider, Sidebar, SidebarHeader, SidebarHeaderLabel, SidebarMenuBadge, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarTrigger } from "./components/sidebar/sidebar";
+export type { SidebarContextValue, SidebarProviderProps, SidebarProviderHandle, SidebarProps, SidebarHeaderProps, SidebarHeaderLabelProps, SidebarGroupLabelProps, SidebarMenuButtonProps, SidebarMenuSubProps, SidebarMenuSubButtonProps, SidebarTriggerProps } from "./components/sidebar/sidebar";
 
 export { Calendar, DatePicker } from "./components/form/date-picker/date-picker";
 export type { CalendarProps, CalendarMode, CalendarSelected, DateRange, DatePickerProps } from "./components/form/date-picker/date-picker";
+// DateInput (a typed date in the locale's order; the calendar as a second way in)
+export { DateInput, isTypedDate } from "./components/form/date-picker/date-input";
+export type { DateInputProps, DateOrder } from "./components/form/date-picker/date-input";
 export { NotificationsInbox } from "./components/notifications-inbox/notifications-inbox";
 export type { NotificationsInboxProps, NotificationsInboxHandle, Notification } from "./components/notifications-inbox/notifications-inbox";
 export { VirtualizedItems } from "./components/listbox/virtualized-items";
 export type { VirtualizedItemsProps, VirtualizedItemsDenseProps, VirtualizedItemsSparseProps } from "./components/listbox/virtualized-items";
 export { FilterBar } from "./components/filter-bar/filter-bar";
 export type { FilterBarProps, FilterBarField } from "./components/filter-bar/filter-bar";
+// FilterBuilder — nested AND/OR conditions as one plain object (core's filter model)
+export { FilterBuilder } from "./components/filter-builder/filter-builder";
+export type { FilterBuilderProps, FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator } from "./components/filter-builder/filter-builder";
 export { FlexibleColumnLayout } from "./components/flexible-column-layout/flexible-column-layout";
 export type { FlexibleColumnLayoutProps, FlexibleColumnLayoutType, FlexibleColumnName, FlexibleColumnLayoutChangeDetail } from "./components/flexible-column-layout/flexible-column-layout";
 export { SelectDialog } from "./components/select-dialog/select-dialog";
@@ -202,6 +227,8 @@ export { DynamicPage, DynamicPageTitle, DynamicPageHeader, DynamicPageFooter } f
 export type { DynamicPageProps, DynamicPageTitleProps, DynamicPageHeaderProps, DynamicPageFooterProps } from "./components/dynamic-page/dynamic-page";
 export { ViewSettingsDialog } from "./components/view-settings/view-settings-dialog";
 export type { ViewSettingsDialogProps, ViewSettingsDialogHandle, ViewSettingsItem, ViewSettingsFilterGroup, ViewSettingsValue } from "./components/view-settings/view-settings-dialog";
+export { ViewManager } from "./components/view-manager/view-manager";
+export type { ViewManagerProps, ViewManagerHandle, SavedView } from "./components/view-manager/view-manager";
 export { SelectableCardGroup } from "./components/card/card.selectable";
 export type { SelectableCardGroupProps, SelectableCardItemSpec } from "./components/card/card.selectable";
 export { ObjectPageLayout } from "./components/object-page/object-page";
@@ -217,6 +244,8 @@ export { Camera } from "./components/camera/camera";
 export type { CameraProps, CameraHandle } from "./components/camera/camera";
 export { QRScanner } from "./components/qr-scanner/qr-scanner";
 export type { QRScannerProps, QRScannerScan } from "./components/qr-scanner/qr-scanner";
+export { QRCode, Barcode } from "./components/barcode/barcode";
+export type { QRCodeProps, BarcodeProps, BarcodeFormat, QrEcc } from "./components/barcode/barcode";
 export { Map } from "./components/map/map";
 export type { MapProps, MapMarker } from "./components/map/map";
 export { Chart } from "./components/chart/chart";
@@ -350,7 +379,8 @@ export type {
   TreeTableColumn,
   TreeTableCellContext,
 } from "./components/tree-table/tree-table";
-export type { DataTableProps, DataTableColumn, DataTableCellContext, SortingColumn, SortingState, DataTableManualPagination } from "./components/data-table/data-table";
+export type { DataTableProps, DataTableColumn, DataTableColumnMeta, DataTableCellContext, DataTableMenuTarget, SortingColumn, SortingState, DataTableManualPagination } from "./components/data-table/data-table";
+export type { CellEditPayload, EditVariant } from "./components/data-table/edit-cell";
 export { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption } from "./components/data-table/table";
 export type { TableProps } from "./components/data-table/table";
 export { createForm, FormItem, FormLabel, FormDescription, FormMessage, FormField } from "./components/form-builder/form";
@@ -458,3 +488,23 @@ export { DiffView } from "./components/diff-view/diff-view";
 export type { DiffViewProps } from "./components/diff-view/diff-view";
 export { computeDiff, parseSnapshot, isKeyed } from "@algorisys/zen-ui-core/diff";
 export type { DiffRow, DiffKind, DiffOptions, DiffSnapshot } from "@algorisys/zen-ui-core/diff";
+// Keyboard shortcuts: key caps, a registry with scopes, and the "?" overlay
+export {
+  ShortcutProvider,
+  ShortcutHelp,
+  Kbd,
+  useShortcut,
+  useShortcuts,
+  keyshortcut,
+  shortcutLabel,
+  detectPlatform,
+} from "./components/shortcuts/shortcuts";
+export type {
+  ShortcutOptions,
+  ShortcutProviderProps,
+  ShortcutHelpProps,
+  ShortcutHelpGroup,
+  ShortcutHelpHandle,
+  KbdProps,
+  ShortcutRegistry,
+} from "./components/shortcuts/shortcuts";

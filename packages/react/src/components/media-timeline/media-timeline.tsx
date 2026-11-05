@@ -10,6 +10,7 @@ import {
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * MediaTimeline — a filmstrip trim track: draggable ranges over optional
@@ -143,12 +144,14 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
       rangeClass,
       rangeColor,
       rangeLabel,
-      label = "Media timeline",
+      label: labelProp,
       className,
       ...props
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const label = labelProp ?? loc.t("mediaTimeline.mediaTimeline");
     const independent = rangeMode === "independent";
     const trackRef = React.useRef<HTMLDivElement | null>(null);
     const [dragging, setDragging] = React.useState<{
@@ -380,7 +383,7 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
                   role={independent ? "slider" : undefined}
                   tabIndex={independent ? 0 : undefined}
                   aria-orientation={independent ? "horizontal" : undefined}
-                  aria-label={independent ? `Range ${i + 1} position` : undefined}
+                  aria-label={independent ? loc.t("mediaTimeline.rangePosition", { n: i + 1 }) : undefined}
                   aria-valuemin={independent ? 0 : undefined}
                   aria-valuemax={independent ? duration - (range.end - range.start) : undefined}
                   aria-valuenow={independent ? range.start : undefined}
@@ -431,7 +434,7 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
                       role="slider"
                       tabIndex={0}
                       aria-orientation="horizontal"
-                      aria-label={`Range ${i + 1} ${edge}`}
+                      aria-label={loc.t(edge === "start" ? "mediaTimeline.rangeStart" : "mediaTimeline.rangeEnd", { n: i + 1 })}
                       aria-valuemin={0}
                       aria-valuemax={duration}
                       aria-valuenow={range[edge]}
@@ -455,7 +458,7 @@ export const MediaTimeline = React.forwardRef<HTMLDivElement, MediaTimelineProps
                   {active && onRangeRemove ? (
                     <button
                       type="button"
-                      aria-label={`Remove range ${i + 1}`}
+                      aria-label={loc.t("mediaTimeline.removeRange", { n: i + 1 })}
                       className={cn(
                         "zen-absolute zen-top-1 zen-left-1/2 -zen-translate-x-1/2 zen-z-10",
                         "zen-flex zen-h-4 zen-w-4 zen-cursor-pointer zen-items-center zen-justify-center",

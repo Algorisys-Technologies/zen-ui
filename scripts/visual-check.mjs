@@ -16,14 +16,15 @@
  */
 import { chromium } from "playwright";
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 import { mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const BINDINGS = {
-  react: { dir: "packages/react", base: "/builder", port: 4319 },
-  solid: { dir: "packages/solid", base: "/builder-solid", port: 4320 },
-  vanilla: { dir: "packages/vanilla", base: "/builder-vanilla", port: 4321 },
-  "web-components": { dir: "packages/web-components", base: "/builder-wc", port: 4322 },
+  react: { dir: "packages/react", base: "/builder" },
+  solid: { dir: "packages/solid", base: "/builder-solid" },
+  vanilla: { dir: "packages/vanilla", base: "/builder-vanilla" },
+  "web-components": { dir: "packages/web-components", base: "/builder-wc" },
 };
 
 const argv = process.argv.slice(2);
@@ -40,6 +41,37 @@ const routes = argv
   .filter((a, i) => !a.startsWith("--") && !flagValueIdx.has(i + 1));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// The port is whatever the OS hands out, never a fixed number: with a fixed
+// one, another session's preview already on it answered the health check and
+// this script screenshotted THAT build while reporting on yours (measured
+// 2026-11-05, three times in one night). --strictPort made our own server
+// exit quietly, which nothing noticed.
+const freePort = () =>
+  new Promise((ok, fail) => {
+    const s = createServer();
+    s.on("error", fail);
+    s.listen(0, "127.0.0.1", () => {
+      const { port } = s.address();
+      s.close(() => ok(port));
+    });
+  });
+
+// npx -> vite is two processes; killing npx alone left vite serving after the
+// script exited. Kill the group (the ESRCH retry is dev-all.mjs's: setsid()
+// runs after the fork, so an early kill can find no group yet).
+const killGroup = async (child) => {
+  for (let i = 0; i < 20; i++) {
+    if (child.exitCode !== null || child.signalCode) return;
+    try {
+      process.kill(-child.pid, "SIGTERM");
+      return;
+    } catch (err) {
+      if (err.code !== "ESRCH") return;
+      await sleep(50);
+    }
+  }
+};
 
 async function waitForServer(url, tries = 60) {
   for (let i = 0; i < tries; i++) {
@@ -73,15 +105,17 @@ for (const binding of which) {
     process.exit(1);
   }
 
+  cfg.port = await freePort();
   const server = spawn(
     "npx",
     ["vite", "preview", "--config", "vite.config.demo.ts", "--port", String(cfg.port), "--strictPort"],
-    { cwd: cfg.dir, stdio: "ignore" },
+    { cwd: cfg.dir, stdio: "ignore", detached: true },
   );
 
   const origin = `http://localhost:${cfg.port}${cfg.base}/`;
-  if (!(await waitForServer(origin))) {
-    server.kill();
+  // Something answering is not enough: it must be OUR server, still running.
+  if (!(await waitForServer(origin)) || server.exitCode !== null) {
+    await killGroup(server);
     throw new Error(`${binding}: preview server never came up on ${cfg.port}`);
   }
 
@@ -130,7 +164,7 @@ for (const binding of which) {
   }
 
   await browser.close();
-  server.kill();
+  await killGroup(server);
 
   console.log(`${binding}: ${targets.length} routes (${dir}, ${theme}) -> ${outDir}/`);
   if (failures.length) {

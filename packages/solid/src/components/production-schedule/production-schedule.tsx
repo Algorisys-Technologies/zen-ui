@@ -43,7 +43,7 @@ import {
   createScrollerMetrics,
   type ScheduleColumn,
 } from "../gantt/schedule-grid";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * ProductionSchedule — what each machine is doing, and whether it can.
@@ -193,15 +193,15 @@ const PANE_PX: Record<ProductionPaneColumn, number> = {
   float: 84,
 };
 
-const PANE_LABEL: Record<ProductionPaneColumn, string> = {
-  resource: "Resource",
-  jobs: "Jobs",
-  capacity: "Capacity",
-  load: "Load",
+const PANE_LABEL: Record<ProductionPaneColumn, MessageKey> = {
+  resource: "productionSchedule.column.resource",
+  jobs: "productionSchedule.column.jobs",
+  capacity: "productionSchedule.column.capacity",
+  load: "productionSchedule.load",
   /* The row's TIGHTEST operation, because a row is only as movable as the job
      on it with the least room. An average would say a machine has four hours of
      slack while one of its jobs has none. */
-  float: "Float",
+  float: "productionSchedule.column.float",
 };
 
 /** Place in the FULL set, so a dropped column does not renumber the others. */
@@ -553,7 +553,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
   const paneColumns = createMemo<ScheduleColumn<Row>[]>(() =>
     requestedPane().map((key) => ({
       key,
-      label: PANE_LABEL[key],
+      label: loc.t(PANE_LABEL[key]),
       width: PANE_PX[key],
       colIndex: COL_INDEX[key],
       class: key === "resource" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
@@ -664,7 +664,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
             const first = row.lanes[0]?.[0];
             if (first) props.onOperationClick?.(first.operation, row);
           }}
-          ariaLabel="Production schedule"
+          ariaLabel={loc.t("productionSchedule.productionSchedule")}
           class={props.class}
           scrollerRef={scroller.ref}
           scroller={scroller.element}
@@ -701,7 +701,7 @@ const ProductionPaneCell = (props: {
                arrowing to the first column and pressing the forward arrow. */
             tabindex={-1}
             onClick={() => props.onToggle(resource().id)}
-            aria-label={props.row.expanded ? `Collapse ${resource().name}` : `Expand ${resource().name}`}
+            aria-label={loc.t(props.row.expanded ? "productionSchedule.collapseResource" : "productionSchedule.expandResource", { name: resource().name })}
             class="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
           >
             <Icon
@@ -797,16 +797,16 @@ const ProductionPaneCell = (props: {
                for overload cannot carry a third meaning on hue alone. */
             title={
               props.float!.totalFloatMinutes < 0
-                ? `Past the date it is measured against by ${formatFloat(-props.float!.totalFloatMinutes)}`
+                ? loc.t("productionSchedule.floatLate", { time: formatFloat(-props.float!.totalFloatMinutes) })
                 : props.float!.freeFloatMinutes < 0
-                  ? `Already overlaps the next operation by ${formatFloat(-props.float!.freeFloatMinutes)}`
+                  ? loc.t("productionSchedule.floatOverlaps", { time: formatFloat(-props.float!.freeFloatMinutes) })
                   : props.float!.critical
-                    ? "On the critical path — no room to move"
-                    : `${formatFloat(props.float!.freeFloatMinutes)} before it disturbs the next operation`
+                    ? loc.t("productionSchedule.floatCritical")
+                    : loc.t("productionSchedule.floatFree", { time: formatFloat(props.float!.freeFloatMinutes) })
             }
           >
             {props.float!.critical && props.float!.totalFloatMinutes === 0
-              ? "Critical"
+              ? loc.t("productionSchedule.critical")
               : formatFloat(props.float!.totalFloatMinutes)}
           </Badge>
         </Show>
@@ -825,15 +825,17 @@ const ProductionTrack = (props: {
   msPerPx: number;
   onPropose: (move: ProductionMove) => void;
   isCritical: (id: string) => boolean;
-}) => (
+}) => {
+  const loc = useLocale();
+  return (
   <>
     <Show when={props.row.lanes.length === 0}>
       {/* An expanded parent draws nothing because its children draw its work —
           which is a fact worth saying, not a blank cell. */}
       <span class="zen-sr-only">
         {props.row.hasChildren && props.row.expanded
-          ? "Work shown on the rows below"
-          : "Nothing booked in this range"}
+          ? loc.t("productionSchedule.workBelow")
+          : loc.t("productionSchedule.nothingBooked")}
       </span>
     </Show>
     <Index each={props.row.lanes}>
@@ -856,7 +858,8 @@ const ProductionTrack = (props: {
       )}
     </Index>
   </>
-);
+  );
+};
 
 const ProductionBar = (props: {
   placement: ProductionPlacement<ProductionOperation>;
@@ -869,6 +872,7 @@ const ProductionBar = (props: {
   onPropose: (move: ProductionMove) => void;
   critical: boolean;
 }) => {
+  const loc = useLocale();
   const operation = () => props.placement.operation;
   const placed = () => placeAppointment(props.placement.span, props.range);
   const status = () => operation().status ?? "on-track";
@@ -994,10 +998,10 @@ const ProductionBar = (props: {
   const title = () =>
     [
       operation().name,
-      operation().order ? `Order ${operation().order}` : null,
+      operation().order ? loc.t("productionSchedule.order", { order: operation().order! }) : null,
       `${formatTime(props.placement.span.start)} – ${formatTime(props.placement.span.end)}`,
-      props.placement.setup ? "incl. changeover" : null,
-      props.critical ? "on the critical path" : null,
+      props.placement.setup ? loc.t("productionSchedule.inclChangeover") : null,
+      props.critical ? loc.t("productionSchedule.onCriticalPath") : null,
       progress() === null ? null : `${Math.round(progress()!)}%`,
     ]
       .filter(Boolean)
@@ -1047,9 +1051,14 @@ const ProductionBar = (props: {
           title={title()}
         >
           <span class="zen-sr-only">
-            {`${operation().name}, ${formatTime(props.placement.span.start)} to ${formatTime(props.placement.span.end)}${
-              props.placement.setup ? ", including changeover" : ""
-            }${progress() === null ? "" : `, ${Math.round(progress()!)} percent complete`}`}
+            {loc.t("productionSchedule.barSpan", {
+              name: operation().name,
+              start: formatTime(props.placement.span.start),
+              end: formatTime(props.placement.span.end),
+              changeover: props.placement.setup ? loc.t("productionSchedule.barChangeover") : "",
+              progress:
+                progress() === null ? "" : loc.t("productionSchedule.barProgress", { percent: Math.round(progress()!) }),
+            })}
           </span>
           <Index each={pieces()}>
             {(piece) => (
@@ -1137,8 +1146,8 @@ const ProductionLoadStrip = (props: {
                 style={{ width: `${props.columnWidths[i]}px` }}
                 title={
                   utilisation() === null
-                    ? "Closed"
-                    : `${pct(utilisation()!)} of capacity${bucket()?.overloaded ? " — over" : ""}`
+                    ? loc.t("productionSchedule.closed")
+                    : loc.t(bucket()?.overloaded ? "productionSchedule.ofCapacityOver" : "productionSchedule.ofCapacity", { percent: pct(utilisation()!) })
                 }
               >
                 <span

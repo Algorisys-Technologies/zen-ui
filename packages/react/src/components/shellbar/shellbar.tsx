@@ -12,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * ShellBar — the global application header: logo, product title, search,
@@ -97,6 +98,16 @@ export interface ShellBarProps
   /** Turns the title into a product-switcher dropdown. */
   menuItems?: ShellBarMenuItem[];
   searchable?: boolean;
+  /**
+   * Your own search control in the bar, in place of the built-in field: a
+   * command palette's trigger, say. Laid out by the bar like its own search.
+   * Pass a function to change with the space: `compact` is true where the
+   * built-in field would have shrunk to an icon, so the control can too.
+   * Replaces `searchable`'s field when both are given.
+   *
+   *   search={(bar) => <PaletteButton iconOnly={bar.compact} />}
+   */
+  search?: React.ReactNode | ((bar: { readonly compact: boolean }) => React.ReactNode);
   onSearch?: (value: string) => void;
   /** Placeholder AND the search field's visually-hidden label. */
   searchPlaceholder?: string;
@@ -128,14 +139,15 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
       secondaryTitle,
       menuItems,
       searchable = false,
+      search,
       onSearch,
-      searchPlaceholder = "Search",
+      searchPlaceholder: searchPlaceholderProp,
       notificationCount,
       onNotificationsClick,
       profile,
       items,
       onLogoClick,
-      overflowLabel = "More actions",
+      overflowLabel: overflowLabelProp,
       className,
       children,
       "aria-label": ariaLabel,
@@ -143,6 +155,9 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const searchPlaceholder = searchPlaceholderProp ?? loc.t("shellbar.search");
+    const overflowLabel = overflowLabelProp ?? loc.t("shellbar.moreActions");
     const containerRef = React.useRef<HTMLDivElement>(null);
     const brandingRef = React.useRef<HTMLDivElement>(null);
     const fixedRef = React.useRef<HTMLDivElement>(null);
@@ -298,7 +313,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
     return (
       <header
         ref={ref}
-        aria-label={ariaLabel ?? primaryTitle ?? "Application header"}
+        aria-label={ariaLabel ?? primaryTitle ?? loc.t("shellbar.applicationHeader")}
         className={cn(
           "zen-w-full zen-border-b zen-border-zen-border zen-bg-zen-background zen-px-3",
           className,
@@ -322,7 +337,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                   color="neutral"
                   size="sm"
                   shape="square"
-                  aria-label="Home"
+                  aria-label={loc.t("shellbar.home")}
                   onClick={onLogoClick}
                 >
                   {logo}
@@ -390,7 +405,12 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
             </div>
 
             <div ref={fixedRef} className="zen-flex zen-shrink-0 zen-items-center zen-gap-2">
-              {searchable ? (
+              {search !== undefined ? (
+                <div className="zen-flex zen-min-w-0 zen-items-center" data-shellbar-search="">
+                  {typeof search === "function" ? search({ compact: searchCollapsed }) : search}
+                </div>
+              ) : null}
+              {searchable && search === undefined ? (
                 searchCollapsed ? (
                   <Button
                     ref={searchTriggerRef}
@@ -420,8 +440,8 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                     shape="square"
                     aria-label={
                       notificationCount
-                        ? `Notifications, ${notificationCount} unread`
-                        : "Notifications"
+                        ? loc.t("shellbar.notificationsUnread", { count: notificationCount })
+                        : loc.t("shellbar.notifications")
                     }
                     onClick={onNotificationsClick}
                   >
@@ -487,7 +507,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
           </div>
 
           {/* ------------------------------------------- collapsed search */}
-          {searchable && searchCollapsed && searchOpen ? (
+          {searchable && search === undefined && searchCollapsed && searchOpen ? (
             <div
               className="zen-absolute zen-inset-0 zen-z-10 zen-flex zen-items-center zen-gap-2 zen-bg-zen-background"
               onKeyDown={(e) => {
@@ -526,7 +546,7 @@ export const ShellBar = React.forwardRef<HTMLElement, ShellBarProps>(
                 color="neutral"
                 size="sm"
                 shape="square"
-                aria-label="Close search"
+                aria-label={loc.t("shellbar.closeSearch")}
                 onClick={closeSearch}
               >
                 <Icon name="x" size={16} />

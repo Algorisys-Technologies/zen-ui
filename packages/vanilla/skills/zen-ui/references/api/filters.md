@@ -25,5 +25,5 @@ SKILL.md.
 
 - `FilterVariant` = `"number" | "boolean" | "text" | "select" | "numberRange"`
 - `TextOp` = `"contains" | "equals" | "starts" | "ends"`
-- `NumberOp` = `"eq" | "ne" | "gt" | "lt" | "gte" | "lte"`
+- `NumberOp` = `"eq" | "ne" | "gt" | "gte" | "lt" | "lte"`
 - `NumberRangeFilterValue` = `[number | null, number | null]`

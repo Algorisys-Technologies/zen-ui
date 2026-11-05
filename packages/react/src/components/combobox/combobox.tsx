@@ -15,6 +15,7 @@ import {
   CommandList,
   CommandLoading,
 } from "./command";
+import { useLocale } from "../locale/locale";
 
 /**
  * Combobox — searchable single-select with optional async option loading.
@@ -120,6 +121,16 @@ export interface ComboboxProps {
   /** Trigger button's width. Defaults to 240. */
   width?: number | string;
   disabled?: boolean;
+  /**
+   * The value is not acceptable (a required field left empty, say): the field
+   * is marked aria-invalid and its border takes the error colour, as Select's
+   * does.
+   */
+  invalid?: boolean;
+  /** Lands on the trigger (the control that takes focus), so `<label for>` names it. */
+  id?: string;
+  /** Names the field for assistive tech when no visible label does. */
+  "aria-label"?: string;
   className?: string;
 }
 
@@ -129,17 +140,25 @@ const Combobox: React.FC<ComboboxProps> = ({
   value,
   defaultValue,
   onValueChange,
-  placeholder = "Select…",
-  searchPlaceholder = "Search…",
-  emptyMessage = "No results.",
+  placeholder: placeholderProp,
+  searchPlaceholder: searchPlaceholderProp,
+  emptyMessage: emptyMessageProp,
   debounceMs = 250,
   creatable,
   onCreate,
-  createLabel = "Create",
+  createLabel: createLabelProp,
   width = 240,
   disabled,
+  invalid,
+  id,
+  "aria-label": ariaLabel,
   className,
 }) => {
+  const loc = useLocale();
+  const placeholder = placeholderProp ?? loc.t("combobox.placeholder");
+  const searchPlaceholder = searchPlaceholderProp ?? loc.t("combobox.searchPlaceholder");
+  const emptyMessage = emptyMessageProp ?? loc.t("combobox.noResults");
+  const createLabel = createLabelProp ?? loc.t("combobox.create");
   const isAsync = typeof onSearch === "function";
 
   const [internalValue, setInternalValue] = React.useState(defaultValue ?? "");
@@ -233,9 +252,15 @@ const Combobox: React.FC<ComboboxProps> = ({
           color="neutral"
           role="combobox"
           aria-expanded={open}
+          // The trigger is the control that takes focus here (a <button>, so
+          // labelable): `id` and `aria-label` land on it.
+          id={id}
+          aria-label={ariaLabel}
+          aria-invalid={invalid ? "true" : undefined}
           disabled={disabled}
           className={cn(
             "zen-justify-between zen-font-normal",
+            "aria-[invalid=true]:zen-border-zen-error",
             !selected && "zen-text-zen-muted-fg",
             className,
           )}
@@ -264,7 +289,7 @@ const Combobox: React.FC<ComboboxProps> = ({
           />
           <CommandList>
             {isAsync && asyncLoading ? (
-              <CommandLoading>Searching…</CommandLoading>
+              <CommandLoading>{loc.t("combobox.searching")}</CommandLoading>
             ) : null}
             {/* CommandEmpty only shows when nothing matches. With a create row
                 present that is exactly when it is NOT empty — you get
@@ -321,7 +346,7 @@ const Combobox: React.FC<ComboboxProps> = ({
                 >
                   <PlusIcon style={{ marginRight: 6 }} />
                   <span style={{ flex: 1 }}>
-                    {createLabel} “{typed}”
+                    {loc.t("combobox.createOption", { verb: createLabel, text: typed })}
                   </span>
                 </CommandItem>
               </CommandGroup>

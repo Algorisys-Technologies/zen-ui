@@ -110,6 +110,7 @@ export const RichText = (props: RichTextProps) => {
             class="zen-mb-2 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs zen-text-zen-muted-fg"
             role="status"
           >
+            {/* i18n-ignore-next-line (a developer notice: install instructions) */}
             Rich-text toolbar unavailable — run <code>npm install jodit</code> and import{" "}
             <code>jodit/es2021/jodit.min.css</code>. Editing still works below as plain text.
           </div>

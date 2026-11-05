@@ -1,11 +1,13 @@
 import { DemoPage } from "./demo-helpers";
 import { ShellBar, type ShellBarItem, type ShellBarMenuItem } from "./shellbar/shellbar";
+import { Button } from "./button/button";
+import { Icon } from "./icon/icon";
 
 /**
  * ShellBar demo. Several sections deliberately constrain width, because both
  * collapse behaviours — items into the ••• menu, search into a magnifier — only
  * show up when the bar runs out of room. Mirrors the React demo
- * (NewShellBarDemo.tsx): same five sections, same snippets.
+ * (NewShellBarDemo.tsx): same six sections, same snippets.
  */
 
 const logo = (): HTMLElement => {
@@ -49,6 +51,30 @@ const PROFILE = {
   name: "Rajesh Pillai",
   image: "https://i.pravatar.cc/96?img=12",
   menuItems: PROFILE_MENU,
+};
+
+/** A command palette's trigger: the kind of control ShellBar's `search` slot is for. */
+const paletteButton = (compact: boolean, onOpen: () => void) => {
+  const kids: Element[] = [Icon({ name: "search", size: 14 }).el];
+  if (!compact) {
+    const text = document.createElement("span");
+    text.textContent = "Search…";
+    const kbd = document.createElement("kbd");
+    kbd.className = "zen-ml-auto zen-font-sans zen-text-xs";
+    kbd.textContent = "Ctrl K";
+    kids.push(text, kbd);
+  }
+  return Button({
+    type: "button",
+    variant: "outline",
+    color: "neutral",
+    size: "sm",
+    shape: compact ? "square" : undefined,
+    "aria-label": compact ? "Search (Ctrl+K)" : undefined,
+    onClick: onOpen,
+    class: compact ? undefined : "zen-w-56 zen-justify-start zen-text-zen-muted-fg",
+    children: kids,
+  });
 };
 
 /** A rounded, clipping frame for the bar; an optional fixed pixel width. */
@@ -223,6 +249,50 @@ ShellBar({ logo: makeLogo(), primaryTitle: "Northwind" });`,
                 "aria-label": "Northwind (minimal)",
               }).el,
             ),
+          );
+          return wrap;
+        },
+      },
+      {
+        title: "6. Your own search control in the bar",
+        codeTitle: "search: (bar) => …: a command palette's trigger",
+        codeDescription:
+          "The slot takes any control, laid out by the bar where its search field would be. As a function it is told when the bar is compact (where the built-in field would shrink to an icon), so a palette button can drop its label: the second bar is 480px.",
+        code: `ShellBar({
+  logo: makeLogo(),
+  primaryTitle: "Algorisys One",
+  search: (bar) => paletteButton({ compact: bar.compact, onOpen: openPalette }),
+  profile,
+});`,
+        render: () => {
+          const wrap = document.createElement("div");
+          wrap.className = "zen-flex zen-flex-col zen-gap-3";
+          const out = document.createElement("p");
+          out.className = "zen-text-sm zen-text-zen-muted-fg";
+          out.setAttribute("aria-live", "polite");
+          const opened = document.createElement("span");
+          opened.dataset.testid = "palette";
+          opened.textContent = "not opened";
+          out.append("Palette: ", opened);
+          const bar = (width: number, testid: string, from: string) => {
+            const box = frame(
+              width,
+              ShellBar({
+                logo: logo(),
+                primaryTitle: "Algorisys One",
+                search: (b) => paletteButton(b.compact, () => (opened.textContent = from)),
+                profile: PROFILE,
+                "aria-label": `Algorisys One (${width}px)`,
+              }).el,
+            );
+            box.style.maxWidth = "100%";
+            box.dataset.testid = testid;
+            return box;
+          };
+          wrap.append(
+            bar(900, "slot-wide", "from the wide bar"),
+            bar(480, "slot-narrow", "from the narrow bar"),
+            out,
           );
           return wrap;
         },

@@ -31,7 +31,7 @@
  * Usage:  node scripts/vendor-core-types.mjs <binding>
  * Runs as part of each binding's `build:lib`, after `build:types`.
  */
-import { cpSync, existsSync, readFileSync, readdirSync, writeFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, readFileSync, readdirSync, writeFileSync, rmSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { BINDINGS } from "./bindings.mjs";
 
@@ -92,7 +92,9 @@ for (const v of VENDORED) {
   rmSync(target, { recursive: true, force: true });
   cpSync(v.from, target, {
     recursive: true,
-    filter: (src) => src.endsWith(".d.ts") || !src.includes("."),
+    // Directories by asking the filesystem: "no dot in the path" dropped every
+    // file of a checkout under a dotted path (.claude/worktrees/…), vendoring 0.
+    filter: (src) => src.endsWith(".d.ts") || statSync(src).isDirectory(),
   });
   const n = declarations(target).length;
   t(n > 0, `${id}: vendored ${n} declaration(s) into dist/${v.into}`, "copied nothing");

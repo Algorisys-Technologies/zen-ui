@@ -29,6 +29,7 @@ import { Icon } from "../icon/icon";
 import { Input } from "../form/input/input";
 import { Button } from "../button/button";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * TreeTable — a table whose rows form a hierarchy.
@@ -180,10 +181,11 @@ export function TreeTable<TData, TValue = unknown>({
   maxBodyHeight,
   rowClassName,
   onRowClick,
-  emptyMessage = "No results.",
+  emptyMessage,
   loading,
   className,
 }: TreeTableProps<TData, TValue>) {
+  const loc = useLocale();
   const [expandedInner, setExpandedInner] = React.useState<ExpandedState>(defaultExpanded ?? {});
   const [sortingInner, setSortingInner] = React.useState<SortingState>([]);
   const [selectionInner, setSelectionInner] = React.useState<RowSelectionState>({});
@@ -214,7 +216,7 @@ export function TreeTable<TData, TValue = unknown>({
                 : false
           }
           onCheckedChange={(v) => table.toggleAllRowsSelected(v === true)}
-          aria-label="Select all rows"
+          aria-label={loc.t("dataTable.selectAll")}
         />
       ),
       cell: ({ row }) => {
@@ -237,7 +239,7 @@ export function TreeTable<TData, TValue = unknown>({
             // `indeterminate` prop the three states collapse into one value.
             checked={checked ? true : partial ? "indeterminate" : false}
             onCheckedChange={(v) => row.toggleSelected(v === true)}
-            aria-label={`Select row ${row.index + 1}`}
+            aria-label={loc.t("dataTable.selectRow", { n: row.index + 1 })}
           />
         );
       },
@@ -246,7 +248,7 @@ export function TreeTable<TData, TValue = unknown>({
       size: 36,
     };
     return [select, ...columns];
-  }, [columns, enableRowSelection]);
+  }, [columns, enableRowSelection, loc]);
 
   /* ---- lazy children ---- */
   const [loadedKids, setLoadedKids] = React.useState<Record<string, TData[]>>({});
@@ -547,9 +549,9 @@ export function TreeTable<TData, TValue = unknown>({
             <Input
               value={globalFilterState}
               onChange={(e) => table.setGlobalFilter(e.target.value)}
-              placeholder={globalFilterPlaceholder ?? "Search…"}
+              placeholder={globalFilterPlaceholder ?? loc.t("dataTable.search")}
               className="zen-max-w-xs"
-              aria-label="Search"
+              aria-label={loc.t("treeTable.search")}
             />
           )}
           {enableExpandAll && (
@@ -563,7 +565,7 @@ export function TreeTable<TData, TValue = unknown>({
                 name={table.getIsAllRowsExpanded() ? "chevron-down" : "chevron-right"}
                 size={14}
               />
-              {table.getIsAllRowsExpanded() ? "Collapse all" : "Expand all"}
+              {table.getIsAllRowsExpanded() ? loc.t("treeTable.collapseAll") : loc.t("treeTable.expandAll")}
             </Button>
           )}
         </div>
@@ -627,7 +629,7 @@ export function TreeTable<TData, TValue = unknown>({
                 colSpan={table.getVisibleLeafColumns().length}
                 className="zen-h-24 zen-text-center zen-text-zen-muted-fg"
               >
-                {loading ? "Loading…" : emptyMessage}
+                {loading ? loc.t("treeTable.loading") : (emptyMessage ?? loc.t("dataTable.noResults"))}
               </TableCell>
             </TableRow>
           ) : (
@@ -731,22 +733,23 @@ export function TreeTable<TData, TValue = unknown>({
           <p className="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
             {/* Roots, not rows: saying "rows" here would contradict what the
                 user can count on screen the moment anything is expanded. */}
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {Math.max(1, table.getPageCount())}
-            {" · "}
-            {table.getPreFilteredRowModel().rows.filter((r) => r.depth === 0).length} top-level rows
+            {loc.t("treeTable.pageOf", {
+              page: table.getState().pagination.pageIndex + 1,
+              pages: Math.max(1, table.getPageCount()),
+              roots: table.getPreFilteredRowModel().rows.filter((r) => r.depth === 0).length,
+            })}
           </p>
           <div className="zen-flex zen-items-center zen-gap-2">
             {pageSizeOptions?.length ? (
               <select
                 className="zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm"
-                aria-label="Rows per page"
+                aria-label={loc.t("dataTable.rowsPerPage")}
                 value={table.getState().pagination.pageSize}
                 onChange={(e) => table.setPageSize(Number(e.target.value))}
               >
                 {pageSizeOptions.map((n) => (
                   <option key={n} value={n}>
-                    {n} per page
+                    {loc.t("treeTable.perPage", { n })}
                   </option>
                 ))}
               </select>
@@ -757,7 +760,7 @@ export function TreeTable<TData, TValue = unknown>({
               disabled={!table.getCanPreviousPage()}
               onClick={() => table.previousPage()}
             >
-              Previous
+              {loc.t("treeTable.previous")}
             </Button>
             <Button
               variant="outline"
@@ -765,7 +768,7 @@ export function TreeTable<TData, TValue = unknown>({
               disabled={!table.getCanNextPage()}
               onClick={() => table.nextPage()}
             >
-              Next
+              {loc.t("treeTable.next")}
             </Button>
           </div>
         </div>

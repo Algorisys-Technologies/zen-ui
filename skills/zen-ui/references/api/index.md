@@ -15,7 +15,9 @@ real props; guessing prop names is how agents invent APIs.
 - [search.md](search.md) — `Search`, `SearchProps`, `SearchSize`
 - [password-input.md](password-input.md) — `PasswordInput`, `PasswordInputProps`
 - [number-field.md](number-field.md) — `NumberField`, `NumberFieldProps`
+- [amount-field.md](amount-field.md) — `AmountField`, `QuantityField`, `AmountFieldProps`, `QuantityFieldProps`
 - [date-picker.md](date-picker.md) — `DatePicker`, `Calendar`, `DatePickerProps`, `CalendarProps`
+- [date-input.md](date-input.md) — `DateInput`, `isTypedDate`, `DateInputProps`, `DateOrder`
 - [rating.md](rating.md) — `Rating`, `RatingProps`
 - [nps.md](nps.md) — `NPS`, `NPSProps`
 - [likert.md](likert.md) — `Likert`, `LikertProps`, `LikertOption`
@@ -23,6 +25,7 @@ real props; guessing prop names is how agents invent APIs.
 - [date-range-picker.md](date-range-picker.md) — `DateRangePicker`, `DateRangePickerProps`, `DateRange`
 - [time-picker.md](time-picker.md) — `TimePicker`, `TimePickerProps`
 - [date-time-picker.md](date-time-picker.md) — `DateTimePicker`, `DateTimePickerProps`
+- [barcode.md](barcode.md) — `QRCode`, `Barcode`, `QRCodeProps`, `BarcodeProps`, `BarcodeFormat`, `QrEcc`
 - [qr-scanner.md](qr-scanner.md) — `QRScanner`, `QRScannerProps`, `QRScannerScan`
 - [notifications-inbox.md](notifications-inbox.md) — `NotificationsInbox`, `NotificationsInboxProps`, `Notification`
 - [color-picker.md](color-picker.md) — `ColorPicker`, `ColorPickerProps`
@@ -52,12 +55,15 @@ real props; guessing prop names is how agents invent APIs.
 - [page.md](page.md) — `Page`, `Bar`, `PageProps`, `BarProps`
 - [page-header.md](page-header.md) — `PageHeader`, `PageHeaderProps`
 - [toolbar.md](toolbar.md) — `Toolbar`, `ToolbarProps`, `ToolbarAction`
+- [document-tabs.md](document-tabs.md) — `DocumentTabs`, `DocumentTabsProps`, `DocumentTab`
+- [view-manager.md](view-manager.md) — `ViewManager`, `ViewManagerProps`, `SavedView`
 - [skip-to-content.md](skip-to-content.md) — `SkipToContent`, `SKIP_TO_CONTENT_CLASS`, `SkipToContentProps`
 - [shellbar.md](shellbar.md) — `ShellBar`, `ShellBarProps`, `ShellBarItem`, `ShellBarMenuItem`, `ShellBarProfile`
 - [flexible-column-layout.md](flexible-column-layout.md) — `FlexibleColumnLayout`, `FlexibleColumnLayoutProps`, `FlexibleColumnLayoutType`, `FlexibleColumnLayoutChangeDetail`, `FlexibleColumnName`
 - [dynamic-page.md](dynamic-page.md) — `DynamicPage`, `DynamicPageTitle`, `DynamicPageHeader`, `DynamicPageFooter`, `DynamicPageProps`, `DynamicPageTitleProps`, `DynamicPageHeaderProps`, `DynamicPageFooterProps`
 - [view-settings-dialog.md](view-settings-dialog.md) — `ViewSettingsDialog`, `ViewSettingsDialogProps`, `ViewSettingsValue`, `ViewSettingsItem`, `ViewSettingsFilterGroup`
 - [filter-bar.md](filter-bar.md) — `FilterBar`, `FilterBarProps`, `FilterBarField`
+- [filter-builder.md](filter-builder.md) — `FilterBuilder`, `FilterBuilderProps`, `FilterField`, `FilterGroup`, `FilterNode`, `FilterCondition`, `FilterOperator`
 - [value-help.md](value-help.md) — `ValueHelp`, `ValueHelpProps`, `ValueHelpCondition`, `ValueHelpOperator`, `ValueHelpResult`
 - [select-dialog.md](select-dialog.md) — `SelectDialog`, `SelectDialogProps`, `SelectDialogItem`
 - [object-page.md](object-page.md) — `ObjectPageLayout`, `ObjectPageLayoutProps`, `ObjectPageSection`, `ObjectPageSubSection`
@@ -74,6 +80,8 @@ real props; guessing prop names is how agents invent APIs.
 - [button.md](button.md) — `Button`, `buttonVariants`, `ButtonProps`
 - [tooltip.md](tooltip.md) — `Tooltip`, `TooltipTrigger`, `TooltipContent`, `TooltipProvider`, `TooltipPortal`, `TooltipContentProps`
 - [dropdown-menu.md](dropdown-menu.md) — `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuCheckboxItem`, `DropdownMenuRadioItem`, `DropdownMenuLabel`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuGroup`, `DropdownMenuPortal`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuRadioGroup`
+- [shortcuts.md](shortcuts.md) — `ShortcutProvider`, `ShortcutHelp`, `Kbd`, `useShortcut`, `useShortcuts`, `keyshortcut`, `shortcutLabel`, `detectPlatform`, `ShortcutOptions`, `ShortcutProviderProps`, `ShortcutHelpProps`, `ShortcutHelpGroup`, `KbdProps`
+- [context-menu.md](context-menu.md) — `ContextMenu`, `ContextMenuTrigger`, `ContextMenuContent`, `ContextMenuItem`, `ContextMenuCheckboxItem`, `ContextMenuRadioItem`, `ContextMenuLabel`, `ContextMenuSeparator`, `ContextMenuShortcut`, `ContextMenuGroup`, `ContextMenuPortal`, `ContextMenuSub`, `ContextMenuSubContent`, `ContextMenuSubTrigger`, `ContextMenuRadioGroup`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ContextMenuContentProps`, `ContextMenuItemProps`, `ContextMenuCheckboxItemProps`, `ContextMenuRadioItemProps`
 - [fab.md](fab.md) — `FAB`, `FABProps`
 - [form.md](form.md) — `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage`, `useFormField`
 - [bound-fields.md](bound-fields.md) — `BoundInput`, `BoundTextarea`, `BoundSelect`, `BoundCheckbox`, `BoundSwitch`, `BoundRadioGroup`, `BoundSlider`, `BoundInputProps`, `BoundTextareaProps`, `BoundSelectProps`, `BoundCheckboxProps`, `BoundSwitchProps`, `BoundRadioGroupProps`, `BoundSliderProps`, `BoundSelectOption`, `SelectOption`
@@ -88,9 +96,11 @@ real props; guessing prop names is how agents invent APIs.
 - [theme-theme.md](theme-theme.md) — `Theme`, `ThemeProps`
 - [message-popover.md](message-popover.md) — `MessagePopover`, `Message`, `MessageType`, `MessagePopoverProps`
 - [direction.md](direction.md) — `DirectionProvider`, `Direction`, `DirectionProviderProps`
+- [locale.md](locale.md) — `LocaleProvider`, `useLocale`, `LocaleProviderProps`, `LocaleContextValue`, `MessageKey`, `ZenMessages`
 - [card.md](card.md) — `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `cardVariants`, `CardProps`
 - [stat-card.md](stat-card.md) — `StatCard`, `StatCardProps`, `StatCardTrend`, `StatCardColor`
 - [card.selectable.md](card.selectable.md) — `SelectableCard`, `SelectableCardGroup`, `SelectableCardProps`
+- [tile.md](tile.md) — `Tile`, `TileGrid`, `TileProps`, `TileGridProps`
 - [paper.md](paper.md) — `Paper`, `PaperHeader`, `PaperTitle`, `PaperDescription`, `PaperContent`, `PaperFooter`, `PaperProps`, `PaperTitleProps`
 - [accordion.md](accordion.md) — `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`
 - [collapsible.md](collapsible.md) — `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent`
@@ -101,7 +111,7 @@ real props; guessing prop names is how agents invent APIs.
 - [alert.md](alert.md) — `Alert`, `AlertIcon`, `AlertContent`, `AlertTitle`, `AlertDescription`, `AlertActions`, `AlertClose`, `alertVariants`, `AlertProps`, `AlertCloseProps`
 - [lib-theme.md](lib-theme.md) — `useTheme`, `applyTheme`, `getInitialTheme`, `THEMES`, `ThemeName`, `ThemeDescriptor`
 - [table.md](table.md) — `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableHead`, `TableRow`, `TableCell`, `TableCaption`, `TableProps`
-- [data-table.md](data-table.md) — `DataTable`, `DataTableProps`, `DataTableManualPagination`
+- [data-table.md](data-table.md) — `DataTable`, `DataTableProps`, `DataTableManualPagination`, `DataTableMenuTarget`
 - [url-data-table.md](url-data-table.md) — `UrlDataTable`, `parseSortParam`, `serializeSortParam`, `parseFilterParam`, `serializeFilterParam`, `UrlDataTableProps`, `UrlDataTableColumn`, `UrlDataTableFilter`, `UrlDataTableFilterOption`, `UrlDataTableParamNames`
 - [tree-table.md](tree-table.md) — `TreeTable`, `TreeTableProps`
 - [planning-calendar.md](planning-calendar.md) — `PlanningCalendar`, `PlanningCalendarProps`, `PlanningRow`, `PlanningAppointment`, `PlanningAppointmentState`
@@ -135,11 +145,13 @@ real props; guessing prop names is how agents invent APIs.
 - [micro-chart.md](micro-chart.md) — `MicroLineChart`, `MicroBarChart`, `MicroBulletChart`, `MicroDeltaChart`, `MicroRadialChart`, `MicroChartColor`, `MicroLineChartProps`, `MicroBarChartProps`, `MicroBulletChartProps`, `MicroDeltaChartProps`, `MicroRadialChartProps`
 - [virtualized-items.md](virtualized-items.md) — `VirtualizedItems`, `VirtualizedItemsProps`, `VirtualizedItemsDenseProps`, `VirtualizedItemsSparseProps`
 - [combobox.md](combobox.md) — `Combobox`, `ComboboxOption`, `ComboboxProps`
+- [tree-select.md](tree-select.md) — `TreeSelect`, `TreeSelectProps`, `TreeSelectNode`
+- [lookup-field.md](lookup-field.md) — `LookupField`, `LookupFieldProps`, `LookupColumn`
 - [multi-combobox.md](multi-combobox.md) — `MultiCombobox`, `MultiComboboxProps`
 - [command.md](command.md) — `Command`, `CommandInput`, `CommandList`, `CommandEmpty`, `CommandLoading`, `CommandGroup`, `CommandItem`, `CommandSeparator`
 - [breadcrumb.md](breadcrumb.md) — `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`, `BreadcrumbSeparator`, `BreadcrumbEllipsis`
 - [pagination.md](pagination.md) — `Pagination`, `usePaginationRange`, `PaginationProps`
-- [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
+- [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarHeaderLabel`, `SidebarMenuBadge`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
 - [chart-chart.md](chart-chart.md) — `Chart`, `ChartProps`, `ChartSeries`
 - [zen-ui-core-chart.md](zen-ui-core-chart.md) — `Slice`, `CHART_PALETTE`
 - [rich-text.md](rich-text.md) — `renderMath`, `RichText`, `RichTextProps`

@@ -10,6 +10,7 @@ import "./elements"; // registers every <zen-*> custom element
 
 import { applyTheme, getInitialTheme } from "@algorisys/zen-ui-core/theme";
 import { NAV } from "./nav";
+import { navTag } from "./components/NavTag";
 import { ThemeSwitcher } from "./components/theme-switcher";
 import { ReleaseNotes } from "./components/ReleaseNotes";
 import Welcome from "./components/Welcome";
@@ -21,11 +22,14 @@ import CollapsibleDemo from "./components/CollapsibleDemo";
 import LabelDemo from "./components/LabelDemo";
 import TabsDemo from "./components/TabsDemo";
 import DialogDemo from "./components/DialogDemo";
+import ShortcutsDemo from "./components/ShortcutsDemo";
 import InputDemo from "./components/InputDemo";
 import SearchDemo from "./components/SearchDemo";
 import PasswordInputDemo from "./components/PasswordInputDemo";
 import SelectDemo from "./components/SelectDemo";
 import ComboboxDemo from "./components/ComboboxDemo";
+import TreeSelectDemo from "./components/TreeSelectDemo";
+import LookupFieldDemo from "./components/LookupFieldDemo";
 import SeparatorDemo from "./components/SeparatorDemo";
 import ProgressDemo from "./components/ProgressDemo";
 import LoadingDemo from "./components/LoadingDemo";
@@ -33,10 +37,12 @@ import SkeletonDemo from "./components/SkeletonDemo";
 import AvatarDemo from "./components/AvatarDemo";
 import LinkDemo from "./components/LinkDemo";
 import ThemeDemo from "./components/ThemeDemo";
+import LocaleDemo from "./components/LocaleDemo";
 import DirectionDemo from "./components/DirectionDemo";
 import MessagePopoverDemo from "./components/MessagePopoverDemo";
 import StackDemo from "./components/StackDemo";
 import StatCardDemo from "./components/StatCardDemo";
+import TileDemo from "./components/TileDemo";
 import CardDemo from "./components/CardDemo";
 import PaperDemo from "./components/PaperDemo";
 import EmptyStateDemo from "./components/EmptyStateDemo";
@@ -49,6 +55,7 @@ import ObjectDemo from "./components/ObjectDemo";
 import SwitchDemo from "./components/SwitchDemo";
 import PageHeaderDemo from "./components/PageHeaderDemo";
 import NumberFieldDemo from "./components/NumberFieldDemo";
+import AmountFieldDemo from "./components/AmountFieldDemo";
 import TextareaDemo from "./components/TextareaDemo";
 import SliderDemo from "./components/SliderDemo";
 import CheckboxDemo from "./components/CheckboxDemo";
@@ -70,8 +77,10 @@ import RatingDemo from "./components/RatingDemo";
 import ScrollAreaDemo from "./components/ScrollAreaDemo";
 import StepperDemo from "./components/StepperDemo";
 import ToolbarDemo from "./components/ToolbarDemo";
+import DocumentTabsDemo from "./components/DocumentTabsDemo";
 import CarouselDemo from "./components/CarouselDemo";
 import DropdownMenuDemo from "./components/DropdownMenuDemo";
+import ContextMenuDemo from "./components/ContextMenuDemo";
 import FileUploadDemo from "./components/FileUploadDemo";
 import ColorPickerDemo from "./components/ColorPickerDemo";
 import MultiComboboxDemo from "./components/MultiComboboxDemo";
@@ -79,6 +88,7 @@ import ShellBarDemo from "./components/ShellBarDemo";
 import SkipToContentDemo from "./components/SkipToContentDemo";
 import SidebarDemo from "./components/SidebarDemo";
 import DatePickerDemo from "./components/DatePickerDemo";
+import DateInputDemo from "./components/DateInputDemo";
 import NotificationsInboxDemo from "./components/NotificationsInboxDemo";
 import VirtualizedItemsDemo from "./components/VirtualizedItemsDemo";
 import FilterBarDemo from "./components/FilterBarDemo";
@@ -89,6 +99,8 @@ import DateTimePickerDemo from "./components/DateTimePickerDemo";
 import DateRangePickerDemo from "./components/DateRangePickerDemo";
 import DynamicPageDemo from "./components/DynamicPageDemo";
 import ViewSettingsDemo from "./components/ViewSettingsDemo";
+import FilterBuilderDemo from "./components/FilterBuilderDemo";
+import ViewManagerDemo from "./components/ViewManagerDemo";
 import SelectableCardDemo from "./components/SelectableCardDemo";
 import ObjectPageLayoutDemo from "./components/ObjectPageLayoutDemo";
 import DynamicDateRangeDemo from "./components/DynamicDateRangeDemo";
@@ -96,6 +108,7 @@ import ToastDemo from "./components/ToastDemo";
 import RichTextDemo from "./components/RichTextDemo";
 import CameraDemo from "./components/CameraDemo";
 import QRScannerDemo from "./components/QRScannerDemo";
+import BarcodeDemo from "./components/BarcodeDemo";
 import MapDemo from "./components/MapDemo";
 import ChartDemo from "./components/ChartDemo";
 import DataTableDemo from "./components/DataTableDemo";
@@ -141,6 +154,8 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/password-input": PasswordInputDemo,
   "/select": SelectDemo,
   "/combobox": ComboboxDemo,
+  "/tree-select": TreeSelectDemo,
+  "/lookup-field": LookupFieldDemo,
   "/separator": SeparatorDemo,
   "/progress": ProgressDemo,
   "/loading": LoadingDemo,
@@ -148,10 +163,12 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/avatar": AvatarDemo,
   "/link": LinkDemo,
   "/theme": ThemeDemo,
+  "/localization": LocaleDemo,
   "/direction": DirectionDemo,
   "/message-popover": MessagePopoverDemo,
   "/stack": StackDemo,
   "/stat-card": StatCardDemo,
+  "/tile": TileDemo,
   "/card": CardDemo,
   "/paper": PaperDemo,
   "/empty-state": EmptyStateDemo,
@@ -164,6 +181,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/switch": SwitchDemo,
   "/page-header": PageHeaderDemo,
   "/number-field": NumberFieldDemo,
+  "/amount-field": AmountFieldDemo,
   "/textarea": TextareaDemo,
   "/slider": SliderDemo,
   "/checkbox": CheckboxDemo,
@@ -185,14 +203,17 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/scroll-area": ScrollAreaDemo,
   "/stepper": StepperDemo,
   "/toolbar": ToolbarDemo,
+  "/document-tabs": DocumentTabsDemo,
   "/carousel": CarouselDemo,
   "/dropdown-menu": DropdownMenuDemo,
+  "/context-menu": ContextMenuDemo,
   "/file-upload": FileUploadDemo,
   "/color-picker": ColorPickerDemo,
   "/multi-combobox": MultiComboboxDemo,
   "/skip-to-content": SkipToContentDemo,
   "/shellbar": ShellBarDemo,
   "/sidebar": SidebarDemo,
+  "/date-input": DateInputDemo,
   "/date-picker": DatePickerDemo,
   "/notifications-inbox": NotificationsInboxDemo,
   "/virtualized-items": VirtualizedItemsDemo,
@@ -204,12 +225,16 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/date-range-picker": DateRangePickerDemo,
   "/dynamic-page": DynamicPageDemo,
   "/view-settings": ViewSettingsDemo,
+  "/filter-builder": FilterBuilderDemo,
+  "/view-manager": ViewManagerDemo,
   "/selectable-card": SelectableCardDemo,
   "/object-page": ObjectPageLayoutDemo,
   "/dynamic-date-range": DynamicDateRangeDemo,
   "/toast": ToastDemo,
+  "/shortcuts": ShortcutsDemo,
   "/rich-text": RichTextDemo,
   "/camera": CameraDemo,
+  "/barcode": BarcodeDemo,
   "/qr-scanner": QRScannerDemo,
   "/map": MapDemo,
   "/chart": ChartDemo,
@@ -386,6 +411,8 @@ function shell() {
           `sidebar-link ${isActive ? "sidebar-link-active" : "sidebar-link-inactive"}`,
           item.label,
         );
+        const tag = navTag(item, "zen-ml-1.5");
+        if (tag) a.append(tag);
         a.href = `${BASE}${item.to}`;
         a.dataset.route = item.to;
         if (isActive) a.setAttribute("aria-current", "page");

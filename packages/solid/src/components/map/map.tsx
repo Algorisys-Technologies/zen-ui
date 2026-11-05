@@ -11,6 +11,7 @@ import {
 } from "solid-js";
 import { render } from "solid-js/web";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Map — Leaflet map wrapping `leaflet` (an OPTIONAL peer dependency).
@@ -49,6 +50,7 @@ const DEFAULT_ATTR = "&copy; OpenStreetMap contributors";
 const cssLength = (v: number | string) => (typeof v === "number" ? `${v}px` : v);
 
 export const Map = (props: MapProps) => {
+  const loc = useLocale();
   const merged = mergeProps(
     {
       zoom: 13,
@@ -145,8 +147,9 @@ export const Map = (props: MapProps) => {
           style={{ height: cssLength(merged.height) }}
           role={status() === "failed" ? "alert" : undefined}
         >
-          <Show when={status() === "failed"} fallback="Loading map…">
+          <Show when={status() === "failed"} fallback={loc.t("map.loading")}>
             <span>
+              {/* i18n-ignore-next-line (a developer notice: install instructions) */}
               <code>leaflet</code> is not installed. Run <code>npm install leaflet</code> and import{" "}
               <code>leaflet/dist/leaflet.css</code> to use <code>&lt;Map&gt;</code>.
             </span>

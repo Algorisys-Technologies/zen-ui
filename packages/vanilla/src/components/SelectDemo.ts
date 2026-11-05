@@ -81,6 +81,27 @@ export default function SelectDemo(): HTMLElement {
         code: `Select({ disabled: true, placeholder: "Unavailable", options })`,
         render: () => box(Select({ disabled: true, placeholder: "Unavailable", options: FRUIT }).el),
       },
+      {
+        title: "5. Invalid without a message",
+        codeTitle: "invalid: the form shows its own message",
+        codeDescription:
+          "errorMessage marks the select invalid and prints the message under it; invalid marks it alone, for a form that lays out its messages itself.",
+        code: `Select({ options: terms, placeholder: "Payment terms", invalid: true })`,
+        render: () => {
+          const d = box(
+            Select({
+              options: [
+                { value: "net30", label: "Net 30" },
+                { value: "net60", label: "Net 60" },
+              ],
+              placeholder: "Payment terms",
+              invalid: true,
+            }).el,
+          );
+          d.dataset.testid = "select-invalid";
+          return d;
+        },
+      },
     ],
   });
 }

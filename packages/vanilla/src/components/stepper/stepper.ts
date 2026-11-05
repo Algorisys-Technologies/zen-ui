@@ -9,6 +9,7 @@ import {
 } from "../../lib/component";
 import { controllable } from "../../lib/state";
 import { Button } from "../button/button";
+import { useLocale } from "../locale/locale";
 
 /**
  * Stepper / Wizard — the vanilla port of the React reference.
@@ -136,6 +137,7 @@ const checkIcon = (): Node => {
 
 export function Stepper(props: StepperProps): StepperHandle {
   let current: StepperProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
 
@@ -261,11 +263,15 @@ export function Stepper(props: StepperProps): StepperHandle {
     /* ------------------------------ list ------------------------------ */
     const ol = document.createElement("ol");
     ol.className = cn(
+      // zen-ui ships no list reset (the preflight is opt-in and does not touch
+      // lists), so the list's own margin, indent and markers are reset here:
+      // measured, it stood 40px in with a 16px margin.
+      "zen-m-0 zen-list-none zen-p-0",
       horizontal()
         ? "zen-flex zen-items-center zen-gap-2 zen-w-full"
         : "zen-flex zen-flex-col zen-gap-1 zen-min-w-[14rem] zen-shrink-0",
     );
-    ol.setAttribute("aria-label", "Steps");
+    ol.setAttribute("aria-label", loc.t("stepper.steps"));
 
     current.steps.forEach((step, i) => {
       const isLastStep = i === current.steps.length - 1;
@@ -368,9 +374,9 @@ export function Stepper(props: StepperProps): StepperHandle {
     const {
       onBeforeNext,
       onSubmit,
-      backLabel = "Back",
-      nextLabel = "Continue",
-      submitLabel = "Submit",
+      backLabel = loc.t("stepper.back"),
+      nextLabel = loc.t("stepper.continue"),
+      submitLabel = loc.t("stepper.submit"),
       hideBackOnFirst = true,
     } = opts;
 
@@ -445,7 +451,12 @@ export function Stepper(props: StepperProps): StepperHandle {
       ref.button.disabled = !clickable;
       ref.button.setAttribute(
         "aria-label",
-        `${ref.step.label ?? ref.step.value}, step ${ref.index + 1} of ${current.steps.length}, ${status}`,
+        loc.t("stepper.stepLabel", {
+          label: ref.step.label ?? ref.step.value,
+          n: ref.index + 1,
+          count: current.steps.length,
+          status: loc.t(`stepper.status.${status}`),
+        }),
       );
       ref.button.className = cn(
         "zen-flex zen-items-start zen-gap-2 zen-text-start zen-min-w-0",

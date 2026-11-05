@@ -8,6 +8,7 @@ import {
   type Slice,
 } from "@algorisys/zen-ui-core/chart";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Chart — thin wrapper over `recharts` (an OPTIONAL peer dependency). Lazy-loads
@@ -77,6 +78,7 @@ export const Chart = ({
   height = 300,
   className,
 }: ChartProps) => {
+  const loc = useLocale();
   const [rc, setRc] = React.useState<any>(null);
   const [failed, setFailed] = React.useState(false);
 
@@ -111,8 +113,10 @@ export const Chart = ({
         )}
         style={{ height }}
       >
+        {/* i18n-ignore-start: a developer install notice (add the peer dependency), not a word for end users */}
         Chart needs the optional peer dependency <code className="zen-mx-1">recharts</code> — install
         it to render this.
+        {/* i18n-ignore-end */}
       </div>
     );
   }
@@ -126,7 +130,7 @@ export const Chart = ({
         )}
         style={{ height }}
       >
-        Loading chart…
+        {loc.t("chart.loading")}
       </div>
     );
   }
@@ -156,7 +160,7 @@ export const Chart = ({
             reader, so the numbers are published as a real table underneath. */}
         <div
           role="img"
-          aria-label={describeSlices(slices, type === "donut" ? "Donut chart" : "Pie chart")}
+          aria-label={describeSlices(slices, type === "donut" ? loc.t("chart.donut") : loc.t("chart.pie"))}
           style={{ width: "100%", height: "calc(100% - 28px)" }}
         >
           <ResponsiveContainer width="100%" height="100%">
@@ -259,14 +263,16 @@ const SliceLegend: React.FC<{ slices: Slice[] }> = ({ slices }) => (
  * back to one. A table they can. This is the difference between a pie chart
  * being described and being readable.
  */
-const SliceTable: React.FC<{ slices: Slice[]; labelHeader: string }> = ({ slices, labelHeader }) => (
+const SliceTable: React.FC<{ slices: Slice[]; labelHeader: string }> = ({ slices, labelHeader }) => {
+  const loc = useLocale();
+  return (
   <table className="zen-sr-only">
-    <caption>Chart data</caption>
+    <caption>{loc.t("chart.data")}</caption>
     <thead>
       <tr>
         <th scope="col">{labelHeader}</th>
-        <th scope="col">Value</th>
-        <th scope="col">Share</th>
+        <th scope="col">{loc.t("chart.value")}</th>
+        <th scope="col">{loc.t("chart.share")}</th>
       </tr>
     </thead>
     <tbody>
@@ -279,4 +285,5 @@ const SliceTable: React.FC<{ slices: Slice[]; labelHeader: string }> = ({ slices
       ))}
     </tbody>
   </table>
-);
+  );
+};

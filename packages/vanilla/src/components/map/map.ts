@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { cn } from "../../lib/cn";
 import { Disposer, toNodes, type Child, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * Map — Leaflet map. `leaflet` is an OPTIONAL peer dependency, dynamically
@@ -31,7 +32,7 @@ export interface MapProps {
 }
 
 const DEFAULT_TILES = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-const DEFAULT_ATTR = "&copy; OpenStreetMap contributors";
+const DEFAULT_ATTR = "&copy; OpenStreetMap contributors"; // i18n-ignore (the tile licence's required attribution)
 
 const LOADING_CLASS =
   "zen-flex zen-items-center zen-justify-center zen-rounded-zen-md zen-border zen-border-zen-border zen-text-sm zen-text-zen-muted-fg";
@@ -49,12 +50,13 @@ function popupContent(label: Child): HTMLElement {
 
 export function Map(props: MapProps): ZenComponent<MapProps> {
   let current: MapProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const el = document.createElement("div");
   el.className = cn(LOADING_CLASS, current.class);
   el.style.height = cssHeight(current.height ?? 320);
-  el.textContent = "Loading map…";
+  el.textContent = loc.t("map.loading");
 
   let map: any = null;
   let tileLayer: any = null;

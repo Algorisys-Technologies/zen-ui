@@ -4,6 +4,7 @@ import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
 import { Select } from "../form/select/select";
+import { useLocale } from "../locale/locale";
 
 /**
  * Inline cell editing for the Solid DataTable. Mirrors the React
@@ -218,6 +219,7 @@ export interface EditableCellProps<TData> {
 }
 
 export function EditableCell<TData>(props: EditableCellProps<TData>) {
+  const loc = useLocale();
   const meta = () =>
     props.cell.column.columnDef.meta as
       | {
@@ -263,11 +265,12 @@ export function EditableCell<TData>(props: EditableCellProps<TData>) {
             }}
             tabIndex={0}
             role="button"
-            aria-label={`Edit ${
-              typeof props.cell.column.columnDef.header === "string"
-                ? props.cell.column.columnDef.header
-                : props.cell.column.id
-            }`}
+            aria-label={loc.t("dataTable.editCell", {
+              column:
+                typeof props.cell.column.columnDef.header === "string"
+                  ? props.cell.column.columnDef.header
+                  : props.cell.column.id,
+            })}
             class={cn(
               "zen-w-full zen-h-full zen-inline-flex zen-items-center zen-cursor-text",
               "zen-rounded-zen-sm",

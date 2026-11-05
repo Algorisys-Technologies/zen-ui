@@ -5,6 +5,7 @@ import { Button } from "../button/button";
 import { Input, type InputHandle } from "../form/input/input";
 import { Icon } from "../icon/icon";
 import { arrowStep } from "@algorisys/zen-ui-core";
+import { useLocale } from "../locale/locale";
 
 /**
  * TreeTable — a table whose rows form a hierarchy.
@@ -135,6 +136,7 @@ const defaultCompare = (a: unknown, b: unknown): number => {
 
 export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<TreeTableProps<TData>> {
   let current = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const kids = (row: TData): TData[] => {
@@ -403,9 +405,9 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     if (current.enableGlobalFilter) {
       searchInput = Input({
         value: query,
-        placeholder: current.globalFilterPlaceholder ?? "Search…",
+        placeholder: current.globalFilterPlaceholder ?? loc.t("dataTable.search"),
         class: "zen-max-w-xs",
-        "aria-label": "Search",
+        "aria-label": loc.t("treeTable.search"),
         onInput: (e: Event) => {
           query = (e.target as HTMLInputElement).value;
           render({ keepFocus: "search" });
@@ -421,7 +423,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
         size: "sm",
         children: [
           Icon({ name: all ? "chevron-down" : "chevron-right", size: 14 }).el,
-          document.createTextNode(all ? "Collapse all" : "Expand all"),
+          document.createTextNode(loc.t(all ? "treeTable.collapseAll" : "treeTable.expandAll")),
         ],
         onClick: () => {
           if (isAllExpanded()) expanded.clear();
@@ -474,7 +476,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
             current.onRowSelectionChange?.([...selected]);
             render();
           },
-          "aria-label": "Select all rows",
+          "aria-label": loc.t("dataTable.selectAll"),
         }).el,
       );
       tr.append(th);
@@ -538,7 +540,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
       const td = document.createElement("td");
       td.colSpan = colCount();
       td.className = "zen-h-24 zen-p-2 zen-text-center zen-align-middle zen-text-zen-muted-fg";
-      td.textContent = current.loading ? "Loading…" : (current.emptyMessage ?? "No results.");
+      td.textContent = current.loading ? loc.t("treeTable.loading") : (current.emptyMessage ?? loc.t("dataTable.noResults"));
       tr.append(td);
       tbody.append(tr);
       return;
@@ -638,7 +640,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
           Checkbox({
             checked: state === "checked" ? true : state === "indeterminate" ? "indeterminate" : false,
             onCheckedChange: (v) => toggleRow(row, v === true),
-            "aria-label": `Select row ${row.pos}`,
+            "aria-label": loc.t("dataTable.selectRow", { n: row.pos }),
           }).el,
         );
         td.addEventListener("click", (e) => e.stopPropagation());
@@ -813,7 +815,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     expandAllBtn.el.setAttribute("aria-expanded", String(all));
     expandAllBtn.el.replaceChildren(
       Icon({ name: all ? "chevron-down" : "chevron-right", size: 14 }).el,
-      document.createTextNode(all ? "Collapse all" : "Expand all"),
+      document.createTextNode(loc.t(all ? "treeTable.collapseAll" : "treeTable.expandAll")),
     );
   };
 
@@ -882,7 +884,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     label.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
     // Roots, not rows: saying "rows" would contradict what the user can count
     // on screen the moment anything is expanded.
-    label.textContent = `Page ${pageIndex + 1} of ${pageCount()} · ${rootCount} top-level rows`;
+    label.textContent = loc.t("treeTable.pageOf", { page: pageIndex + 1, pages: pageCount(), roots: rootCount });
     pager.append(label);
 
     const controls = document.createElement("div");
@@ -892,11 +894,11 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
       const sel = document.createElement("select");
       sel.className =
         "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-sm";
-      sel.setAttribute("aria-label", "Rows per page");
+      sel.setAttribute("aria-label", loc.t("dataTable.rowsPerPage"));
       for (const n of current.pageSizeOptions) {
         const o = document.createElement("option");
         o.value = String(n);
-        o.textContent = `${n} per page`;
+        o.textContent = loc.t("treeTable.perPage", { n });
         if (n === pageSize) o.selected = true;
         sel.append(o);
       }
@@ -923,8 +925,8 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
       });
       controls.append(btn.el);
     };
-    step(-1, "Previous", pageIndex === 0);
-    step(1, "Next", pageIndex >= pageCount() - 1);
+    step(-1, loc.t("treeTable.previous"), pageIndex === 0);
+    step(1, loc.t("treeTable.next"), pageIndex >= pageCount() - 1);
 
     pager.append(controls);
   };

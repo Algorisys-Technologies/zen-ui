@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { NAV } from "../nav";
+import { NavTag } from "./NavTag";
 import { useTheme } from "../lib/theme";
 
 /**
@@ -125,8 +126,9 @@ const Welcome = () => {
                 >
                   <CardPreview route={item.to} />
                   <div className="zen-p-4">
-                    <div className="zen-text-sm zen-font-semibold zen-text-zen-foreground">
+                    <div className="zen-flex zen-items-center zen-gap-2 zen-text-sm zen-font-semibold zen-text-zen-foreground">
                       {item.label}
+                      <NavTag item={item} />
                     </div>
                     <p className="zen-mb-0 zen-mt-1 zen-text-xs zen-leading-relaxed zen-text-zen-muted-fg">
                       {item.description}

@@ -29,16 +29,33 @@ const DATA_DRIVEN_DIVERGENT = [
   "BannerDescription", "BannerTitle", "CalendarMode", "CalendarSelected", "CameraHandle", "CheckboxHandle",
   "CheckedState", "Child", "CollapsibleContent", "CollapsibleTrigger", "Command", "CommandEmpty", "CommandGroup", "CommandInput",
   "CommandItem", "CommandList", "CommandLoading", "CommandSeparator", "DEFAULT_EMAIL_DOMAINS", "DataTableCellContext",
-  "DataTableColumn", "DateTimePickerHandle", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter",
+  // DataTableColumnMeta is the vanilla column's `meta` (React types its ColumnDef meta by
+  // augmenting TanStack's ColumnMeta, which a hand-written column has no TanStack to augment).
+  "DataTableColumn", "DataTableColumnMeta", "DateTimePickerHandle", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter",
   "DialogHandle", "DialogHeader", "DialogOverlay", "DialogPortal", "DialogTitle", "DialogTrigger",
   "DropdownMenuActionItem", "DropdownMenuAlign", "DropdownMenuCheckboxItem", "DropdownMenuCheckboxItemSpec", "DropdownMenuContent", "DropdownMenuGroup",
   "DropdownMenuHandle", "DropdownMenuItem", "DropdownMenuItemSpec", "DropdownMenuLabel", "DropdownMenuLabelItem", "DropdownMenuPortal",
   "DropdownMenuRadioGroup", "DropdownMenuRadioGroupSpec", "DropdownMenuRadioItem", "DropdownMenuRadioOption", "DropdownMenuSeparator", "DropdownMenuSeparatorItem",
   "DropdownMenuShortcut", "DropdownMenuSide", "DropdownMenuSub", "DropdownMenuSubContent", "DropdownMenuSubSpec", "DropdownMenuSubTrigger",
   "DropdownMenuTrigger", "FieldApi", "FieldState", "Form", "FormControl", "FormController",
+  // ContextMenu (parity A3), same decision as DropdownMenu above and for the same
+  // reason: React's compound parts are wired through context, and with no
+  // framework there is none, so ContextMenu takes the SAME `items` specs as
+  // DropdownMenu (one renderer, one look). Its `el` is React's ContextMenuTrigger;
+  // the rest are rows of data, and `ContextMenuHandle` is the returned handle.
+  "ContextMenuCheckboxItem", "ContextMenuContent", "ContextMenuGroup", "ContextMenuHandle", "ContextMenuItem",
+  "ContextMenuLabel", "ContextMenuPortal", "ContextMenuRadioGroup", "ContextMenuRadioItem", "ContextMenuSeparator",
+  "ContextMenuShortcut", "ContextMenuSub", "ContextMenuSubContent", "ContextMenuSubTrigger", "ContextMenuTrigger",
   "FormErrors", "FormFieldConfig", "FormOptions", "FormSchema", "INPUT_CLASS", "IconHandle",
   "NATIVE_SELECT_CLASS", "NativeSelectOption",
   "InputHandle", "InputOTPGroup", "InputOTPSeparator", "InputOTPSlot", "MaskInputHandle", "NotificationsInboxHandle",
+  // AmountField / QuantityField return a handle like NumberField's (parity A1).
+  "AmountFieldHandle", "QuantityFieldHandle",
+  // LocaleProvider's settings without its children (unit S): what provideLocale()
+  // takes, which <zen-locale-provider> is built on. React and Solid have a
+  // context, so a provider never needs to be an element they hand a setting to.
+  "LocaleSettings",
+  "ShortcutHelpHandle", "ShortcutRegistry",
   "NumberFieldHandle", "PasswordInputHandle", "PopoverAlign", "PopoverAnchor", "PopoverContent", "PopoverHandle", "PopoverSide",
   "PopoverTrigger", "RatingSize", "SearchHandle", "SelectDialogHandle", "SelectableCard", "SelectableCardItemSpec", "SheetClose",
   "SheetContent", "SheetDescription", "SheetFooter", "SheetHandle", "SheetHeader", "SheetOverlay",
@@ -58,7 +75,7 @@ const DATA_DRIVEN_DIVERGENT = [
   "TabsList", "TabsTrigger", "TextareaHandle", "TimePickerHandle", "ToastVariant", "TooltipContent",
   "TooltipHandle", "TooltipPortal", "TooltipSide", "TooltipTrigger", "TreeTableCellContext",
   "TreeTableColumn", "ValidationMode", "Validator",
-  "ValueHelpItem", "ViewSettingsDialogHandle", "ZenComponent",
+  "ValueHelpItem", "ViewManagerHandle", "ViewSettingsDialogHandle", "ZenComponent",
 ];
 
 

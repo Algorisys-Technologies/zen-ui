@@ -6,6 +6,7 @@ import {
   type DiffKind,
 } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * DiffView — what changed between two snapshots of the same record.
@@ -84,14 +85,17 @@ const defaultFormat = (value: unknown): React.ReactNode => {
  * A dash alone tells a screen reader nothing — it is punctuation, and some
  * readers skip it entirely. The word is what carries the meaning.
  */
-const Absent = () => (
+const Absent = () => {
+  const loc = useLocale();
+  return (
   <>
     <span aria-hidden className="zen-text-zen-muted-fg">
       —
     </span>
-    <span className="zen-sr-only">not set</span>
+    <span className="zen-sr-only">{loc.t("diffView.notSet")}</span>
   </>
-);
+  );
+};
 
 export const DiffView = ({
   before,
@@ -106,6 +110,7 @@ export const DiffView = ({
   emptyMessage,
   className,
 }: DiffViewProps) => {
+  const loc = useLocale();
   /* Inlined rather than a helper defined per render: a helper would have to be
      a dependency of both memos, and a new identity every render makes the memo
      a lie that recomputes anyway. */
@@ -147,7 +152,7 @@ export const DiffView = ({
   if (empty) {
     return (
       <p className="zen-m-0 zen-py-3 zen-text-sm zen-text-zen-muted-fg">
-        {emptyMessage ?? "No changes"}
+        {emptyMessage ?? loc.t("diffView.noChanges")}
       </p>
     );
   }
@@ -183,8 +188,8 @@ export const DiffView = ({
 
     return (
       <div className={cn("zen-flex zen-w-full zen-flex-wrap zen-gap-4", className)}>
-        {pane(headings?.before ?? "Before", left, "zen-text-zen-muted-fg")}
-        {pane(headings?.after ?? "After", right, "zen-text-zen-foreground")}
+        {pane(headings?.before ?? loc.t("diffView.before"), left, "zen-text-zen-muted-fg")}
+        {pane(headings?.after ?? loc.t("diffView.after"), right, "zen-text-zen-foreground")}
       </div>
     );
   }
@@ -201,7 +206,7 @@ export const DiffView = ({
       <table className="zen-w-full zen-border-collapse zen-text-start zen-text-sm">
         <thead>
           <tr className="zen-border-b zen-border-zen-border zen-bg-zen-muted">
-            {[headings?.key ?? "Field", headings?.before ?? "Before", headings?.after ?? "After"].map(
+            {[headings?.key ?? loc.t("diffView.field"), headings?.before ?? loc.t("diffView.before"), headings?.after ?? loc.t("diffView.after")].map(
               (h) => (
                 <th
                   key={h}

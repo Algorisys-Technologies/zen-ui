@@ -2,6 +2,7 @@ import { cn } from "../../lib/cn";
 import { arrowStep, directionOf } from "@algorisys/zen-ui-core";
 import { applyProps, Disposer, toNodes, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * Carousel — swipeable rotating items. The vanilla port of the React reference.
@@ -51,6 +52,7 @@ interface SlideRef {
 
 export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
   let current: CarouselProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
   const cleanups = new Disposer();
@@ -98,7 +100,7 @@ export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
   const makeArrow = (dir: "prev" | "next"): HTMLButtonElement => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.setAttribute("aria-label", dir === "prev" ? "Previous slide" : "Next slide");
+    btn.setAttribute("aria-label", loc.t(dir === "prev" ? "carousel.previousSlide" : "carousel.nextSlide"));
     btn.className = arrowClass;
     btn.append(Icon({ name: dir === "prev" ? "chevron-left" : "chevron-right", size: 16 }).el);
     const onClick = () => goTo(dir === "prev" ? index - 1 : index + 1);
@@ -147,7 +149,7 @@ export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
 
   const render = () => {
     const {
-      label = "Carousel",
+      label = loc.t("carousel.label"),
       arrows = true,
       dots = true,
       perView = 1,
@@ -169,7 +171,7 @@ export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
     index = Math.max(0, Math.min(lastIndex, index));
 
     el.setAttribute("role", "group");
-    el.setAttribute("aria-roledescription", "carousel");
+    el.setAttribute("aria-roledescription", loc.t("carousel.roleDescription"));
     el.setAttribute("aria-label", label);
     el.className = cn("zen-relative zen-flex zen-flex-col zen-gap-2", className);
     el.replaceChildren();
@@ -203,10 +205,10 @@ export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
     slides.forEach((child, i) => {
       const slide = document.createElement("div");
       slide.setAttribute("role", "group");
-      slide.setAttribute("aria-roledescription", "slide");
+      slide.setAttribute("aria-roledescription", loc.t("carousel.slideRoleDescription"));
       // "3 of 7" — a slide with no position is just a div to anyone who cannot see
       // where it sits.
-      slide.setAttribute("aria-label", `${i + 1} of ${count}`);
+      slide.setAttribute("aria-label", loc.t("carousel.slideOf", { n: i + 1, count }));
       slide.className = "zen-shrink-0 zen-snap-start";
       // Computed from perView, so it cannot be a class: a width class per perView is
       // a class UnoCSS never sees.
@@ -231,7 +233,7 @@ export function Carousel(props: CarouselProps): ZenComponent<CarouselProps> {
       for (let i = 0; i <= lastIndex; i++) {
         const dot = document.createElement("button");
         dot.type = "button";
-        dot.setAttribute("aria-label", `Go to slide ${i + 1}`);
+        dot.setAttribute("aria-label", loc.t("carousel.goToSlide", { n: i + 1 }));
         dot.className = dotClass(false);
         const target = i;
         const onClick = () => goTo(target);

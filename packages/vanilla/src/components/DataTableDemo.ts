@@ -1,4 +1,6 @@
-import { DataTable, type DataTableColumn } from "./data-table/data-table";
+import { DataTable, type DataTableColumn, type SortingState } from "./data-table/data-table";
+import type { CellEditPayload } from "./data-table/edit-cell";
+import type { ExportFormat, ExportRequest } from "@algorisys/zen-ui-core/export-request";
 import { Badge } from "./badge/badge";
 import { Button } from "./button/button";
 import { DemoPage } from "./demo-helpers";
@@ -6,11 +8,12 @@ import { DemoPage } from "./demo-helpers";
 /**
  * DataTableDemo — mirrors React's NewDataTableDemo for the features the vanilla
  * binding ships: header variants, sorting, pagination, global filter, row
- * selection, virtualization, server-driven (manual) pagination, column
- * separators, multi-sort, sticky header, and per-row styling.
+ * selection, keyboard rows, virtualization, server-driven (manual) pagination,
+ * column separators, multi-sort, sticky header, per-row styling, inline
+ * editing, totals and server export.
  *
  * React's TanStack/Radix-only sections (column visibility menu, per-column
- * filters, grouping, pinning, resizing, drag reorder, inline edit, export,
+ * filters, grouping, pinning, resizing, drag reorder, client export,
  * expandable rows) are not part of this binding and are omitted.
  */
 
@@ -65,6 +68,8 @@ const makePeople = (count: number): Person[] =>
 const SMALL = makePeople(8);
 const MEDIUM = makePeople(40);
 const LARGE = makePeople(2000);
+const MENU_PEOPLE = makePeople(1000);
+const HUGE = makePeople(10_000);
 
 const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
@@ -82,6 +87,381 @@ const columns: DataTableColumn<Person>[] = [
   },
   { accessorKey: "lastSeen", header: "Last seen" },
 ];
+
+/* -------------------------- section 6b: row virtualization -------- */
+/* React's grouped columns, without the group aggregates (this binding does
+ * not group rows). */
+const virtColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "role", header: "Role" },
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "email", header: "Email" },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) => row.salary.toLocaleString("en-IN"),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => Badge({ variant: "soft", color: statusColor(row.status), children: row.status }),
+  },
+];
+
+function RowVirtDemo(): HTMLElement {
+  const opened = document.createElement("span");
+  opened.dataset.testid = "virt-activated";
+  opened.textContent = "nothing yet";
+  // fillHeight: the table fills this frame, as a list that is a page's main pane.
+  const frame = document.createElement("div");
+  frame.className = "zen-flex zen-h-[440px] zen-flex-col";
+  frame.append(
+    DataTable<Person>({
+      data: HUGE,
+      columns: virtColumns,
+      getRowId: (p) => p.id,
+      enableRowVirtualization: true,
+      enableSorting: true,
+      enableRowSelection: true,
+      enableKeyboardNavigation: true,
+      rowLabel: (row) => row.name,
+      onRowActivate: (row) => (opened.textContent = row.name),
+      fillHeight: true,
+    }).el,
+  );
+  const note = document.createElement("p");
+  note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+  note.setAttribute("aria-live", "polite");
+  note.append("Opened: ", opened);
+  const wrap = document.createElement("div");
+  wrap.append(frame, note);
+  return wrap;
+}
+
+/* -------------------------- section 6c: cell navigation ----------- */
+/* An order's lines, for the cell-navigation grid. */
+type Line = { id: string; item: string; qty: number; rate: number; uom: string; note: string };
+const UOMS = ["Nos", "Kg", "Box", "Litre"];
+const makeLines = (count: number): Line[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `l-${i + 1}`,
+    item: `ITEM-${String(1000 + i)}`,
+    qty: 1 + (i % 12),
+    rate: 50 + ((i * 37) % 950),
+    uom: UOMS[i % UOMS.length],
+    note: "",
+  }));
+const lineColumns: DataTableColumn<Line>[] = [
+  { accessorKey: "item", header: "Item", meta: { editable: true } },
+  { accessorKey: "qty", header: "Qty", meta: { editable: true, editVariant: "number" } },
+  {
+    accessorKey: "uom",
+    header: "UOM",
+    meta: { editable: true, editVariant: "select", editOptions: UOMS.map((u) => ({ label: u, value: u })) },
+  },
+  { accessorKey: "rate", header: "Rate (₹)", meta: { editable: true, editVariant: "number" } },
+  {
+    id: "amount",
+    header: "Amount (₹)",
+    accessorFn: (l) => l.qty * l.rate,
+    cell: ({ value }) => (value as number).toLocaleString("en-IN"),
+  },
+  { accessorKey: "note", header: "Note", meta: { editable: true } },
+];
+
+/** Section 6c's grid: the caller owns the lines and applies each edit, or a block of them. */
+function CellNavDemo(): HTMLElement {
+  let lines = makeLines(2000);
+  const said = document.createElement("span");
+  said.dataset.testid = "cells-edited";
+  said.textContent = "No changes yet.";
+  const apply = (edits: CellEditPayload[]) => {
+    const byRow = new Map<string, Record<string, unknown>>();
+    for (const e of edits) byRow.set(e.rowId, { ...byRow.get(e.rowId), [e.columnId]: e.value });
+    lines = lines.map((l) => (byRow.has(l.id) ? { ...l, ...byRow.get(l.id) } : l));
+    table.update({ data: lines });
+    said.textContent = `${edits.length} cell${edits.length === 1 ? "" : "s"} changed`;
+  };
+  const table = DataTable<Line>({
+    data: lines,
+    columns: lineColumns,
+    getRowId: (l) => l.id,
+    enableCellNavigation: true,
+    enableRowVirtualization: true,
+    onCellEdit: (edit) => apply([edit]),
+    onCellsEdit: apply,
+    fillHeight: true,
+  });
+  const frame = document.createElement("div");
+  frame.className = "zen-flex zen-h-[420px] zen-flex-col";
+  frame.append(table.el);
+  const note = document.createElement("p");
+  note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+  note.setAttribute("aria-live", "polite");
+  note.append(said);
+  const wrap = document.createElement("div");
+  wrap.append(frame, note);
+  return wrap;
+}
+
+/* -------------------------- section 26: totals --------------------- */
+type TotalLine = { item: string; customer: string; qty: number; rate: number; amount: number; due: string };
+const TOTAL_CUSTOMERS = ["Acme Traders", "Bharat Steels", "Coastal Agencies"];
+const TOTAL_ITEMS = ["Hex Bolt M8", "MS Sheet 2mm", "Cutting Oil", "Bearing 6204", "V-Belt B-48", "SS Rod 12mm"];
+// Rates in paise-precise rupees: summing them as doubles drifts; the totals here do not.
+const LINES: TotalLine[] = Array.from({ length: 60 }, (_, i) => {
+  const qty = 1 + ((i * 7) % 23);
+  const rate = Math.round((10.1 + ((i * 37) % 900) * 1.37) * 100) / 100;
+  return {
+    item: TOTAL_ITEMS[i % TOTAL_ITEMS.length],
+    customer: TOTAL_CUSTOMERS[(i * 5) % 3],
+    qty,
+    rate,
+    amount: Math.round(qty * rate * 100) / 100,
+    due: `2026-${String(10 + (i % 3)).padStart(2, "0")}-${String(1 + ((i * 3) % 28)).padStart(2, "0")}`,
+  };
+});
+const inrTotal = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const endAligned = (text: string): HTMLElement => {
+  const span = document.createElement("span");
+  span.className = "zen-block zen-text-end zen-tabular-nums";
+  span.textContent = text;
+  return span;
+};
+const totalColumns: DataTableColumn<TotalLine>[] = [
+  { accessorKey: "item", header: "Item" },
+  { accessorKey: "customer", header: "Customer" },
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" }, cell: ({ row }) => endAligned(String(row.qty)) },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" }, cell: ({ row }) => endAligned(inrTotal.format(row.rate)) },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    meta: { aggregate: "sum", formatTotal: (v) => `₹${inrTotal.format(v as number)}` },
+    cell: ({ row }) => endAligned(inrTotal.format(row.amount)),
+  },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+/* -------------------------- section 27: export on the server ------- */
+// A stand-in for your server: 100,000 ledger lines that never come to the browser.
+// The table asks it for one page at a time; Export hands it an ExportRequest.
+type Entry = { id: string; date: string; account: string; party: string; amount: number };
+const LEDGER_SIZE = 100_000;
+const ACCOUNTS = ["Sales", "Purchases", "Bank", "Cash", "Debtors", "Creditors"];
+const PARTIES = ["Acme Traders", "Bharat Steels", "Coastal Agencies", "Deccan Engineering", "Eastern Mills"];
+const entryAt = (i: number): Entry => ({
+  id: `GL-${String(i + 1).padStart(6, "0")}`,
+  date: `2026-${String(1 + (i % 12)).padStart(2, "0")}-${String(1 + ((i * 7) % 28)).padStart(2, "0")}`,
+  account: ACCOUNTS[(i * 13) % ACCOUNTS.length],
+  party: PARTIES[(i * 7) % PARTIES.length],
+  amount: Math.round(((i * 7919) % 2_500_000) + 99) / 100,
+});
+const mockServer = {
+  /** The rows matching a search, column filters and sort: what a SQL query would select. */
+  match(search: string, filters: { id: string; value: unknown }[], sort: { id: string; desc: boolean }[]) {
+    const s = search.trim().toLowerCase();
+    const textOf = (v: unknown) =>
+      (v && typeof v === "object" && "value" in (v as object) ? String((v as { value: unknown }).value ?? "") : String(v ?? "")).toLowerCase();
+    const idx: number[] = [];
+    for (let i = 0; i < LEDGER_SIZE; i++) {
+      const e = entryAt(i);
+      if (s && !`${e.id} ${e.account} ${e.party}`.toLowerCase().includes(s)) continue;
+      if (filters.some((f) => !String(e[f.id as keyof Entry]).toLowerCase().includes(textOf(f.value)))) continue;
+      idx.push(i);
+    }
+    const [first] = sort;
+    if (first) {
+      const k = first.id as keyof Entry;
+      idx.sort((a, b) => {
+        const x = entryAt(a)[k], y = entryAt(b)[k];
+        return (x < y ? -1 : x > y ? 1 : 0) * (first.desc ? -1 : 1);
+      });
+    }
+    return idx;
+  },
+};
+const entryColumns: DataTableColumn<Entry>[] = [
+  { accessorKey: "id", header: "Entry" },
+  { accessorKey: "date", header: "Date", meta: { exportFormat: { kind: "date" } } },
+  { accessorKey: "account", header: "Account" },
+  { accessorKey: "party", header: "Party" },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    meta: { exportFormat: { kind: "amount", currency: "INR", precision: 2 } },
+    cell: ({ row }) => endAligned(inrTotal.format(row.amount)),
+  },
+];
+const LEDGER_CONTEXT = { ledger: "FY 2026-27" };
+
+/** Section 27's table, wired to the mock server. */
+function ServerLedger(): HTMLElement {
+  const pageSize = 25;
+  let page = 0;
+  let sorting: SortingState = [];
+  let search = "";
+  let selection: string[] = [];
+  let failNext = false;
+  const fmt = new Intl.NumberFormat("en-IN");
+  let matching = mockServer.match(search, [], sorting);
+  const pageRows = () => matching.slice(page * pageSize, (page + 1) * pageSize).map(entryAt);
+
+  const wrap = document.createElement("div");
+  wrap.className = "zen-flex zen-w-full zen-flex-col zen-gap-3";
+  const counts = document.createElement("p");
+  counts.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+  counts.dataset.testid = "ledger-counts";
+  const paintCounts = () => {
+    const total = document.createElement("strong");
+    total.textContent = fmt.format(LEDGER_SIZE);
+    const here = document.createElement("strong");
+    here.textContent = String(pageRows().length);
+    counts.replaceChildren("The server holds ", total, ` entries; ${fmt.format(matching.length)} match; the browser has `, here, ".");
+  };
+  paintCounts();
+
+  const said = document.createElement("p");
+  said.className = "zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-sm";
+  said.dataset.testid = "server-said";
+  const details = document.createElement("details");
+  details.open = true;
+  const summary = document.createElement("summary");
+  summary.className = "zen-cursor-pointer zen-text-sm zen-text-zen-muted-fg";
+  summary.textContent = "What your server received";
+  const pre = document.createElement("pre");
+  pre.className = "zen-m-0 zen-mt-2 zen-max-h-72 zen-overflow-auto zen-rounded-zen-md zen-bg-zen-muted zen-p-3 zen-text-xs";
+  pre.dataset.testid = "export-request";
+  details.append(summary, pre);
+
+  const failBox = document.createElement("input");
+  failBox.type = "checkbox";
+  failBox.addEventListener("change", () => (failNext = failBox.checked));
+  const failLabel = document.createElement("label");
+  failLabel.className = "zen-flex zen-items-center zen-gap-2 zen-text-sm";
+  failLabel.append(failBox, " Make the next export fail (to see the error)");
+
+  /** The mock server's export endpoint. */
+  const serve = async (format: ExportFormat, request: ExportRequest): Promise<Blob | void> => {
+    pre.textContent = JSON.stringify(request, null, 2);
+    if (!details.isConnected) wrap.append(details);
+    await new Promise((r) => setTimeout(r, 700)); // the server at work
+    if (failNext) {
+      failNext = false;
+      failBox.checked = false;
+      throw new Error("the server is busy, try again");
+    }
+    const all = () => mockServer.match(request.filters.search ?? "", request.filters.columns, request.sort);
+    const rows = request.scope.kind === "selected" ? request.scope.ids.length : all().length;
+    const say = (text: string) => {
+      said.textContent = text;
+      if (!said.isConnected) wrap.insertBefore(said, details.isConnected ? details : null);
+    };
+    if (format !== "csv") {
+      say(`Your server would now build ledger.${format} from this request: ${fmt.format(rows)} rows. (This demo has no ${format} writer; CSV below is real.)`);
+      return;
+    }
+    // CSV: built from ALL the matching rows, not the page.
+    const ids = request.scope.kind === "selected" ? request.scope.ids : all().map((i) => entryAt(i).id);
+    const byId = (id: string) => entryAt(Number(id.slice(3)) - 1);
+    const cols = request.columns;
+    const lines = [cols.map((c) => c.header).join(","), ...ids.map((id) => cols.map((c) => String(byId(id)[c.id as keyof Entry])).join(","))];
+    say(`The server built ledger.csv: ${fmt.format(ids.length)} rows.`);
+    return new Blob([lines.join("\n")], { type: "text/csv" });
+  };
+
+  const manual = () => ({
+    pageIndex: page,
+    pageCount: Math.max(1, Math.ceil(matching.length / pageSize)),
+    pageSize,
+    onPageChange: (next: number) => {
+      page = next;
+      refresh();
+    },
+  });
+  const requery = () => {
+    matching = mockServer.match(search, [], sorting);
+    page = 0;
+  };
+  const table = DataTable<Entry>({
+    data: pageRows(),
+    columns: entryColumns,
+    getRowId: (e) => e.id,
+    enableSorting: true,
+    sorting,
+    onSortingChange: (next) => {
+      sorting = next;
+      requery();
+      refresh();
+    },
+    enableColumnFilters: true,
+    globalFilter: search,
+    onGlobalFilterChange: (v) => {
+      search = v;
+      requery();
+      refresh();
+    },
+    enableRowSelection: true,
+    rowSelection: selection,
+    onRowSelectionChange: (ids) => {
+      selection = ids;
+      refresh();
+    },
+    enablePagination: true,
+    pageSize,
+    manualPagination: manual(),
+    exportFilename: "ledger",
+    exportTitle: "General ledger",
+    exportContext: LEDGER_CONTEXT,
+    onExport: serve,
+  });
+  function refresh(): void {
+    table.update({ data: pageRows(), sorting, globalFilter: search, rowSelection: selection, manualPagination: manual() });
+    paintCounts();
+  }
+  wrap.append(counts, table.el, failLabel);
+  return wrap;
+}
+
+/* -------------------------- section 19: inline editing ------------ */
+const editColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", meta: { editable: true } },
+  { accessorKey: "email", header: "Email", meta: { editable: true } },
+  {
+    accessorKey: "role",
+    header: "Role",
+    meta: {
+      editable: true,
+      editVariant: "select",
+      editOptions: ROLES.map((r) => ({ label: r, value: r })),
+    },
+  },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) =>
+      typeof row.salary === "number" ? row.salary.toLocaleString("en-IN") : String(row.salary ?? ""),
+    meta: { editable: true, editVariant: "number" },
+  },
+  { accessorKey: "lastSeen", header: "Last seen" },
+];
+
+/** Section 19's table: the caller owns the rows and applies each commit. */
+function InlineEditDemo(): HTMLElement {
+  let rows = makePeople(8);
+  const table = DataTable<Person>({
+    data: rows,
+    columns: editColumns,
+    getRowId: (row) => row.id,
+    onCellEdit: ({ rowId, columnId, value }) => {
+      rows = rows.map((r) =>
+        r.id === rowId
+          ? { ...r, [columnId]: columnId === "salary" ? Number(value ?? 0) : value }
+          : r,
+      );
+      table.update({ data: rows });
+    },
+  });
+  return table.el;
+}
 
 const labeled = (text: string, node: Node): HTMLElement => {
   const wrap = document.createElement("div");
@@ -177,6 +557,42 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
           }).el,
       },
       {
+        title: "5b. Keyboard rows",
+        codeTitle: "enableKeyboardNavigation + onRowActivate",
+        codeDescription:
+          "Tab into the table once, then ↑/↓, Home/End and PageUp/PageDown move between rows. Enter opens the row (Ctrl+Enter reports the modifier); Space selects it and Ctrl+A selects the page.",
+        code: `DataTable({
+  data: small,
+  columns,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  onRowActivate: (row, e) => open(row, { newTab: e.ctrlKey || e.metaKey }),
+  rowLabel: (row) => row.name,
+});`,
+        render: () => {
+          const opened = document.createElement("span");
+          opened.dataset.testid = "kb-activated";
+          opened.textContent = "nothing yet";
+          const note = document.createElement("p");
+          note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+          note.setAttribute("aria-live", "polite");
+          note.append("Opened: ", opened);
+          const table = DataTable({
+            data: SMALL,
+            columns,
+            enableRowSelection: true,
+            enableKeyboardNavigation: true,
+            onRowActivate: (row, e) => {
+              opened.textContent = `${row.name}${e.ctrlKey || e.metaKey ? " (Ctrl+Enter)" : ""}`;
+            },
+            rowLabel: (row) => row.name,
+          });
+          const wrap = document.createElement("div");
+          wrap.append(table.el, note);
+          return wrap;
+        },
+      },
+      {
         title: "6. Virtualized — 2 000 rows, no pagination",
         codeTitle: "enableVirtualization renders only the visible window",
         codeDescription: "Scroll the table body. The header stays in view above the viewport.",
@@ -195,6 +611,100 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
             enableVirtualization: true,
             maxBodyHeight: 400,
           }).el,
+      },
+      {
+        title: "6b. Row virtualization — 10 000 rows, every feature on",
+        codeTitle: "enableRowVirtualization keeps sorting, selection and the keyboard",
+        codeDescription:
+          "Only the rows in view are rendered, inside the regular table. Sort a column, select rows, or click a row and move with ↑/↓, PageUp/PageDown and Home/End: the focused row is scrolled into view and stays mounted while you scroll away. (React's version of this table also groups and expands rows, which this binding does not do yet.)",
+        code: `DataTable({
+  data: tenThousandPeople,
+  columns,
+  getRowId: (p) => p.id,
+  enableRowVirtualization: true,
+  enableSorting: true,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  onRowActivate: (row) => open(row),
+  fillHeight: true, // inside a frame with a height; or maxBodyHeight: 420
+});`,
+        render: () => RowVirtDemo(),
+      },
+      {
+        title: "6c. Cell navigation — work in it like a spreadsheet",
+        codeTitle: "enableCellNavigation: cell by cell, ranges, copy and paste",
+        codeDescription:
+          "Click a cell, then move with the arrows, PageUp/PageDown, Home/End and Ctrl+Home/End. Enter or F2 edits, or just type; Enter in the editor moves down, Tab across, Esc goes back. Shift+arrows, Shift+click or a drag selects a range. Copy it into a spreadsheet, or paste a block from one; Delete clears. A cell takes only what its editor could produce: Amount is computed, so paste and Delete leave it alone, and UOM is a select with no empty option, so Delete leaves it as it is and a paste must match one of its options.",
+        code: `DataTable({
+  data: lines,
+  columns, // meta: { editable: true, editVariant: "number" | "select" }
+  getRowId: (l) => l.id,
+  enableCellNavigation: true,
+  enableRowVirtualization: true,
+  onCellEdit: (edit) => apply([edit]),
+  onCellsEdit: (edits) => apply(edits), // a paste, or Delete over a range
+  fillHeight: true,
+});`,
+        render: () => CellNavDemo(),
+      },
+      {
+        title: "6d. Context menu on rows",
+        codeTitle: "contextMenu: a right-click menu for the row, or the selected rows",
+        codeDescription:
+          "Right-click a row, or focus one (click it, then use the arrows) and press the menu key or Shift+F10. The row becomes the focused one and the menu is for it; select a few rows first and a right-click on one of them acts on all of them. The header keeps the browser's own menu.",
+        code: `DataTable({
+  data: people,
+  columns,
+  getRowId: (p) => p.id,
+  enableRowSelection: true,
+  enableKeyboardNavigation: true,
+  contextMenu: ({ row, selection }) => [
+    { type: "label", label: selection.length > 1 ? \`\${selection.length} rows\` : row.name },
+    { label: "Open in new tab", onSelect: () => openInNewTab(row) },
+    { label: "Copy name", onSelect: () => copy(selection) },
+    { type: "separator" },
+    { label: "Delete…", variant: "destructive", onSelect: () => remove(selection) },
+  ],
+  fillHeight: true,
+});`,
+        render: () => {
+          const action = document.createElement("span");
+          action.dataset.testid = "menu-action";
+          action.textContent = "Nothing chosen yet.";
+          const note = document.createElement("p");
+          note.className = "zen-text-sm zen-text-zen-muted-fg zen-mt-2";
+          note.setAttribute("aria-live", "polite");
+          note.append(action);
+          const say = (text: string) => (action.textContent = text);
+          const frame = document.createElement("div");
+          frame.className = "zen-flex zen-h-[360px] zen-flex-col";
+          frame.append(
+            DataTable({
+              data: MENU_PEOPLE,
+              columns,
+              getRowId: (p) => p.id,
+              enableRowSelection: true,
+              enableKeyboardNavigation: true,
+              rowLabel: (row) => row.name,
+              contextMenu: ({ row, selection }) => [
+                { type: "label", label: selection.length > 1 ? `${selection.length} rows` : row.name },
+                { label: "Open in new tab", shortcut: "Ctrl+Enter", onSelect: () => say(`Opened ${row.name} in a new tab`) },
+                { label: "Copy name", onSelect: () => say(`Copied ${selection.map((r) => r.name).join(", ")}`) },
+                { label: "Duplicate", onSelect: () => say(`Duplicated ${row.name}`) },
+                { type: "separator" },
+                {
+                  label: "Delete…",
+                  variant: "destructive",
+                  onSelect: () => say(`Asked to delete ${selection.length} row${selection.length === 1 ? "" : "s"}`),
+                },
+              ],
+              fillHeight: true,
+            }).el,
+          );
+          const wrap = document.createElement("div");
+          wrap.append(frame, note);
+          return wrap;
+        },
       },
       {
         title: "7. Server-driven pagination (manual)",
@@ -290,6 +800,40 @@ const table = DataTable({
           DataTable({ data: SMALL, columns, enableColumnSeparators: true }).el,
       },
       {
+        title: "9. Row reorder (drag handle)",
+        codeTitle: "enableRowOrdering + onRowOrderChange",
+        codeDescription:
+          "Grip-handle column appears as the leading column. Drag a row up or down — the callback fires with the new ID order; caller re-arranges the source data. Esc cancels a drag. Not compatible with enableVirtualization (mutually exclusive); with enableRowVirtualization the rows drag to anywhere in the table, which scrolls near its edges.",
+        code: `let data = initial;
+
+const table = DataTable({
+  data,
+  columns,
+  getRowId: (row) => row.id,   // stable identity across reorders
+  enableRowOrdering: true,
+  onRowOrderChange: (orderedIds) => {
+    const byId = new Map(data.map((d) => [d.id, d]));
+    data = orderedIds.map((id) => byId.get(id)!);
+    table.update({ data });
+  },
+});`,
+        render: () => {
+          let data = makePeople(6);
+          const table = DataTable<Person>({
+            data,
+            columns,
+            getRowId: (row) => row.id,
+            enableRowOrdering: true,
+            onRowOrderChange: (orderedIds) => {
+              const byId = new Map(data.map((d) => [d.id, d]));
+              data = orderedIds.map((id) => byId.get(id)).filter((d): d is Person => !!d);
+              table.update({ data });
+            },
+          });
+          return table.el;
+        },
+      },
+      {
         title: "9. Multi-sort (Shift-click a second header)",
         codeTitle: "enableSorting + enableMultiSort",
         codeDescription:
@@ -355,6 +899,84 @@ const table = DataTable({
                   ? "zen-bg-zen-info-soft/30"
                   : undefined,
           }).el,
+      },
+      {
+        title: "19. Inline cell editing",
+        codeTitle: "meta.editable opts a column in; onCellEdit gets the commit",
+        codeDescription:
+          "Double-click (or focus + Enter / Space) any editable cell. Text columns get an Input, number columns get a NumberField (with ± steppers), select columns open a list of their options. Enter or blur commits, Esc cancels. The caller owns the data array — onCellEdit hands you the new value and you decide how to apply it.",
+        code: `let rows = makePeople(8);
+
+const columns: DataTableColumn<Person>[] = [
+  { accessorKey: "name",   header: "Name",   meta: { editable: true } },
+  { accessorKey: "email",  header: "Email",  meta: { editable: true } },
+  { accessorKey: "role",   header: "Role",
+    meta: { editable: true, editVariant: "select",
+            editOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "salary", header: "Salary",
+    meta: { editable: true, editVariant: "number" } },
+];
+
+const table = DataTable({
+  data: rows,
+  columns,
+  getRowId: (r) => r.id,
+  onCellEdit: ({ rowId, columnId, value }) => {
+    rows = rows.map((r) => (r.id === rowId ? { ...r, [columnId]: value } : r));
+    table.update({ data: rows });
+  },
+});`,
+        render: () => InlineEditDemo(),
+      },
+      {
+        title: "26. Totals",
+        codeTitle: "meta.aggregate: a total that computes itself, exact in decimal",
+        codeDescription:
+          'Sum, count, avg, min, max or your own function, per column. The footer totals every row the filters let through (across pages; totalsOver: "page" for this page only) and stays in view as the rows scroll. Search for a customer and watch the totals follow.',
+        code: `const columns: DataTableColumn<Line>[] = [
+  { accessorKey: "item", header: "Item" },                       // "Total" goes here
+  { accessorKey: "qty", header: "Qty", meta: { aggregate: "sum" } },
+  { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" } },
+  { accessorKey: "amount", header: "Amount",
+    meta: { aggregate: "sum", formatTotal: (v) => \`₹\${inr.format(v)}\` } },
+  { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true });`,
+        render: () => {
+          const frame = document.createElement("div");
+          frame.className = "zen-flex zen-h-80 zen-flex-col";
+          frame.dataset.testid = "totals-table";
+          frame.append(
+            DataTable({ data: LINES, columns: totalColumns, fillHeight: true, enableColumnFilters: true }).el,
+          );
+          return frame;
+        },
+      },
+      {
+        title: "27. Export on the server",
+        codeTitle: "onExport: the browser describes, the server builds",
+        codeDescription:
+          "For data too large for the browser. Export hands your server an ExportRequest: the columns (header, width, format, total), search, sort, locale, and all matching rows or the selected ids (even on pages never loaded). Your endpoint queries the full data and returns the file. Try a search, a sort, or selecting rows on two pages, then Export.",
+        code: `DataTable({
+  data: page.rows, manualPagination: { … }, sorting, globalFilter, // the server's page
+  getRowId: (e) => e.id, enableRowSelection: true,
+  exportFilename: "ledger", exportTitle: "General ledger",
+  onExport: (format, request) =>
+    fetch("/api/method/myapp.export_ledger", {
+      method: "POST", body: JSON.stringify(request),
+    }).then((r) => (r.ok ? r.blob() : Promise.reject(new Error(r.statusText)))),
+});
+
+// The server (yours): read request.columns / filters / sort / scope,
+// query the full ledger, write the .xlsx / .pdf / .csv, send it back.`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "server-ledger";
+          box.append(ServerLedger());
+          return box;
+        },
       },
     ],
   });

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { cn } from "../../lib/cn";
 import { Disposer, type ZenComponent } from "../../lib/component";
+import { useLocale } from "../locale/locale";
 
 /**
  * RichText — WYSIWYG editor wrapping `jodit` (an OPTIONAL peer dependency).
@@ -40,6 +41,7 @@ const FALLBACK_CLASS =
 
 export function RichText(props: RichTextProps = {}): ZenComponent<RichTextProps> {
   let current: RichTextProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const el = document.createElement("div");
@@ -48,7 +50,7 @@ export function RichText(props: RichTextProps = {}): ZenComponent<RichTextProps>
   // Loading placeholder — replaced once the import settles one way or the other.
   const status = document.createElement("div");
   status.className = LOADING_CLASS;
-  status.textContent = "Loading editor…";
+  status.textContent = loc.t("richText.loadingEditor");
   el.append(status);
 
   // Jodit takes ownership of `mount` and writes its own `display` onto it, so the
@@ -85,9 +87,9 @@ export function RichText(props: RichTextProps = {}): ZenComponent<RichTextProps>
     status.textContent = "";
     const strong = document.createElement("strong");
     strong.className = "zen-font-medium zen-text-zen-foreground";
-    strong.textContent = "RichText needs an optional peer dependency.";
+    strong.textContent = "RichText needs an optional peer dependency."; // i18n-ignore (a developer notice: install instructions)
     const code = document.createElement("code");
-    code.textContent = "jodit";
+    code.textContent = "jodit"; // i18n-ignore (a package name)
     status.append(strong, document.createTextNode(" Install "), code, document.createTextNode(" to use this component."));
   };
 

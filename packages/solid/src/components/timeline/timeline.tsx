@@ -105,6 +105,7 @@ export interface TimelineProps {
  * can point the right way — the disclosure itself stays uncontrolled.
  */
 const TimelineBody = (props: { item: TimelineItem }) => {
+  const loc = useLocale();
   /* Read once, untracked, on purpose: `defaultOpen` is the INITIAL state of an
      uncontrolled disclosure. Tracking it would drag the panel back open under a
      user who just closed it, every time the parent re-rendered. */
@@ -119,7 +120,7 @@ const TimelineBody = (props: { item: TimelineItem }) => {
 
   const label = () => {
     const l = props.item.collapseLabel;
-    if (l === undefined) return "Details";
+    if (l === undefined) return loc.t("timeline.details");
     return typeof l === "function" ? l(open()) : l;
   };
 

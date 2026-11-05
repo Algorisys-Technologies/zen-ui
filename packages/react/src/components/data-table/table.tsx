@@ -90,7 +90,10 @@ const TableRow = React.forwardRef<
       "zen-border-b zen-border-zen-border",
       "zen-transition-[background-color,box-shadow,outline-color] zen-duration-100",
       // hover (Zen theme: subtle bg tint + sm drop shadow + slightly darker border tint)
-      "hover:zen-bg-zen-muted/50 hover:zen-shadow-zen-sm",
+      // The hover colour is --zen-table-row-hover (core tokens.css), whose
+      // default is the muted colour this always drew (the old "/50" opacity
+      // generated no CSS of its own over a var() colour: measured, same rule).
+      "hover:zen-[background-color:var(--zen-table-row-hover)] hover:zen-shadow-zen-sm",
       // selected (Zen theme: primary-soft bg + 1px primary inside outline + primary-tinted lg shadow)
       "data-[state=selected]:zen-bg-zen-primary-soft",
       "data-[state=selected]:zen-[box-shadow:0_4px_12px_0_var(--zen-color-primary-soft)]",
@@ -110,7 +113,11 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       // Zen theme header: 8px padding, Paragraph XSmall Medium, Neutral/200 (muted-fg)
-      "zen-h-zen-head zen-px-2 zen-py-2 zen-text-start zen-align-middle zen-font-medium zen-text-xs",
+      // The look comes from the --zen-table-* tokens (core tokens.css), whose
+      // defaults are what this always drew: 12px/16px, medium, no transform.
+      "zen-h-zen-head zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-text-start zen-align-middle",
+      "zen-[font-size:var(--zen-table-head-font-size)] zen-[line-height:var(--zen-line-height-xs)] zen-[font-weight:var(--zen-table-head-font-weight)]",
+      "zen-[text-transform:var(--zen-table-head-text-transform)] zen-[letter-spacing:var(--zen-table-head-letter-spacing)]",
       "zen-text-zen-muted-fg",
       className,
     )}
@@ -127,7 +134,7 @@ const TableCell = React.forwardRef<
     ref={ref}
     className={cn(
       // Zen theme cell: 8px horizontal, 12px vertical
-      "zen-px-2 zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground",
+      "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground",
       className,
     )}
     {...props}

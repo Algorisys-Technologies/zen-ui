@@ -230,6 +230,28 @@ const NewObjectDemo: React.FC = () => (
         </div>
       </CodeExample>
     </section>
+
+    <section className="demo-section">
+      <h2>11. ObjectStatus — stamp</h2>
+      <CodeExample
+        title="stamp: a document's status, ruled and uppercase"
+        description="How a document wears its status at the top of its page: a ruled box in the state's colour, never rotated. Mapping the status words to states stays the app's."
+        code={`<ObjectStatus stamp state="none">Draft</ObjectStatus>
+<ObjectStatus stamp state="info">Submitted</ObjectStatus>
+<ObjectStatus stamp state="success">Paid</ObjectStatus>
+<ObjectStatus stamp state="error">Overdue</ObjectStatus>
+<ObjectStatus stamp state="none">Cancelled</ObjectStatus>`}
+      >
+        <div className="zen-flex zen-flex-wrap zen-items-center zen-gap-3" data-testid="stamps">
+          <ObjectStatus stamp state="none">Draft</ObjectStatus>
+          <ObjectStatus stamp state="info">Submitted</ObjectStatus>
+          <ObjectStatus stamp state="success">Paid</ObjectStatus>
+          <ObjectStatus stamp state="warning">Partly paid</ObjectStatus>
+          <ObjectStatus stamp state="error">Overdue</ObjectStatus>
+          <ObjectStatus stamp state="none">Cancelled</ObjectStatus>
+        </div>
+      </CodeExample>
+    </section>
   </div>
 );
 

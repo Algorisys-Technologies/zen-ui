@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "../dropdown-menu/dropdown-menu";
+import { useLocale } from "../locale/locale";
 
 /**
  * Toolbar — a row of actions that collapses into an overflow menu when it runs
@@ -54,7 +55,9 @@ export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
-  ({ actions, overflowLabel = "More actions", size = "sm", className, children, ...props }, ref) => {
+  ({ actions, overflowLabel: overflowLabelProp, size = "sm", className, children, ...props }, ref) => {
+    const loc = useLocale();
+    const overflowLabel = overflowLabelProp ?? loc.t("toolbar.moreActions");
     const containerRef = React.useRef<HTMLDivElement>(null);
     const leadingRef = React.useRef<HTMLDivElement>(null);
     const measureRef = React.useRef<HTMLDivElement>(null);

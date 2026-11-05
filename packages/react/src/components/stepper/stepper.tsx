@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "../../lib/cn";
 import { Button } from "../button/button";
+import { useLocale } from "../locale/locale";
 
 /**
  * Stepper / Wizard — multi-step navigation with compound API.
@@ -201,18 +202,22 @@ export interface StepperListProps {
 }
 
 export const StepperList: React.FC<StepperListProps> = ({ className }) => {
+  const loc = useLocale();
   const ctx = useStepper();
   const horizontal = ctx.orientation === "horizontal";
 
   return (
     <ol
       className={cn(
+        // zen-ui ships no element reset (it is opt-in), so the list's own
+        // margin, indent and markers are reset here.
+        "zen-m-0 zen-list-none zen-p-0",
         horizontal
           ? "zen-flex zen-items-center zen-gap-2 zen-w-full"
           : "zen-flex zen-flex-col zen-gap-1 zen-min-w-[14rem] zen-shrink-0",
         className,
       )}
-      aria-label="Steps"
+      aria-label={loc.t("stepper.steps")}
     >
       {ctx.steps.map((step, i) => {
         const status = ctx.statusFor(step, i);
@@ -236,7 +241,7 @@ export const StepperList: React.FC<StepperListProps> = ({ className }) => {
               type="button"
               onClick={() => ctx.goTo(step.value)}
               disabled={!clickable}
-              aria-label={`${label}, step ${i + 1} of ${ctx.steps.length}, ${status}`}
+              aria-label={loc.t("stepper.stepLabel", { label, n: i + 1, count: ctx.steps.length, status: loc.t(`stepper.status.${status}`) })}
               className={cn(
                 "zen-flex zen-items-start zen-gap-2 zen-text-start zen-min-w-0",
                 "zen-bg-transparent zen-border-0 zen-p-1 zen-rounded-zen-sm",
@@ -390,12 +395,16 @@ export interface StepperNavigationProps {
 export const StepperNavigation: React.FC<StepperNavigationProps> = ({
   onBeforeNext,
   onSubmit,
-  backLabel = "Back",
-  nextLabel = "Continue",
-  submitLabel = "Submit",
+  backLabel: backLabelProp,
+  nextLabel: nextLabelProp,
+  submitLabel: submitLabelProp,
   className,
   hideBackOnFirst = true,
 }) => {
+  const loc = useLocale();
+  const backLabel = backLabelProp ?? loc.t("stepper.back");
+  const nextLabel = nextLabelProp ?? loc.t("stepper.continue");
+  const submitLabel = submitLabelProp ?? loc.t("stepper.submit");
   const ctx = useStepper();
   const [busy, setBusy] = React.useState(false);
 

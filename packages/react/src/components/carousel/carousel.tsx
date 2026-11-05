@@ -2,6 +2,7 @@ import * as React from "react";
 import { arrowStep, directionOf } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * Carousel — swipeable rotating items.
@@ -43,7 +44,9 @@ export interface CarouselProps extends Omit<React.HTMLAttributes<HTMLDivElement>
 }
 
 export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
-  ({ label = "Carousel", arrows = true, dots = true, perView = 1, className, children, ...props }, ref) => {
+  ({ label: labelProp, arrows = true, dots = true, perView = 1, className, children, ...props }, ref) => {
+    const loc = useLocale();
+    const label = labelProp ?? loc.t("carousel.label");
     const slides = React.Children.toArray(children);
     const count = slides.length;
     const scroller = React.useRef<HTMLDivElement | null>(null);
@@ -100,7 +103,7 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       <div
         ref={ref}
         role="group"
-        aria-roledescription="carousel"
+        aria-roledescription={loc.t("carousel.roleDescription")}
         aria-label={label}
         className={cn("zen-relative zen-flex zen-flex-col zen-gap-2", className)}
         {...props}
@@ -131,10 +134,10 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
               <div
                 key={i}
                 role="group"
-                aria-roledescription="slide"
+                aria-roledescription={loc.t("carousel.slideRoleDescription")}
                 // "3 of 7" — a slide with no position is just a div to anyone
                 // who cannot see where it sits.
-                aria-label={`${i + 1} of ${count}`}
+                aria-label={loc.t("carousel.slideOf", { n: i + 1, count })}
                 aria-hidden={i < index || i >= index + perView || undefined}
                 className="zen-shrink-0 zen-snap-start"
                 // Computed from perView, so it cannot be a class: a width class
@@ -161,7 +164,7 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
               <button
                 key={i}
                 type="button"
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={loc.t("carousel.goToSlide", { n: i + 1 })}
                 aria-current={i === index || undefined}
                 onClick={() => goTo(i)}
                 className={cn(
@@ -184,12 +187,14 @@ const CarouselArrow: React.FC<{ dir: "prev" | "next"; disabled: boolean; onClick
   dir,
   disabled,
   onClick,
-}) => (
+}) => {
+  const loc = useLocale();
+  return (
   <button
     type="button"
     onClick={onClick}
     disabled={disabled}
-    aria-label={dir === "prev" ? "Previous slide" : "Next slide"}
+    aria-label={loc.t(dir === "prev" ? "carousel.previousSlide" : "carousel.nextSlide")}
     className={cn(
       "zen-inline-flex zen-h-8 zen-w-8 zen-shrink-0 zen-items-center zen-justify-center",
       "zen-cursor-pointer zen-rounded-zen-full zen-border zen-border-zen-border zen-bg-zen-background",
@@ -200,4 +205,5 @@ const CarouselArrow: React.FC<{ dir: "prev" | "next"; disabled: boolean; onClick
   >
     <Icon name={dir === "prev" ? "chevron-left" : "chevron-right"} size={16} />
   </button>
-);
+  );
+};

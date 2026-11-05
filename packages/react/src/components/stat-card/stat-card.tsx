@@ -3,6 +3,7 @@ import { cn } from "../../lib/cn";
 import { cardVariants } from "../card/card";
 import { Icon } from "../icon/icon";
 import { Skeleton } from "../skeleton/skeleton";
+import { useLocale } from "../locale/locale";
 
 /**
  * StatCard — a labelled figure, optionally with an icon, a delta and somewhere
@@ -71,6 +72,14 @@ export interface StatCardProps extends Omit<React.HTMLAttributes<HTMLElement>, "
   href?: string;
   /** Swaps the figure for a skeleton and marks the card busy. */
   loading?: boolean;
+  /**
+   * A small chart under the figure, across the card: the trend behind a hero
+   * figure ("Revenue, trailing 12 months"). A MicroChart, or any element.
+   * While `loading` it is a skeleton too.
+   */
+  chart?: React.ReactNode;
+  /** "lg": the hero of a dashboard row, with a larger figure. Default "md". */
+  size?: "md" | "lg";
   className?: string;
 }
 
@@ -79,7 +88,7 @@ const TEXT: Record<StatCardColor, string> = {
   neutral: "zen-text-zen-muted-fg",
   info: "zen-text-zen-info",
   success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
+  warning: "zen-text-zen-warning-text",
   error: "zen-text-zen-error",
 };
 
@@ -94,32 +103,43 @@ const TREND_COLOR: Record<StatCardTrend["direction"], StatCardColor> = {
 const TREND_ICON = { up: "arrow-up", down: "arrow-down", flat: "arrow-right" } as const;
 
 /** The arrow is the only thing carrying direction, so it is named, not hidden. */
-const TREND_LABEL = { up: "Trending up", down: "Trending down", flat: "Flat" } as const;
+const TREND_LABEL = { up: "statCard.trendingUp", down: "statCard.trendingDown", flat: "statCard.flat" } as const;
 
 export const StatCard = React.forwardRef<HTMLElement, StatCardProps>(
   (
-    { label, value, icon, description, color = "neutral", trend, onClick, href, loading, className, ...rest },
+    { label, value, icon, description, color = "neutral", trend, onClick, href, loading, chart, size, className, ...rest },
     ref,
   ) => {
+    const loc = useLocale();
     const interactive = Boolean(href || onClick);
 
     const classes = cn(
       // The surface is Card's, not a copy of it.
       cardVariants({ variant: "outlined", padding: "md" }),
-      "zen-block zen-w-full zen-text-start",
+      // A linked card would otherwise underline every word in it: zen-ui ships
+      // no element reset (the preflight is opt-in), so an <a> keeps the
+      // browser's text-decoration.
+      "zen-block zen-w-full zen-text-start zen-no-underline",
       interactive &&
         "zen-cursor-pointer zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       className,
     );
 
-    const body = (
+    const head = (
       <div className="zen-flex zen-items-start zen-justify-between zen-gap-3">
         <div className="zen-flex zen-min-w-0 zen-flex-col zen-gap-1.5">
           <span className="zen-truncate zen-text-sm zen-text-zen-muted-fg">{label}</span>
           {loading ? (
             <Skeleton className="zen-h-7 zen-w-24" />
           ) : (
-            <span className="zen-text-2xl zen-font-semibold zen-leading-none zen-text-zen-foreground">
+            <span
+              // The size goes FIRST: cn() lets a later font-size class drop an
+              // earlier leading-*, and leading-none is what this always drew.
+              className={cn(
+                size === "lg" ? "zen-text-4xl" : "zen-text-2xl",
+                "zen-font-semibold zen-leading-none zen-text-zen-foreground",
+              )}
+            >
               {value}
             </span>
           )}
@@ -133,7 +153,7 @@ export const StatCard = React.forwardRef<HTMLElement, StatCardProps>(
               <Icon
                 name={TREND_ICON[trend.direction]}
                 size={13}
-                title={TREND_LABEL[trend.direction]}
+                title={loc.t(TREND_LABEL[trend.direction])}
               />
               {trend.value}
             </span>
@@ -149,6 +169,19 @@ export const StatCard = React.forwardRef<HTMLElement, StatCardProps>(
           </span>
         ) : null}
       </div>
+    );
+
+    // The chart sits under the figure, across the card; nothing at all is
+    // rendered without one, so a card that has none is unchanged.
+    const body = chart ? (
+      <>
+        {head}
+        <div className="zen-mt-3" data-stat-chart="">
+          {loading ? <Skeleton className="zen-h-12 zen-w-full" /> : chart}
+        </div>
+      </>
+    ) : (
+      head
     );
 
     const shared = { className: classes, "aria-busy": loading || undefined, ...rest };

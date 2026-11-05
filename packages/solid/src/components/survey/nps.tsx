@@ -1,7 +1,7 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * NPS — Net Promoter Score input. The canonical 0–10 "would you
@@ -37,10 +37,10 @@ type Bucket = "detractor" | "passive" | "promoter";
 const bucketOf = (n: number): Bucket =>
   n <= 6 ? "detractor" : n <= 8 ? "passive" : "promoter";
 
-const bucketLabel: Record<Bucket, string> = {
-  detractor: "Detractor",
-  passive: "Passive",
-  promoter: "Promoter",
+const bucketLabel: Record<Bucket, MessageKey> = {
+  detractor: "nps.detractor",
+  passive: "nps.passive",
+  promoter: "nps.promoter",
 };
 
 export const NPS = (props: NPSProps) => {
@@ -163,7 +163,7 @@ export const NPS = (props: NPSProps) => {
               )}
               aria-live="polite"
             >
-              {v} · {bucketLabel[bucketOf(v)]}
+              {v} · {loc.t(bucketLabel[bucketOf(v)])}
             </p>
           );
         }}

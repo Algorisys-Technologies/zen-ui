@@ -3,7 +3,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover";
 import { Icon } from "../icon/icon";
 import type { IconName } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * MessagePopover — the aggregated validation summary a long form owes its user.
@@ -48,11 +48,11 @@ export interface MessagePopoverProps {
 
 /* Severity presentation. The ORDER is the priority order: the trigger shows the
  * worst thing present, because "3 messages" is useless when one blocks submit. */
-const SEVERITY: { type: MessageType; icon: IconName; label: string; text: string }[] = [
-  { type: "error", icon: "error", label: "Error", text: "zen-text-zen-error" },
-  { type: "warning", icon: "warn", label: "Warning", text: "zen-text-zen-warning" },
-  { type: "success", icon: "check-circle", label: "Success", text: "zen-text-zen-success" },
-  { type: "info", icon: "info", label: "Information", text: "zen-text-zen-info" },
+const SEVERITY: { type: MessageType; icon: IconName; label: MessageKey; text: string }[] = [
+  { type: "error", icon: "error", label: "messagePopover.severity.error", text: "zen-text-zen-error" },
+  { type: "warning", icon: "warn", label: "messagePopover.severity.warning", text: "zen-text-zen-warning" },
+  { type: "success", icon: "check-circle", label: "messagePopover.severity.success", text: "zen-text-zen-success" },
+  { type: "info", icon: "info", label: "messagePopover.severity.info", text: "zen-text-zen-info" },
 ];
 
 const meta = (type: MessageType) => SEVERITY.find((s) => s.type === type)!;
@@ -102,9 +102,14 @@ export const MessagePopover = (props: MessagePopoverProps) => {
   const label = () => {
     if (props.triggerLabel) return props.triggerLabel;
     const n = props.messages.length;
-    if (n === 0) return "No messages";
+    if (n === 0) return loc.t("messagePopover.noMessages");
     const w = worst();
-    return `${n} message${n === 1 ? "" : "s"}` + (w ? `, most severe: ${w.label.toLowerCase()}` : "");
+    return w
+      ? loc.t("messagePopover.countMostSevere", {
+          messages: loc.t("messagePopover.count", { count: n }),
+          severity: loc.t(w.label),
+        })
+      : loc.t("messagePopover.count", { count: n });
   };
 
   /* Where to send focus once the popover has finished closing. */
@@ -163,7 +168,7 @@ export const MessagePopover = (props: MessagePopoverProps) => {
             class="zen-flex zen-flex-wrap zen-gap-1 zen-border-b zen-border-zen-border zen-p-2"
           >
             <FilterChip active={filter() === "all"} onClick={() => setFilter("all")}>
-              All {props.messages.length}
+              {loc.t("messagePopover.all", { count: props.messages.length })}
             </FilterChip>
             <For each={present()}>
               {(s) => (

@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../form/select/select";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * Filter variants for per-column filters in DataTable.
@@ -61,6 +62,21 @@ declare module "@tanstack/react-table" {
     filterVariant?: FilterVariant;
     /** Options used by the `select` variant. */
     filterOptions?: { label: string; value: string }[];
+    /**
+     * A total for this column, computed and shown by DataTable: in a footer
+     * (over the filtered rows, or the page with `totalsOver="page"`) and as
+     * each group's subtotal when grouped. Sums are exact in decimal. Leaves a
+     * column's own `footer`, `aggregationFn` and `aggregatedCell` alone.
+     */
+    aggregate?: "sum" | "count" | "avg" | "min" | "max" | ((values: unknown[], rows: unknown[]) => unknown);
+    /** How the total and subtotals show. Default: the locale's number at the column's own decimal places. */
+    formatTotal?: (value: unknown) => import("react").ReactNode;
+    /**
+     * How a server-side export should format this column (DataTable onExport):
+     * `{ kind: "amount", currency: "INR" }`, `{ kind: "date" }`… Default:
+     * "number" for a column with a total or a number filter, else "text".
+     */
+    exportFormat?: import("@algorisys/zen-ui-core/export-request").ExportColumnFormat;
   }
 }
 
@@ -69,7 +85,7 @@ declare module "@tanstack/react-table" {
 const empty = (s: unknown) =>
   s === null || s === undefined || (typeof s === "string" && s.length === 0);
 
-const textFilterFn: FilterFn<unknown> = (row, columnId, filter) => {
+export const textFilterFn: FilterFn<unknown> = (row, columnId, filter) => {
   const f = filter as TextFilterValue | string | undefined;
   // Back-compat: if someone passes a bare string, treat as "contains".
   const op: TextOp = typeof f === "object" && f ? f.op : "contains";
@@ -146,20 +162,20 @@ export const filterFnByVariant: Record<FilterVariant, FilterFn<unknown>> = {
 
 /* ---------------------------- variant inputs ------------------------------ */
 
-const TEXT_OPS: { value: TextOp; label: string; symbol: string }[] = [
-  { value: "contains", label: "Contains", symbol: "≈" },
-  { value: "equals", label: "Equals", symbol: "=" },
-  { value: "starts", label: "Starts with", symbol: "a…" },
-  { value: "ends", label: "Ends with", symbol: "…a" },
+const TEXT_OPS: { value: TextOp; label: MessageKey; symbol: string }[] = [
+  { value: "contains", label: "dataTable.textOp.contains", symbol: "≈" },
+  { value: "equals", label: "dataTable.textOp.equals", symbol: "=" },
+  { value: "starts", label: "dataTable.textOp.starts", symbol: "a…" },
+  { value: "ends", label: "dataTable.textOp.ends", symbol: "…a" },
 ];
 
-const NUMBER_OPS: { value: NumberOp; label: string; symbol: string }[] = [
-  { value: "eq", label: "Equals", symbol: "=" },
-  { value: "ne", label: "Not equal", symbol: "≠" },
-  { value: "gt", label: "Greater than", symbol: ">" },
-  { value: "lt", label: "Less than", symbol: "<" },
-  { value: "gte", label: "Greater or equal", symbol: "≥" },
-  { value: "lte", label: "Less or equal", symbol: "≤" },
+const NUMBER_OPS: { value: NumberOp; label: MessageKey; symbol: string }[] = [
+  { value: "eq", label: "dataTable.numberOp.eq", symbol: "=" },
+  { value: "ne", label: "dataTable.numberOp.ne", symbol: "≠" },
+  { value: "gt", label: "dataTable.numberOp.gt", symbol: ">" },
+  { value: "lt", label: "dataTable.numberOp.lt", symbol: "<" },
+  { value: "gte", label: "dataTable.numberOp.gte", symbol: "≥" },
+  { value: "lte", label: "dataTable.numberOp.lte", symbol: "≤" },
 ];
 
 /** Tiny op-button styled to fit alongside the value input in a filter row. */
@@ -171,16 +187,17 @@ function OpSelect<T extends string>({
 }: {
   value: T;
   onChange: (next: T) => void;
-  options: { value: T; label: string; symbol: string }[];
+  options: { value: T; label: MessageKey; symbol: string }[];
   ariaLabel: string;
 }) {
+  const loc = useLocale();
   const current = options.find((o) => o.value === value) ?? options[0];
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as T)}
       aria-label={ariaLabel}
-      title={current.label}
+      title={loc.t(current.label)}
       className={cn(
         "zen-h-7 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
         "zen-px-1 zen-text-xs zen-cursor-pointer",
@@ -204,6 +221,7 @@ function TextFilter({
   column: Column<unknown>;
   operators?: boolean;
 }) {
+  const loc = useLocale();
   const raw = column.getFilterValue() as TextFilterValue | string | undefined;
   const isObj = typeof raw === "object" && raw !== null;
   const op = isObj ? (raw as TextFilterValue).op : "contains";
@@ -227,14 +245,14 @@ function TextFilter({
           value={op}
           onChange={(o) => setNext({ op: o })}
           options={TEXT_OPS}
-          ariaLabel={`${headerLabel(column)} filter operator`}
+          ariaLabel={loc.t("dataTable.filterOperator", { column: headerLabel(column) })}
         />
       ) : null}
       <Input
         value={value}
         onChange={(e) => setNext({ value: e.target.value })}
-        placeholder="Filter…"
-        aria-label={`Filter ${headerLabel(column)}`}
+        placeholder={loc.t("dataTable.filterPlaceholder")}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
@@ -242,6 +260,7 @@ function TextFilter({
 }
 
 function NumberFilter({ column }: { column: Column<unknown> }) {
+  const loc = useLocale();
   const raw = column.getFilterValue() as NumberFilterValue | undefined;
   const op = raw?.op ?? "eq";
   const value = raw?.value ?? null;
@@ -253,7 +272,7 @@ function NumberFilter({ column }: { column: Column<unknown> }) {
           column.setFilterValue({ op: o, value } satisfies NumberFilterValue)
         }
         options={NUMBER_OPS}
-        ariaLabel={`${headerLabel(column)} filter operator`}
+        ariaLabel={loc.t("dataTable.filterOperator", { column: headerLabel(column) })}
       />
       <NumberField
         value={value ?? undefined}
@@ -264,7 +283,7 @@ function NumberFilter({ column }: { column: Column<unknown> }) {
           } satisfies NumberFilterValue)
         }
         placeholder="…"
-        aria-label={`Filter ${headerLabel(column)}`}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0"
       />
     </div>
@@ -272,6 +291,7 @@ function NumberFilter({ column }: { column: Column<unknown> }) {
 }
 
 function NumberRangeFilter({ column }: { column: Column<unknown> }) {
+  const loc = useLocale();
   const [min, max] = (column.getFilterValue() as NumberRangeFilterValue | undefined) ?? [
     null,
     null,
@@ -283,8 +303,8 @@ function NumberRangeFilter({ column }: { column: Column<unknown> }) {
         onValueChange={(v) =>
           column.setFilterValue([v ?? null, max] satisfies NumberRangeFilterValue)
         }
-        placeholder="min"
-        aria-label={`${headerLabel(column)} minimum`}
+        placeholder={loc.t("dataTable.min")}
+        aria-label={loc.t("dataTable.columnMinimum", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
       <span className="zen-text-zen-muted-fg zen-text-xs" aria-hidden>
@@ -295,8 +315,8 @@ function NumberRangeFilter({ column }: { column: Column<unknown> }) {
         onValueChange={(v) =>
           column.setFilterValue([min, v ?? null] satisfies NumberRangeFilterValue)
         }
-        placeholder="max"
-        aria-label={`${headerLabel(column)} maximum`}
+        placeholder={loc.t("dataTable.max")}
+        aria-label={loc.t("dataTable.columnMaximum", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1"
       />
     </div>
@@ -310,6 +330,7 @@ function SelectFilter({
   column: Column<unknown>;
   options: { label: string; value: string }[];
 }) {
+  const loc = useLocale();
   const value = (column.getFilterValue() as string | undefined) ?? "";
   return (
     <Select
@@ -319,13 +340,13 @@ function SelectFilter({
       }
     >
       <SelectTrigger
-        aria-label={`Filter ${headerLabel(column)}`}
+        aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(column) })}
         className="zen-h-7 zen-text-xs"
       >
-        <SelectValue placeholder="All" />
+        <SelectValue placeholder={loc.t("dataTable.all")} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="__all__">All</SelectItem>
+        <SelectItem value="__all__">{loc.t("dataTable.all")}</SelectItem>
         {options.map((o) => (
           <SelectItem key={o.value} value={o.value}>
             {o.label}
@@ -337,6 +358,7 @@ function SelectFilter({
 }
 
 function BooleanFilter({ column }: { column: Column<unknown> }) {
+  const loc = useLocale();
   const value = column.getFilterValue();
   const current =
     value === true || value === "true"
@@ -351,16 +373,16 @@ function BooleanFilter({ column }: { column: Column<unknown> }) {
         const v = e.target.value;
         column.setFilterValue(v === "any" ? undefined : v === "true");
       }}
-      aria-label={`Filter ${headerLabel(column)}`}
+      aria-label={loc.t("dataTable.filterColumn", { column: headerLabel(column) })}
       className={cn(
         "zen-h-7 zen-w-full zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",
         "zen-px-2 zen-text-xs zen-cursor-pointer",
         "focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
       )}
     >
-      <option value="any">Any</option>
-      <option value="true">Yes</option>
-      <option value="false">No</option>
+      <option value="any">{loc.t("dataTable.any")}</option>
+      <option value="true">{loc.t("dataTable.yes")}</option>
+      <option value="false">{loc.t("dataTable.no")}</option>
     </select>
   );
 }

@@ -12,6 +12,7 @@ import { rovingFocus } from "../../lib/roving-focus";
 import { setPresence } from "../../lib/presence";
 import { Button, type ButtonProps } from "../button/button";
 import { Icon, type IconName } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * Toolbar — a row of actions that collapses into an overflow menu when it runs
@@ -89,6 +90,7 @@ const freshLabel = (label: Child): Node[] => toNodes(label).map((n) => n.cloneNo
 
 export function Toolbar(props: ToolbarProps): ZenComponent<ToolbarProps> {
   let current: ToolbarProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("div");
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
@@ -286,7 +288,7 @@ export function Toolbar(props: ToolbarProps): ZenComponent<ToolbarProps> {
     }
 
     if (hidden.length > 0) {
-      menuTrigger.el.setAttribute("aria-label", current.overflowLabel ?? "More actions");
+      menuTrigger.el.setAttribute("aria-label", current.overflowLabel ?? loc.t("toolbar.moreActions"));
       setMenuItems(hidden);
       actionsRow.append(overflowContainer);
     } else {

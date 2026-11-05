@@ -22,6 +22,7 @@ import {
   type Child,
   type ZenComponent,
 } from "../../lib/component";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * PlanningCalendar — who is busy, and when.
@@ -90,7 +91,11 @@ export interface PlanningCalendarProps extends BaseProps {
   emptyMessage?: Child;
 }
 
-const VIEW_LABEL: Record<PlanningView, string> = { day: "Day", week: "Week", month: "Month" };
+const VIEW_LABEL: Record<PlanningView, MessageKey> = {
+  day: "planningCalendar.views.day",
+  week: "planningCalendar.views.week",
+  month: "planningCalendar.views.month",
+};
 const ALL_VIEWS: PlanningView[] = ["day", "week", "month"];
 
 /** Row height per lane. A block is 24px tall; lanes stack inside the row. */
@@ -122,6 +127,7 @@ export function PlanningCalendar(
   props: PlanningCalendarProps,
 ): ZenComponent<PlanningCalendarProps> {
   let current: PlanningCalendarProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -171,7 +177,7 @@ export function PlanningCalendar(
       Button({
         variant: "outline",
         size: "sm",
-        "aria-label": "Previous",
+        "aria-label": loc.t("planningCalendar.previous"),
         // Logical, not physical: under RTL the axis runs the other way, so a
         // left-pointing chevron would send you forward.
         children: keep(Icon({ name: "chevron-left", size: 14, class: "rtl:zen-rotate-180" })),
@@ -179,13 +185,13 @@ export function PlanningCalendar(
       }),
     );
     const today = keep(
-      Button({ variant: "outline", size: "sm", children: "Today", onClick: () => setDate(now) }),
+      Button({ variant: "outline", size: "sm", children: loc.t("planningCalendar.today"), onClick: () => setDate(now) }),
     );
     const next = keep(
       Button({
         variant: "outline",
         size: "sm",
-        "aria-label": "Next",
+        "aria-label": loc.t("planningCalendar.next"),
         children: keep(Icon({ name: "chevron-right", size: 14, class: "rtl:zen-rotate-180" })),
         onClick: () => setDate(shiftPlanningAnchor(view, anchor, 1)),
       }),
@@ -199,7 +205,7 @@ export function PlanningCalendar(
 
     const switcher = el("div", "zen-ms-auto zen-flex zen-gap-1");
     switcher.setAttribute("role", "group");
-    switcher.setAttribute("aria-label", "View");
+    switcher.setAttribute("aria-label", loc.t("planningCalendar.view"));
     for (const v of current.views ?? ALL_VIEWS) {
       switcher.append(
         keep(
@@ -207,7 +213,7 @@ export function PlanningCalendar(
             variant: view === v ? "solid" : "outline",
             size: "sm",
             "aria-pressed": view === v,
-            children: VIEW_LABEL[v],
+            children: loc.t(VIEW_LABEL[v]),
             onClick: () => setView(v),
           }),
         ).el,
@@ -278,7 +284,7 @@ export function PlanningCalendar(
 
     if (laidOut.length === 0) {
       const p = el("p", "zen-m-0 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg");
-      p.append(...toNodes(emptyMessage ?? "No resources"));
+      p.append(...toNodes(emptyMessage ?? loc.t("planningCalendar.noResources")));
       root.append(p);
     } else {
       // One horizontal scroller holding the header and every row, so the axis
@@ -294,7 +300,7 @@ export function PlanningCalendar(
         el(
           "div",
           "zen-w-40 zen-shrink-0 zen-border-e zen-border-zen-border zen-px-3 zen-py-2 zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
-          "Resource",
+          loc.t("planningCalendar.resource"),
         ),
       );
       const headCols = el("div", "zen-flex zen-flex-1");

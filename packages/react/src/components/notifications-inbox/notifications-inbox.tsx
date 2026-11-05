@@ -5,6 +5,7 @@ import {
   PopoverTrigger,
 } from "../popover/popover";
 import { cn } from "../../lib/cn";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * NotificationsInbox — bell icon trigger that opens a Popover panel of
@@ -85,10 +86,13 @@ const daysBetween = (a: Date, b: Date): number =>
     (startOfDay(b).getTime() - startOfDay(a).getTime()) / 86400000,
   );
 
-const dayLabel = (d: Date, now: Date): string => {
+/** The catalogue lookup, passed in: these helpers run outside any component. */
+type T = (key: MessageKey, values?: Record<string, string | number>) => string;
+
+const dayLabel = (d: Date, now: Date, t: T): string => {
   const diff = daysBetween(d, now);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
+  if (diff === 0) return t("notificationsInbox.today");
+  if (diff === 1) return t("notificationsInbox.yesterday");
   if (diff < 7) {
     return d.toLocaleDateString(undefined, { weekday: "long" });
   }
@@ -100,12 +104,14 @@ const dayLabel = (d: Date, now: Date): string => {
   });
 };
 
-const relativeTime = (d: Date, now: Date): string => {
+/* Catalogue messages, not Intl.RelativeTimeFormat: its narrow English says "now"
+   where this said "just now", and older engines say "5 min. ago" for "5m ago". */
+const relativeTime = (d: Date, now: Date, t: T): string => {
   const sec = Math.floor((now.getTime() - d.getTime()) / 1000);
-  if (sec < 45) return "just now";
-  if (sec < 60 * 60) return `${Math.floor(sec / 60)}m ago`;
-  if (sec < 60 * 60 * 24) return `${Math.floor(sec / 3600)}h ago`;
-  if (sec < 60 * 60 * 24 * 7) return `${Math.floor(sec / 86400)}d ago`;
+  if (sec < 45) return t("notificationsInbox.justNow");
+  if (sec < 60 * 60) return t("notificationsInbox.minutesAgo", { count: Math.floor(sec / 60) });
+  if (sec < 60 * 60 * 24) return t("notificationsInbox.hoursAgo", { count: Math.floor(sec / 3600) });
+  if (sec < 60 * 60 * 24 * 7) return t("notificationsInbox.daysAgo", { count: Math.floor(sec / 86400) });
   return d.toLocaleDateString();
 };
 
@@ -114,10 +120,10 @@ interface Group {
   items: Notification[];
 }
 
-const groupByDay = (notifications: Notification[], now: Date): Group[] => {
+const groupByDay = (notifications: Notification[], now: Date, t: T): Group[] => {
   const groups: Group[] = [];
   for (const n of notifications) {
-    const label = dayLabel(toDate(n.timestamp), now);
+    const label = dayLabel(toDate(n.timestamp), now, t);
     const tail = groups[groups.length - 1];
     if (tail && tail.label === label) tail.items.push(n);
     else groups.push({ label, items: [n] });
@@ -136,8 +142,8 @@ const NotificationsInbox = React.forwardRef<
       onMarkAllRead,
       onItemSelect,
       onViewAll,
-      emptyMessage = "You're all caught up.",
-      triggerLabel = "Notifications",
+      emptyMessage: emptyMessageProp,
+      triggerLabel: triggerLabelProp,
       maxHeight = 420,
       align = "end",
       open,
@@ -148,6 +154,9 @@ const NotificationsInbox = React.forwardRef<
     },
     ref,
   ) => {
+    const loc = useLocale();
+    const emptyMessage = emptyMessageProp ?? loc.t("notificationsInbox.youReAllCaughtUp");
+    const triggerLabel = triggerLabelProp ?? loc.t("notificationsInbox.notifications");
     /* Bucket the feed into day-groups once per render. `now` is captured
      * at render time so all relative-time calcs in this pass agree. */
     // `notifications` is a deliberate dependency even though the factory does
@@ -156,8 +165,8 @@ const NotificationsInbox = React.forwardRef<
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const now = React.useMemo(() => new Date(), [notifications]);
     const groups = React.useMemo(
-      () => groupByDay(notifications, now),
-      [notifications, now],
+      () => groupByDay(notifications, now, loc.t),
+      [notifications, now, loc],
     );
 
     const computedUnread =
@@ -174,7 +183,7 @@ const NotificationsInbox = React.forwardRef<
             type="button"
             aria-label={
               hasUnread
-                ? `${triggerLabel}, ${computedUnread} unread`
+                ? loc.t("notificationsInbox.unread", { label: triggerLabel, count: computedUnread })
                 : triggerLabel
             }
             className={cn(
@@ -228,7 +237,7 @@ const NotificationsInbox = React.forwardRef<
                   "zen-bg-transparent zen-border-0 zen-cursor-pointer zen-p-0",
                 )}
               >
-                Mark all as read
+                {loc.t("notificationsInbox.markAllAsRead")}
               </button>
             )}
           </div>
@@ -272,7 +281,7 @@ const NotificationsInbox = React.forwardRef<
                   "zen-bg-transparent zen-border-0 zen-cursor-pointer",
                 )}
               >
-                View all
+                {loc.t("notificationsInbox.viewAll")}
               </button>
             </div>
           )}
@@ -288,6 +297,7 @@ const Row: React.FC<{
   now: Date;
   onSelect?: (n: Notification) => void;
 }> = ({ notification, now, onSelect }) => {
+  const loc = useLocale();
   const { title, description, timestamp, read, icon, actions, href } =
     notification;
 
@@ -323,7 +333,7 @@ const Row: React.FC<{
         )}
         <div className="zen-mt-1 zen-flex zen-items-center zen-justify-between zen-gap-2">
           <span className="zen-text-[0.65rem] zen-uppercase zen-tracking-wide zen-text-zen-muted-fg">
-            {relativeTime(toDate(timestamp), now)}
+            {relativeTime(toDate(timestamp), now, loc.t)}
           </span>
           {actions && (
             <div className="zen-flex zen-items-center zen-gap-1.5">{actions}</div>

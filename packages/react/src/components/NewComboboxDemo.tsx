@@ -265,6 +265,27 @@ const NewComboboxDemo: React.FC = () => {
           <Combobox options={grouped} disabled placeholder="Locked" />
         </CodeExample>
       </section>
+
+      <section className="demo-section">
+        <h2>7. Invalid</h2>
+        <CodeExample
+          title="invalid: a required field left empty"
+          description="The field is marked aria-invalid and its border takes the error colour; the message itself is the form's to show."
+          code={`<Combobox options={customers} placeholder="Customer" invalid />`}
+        >
+          <div data-testid="combobox-invalid">
+            <Combobox
+              options={[
+                { value: "acme", label: "Acme Traders" },
+                { value: "kaveri", label: "Kaveri Steel" },
+              ]}
+              placeholder="Customer"
+              searchPlaceholder="Customer"
+              invalid
+            />
+          </div>
+        </CodeExample>
+      </section>
     </div>
   );
 };

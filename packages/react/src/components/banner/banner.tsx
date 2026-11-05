@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Banner — page-top persistent callout for app-wide context that needs
@@ -147,11 +148,13 @@ BannerActions.displayName = "BannerActions";
 export type BannerCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export const BannerClose = React.forwardRef<HTMLButtonElement, BannerCloseProps>(
-  ({ className, ...props }, ref) => (
+  ({ className, ...props }, ref) => {
+    const loc = useLocale();
+    return (
     <button
       ref={ref}
       type="button"
-      aria-label="Dismiss banner"
+      aria-label={loc.t("banner.dismissBanner")}
       className={cn(
         "zen-flex-shrink-0 zen-inline-flex zen-items-center zen-justify-center",
         "zen-h-6 zen-w-6 zen-rounded-zen-sm zen-bg-transparent zen-border-0 zen-cursor-pointer",
@@ -176,7 +179,8 @@ export const BannerClose = React.forwardRef<HTMLButtonElement, BannerCloseProps>
         <line x1="6" y1="6" x2="18" y2="18" />
       </svg>
     </button>
-  ),
+    );
+  },
 );
 BannerClose.displayName = "BannerClose";
 

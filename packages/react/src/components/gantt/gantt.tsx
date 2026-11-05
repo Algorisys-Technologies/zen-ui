@@ -36,6 +36,7 @@ import {
   useScrollerMetrics,
   type ScheduleColumn,
 } from "./schedule-grid";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * Gantt — what the project is doing, and what is waiting on what.
@@ -217,11 +218,11 @@ const PANE_PX: Record<GanttPaneColumn, number> = {
   variance: 72,
 };
 
-const PANE_LABEL: Record<GanttPaneColumn, string> = {
-  name: "Task",
-  assignees: "Assignees",
-  status: "Status",
-  variance: "Variance",
+const PANE_LABEL: Record<GanttPaneColumn, MessageKey> = {
+  name: "gantt.column.name",
+  assignees: "gantt.column.assignees",
+  status: "gantt.column.status",
+  variance: "gantt.column.variance",
 };
 
 /**
@@ -295,11 +296,11 @@ const STATUS_COLOR: Record<GanttTaskStatus, "neutral" | "info" | "error" | "succ
   complete: "success",
 };
 
-const STATUS_LABEL: Record<GanttTaskStatus, string> = {
-  "not-started": "Not started",
-  "on-track": "On track",
-  delayed: "Delayed",
-  complete: "Complete",
+const STATUS_LABEL: Record<GanttTaskStatus, MessageKey> = {
+  "not-started": "gantt.status.notStarted",
+  "on-track": "gantt.status.onTrack",
+  delayed: "gantt.status.delayed",
+  complete: "gantt.status.complete",
 };
 
 const initialsOf = (assignee: GanttAssignee): string =>
@@ -358,6 +359,7 @@ export const Gantt = ({
   emptyState,
   className,
 }: GanttProps) => {
+  const loc = useLocale();
   /* Fit, not month, and certainly not week. A seven-day window is right for a
      calendar and wrong for a plan; a month is right for a plan that fits in one
      and wrong for the majority that do not. Fit is the only default that is
@@ -420,7 +422,7 @@ export const Gantt = ({
     () =>
       requestedPane.map((key) => ({
         key,
-        label: PANE_LABEL[key],
+        label: loc.t(PANE_LABEL[key]),
         width: PANE_PX[key],
         colIndex: COL_INDEX[key],
         className: key === "name" ? "zen-min-w-0 zen-gap-1 zen-pe-2" : "zen-px-2",
@@ -437,7 +439,7 @@ export const Gantt = ({
         render: (row: Row) => <GanttPaneCell column={key} row={row} onToggle={toggle} />,
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [requestedPane.join(","), expandedIds, tasks],
+    [requestedPane.join(","), expandedIds, tasks, loc],
   );
 
   const axis = useScheduleAxis({
@@ -528,7 +530,7 @@ export const Gantt = ({
           className,
         )}
         role="status"
-        aria-label="Loading schedule"
+        aria-label={loc.t("gantt.loadingSchedule")}
       >
         {Array.from({ length: loadingRows }, (_, i) => (
           <div key={i} className="zen-flex zen-items-center zen-gap-3">
@@ -554,9 +556,9 @@ export const Gantt = ({
             <EmptyStateIcon>
               <Icon name="calendar" size={22} />
             </EmptyStateIcon>
-            <EmptyStateTitle>Nothing scheduled</EmptyStateTitle>
+            <EmptyStateTitle>{loc.t("gantt.nothingScheduled")}</EmptyStateTitle>
             <EmptyStateDescription>
-              Add a task with a start and an end date and it will appear on the timeline.
+              {loc.t("gantt.addATaskWithA")}
             </EmptyStateDescription>
           </EmptyState>
         )}
@@ -583,7 +585,7 @@ export const Gantt = ({
         onDateChange={setDate}
         onToggle={(row) => toggle(row.task.id)}
         onActivate={(row) => onTaskClick?.(row.task, row)}
-        ariaLabel="Project schedule"
+        ariaLabel={loc.t("gantt.projectSchedule")}
         className={className}
         scrollerRef={scrollerRef}
         axis={axis}
@@ -604,6 +606,7 @@ const GanttPaneCell = ({
   row: Row;
   onToggle: (id: string) => void;
 }) => {
+  const loc = useLocale();
   const { task } = row;
 
   if (column === "name") {
@@ -617,7 +620,7 @@ const GanttPaneCell = ({
                by a tab stop per parent. */
             tabIndex={-1}
             onClick={() => onToggle(task.id)}
-            aria-label={row.expanded ? `Collapse ${task.name}` : `Expand ${task.name}`}
+            aria-label={loc.t(row.expanded ? "gantt.collapseTask" : "gantt.expandTask", { name: task.name })}
             className="zen-flex zen-h-5 zen-w-5 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring"
           >
             <Icon
@@ -656,7 +659,7 @@ const GanttPaneCell = ({
   if (column === "status") {
     return (
       <Badge variant="soft" color={STATUS_COLOR[row.status]} className="zen-truncate">
-        {task.statusLabel ?? STATUS_LABEL[row.status]}
+        {task.statusLabel ?? loc.t(STATUS_LABEL[row.status])}
       </Badge>
     );
   }
@@ -690,6 +693,7 @@ const GanttTrack = ({
   placement: PlanningPlacement | null;
   onTaskClick?: (task: GanttTask, row: Row) => void;
 }) => {
+  const loc = useLocale();
   const { task } = row;
   const progress = row.progress ?? 0;
   const widthPx = placement ? (placement.widthPct / 100) * axisWidth : 0;
@@ -759,7 +763,7 @@ const GanttTrack = ({
   if (!placement)
     return (
       <span className="zen-sr-only">
-        {row.span ? "Not scheduled in this range" : "No dates"}
+        {row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}
       </span>
     );
 
@@ -799,9 +803,12 @@ const GanttTrack = ({
         }`}
       >
         <span className="zen-sr-only">
-          {`${formatDay(row.span!.start)} to ${formatDay(row.span!.end)}, ${STATUS_LABEL[row.status]}${
-            row.progress === null ? "" : `, ${Math.round(progress)} percent complete`
-          }`}
+          {loc.t(row.progress === null ? "gantt.barSpan" : "gantt.barSpanProgress", {
+            start: formatDay(row.span!.start),
+            end: formatDay(row.span!.end),
+            status: loc.t(STATUS_LABEL[row.status]),
+            percent: Math.round(progress),
+          })}
         </span>
         {/* The bar broken at the gaps where no work happens. The pieces sit
             INSIDE one button rather than being buttons themselves: the job

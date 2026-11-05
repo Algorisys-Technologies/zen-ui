@@ -3,6 +3,7 @@ import { toNodes, type Child, type ZenComponent } from "../../lib/component";
 import { cardVariants } from "../card/card";
 import { Skeleton } from "../skeleton/skeleton";
 import { Icon } from "../icon/icon";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 export type StatCardColor = "primary" | "neutral" | "info" | "success" | "warning" | "error";
 export interface StatCardTrend {
@@ -34,30 +35,46 @@ export interface StatCardProps {
   /** Takes precedence over onClick. */
   href?: string;
   loading?: boolean;
+  /**
+   * A small chart under the figure, across the card: the trend behind a hero
+   * figure ("Revenue, trailing 12 months"). A MicroChart, or any element.
+   * While `loading` it is a skeleton too.
+   */
+  chart?: Child;
+  /** "lg": the hero of a dashboard row, with a larger figure. Default "md". */
+  size?: "md" | "lg";
   class?: string;
 }
 
 const TEXT: Record<StatCardColor, string> = {
   primary: "zen-text-zen-primary", neutral: "zen-text-zen-muted-fg", info: "zen-text-zen-info",
-  success: "zen-text-zen-success", warning: "zen-text-zen-warning", error: "zen-text-zen-error",
+  success: "zen-text-zen-success", warning: "zen-text-zen-warning-text", error: "zen-text-zen-error",
 };
 const TREND_COLOR: Record<StatCardTrend["direction"], StatCardColor> = { up: "success", down: "error", flat: "neutral" };
 const TREND_ICON = { up: "arrow-up", down: "arrow-down", flat: "arrow-right" } as const;
-const TREND_LABEL = { up: "Trending up", down: "Trending down", flat: "Flat" } as const;
+const TREND_LABEL: Record<"up" | "down" | "flat", MessageKey> = {
+  up: "statCard.trendingUp",
+  down: "statCard.trendingDown",
+  flat: "statCard.flat",
+};
 
 export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
   let current = { ...props };
+  const loc = useLocale();
   // Element identity depends on interactivity, but it is fixed for the card's life
   // (a stat card does not toggle between a link and a button), so it is chosen once.
   const tag = current.href ? "a" : current.onClick ? "button" : "div";
   const el = document.createElement(tag);
 
   const render = () => {
-    const { label, value, icon, description, color = "neutral", trend, onClick, href, loading, class: className } = current;
+    const { label, value, icon, description, color = "neutral", trend, onClick, href, loading, chart, size, class: className } = current;
     const interactive = Boolean(href || onClick);
     el.className = cn(
       cardVariants({ variant: "outlined", padding: "md" }),
-      "zen-block zen-w-full zen-text-start",
+      // A linked card would otherwise underline every word in it: zen-ui ships
+      // no element reset for <a> (measured: underlined in this demo and without
+      // the preflight).
+      "zen-block zen-w-full zen-text-start zen-no-underline",
       interactive &&
         "zen-cursor-pointer zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       className,
@@ -80,7 +97,12 @@ export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
       col.append(Skeleton({ class: "zen-h-7 zen-w-24" }).el);
     } else {
       const val = document.createElement("span");
-      val.className = "zen-text-2xl zen-font-semibold zen-leading-none zen-text-zen-foreground";
+      // The size goes FIRST: cn() lets a later font-size class drop an earlier
+      // leading-*, and leading-none is what this always drew.
+      val.className = cn(
+        size === "lg" ? "zen-text-4xl" : "zen-text-2xl",
+        "zen-font-semibold zen-leading-none zen-text-zen-foreground",
+      );
       val.append(...toNodes(value));
       col.append(val);
     }
@@ -88,7 +110,7 @@ export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
     if (trend && !loading) {
       const t = document.createElement("span");
       t.className = cn("zen-inline-flex zen-items-center zen-gap-1 zen-text-xs zen-font-medium", TEXT[trend.color ?? TREND_COLOR[trend.direction]]);
-      t.append(Icon({ name: TREND_ICON[trend.direction], size: 14, title: TREND_LABEL[trend.direction] }).el);
+      t.append(Icon({ name: TREND_ICON[trend.direction], size: 14, title: loc.t(TREND_LABEL[trend.direction]) }).el);
       const tv = document.createElement("span");
       tv.append(...toNodes(trend.value));
       t.append(tv);
@@ -111,7 +133,18 @@ export function StatCard(props: StatCardProps): ZenComponent<StatCardProps> {
       row.append(ic);
     }
 
-    el.replaceChildren(row);
+    // The chart sits under the figure, across the card; nothing at all is
+    // rendered without one, so a card that has none is unchanged.
+    if (chart) {
+      const c = document.createElement("div");
+      c.className = "zen-mt-3";
+      c.setAttribute("data-stat-chart", "");
+      if (loading) c.append(Skeleton({ class: "zen-h-12 zen-w-full" }).el);
+      else c.append(...toNodes(chart));
+      el.replaceChildren(row, c);
+    } else {
+      el.replaceChildren(row);
+    }
     if (onClick && !href) el.onclick = () => onClick();
   };
   render();

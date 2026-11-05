@@ -14,6 +14,7 @@ import { rovingFocus } from "../../lib/roving-focus";
 import { setPresence } from "../../lib/presence";
 import { Button, type ButtonProps } from "./button";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * Button family — the three Fiori-shaped button forms zen-ui was missing, ported
@@ -114,6 +115,12 @@ export interface SegmentedButtonItem {
   /** The segment's content. */
   label?: Child;
   disabled?: boolean;
+  /**
+   * A count beside the label, for choices that filter a list ("Paid 4"):
+   * a muted chip in tabular figures, inverted when the item is selected. The
+   * item's name reads "Paid, 4".
+   */
+  count?: number | Child;
 }
 
 export interface SegmentedButtonProps extends BaseProps {
@@ -134,6 +141,8 @@ const SEG_GROUP = [
   "[&>button:first-child]:zen-rounded-l-zen-md [&>button:last-child]:zen-rounded-r-zen-md",
 ].join(" ");
 const SEG_SELECTED = "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-font-semibold";
+const COUNT_CHIP =
+  "zen-ml-1.5 zen-min-w-5 zen-rounded-zen-sm zen-px-1.5 zen-text-center zen-text-xs zen-font-medium zen-tabular-nums";
 
 export function SegmentedButton(props: SegmentedButtonProps): ZenComponent<SegmentedButtonProps> {
   let current: SegmentedButtonProps = { ...props };
@@ -142,7 +151,7 @@ export function SegmentedButton(props: SegmentedButtonProps): ZenComponent<Segme
   const disposer = new Disposer();
   let itemCleanups = new Disposer();
   let removeProps: (() => void) | undefined;
-  let buttons: Array<{ value: string; btn: ZenComponent<ButtonProps> }> = [];
+  let buttons: Array<{ value: string; btn: ZenComponent<ButtonProps>; chip?: HTMLElement }> = [];
 
   const state = controllable<string>({
     value: current.value,
@@ -152,12 +161,18 @@ export function SegmentedButton(props: SegmentedButtonProps): ZenComponent<Segme
 
   const paint = () => {
     const cur = state.get();
-    for (const { value, btn } of buttons) {
+    for (const { value, btn, chip } of buttons) {
       const selected = value === cur;
       btn.update({
         class: cn(selected && SEG_SELECTED),
         "aria-checked": String(selected),
       });
+      if (chip) {
+        chip.className = cn(
+          COUNT_CHIP,
+          selected ? "zen-bg-zen-primary zen-text-zen-primary-fg" : "zen-bg-zen-muted zen-text-zen-muted-fg",
+        );
+      }
     }
   };
 
@@ -176,12 +191,33 @@ export function SegmentedButton(props: SegmentedButtonProps): ZenComponent<Segme
     el.replaceChildren();
 
     for (const item of items) {
+      // Without a count the label passes through untouched, as before.
+      const hasCount = item.count !== undefined;
+      let chip: HTMLElement | undefined;
+      let children: Child = item.label;
+      if (hasCount) {
+        const sep = document.createElement("span");
+        sep.className = "zen-sr-only";
+        sep.textContent = ", ";
+        chip = document.createElement("span");
+        chip.setAttribute("data-count", "");
+        chip.append(...toNodes(item.count as Child));
+        children = [item.label, sep, chip];
+      }
       const btn = Button({
         variant: "ghost",
         size: size ?? "sm",
         type: "button",
         disabled: item.disabled,
-        children: item.label,
+        children,
+        // "Paid, 4". Chrome pads a visually hidden separator with spaces of its
+        // own ("Paid , 4"), so a plain-text label is named directly; any other
+        // label keeps the hidden separator.
+        ...(hasCount &&
+        typeof item.label === "string" &&
+        (typeof item.count === "number" || typeof item.count === "string")
+          ? { "aria-label": `${item.label}, ${item.count}` }
+          : {}),
       });
       btn.el.setAttribute("role", "radio");
       const onClick = () => {
@@ -193,7 +229,7 @@ export function SegmentedButton(props: SegmentedButtonProps): ZenComponent<Segme
         btn.destroy();
       });
       el.append(btn.el);
-      buttons.push({ value: item.value, btn });
+      buttons.push({ value: item.value, btn, chip });
     }
 
     paint();
@@ -270,6 +306,7 @@ let splitUid = 0;
 
 export function SplitButton(props: SplitButtonProps): ZenComponent<SplitButtonProps> {
   let current: SplitButtonProps = { ...props };
+  const loc = useLocale();
   const id = `zen-split-${++splitUid}`;
   const el = document.createElement("div");
   const disposer = new Disposer();
@@ -327,7 +364,7 @@ export function SplitButton(props: SplitButtonProps): ZenComponent<SplitButtonPr
   const render = () => {
     const {
       menu: items,
-      menuLabel = "More actions",
+      menuLabel = loc.t("buttonFamily.moreActions"),
       menuAlign = "end",
       variant = "solid",
       color = "primary",

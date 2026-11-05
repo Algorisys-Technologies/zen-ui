@@ -6,6 +6,7 @@ import {
   type BaseProps,
   type ZenComponent,
 } from "../../../lib/component";
+import { useLocale } from "../../locale/locale";
 
 /**
  * Label — a standalone <label> for a control that is not inside a Form.
@@ -50,6 +51,7 @@ export interface LabelProps extends BaseProps {
 
 export function Label(props: LabelProps): ZenComponent<LabelProps, HTMLLabelElement> {
   let current: LabelProps = { ...props };
+  const loc = useLocale();
   const el = document.createElement("label");
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
@@ -91,7 +93,7 @@ export function Label(props: LabelProps): ZenComponent<LabelProps, HTMLLabelElem
 
       const spoken = document.createElement("span");
       spoken.className = "zen-sr-only";
-      spoken.textContent = " (required)";
+      spoken.textContent = ` ${loc.t("label.required")}`;
 
       el.append(star, spoken);
     }

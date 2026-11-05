@@ -2,6 +2,7 @@ import * as React from "react";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { cn } from "../../../lib/cn";
 import "./otp.css";
+import { useLocale } from "../../locale/locale";
 
 /**
  * InputOTP — one `<input>` per digit. Drop-in:
@@ -290,6 +291,7 @@ export const InputOTPSlot = React.forwardRef<
     },
     ref,
   ) => {
+    const loc = useLocale();
     const {
       value,
       maxLength,
@@ -394,7 +396,7 @@ export const InputOTPSlot = React.forwardRef<
         type="text"
         inputMode="numeric"
         autoComplete={index === 0 ? "one-time-code" : "off"}
-        aria-label={`Digit ${index + 1} of ${maxLength}`}
+        aria-label={loc.t("otp.digit", { n: index + 1, count: maxLength })}
         disabled={isDisabled}
         value={char}
         className={cn(slotBaseClassName, contextSlotClassName, className)}

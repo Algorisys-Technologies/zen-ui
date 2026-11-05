@@ -3,6 +3,7 @@ import { Slot, Slottable } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * Link — a styled anchor.
@@ -74,6 +75,7 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
     { size, inline, external, disabled, asChild, className, children, href, target, rel, ...props },
     ref,
   ) => {
+    const loc = useLocale();
     const classes = cn(linkVariants({ size, inline, disabled }), "zen-inline-flex zen-items-center zen-gap-1", className);
 
     if (disabled) {
@@ -108,7 +110,7 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
             <Icon name="external-link" size={12} aria-hidden className="zen-shrink-0" />
             {/* The icon is decorative, so the fact it leaves the page has to be
                 said in words — a screen reader gets no warning otherwise. */}
-            <span className="zen-sr-only">(opens in a new tab)</span>
+            <span className="zen-sr-only">{loc.t("link.opensInNewTab")}</span>
           </>
         ) : null}
       </Comp>

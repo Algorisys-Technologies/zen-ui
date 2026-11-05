@@ -1,5 +1,6 @@
 import { cn } from "../../../lib/cn";
 import { applyProps, Disposer, type ZenComponent } from "../../../lib/component";
+import { useLocale } from "../../locale/locale";
 
 /**
  * TimePicker — segmented numeric time input.
@@ -117,6 +118,7 @@ const clockIcon = (): SVGSVGElement => {
 
 export function TimePicker(props: TimePickerProps = {}): TimePickerHandle {
   let current: TimePickerProps = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
 
   const showSeconds = () => Boolean(current.showSeconds);
@@ -329,7 +331,7 @@ export function TimePicker(props: TimePickerProps = {}): TimePickerHandle {
   const makePeriodSegment = (): HTMLDivElement => {
     const seg = document.createElement("div");
     seg.setAttribute("role", "spinbutton");
-    seg.setAttribute("aria-label", "AM/PM");
+    seg.setAttribute("aria-label", loc.t("timePicker.period"));
     const onKey = (e: KeyboardEvent) => handlePeriodKeyDown(e);
     const onFoc = handleFocus("p");
     seg.addEventListener("keydown", onKey);
@@ -343,9 +345,9 @@ export function TimePicker(props: TimePickerProps = {}): TimePickerHandle {
   // Build every possible segment once; visibility is toggled in render() so a
   // format/showSeconds change is a re-parent, never a rebuild that would drop
   // focus or leak the listeners registered above.
-  const hSeg = makeNumSegment("h", "Hours");
-  const mSeg = makeNumSegment("m", "Minutes");
-  const sSeg = makeNumSegment("s", "Seconds");
+  const hSeg = makeNumSegment("h", loc.t("timePicker.hours"));
+  const mSeg = makeNumSegment("m", loc.t("timePicker.minutes"));
+  const sSeg = makeNumSegment("s", loc.t("timePicker.seconds"));
   const pSeg = makePeriodSegment();
   const colonHM = makeColon();
   const colonMS = makeColon();
@@ -386,7 +388,7 @@ export function TimePicker(props: TimePickerProps = {}): TimePickerHandle {
       seg.setAttribute("aria-valuemax", String(segMax(k)));
       if (displayed === null) {
         seg.removeAttribute("aria-valuenow");
-        seg.setAttribute("aria-valuetext", "empty");
+        seg.setAttribute("aria-valuetext", loc.t("timePicker.empty"));
       } else {
         seg.setAttribute("aria-valuenow", String(displayed));
         seg.setAttribute("aria-valuetext", pad(displayed));
@@ -400,12 +402,13 @@ export function TimePicker(props: TimePickerProps = {}): TimePickerHandle {
       const period = periodFromHour(parts.h);
       pSeg.tabIndex = tabIndex;
       pSeg.className = cn(segmentClass("p"), "zen-ml-1 zen-uppercase");
-      pSeg.textContent = period;
-      pSeg.setAttribute("aria-valuetext", period);
+      const periodText = loc.t(period === "AM" ? "timePicker.am" : "timePicker.pm");
+      pSeg.textContent = periodText;
+      pSeg.setAttribute("aria-valuetext", periodText);
     }
 
     // aria on the group
-    el.setAttribute("aria-label", current["aria-label"] ?? "Time");
+    el.setAttribute("aria-label", current["aria-label"] ?? loc.t("timePicker.label"));
     if (current["aria-labelledby"] !== undefined) {
       el.setAttribute("aria-labelledby", String(current["aria-labelledby"]));
     } else {

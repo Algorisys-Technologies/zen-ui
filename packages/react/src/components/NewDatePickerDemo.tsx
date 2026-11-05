@@ -6,6 +6,7 @@ import { CodeExample } from "./demo-helpers";
 const NewDatePickerDemo: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [range, setRange] = useState<DateRange | undefined>(undefined);
+  const [chosen] = useState(() => new Date(2026, 2, 15));
 
   return (
     <div className="demo-page">
@@ -96,6 +97,19 @@ const NewDatePickerDemo: React.FC = () => {
           <div style={{ marginTop: 8, fontSize: "0.8125rem", color: "var(--zen-color-muted-fg)" }}>
             range: {range?.from?.toLocaleDateString() || "—"} →{" "}
             {range?.to?.toLocaleDateString() || "—"}
+          </div>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>6. Opening on the chosen day</h2>
+        <CodeExample
+          title={'initialFocus="selected"'}
+          description={'By default the calendar opens with focus on its first control, Previous month (as it always has). With initialFocus="selected" it opens on the chosen day, or today, so the arrow keys move between days at once. It becomes the default in the next major version.'}
+          code={`<DatePicker initialFocus="selected" value={date} onValueChange={setDate} />`}
+        >
+          <div data-testid="initial-focus">
+            <DatePicker initialFocus="selected" defaultValue={chosen} />
           </div>
         </CodeExample>
       </section>

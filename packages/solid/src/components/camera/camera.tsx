@@ -1,5 +1,6 @@
 import { type JSX, createSignal, onCleanup, onMount, Show, mergeProps } from "solid-js";
 import { cn } from "../../lib/cn";
+import { useLocale } from "../locale/locale";
 
 /**
  * Camera — webcam capture. No dependency.
@@ -27,6 +28,7 @@ export interface CameraProps {
 }
 
 export const Camera = (props: CameraProps) => {
+  const loc = useLocale();
   const merged = mergeProps(
     {
       width: 480,
@@ -34,7 +36,6 @@ export const Camera = (props: CameraProps) => {
       facingMode: "user" as const,
       screenshotFormat: "image/jpeg" as const,
       mirrored: true,
-      captureLabel: "Capture" as JSX.Element,
     },
     props,
   );
@@ -52,7 +53,7 @@ export const Camera = (props: CameraProps) => {
 
   onMount(async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      setError("Camera is unavailable — this browser has no getUserMedia, or the page is not on https/localhost.");
+      setError(loc.t("camera.unavailableHttps"));
       return;
     }
     try {
@@ -68,10 +69,12 @@ export const Camera = (props: CameraProps) => {
       const name = (err as DOMException)?.name;
       setError(
         name === "NotAllowedError"
-          ? "Camera permission denied."
+          ? loc.t("camera.permissionDenied")
           : name === "NotFoundError"
-            ? "No camera found."
-            : `Camera failed to start${name ? ` (${name})` : ""}.`,
+            ? loc.t("camera.noCameraFound")
+            : name
+              ? loc.t("camera.failedToStartNamed", { name })
+              : loc.t("camera.failedToStart"),
       );
       return;
     }
@@ -140,7 +143,7 @@ export const Camera = (props: CameraProps) => {
         disabled={!ready()}
         class="zen-inline-flex zen-h-9 zen-items-center zen-justify-center zen-rounded-zen-md zen-bg-zen-primary zen-px-4 zen-text-sm zen-font-medium zen-text-zen-primary-fg zen-transition-colors hover:zen-opacity-90 focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2 disabled:zen-pointer-events-none disabled:zen-opacity-50"
       >
-        {merged.captureLabel}
+        {merged.captureLabel ?? loc.t("camera.capture")}
       </button>
     </div>
   );

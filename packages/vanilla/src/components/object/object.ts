@@ -8,7 +8,9 @@ import {
   type Child,
   type ZenComponent,
 } from "../../lib/component";
+import { formatAmount, formatNumber } from "@algorisys/zen-ui-core/number-format";
 import { Icon, type IconName } from "../icon/icon";
+import { useLocale, type LocaleContextValue, type MessageKey } from "../locale/locale";
 
 /**
  * Object atoms — the small, semantic display elements object pages, list
@@ -32,7 +34,9 @@ export type ObjectState = "none" | "success" | "warning" | "error" | "info";
 const STATE_TEXT: Record<ObjectState, string> = {
   none: "zen-text-zen-foreground",
   success: "zen-text-zen-success",
-  warning: "zen-text-zen-warning",
+  // --zen-color-warning-text, falling back to the warning colour (core
+  // tokens.css): unchanged unless an app sets the token.
+  warning: "zen-text-zen-warning-text",
   error: "zen-text-zen-error",
   info: "zen-text-zen-info",
 };
@@ -49,6 +53,9 @@ const STATE_ICON: Record<Exclude<ObjectState, "none">, IconName> = {
  * A tiny factory shell shared by all four atoms: it owns `current`, the
  * disposer and the applyProps lifecycle, and delegates the markup to `paint`.
  * `paint` writes className + children and returns the leftover props to apply.
+ * It is also handed the LocaleProvider that was building the atom when it was
+ * created (read once, at construction, as every factory reads it), for
+ * ObjectNumber's `number` formatting.
  *
  * These are pure display, so there is no behaviour to hand-write — only the
  * icon/state resolution that differs per atom. `styled` does not fit: each atom
@@ -57,16 +64,17 @@ const STATE_ICON: Record<Exclude<ObjectState, "none">, IconName> = {
  */
 function atom<P extends BaseProps, E extends HTMLElement>(
   tag: keyof HTMLElementTagNameMap,
-  paint: (el: E, current: P) => Record<string, unknown>,
+  paint: (el: E, current: P, loc: LocaleContextValue) => Record<string, unknown>,
 ): (props?: P) => ZenComponent<P, E> {
   return (props?: P) => {
+    const loc = useLocale();
     let current = { ...(props ?? {}) } as P;
     const el = document.createElement(tag) as unknown as E;
     const disposer = new Disposer();
     let removeProps: (() => void) | undefined;
 
     const render = () => {
-      const rest = paint(el, current);
+      const rest = paint(el, current, loc);
       removeProps?.();
       removeProps = applyProps(el as unknown as HTMLElement, rest);
     };
@@ -128,15 +136,43 @@ export interface ObjectStatusProps
    * carry meaning — without this, a status reads as bare text to assistive tech.
    */
   stateAnnouncement?: string;
+  /**
+   * A document's status as a stamp: a ruled box in the state's colour,
+   * uppercase and letter-spaced, never rotated (DRAFT, SUBMITTED, CANCELLED).
+   * No icon unless one is given. The neutral state is a muted grey.
+   */
+  stamp?: boolean;
 }
 
+// The soft-fg colours, not the plain state colours: warning's plain colour is
+// 1.77:1 on white, unreadable as text; its soft-fg is 5.23:1. For success,
+// error and info the two are the same colour (measured on the default theme).
+const STAMP_TEXT: Record<ObjectState, string> = {
+  none: "zen-text-zen-muted-fg",
+  success: "zen-text-zen-success-soft-fg",
+  warning: "zen-text-zen-warning-soft-fg",
+  error: "zen-text-zen-error-soft-fg",
+  info: "zen-text-zen-info-soft-fg",
+};
+
 export const ObjectStatus = atom<ObjectStatusProps, HTMLSpanElement>("span", (el, c) => {
-  const { state = "none", icon, inverted, stateAnnouncement, class: className, children, ...rest } = c;
-  const resolved = icon === null ? null : (icon ?? (state === "none" ? null : STATE_ICON[state]));
+  const { state = "none", icon, inverted, stateAnnouncement, stamp, class: className, children, ...rest } = c;
+  const resolved =
+    icon === null || (stamp && icon === undefined)
+      ? null
+      : (icon ?? (state === "none" ? null : STATE_ICON[state]));
 
   el.className = cn(
     objectStatusVariants({ inverted }),
-    inverted ? STATE_INVERTED[state] : STATE_TEXT[state],
+    stamp
+      ? cn(
+          "zen-rounded-zen-sm zen-border zen-border-solid zen-border-current zen-px-1.5 zen-py-px",
+          "zen-text-xs zen-font-semibold zen-uppercase zen-tracking-wider",
+          STAMP_TEXT[state],
+        )
+      : inverted
+        ? STATE_INVERTED[state]
+        : STATE_TEXT[state],
     className,
   );
 
@@ -158,16 +194,40 @@ export const ObjectStatus = atom<ObjectStatusProps, HTMLSpanElement>("span", (el
 /* ---------------------------- ObjectNumber ----------------------------- */
 
 export interface ObjectNumberProps extends Omit<BaseProps, "children"> {
-  /** Pre-formatted for the user's locale — this component does not format. */
-  value: Child;
+  /**
+   * Shown as given: pre-formatted for the user's locale. To have the number
+   * formatted here instead, pass `number` (and `currency`) and leave this out.
+   */
+  value?: Child;
+  /**
+   * A number to format in the locale (the `locale` prop, else LocaleProvider's,
+   * else the browser's): at the currency's precision with `currency`, else at
+   * `precision`. Used only when `value` is not given.
+   */
+  number?: number;
+  /** ISO 4217. Sets the precision (INR 2, JPY 0) and, without a `unit`, is shown as the unit: 1,250.00 INR. */
+  currency?: string;
+  /** Decimal places for `number`. Default: the currency's, else as many as it has. */
+  precision?: number;
+  locale?: string;
   unit?: Child;
   state?: ObjectState;
   /** Larger and bolder — for the headline figure on an object page. */
   emphasized?: boolean;
 }
 
-export const ObjectNumber = atom<ObjectNumberProps, HTMLSpanElement>("span", (el, c) => {
-  const { value, unit, state = "none", emphasized = false, class: className, ...rest } = c;
+export const ObjectNumber = atom<ObjectNumberProps, HTMLSpanElement>("span", (el, c, loc) => {
+  const { value, number, currency, precision, locale, unit: unitProp, state = "none", emphasized = false, class: className, ...rest } = c;
+  // `value` as given (the original behaviour); else `number`, formatted here.
+  const formatting = value === undefined && number !== undefined;
+  let shown: Child = value;
+  if (formatting) {
+    const l = locale ?? loc.locale;
+    shown = currency
+      ? formatAmount(number, currency, { locale: l, display: "none", precision })
+      : formatNumber(number, { locale: l, precision });
+  }
+  const unit = unitProp ?? (formatting ? currency : undefined);
 
   el.className = cn(
     "zen-inline-flex zen-items-baseline zen-gap-1 zen-tabular-nums",
@@ -177,7 +237,7 @@ export const ObjectNumber = atom<ObjectNumberProps, HTMLSpanElement>("span", (el
   );
 
   const valueSpan = document.createElement("span");
-  valueSpan.replaceChildren(...toNodes(value));
+  valueSpan.replaceChildren(...toNodes(shown));
   const kids: Node[] = [valueSpan];
   if (unit !== undefined && unit !== null) {
     const unitSpan = document.createElement("span");
@@ -222,12 +282,12 @@ export const ObjectIdentifier = atom<ObjectIdentifierProps, HTMLDivElement>("div
 
 export type ObjectMarkerType = "flagged" | "favorite" | "draft" | "locked" | "unsaved";
 
-const MARKER: Record<ObjectMarkerType, { icon: IconName; label: string }> = {
-  flagged: { icon: "flag", label: "Flagged" },
-  favorite: { icon: "star", label: "Favorite" },
-  draft: { icon: "draft", label: "Draft" },
-  locked: { icon: "lock", label: "Locked" },
-  unsaved: { icon: "edit", label: "Unsaved changes" },
+const MARKER: Record<ObjectMarkerType, { icon: IconName; label: MessageKey }> = {
+  flagged: { icon: "flag", label: "objectMarker.flagged" },
+  favorite: { icon: "star", label: "objectMarker.favorite" },
+  draft: { icon: "draft", label: "objectMarker.draft" },
+  locked: { icon: "lock", label: "objectMarker.locked" },
+  unsaved: { icon: "edit", label: "objectMarker.unsaved" },
 };
 
 export interface ObjectMarkerProps extends Omit<BaseProps, "children"> {
@@ -238,10 +298,10 @@ export interface ObjectMarkerProps extends Omit<BaseProps, "children"> {
   label?: string;
 }
 
-export const ObjectMarker = atom<ObjectMarkerProps, HTMLSpanElement>("span", (el, c) => {
+export const ObjectMarker = atom<ObjectMarkerProps, HTMLSpanElement>("span", (el, c, loc) => {
   const { type, showLabel = false, label, class: className, ...rest } = c;
   const m = MARKER[type];
-  const text = label ?? m.label;
+  const text = label ?? loc.t(m.label);
 
   el.className = cn(
     "zen-inline-flex zen-items-center zen-gap-1 zen-text-xs zen-text-zen-muted-fg",

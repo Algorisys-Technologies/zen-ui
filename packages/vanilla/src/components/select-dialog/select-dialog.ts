@@ -10,6 +10,7 @@ import { Button } from "../button/button";
 import { Input } from "../form/input/input";
 import { Checkbox } from "../form/checkbox/checkbox";
 import { Icon, type IconName } from "../icon/icon";
+import { useLocale } from "../locale/locale";
 
 /**
  * SelectDialog — the list picker: a modal with a search field, a scrollable
@@ -121,6 +122,7 @@ let uid = 0;
 
 export function SelectDialog(props: SelectDialogProps): SelectDialogHandle {
   let current: SelectDialogProps = { ...props };
+  const loc = useLocale();
   const id = `zen-select-dialog-${++uid}`;
   const titleId = `${id}-title`;
   const descId = `${id}-desc`;
@@ -311,7 +313,7 @@ export function SelectDialog(props: SelectDialogProps): SelectDialogHandle {
       const empty = document.createElement("p");
       empty.className =
         "zen-m-0 zen-px-4 zen-py-8 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      empty.textContent = current.emptyText ?? "No matching items";
+      empty.textContent = current.emptyText ?? loc.t("selectList.empty");
       body.append(empty);
     } else {
       const ul = document.createElement("ul");
@@ -343,7 +345,7 @@ export function SelectDialog(props: SelectDialogProps): SelectDialogHandle {
 
     const searchable = current.searchable ?? true;
     searchWrap.hidden = !searchable;
-    const placeholder = current.searchPlaceholder ?? "Search";
+    const placeholder = current.searchPlaceholder ?? loc.t("common.search");
     searchInput.update({ placeholder, "aria-label": placeholder });
 
     // Footer: which actions exist depends on `multiple` / `showClearAll`, both of
@@ -363,7 +365,7 @@ export function SelectDialog(props: SelectDialogProps): SelectDialogHandle {
         size: "sm",
         disabled: draft.length === 0,
         class: "zen-mr-auto",
-        children: current.clearLabel ?? "Clear",
+        children: current.clearLabel ?? loc.t("common.clear"),
         onClick: () => {
           draft = [];
           renderList();
@@ -378,7 +380,7 @@ export function SelectDialog(props: SelectDialogProps): SelectDialogHandle {
       variant: "outline",
       color: "neutral",
       size: "sm",
-      children: current.cancelLabel ?? "Cancel",
+      children: current.cancelLabel ?? loc.t("common.cancel"),
       onClick: () => api.close(),
     });
     footerParts.push(cancel);
@@ -388,7 +390,7 @@ export function SelectDialog(props: SelectDialogProps): SelectDialogHandle {
       const ok = Button({
         type: "button",
         size: "sm",
-        children: current.confirmLabel ?? "OK",
+        children: current.confirmLabel ?? loc.t("common.ok"),
         onClick: () => commit(inListOrder(draft)),
       });
       footerParts.push(ok);

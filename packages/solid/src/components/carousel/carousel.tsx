@@ -187,7 +187,7 @@ const CarouselArrow = (props: { dir: "prev" | "next"; disabled: boolean; onClick
     type="button"
     onClick={() => props.onClick()}
     disabled={props.disabled}
-    aria-label={props.dir === "prev" ? "Previous slide" : "Next slide"}
+    aria-label={useLocale().t(props.dir === "prev" ? "carousel.previousSlide" : "carousel.nextSlide")}
     class={cn(
       "zen-inline-flex zen-h-8 zen-w-8 zen-shrink-0 zen-items-center zen-justify-center",
       "zen-cursor-pointer zen-rounded-zen-full zen-border zen-border-zen-border zen-bg-zen-background",

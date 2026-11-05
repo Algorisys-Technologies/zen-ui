@@ -2,6 +2,7 @@ import * as React from "react";
 import { pivotFilterWindowValueAt, type PivotFilterOptionsWindow } from "@algorisys/zen-ui-core/virtual-window";
 import { cn } from "../../../lib/cn";
 import { VirtualizedItems } from "../../listbox/virtualized-items";
+import { useLocale } from "../../locale/locale";
 
 /**
  * A listbox over values that are not all loaded.
@@ -48,8 +49,10 @@ export const WindowedVirtualList: React.FC<WindowedVirtualListProps> = ({
   label,
   className,
   singleSelect,
-}) => (
-  <ul role="listbox" aria-label={`${label} values`} className="zen-m-0 zen-list-none zen-p-0">
+}) => {
+  const loc = useLocale();
+  return (
+  <ul role="listbox" aria-label={loc.t("pivot.values", { label })} className="zen-m-0 zen-list-none zen-p-0">
     <VirtualizedItems<string>
       totalCount={totalCount}
       // Sparse by global index: value 120 lives at offset 20 of the page that
@@ -96,5 +99,6 @@ export const WindowedVirtualList: React.FC<WindowedVirtualListProps> = ({
       }
     </VirtualizedItems>
   </ul>
-);
+  );
+};
 WindowedVirtualList.displayName = "WindowedVirtualList";

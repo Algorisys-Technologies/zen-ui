@@ -60,6 +60,11 @@ export interface SelectProps {
   label?: string;
   /** Shown below the trigger; also flips the trigger to the error border. */
   errorMessage?: string;
+  /**
+   * Marked invalid without a message (the form shows its own): the trigger's
+   * aria-invalid and the error border. `errorMessage` implies it.
+   */
+  invalid?: boolean;
   class?: string;
   [key: `data-${string}`]: unknown;
 }
@@ -74,7 +79,13 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   const id = current.id ?? `zen-select-${++uid}`;
   const el = document.createElement("div");
   const disposer = new Disposer();
-  const cleanups = new Disposer();
+  // Two lifetimes, kept apart: what one OPENING registers (dismiss, roving
+  // focus) and what one RENDER registers (the options' listeners). They shared
+  // one Disposer, so the first close removed every option's listeners and
+  // marked it spent: from then on a reopened list ignored every pick, and its
+  // dismiss layers were never released.
+  let openScope = new Disposer();
+  let itemScope = new Disposer();
   let removeProps: (() => void) | undefined;
   let open = false;
 
@@ -117,9 +128,12 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     open = false;
     trigger.setAttribute("aria-expanded", "false");
     setPresence(listbox, "closed", () => {
-      listbox.hidden = true;
+      // Reopened mid-exit: the exit animation is cancelled, which lands here
+      // too, after the list is open again. Hiding it then left an open, empty select.
+      if (!open) listbox.hidden = true;
     });
-    cleanups.dispose();
+    openScope.dispose();
+    openScope = new Disposer();
     trigger.focus();
   };
 
@@ -130,13 +144,13 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     listbox.hidden = false;
     setPresence(listbox, "open");
 
-    cleanups.add(
+    openScope.add(
       dismissable(listbox, {
         ignore: [trigger],
         onDismiss: () => close(),
       }),
     );
-    cleanups.add(
+    openScope.add(
       rovingFocus(listbox, {
         items: () => items.filter((i) => i.getAttribute("aria-disabled") !== "true"),
         orientation: "vertical",
@@ -150,7 +164,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   };
 
   const render = () => {
-    const { options, class: className, label, errorMessage, disabled, name, placeholder: _p, ...rest } = current;
+    const { options, class: className, label, errorMessage, invalid, disabled, name, placeholder: _p, ...rest } = current;
 
     el.className = cn("zen-relative zen-w-full", className);
     el.replaceChildren();
@@ -174,7 +188,8 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
       trigger.setAttribute("aria-invalid", "true");
       trigger.setAttribute("aria-describedby", `${id}-error`);
     } else {
-      trigger.removeAttribute("aria-invalid");
+      if (invalid) trigger.setAttribute("aria-invalid", "true");
+      else trigger.removeAttribute("aria-invalid");
       trigger.removeAttribute("aria-describedby");
     }
     trigger.disabled = Boolean(disabled);
@@ -183,7 +198,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
       "zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-text-sm zen-text-zen-foreground",
       "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
       "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
-      errorMessage && "zen-border-zen-error",
+      (errorMessage || invalid) && "zen-border-zen-error",
     );
     valueSpan.className = "zen-truncate";
     const chev = document.createElement("span");
@@ -214,6 +229,8 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     );
     listbox.hidden = !open;
     listbox.replaceChildren();
+    itemScope.dispose();
+    itemScope = new Disposer();
 
     for (const o of options) {
       const item = document.createElement("div");
@@ -248,7 +265,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
           }
         };
         item.addEventListener("keydown", onKey);
-        cleanups.add(() => {
+        itemScope.add(() => {
           item.removeEventListener("click", pick);
           item.removeEventListener("keydown", onKey);
         });
@@ -287,7 +304,8 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   disposer.add(state.subscribe(paintValue));
   disposer.add(() => trigger.removeEventListener("click", onTriggerClick));
   disposer.add(() => trigger.removeEventListener("keydown", onTriggerKey));
-  disposer.add(() => cleanups.dispose());
+  disposer.add(() => openScope.dispose());
+  disposer.add(() => itemScope.dispose());
   disposer.add(() => removeProps?.());
 
   return {

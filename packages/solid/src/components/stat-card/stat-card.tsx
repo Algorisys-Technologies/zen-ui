@@ -3,6 +3,7 @@ import { cn } from "../../lib/cn";
 import { cardVariants } from "../card/card";
 import { Icon } from "../icon/icon";
 import { Skeleton } from "../skeleton/skeleton";
+import { useLocale } from "../locale/locale";
 
 /**
  * StatCard — a labelled figure, optionally with an icon, a delta and somewhere
@@ -102,7 +103,7 @@ const TREND_COLOR: Record<StatCardTrend["direction"], StatCardColor> = {
 const TREND_ICON = { up: "arrow-up", down: "arrow-down", flat: "arrow-right" } as const;
 
 /** The arrow is the only thing carrying direction, so it is named, not hidden. */
-const TREND_LABEL = { up: "Trending up", down: "Trending down", flat: "Flat" } as const;
+const TREND_LABEL = { up: "statCard.trendingUp", down: "statCard.trendingDown", flat: "statCard.flat" } as const;
 
 export const StatCard = (props: StatCardProps) => {
   const [local, rest] = splitProps(props, [
@@ -121,6 +122,7 @@ export const StatCard = (props: StatCardProps) => {
     "ref",
   ]);
 
+  const loc = useLocale();
   const interactive = () => Boolean(local.href || local.onClick);
   const color = () => local.color ?? "neutral";
 
@@ -149,9 +151,12 @@ export const StatCard = (props: StatCardProps) => {
           fallback={<Skeleton class="zen-h-7 zen-w-24" />}
         >
           <span
+            // Size FIRST: cn() treats a later font-size class as overriding
+            // line-height, so "zen-leading-none … zen-text-2xl" dropped the
+            // leading (12.2.0 drew every figure 32px tall instead of 24).
             class={cn(
-              "zen-font-semibold zen-leading-none zen-text-zen-foreground",
               local.size === "lg" ? "zen-text-4xl" : "zen-text-2xl",
+              "zen-font-semibold zen-leading-none zen-text-zen-foreground",
             )}
           >
             {local.value}
@@ -167,7 +172,7 @@ export const StatCard = (props: StatCardProps) => {
                   TEXT[t.color ?? TREND_COLOR[t.direction]],
                 )}
               >
-                <Icon name={TREND_ICON[t.direction]} size={13} title={TREND_LABEL[t.direction]} />
+                <Icon name={TREND_ICON[t.direction]} size={13} title={loc.t(TREND_LABEL[t.direction])} />
                 {t.value}
               </span>
             );

@@ -205,7 +205,7 @@ export const ProctorStreamGrid = (props: ProctorStreamGridProps) => {
                         stream={p.stream}
                         poster={p.poster}
                         muted={p.muted}
-                        label={typeof p.name === "string" ? `${p.name} video` : "Candidate video"}
+                        label={typeof p.name === "string" ? loc.t("proctor.nameVideo", { name: p.name }) : loc.t("proctor.candidateVideo")}
                       />
                       <span class="zen-absolute zen-start-1 zen-top-1">
                         <Badge variant="solid" color={STATUS_COLOR[p.status ?? "live"]}>
@@ -229,7 +229,7 @@ export const ProctorStreamGrid = (props: ProctorStreamGridProps) => {
                       <Show when={flags().length > 0}>
                         <span class="zen-shrink-0 zen-text-xs zen-tabular-nums zen-text-zen-error">
                           {flags().length}
-                          <span class="zen-sr-only"> flags raised</span>
+                          <span class="zen-sr-only">{loc.t("proctor.flagsRaised")}</span>
                         </span>
                       </Show>
                       <Show when={props.renderActions}>
@@ -247,7 +247,7 @@ export const ProctorStreamGrid = (props: ProctorStreamGridProps) => {
             and cannot is worse off than one who knows they are looking at 24. */}
         <Show when={hidden() > 0}>
           <p class="zen-m-0 zen-text-xs zen-text-zen-muted-fg">
-            Showing {shown().length} of {props.participants.length}. {hidden()} not rendered.
+            {loc.t("proctor.showing", { shown: shown().length, total: props.participants.length, hidden: hidden() })}
           </p>
         </Show>
       </div>

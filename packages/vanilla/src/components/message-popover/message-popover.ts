@@ -3,6 +3,7 @@ import { Icon } from "../icon/icon";
 import type { IconName } from "@algorisys/zen-ui-core";
 import { cn } from "../../lib/cn";
 import { Disposer, type BaseProps, type ZenComponent } from "../../lib/component";
+import { useLocale, type MessageKey } from "../locale/locale";
 
 /**
  * MessagePopover — the aggregated validation summary a long form owes its user.
@@ -43,11 +44,11 @@ export interface MessagePopoverProps extends BaseProps {
 
 /* Severity presentation. The ORDER is the priority order: the trigger shows the
  * worst thing present, because "3 messages" is useless when one blocks submit. */
-const SEVERITY: { type: MessageType; icon: IconName; label: string; text: string }[] = [
-  { type: "error", icon: "error", label: "Error", text: "zen-text-zen-error" },
-  { type: "warning", icon: "warn", label: "Warning", text: "zen-text-zen-warning" },
-  { type: "success", icon: "check-circle", label: "Success", text: "zen-text-zen-success" },
-  { type: "info", icon: "info", label: "Information", text: "zen-text-zen-info" },
+const SEVERITY: { type: MessageType; icon: IconName; label: MessageKey; text: string }[] = [
+  { type: "error", icon: "error", label: "messagePopover.severity.error", text: "zen-text-zen-error" },
+  { type: "warning", icon: "warn", label: "messagePopover.severity.warning", text: "zen-text-zen-warning" },
+  { type: "success", icon: "check-circle", label: "messagePopover.severity.success", text: "zen-text-zen-success" },
+  { type: "info", icon: "info", label: "messagePopover.severity.info", text: "zen-text-zen-info" },
 ];
 
 const meta = (type: MessageType) => SEVERITY.find((s) => s.type === type)!;
@@ -69,6 +70,7 @@ const navigateTo = (targetId: string) => {
 
 export function MessagePopover(props: MessagePopoverProps): ZenComponent<MessagePopoverProps> {
   let current = { ...props };
+  const loc = useLocale();
   const disposer = new Disposer();
   let filter: MessageType | "all" = "all";
 
@@ -128,10 +130,10 @@ export function MessagePopover(props: MessagePopoverProps): ZenComponent<Message
     if (present.length > 1) {
       const bar = document.createElement("div");
       bar.setAttribute("role", "group");
-      bar.setAttribute("aria-label", "Filter by severity");
+      bar.setAttribute("aria-label", loc.t("messagePopover.filterBySeverity"));
       bar.className = "zen-flex zen-flex-wrap zen-gap-1 zen-border-b zen-border-zen-border zen-p-2";
       bar.append(
-        chip(`All ${messages.length}`, filter === "all", null, "", () => {
+        chip(loc.t("messagePopover.all", { count: messages.length }), filter === "all", null, "", () => {
           filter = "all";
           renderBody();
         }),
@@ -155,7 +157,7 @@ export function MessagePopover(props: MessagePopoverProps): ZenComponent<Message
     if (shown.length === 0) {
       const p = document.createElement("p");
       p.className = "zen-m-0 zen-px-4 zen-py-6 zen-text-center zen-text-sm zen-text-zen-muted-fg";
-      p.textContent = current.emptyMessage ?? "No messages";
+      p.textContent = current.emptyMessage ?? loc.t("messagePopover.noMessages");
       scroller.append(p);
     } else {
       const ul = document.createElement("ul");
@@ -228,9 +230,13 @@ export function MessagePopover(props: MessagePopoverProps): ZenComponent<Message
       "aria-label",
       current.triggerLabel ??
         (messages.length === 0
-          ? "No messages"
-          : `${messages.length} message${messages.length === 1 ? "" : "s"}` +
-            (worst ? `, most severe: ${worst.label.toLowerCase()}` : "")),
+          ? loc.t("messagePopover.noMessages")
+          : worst
+            ? loc.t("messagePopover.countMostSevere", {
+                messages: loc.t("messagePopover.count", { count: messages.length }),
+                severity: loc.t(worst.label),
+              })
+            : loc.t("messagePopover.count", { count: messages.length })),
     );
   };
 
