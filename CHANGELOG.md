@@ -15,6 +15,27 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- **DataTable `toolbarPlacement: "top" | "pagination"`** (every binding;
+  `toolbar-placement` on `<zen-data-table>`). `"pagination"` moves the
+  toolbar's menu buttons (Export, Group by, Columns; vanilla has Export only)
+  into the pager row, at the start of its right-hand cluster, so a toolbar of
+  one button does not spend a row (about 50px of list height). The search box
+  stays above the table; without a pager the buttons stay on top. Default
+  `"top"`: no existing table moves (measured: the demos' default toolbars
+  are all still above their tables). Vanilla's pager now keeps its info,
+  menu slot and controls as persistent elements, so the Export button is not
+  detached by the repaint every sync does. ERPNext gaps doc, item 18.
+
+### Fixed
+- **DataTable's sortable header labels ignored the head text tokens**
+  (`--zen-table-head-text-transform`, `--zen-table-head-letter-spacing`;
+  every binding, without the opt-in preflight). The label is a `<button>`, and
+  the browser's own stylesheet resets both properties on buttons; it inherits
+  them now. Measured with the tokens set to uppercase / 0.04em: 51 / 53 / 25 /
+  25 sort labels were `none` / `normal`, now 0; plain-text headers were never
+  affected. With the tokens at their defaults nothing changes. Item 13.
+
 ## [12.5.0] - 2026-11-05
 
 ### Added

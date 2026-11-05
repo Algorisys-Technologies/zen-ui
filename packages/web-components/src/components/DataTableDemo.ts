@@ -910,6 +910,30 @@ table.onExport = (format, request) =>
           return box;
         },
       },
+      {
+        title: "28. Toolbar buttons in the pager row",
+        codeTitle: 'toolbar-placement="pagination"',
+        codeDescription:
+          "A table whose toolbar would be one button need not spend a row on it: the Export menu moves into the pager row, beside the page buttons. The search box, when there is one, stays above the table. Without a pager it stays on top.",
+        code: `<zen-data-table enable-sorting enable-pagination toolbar-placement="pagination"></zen-data-table>
+<script>
+  el.columns = columns; el.data = people;
+  el.onExport = (format, request) => fetch(…);
+</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "pager-toolbar";
+          const el = table(MEDIUM, { "enable-sorting": "", "enable-pagination": "", "toolbar-placement": "pagination" }) as HTMLElement & {
+            onExport?: (format: ExportFormat, request: ExportRequest) => Promise<Blob>;
+          };
+          el.onExport = (_format: ExportFormat, request: ExportRequest) =>
+            // A stand-in for your endpoint: the visible columns, as CSV.
+            Promise.resolve(new Blob([request.columns.map((c) => c.header).join(",") + "\n"], { type: "text/csv" }));
+          box.append(el);
+          return box;
+        },
+      },
     ],
   });
 }
