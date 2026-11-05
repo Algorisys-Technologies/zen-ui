@@ -195,6 +195,13 @@ export interface DataTableProps<TData> {
   enableColumnFilters?: boolean;
   enableRowSelection?: boolean;
   /**
+   * Where the toolbar's menu buttons sit (here: Export). `"top"` (default):
+   * their own row above the table. `"pagination"`: in the pager row, beside
+   * the page buttons, so a toolbar of one button does not spend a row. The
+   * search box stays above the table. Without a pager they stay on top.
+   */
+  toolbarPlacement?: "top" | "pagination";
+  /**
    * The older virtualized body: a grid of divs, not the table, so it renders
    * differently and takes no keyboard navigation, context menu or editing.
    * Kept as it is for the tables already built on it; new tables want
@@ -404,7 +411,10 @@ const VIRT_HEAD_CLASS =
 
 const SORT_BTN_CLASS = cn(
   "zen-w-full zen-h-full zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2",
-  "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
+  // A <button> resets text-transform and letter-spacing in the UA stylesheet,
+  // so without the two inherits the head tokens (uppercase, tracking) stopped
+  // at the label.
+  "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit zen-[text-transform:inherit] zen-[letter-spacing:inherit]",
   "zen-bg-transparent zen-border-0 zen-cursor-pointer",
   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
 );
@@ -555,11 +565,22 @@ export function DataTable<TData>(
     "div",
     "zen-flex zen-items-center zen-justify-between zen-gap-3 zen-text-sm",
   );
+  /* The pager's right-hand cluster, and in it a slot for the toolbar's menus
+     (toolbarPlacement="pagination"). Both persist across repaints: the pager
+     rebuilds its info and buttons on every sync, and a menu button moved out
+     and back in each time would lose focus under the user. */
+  const pagerInfoEl = h("div", "zen-text-zen-muted-fg");
+  const pagerRightEl = h("div", "zen-flex zen-items-center zen-gap-3");
+  const pagerMenusEl = h("div", "zen-flex zen-items-center zen-gap-2");
+  const pagerControlsEl = h("div", "zen-flex zen-items-center zen-gap-3");
+  pagerRightEl.append(pagerMenusEl, pagerControlsEl);
+  paginationEl.append(pagerInfoEl, pagerRightEl);
+  const menusInPager = (): boolean => current.toolbarPlacement === "pagination" && paginationActive();
 
   /* Persistent global-filter input — created ONCE so typing keeps focus across the
    * body repaints its onInput triggers. */
   let filterInput: InputHandle | null = null;
-  if (current.enableColumnFilters || current.onExport) el.append(toolbarEl);
+  if (current.enableColumnFilters || (current.onExport && current.toolbarPlacement !== "pagination")) el.append(toolbarEl);
   if (current.enableColumnFilters) {
     filterInput = Input({
       value: globalFilterInner,
@@ -964,7 +985,11 @@ export function DataTable<TData>(
       if (exporter) exporter.menu.el.parentElement?.remove();
       return;
     }
-    if (!toolbarEl.isConnected) el.prepend(toolbarEl);
+    // On top, or in the pager row's slot (toolbarPlacement="pagination").
+    const host = menusInPager() ? pagerMenusEl : toolbarEl;
+    if (host === toolbarEl && !toolbarEl.isConnected) el.prepend(toolbarEl);
+    // The search box alone keeps the top row; with nothing in it, it goes.
+    if (host !== toolbarEl && !current.enableColumnFilters) toolbarEl.remove();
     const { items, signature } = exportItems();
     if (!exporter) {
       const right = h("div", "zen-ml-auto zen-flex zen-items-center zen-gap-2");
@@ -977,14 +1002,16 @@ export function DataTable<TData>(
       const button = Button({ variant: "outline", color: "neutral", size: "sm", children: loc.t("dataTable.export") });
       const menu = DropdownMenu({ trigger: button, items, align: "end", class: "zen-min-w-52" });
       right.append(error, status, menu.el);
-      toolbarEl.append(right);
+      host.append(right);
       exporter = { menu, button, status, error, signature };
       disposer.add(() => {
         exporter?.menu.destroy();
         exporter?.button.destroy();
       });
     } else {
-      if (!exporter.menu.el.isConnected) toolbarEl.append(exporter.menu.el.parentElement!);
+      // Moved only when its place changed: a needless move blurs the button.
+      const wrap = exporter.menu.el.parentElement!;
+      if (wrap.parentElement !== host || !wrap.isConnected) host.append(wrap);
       // Only when what the menu offers changed: an update while it is open
       // rebuilds it, which would move focus under the user.
       if (signature !== exporter.signature) {
@@ -2343,7 +2370,7 @@ export function DataTable<TData>(
 
   /* ----- pagination bar ----- */
   function paintPagination(processed: DisplayRow[]): void {
-    paginationEl.replaceChildren();
+    pagerControlsEl.replaceChildren();
     if (!paginationActive()) {
       paginationEl.remove();
       return;
@@ -2356,12 +2383,12 @@ export function DataTable<TData>(
     const selectedCount = effSelection().size;
     const totalCount = processed.length;
 
-    const info = h("div", "zen-text-zen-muted-fg");
+    const info = pagerInfoEl;
     info.textContent = current.enableRowSelection
       ? loc.t("dataTable.selectedOf", { selected: selectedCount, total: totalCount })
       : loc.t("dataTable.pageOf", { page: pageIndex + 1, pages: Math.max(pageCount, 1) });
 
-    const right = h("div", "zen-flex zen-items-center zen-gap-3");
+    const right = pagerControlsEl;
 
     if (!manual) {
       const group = h("div", "zen-flex zen-items-center zen-gap-2");
@@ -2418,8 +2445,6 @@ export function DataTable<TData>(
     navBtn("›", loc.t("dataTable.nextPage"), !canNext, () => setPage(pageIndex + 1));
     navBtn("»", loc.t("dataTable.lastPage"), !canNext, () => setPage(pageCount - 1));
     right.append(nav);
-
-    paginationEl.append(info, right);
   }
 
   /* ----- the single render pass ----- */
@@ -2512,6 +2537,9 @@ export function DataTable<TData>(
 
     paintPagination(processed);
     paintExport();
+    // An empty slot is still a flex item, and would add the cluster's gap.
+    // style.display, not `hidden`: its zen-flex class beats the [hidden] rule.
+    pagerMenusEl.style.display = pagerMenusEl.childElementCount ? "" : "none";
     restoreFocus(focusMark);
   }
 

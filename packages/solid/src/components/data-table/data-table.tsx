@@ -140,6 +140,14 @@ export interface DataTableProps<TData, TValue = unknown> {
   enableRowSelection?: boolean;
   enableColumnVisibility?: boolean;
   /**
+   * Where the toolbar's menu buttons (Export, Group by, Columns) sit.
+   * `"top"` (default): their own row above the table. `"pagination"`: in the
+   * pager row, beside the page buttons, so a table whose toolbar would be one
+   * button does not spend a row on it. The search box stays above the table,
+   * next to what it filters. Without a pager the buttons stay on top.
+   */
+  toolbarPlacement?: "top" | "pagination";
+  /**
    * The older virtualized body: a grid of divs, not the table, so it renders
    * differently and cannot group, expand sub-rows, reorder rows or take
    * keyboard navigation. Kept as it is for the tables already built on it;
@@ -381,6 +389,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "onRowActivate",
     "rowLabel",
     "enableColumnVisibility",
+    "toolbarPlacement",
     "enableVirtualization",
     "enableRowVirtualization",
     "enableColumnSeparators",
@@ -892,6 +901,47 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     table.setColumnPinning(props.initialColumnPinning ?? { left: [], right: [] });
   };
 
+  /* The toolbar's menu buttons, rendered on top or in the pager row
+     (toolbarPlacement). Getters, so both places read the same live props. */
+  const menusInPager = () =>
+    props.toolbarPlacement === "pagination" && (!!props.enablePagination || !!props.manualPagination);
+  const toolbarMenuProps: ToolbarMenusProps<TData> = {
+    table,
+    get enableColumnVisibility() {
+      return !!props.enableColumnVisibility;
+    },
+    get enableColumnPinning() {
+      return !!props.enableColumnPinning;
+    },
+    get enableColumnOrdering() {
+      return !!props.enableColumnOrdering;
+    },
+    onResetColumns: resetColumns,
+    get enableGrouping() {
+      return groupingActive();
+    },
+    get enableExport() {
+      return !!props.enableExport || !!props.onExport;
+    },
+    get exportFilename() {
+      return props.exportFilename ?? "data-table";
+    },
+    get exportOnlySelected() {
+      return !!props.exportOnlySelected;
+    },
+    get serverExport() {
+      return props.onExport
+        ? {
+            onExport: props.onExport,
+            formats: props.exportFormats ?? ["xlsx", "pdf", "csv"],
+            context: () => props.exportContext,
+            title: () => props.exportTitle,
+            search: () => globalFilter(),
+          }
+        : undefined;
+    },
+  };
+
   /* persistence sync */
   createEffect(() => {
     savePersisted(props.persistKey, {
@@ -1198,27 +1248,9 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
       )}
     >
       <Toolbar
-        table={table}
+        {...toolbarMenuProps}
         enableColumnFilters={!!props.enableColumnFilters}
-        enableColumnVisibility={!!props.enableColumnVisibility}
-        enableColumnPinning={!!props.enableColumnPinning}
-        enableColumnOrdering={!!props.enableColumnOrdering}
-        onResetColumns={resetColumns}
-        enableGrouping={groupingActive()}
-        enableExport={!!props.enableExport || !!props.onExport}
-        exportFilename={props.exportFilename ?? "data-table"}
-        exportOnlySelected={!!props.exportOnlySelected}
-        serverExport={
-          props.onExport
-            ? {
-                onExport: props.onExport,
-                formats: props.exportFormats ?? ["xlsx", "pdf", "csv"],
-                context: () => props.exportContext,
-                title: () => props.exportTitle,
-                search: () => globalFilter(),
-              }
-            : undefined
-        }
+        menusInPager={menusInPager()}
         globalFilter={globalFilter()}
         globalFilterPlaceholder={props.globalFilterPlaceholder ?? loc.t("dataTable.search")}
         onGlobalFilterChange={(v) => {
@@ -1263,6 +1295,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
           enableRowSelection={!!props.enableRowSelection}
           pageSizeOptions={props.pageSizeOptions ?? [10, 20, 50, 100]}
           manual={!!props.manualPagination}
+          menus={menusInPager() ? <ToolbarMenus {...toolbarMenuProps} /> : undefined}
         />
       </Show>
     </div>
@@ -1270,9 +1303,8 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
 }
 
 /* ------------------------------- Toolbar --------------------------------- */
-function Toolbar<TData>(props: {
+interface ToolbarMenusProps<TData> {
   table: TanStackTable<TData>;
-  enableColumnFilters: boolean;
   enableColumnVisibility: boolean;
   enableColumnPinning: boolean;
   enableColumnOrdering: boolean;
@@ -1282,17 +1314,24 @@ function Toolbar<TData>(props: {
   exportFilename: string;
   exportOnlySelected: boolean;
   serverExport?: ServerExportConfig;
-  globalFilter: string;
-  globalFilterPlaceholder: string;
-  onGlobalFilterChange: (v: string) => void;
-}) {
-  const show = () =>
-    props.enableColumnFilters ||
-    props.enableColumnVisibility ||
-    props.enableGrouping ||
-    props.enableExport;
+}
+
+const hasToolbarMenus = (p: ToolbarMenusProps<unknown>) =>
+  p.enableColumnVisibility || p.enableGrouping || p.enableExport;
+
+function Toolbar<TData>(
+  props: ToolbarMenusProps<TData> & {
+    enableColumnFilters: boolean;
+    /** toolbarPlacement="pagination" with a pager: the menus render there, not here. */
+    menusInPager: boolean;
+    globalFilter: string;
+    globalFilterPlaceholder: string;
+    onGlobalFilterChange: (v: string) => void;
+  },
+) {
+  const menusHere = () => !props.menusInPager && hasToolbarMenus(props as ToolbarMenusProps<unknown>);
   return (
-    <Show when={show()}>
+    <Show when={props.enableColumnFilters || menusHere()}>
       <div class="zen-flex zen-items-center zen-gap-2">
         <Show when={props.enableColumnFilters}>
           <Input
@@ -1302,35 +1341,44 @@ function Toolbar<TData>(props: {
             class="zen-max-w-xs"
           />
         </Show>
-        <div class="zen-ml-auto zen-flex zen-items-center zen-gap-2">
-          <Show when={props.enableExport}>
-            <Show
-              when={props.serverExport}
-              fallback={
-                <ExportMenu
-                  table={props.table}
-                  filename={props.exportFilename}
-                  onlySelected={props.exportOnlySelected}
-                />
-              }
-            >
-              {(server) => <ServerExportMenu table={props.table} filename={props.exportFilename} config={server()} />}
-            </Show>
-          </Show>
-          <Show when={props.enableGrouping}>
-            <GroupByMenu table={props.table} />
-          </Show>
-          <Show when={props.enableColumnVisibility}>
-            <ColumnsMenu
-              table={props.table}
-              enableColumnPinning={props.enableColumnPinning}
-              enableColumnOrdering={props.enableColumnOrdering}
-              onReset={props.onResetColumns}
-            />
-          </Show>
-        </div>
+        <Show when={menusHere()}>
+          <ToolbarMenus {...props} class="zen-ml-auto" />
+        </Show>
       </div>
     </Show>
+  );
+}
+
+/** Export, Group by and Columns: on the toolbar row, or in the pager row. */
+function ToolbarMenus<TData>(props: ToolbarMenusProps<TData> & { class?: string }) {
+  return (
+    <div class={cn("zen-flex zen-items-center zen-gap-2", props.class)}>
+      <Show when={props.enableExport}>
+        <Show
+          when={props.serverExport}
+          fallback={
+            <ExportMenu
+              table={props.table}
+              filename={props.exportFilename}
+              onlySelected={props.exportOnlySelected}
+            />
+          }
+        >
+          {(server) => <ServerExportMenu table={props.table} filename={props.exportFilename} config={server()} />}
+        </Show>
+      </Show>
+      <Show when={props.enableGrouping}>
+        <GroupByMenu table={props.table} />
+      </Show>
+      <Show when={props.enableColumnVisibility}>
+        <ColumnsMenu
+          table={props.table}
+          enableColumnPinning={props.enableColumnPinning}
+          enableColumnOrdering={props.enableColumnOrdering}
+          onReset={props.onResetColumns}
+        />
+      </Show>
+    </div>
   );
 }
 
@@ -3302,7 +3350,10 @@ function HeaderCell<TData, TValue>(props: {
           })}
           class={cn(
             "zen-w-full zen-h-full zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2",
-            "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit",
+            // A <button> resets text-transform and letter-spacing in the UA
+            // stylesheet, so without these the header's head tokens (uppercase,
+            // tracking) stopped at the label. Measured: 51 of 51 sort buttons.
+            "zen-inline-flex zen-items-center zen-gap-1 zen-text-start zen-font-inherit zen-text-inherit zen-[text-transform:inherit] zen-[letter-spacing:inherit]",
             "zen-bg-transparent zen-border-0 zen-cursor-pointer",
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
           )}
@@ -3715,7 +3766,7 @@ function VirtHeaderCellInner<TData, TValue>(props: {
           <button
             type="button"
             onClick={(e) => props.header.column.getToggleSortingHandler()?.(e)}
-            class="zen-w-full zen-h-full zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1 zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-inherit zen-font-inherit focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset"
+            class="zen-w-full zen-h-full zen-px-2 zen-py-2 zen-inline-flex zen-items-center zen-gap-1 zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-inherit zen-font-inherit zen-[text-transform:inherit] zen-[letter-spacing:inherit] focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset"
           >
             {flexRender(props.header.column.columnDef.header, props.header.getContext())}
             <SortIndicator state={sorted()} />
@@ -3823,6 +3874,8 @@ function PaginationBar<TData>(props: {
   enableRowSelection: boolean;
   pageSizeOptions: number[];
   manual: boolean;
+  /** The toolbar's menu buttons, with toolbarPlacement="pagination". */
+  menus?: JSX.Element;
 }) {
   const loc = useLocale();
   const pagination = () => props.table.getState().pagination;
@@ -3844,6 +3897,7 @@ function PaginationBar<TData>(props: {
         </Show>
       </div>
       <div class="zen-flex zen-items-center zen-gap-3">
+        {props.menus}
         <Show when={!props.manual}>
           <div class="zen-flex zen-items-center zen-gap-2">
             <span class="zen-text-zen-muted-fg">{loc.t("dataTable.rowsPerPage")}</span>

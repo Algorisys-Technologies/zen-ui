@@ -38,6 +38,7 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "export-title": "string",
     "export-filename": "string",
     "header-variant": "string",
+    "toolbar-placement": "string",
     "sticky-header": "boolean",
     "page-size": "number",
     "max-body-height": "number",
