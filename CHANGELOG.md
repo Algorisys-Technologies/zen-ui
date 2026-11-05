@@ -15,6 +15,49 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.5.0] - 2026-11-05
+
+### Added
+- **DataTable `meta.label`** (React, Solid): a column's plain-text name, for
+  when `header` is a function (a span that right-aligns a figure column, an
+  icon). The Columns menu, the sort button's and resize handle's accessible
+  names, filter labels and CSV / server-export headers all used to fall back
+  to the column id ("posting_date"); they read `meta.label`, then a string
+  header, then the id. One `columnLabel()` in core
+  (`@algorisys/zen-ui-core/columns`) replaces four per-binding copies.
+  Vanilla / web components take a string `header` only, which is already the
+  name. Asked for by the ERPNext port (its gaps doc, item 15).
+- **DataTable "Reset columns"** (React, Solid) at the foot of the Columns
+  menu: order, widths, visibility and pinning back to the table's defaults
+  (`initialColumnPinning` for pinning), through the table's setters so
+  controlled props hear it and a `persistKey` entry is rewritten. Item 16.
+- **DataTable column resize and reorder from the keyboard** (React, Solid;
+  item 17). The resize handle, in the table and the virtualized grid, is a
+  focusable `role="separator"` with `aria-valuenow` (the width); ArrowLeft /
+  ArrowRight resize by 16px, Shift by 64px, mirrored in RTL. It was a button
+  with pointer handlers only. With `enableColumnOrdering`, Alt+ArrowUp /
+  Alt+ArrowDown on a column's item in the Columns menu moves it, focus staying
+  on it (`aria-keyshortcuts`, and a hint line in the menu). Buttons in the
+  menu rows were tried first and measured unreachable: a menu moves focus
+  between items with the arrows and Tab never reaches a button inside one.
+  The menu now lists columns in the table's current order, not definition
+  order. Pure halves in core (`moveColumn`, `columnResizeDelta`,
+  `clampColumnSize`), `check:columns` (26).
+
+### Fixed
+- **Solid: opening or arrowing through a dropdown menu from the keyboard froze
+  the page.** Every Solid DropdownMenu, DataTable's Columns / Export /
+  Group-by menus included: Enter, Space or ArrowDown on the trigger hung the
+  tab for good; a click worked. Kobalte's `scrollIntoViewport`
+  (`@kobalte/utils` 0.9.2, the latest) walks scroll parents while a modal
+  menu has locked page scroll, and `getScrollParent(x)` returns `x` itself
+  when it scrolls, so on reaching a scrollable ancestor it looped forever.
+  Patched with `bun patch` (`patches/@kobalte%2Futils@0.9.2.patch`): the walk
+  continues from the parent's parent. Kobalte is bundled into the Solid
+  `dist`, so the fix ships. Found by a debugger pause on the hung page; Select
+  was unaffected (measured on the live 12.4.0 site). Upstream not yet
+  reported.
+
 ## [12.4.0] - 2026-11-05
 
 ### Added

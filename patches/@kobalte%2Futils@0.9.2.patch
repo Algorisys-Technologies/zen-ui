@@ -1,0 +1,73 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 9b1289e66449ca7252cc4bd86922f8f400759460..8e81545a5d85bbc16ef6f36a870d90757b5e038a 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -762,14 +762,17 @@ function scrollIntoViewport(targetElement, opts) {
+         targetElement.scrollIntoView?.({ block: "nearest" });
+       }
+     } else {
+-      let scrollParent = getScrollParent(targetElement);
++      let scrollParent = targetElement.parentElement ? getScrollParent(targetElement.parentElement) : null;
+       while (targetElement && scrollParent && targetElement !== root && scrollParent !== root) {
+         scrollIntoView(
+           scrollParent,
+           targetElement
+         );
+         targetElement = scrollParent;
+-        scrollParent = getScrollParent(targetElement);
++        // zen-ui patch: targetElement is now a scroll parent, and getScrollParent(x)
++        // returns x itself when x scrolls, so this looped forever (a keyboard-opened
++        // menu froze the page). Start from its parent instead.
++        scrollParent = targetElement.parentElement ? getScrollParent(targetElement.parentElement) : null;
+       }
+     }
+   }
+diff --git a/dist/index.js b/dist/index.js
+index 503080597f7d15c7dce8f4a057c6faf6a3ad929f..f9213a15baa524a7755acec7b70f1630e5da4cfe 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -760,14 +760,17 @@ function scrollIntoViewport(targetElement, opts) {
+         targetElement.scrollIntoView?.({ block: "nearest" });
+       }
+     } else {
+-      let scrollParent = getScrollParent(targetElement);
++      let scrollParent = targetElement.parentElement ? getScrollParent(targetElement.parentElement) : null;
+       while (targetElement && scrollParent && targetElement !== root && scrollParent !== root) {
+         scrollIntoView(
+           scrollParent,
+           targetElement
+         );
+         targetElement = scrollParent;
+-        scrollParent = getScrollParent(targetElement);
++        // zen-ui patch: targetElement is now a scroll parent, and getScrollParent(x)
++        // returns x itself when x scrolls, so this looped forever (a keyboard-opened
++        // menu froze the page). Start from its parent instead.
++        scrollParent = targetElement.parentElement ? getScrollParent(targetElement.parentElement) : null;
+       }
+     }
+   }
+diff --git a/src/scroll-into-view.ts b/src/scroll-into-view.ts
+index 4a6fb94ba296797cf6bad59dd2ab0e1845306035..ee05141e9ed83d6a2dfdb0c7063bce4d1ff7edbb 100644
+--- a/src/scroll-into-view.ts
++++ b/src/scroll-into-view.ts
+@@ -108,7 +108,7 @@ export function scrollIntoViewport(
+ 				targetElement.scrollIntoView?.({ block: "nearest" });
+ 			}
+ 		} else {
+-			let scrollParent = getScrollParent(targetElement);
++			let scrollParent = targetElement.parentElement ? getScrollParent(targetElement.parentElement) : null;
+ 			// If scrolling is prevented, we don't want to scroll the body since it might move the overlay partially offscreen and the user can't scroll it back into view.
+ 			while (
+ 				targetElement &&
+@@ -122,7 +122,10 @@ export function scrollIntoViewport(
+ 				);
+ 				// biome-ignore lint/style/noParameterAssign: used in loop
+ 				targetElement = scrollParent;
+-				scrollParent = getScrollParent(targetElement);
++				// zen-ui patch: targetElement is now a scroll parent, and getScrollParent(x)
++        // returns x itself when x scrolls, so this looped forever (a keyboard-opened
++        // menu froze the page). Start from its parent instead.
++        scrollParent = targetElement.parentElement ? getScrollParent(targetElement.parentElement) : null;
+ 			}
+ 		}
+ 	}

@@ -1,12 +1,9 @@
 import type { Column, FilterFn, RowData } from "@tanstack/react-table";
+import { columnLabel } from "@algorisys/zen-ui-core/columns";
 
-/** Pick the human-readable header label off a column, falling back to id when
- *  the header is a function / JSX node. Used to build accessible names like
- *  "Filter Status" instead of "Filter status". */
-const headerLabel = (column: Column<unknown, unknown>): string => {
-  const h = column.columnDef.header;
-  return typeof h === "string" ? h : column.id;
-};
+/** A column's human-readable name (meta.label, else a string header, else the
+ *  id; core/columns), for accessible names like "Filter Status". */
+const headerLabel = (column: Column<unknown, unknown>): string => columnLabel(column);
 import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
@@ -59,6 +56,13 @@ export type NumberRangeFilterValue = [number | null, number | null];
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
+    /**
+     * The column's plain-text name, for where the header cannot be read: the
+     * Columns menu, the sort button's and resize handle's accessible names,
+     * filter labels and export headers. Needed when `header` is a function;
+     * without it those fall back to a string header, then the column id.
+     */
+    label?: string;
     filterVariant?: FilterVariant;
     /** Options used by the `select` variant. */
     filterOptions?: { label: string; value: string }[];

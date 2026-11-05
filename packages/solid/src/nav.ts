@@ -162,7 +162,7 @@ export const NAV: NavGroup[] = [
       { label: "Popover", path: "/popover", description: "Non-modal overlay anchored to a trigger", source: "packages/solid/src/components/NewPopoverDemo.tsx" },
       { label: "Dialog", path: "/dialog", description: "Modal surface, plus AlertDialog for destructive confirms", source: "packages/solid/src/components/NewDialogDemo.tsx" },
       { label: "Sheet", path: "/sheet", description: "Slide-in side panel; right / left / top / bottom", source: "packages/solid/src/components/NewSheetDemo.tsx" },
-      { label: "DropdownMenu", path: "/dropdown-menu", description: "Action menus, sub-menus, checkbox / radio items", source: "packages/solid/src/components/NewDropdownMenuDemo.tsx", updated: "12.2.0" },
+      { label: "DropdownMenu", path: "/dropdown-menu", description: "Action menus, sub-menus, checkbox / radio items", source: "packages/solid/src/components/NewDropdownMenuDemo.tsx", updated: "12.5.0" },
       { label: "ContextMenu", path: "/context-menu", description: "Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press", source: "packages/solid/src/components/NewContextMenuDemo.tsx" , since: "12.2.0" },
       { label: "Shortcuts", path: "/shortcuts", description: "Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform", source: "packages/solid/src/components/NewShortcutsDemo.tsx", since: "12.2.0" },
       { label: "Toast", path: "/toast", description: "Imperative toast() + Toaster viewport; variants and actions", source: "packages/solid/src/components/NewToastDemo.tsx" },
@@ -200,7 +200,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Data",
     items: [
-      { label: "DataTable", path: "/data-table", description: "TanStack Table + Virtual; sorting, filtering, grouping, windowing", source: "packages/solid/src/components/NewDataTableDemo.tsx" , updated: "12.2.0" },
+      { label: "DataTable", path: "/data-table", description: "TanStack Table + Virtual; sorting, filtering, grouping, windowing", source: "packages/solid/src/components/NewDataTableDemo.tsx", updated: "12.5.0" },
       { label: "TreeTable", path: "/tree-table", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/solid/src/components/NewTreeTableDemo.tsx" },
       { label: "Micro charts", path: "/micro-chart", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/solid/src/components/NewMicroChartDemo.tsx" , updated: "12.2.0" },
       { label: "TimerBadge / TestCountdownBar", path: "/countdown", description: "Exam clock from a deadline, not a decrementing number — colour thresholds, auto-expire hook, sticky bar", source: "packages/solid/src/components/NewCountdownDemo.tsx" },

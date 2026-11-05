@@ -124,7 +124,7 @@ export const NAV: NavGroup[] = [
       { to: "/phone-input-new", label: "PhoneInput", description: "Composition: Select (country) + Input (number)", source: "packages/react/src/components/NewPhoneInputDemo.tsx" },
       { to: "/fab-new", label: "FAB", description: "Fixed-position Button wrapper + DropdownMenu for speed-dial", source: "packages/react/src/components/NewFABDemo.tsx" },
       { to: "/form-new", label: "Form (RHF + Zod)", description: "react-hook-form + Zod resolver; FormField / FormItem / FormLabel / FormMessage", source: "packages/react/src/components/NewFormDemo.tsx" },
-      { to: "/data-table", label: "DataTable", description: "TanStack Table + Virtual; sorting, filtering, grouping, pinning, resizing, windowing", source: "packages/react/src/components/NewDataTableDemo.tsx", updated: "12.3.0" },
+      { to: "/data-table", label: "DataTable", description: "TanStack Table + Virtual; sorting, filtering, grouping, pinning, resizing, windowing", source: "packages/react/src/components/NewDataTableDemo.tsx", updated: "12.5.0" },
       { to: "/tree-table", label: "TreeTable", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/react/src/components/NewTreeTableDemo.tsx" },
       { to: "/micro-chart", label: "Micro charts", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/react/src/components/NewMicroChartDemo.tsx", updated: "12.3.0" },
       { to: "/countdown", label: "TimerBadge / TestCountdownBar", description: "Exam clock from a deadline, not a decrementing number — colour thresholds, auto-expire hook, sticky bar", source: "packages/react/src/components/NewCountdownDemo.tsx" },

@@ -851,6 +851,8 @@ export const DEFAULT_MESSAGES = {
   "dataTable.manageColumns": "Manage columns",
   "dataTable.toggleColumns": "Toggle columns",
   "dataTable.pinColumnTo": "Pin {label} to {side}",
+  "dataTable.resetColumns": "Reset columns",
+  "dataTable.moveColumnHint": "Alt+↑ / Alt+↓ moves the highlighted column",
   "dataTable.unpinColumnFrom": "Unpin {label} from {side}",
   "dataTable.sideLeft": "left",
   "dataTable.sideRight": "right",

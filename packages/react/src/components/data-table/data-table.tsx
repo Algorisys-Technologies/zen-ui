@@ -75,6 +75,7 @@ import {
 import { FilterCell, filterFnByVariant, textFilterFn, type FilterVariant } from "./filters";
 import { useLocale } from "../locale/locale";
 import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
+import { clampColumnSize, columnLabel, columnResizeDelta, moveColumn } from "@algorisys/zen-ui-core/columns";
 import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
 import {
   buildExportRequest,
@@ -1043,6 +1044,17 @@ export function DataTable<TData, TValue = unknown>({
     [loc],
   );
 
+  /* "Reset columns": back to the layout the table was given. Through the
+   * table's setters, so controlled props hear it and the persisted entry is
+   * rewritten by the effect below. Sorting, filters and grouping are not the
+   * column LAYOUT and are left alone. */
+  const resetColumns = () => {
+    table.setColumnOrder([]);
+    table.setColumnSizing({});
+    table.setColumnVisibility({});
+    table.setColumnPinning(initialColumnPinning ?? { left: [], right: [] });
+  };
+
   /* Write the persistable snapshot back to localStorage whenever any
    * piece changes. Throttled to a microtask via useEffect; storage
    * failures are swallowed. */
@@ -1411,6 +1423,8 @@ export function DataTable<TData, TValue = unknown>({
         enableColumnFilters={enableColumnFilters}
         enableColumnVisibility={enableColumnVisibility}
         enableColumnPinning={enableColumnPinning}
+        enableColumnOrdering={enableColumnOrdering}
+        onResetColumns={resetColumns}
         enableGrouping={groupingActive}
         enableExport={enableExport || !!onExport}
         exportFilename={exportFilename}
@@ -1593,6 +1607,8 @@ function Toolbar<TData>({
   enableColumnFilters,
   enableColumnVisibility,
   enableColumnPinning,
+  enableColumnOrdering,
+  onResetColumns,
   enableGrouping,
   enableExport,
   exportFilename,
@@ -1606,6 +1622,8 @@ function Toolbar<TData>({
   enableColumnFilters: boolean;
   enableColumnVisibility: boolean;
   enableColumnPinning: boolean;
+  enableColumnOrdering: boolean;
+  onResetColumns: () => void;
   enableGrouping: boolean;
   enableExport: boolean;
   exportFilename: string;
@@ -1644,7 +1662,12 @@ function Toolbar<TData>({
         )}
         {enableGrouping && <GroupByMenu table={table} />}
         {enableColumnVisibility && (
-          <ColumnsMenu table={table} enableColumnPinning={enableColumnPinning} />
+          <ColumnsMenu
+            table={table}
+            enableColumnPinning={enableColumnPinning}
+            enableColumnOrdering={enableColumnOrdering}
+            onReset={onResetColumns}
+          />
         )}
       </div>
     </div>
@@ -2172,8 +2195,9 @@ function ServerExportMenu<TData>({
   );
 }
 
-const headerLabel = (col: { id: string; columnDef: { header?: unknown } }) =>
-  typeof col.columnDef.header === "string" ? col.columnDef.header : col.id;
+// A column's plain-text name: meta.label, else a string header, else the id
+// (core/columns). Used wherever the header itself cannot be read.
+const headerLabel = columnLabel;
 
 const csvEscape = (value: unknown): string => {
   if (value === null || value === undefined) return "";
@@ -2309,13 +2333,48 @@ function SortableDragHandle({ id }: { id: string }) {
 function ColumnsMenu<TData>({
   table,
   enableColumnPinning,
+  enableColumnOrdering,
+  onReset,
 }: {
   table: TanStackTable<TData>;
   enableColumnPinning?: boolean;
+  enableColumnOrdering?: boolean;
+  onReset: () => void;
 }) {
   const loc = useLocale();
-  const hideable = table.getAllColumns().filter((c) => c.getCanHide());
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  // In the table's CURRENT order (getAllLeafColumns applies columnOrder), so a
+  // drag or a keyboard move shows here too.
+  const hideable = table.getAllLeafColumns().filter((c) => c.getCanHide());
   if (hideable.length === 0) return null;
+
+  /* Keyboard reorder, on the focused column's item: Alt+ArrowUp / Alt+ArrowDown.
+     Not buttons in the row: a menu moves focus between its ITEMS with the
+     arrow keys, and Tab cannot reach a button inside one, so a button route
+     would be pointer-only after all (measured in the Solid binding). Up / down
+     because the menu is a vertical list in the table's order. */
+  const onItemKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (!enableColumnOrdering || !e.altKey || e.ctrlKey || e.metaKey) return;
+    const direction = e.key === "ArrowUp" ? "earlier" : e.key === "ArrowDown" ? "later" : null;
+    if (!direction) return;
+    // Ours, not the menu's: without this Radix also moves the highlight.
+    e.preventDefault();
+    e.stopPropagation();
+    const next = moveColumn(
+      table.getAllLeafColumns().map((c) => c.id),
+      id,
+      direction,
+      hideable.map((c) => c.id),
+    );
+    if (!next) return;
+    table.setColumnOrder(next);
+    // Moving a node in the DOM blurs it: give focus back to the moved item
+    // once React has re-ordered the list.
+    requestAnimationFrame(() =>
+      contentRef.current?.querySelector<HTMLElement>(`[data-column-id="${window.CSS.escape(id)}"]`)?.focus(),
+    );
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -2323,22 +2382,22 @@ function ColumnsMenu<TData>({
           {loc.t("dataTable.columns")}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="zen-min-w-56">
+      <DropdownMenuContent ref={contentRef} align="end" className="zen-min-w-56">
         <DropdownMenuLabel>
           {enableColumnPinning ? loc.t("dataTable.manageColumns") : loc.t("dataTable.toggleColumns")}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {hideable.map((column) => {
-          const label =
-            (typeof column.columnDef.header === "string" &&
-              column.columnDef.header) ||
-            column.id;
+          const label = columnLabel(column);
           if (!enableColumnPinning) {
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
+                data-column-id={column.id}
+                aria-keyshortcuts={enableColumnOrdering ? "Alt+ArrowUp Alt+ArrowDown" : undefined}
                 checked={column.getIsVisible()}
                 onCheckedChange={(v) => column.toggleVisibility(v === true)}
+                onKeyDown={(e) => onItemKeyDown(e, column.id)}
               >
                 {label}
               </DropdownMenuCheckboxItem>
@@ -2377,6 +2436,13 @@ function ColumnsMenu<TData>({
             </div>
           );
         })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => onReset()}>{loc.t("dataTable.resetColumns")}</DropdownMenuItem>
+        {enableColumnOrdering && !enableColumnPinning ? (
+          <p className="zen-m-0 zen-px-2 zen-pb-1 zen-pt-1.5 zen-text-xs zen-text-zen-muted-fg" aria-hidden="true">
+            {loc.t("dataTable.moveColumnHint")}
+          </p>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -2413,6 +2479,62 @@ function PinButton({
     >
       {side === "left" ? "◀" : "▶"}
     </button>
+  );
+}
+
+/* -------------------------- ColumnResizeHandle ------------------------ */
+/**
+ * A column's resize handle, in both the table and the virtualized grid: the
+ * WAI-ARIA window-splitter pattern, a focusable separator whose value is the
+ * width. Arrow keys resize (16px, Shift 64px), the arrow pointing away from
+ * the column widening it, so it mirrors in RTL. It was a <button> with pointer
+ * handlers only: reachable by Tab, operable by nothing.
+ */
+function ColumnResizeHandle<TData, TValue>({
+  header,
+  resizing,
+  stopPointerDown,
+}: {
+  header: import("@tanstack/react-table").Header<TData, TValue>;
+  resizing: boolean;
+  /** stopPropagation on pointer events too, so dragging the resize handle
+   *  doesn't also activate the column-reorder drag listener on the cell. */
+  stopPointerDown?: boolean;
+}) {
+  const loc = useLocale();
+  const column = header.column;
+  const maxSize = column.columnDef.maxSize;
+  return (
+    <div
+      role="separator"
+      tabIndex={0}
+      aria-orientation="vertical"
+      aria-label={loc.t("dataTable.resize", { column: columnLabel(column) })}
+      aria-valuenow={Math.round(column.getSize())}
+      aria-valuemin={column.columnDef.minSize ?? 20}
+      // TanStack's "no maximum" is MAX_SAFE_INTEGER: not a value to announce.
+      aria-valuemax={maxSize !== undefined && maxSize < Number.MAX_SAFE_INTEGER ? maxSize : undefined}
+      onMouseDown={header.getResizeHandler()}
+      onTouchStart={header.getResizeHandler()}
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={stopPointerDown ? (e) => e.stopPropagation() : undefined}
+      onKeyDown={(e) => {
+        const rtl = getComputedStyle(e.currentTarget).direction === "rtl";
+        const delta = columnResizeDelta(e.key, { shift: e.shiftKey, rtl });
+        if (delta === null) return;
+        e.preventDefault();
+        // Not a sort, and not a step for the header's drag listeners.
+        e.stopPropagation();
+        const size = clampColumnSize(column.getSize(), delta, column.columnDef.minSize, column.columnDef.maxSize);
+        header.getContext().table.setColumnSizing((prev) => ({ ...prev, [column.id]: size }));
+      }}
+      className={cn(
+        "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
+        "zen-bg-transparent zen-border-0 zen-p-0",
+        "hover:zen-bg-zen-primary focus-visible:zen-bg-zen-primary focus-visible:zen-outline-none",
+        resizing && "zen-bg-zen-primary",
+      )}
+    />
   );
 }
 
@@ -2472,10 +2594,7 @@ function HeaderCell<TData, TValue>({
           type="button"
           onClick={header.column.getToggleSortingHandler()}
           aria-label={loc.t("dataTable.sortBy", {
-            column:
-              typeof header.column.columnDef.header === "string"
-                ? header.column.columnDef.header
-                : header.column.id,
+            column: columnLabel(header.column),
             state: sortLabel,
           })}
           className={cn(
@@ -2503,19 +2622,7 @@ function HeaderCell<TData, TValue>({
         </span>
       )}
       {enableColumnResizing && header.column.getCanResize() ? (
-        <button
-          type="button"
-          aria-label={loc.t("dataTable.resize", { column: header.column.id })}
-          onMouseDown={header.getResizeHandler()}
-          onTouchStart={header.getResizeHandler()}
-          onClick={(e) => e.stopPropagation()}
-          className={cn(
-            "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
-            "zen-bg-transparent zen-border-0 zen-p-0",
-            "hover:zen-bg-zen-primary",
-            isResizing && "zen-bg-zen-primary",
-          )}
-        />
+        <ColumnResizeHandle header={header} resizing={isResizing} />
       ) : null}
     </>
   );
@@ -2984,7 +3091,6 @@ function VirtHeaderCellInner<TData, TValue>({
   header: import("@tanstack/react-table").Header<TData, TValue>;
   enableColumnResizing?: boolean;
 }) {
-  const loc = useLocale();
   const canSort = header.column.getCanSort();
   const sorted = header.column.getIsSorted();
   const isResizing = header.column.getIsResizing();
@@ -3005,23 +3111,7 @@ function VirtHeaderCellInner<TData, TValue>({
         </span>
       )}
       {enableColumnResizing && header.column.getCanResize() ? (
-        <button
-          type="button"
-          aria-label={loc.t("dataTable.resize", { column: header.column.id })}
-          onMouseDown={header.getResizeHandler()}
-          onTouchStart={header.getResizeHandler()}
-          onClick={(e) => e.stopPropagation()}
-          /* stopPropagation on pointer events too, so dragging the
-           * resize handle doesn't also activate the column-reorder
-           * drag listener attached to the outer cell. */
-          onPointerDown={(e) => e.stopPropagation()}
-          className={cn(
-            "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
-            "zen-bg-transparent zen-border-0 zen-p-0",
-            "hover:zen-bg-zen-primary",
-            isResizing && "zen-bg-zen-primary",
-          )}
-        />
+        <ColumnResizeHandle header={header} resizing={isResizing} stopPointerDown />
       ) : null}
     </>
   );

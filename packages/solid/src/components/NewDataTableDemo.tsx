@@ -173,6 +173,20 @@ const groupedColumns: ColumnDef<Person>[] = [
   },
 ];
 
+// Function headers, named by meta.label (section 27).
+const labelledColumns: ColumnDef<Person>[] = [
+  { accessorKey: "name", header: () => <span>Name</span>, meta: { label: "Name" }, size: 180 },
+  { accessorKey: "role", header: () => <span>Role</span>, meta: { label: "Role" }, size: 120 },
+  { accessorKey: "department", header: () => <span>Department</span>, meta: { label: "Department" }, size: 150 },
+  {
+    accessorKey: "salary",
+    header: () => <span class="zen-block zen-w-full zen-text-end">Salary (₹)</span>,
+    meta: { label: "Salary" },
+    size: 140,
+    cell: (info) => <span class="zen-block zen-text-end zen-tabular-nums">{info.row.original.salary.toLocaleString("en-IN")}</span>,
+  },
+];
+
 const sizedColumns: ColumnDef<Person>[] = [
   { accessorKey: "name", header: "Name", size: 180 },
   { accessorKey: "email", header: "Email", size: 240 },
@@ -1292,6 +1306,36 @@ const columns = [
         >
           <div data-testid="server-ledger" class="zen-w-full">
             <ServerLedger />
+          </div>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">27. Manage columns from the keyboard</h2>
+        <CodeExample
+          title="meta.label, Reset columns, keyboard resize and reorder"
+          description="Headers here are functions (the salary head is right-aligned), so meta.label names each column for the Columns menu, the sort and resize labels and export. Open Columns (Enter works): arrow to a column and press Alt+↑ or Alt+↓ to move it, Space to hide it; Reset columns restores order, widths, visibility and pinning. Tab to a header's right edge and use the arrow keys to resize it (Shift for bigger steps). The layout is remembered (persistKey) until you reset it."
+          code={`const columns: ColumnDef<Person>[] = [
+  { accessorKey: "name", header: () => <span>Name</span>, meta: { label: "Name" } },
+  { accessorKey: "salary", header: () => <span class="zen-block zen-text-end">Salary (₹)</span>,
+    meta: { label: "Salary" } },
+  …
+];
+
+<DataTable data={people} columns={columns} enableSorting
+  enableColumnVisibility enableColumnOrdering enableColumnResizing
+  persistKey="demo-manage-columns" />`}
+        >
+          <div data-testid="manage-columns" class="zen-w-full">
+            <DataTable
+              data={SMALL}
+              columns={labelledColumns}
+              enableSorting
+              enableColumnVisibility
+              enableColumnOrdering
+              enableColumnResizing
+              persistKey="demo-manage-columns"
+            />
           </div>
         </CodeExample>
       </section>
