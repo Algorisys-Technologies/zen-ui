@@ -100,7 +100,7 @@ export const NAV: NavGroup[] = [
       { label: "Carousel", path: "/carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/solid/src/components/NewCarouselDemo.tsx" },
       { label: "Card", path: "/card", description: "Surface primitive + SelectableCard for goal pickers / plan selectors", source: "packages/solid/src/components/NewCardDemo.tsx" },
       { label: "Paper", path: "/paper", description: "Document surface — reading measure, document typography, and a paper Dialog variant", source: "packages/solid/src/components/NewPaperDemo.tsx" },
-      { label: "StatCard", path: "/stat-card", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/solid/src/components/NewStatCardDemo.tsx" , updated: "12.2.0" },
+      { label: "StatCard", path: "/stat-card", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/solid/src/components/NewStatCardDemo.tsx", updated: "12.3.0" },
       { label: "Tile", path: "/tile", description: "A launchpad: tiles with a mark, a name and a live count, in a grid that is one tab stop with arrow keys", source: "packages/solid/src/components/NewTileDemo.tsx", since: "12.2.0" },
       { label: "Skeleton", path: "/skeleton", description: "Animated muted-box placeholder; size it with utility classes", source: "packages/solid/src/components/NewSkeletonDemo.tsx" },
       { label: "Loading", path: "/loading", description: "Animated spinner with sr-only label; colour=current inside buttons", source: "packages/solid/src/components/NewLoadingDemo.tsx" },

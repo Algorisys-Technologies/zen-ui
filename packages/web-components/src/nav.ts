@@ -18,6 +18,8 @@
  * once already.
  */
 
+import { RELEASE_NOTES } from "@algorisys/zen-ui-core/release-notes";
+
 export type NavItem = {
   to: string;
   label: string;
@@ -25,7 +27,37 @@ export type NavItem = {
   description?: string;
   /** Repo-relative path to the demo file behind this route. */
   source?: string;
+  /**
+   * The version this component first ships in. While that is the current
+   * release's minor version or a later one, the sidebar and the catalogue mark
+   * it "New"; one minor release later the mark goes by itself, so nobody has
+   * to remember to take it off.
+   */
+  since?: string;
+  /**
+   * The version this component last changed in (a feature or a fix worth
+   * knowing). While that is the current release's minor or later, and it is
+   * not New, the sidebar and the catalogue mark it "Updated"; like New, the
+   * mark goes by itself one minor release later. Set it when you change a
+   * component, alongside the CHANGELOG entry.
+   */
+  updated?: string;
 };
+
+/** "12.2.0" -> 12002: major and minor, comparable as a number. */
+const minorOf = (version: string) => {
+  const [major = 0, minor = 0] = version.split(".").map(Number);
+  return major * 1000 + minor;
+};
+
+const currentMinor = () => minorOf(RELEASE_NOTES[0]?.version ?? "0.0.0");
+
+/** Whether an entry is marked New, against the latest release in RELEASE_NOTES. */
+export const isNew = (item: NavItem): boolean => !!item.since && minorOf(item.since) >= currentMinor();
+
+/** Whether an entry is marked Updated: changed in this release line, and not New. */
+export const isUpdated = (item: NavItem): boolean =>
+  !isNew(item) && !!item.updated && minorOf(item.updated) >= currentMinor();
 
 export type NavGroup = {
   title: string;
@@ -52,17 +84,17 @@ export const NAV: NavGroup[] = [
       { to: "/badge", label: "Badge", description: "Styled span; the whole component is variants, cn() and the prefix", source: "packages/web-components/src/components/BadgeDemo.ts" },
       { to: "/collapsible", label: "Collapsible", description: "One region that shows and hides — the single disclosure Accordion overserves", source: "packages/web-components/src/components/CollapsibleDemo.ts" },
       { to: "/accordion", label: "Accordion", description: "Collapsible sections; single + multiple, keyboard nav, real height animation", source: "packages/web-components/src/components/AccordionDemo.ts" },
-      { to: "/tabs", label: "Tabs", description: "Roving focus, underline + pills, controlled and uncontrolled", source: "packages/web-components/src/components/TabsDemo.ts" },
+      { to: "/tabs", label: "Tabs", description: "Roving focus, underline + pills, controlled and uncontrolled", source: "packages/web-components/src/components/TabsDemo.ts", updated: "12.3.0" },
       { to: "/label", label: "Label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/web-components/src/components/LabelDemo.ts" },
-      { to: "/input", label: "Input + MaskInput", description: "MaskInput drives core's mask engine — the same applyMask() React and Solid call", source: "packages/web-components/src/components/InputDemo.ts" },
+      { to: "/input", label: "Input + MaskInput", description: "MaskInput drives core's mask engine — the same applyMask() React and Solid call", source: "packages/web-components/src/components/InputDemo.ts", updated: "12.3.0" },
       { to: "/search", label: "Search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/web-components/src/components/SearchDemo.ts" },
       { to: "/password-input", label: "PasswordInput", description: "Password field with a show / hide toggle; every native input prop passes through", source: "packages/web-components/src/components/PasswordInputDemo.ts" },
-      { to: "/select", label: "Select", description: "Listbox on a trigger; the known React/Solid divergence, decided here", source: "packages/web-components/src/components/SelectDemo.ts" },
-      { to: "/combobox", label: "Combobox + Async", description: "Searchable single-select; sync `options` or async `onSearch` with debounce + abort, plus a creatable row", source: "packages/web-components/src/components/ComboboxDemo.ts" },
-      { to: "/tree-select", label: "TreeSelect", description: "Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors", source: "packages/web-components/src/components/TreeSelectDemo.ts" },
-      { to: "/lookup-field", label: "LookupField", description: "Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search", source: "packages/web-components/src/components/LookupFieldDemo.ts" },
+      { to: "/select", label: "Select", description: "Listbox on a trigger; the known React/Solid divergence, decided here", source: "packages/web-components/src/components/SelectDemo.ts", updated: "12.3.0" },
+      { to: "/combobox", label: "Combobox + Async", description: "Searchable single-select; sync `options` or async `onSearch` with debounce + abort, plus a creatable row", source: "packages/web-components/src/components/ComboboxDemo.ts", updated: "12.3.0" },
+      { to: "/tree-select", label: "TreeSelect", description: "Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors", source: "packages/web-components/src/components/TreeSelectDemo.ts", since: "12.3.0" },
+      { to: "/lookup-field", label: "LookupField", description: "Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search", source: "packages/web-components/src/components/LookupFieldDemo.ts", since: "12.3.0" },
       { to: "/dialog", label: "Dialog", description: "Portal, focus trap, scroll lock, Escape and click-outside — all hand-written", source: "packages/web-components/src/components/DialogDemo.ts" },
-      { to: "/shortcuts", label: "Shortcuts", description: "Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform", source: "packages/web-components/src/components/ShortcutsDemo.ts" },
+      { to: "/shortcuts", label: "Shortcuts", description: "Kbd key caps, useShortcut with scopes, and a ? overlay listing every key: one chord string, spelled per platform", source: "packages/web-components/src/components/ShortcutsDemo.ts", since: "12.3.0" },
       { to: "/separator", label: "Separator", description: "Radix Separator — horizontal / vertical with decorative semantics", source: "packages/web-components/src/components/SeparatorDemo.ts" },
       { to: "/progress", label: "Progress", description: "Determinate progress indicator — sizes × colors, accessible value", source: "packages/web-components/src/components/ProgressDemo.ts" },
       { to: "/loading", label: "Loading", description: "Animated spinner with sr-only label, color=current for buttons", source: "packages/web-components/src/components/LoadingDemo.ts" },
@@ -70,23 +102,23 @@ export const NAV: NavGroup[] = [
       { to: "/avatar", label: "Avatar", description: "Radix Avatar — image + initials fallback + stacked group", source: "packages/web-components/src/components/AvatarDemo.ts" },
       { to: "/link", label: "Link", description: "Styled anchor; real &lt;a&gt; always, external, inline, disabled", source: "packages/web-components/src/components/LinkDemo.ts" },
       { to: "/theme", label: "Theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/web-components/src/components/ThemeDemo.ts" },
-      { to: "/localization", label: "Localization", description: "Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use", source: "packages/web-components/src/components/LocaleDemo.ts" },
+      { to: "/localization", label: "Localization", description: "Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use", source: "packages/web-components/src/components/LocaleDemo.ts", since: "12.3.0" },
       { to: "/message-popover", label: "MessagePopover", description: "Aggregated form validation grouped by severity; click a message to land on the field", source: "packages/web-components/src/components/MessagePopoverDemo.ts" },
       { to: "/direction", label: "DirectionProvider", description: "Right-to-left support \u2014 tells menus, tabs and sliders which way the page reads", source: "packages/web-components/src/components/DirectionDemo.ts" },
       { to: "/stack", label: "Stack", description: "Minimal flexbox layout primitive — a thin div laying children out in a row or column with configurable alignment, wrapping, gap and padding.", source: "packages/web-components/src/components/StackDemo.ts" },
-      { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/web-components/src/components/StatCardDemo.ts" },
-      { to: "/tile", label: "Tile", description: "A launchpad: tiles with a mark, a name and a live count, in a grid that is one tab stop with arrow keys", source: "packages/web-components/src/components/TileDemo.ts" },
+      { to: "/stat-card", label: "StatCard", description: "A labelled figure — icon, delta, and somewhere to go", source: "packages/web-components/src/components/StatCardDemo.ts", updated: "12.3.0" },
+      { to: "/tile", label: "Tile", description: "A launchpad: tiles with a mark, a name and a live count, in a grid that is one tab stop with arrow keys", source: "packages/web-components/src/components/TileDemo.ts", since: "12.3.0" },
       { to: "/card", label: "Card", description: "Generic surface primitive with a compound Header / Content / Footer API and three variants (elevated · outlined · ghost)", source: "packages/web-components/src/components/CardDemo.ts" },
       { to: "/paper", label: "Paper", description: "Document surface — reading measure, document typography, and a paper Dialog variant", source: "packages/web-components/src/components/PaperDemo.ts" },
       { to: "/empty-state", label: "EmptyState", description: "First-run / no-data / no-results surface; icon + title + description + actions", source: "packages/web-components/src/components/EmptyStateDemo.ts" },
       { to: "/alert", label: "Alert", description: "Inline semantic callout; compound Icon / Title / Description / Actions API", source: "packages/web-components/src/components/AlertDemo.ts" },
       { to: "/fab", label: "FAB", description: "Fixed-position Button wrapper for a floating action button, with speed-dial composition", source: "packages/web-components/src/components/FABDemo.ts" },
       { to: "/banner", label: "Banner", description: "Page-top persistent callout — verification reminders, maintenance windows, impersonation", source: "packages/web-components/src/components/BannerDemo.ts" },
-      { to: "/breadcrumb", label: "Breadcrumb", description: "Hierarchical navigation path; collapsible ellipsis for deep trees", source: "packages/web-components/src/components/BreadcrumbDemo.ts" },
+      { to: "/breadcrumb", label: "Breadcrumb", description: "Hierarchical navigation path; collapsible ellipsis for deep trees", source: "packages/web-components/src/components/BreadcrumbDemo.ts", updated: "12.3.0" },
       { to: "/page", label: "Page + Bar", description: "The Page whole-screen container and the three-slot Bar row — the structural frame pieces", source: "packages/web-components/src/components/PageDemo.ts" },
       { to: "/switch", label: "Switch", description: "Boolean toggle — sizes, controlled / uncontrolled, hidden-checkbox form submission", source: "packages/web-components/src/components/SwitchDemo.ts" },
       { to: "/number-field", label: "NumberField", description: "Number input with −/+ stepper, clamp, decimal step", source: "packages/web-components/src/components/NumberFieldDemo.ts" },
-      { to: "/amount-field", label: "AmountField and QuantityField", description: "Amounts and quantities typed the way clerks do (1,25,000, 2.5L, 1.2Cr), formatted in the locale with the currency's own precision; LocaleProvider sets locale and currency once", source: "packages/web-components/src/components/AmountFieldDemo.ts" },
+      { to: "/amount-field", label: "AmountField and QuantityField", description: "Amounts and quantities typed the way clerks do (1,25,000, 2.5L, 1.2Cr), formatted in the locale with the currency's own precision; LocaleProvider sets locale and currency once", source: "packages/web-components/src/components/AmountFieldDemo.ts", since: "12.3.0" },
       { to: "/textarea", label: "Textarea", description: "Plain styled <textarea> primitive, all native attrs", source: "packages/web-components/src/components/TextareaDemo.ts" },
       { to: "/slider", label: "Slider", description: "Single-thumb or multi-thumb range slider — pointer drag, keyboard control, ARIA, marks, vertical orientation", source: "packages/web-components/src/components/SliderDemo.ts" },
       { to: "/checkbox", label: "Checkbox", description: "Tri-state checkbox (true / false / indeterminate) with a single prop, sizes, and native form submission", source: "packages/web-components/src/components/CheckboxDemo.ts" },
@@ -103,26 +135,26 @@ export const NAV: NavGroup[] = [
       { to: "/likert", label: "Likert", description: "n-point attitudinal scale; segmented, stacked and scale layouts, custom option sets", source: "packages/web-components/src/components/LikertDemo.ts" },
       { to: "/rating", label: "Rating", description: "5-star rating input; hover preview, arrow-key nav, sm / md / lg, customizable max", source: "packages/web-components/src/components/RatingDemo.ts" },
       { to: "/scroll-area", label: "ScrollArea", description: "Custom scrollbars over native scrolling, both axes — hand-written, no primitive library", source: "packages/web-components/src/components/ScrollAreaDemo.ts" },
-      { to: "/stepper", label: "Stepper", description: "Multi-step wizard for onboarding + journey apps (horizontal / vertical, linear / non-linear)", source: "packages/web-components/src/components/StepperDemo.ts" },
+      { to: "/stepper", label: "Stepper", description: "Multi-step wizard for onboarding + journey apps (horizontal / vertical, linear / non-linear)", source: "packages/web-components/src/components/StepperDemo.ts", updated: "12.3.0" },
       { to: "/carousel", label: "Carousel", description: "Scroll-snap slide strip; every child is a slide, no autoplay", source: "packages/web-components/src/components/CarouselDemo.ts" },
-      { to: "/dropdown-menu", label: "DropdownMenu", description: "Action menus, sub-menus, checkbox/radio items — positioning, keyboard nav and dismissal all hand-written", source: "packages/web-components/src/components/DropdownMenuDemo.ts" },
-      { to: "/context-menu", label: "ContextMenu", description: "Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press", source: "packages/web-components/src/components/ContextMenuDemo.ts" },
-      { to: "/file-upload", label: "FileUpload", description: "Drag-and-drop or browse; accept / max-size / max-files validation with an inline removable file list", source: "packages/web-components/src/components/FileUploadDemo.ts" },
+      { to: "/dropdown-menu", label: "DropdownMenu", description: "Action menus, sub-menus, checkbox/radio items — positioning, keyboard nav and dismissal all hand-written", source: "packages/web-components/src/components/DropdownMenuDemo.ts", updated: "12.3.0" },
+      { to: "/context-menu", label: "ContextMenu", description: "Right-click menus at the pointer, from the keyboard (menu key, Shift+F10) and on long press", source: "packages/web-components/src/components/ContextMenuDemo.ts", since: "12.3.0" },
+      { to: "/file-upload", label: "FileUpload", description: "Drag-and-drop or browse; accept / max-size / max-files validation with an inline removable file list", source: "packages/web-components/src/components/FileUploadDemo.ts", updated: "12.3.0" },
       { to: "/color-picker", label: "ColorPicker", description: "Swatch palette + the platform picker; hex in, hex out", source: "packages/web-components/src/components/ColorPickerDemo.ts" },
-      { to: "/multi-combobox", label: "MultiCombobox", description: "Multi-select Combobox with chip trigger + overflow collapse + sync / async option loading", source: "packages/web-components/src/components/MultiComboboxDemo.ts" },
-      { to: "/sidebar", label: "Sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/web-components/src/components/SidebarDemo.ts" },
-      { to: "/date-input", label: "DateInput", description: "Type a date the way clerks do (150326, t, +7) in the locale's order, with the calendar as a second way in; impossible dates are kept and flagged, never rolled over", source: "packages/web-components/src/components/DateInputDemo.ts" },
+      { to: "/multi-combobox", label: "MultiCombobox", description: "Multi-select Combobox with chip trigger + overflow collapse + sync / async option loading", source: "packages/web-components/src/components/MultiComboboxDemo.ts", updated: "12.3.0" },
+      { to: "/sidebar", label: "Sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/web-components/src/components/SidebarDemo.ts", updated: "12.3.0" },
+      { to: "/date-input", label: "DateInput", description: "Type a date the way clerks do (150326, t, +7) in the locale's order, with the calendar as a second way in; impossible dates are kept and flagged, never rolled over", source: "packages/web-components/src/components/DateInputDemo.ts", since: "12.3.0" },
       { to: "/date-picker", label: "DatePicker", description: "Trigger-anchored date picker plus a from-scratch inline Calendar (single/multiple/range)", source: "packages/web-components/src/components/DatePickerDemo.ts" },
       { to: "/notifications-inbox", label: "NotificationsInbox", description: "Bell icon + popover panel; day-grouped feed with unread badge + per-row actions", source: "packages/web-components/src/components/NotificationsInboxDemo.ts" },
       { to: "/virtualized-items", label: "Virtualized items", description: "A windowed scrolling viewport that mounts only the visible rows of a huge list — dense array or server-paged sparse mode", source: "packages/web-components/src/components/VirtualizedItemsDemo.ts" },
       { to: "/date-time-picker", label: "DateTimePicker", description: "Calendar + TimePicker in one Popover; preserves time-of-day on day changes", source: "packages/web-components/src/components/DateTimePickerDemo.ts" },
       { to: "/date-range-picker", label: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled", source: "packages/web-components/src/components/DateRangePickerDemo.ts" },
       { to: "/toast", label: "Toast", description: "Radix-parity toasts — imperative toast() plus a Toaster() viewport; variants, actions, plus hand-written timer, hover-pause, swipe-to-dismiss and ARIA live region", source: "packages/web-components/src/components/ToastDemo.ts" },
-      { to: "/barcode", label: "QRCode and Barcode", description: "Draw codes as SVG for screens and print: QR (the e-invoice's signed QR, gate passes; error correction L to H), Code 128, EAN-13 and Code 39, dark on light in every theme", source: "packages/web-components/src/components/BarcodeDemo.ts" },
+      { to: "/barcode", label: "QRCode and Barcode", description: "Draw codes as SVG for screens and print: QR (the e-invoice's signed QR, gate passes; error correction L to H), Code 128, EAN-13 and Code 39, dark on light in every theme", source: "packages/web-components/src/components/BarcodeDemo.ts", since: "12.3.0" },
       { to: "/qr-scanner", label: "QRScanner", description: "Camera-based QR / barcode scanner; native BarcodeDetector + custom-decoder escape hatch", source: "packages/web-components/src/components/QRScannerDemo.ts" },
-      { to: "/data-table", label: "DataTable", description: "A headless data grid — columns, sorting, pagination, row selection, and row virtualization — hand-written with no table library", source: "packages/web-components/src/components/DataTableDemo.ts" },
+      { to: "/data-table", label: "DataTable", description: "A headless data grid — columns, sorting, pagination, row selection, and row virtualization — hand-written with no table library", source: "packages/web-components/src/components/DataTableDemo.ts", updated: "12.3.0" },
       { to: "/tree-table", label: "TreeTable", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/web-components/src/components/TreeTableDemo.ts" },
-      { to: "/micro-chart", label: "Micro charts", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/web-components/src/components/MicroChartDemo.ts" },
+      { to: "/micro-chart", label: "Micro charts", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/web-components/src/components/MicroChartDemo.ts", updated: "12.3.0" },
       { to: "/timeline", label: "Timeline", description: "Ordered list of events with a rail, markers, timestamps and date groups", source: "packages/web-components/src/components/TimelineDemo.ts" },
       { to: "/upload-collection", label: "UploadCollection", description: "The list of uploaded files \u2014 progress, rename, delete, retry; the result FileUpload has no view for", source: "packages/web-components/src/components/UploadCollectionDemo.ts" },
       { to: "/planning-calendar", label: "PlanningCalendar", description: "Resource-by-time grid \u2014 rows of people or rooms, appointments as blocks, day / week / month views", source: "packages/web-components/src/components/PlanningCalendarDemo.ts" },
@@ -157,9 +189,9 @@ export const NAV: NavGroup[] = [
     title: "Zen-shaped",
     items: [
       { to: "/icon", label: "Icon", description: "The shared zen-ui icon set, rendered straight from core's geometry", source: "packages/web-components/src/components/IconDemo.ts" },
-      { to: "/object", label: "Object atoms", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/web-components/src/components/ObjectDemo.ts" },
-      { to: "/button-family", label: "Button family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/web-components/src/components/ButtonFamilyDemo.ts" },
-      { to: "/document-tabs", label: "Document tabs", description: "A workspace's open documents as closable, pinnable tabs with an all-tabs menu", source: "packages/web-components/src/components/DocumentTabsDemo.ts" },
+      { to: "/object", label: "Object atoms", description: "ObjectStatus / ObjectNumber / ObjectIdentifier / ObjectMarker", source: "packages/web-components/src/components/ObjectDemo.ts", updated: "12.3.0" },
+      { to: "/button-family", label: "Button family", description: "ToggleButton, SegmentedButton, SplitButton", source: "packages/web-components/src/components/ButtonFamilyDemo.ts", updated: "12.3.0" },
+      { to: "/document-tabs", label: "Document tabs", description: "A workspace's open documents as closable, pinnable tabs with an all-tabs menu", source: "packages/web-components/src/components/DocumentTabsDemo.ts", since: "12.3.0" },
       { to: "/tree", label: "Tree", description: "Hierarchical expandable list with full ARIA keyboard navigation", source: "packages/web-components/src/components/TreeDemo.ts" },
       { to: "/toolbar", label: "Toolbar", description: "Actions that collapse into an overflow menu when they do not fit", source: "packages/web-components/src/components/ToolbarDemo.ts" },
     ],
@@ -169,10 +201,10 @@ export const NAV: NavGroup[] = [
     items: [
       { to: "/filter-bar", label: "FilterBar", description: "List Report filter area — fields, Go, and Adapt filters", source: "packages/web-components/src/components/FilterBarDemo.ts" },
       { to: "/select-dialog", label: "SelectDialog", description: "Searchable list picker — single commits on click, multi commits on OK", source: "packages/web-components/src/components/SelectDialogDemo.ts" },
-      { to: "/value-help", label: "ValueHelp", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/web-components/src/components/ValueHelpDemo.ts" },
-      { to: "/view-settings", label: "ViewSettingsDialog", description: "Sort / group / filter settings; commits on OK", source: "packages/web-components/src/components/ViewSettingsDemo.ts" },
-      { to: "/filter-builder", label: "FilterBuilder", description: "Nested AND/OR conditions on any field as one serialisable object, for advanced list filters, report criteria and saved views; says in words what it filters", source: "packages/web-components/src/components/FilterBuilderDemo.ts" },
-      { to: "/view-manager", label: "ViewManager", description: "Saved views beside the page title: name, save, save as, set as default, manage and share a list screen's filters, sort and columns as one object; storage stays the app's", source: "packages/web-components/src/components/ViewManagerDemo.ts" },
+      { to: "/value-help", label: "ValueHelp", description: "F4 lookup dialog — the list picker plus a condition builder", source: "packages/web-components/src/components/ValueHelpDemo.ts", updated: "12.3.0" },
+      { to: "/view-settings", label: "ViewSettingsDialog", description: "Sort / group / filter settings; commits on OK", source: "packages/web-components/src/components/ViewSettingsDemo.ts", updated: "12.3.0" },
+      { to: "/filter-builder", label: "FilterBuilder", description: "Nested AND/OR conditions on any field as one serialisable object, for advanced list filters, report criteria and saved views; says in words what it filters", source: "packages/web-components/src/components/FilterBuilderDemo.ts", since: "12.3.0" },
+      { to: "/view-manager", label: "ViewManager", description: "Saved views beside the page title: name, save, save as, set as default, manage and share a list screen's filters, sort and columns as one object; storage stays the app's", source: "packages/web-components/src/components/ViewManagerDemo.ts", since: "12.3.0" },
     ],
   },
   {
@@ -180,10 +212,10 @@ export const NAV: NavGroup[] = [
     items: [
       { to: "/page-header", label: "PageHeader", description: "A heading with a back affordance and one action — the light one", source: "packages/web-components/src/components/PageHeaderDemo.ts" },
       { to: "/skip-to-content", label: "SkipToContent", description: "Keyboard bypass — the first Tab reveals a link that jumps past the app chrome to the content (WCAG 2.4.1)", source: "packages/web-components/src/components/SkipToContentDemo.ts" },
-      { to: "/shellbar", label: "ShellBar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/web-components/src/components/ShellBarDemo.ts" },
+      { to: "/shellbar", label: "ShellBar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/web-components/src/components/ShellBarDemo.ts", updated: "12.3.0" },
       { to: "/flexible-column-layout", label: "FlexibleColumnLayout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/web-components/src/components/FlexibleColumnLayoutDemo.ts" },
       { to: "/dynamic-page", label: "DynamicPage", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/web-components/src/components/DynamicPageDemo.ts" },
-      { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/web-components/src/components/ObjectPageLayoutDemo.ts" },
+      { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/web-components/src/components/ObjectPageLayoutDemo.ts", updated: "12.3.0" },
     ],
   },
 ];

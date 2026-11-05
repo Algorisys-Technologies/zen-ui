@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import { NavLink, Routes, Route, useLocation } from "react-router-dom";
 import { NAV } from "./nav";
+import { NavTag } from "./components/NavTag";
 
 /**
  * Derived from NAV, never hand-counted: nav.ts is already the single source of
@@ -249,6 +250,7 @@ const Sidebar: React.FC<{ collapsed: boolean }> = ({ collapsed }) => {
                     }
                   >
                     {item.label}
+                    <NavTag item={item} className="zen-ml-1.5" />
                   </NavLink>
                 </li>
               ))}

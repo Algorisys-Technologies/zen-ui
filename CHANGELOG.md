@@ -16,6 +16,14 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **The New / Updated marks are in every demo**, not only Solid's: React,
+  vanilla and web components read `since` / `updated` from their own `nav.ts`
+  and mark the sidebar and the catalogue the same way. Set from git, not by
+  hand: the 12 routes each binding gained since v12.2.0 are New, and the 19
+  existing ones whose components took the ported features are Updated (React's
+  Input and Select under their own paths). Measured in each built demo: 12 New
+  and 19 Updated in both the sidebar and the catalogue, no page errors. Solid's
+  StatCard is Updated for 12.3.0, which carries its height fix.
 - **Parity: 12.2.0's Solid-only work is in React, vanilla and web components.**
   `check:parity` is green across all four bindings for the first time since
   12.1. Each port was driven in a browser against the same scripts that

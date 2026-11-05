@@ -10,6 +10,7 @@ import "./elements"; // registers every <zen-*> custom element
 
 import { applyTheme, getInitialTheme } from "@algorisys/zen-ui-core/theme";
 import { NAV } from "./nav";
+import { navTag } from "./components/NavTag";
 import { ThemeSwitcher } from "./components/theme-switcher";
 import { ReleaseNotes } from "./components/ReleaseNotes";
 import Welcome from "./components/Welcome";
@@ -410,6 +411,8 @@ function shell() {
           `sidebar-link ${isActive ? "sidebar-link-active" : "sidebar-link-inactive"}`,
           item.label,
         );
+        const tag = navTag(item, "zen-ml-1.5");
+        if (tag) a.append(tag);
         a.href = `${BASE}${item.to}`;
         a.dataset.route = item.to;
         if (isActive) a.setAttribute("aria-current", "page");

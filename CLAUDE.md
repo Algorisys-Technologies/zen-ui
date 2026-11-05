@@ -406,7 +406,7 @@ sidebar and the landing-page catalogue. Adding a component means: add it to
 `nav.ts`, add its `<Route>`. Nothing else. (They were previously two hand-kept
 lists and drifted 16 entries apart.)
 
-**Mark what changed, in `nav.ts` (Solid so far).** A new component gets
+**Mark what changed, in each binding's `nav.ts`.** A new component gets
 `since: "<the version it ships in>"`; a component you change (a feature or a
 fix a user would notice) gets `updated: "<that version>"`. The demo site marks
 them **New** / **Updated** while that version is the current release's minor or
