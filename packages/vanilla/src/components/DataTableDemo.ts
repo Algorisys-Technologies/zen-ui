@@ -75,6 +75,32 @@ const statusColor = (s: Person["status"]) =>
   s === "active" ? "success" : s === "invited" ? "info" : "error";
 
 /* -------------------------- columns -------------------------------- */
+// Sections 31-32: one column per filter variant.
+const FILTER_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "status", header: "Status", meta: { filterVariant: "select", filterOptions: STATUSES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "joinedYear", header: "Joined", meta: { filterVariant: "number" } },
+  { accessorKey: "salary", header: "Salary", meta: { filterVariant: "numberRange" }, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+  { id: "admin", header: "Admin", accessorFn: (p) => p.role === "Admin", meta: { filterVariant: "boolean" }, cell: ({ row }) => (row.role === "Admin" ? "Yes" : "No") },
+];
+const SERVER_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "salary", header: "Salary", cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+/** A stand-in for your endpoint: it reads the request the table reports. */
+function serverQuery(filters: { id: string; value: unknown }[], sorting: { id: string; desc: boolean }[]): Person[] {
+  let rows = MEDIUM.filter((p) =>
+    filters.every((f) =>
+      f.id === "name" ? p.name.toLowerCase().includes(String(f.value).toLowerCase()) : f.id === "role" ? p.role === f.value : true,
+    ),
+  );
+  const s = sorting[0];
+  if (s) rows = [...rows].sort((a, b) => (a[s.id as keyof Person] > b[s.id as keyof Person] ? 1 : -1) * (s.desc ? -1 : 1));
+  return rows;
+}
+
 // Section 29: the same four columns React's and Solid's section uses.
 const MANAGE_COLUMNS: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name", size: 180 },
@@ -1078,6 +1104,83 @@ DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true })
               stickyHeader: true,
             }).el,
           );
+          return box;
+        },
+      },
+      {
+        title: "31. Per-column filters",
+        codeTitle: "enablePerColumnFilters + meta.filterVariant",
+        codeDescription:
+          "A filter row under the header: text with an operator (contains, equals, starts, ends), a select, a number with an operator, a range, and yes / no. Active filters show as chips above the table; remove one, or Clear all.",
+        code: `DataTable({ data: people, enablePerColumnFilters: true, enableSorting: true, enablePagination: true,
+  columns: [
+    { accessorKey: "name", header: "Name" },                                   // text
+    { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions } },
+    { accessorKey: "joinedYear", header: "Joined", meta: { filterVariant: "number" } },
+    { accessorKey: "salary", header: "Salary", meta: { filterVariant: "numberRange" } },
+    { id: "admin", header: "Admin", accessorFn: (p) => p.role === "Admin", meta: { filterVariant: "boolean" } },
+  ] })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "column-filters";
+          box.append(
+            DataTable({
+              data: MEDIUM,
+              columns: FILTER_COLUMNS,
+              enablePerColumnFilters: true,
+              enableColumnFilters: true,
+              enableSorting: true,
+              enablePagination: true,
+            }).el,
+          );
+          return box;
+        },
+      },
+      {
+        title: "32. Filtering and sorting on the server",
+        codeTitle: "manualFiltering + manualSorting, enableFilterOperators: false",
+        codeDescription:
+          "The table takes data as already filtered and sorted, and reports each change for you to re-fetch. Operators are off: a server that only does contains / equals must not be offered starts-with. Below: what your endpoint would receive.",
+        code: `const table = DataTable({
+  data: firstPage, columns, enableSorting: true, enablePerColumnFilters: true,
+  enableFilterOperators: false, manualFiltering: true, manualSorting: true,
+  onColumnFiltersChange: (f) => refetch({ filters: f }),
+  onSortingChange: (s) => refetch({ sorting: s }),
+});
+// refetch → table.update({ data: rows })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-2";
+          box.dataset.testid = "server-filters";
+          const said = document.createElement("pre");
+          said.className = "zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs";
+          said.dataset.testid = "server-request";
+          let filters: { id: string; value: unknown }[] = [];
+          let sorting: { id: string; desc: boolean }[] = [];
+          const refetch = () => {
+            said.textContent = JSON.stringify({ filters, sorting });
+            table.update({ data: serverQuery(filters, sorting) });
+          };
+          const table = DataTable({
+            data: serverQuery(filters, sorting),
+            columns: SERVER_COLUMNS,
+            enableSorting: true,
+            enablePerColumnFilters: true,
+            enableFilterOperators: false,
+            manualFiltering: true,
+            manualSorting: true,
+            onColumnFiltersChange: (f) => {
+              filters = f;
+              refetch();
+            },
+            onSortingChange: (s) => {
+              sorting = s;
+              refetch();
+            },
+          });
+          said.textContent = JSON.stringify({ filters, sorting });
+          box.append(table.el, said);
           return box;
         },
       },

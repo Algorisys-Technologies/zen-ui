@@ -10,9 +10,20 @@ import { Checkbox } from "../form/checkbox/checkbox";
 import { Button, type ButtonProps } from "../button/button";
 import { Input, type InputHandle } from "../form/input/input";
 import { Select } from "../form/select/select";
+import { NumberField } from "../form/number-field/number-field";
 import { VirtualizedItems } from "../listbox/virtualized-items";
-import { useLocale } from "../locale/locale";
+import { useLocale, type MessageKey } from "../locale/locale";
 import { cellKeyTarget, ownsArrowKeys, rowKeyTarget, type GridCell } from "@algorisys/zen-ui-core/row-keys";
+import {
+  columnFilterMatches,
+  describeColumnFilter,
+  NUMBER_FILTER_OPS,
+  TEXT_FILTER_OPS,
+  type FilterVariant,
+  type NumberFilterValue,
+  type NumberRangeFilterValue,
+  type TextFilterValue,
+} from "@algorisys/zen-ui-core/column-filter";
 import {
   clampColumnSize,
   columnLayout,
@@ -108,6 +119,10 @@ export interface DataTableCellContext<TData> {
  * Per-column extras, React's `columnDef.meta` in this binding's shape.
  */
 export interface DataTableColumnMeta<TData = unknown> {
+  /** Which input the per-column filter row shows for this column. Default text. */
+  filterVariant?: FilterVariant;
+  /** Options for the `select` variant. */
+  filterOptions?: { label: string; value: string }[];
   /**
    * Inline editing: the cell becomes editable (a function decides per row).
    * Double-click it, or focus it and press Enter or Space; with
@@ -157,6 +172,8 @@ export interface DataTableColumn<TData> {
   maxSize?: number;
   /** `false` keeps the column out of the Columns menu (always shown). */
   enableHiding?: boolean;
+  /** `false`: no filter cell for this column in the per-column filter row. */
+  enableColumnFilter?: boolean;
   /** `false`: no resize handle on this column. */
   enableResizing?: boolean;
   /** Custom comparator for this column. Defaults to numeric / locale-string compare of the accessor value. */
@@ -207,6 +224,29 @@ export interface DataTableProps<TData> {
   enablePagination?: boolean;
   /** Show a global search box in the toolbar. */
   enableColumnFilters?: boolean;
+  /**
+   * A filter row under the header: one input per column, chosen by
+   * `meta.filterVariant` (text, number, numberRange, select, boolean). Active
+   * filters show as chips above the table, each removable, with Clear all.
+   */
+  enablePerColumnFilters?: boolean;
+  /**
+   * The operator select beside text and number filters. Default true. Turn it
+   * off when the server owns the predicate: an operator the backend ignores is
+   * a control that lies about what it does (text filters are then bare strings).
+   */
+  enableFilterOperators?: boolean;
+  /** Controlled per-column filters: `[{ id: "role", value: "Admin" }]`. */
+  columnFilters?: { id: string; value: unknown }[];
+  onColumnFiltersChange?: (filters: { id: string; value: unknown }[]) => void;
+  /**
+   * The server filters: `data` is taken as already filtered. The search box
+   * and filter inputs still report through onGlobalFilterChange /
+   * onColumnFiltersChange so you can re-fetch.
+   */
+  manualFiltering?: boolean;
+  /** The server sorts: `data` is taken as already sorted; onSortingChange still reports. */
+  manualSorting?: boolean;
   enableRowSelection?: boolean;
   /**
    * Where the toolbar's menu buttons sit (here: Export). `"top"` (default):
@@ -511,6 +551,9 @@ function svgNode(markup: string): SVGElement {
   return t.content.firstElementChild as SVGElement;
 }
 
+const CHIP_X = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+const OP_SELECT_CLASS =
+  "zen-h-7 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background zen-px-1 zen-text-xs zen-cursor-pointer focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring";
 const SORT_ASC = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>`;
 const SORT_DESC = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>`;
 const SORT_NONE = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="zen-opacity-30" aria-hidden="true"><polyline points="8 9 12 5 16 9"/><polyline points="16 15 12 19 8 15"/></svg>`;
@@ -572,6 +615,7 @@ export function DataTable<TData>(
   let columnOrderInner: string[] = persisted?.columnOrder ?? [];
   let columnSizingInner: Record<string, number> = persisted?.columnSizing ?? {};
   let visibilityInner: Record<string, boolean> = persisted?.columnVisibility ?? {};
+  let columnFiltersInner: { id: string; value: unknown }[] = [];
   let pinningInner: { left: string[]; right: string[] } = normalisePinning(
     persisted?.columnPinning ?? current.initialColumnPinning,
   );
@@ -711,6 +755,8 @@ export function DataTable<TData>(
   const effSelection = (): Set<string> =>
     current.rowSelection ? new Set(current.rowSelection) : selectionInner;
   const effGlobalFilter = (): string => current.globalFilter ?? globalFilterInner;
+  const effColumnFilters = (): { id: string; value: unknown }[] => current.columnFilters ?? columnFiltersInner;
+  const columnFilterValue = (id: string): unknown => effColumnFilters().find((f) => f.id === id)?.value;
   /** The older div-grid body (enableVirtualization), unless row virtualization wins. */
   const isVirt = (): boolean => !!current.enableVirtualization && !current.enableRowVirtualization;
   /** Only the rows in view, inside the regular table. */
@@ -844,7 +890,16 @@ export function DataTable<TData>(
   function processRows(): DisplayRow[] {
     let rows: DisplayRow[] = current.data.map((row, index) => ({ row, index }));
 
-    if (current.enableColumnFilters) {
+    // A server-filtered table takes `data` as the answer (manualFiltering).
+    if (current.enablePerColumnFilters && !current.manualFiltering) {
+      for (const f of effColumnFilters()) {
+        const col = colById(f.id);
+        if (!col) continue;
+        rows = rows.filter((r) => columnFilterMatches(col.meta?.filterVariant, getValue(col, r.row, r.index), f.value));
+      }
+    }
+
+    if (current.enableColumnFilters && !current.manualFiltering) {
       const q = effGlobalFilter().trim().toLowerCase();
       if (q) {
         rows = rows.filter((r) =>
@@ -858,7 +913,7 @@ export function DataTable<TData>(
     }
 
     const sorting = effSorting();
-    if (current.enableSorting && sorting.length) {
+    if (current.enableSorting && sorting.length && !current.manualSorting) {
       rows = [...rows].sort((a, b) => {
         for (const s of sorting) {
           const col = colById(s.id);
@@ -2436,6 +2491,314 @@ export function DataTable<TData>(
     };
   }
 
+  /* ----- per-column filters ----- */
+  const canFilter = (col: DataTableColumn<TData>): boolean =>
+    !!current.enablePerColumnFilters && col.enableColumnFilter !== false && !!(col.accessorKey || col.accessorFn);
+
+  /* TanStack's setFilterValue: undefined removes the filter, anything else
+   * replaces it in place or appends it. A filter change returns to page one. */
+  function setColumnFilter(id: string, value: unknown): void {
+    const prev = effColumnFilters();
+    const at = prev.findIndex((f) => f.id === id);
+    const next =
+      value === undefined
+        ? prev.filter((f) => f.id !== id)
+        : at >= 0
+          ? prev.map((f, i) => (i === at ? { id, value } : f))
+          : [...prev, { id, value }];
+    if (current.columnFilters === undefined) columnFiltersInner = next;
+    current.onColumnFiltersChange?.(next);
+    pageIndexInner = 0;
+    sync();
+  }
+  function setGlobal(value: string): void {
+    if (current.globalFilter === undefined) globalFilterInner = value;
+    current.onGlobalFilterChange?.(value);
+    filterInput?.update({ value });
+    pageIndexInner = 0;
+  }
+
+  /* One control per column, built once and re-attached on every repaint: the
+   * header is rebuilt each sync, and an input built afresh would lose focus
+   * and caret on every keystroke (captureFilterFocus puts them back on the
+   * same node). `set` shows a value that changed elsewhere (a chip removed). */
+  interface FilterControl {
+    el: HTMLElement;
+    set(value: unknown): void;
+    destroy(): void;
+  }
+  const filterControls = new Map<string, FilterControl>();
+  disposer.add(() => {
+    for (const c of filterControls.values()) c.destroy();
+  });
+  function opSelect<T extends string>(
+    options: readonly { value: T; label: string; symbol: string }[],
+    ariaLabel: string,
+    onChange: (op: T) => void,
+  ): HTMLSelectElement {
+    const sel = document.createElement("select");
+    sel.className = OP_SELECT_CLASS;
+    sel.style.minWidth = "36px";
+    sel.setAttribute("aria-label", ariaLabel);
+    for (const o of options) {
+      const opt = document.createElement("option");
+      opt.value = o.value;
+      opt.textContent = o.symbol;
+      sel.append(opt);
+    }
+    const title = () =>
+      (sel.title = loc.t((options.find((o) => o.value === sel.value) ?? options[0]!).label as MessageKey));
+    sel.addEventListener("change", () => {
+      title();
+      onChange(sel.value as T);
+    });
+    title();
+    return sel;
+  }
+  function filterControl(col: DataTableColumn<TData>): FilterControl {
+    const id = colId(col);
+    const existing = filterControls.get(id);
+    if (existing) return existing;
+    const name = headerText(col);
+    const valueLabel = loc.t("dataTable.filterColumn", { column: name });
+    const opLabel = loc.t("dataTable.filterOperator", { column: name });
+    const row = h("div", "zen-flex zen-items-center zen-gap-1");
+    const parts: { destroy(): void }[] = [];
+    let set: (v: unknown) => void = () => {};
+    const variant = col.meta?.filterVariant ?? "text";
+    if (variant === "number") {
+      let op: NumberFilterValue["op"] = "eq";
+      let value: number | null = null;
+      const sel = opSelect(NUMBER_FILTER_OPS, opLabel, (o) => {
+        op = o;
+        setColumnFilter(id, { op, value } satisfies NumberFilterValue);
+      });
+      const field = NumberField({
+        placeholder: "…",
+        "aria-label": valueLabel,
+        class: "zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0",
+        onValueChange: (v) => {
+          value = v;
+          setColumnFilter(id, { op, value } satisfies NumberFilterValue);
+        },
+      } as Parameters<typeof NumberField>[0]);
+      parts.push(field);
+      row.append(sel, field.el);
+      set = (v) => {
+        const f = v as NumberFilterValue | undefined;
+        op = f?.op ?? "eq";
+        value = f?.value ?? null;
+        if (sel.value !== op) sel.value = op;
+        field.update({ value });
+      };
+    } else if (variant === "numberRange") {
+      let range: NumberRangeFilterValue = [null, null];
+      const min = NumberField({
+        placeholder: loc.t("dataTable.min"),
+        "aria-label": loc.t("dataTable.columnMinimum", { column: name }),
+        class: "zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1",
+        onValueChange: (v) => setColumnFilter(id, (range = [v ?? null, range[1]])),
+      } as Parameters<typeof NumberField>[0]);
+      const dash = h("span", "zen-text-zen-muted-fg zen-text-xs");
+      dash.setAttribute("aria-hidden", "true");
+      dash.textContent = "–";
+      const max = NumberField({
+        placeholder: loc.t("dataTable.max"),
+        "aria-label": loc.t("dataTable.columnMaximum", { column: name }),
+        class: "zen-h-7 zen-text-xs zen-min-w-0 zen-flex-1",
+        onValueChange: (v) => setColumnFilter(id, (range = [range[0], v ?? null])),
+      } as Parameters<typeof NumberField>[0]);
+      parts.push(min, max);
+      row.append(min.el, dash, max.el);
+      set = (v) => {
+        range = (v as NumberRangeFilterValue | undefined) ?? [null, null];
+        min.update({ value: range[0] });
+        max.update({ value: range[1] });
+      };
+    } else if (variant === "select") {
+      const ALL = "__all__";
+      const select = Select({
+        options: [
+          { value: ALL, label: loc.t("dataTable.all") },
+          ...(col.meta?.filterOptions ?? []).map((o) => ({ value: o.value, label: o.label })),
+        ],
+        value: ALL,
+        "aria-label": valueLabel,
+        // React sizes the trigger (SelectTrigger zen-h-7); vanilla's Select
+        // takes `class` on its wrapper, so the trigger is reached from there.
+        class: "[&>button]:zen-h-7 [&>button]:zen-text-xs",
+        onValueChange: (v) => setColumnFilter(id, v === ALL ? undefined : v),
+      } as Parameters<typeof Select>[0]);
+      parts.push(select);
+      row.className = "";
+      row.append(select.el);
+      set = (v) => select.update({ value: v === undefined || v === null || v === "" ? ALL : String(v) });
+    } else if (variant === "boolean") {
+      const sel = document.createElement("select");
+      sel.className = cn(OP_SELECT_CLASS, "zen-w-full zen-px-2");
+      sel.setAttribute("aria-label", valueLabel);
+      for (const [v, key] of [["any", "dataTable.any"], ["true", "dataTable.yes"], ["false", "dataTable.no"]] as const) {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = loc.t(key);
+        sel.append(opt);
+      }
+      sel.addEventListener("change", () => setColumnFilter(id, sel.value === "any" ? undefined : sel.value === "true"));
+      row.className = "";
+      row.append(sel);
+      set = (v) => {
+        const want = v === true || v === "true" ? "true" : v === false || v === "false" ? "false" : "any";
+        if (sel.value !== want) sel.value = want;
+      };
+    } else {
+      /* Text. Without operators the value is a bare string: an operator the
+       * server ignores is a control that lies about what it does. */
+      const operators = current.enableFilterOperators !== false;
+      let op: TextFilterValue["op"] = "contains";
+      let value = "";
+      const commit = () => setColumnFilter(id, operators ? ({ op, value } satisfies TextFilterValue) : value);
+      const sel = operators
+        ? opSelect(TEXT_FILTER_OPS, opLabel, (o) => {
+            op = o;
+            commit();
+          })
+        : null;
+      let composing = false;
+      const input = Input({
+        value: "",
+        placeholder: loc.t("dataTable.filterPlaceholder"),
+        "aria-label": valueLabel,
+        class: "zen-h-7 zen-text-xs zen-flex-1 zen-min-w-0",
+        onInput: (e) => {
+          value = (e.target as HTMLInputElement).value;
+          // Mid-composition (an IME), the repaint would end the composition.
+          if (!composing) commit();
+        },
+      });
+      input.el.addEventListener("compositionstart", () => (composing = true));
+      input.el.addEventListener("compositionend", () => {
+        composing = false;
+        commit();
+      });
+      parts.push(input);
+      if (sel) row.append(sel);
+      row.append(input.el);
+      set = (v) => {
+        const obj = typeof v === "object" && v !== null ? (v as TextFilterValue) : null;
+        op = obj?.op ?? "contains";
+        value = obj ? (obj.value ?? "") : typeof v === "string" ? v : "";
+        if (sel && sel.value !== op) sel.value = op;
+        const field = row.querySelector("input");
+        if (field && field.value !== value) input.update({ value });
+      };
+    }
+    const control: FilterControl = { el: row, set, destroy: () => parts.forEach((p) => p.destroy()) };
+    filterControls.set(id, control);
+    return control;
+  }
+  /** Focus (and the caret) inside a filter control, to put back after a repaint. */
+  function captureFilterFocus(): { el: HTMLElement; sel: [number | null, number | null] | null } | null {
+    const a = document.activeElement as HTMLElement | null;
+    if (!a) return null;
+    for (const c of filterControls.values()) {
+      if (c.el.contains(a)) {
+        return { el: a, sel: a instanceof HTMLInputElement ? [a.selectionStart, a.selectionEnd] : null };
+      }
+    }
+    return null;
+  }
+  function restoreFilterFocus(m: ReturnType<typeof captureFilterFocus>): void {
+    if (!m || !m.el.isConnected || document.activeElement === m.el) return;
+    m.el.focus({ preventScroll: true });
+    if (m.sel && m.el instanceof HTMLInputElement && m.sel[0] !== null) {
+      try {
+        m.el.setSelectionRange(m.sel[0], m.sel[1] ?? m.sel[0]);
+      } catch {
+        // Not a text input (number fields reject selection ranges).
+      }
+    }
+  }
+  /** The filter row's cell for a column: its control, or empty. */
+  function filterCell(tag: "th" | "div", col: DataTableColumn<TData>, cls: string): HTMLElement {
+    const cell = h(tag, cls);
+    if (tag === "th") markPin(cell, col);
+    if (canFilter(col)) {
+      const control = filterControl(col);
+      control.set(columnFilterValue(colId(col)));
+      cell.append(control.el);
+    }
+    return cell;
+  }
+
+  /* Active filters as chips above the table (React's ActiveFilterChips): the
+   * search term and each column's filter, each removable, and Clear all. */
+  const chipsEl = h("div", "zen-flex zen-flex-wrap zen-items-center zen-gap-2");
+  chipsEl.setAttribute("role", "group");
+  chipsEl.setAttribute("aria-label", loc.t("dataTable.activeFilters"));
+  function chip(label: string, onRemove: () => void): HTMLElement {
+    const el = h(
+      "span",
+      "zen-inline-flex zen-items-center zen-gap-1 zen-px-2 zen-py-0.5 zen-text-xs zen-font-medium zen-rounded-zen-full zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-border zen-border-zen-primary-soft",
+    );
+    const text = h("span");
+    text.textContent = label;
+    const x = h(
+      "button",
+      "zen-inline-flex zen-items-center zen-justify-center zen-h-4 zen-w-4 zen-rounded-zen-full zen-bg-transparent zen-border-0 zen-cursor-pointer zen-text-current zen-opacity-70 hover:zen-opacity-100 hover:zen-bg-black/10 focus-visible:zen-outline-none focus-visible:zen-ring-1 focus-visible:zen-ring-zen-ring",
+    ) as HTMLButtonElement;
+    x.type = "button";
+    x.setAttribute("aria-label", loc.t("dataTable.removeChip", { label }));
+    x.append(svgNode(CHIP_X));
+    x.addEventListener("click", onRemove);
+    el.append(text, x);
+    return el;
+  }
+  function paintChips(): void {
+    const words = { yes: loc.t("dataTable.yes"), no: loc.t("dataTable.no") };
+    const global = effGlobalFilter();
+    const cols = effColumnFilters()
+      .map((f) => ({ f, text: describeColumnFilter(f.value, words) }))
+      .filter((x) => x.text !== "");
+    if (!global && cols.length === 0) {
+      chipsEl.remove();
+      return;
+    }
+    const label = h("span", "zen-text-xs zen-text-zen-muted-fg");
+    label.textContent = loc.t("dataTable.filtersLabel");
+    const items: HTMLElement[] = [label];
+    if (global) {
+      items.push(
+        chip(loc.t("dataTable.searchChip", { value: global }), () => {
+          setGlobal("");
+          sync();
+        }),
+      );
+    }
+    for (const { f, text } of cols) {
+      const col = colById(f.id);
+      items.push(
+        chip(loc.t("dataTable.filterChip", { column: col ? headerText(col) : f.id, value: text }), () =>
+          setColumnFilter(f.id, undefined),
+        ),
+      );
+    }
+    const clear = h(
+      "button",
+      "zen-ml-1 zen-inline-flex zen-items-center zen-text-xs zen-px-2 zen-py-0.5 zen-rounded-zen-sm zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted zen-bg-transparent zen-border-0 zen-cursor-pointer focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+    ) as HTMLButtonElement;
+    clear.type = "button";
+    clear.textContent = loc.t("dataTable.clearAll");
+    clear.addEventListener("click", () => {
+      if (current.columnFilters === undefined) columnFiltersInner = [];
+      current.onColumnFiltersChange?.([]);
+      setGlobal("");
+      sync();
+    });
+    items.push(clear);
+    chipsEl.replaceChildren(...items);
+    if (!chipsEl.isConnected || chipsEl.nextElementSibling !== containerEl) containerEl.before(chipsEl);
+  }
+
   /* ----- pinning, resizing, header drag ----- */
   const resizable = (col: DataTableColumn<TData>): boolean =>
     !!current.enableColumnResizing && col.enableResizing !== false;
@@ -2500,11 +2863,19 @@ export function DataTable<TData>(
       }
     }
   }
+  /* After layout: pinned offsets, and the header row's height, which the
+   * sticky filter row sits under (--zen-dt-header-h, as in React). */
   function watchPins(table: HTMLElement): void {
     pinObserver?.disconnect();
     pinObserver = null;
-    if (!current.enableColumnPinning) return;
-    pinObserver = new ResizeObserver(() => applyPinOffsets(table));
+    if (!current.enableColumnPinning && !current.enablePerColumnFilters) return;
+    pinObserver = new ResizeObserver(() => {
+      if (current.enableColumnPinning) applyPinOffsets(table);
+      const head = table.querySelector<HTMLElement>("thead tr"); // i18n-ignore (a selector)
+      if (head && current.enablePerColumnFilters) {
+        table.style.setProperty("--zen-dt-header-h", `${head.getBoundingClientRect().height}px`);
+      }
+    });
     pinObserver.observe(table);
   }
 
@@ -2724,6 +3095,25 @@ export function DataTable<TData>(
     }
     thead.append(htr);
 
+    /* The per-column filter row, under the header (and sticking under it). */
+    if (current.enablePerColumnFilters) {
+      const ftr = h("tr", cn(sepHeadClass(), stickyRowClass, headerVariantRowClass()));
+      ftr.dataset.filterRow = "";
+      if (stickyActive) ftr.style.top = "var(--zen-dt-header-h, 40px)";
+      if (rowOrderingActive()) {
+        const th = h("th", "zen-px-2 zen-py-1");
+        markUtilityPin(th, "__drag__");
+        ftr.append(th);
+      }
+      if (current.enableRowSelection) {
+        const th = h("th", "zen-px-2 zen-py-1");
+        markUtilityPin(th, "__select__");
+        ftr.append(th);
+      }
+      for (const col of leafColumns()) ftr.append(filterCell("th", col, "zen-px-2 zen-py-1"));
+      thead.append(ftr);
+    }
+
     /* tbody */
     const tbody = h("tbody", "[&_tr:last-child]:zen-border-0");
     if (current.loading) {
@@ -2866,6 +3256,11 @@ export function DataTable<TData>(
       }
       virtHeaderEl.append(cell);
     }
+    // The filter row: the grid's next row, cell for cell.
+    if (current.enablePerColumnFilters) {
+      if (current.enableRowSelection) virtHeaderEl.append(h("div"));
+      for (const col of leafColumns()) virtHeaderEl.append(filterCell("div", col, "zen-px-2 zen-py-1"));
+    }
   }
 
   function renderVirtRow(args: { item: DisplayRow; index: number }): Node {
@@ -2989,6 +3384,7 @@ export function DataTable<TData>(
   let tableWrapper: HTMLElement | null = null;
   function sync(): void {
     invalidateColumns();
+    const filterFocus = captureFilterFocus();
     const focusMark = captureFocus();
     const scrolled = tableWrapper?.isConnected
       ? { top: tableWrapper.scrollTop, left: tableWrapper.scrollLeft }
@@ -3072,9 +3468,11 @@ export function DataTable<TData>(
 
     paintPagination(processed);
     paintMenus();
+    paintChips();
     // An empty slot is still a flex item, and would add the cluster's gap.
     // style.display, not `hidden`: its zen-flex class beats the [hidden] rule.
     pagerMenusEl.style.display = pagerMenusEl.childElementCount ? "" : "none";
+    restoreFilterFocus(filterFocus);
     restoreFocus(focusMark);
   }
 

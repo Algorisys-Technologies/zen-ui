@@ -160,13 +160,22 @@ export function NumberField(props: NumberFieldProps): NumberFieldHandle {
     if (id !== undefined) input.id = id;
     else input.removeAttribute("id");
 
-    // Forward the leftover data-*/aria-* onto the wrapper.
-    const rest: Record<string, unknown> = {};
+    // data-* on the wrapper; aria-* on the INPUT, which is what a screen
+    // reader names (React and Solid spread them onto the <input>). On the
+    // wrapper an aria-label named nothing: the field was announced unnamed.
+    const data: Record<string, unknown> = {};
+    const aria: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(current)) {
-      if (k.startsWith("data-") || k.startsWith("aria-")) rest[k] = v;
+      if (k.startsWith("data-")) data[k] = v;
+      else if (k.startsWith("aria-")) aria[k] = v;
     }
     removeProps?.();
-    removeProps = applyProps(el, rest);
+    const offWrapper = applyProps(el, data);
+    const offInput = applyProps(input, aria);
+    removeProps = () => {
+      offWrapper();
+      offInput();
+    };
   };
 
   render();

@@ -208,6 +208,15 @@ export type {
   EChartsOption,
 } from "@algorisys/zen-ui-vanilla";
 
+export type {
+  FilterVariant,
+  TextOp,
+  TextFilterValue,
+  NumberOp,
+  NumberFilterValue,
+  NumberRangeFilterValue,
+} from "@algorisys/zen-ui-vanilla";
+
 // The custom-element layer's own surface.
 export { defineZenElement } from "./lib/define";
 export type { ElementDef, AttrType } from "./lib/define";

@@ -71,6 +71,12 @@ issue / PR when its turn comes.
       scroll at all, which leaves pinning nothing to do. Fix in all bindings
       together (a min-width per cell, or the table at least its total size),
       measured with the route snapshots: it changes every sized table.
+- [ ] **The per-column filter row's controls are badly sized in every
+      binding**: a text filter beside its operator select is squeezed to a stub
+      in a narrow column (React's Name filter measures ~28px), and number
+      filters use the full-height NumberField with −/+ steppers, so a range
+      filter is wider than most columns. Fix together: a min width for filter
+      cells, and a compact number input without steppers in the filter row.
 - [ ] **Pinning in the older div-grid body (`enableVirtualization`)**: React
       and Solid have it; vanilla's port did not reach it. Same for live width
       feedback while dragging a resize handle there (applies on release).

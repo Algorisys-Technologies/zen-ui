@@ -81,6 +81,32 @@ function table(data: Person[], attrs: Record<string, string> = {}): HTMLElement 
 }
 
 /* -------------------------- columns -------------------------------- */
+// Sections 31-32: one column per filter variant.
+const FILTER_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "status", header: "Status", meta: { filterVariant: "select", filterOptions: STATUSES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "joinedYear", header: "Joined", meta: { filterVariant: "number" } },
+  { accessorKey: "salary", header: "Salary", meta: { filterVariant: "numberRange" }, cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+  { id: "admin", header: "Admin", accessorFn: (p) => p.role === "Admin", meta: { filterVariant: "boolean" }, cell: ({ row }) => (row.role === "Admin" ? "Yes" : "No") },
+];
+const SERVER_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name" },
+  { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions: ROLES.map((r) => ({ label: r, value: r })) } },
+  { accessorKey: "salary", header: "Salary", cell: ({ row }) => row.salary.toLocaleString("en-IN") },
+];
+/** A stand-in for your endpoint: it reads the request the table reports. */
+function serverQuery(filters: { id: string; value: unknown }[], sorting: { id: string; desc: boolean }[]): Person[] {
+  let rows = MEDIUM.filter((p) =>
+    filters.every((f) =>
+      f.id === "name" ? p.name.toLowerCase().includes(String(f.value).toLowerCase()) : f.id === "role" ? p.role === f.value : true,
+    ),
+  );
+  const s = sorting[0];
+  if (s) rows = [...rows].sort((a, b) => (a[s.id as keyof Person] > b[s.id as keyof Person] ? 1 : -1) * (s.desc ? -1 : 1));
+  return rows;
+}
+
 // Section 29: the same four columns React's and Solid's section uses.
 const MANAGE_COLUMNS: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name", size: 180 },
@@ -998,6 +1024,68 @@ table.onExport = (format, request) =>
           });
           Object.assign(t, { columns: WIDE_COLUMNS, data: MEDIUM, initialColumnPinning: { left: ["name"], right: ["salary"] } });
           box.append(t);
+          return box;
+        },
+      },
+      {
+        title: "31. Per-column filters",
+        codeTitle: "enable-per-column-filters + meta.filterVariant",
+        codeDescription:
+          "A filter row under the header: text with an operator (contains, equals, starts, ends), a select, a number with an operator, a range, and yes / no. Active filters show as chips above the table; remove one, or Clear all.",
+        code: `<zen-data-table enable-per-column-filters enable-column-filters enable-sorting enable-pagination></zen-data-table>
+<script>el.columns = [ …, { accessorKey: "salary", header: "Salary", meta: { filterVariant: "numberRange" } } ];</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "column-filters";
+          const t = el("zen-data-table", { "enable-per-column-filters": "", "enable-column-filters": "", "enable-sorting": "", "enable-pagination": "" });
+          Object.assign(t, { columns: FILTER_COLUMNS, data: MEDIUM });
+          box.append(t);
+          return box;
+        },
+      },
+      {
+        title: "32. Filtering and sorting on the server",
+        codeTitle: "manual-filtering + manual-sorting, enable-filter-operators=\"false\"",
+        codeDescription:
+          "The table takes data as already filtered and sorted, and reports each change for you to re-fetch. Operators are off: a server that only does contains / equals must not be offered starts-with. Below: what your endpoint would receive.",
+        code: `<zen-data-table enable-sorting enable-per-column-filters enable-filter-operators="false"
+  manual-filtering manual-sorting></zen-data-table>
+<script>
+  el.addEventListener("zen-column-filters-change", (e) => refetch({ filters: e.detail }));
+  el.addEventListener("zen-sorting-change", (e) => refetch({ sorting: e.detail }));
+</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-2";
+          box.dataset.testid = "server-filters";
+          const said = document.createElement("pre");
+          said.className = "zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs";
+          said.dataset.testid = "server-request";
+          let filters: { id: string; value: unknown }[] = [];
+          let sorting: { id: string; desc: boolean }[] = [];
+          const t = el("zen-data-table", {
+            "enable-sorting": "",
+            "enable-per-column-filters": "",
+            "enable-filter-operators": "false",
+            "manual-filtering": "",
+            "manual-sorting": "",
+          }) as HTMLElement & { data: Person[] };
+          const refetch = () => {
+            said.textContent = JSON.stringify({ filters, sorting });
+            t.data = serverQuery(filters, sorting);
+          };
+          t.addEventListener("zen-column-filters-change", (e) => {
+            filters = (e as CustomEvent).detail;
+            refetch();
+          });
+          t.addEventListener("zen-sorting-change", (e) => {
+            sorting = (e as CustomEvent).detail;
+            refetch();
+          });
+          Object.assign(t, { columns: SERVER_COLUMNS, data: serverQuery(filters, sorting) });
+          said.textContent = JSON.stringify({ filters, sorting });
+          box.append(t, said);
           return box;
         },
       },

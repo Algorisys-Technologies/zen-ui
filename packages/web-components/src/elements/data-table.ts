@@ -46,6 +46,11 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "enable-column-resizing": "boolean",
     "enable-column-pinning": "boolean",
     "persist-key": "string",
+    "enable-per-column-filters": "boolean",
+    // Defaults to TRUE: json, so an absent attribute means unset, not false.
+    "enable-filter-operators": "json",
+    "manual-filtering": "boolean",
+    "manual-sorting": "boolean",
     "sticky-header": "boolean",
     "page-size": "number",
     "max-body-height": "number",
@@ -63,6 +68,7 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "getRowId",
     "rowClassName",
     "columnVisibility",
+    "columnFilters",
     "columnPinning",
     "initialColumnPinning",
     "manualPagination",
@@ -85,6 +91,7 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     onColumnVisibilityChange: "zen-column-visibility-change",
     onColumnOrderChange: "zen-column-order-change",
     onColumnPinningChange: "zen-column-pinning-change",
+    onColumnFiltersChange: "zen-column-filters-change",
   },
   childrenProp: false,
 });

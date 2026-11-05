@@ -34,10 +34,32 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   check:props: 11 DataTable gaps closed (33 known remain, 16 DataTable).
   With pinning, the vanilla Columns menu gives each column a submenu (Show
   column; Not pinned / Pin to left / Pin to right), all reachable by keyboard.
+- **Vanilla / web-components DataTable: per-column filters and server-side
+  filtering and sorting** (phase 2). `enablePerColumnFilters` with
+  `meta.filterVariant` (text and number with operators, numberRange, select,
+  boolean) and `meta.filterOptions`; active filters as removable chips with
+  Clear all (the search term too, as React shows it); `enableFilterOperators`
+  (off: text filters are bare strings); controlled `columnFilters` +
+  `onColumnFiltersChange`; `manualFiltering` / `manualSorting`. On
+  `<zen-data-table>`: `enable-per-column-filters`, `enable-filter-operators`,
+  `manual-filtering`, `manual-sorting`, `zen-column-filters-change`. The
+  matching lives in core/column-filter (check:column-filter, 35), measured
+  identical to React's TanStack FilterFns over 570 value/filter/variant
+  combinations. Filter inputs are kept across repaints so typing keeps focus,
+  caret and IME composition. The filter types (FilterVariant, TextOp, …) are
+  exported, as from React and Solid. check:props: 6 more closed.
 - **`check:props`**: prop parity across bindings (see 12.6.0's follow-up);
   in `bun run check`.
 - Vanilla DropdownMenu checkbox items take `id`, `onKeyDown` and
   `keyshortcuts` (what the Columns menu's Alt+Arrow reorder needs).
+
+### Fixed
+- **Vanilla Select and NumberField: an `aria-label` named nothing.** Both put
+  `aria-*` on their wrapper `div`, so the combobox / number input itself was
+  announced unnamed (React and Solid put it on the control). They go on the
+  control now; Select also stops leaking `value` / `onValueChange` onto the
+  wrapper as attributes, and keeps a caller's `aria-describedby` alongside its
+  error message. Found by the per-column filter probe.
 
 ## [12.6.0] - 2026-11-05
 

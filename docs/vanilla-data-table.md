@@ -87,7 +87,14 @@ lint ×4, `visual-check`, the route-snapshot comparison for vanilla and WC.
   dragging a resize handle there (the width applies on release). The Columns
   menu with pinning uses a submenu per column (show; not pinned / left /
   right), keyboard-reachable, unlike React's and Solid's pin buttons.
-- [ ] Phase 2: filters, server sorting
+- [x] Phase 2: filters, server sorting (2026-11-05). The filter row (text and
+  number with operators, range, select, boolean), chips with Clear all,
+  controlled `columnFilters`, `enableFilterOperators`, `manualFiltering`,
+  `manualSorting`; vanilla and `<zen-data-table>`. Matching in
+  core/column-filter, proven identical to React's FilterFns over 570 cases.
+  Filter inputs persist across repaints (focus and caret kept while typing;
+  IME composition respected). Found on the way and fixed: vanilla Select and
+  NumberField put `aria-label` on their wrapper, so the control was unnamed.
 - [ ] Phase 3: expandable rows
 - [ ] Phase 4: grouping
 - [ ] Phase 5: client export, bulk actions

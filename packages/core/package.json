@@ -34,6 +34,7 @@
     "./flexible-column-layout": "./src/flexible-column-layout.ts",
     "./row-keys": "./src/row-keys.ts",
     "./columns": "./src/columns.ts",
+    "./column-filter": "./src/column-filter.ts",
     "./grid-range": "./src/grid-range.ts",
     "./tree-select": "./src/tree-select.ts",
     "./keys": "./src/keys.ts",
