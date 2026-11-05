@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.6.0] - 2026-11-05
+
 ### Added
 - **DataTable `toolbarPlacement: "top" | "pagination"`** (every binding;
   `toolbar-placement` on `<zen-data-table>`). `"pagination"` moves the

@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.6.0",
+    date: "2026-11-05",
+    kind: "new",
+    title: "DataTable: put the toolbar's buttons in the pager row",
+    detail: "toolbarPlacement=\"pagination\" moves Export, Group by and Columns beside the page buttons, so a one-button toolbar does not cost a row.",
+  },
+  {
+    version: "12.6.0",
+    date: "2026-11-05",
+    kind: "fixed",
+    title: "DataTable: sortable headers follow the header text tokens",
+    detail: "Uppercase and letter spacing set through --zen-table-head-* now reach sortable headers too, not only plain ones.",
+  },
+  {
     version: "12.5.0",
     date: "2026-11-05",
     kind: "fixed",
