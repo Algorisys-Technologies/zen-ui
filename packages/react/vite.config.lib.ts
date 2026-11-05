@@ -45,6 +45,9 @@ export default defineConfig({
         "leaflet",
         "react-leaflet",
         "react-webcam",
+        // AnalyticChart's renderer: loaded on first chart, every subpath.
+        "echarts",
+        /^echarts\//,
       ],
       output: {
         // Provide global variable names for UMD builds (not used for ESM, but good to have)

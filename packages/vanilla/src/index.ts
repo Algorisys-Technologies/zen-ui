@@ -252,6 +252,33 @@ export { Chart } from "./components/chart/chart";
 export type { ChartProps, ChartSeries } from "./components/chart/chart";
 export type { Slice } from "@algorisys/zen-ui-core/chart";
 export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
+
+// AnalyticChart (ECharts, optional peer dep, loaded on first chart)
+export { AnalyticChart } from "./components/analytic-chart/analytic-chart";
+export type { AnalyticChartProps } from "./components/analytic-chart/analytic-chart";
+export {
+  registerChartKind,
+  getChartKind,
+  chartKinds,
+  selectionAt,
+  makeFormatter,
+  cartesianFrame,
+  legendOf,
+  seriesOf,
+  toNumber,
+} from "@algorisys/zen-ui-core/analytic-chart";
+export type {
+  AnalyticChartSpec,
+  AnalyticSeries,
+  ChartKind,
+  ChartContext,
+  ChartSelection,
+  ChartTable,
+  ChartTheme,
+  ChartRow,
+  ValueFormat,
+  EChartsOption,
+} from "@algorisys/zen-ui-core/analytic-chart";
 export { DataTable } from "./components/data-table/data-table";
 export {
   UrlDataTable,

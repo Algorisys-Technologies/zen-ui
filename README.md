@@ -313,6 +313,7 @@ rest.
 | Colour roles | `--zen-color-{primary, neutral, info, success, warning, error}` (+ `-fg`, `-soft`, `-soft-fg`) | Buttons, badges, alerts, switches, etc. |
 | Surfaces | `--zen-color-{background, foreground, muted, muted-fg, border, ring}` | Cards, inputs, popovers, table rows |
 | Status indicators | `--zen-status-{online, offline, away, busy}` | Avatar status dot |
+| Chart series | `--zen-chart-{1…8}` (categorical, stepped per theme; the order is colour-blind-validated, so re-check before reordering); optional `--zen-chart-{positive, negative}` (default: success / error) | AnalyticChart series, slices and tiles; waterfall up / down steps |
 | Radii | `--zen-radius-{sm, md, lg, full}` | `rounded-zen-*` utility |
 | Shadows | `--zen-shadow-{xs, sm, md, lg, xl, 2xl}` | `shadow-zen-*` utility |
 | Spacing | `--zen-space-{0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16}` | Reserved; not yet used by primitives |

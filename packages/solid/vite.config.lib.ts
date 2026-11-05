@@ -26,6 +26,9 @@ export default defineConfig({
         // consumers install them only if they use those components.
         "leaflet",
         "jodit",
+        // AnalyticChart's renderer: loaded on first chart, every subpath.
+        "echarts",
+        /^echarts\//,
       ],
       output: {
         globals: {

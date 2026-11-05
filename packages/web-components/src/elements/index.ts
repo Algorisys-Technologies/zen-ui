@@ -28,6 +28,7 @@ import "./camera";
 import "./card";
 import "./carousel";
 import "./chart";
+import "./analytic-chart";
 import "./checkbox";
 import "./color-picker";
 import "./combobox";

@@ -99,6 +99,7 @@ import NewPaginationDemo from "./components/NewPaginationDemo";
 import NewCommandDemo from "./components/NewCommandDemo";
 import NewSidebarDemo from "./components/NewSidebarDemo";
 import NewChartDemo from "./components/NewChartDemo";
+import NewAnalyticChartDemo from "./components/NewAnalyticChartDemo";
 import NewRichTextDemo from "./components/NewRichTextDemo";
 import NewMapDemo from "./components/NewMapDemo";
 import NewCameraDemo from "./components/NewCameraDemo";
@@ -242,6 +243,7 @@ render(
       <Route path="/command" component={NewCommandDemo} />
       <Route path="/sidebar" component={NewSidebarDemo} />
       <Route path="/chart" component={NewChartDemo} />
+      <Route path="/analytic-chart" component={NewAnalyticChartDemo} />
       <Route path="/rich-text" component={NewRichTextDemo} />
       <Route path="/map" component={NewMapDemo} />
       <Route path="/camera" component={NewCameraDemo} />

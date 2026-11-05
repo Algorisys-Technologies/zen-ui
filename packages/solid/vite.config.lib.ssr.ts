@@ -17,7 +17,9 @@ export default defineConfig({
   // self-contained. Only the explicit rollup `external` list stays out.
   ssr: {
     noExternal: true,
-    external: ["solid-js", "solid-js/web", "solid-js/store", "solid-js/h", "leaflet", "jodit"],
+    // echarts: AnalyticChart's optional renderer, imported lazily on the client
+    // only. Measured: without it here the server bundle inlined all of it.
+    external: ["solid-js", "solid-js/web", "solid-js/store", "solid-js/h", "leaflet", "jodit", "echarts"],
   },
   build: {
     emptyOutDir: false,
@@ -36,6 +38,8 @@ export default defineConfig({
         "solid-js/h",
         "leaflet",
         "jodit",
+        "echarts",
+        /^echarts\//,
       ],
       output: {
         preserveModules: false,

@@ -33,6 +33,27 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.4.0",
+    date: "2026-11-05",
+    kind: "new",
+    title: "AnalyticChart: interactive business charts in every binding",
+    detail: "Bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap and your own types. Click to drill down or filter; a table view, CSV and PNG. Install the optional echarts package to draw.",
+  },
+  {
+    version: "12.4.0",
+    date: "2026-11-05",
+    kind: "new",
+    title: "Chart colours of their own: --zen-chart-1 to -8",
+    detail: "Eight colour-blind-safe series colours per theme, none of them the error red, so a plain category no longer reads as bad news.",
+  },
+  {
+    version: "12.4.0",
+    date: "2026-11-05",
+    kind: "fixed",
+    title: "Web components: clearing a callback property now clears it",
+    detail: "el.onBack = undefined used to leave the back button showing.",
+  },
+  {
     version: "12.3.0",
     date: "2026-11-05",
     kind: "new",

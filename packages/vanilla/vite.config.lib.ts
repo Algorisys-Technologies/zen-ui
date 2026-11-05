@@ -25,7 +25,8 @@ export default defineConfig({
     rollupOptions: {
       // Optional peer deps — lazy-loaded by Map/RichText only. Never bundled;
       // a consumer installs them only if they use those components (as React does).
-      external: ["leaflet", "leaflet/dist/leaflet.css", "jodit"],
+      // echarts: AnalyticChart's renderer, loaded on first chart, every subpath.
+      external: ["leaflet", "leaflet/dist/leaflet.css", "jodit", "echarts", /^echarts\//],
       output: {
         // Emit one file per module instead of a single bundle. This is half of
         // what makes the library tree-shakeable; the other half is `sideEffects`

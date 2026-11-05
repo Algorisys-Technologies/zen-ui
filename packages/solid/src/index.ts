@@ -1066,3 +1066,29 @@ export type { MapProps, MapMarker } from "./components/map/map";
 export type { PaginationProps } from "./components/pagination/pagination";
 export type { RichTextProps } from "./components/rich-text/rich-text";
 export type { SidebarProviderProps } from "./components/sidebar/sidebar";
+
+export { AnalyticChart } from "./components/analytic-chart/analytic-chart";
+export type { AnalyticChartProps } from "./components/analytic-chart/analytic-chart";
+export {
+  registerChartKind,
+  getChartKind,
+  chartKinds,
+  selectionAt,
+  makeFormatter,
+  cartesianFrame,
+  legendOf,
+  seriesOf,
+  toNumber,
+} from "@algorisys/zen-ui-core/analytic-chart";
+export type {
+  AnalyticChartSpec,
+  AnalyticSeries,
+  ChartKind,
+  ChartContext,
+  ChartSelection,
+  ChartTable,
+  ChartTheme,
+  ChartRow,
+  ValueFormat,
+  EChartsOption,
+} from "@algorisys/zen-ui-core/analytic-chart";

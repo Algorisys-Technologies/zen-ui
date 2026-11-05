@@ -752,6 +752,22 @@ SKILL.md.
 - `dataTable.unpinColumnFrom: string`
 - `dataTable.sideLeft: string`
 - `dataTable.sideRight: string`
+- `analyticChart.view: string`
+- `analyticChart.chart: string`
+- `analyticChart.table: string`
+- `analyticChart.downloadPng: string`
+- `analyticChart.downloadCsv: string`
+- `analyticChart.png: string`
+- `analyticChart.csv: string`
+- `analyticChart.loading: string`
+- `analyticChart.noData: string`
+- `analyticChart.unavailable: string`
+- `analyticChart.change: string`
+- `analyticChart.runningTotal: string`
+- `analyticChart.total: string`
+- `analyticChart.value: string`
+- `analyticChart.max: string`
+- `analyticChart.target: string`
 
 ### Other exports
 

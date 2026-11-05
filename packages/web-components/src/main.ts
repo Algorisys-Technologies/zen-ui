@@ -111,6 +111,7 @@ import QRScannerDemo from "./components/QRScannerDemo";
 import BarcodeDemo from "./components/BarcodeDemo";
 import MapDemo from "./components/MapDemo";
 import ChartDemo from "./components/ChartDemo";
+import AnalyticChartDemo from "./components/AnalyticChartDemo";
 import DataTableDemo from "./components/DataTableDemo";
 import TreeTableDemo from "./components/TreeTableDemo";
 import MicroChartDemo from "./components/MicroChartDemo";
@@ -238,6 +239,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/qr-scanner": QRScannerDemo,
   "/map": MapDemo,
   "/chart": ChartDemo,
+  "/analytic-chart": AnalyticChartDemo,
   "/data-table": DataTableDemo,
   "/tree-table": TreeTableDemo,
   "/micro-chart": MicroChartDemo,

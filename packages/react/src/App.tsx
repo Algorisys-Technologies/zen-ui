@@ -151,6 +151,7 @@ import NewBreadcrumbDemo from "./components/NewBreadcrumbDemo";
 import NewPaginationDemo from "./components/NewPaginationDemo";
 import NewSidebarDemo from "./components/NewSidebarDemo";
 import NewChartDemo from "./components/NewChartDemo";
+import NewAnalyticChartDemo from "./components/NewAnalyticChartDemo";
 import NewRichTextDemo from "./components/NewRichTextDemo";
 import NewMapDemo from "./components/NewMapDemo";
 import NewCameraDemo from "./components/NewCameraDemo";
@@ -424,6 +425,7 @@ const App: React.FC = () => {
             <Route path="/pagination" element={<NewPaginationDemo />} />
             <Route path="/sidebar" element={<NewSidebarDemo />} />
             <Route path="/chart" element={<NewChartDemo />} />
+            <Route path="/analytic-chart" element={<NewAnalyticChartDemo />} />
             <Route path="/rich-text" element={<NewRichTextDemo />} />
             <Route path="/map" element={<NewMapDemo />} />
             <Route path="/camera" element={<NewCameraDemo />} />

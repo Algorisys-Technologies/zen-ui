@@ -15,7 +15,49 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.4.0] - 2026-11-05
+
+### Added
+- **AnalyticChart** (every binding; `<zen-analytic-chart>` in web components):
+  interactive business charts drawn by ECharts, an optional peer loaded on the
+  first chart, so an app that never charts pays nothing. Twelve built-in kinds
+  (bar, line, area, combo with a second axis, pie, donut, waterfall, funnel,
+  gauge, heatmap, scatter, treemap); a kind is a registry entry, so an app adds
+  its own with `registerChartKind` (the demos register a radar). Click a mark
+  for `onSelect` (`zen-select`): drill-down and filtering are the caller's
+  state. A Chart / Table switch, PNG and CSV download; the table is the
+  keyboard and screen-reader path, its first cell a button that selects what a
+  click on the mark does. Without echarts it shows the table and a one-line
+  note instead of throwing. Everything but the drawing lives in
+  `@algorisys/zen-ui-core/analytic-chart`; the ECharts controller in
+  `…/analytic-chart-echarts`. `check:analytic-chart` (97 assertions) is in
+  `bun run check`. Built Solid first, then React, vanilla, web components;
+  each driven in a browser with one probe: all 12 charts draw, click and
+  keyboard select, CSV / PNG, filter, drill-down, light / dark, RTL, the
+  missing-peer fallback, no page errors. Bundle budgets unchanged (one Button
+  17–18 kB); no echarts code in any `dist`; a strict consumer of the react and
+  web-components tarballs, echarts NOT installed, gets 0 type errors.
+- **`--zen-chart-1…8`**: a categorical series palette, one light set for every
+  light theme and stepped values in `dark`, validated for colour-blind
+  separation on each theme's surface (adjacent CVD ΔE ≥ 8.4, normal ≥ 19.3).
+  AnalyticChart's default palette; it used to be built from the semantic
+  tokens, which painted plain categories danger-red. Optional
+  `--zen-chart-positive` / `--zen-chart-negative` override a waterfall's
+  up / down steps (default: success / error).
+
 ### Fixed
+- **web components: clearing a callback property did nothing.** An element
+  passed a callback to its factory when the event had a listener OR the
+  property was in its bag, and `el.onBack = undefined` leaves the key there,
+  so an affordance a callback gates (PageHeader's back button, a chart's
+  clickable marks) could never be taken away again. An assigned `undefined`
+  now counts as unset. Found porting AnalyticChart's drill-down, whose
+  quarter bars kept a pointer cursor; `visual-check` over all 118 WC routes
+  shows no runtime errors.
+- **Solid: `build:lib` left stale server chunks in `dist/server`**, which
+  `files: ["dist"]` would publish. The server build only started emitting
+  hashed chunks with AnalyticChart's dynamic import; `build:lib` now clears
+  `dist/server` as it already cleared `dist/assets`.
 - **ObjectPageLayout: an absolutely placed child escaped the scroll area**
   (every binding; reported from ERPNext). The scroller had `overflow-y: auto`
   but no position, so an absolutely placed descendant with no positioned
