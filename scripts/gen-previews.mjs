@@ -143,9 +143,20 @@ for (const binding of which) {
     throw new Error(`${binding}: dev server never came up on ${cfg.port}`);
   }
 
-  const browser = await chromium.launch();
-  const newPage = () =>
-    browser.newPage({ viewport: { width: VIEWPORT_WIDTH, height: 900 }, deviceScaleFactor: 2 });
+  // The browser is relaunched if it dies (measured 2026-11-06: under memory
+  // pressure from other work on the machine the whole headless browser went,
+  // and the next newPage() threw; this host runs earlyoom, which prefers
+  // chrome-headless). A few relaunches, each reported; more is a real failure.
+  let browser = await chromium.launch();
+  let relaunches = 0;
+  const liveBrowser = async () => {
+    if (browser.isConnected()) return browser;
+    if (++relaunches > 3) throw new Error("the browser died more than 3 times");
+    browser = await chromium.launch();
+    return browser;
+  };
+  const newPage = async () =>
+    (await liveBrowser()).newPage({ viewport: { width: VIEWPORT_WIDTH, height: 900 }, deviceScaleFactor: 2 });
   let page = await newPage();
 
   let written = 0;
@@ -326,7 +337,7 @@ for (const binding of which) {
       // too — that is what wedged it — and the .catch() then swallowed the
       // failure, so the file was never written and the card 404'd anyway,
       // which is the exact thing this fallback exists to prevent.
-      const spare = await browser.newPage({ viewport: { width: CLIP_W, height: CLIP_H } });
+      const spare = await (await liveBrowser()).newPage({ viewport: { width: CLIP_W, height: CLIP_H } });
       await spare
         .screenshot({ path: join(outDir, `${slug(route)}.jpg`), type: "jpeg", quality: QUALITY })
         .catch((err) => failed.push(`${route}: placeholder failed: ${String(err.message).split("\n")[0]}`));
@@ -342,7 +353,7 @@ for (const binding of which) {
   const landingDir = join("apps", "landing", "public", "previews");
   mkdirSync(landingDir, { recursive: true });
   const heroSlug = cfg.base.replace(/^\//, "");
-  const hero = await browser.newPage({ viewport: { width: 1100, height: 720 }, deviceScaleFactor: 2 });
+  const hero = await (await liveBrowser()).newPage({ viewport: { width: 1100, height: 720 }, deviceScaleFactor: 2 });
   await hero
     .goto(`http://localhost:${cfg.port}${cfg.base}/`, { waitUntil: "domcontentloaded" })
     .catch(() => {});
@@ -372,6 +383,7 @@ for (const binding of which) {
     // file, so this line is the only signal that anything was wrong.
     console.log(`  ${unrendered.length} did not render in time (viewport used): ${unrendered.join(", ")}`);
   }
+  if (relaunches) console.log(`  the browser died and was relaunched ${relaunches} time(s)`);
   if (failed.length) {
     console.log(`  ${failed.length} FAILED:`);
     failed.slice(0, 10).forEach((f) => console.log(`    ${f}`));
