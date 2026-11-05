@@ -170,8 +170,25 @@ for (const binding of which) {
   // work never settles, the race does, the route is named, and the loop moves
   // on. The abandoned promise leaks until the browser closes, which is a fair
   // price for a run that always terminates.
-  const withCeiling = (work, ms = 25000) =>
-    Promise.race([work, sleep(ms).then(() => "TIMEOUT")]);
+  // The race leaves the losing `work` running. If it rejects AFTER the
+  // ceiling (its page closed under it by a recycle), nothing awaits it and
+  // Node exits on the unhandled rejection: measured 2026-11-06, two 12.7.0
+  // deploys died this way ("page.$: Target page ... has been closed"), on
+  // solid once and react once, under memory pressure that made a route slow.
+  // A rejection within the ceiling still throws, as before.
+  const withCeiling = (work, ms = 25000) => {
+    let over = false;
+    const guarded = work.then(
+      (v) => v,
+      (err) => {
+        if (over) return "LATE";
+        throw err;
+      },
+    );
+    return Promise.race([guarded, sleep(ms).then(() => "TIMEOUT")]).finally(() => {
+      over = true;
+    });
+  };
 
   // Recycle the page every RECYCLE_EVERY routes.
   //
@@ -291,6 +308,13 @@ for (const binding of which) {
     );
     if (outcome === "TIMEOUT") {
       unrendered.push(`${route} (hit the per-route ceiling)`);
+      // The wedged page is not reused: the abandoned capture is still working
+      // on it, and would act on the next route's page. A fresh one, now.
+      await page.close().catch(() => {});
+      page = await newPage();
+      page.setDefaultTimeout(8000);
+      page.setDefaultNavigationTimeout(15000);
+      sinceRecycle = 0;
       // A FRESH page for the placeholder. Screenshotting the wedged one hangs
       // too — that is what wedged it — and the .catch() then swallowed the
       // failure, so the file was never written and the card 404'd anyway,
