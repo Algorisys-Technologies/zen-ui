@@ -224,7 +224,7 @@ export const NAV: NavGroup[] = [
       { to: "/shellbar", label: "ShellBar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/react/src/components/NewShellBarDemo.tsx", updated: "12.3.0" },
       { to: "/flexible-column-layout", label: "FlexibleColumnLayout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/react/src/components/NewFlexibleColumnLayoutDemo.tsx" },
       { to: "/dynamic-page", label: "DynamicPage", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/react/src/components/NewDynamicPageDemo.tsx" },
-      { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/react/src/components/NewObjectPageDemo.tsx", updated: "12.3.0" },
+      { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/react/src/components/NewObjectPageDemo.tsx", updated: "12.3.1" },
     ],
   },
   {

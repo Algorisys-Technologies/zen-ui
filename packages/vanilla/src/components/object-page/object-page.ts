@@ -415,7 +415,12 @@ export function ObjectPageLayout(
     }
 
     scroller = document.createElement("div");
-    scroller.className = "zen-min-h-0 zen-flex-1 zen-overflow-y-auto";
+    // relative: the scroller is the containing block for anything placed
+    // absolutely inside it. Without it a visually-hidden control (position
+    // absolute, no offsets) took its containing block from outside the page, so
+    // overflow neither clipped nor scrolled it, and it stretched the app's own
+    // scroll.
+    scroller.className = "zen-relative zen-min-h-0 zen-flex-1 zen-overflow-y-auto";
     el.append(scroller);
 
     if (header !== undefined && header !== null && header !== false) {

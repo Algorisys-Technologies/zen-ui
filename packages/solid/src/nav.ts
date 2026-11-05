@@ -298,7 +298,7 @@ export const NAV: NavGroup[] = [
       { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/components/NewShellBarDemo.tsx" , updated: "12.2.0" },
       { label: "FlexibleColumnLayout", path: "/flexible-column-layout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/solid/src/components/NewFlexibleColumnLayoutDemo.tsx" },
       { label: "DynamicPage", path: "/dynamic-page", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/solid/src/components/NewDynamicPageDemo.tsx" },
-      { label: "ObjectPageLayout", path: "/object-page", description: "Anchored sections with scroll-spy navigation", source: "packages/solid/src/components/NewObjectPageDemo.tsx" , updated: "12.2.0" },
+      { label: "ObjectPageLayout", path: "/object-page", description: "Anchored sections with scroll-spy navigation", source: "packages/solid/src/components/NewObjectPageDemo.tsx" , updated: "12.3.1" },
     ],
   },
   {

@@ -15,6 +15,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- **ObjectPageLayout: an absolutely placed child escaped the scroll area**
+  (every binding; reported from ERPNext). The scroller had `overflow-y: auto`
+  but no position, so an absolutely placed descendant with no positioned
+  ancestor in between, such as a visually-hidden native control, took its
+  containing block from outside the page: overflow neither clipped nor
+  scrolled it, and in a shell without a scroll container of its own it
+  stretched the page. The scroller is `position: relative` now. Measured in
+  each demo with a hidden checkbox in the last section: it scrolls with the
+  content and is clipped (was: fixed outside the scroller), and of the 6 / 6 /
+  18 / 18 absolutely placed elements already in the demo object pages, none
+  visible changes anchor; anchor jumps land as before.
+
 ## [12.3.0] - 2026-11-05
 
 ### Added

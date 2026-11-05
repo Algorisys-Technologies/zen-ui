@@ -407,10 +407,15 @@ export const ObjectPageLayout = React.forwardRef<HTMLDivElement, ObjectPageLayou
 
         {/* scroll-padding-top: whatever the browser scrolls into view in here —
             a field reached with Tab, a grid cell, scrollIntoView — lands below
-            the sticky anchor bar instead of under it. */}
+            the sticky anchor bar instead of under it.
+            relative: the scroller is the containing block for anything placed
+            absolutely inside it. Without it a visually-hidden control (position
+            absolute, no offsets) took its containing block from outside the
+            page, so overflow neither clipped nor scrolled it, and it stretched
+            the app's own scroll. */}
         <div
           ref={scrollRef}
-          className="zen-min-h-0 zen-flex-1 zen-overflow-y-auto"
+          className="zen-relative zen-min-h-0 zen-flex-1 zen-overflow-y-auto"
           style={{ scrollPaddingTop: barHeight }}
         >
           {header ? (
