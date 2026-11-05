@@ -1,5 +1,6 @@
 import { For, type JSX, Show } from "solid-js";
 import type { Column, FilterFn, RowData } from "@tanstack/solid-table";
+import { columnLabel } from "@algorisys/zen-ui-core/columns";
 import { cn } from "../../lib/cn";
 import { Input } from "../form/input/input";
 import { NumberField } from "../form/number-field/number-field";
@@ -39,6 +40,13 @@ export type NumberRangeFilterValue = [number | null, number | null];
 declare module "@tanstack/solid-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
+    /**
+     * The column's plain-text name, for where the header cannot be read: the
+     * Columns menu, the sort button's and resize handle's accessible names,
+     * filter labels and export headers. Needed when `header` is a function;
+     * without it those fall back to a string header, then the column id.
+     */
+    label?: string;
     filterVariant?: FilterVariant;
     /** Options used by the `select` variant. */
     filterOptions?: { label: string; value: string }[];
@@ -150,10 +158,7 @@ const NUMBER_OPS: { value: NumberOp; label: MessageKey; symbol: string }[] = [
   { value: "lte", label: "dataTable.numberOp.lte", symbol: "≤" },
 ];
 
-const headerLabel = (column: Column<unknown, unknown>): string => {
-  const h = column.columnDef.header;
-  return typeof h === "string" ? h : column.id;
-};
+const headerLabel = (column: Column<unknown, unknown>): string => columnLabel(column);
 
 function OpSelect<T extends string>(props: {
   value: T;

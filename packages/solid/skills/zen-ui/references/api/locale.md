@@ -749,6 +749,8 @@ SKILL.md.
 - `dataTable.manageColumns: string`
 - `dataTable.toggleColumns: string`
 - `dataTable.pinColumnTo: string`
+- `dataTable.resetColumns: string`
+- `dataTable.moveColumnHint: string`
 - `dataTable.unpinColumnFrom: string`
 - `dataTable.sideLeft: string`
 - `dataTable.sideRight: string`

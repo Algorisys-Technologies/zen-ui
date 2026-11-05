@@ -55,6 +55,7 @@ import {
 } from "@thisbeyond/solid-dnd";
 
 import { cellKeyTarget, ownsArrowKeys, rowKeyTarget, type GridCell } from "@algorisys/zen-ui-core/row-keys";
+import { clampColumnSize, columnLabel, columnResizeDelta, moveColumn } from "@algorisys/zen-ui-core/columns";
 import {
   clampRange,
   inRect,
@@ -342,8 +343,9 @@ function savePersisted(key: string | undefined, snapshot: Omit<PersistedState, "
 }
 
 /* ------------------------------- export helpers --------------------------- */
-const headerLabel = (col: { id: string; columnDef: { header?: unknown } }): string =>
-  typeof col.columnDef.header === "string" ? (col.columnDef.header as string) : col.id;
+// A column's plain-text name: meta.label, else a string header, else the id
+// (core/columns). Used wherever the header itself cannot be read.
+const headerLabel = columnLabel;
 
 const csvEscape = (value: unknown): string => {
   if (value === null || value === undefined) return "";
@@ -879,6 +881,17 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     },
   });
 
+  /* "Reset columns": back to the layout the table was given. Through the
+     table's setters, so controlled props hear it and the persisted entry is
+     rewritten by the effect below. Sorting, filters and grouping are not the
+     column LAYOUT and are left alone. */
+  const resetColumns = () => {
+    table.setColumnOrder([]);
+    table.setColumnSizing({});
+    table.setColumnVisibility({});
+    table.setColumnPinning(props.initialColumnPinning ?? { left: [], right: [] });
+  };
+
   /* persistence sync */
   createEffect(() => {
     savePersisted(props.persistKey, {
@@ -1189,6 +1202,8 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
         enableColumnFilters={!!props.enableColumnFilters}
         enableColumnVisibility={!!props.enableColumnVisibility}
         enableColumnPinning={!!props.enableColumnPinning}
+        enableColumnOrdering={!!props.enableColumnOrdering}
+        onResetColumns={resetColumns}
         enableGrouping={groupingActive()}
         enableExport={!!props.enableExport || !!props.onExport}
         exportFilename={props.exportFilename ?? "data-table"}
@@ -1260,6 +1275,8 @@ function Toolbar<TData>(props: {
   enableColumnFilters: boolean;
   enableColumnVisibility: boolean;
   enableColumnPinning: boolean;
+  enableColumnOrdering: boolean;
+  onResetColumns: () => void;
   enableGrouping: boolean;
   enableExport: boolean;
   exportFilename: string;
@@ -1304,7 +1321,12 @@ function Toolbar<TData>(props: {
             <GroupByMenu table={props.table} />
           </Show>
           <Show when={props.enableColumnVisibility}>
-            <ColumnsMenu table={props.table} enableColumnPinning={props.enableColumnPinning} />
+            <ColumnsMenu
+              table={props.table}
+              enableColumnPinning={props.enableColumnPinning}
+              enableColumnOrdering={props.enableColumnOrdering}
+              onReset={props.onResetColumns}
+            />
           </Show>
         </div>
       </div>
@@ -1724,26 +1746,64 @@ function ServerExportMenu<TData>(props: { table: TanStackTable<TData>; filename:
 function ColumnsMenu<TData>(props: {
   table: TanStackTable<TData>;
   enableColumnPinning?: boolean;
+  enableColumnOrdering?: boolean;
+  onReset: () => void;
 }) {
   const loc = useLocale();
-  const hideable = () => props.table.getAllColumns().filter((c) => c.getCanHide());
+  // In the table's CURRENT order (getAllLeafColumns applies columnOrder), so a
+  // drag or a keyboard move shows here too.
+  const hideable = () => props.table.getAllLeafColumns().filter((c) => c.getCanHide());
+  let content: HTMLDivElement | undefined;
+
+  /* Keyboard reorder, on the focused column's item: Alt+ArrowUp / Alt+ArrowDown.
+     Not buttons in the row: a menu moves focus between its ITEMS with the
+     arrow keys and never lets Tab reach a button inside one (measured: Tab
+     only alternated between the first and the last focusable), so a button
+     route would be pointer-only after all. Up / down rather than left / right
+     because the menu is a vertical list in the table's order, so it reads the
+     same in either direction. */
+  const onItemKeyDown = (e: KeyboardEvent, id: string) => {
+    if (!props.enableColumnOrdering || !e.altKey || e.ctrlKey || e.metaKey) return;
+    const direction = e.key === "ArrowUp" ? "earlier" : e.key === "ArrowDown" ? "later" : null;
+    if (!direction) return;
+    // Ours, not the menu's: without this Kobalte also moves the highlight.
+    e.preventDefault();
+    e.stopPropagation();
+    const next = moveColumn(
+      props.table.getAllLeafColumns().map((c) => c.id),
+      id,
+      direction,
+      hideable().map((c) => c.id),
+    );
+    if (!next) return;
+    props.table.setColumnOrder(next);
+    // Moving a node in the DOM blurs it: give focus back to the moved item.
+    queueMicrotask(() =>
+      content?.querySelector<HTMLElement>(`[data-column-id="${CSS.escape(id)}"]`)?.focus(),
+    );
+  };
+
   return (
     <Show when={hideable().length > 0}>
       <DropdownMenu>
         <DropdownMenuTrigger as={Button} variant="outline" color="neutral" size="sm">
           {loc.t("dataTable.columns")}
         </DropdownMenuTrigger>
-        <DropdownMenuContent class="zen-min-w-56">
+        <DropdownMenuContent ref={content} class="zen-min-w-56">
           <DropdownMenuLabel>
             {props.enableColumnPinning ? loc.t("dataTable.manageColumns") : loc.t("dataTable.toggleColumns")}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {/* Remounted when the order changes. Kobalte records its items' order
+              when they mount and re-sorts only when an IntersectionObserver
+              fires, which a reorder does not: measured, after Alt+ArrowDown the
+              next ArrowDown went to the item ABOVE. Fresh items register in
+              DOM order. */}
+          <Show when={hideable().map((c) => c.id).join("\u0000")} keyed>
+          {(_order: string) => (
           <For each={hideable()}>
             {(column) => {
-              const label = () =>
-                typeof column.columnDef.header === "string"
-                  ? (column.columnDef.header as string)
-                  : column.id;
+              const label = () => columnLabel(column);
               return (
                 <Show
                   when={props.enableColumnPinning}
@@ -1751,6 +1811,9 @@ function ColumnsMenu<TData>(props: {
                     <DropdownMenuCheckboxItem
                       checked={column.getIsVisible()}
                       onChange={(v) => column.toggleVisibility(v)}
+                      data-column-id={column.id}
+                      aria-keyshortcuts={props.enableColumnOrdering ? "Alt+ArrowUp Alt+ArrowDown" : undefined}
+                      onKeyDown={(e: KeyboardEvent) => onItemKeyDown(e, column.id)}
                     >
                       {label()}
                     </DropdownMenuCheckboxItem>
@@ -1786,6 +1849,15 @@ function ColumnsMenu<TData>(props: {
               );
             }}
           </For>
+          )}
+          </Show>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => props.onReset()}>{loc.t("dataTable.resetColumns")}</DropdownMenuItem>
+          <Show when={props.enableColumnOrdering && !props.enableColumnPinning}>
+            <p class="zen-m-0 zen-px-2 zen-pb-1 zen-pt-1.5 zen-text-xs zen-text-zen-muted-fg" aria-hidden="true">
+              {loc.t("dataTable.moveColumnHint")}
+            </p>
+          </Show>
         </DropdownMenuContent>
       </DropdownMenu>
     </Show>
@@ -3120,6 +3192,63 @@ function SortableRow(props: {
   );
 }
 
+/* --------------------------- ColumnResizeHandle --------------------------- */
+/**
+ * A column's resize handle, in both the table and the virtualized grid: the
+ * WAI-ARIA window-splitter pattern, a focusable separator whose value is the
+ * width. Arrow keys resize (16px, Shift 64px), the arrow pointing away from
+ * the column widening it, so it mirrors in RTL. It was a <button> with pointer
+ * handlers only: reachable by Tab, operable by nothing.
+ */
+function ColumnResizeHandle<TData, TValue>(props: {
+  header: Header<TData, TValue>;
+  resizing: boolean;
+  /** The virtualized grid's own drag listens for pointerdown: keep a resize out of it. */
+  stopPointerDown?: boolean;
+}) {
+  const loc = useLocale();
+  const column = () => props.header.column;
+  // TanStack's "no maximum" is MAX_SAFE_INTEGER: not a value to announce.
+  const max = () => {
+    const m = column().columnDef.maxSize;
+    return m !== undefined && m < Number.MAX_SAFE_INTEGER ? m : undefined;
+  };
+  return (
+    <div
+      role="separator"
+      tabIndex={0}
+      aria-orientation="vertical"
+      aria-label={loc.t("dataTable.resize", { column: columnLabel(column()) })}
+      aria-valuenow={Math.round(column().getSize())}
+      aria-valuemin={column().columnDef.minSize ?? 20}
+      aria-valuemax={max()}
+      onMouseDown={(e) => props.header.getResizeHandler()(e)}
+      onTouchStart={(e) => props.header.getResizeHandler()(e)}
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => {
+        if (props.stopPointerDown) e.stopPropagation();
+      }}
+      onKeyDown={(e) => {
+        const rtl = getComputedStyle(e.currentTarget).direction === "rtl";
+        const delta = columnResizeDelta(e.key, { shift: e.shiftKey, rtl });
+        if (delta === null) return;
+        e.preventDefault();
+        // Not a sort, and not a step for the header's drag activators.
+        e.stopPropagation();
+        const col = column();
+        const size = clampColumnSize(col.getSize(), delta, col.columnDef.minSize, col.columnDef.maxSize);
+        props.header.getContext().table.setColumnSizing((prev) => ({ ...prev, [col.id]: size }));
+      }}
+      class={cn(
+        "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
+        "zen-bg-transparent zen-border-0 zen-p-0",
+        "hover:zen-bg-zen-primary focus-visible:zen-bg-zen-primary focus-visible:zen-outline-none",
+        props.resizing && "zen-bg-zen-primary",
+      )}
+    />
+  );
+}
+
 /* ------------------------------- HeaderCell ------------------------------ */
 function HeaderCell<TData, TValue>(props: {
   header: Header<TData, TValue>;
@@ -3168,7 +3297,7 @@ function HeaderCell<TData, TValue>(props: {
           type="button"
           onClick={(e) => header().column.getToggleSortingHandler()?.(e)}
           aria-label={loc.t("dataTable.sortBy", {
-            column: typeof header().column.columnDef.header === "string" ? (header().column.columnDef.header as string) : header().column.id,
+            column: columnLabel(header().column),
             state: sortLabel(),
           })}
           class={cn(
@@ -3192,19 +3321,7 @@ function HeaderCell<TData, TValue>(props: {
         </button>
       </Show>
       <Show when={props.enableColumnResizing && header().column.getCanResize()}>
-        <button
-          type="button"
-          aria-label={loc.t("dataTable.resize", { column: header().column.id })}
-          onMouseDown={(e) => header().getResizeHandler()(e)}
-          onTouchStart={(e) => header().getResizeHandler()(e)}
-          onClick={(e) => e.stopPropagation()}
-          class={cn(
-            "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
-            "zen-bg-transparent zen-border-0 zen-p-0",
-            "hover:zen-bg-zen-primary",
-            isResizing() && "zen-bg-zen-primary",
-          )}
-        />
+        <ColumnResizeHandle header={header()} resizing={isResizing()} />
       </Show>
     </>
   );
@@ -3578,7 +3695,6 @@ function VirtHeaderCellInner<TData, TValue>(props: {
   header: Header<TData, TValue>;
   enableColumnResizing?: boolean;
 }) {
-  const loc = useLocale();
   const canSort = () => props.header.column.getCanSort();
   const sorted = () => props.header.column.getIsSorted();
   const isResizing = () => props.header.column.getIsResizing();
@@ -3607,20 +3723,7 @@ function VirtHeaderCellInner<TData, TValue>(props: {
         </Show>
       </Show>
       <Show when={props.enableColumnResizing && props.header.column.getCanResize()}>
-        <button
-          type="button"
-          aria-label={loc.t("dataTable.resize", { column: props.header.column.id })}
-          onMouseDown={(e) => props.header.getResizeHandler()(e)}
-          onTouchStart={(e) => props.header.getResizeHandler()(e)}
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          class={cn(
-            "zen-absolute zen-right-0 zen-top-0 zen-h-full zen-w-1.5 zen-cursor-col-resize zen-select-none zen-touch-none",
-            "zen-bg-transparent zen-border-0 zen-p-0",
-            "hover:zen-bg-zen-primary",
-            isResizing() && "zen-bg-zen-primary",
-          )}
-        />
+        <ColumnResizeHandle header={props.header} resizing={isResizing()} stopPointerDown />
       </Show>
     </>
   );
