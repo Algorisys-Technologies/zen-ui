@@ -1,6 +1,7 @@
 import {
   type JSX,
   Show,
+  batch,
   createEffect,
   createMemo,
   createSignal,
@@ -169,7 +170,12 @@ export const Combobox = (rawProps: ComboboxProps) => {
       .onSearch(q)
       .then((res) => {
         if (token !== lastQueryToken) return;
-        setAsyncOptions(res);
+        // Together, so the filter below never sees the new results while
+        // still "loading" (it would narrow them by label).
+        batch(() => {
+          setAsyncOptions(res);
+          setAsyncLoading(false);
+        });
       })
       .finally(() => {
         if (token === lastQueryToken) setAsyncLoading(false);
@@ -181,6 +187,10 @@ export const Combobox = (rawProps: ComboboxProps) => {
     // whether to offer it, and that is not an async-only concern.
     setQuery(q);
     if (!isAsync()) return;
+    // Loading from the keystroke, not from when the debounce fires: the list
+    // opens on the keystroke (allowsEmptyCollection below), and for those
+    // first milliseconds it should say "Loading", not "No results".
+    setAsyncLoading(true);
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => runSearch(q), props.debounceMs ?? 250);
   };
@@ -205,6 +215,22 @@ export const Combobox = (rawProps: ComboboxProps) => {
     <KCombobox<ComboboxOption>
       validationState={props.invalid ? "invalid" : "valid"}
       options={effectiveOptions()}
+      // Async: Kobalte decides open or shut on the keystroke, while the
+      // options are still the previous search's (often none), so typing into
+      // an empty list left it shut when the results came. Let it open empty;
+      // the Loading row shows until they land. Once they have, the server has
+      // already matched them: filtering them again by label text would hide a
+      // result found by code or keyword, or show none at all on a fuzzy match.
+      // While a search is in flight the list is still the PREVIOUS query's, so
+      // narrow it by label as before: unfiltered, typing "Sv" over the "" list
+      // flashed every option until the response came.
+      allowsEmptyCollection={isAsync()}
+      defaultFilter={
+        isAsync()
+          ? (opt, input) =>
+              !asyncLoading() || opt.label.toLowerCase().includes(input.toLowerCase())
+          : "contains"
+      }
       optionValue="value"
       optionTextValue="label"
       optionLabel="label"

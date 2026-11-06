@@ -15,6 +15,24 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- **Solid Combobox (async): typing did not open the list when the results
+  arrived.** Kobalte decides open or shut on the keystroke, while the options
+  are still the previous search's, often none; nothing reopened it when
+  `onSearch` returned, so the user had to press the arrow. Found by the ERPNext
+  port's end-to-end test (Country "Indi": the search returned India, the list
+  stayed shut). In async mode the list now opens empty on the keystroke with
+  the Loading row (`allowsEmptyCollection`), loading starts at the keystroke
+  rather than when the debounce fires, and the server's results are no longer
+  filtered again by label text, which hid results the server matched by code
+  or keyword. While a search is in flight the previous query's results are
+  still narrowed by label, so typing over them does not flash the whole stale
+  list; the new results and the end of loading land in one batch, so the
+  filter never sees one without the other. Sync mode is unchanged. React and
+  vanilla (and so web-components) are not affected: their popover keeps its own
+  open state and they already skip the local filter in async mode. Solid's
+  MultiCombobox has no `onSearch`, so it cannot hit this.
+
 ## [12.8.0] - 2026-11-06
 
 ### Added
