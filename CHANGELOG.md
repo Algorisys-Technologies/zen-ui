@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.8.0] - 2026-11-06
+
 ### Added
 - **DataTable `respectColumnSizes`**, all four bindings (`respect-column-sizes`,
   a json attribute, on `<zen-data-table>`). Each column with a `size`, a
