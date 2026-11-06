@@ -509,11 +509,39 @@ bun run check:schedule-dom       # react: Gantt + ProductionSchedule, LTR and RT
 bun run check:schedule-dom:all   # …every binding, once they are ported
 
 git commit && git tag v<version>
-git checkout main && git merge --ff-only dev && git push origin main --tags
-git checkout dev && git push origin dev
+git checkout main && git merge --no-ff dev -m "Merge dev: <version>"
+git checkout dev
+
+# One ref per push, then read the remote back — never chain them.
+git push origin dev
+git push origin main
+git push origin v<version>
+git ls-remote origin refs/heads/dev refs/heads/main refs/tags/v<version>
 
 ./deploy.sh --publish
+
+# The consumer distribution routes — nothing else refreshes them.
+./scripts/pack-dist-pkg.sh             # dist-pkg/ tarballs (react, solid); commit them on dev
+bash scripts/pack-branch.sh --push     # force-rebuilds the npm-package-react branch
 ```
+
+**`main` takes a merge commit, not a fast-forward.** This block used to say
+`git merge --ff-only dev`, which cannot work: `main` has carried "Merge dev"
+commits since ~12.1.0, so it is never an ancestor of `dev` and the
+fast-forward is refused. Every release since 12.4 has used `--no-ff`.
+
+**Push each ref on its own and check `ls-remote`.** SSH pushes failed
+intermittently on 12.6.0 (the keyring agent), and a chained
+`git push … && git push …` that dies half-way reads like it finished. The
+`ls-remote` line is the proof: all three refs must name the commits you meant.
+
+**The two dist routes rot if they are not in this list.** At 12.0.1 the solid
+tarball was still at 10.7.0, two majors behind, while the release itself was a
+Solid fix. `pack-branch.sh --push` force-pushes a fresh orphan commit by
+design, so review the staged tree it prints (version, `zenUiSourceCommit`, no
+`scripts`/`devDependencies`, LICENSE + COMMERCIAL.md) before it goes. Then
+verify a tarball CONTAINS the change, not merely the version: extract it and
+grep the built module, since a stale build packs green.
 
 **`git push origin dev` is not optional, and it is the step that gets
 forgotten.** This block used to end at `git checkout dev`, which pushes `main`

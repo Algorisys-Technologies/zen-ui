@@ -39,11 +39,13 @@ issue / PR when its turn comes.
       Alt+↑/↓ reorder did).
 - [ ] **React closes the Columns menu on Space** (Radix CheckboxItem's default);
       Solid keeps it open to toggle several. Parity: decide which, then match.
-- [ ] **CLAUDE.md "Ship it" says `git merge --ff-only dev`**, which cannot work:
+- [x] **CLAUDE.md "Ship it" says `git merge --ff-only dev`**, which cannot work:
       `main` has carried "Merge dev into main" commits since ~12.1.0. Releases
       12.4–12.6 used `--no-ff`. Update the procedure. Also: SSH pushes failed
       intermittently on 12.6.0 (keyring agent); push each ref separately and
       check `git ls-remote`, never trust a chained push.
+      (2026-11-06: fixed in 12.8.1 — `--no-ff`, one ref per push + `ls-remote`, and
+      the dist-pkg / npm-package-react routes are in the procedure now.)
 - [ ] **Buttons meant to look like the text around them** (ERPNext gaps doc,
       item 13's suggested sweep): tree rows, tab triggers, menu items may drop
       text-transform / letter-spacing without the preflight, as DataTable's sort

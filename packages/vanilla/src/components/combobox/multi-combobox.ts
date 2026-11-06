@@ -359,7 +359,9 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
     actions.clear();
 
     const needle = query.trim().toLowerCase();
-    const filtered = isAsync() ? opts : opts.filter((o) => matches(o, needle));
+    // Async results are drawn as the server returned them, but while a search
+    // is in flight they are the PREVIOUS query's: narrow them as sync would.
+    const filtered = isAsync() && !asyncLoading ? opts : opts.filter((o) => matches(o, needle));
 
     const typed = query.trim();
     const alreadyExists = opts.some(
@@ -462,9 +464,10 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
     if (!isAsync()) return;
     clearTimeout(searchTimer);
     const seq = ++searchSeq;
+    // Searching from the keystroke, not from when the debounce fires.
+    asyncLoading = true;
+    renderList();
     searchTimer = setTimeout(async () => {
-      asyncLoading = true;
-      renderList();
       try {
         const results = await current.onSearch!(query);
         if (seq === searchSeq) {
@@ -524,6 +527,7 @@ export function MultiCombobox(props: MultiComboboxProps): ZenComponent<MultiComb
       } else {
         clearTimeout(searchTimer);
         searchSeq++;
+        asyncLoading = false; // the dropped search will not reach its finally
       }
     },
   });

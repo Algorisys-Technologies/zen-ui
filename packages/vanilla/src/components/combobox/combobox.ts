@@ -293,7 +293,10 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
 
     const selected = state.get();
     const opts = allOptions();
-    const visible = isAsync() ? opts : opts.filter((o) => matches(o, query));
+    // Async results are the server's match and are drawn as returned — but
+    // while a search is in flight they are the PREVIOUS query's, so narrow
+    // them the way sync mode would. Same in React and Solid.
+    const visible = isAsync() && !asyncLoading ? opts : opts.filter((o) => matches(o, query));
 
     const typed = query.trim();
     const alreadyExists = opts.some((o) => o.label.trim().toLowerCase() === typed.toLowerCase());
@@ -401,9 +404,10 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     ac = new AbortController();
     const signal = ac.signal;
 
+    // Searching from the keystroke, not from when the debounce fires.
+    asyncLoading = true;
+    renderList();
     debounceTimer = setTimeout(async () => {
-      asyncLoading = true;
-      renderList();
       try {
         const results = await current.onSearch!(q);
         if (mySeq === seq && !signal.aborted) asyncResults = results;
@@ -453,6 +457,7 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
     session.dispose();
     clearTimeout(debounceTimer);
     ac?.abort();
+    asyncLoading = false; // the aborted search will not reach its finally
     triggerEl.focus();
   }
 
