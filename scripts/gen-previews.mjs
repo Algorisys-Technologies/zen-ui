@@ -143,9 +143,20 @@ for (const binding of which) {
     throw new Error(`${binding}: dev server never came up on ${cfg.port}`);
   }
 
-  const browser = await chromium.launch();
-  const newPage = () =>
-    browser.newPage({ viewport: { width: VIEWPORT_WIDTH, height: 900 }, deviceScaleFactor: 2 });
+  // The browser is relaunched if it dies (measured 2026-11-06: under memory
+  // pressure from other work on the machine the whole headless browser went,
+  // and the next newPage() threw; this host runs earlyoom, which prefers
+  // chrome-headless). A few relaunches, each reported; more is a real failure.
+  let browser = await chromium.launch();
+  let relaunches = 0;
+  const liveBrowser = async () => {
+    if (browser.isConnected()) return browser;
+    if (++relaunches > 3) throw new Error("the browser died more than 3 times");
+    browser = await chromium.launch();
+    return browser;
+  };
+  const newPage = async () =>
+    (await liveBrowser()).newPage({ viewport: { width: VIEWPORT_WIDTH, height: 900 }, deviceScaleFactor: 2 });
   let page = await newPage();
 
   let written = 0;
@@ -170,8 +181,25 @@ for (const binding of which) {
   // work never settles, the race does, the route is named, and the loop moves
   // on. The abandoned promise leaks until the browser closes, which is a fair
   // price for a run that always terminates.
-  const withCeiling = (work, ms = 25000) =>
-    Promise.race([work, sleep(ms).then(() => "TIMEOUT")]);
+  // The race leaves the losing `work` running. If it rejects AFTER the
+  // ceiling (its page closed under it by a recycle), nothing awaits it and
+  // Node exits on the unhandled rejection: measured 2026-11-06, two 12.7.0
+  // deploys died this way ("page.$: Target page ... has been closed"), on
+  // solid once and react once, under memory pressure that made a route slow.
+  // A rejection within the ceiling still throws, as before.
+  const withCeiling = (work, ms = 25000) => {
+    let over = false;
+    const guarded = work.then(
+      (v) => v,
+      (err) => {
+        if (over) return "LATE";
+        throw err;
+      },
+    );
+    return Promise.race([guarded, sleep(ms).then(() => "TIMEOUT")]).finally(() => {
+      over = true;
+    });
+  };
 
   // Recycle the page every RECYCLE_EVERY routes.
   //
@@ -288,14 +316,28 @@ for (const binding of which) {
     }
         return "OK";
       })(),
-    );
+    ).catch((err) => {
+      // The page died under the route (a renderer crash, or one killed for
+      // memory: this machine runs earlyoom, which prefers chrome-headless).
+      // The same rule as a failed screenshot: reported, not fatal, and the
+      // route still gets a file. It used to abort every binding's previews.
+      failed.push(`${route}: page failed: ${String(err?.message ?? err).split("\n")[0]}`);
+      return "TIMEOUT";
+    });
     if (outcome === "TIMEOUT") {
       unrendered.push(`${route} (hit the per-route ceiling)`);
+      // The wedged page is not reused: the abandoned capture is still working
+      // on it, and would act on the next route's page. A fresh one, now.
+      await page.close().catch(() => {});
+      page = await newPage();
+      page.setDefaultTimeout(8000);
+      page.setDefaultNavigationTimeout(15000);
+      sinceRecycle = 0;
       // A FRESH page for the placeholder. Screenshotting the wedged one hangs
       // too — that is what wedged it — and the .catch() then swallowed the
       // failure, so the file was never written and the card 404'd anyway,
       // which is the exact thing this fallback exists to prevent.
-      const spare = await browser.newPage({ viewport: { width: CLIP_W, height: CLIP_H } });
+      const spare = await (await liveBrowser()).newPage({ viewport: { width: CLIP_W, height: CLIP_H } });
       await spare
         .screenshot({ path: join(outDir, `${slug(route)}.jpg`), type: "jpeg", quality: QUALITY })
         .catch((err) => failed.push(`${route}: placeholder failed: ${String(err.message).split("\n")[0]}`));
@@ -311,7 +353,7 @@ for (const binding of which) {
   const landingDir = join("apps", "landing", "public", "previews");
   mkdirSync(landingDir, { recursive: true });
   const heroSlug = cfg.base.replace(/^\//, "");
-  const hero = await browser.newPage({ viewport: { width: 1100, height: 720 }, deviceScaleFactor: 2 });
+  const hero = await (await liveBrowser()).newPage({ viewport: { width: 1100, height: 720 }, deviceScaleFactor: 2 });
   await hero
     .goto(`http://localhost:${cfg.port}${cfg.base}/`, { waitUntil: "domcontentloaded" })
     .catch(() => {});
@@ -341,6 +383,7 @@ for (const binding of which) {
     // file, so this line is the only signal that anything was wrong.
     console.log(`  ${unrendered.length} did not render in time (viewport used): ${unrendered.join(", ")}`);
   }
+  if (relaunches) console.log(`  the browser died and was relaunched ${relaunches} time(s)`);
   if (failed.length) {
     console.log(`  ${failed.length} FAILED:`);
     failed.slice(0, 10).forEach((f) => console.log(`    ${f}`));
