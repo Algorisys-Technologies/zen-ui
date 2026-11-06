@@ -125,3 +125,37 @@ export function columnLayout(
   const center = orderedColumnIds(ids, state.order).filter((id) => visible(id) && !pinned.has(id));
   return { left, center, right };
 }
+
+/**
+ * `respectColumnSizes` resolved: on when set, else on with pinning or resizing
+ * (a pinned column's offset and a resized column's width both assume the
+ * column really is that wide; squeezed, pinning misaligns and resizing does
+ * nothing the moment the table is full).
+ */
+export function respectsColumnSizes(opts: {
+  respectColumnSizes?: boolean;
+  enableColumnPinning?: boolean;
+  enableColumnResizing?: boolean;
+}): boolean {
+  return opts.respectColumnSizes ?? !!(opts.enableColumnPinning || opts.enableColumnResizing);
+}
+
+/**
+ * The `min-width` a header cell gets so the browser cannot squeeze a column
+ * below its size. A table's automatic layout treats `width` as a hint and
+ * shrinks every column to fit the container; a minimum is the one width it
+ * keeps, and a table whose minimums do not fit scrolls instead.
+ *
+ * Only columns with a width somebody chose: an explicit `size`, a width the
+ * user resized to, or a pinned column (its sticky offset is computed from its
+ * size). An unsized column stays automatic. Undefined when the table does not
+ * respect sizes.
+ */
+export function columnMinWidth(
+  respect: boolean,
+  column: { size: number; explicitSize?: number; resized?: boolean; pinned?: boolean },
+): number | undefined {
+  if (!respect) return undefined;
+  if (column.explicitSize === undefined && !column.resized && !column.pinned) return undefined;
+  return Math.round(column.size);
+}

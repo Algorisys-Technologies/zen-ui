@@ -15,6 +15,28 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.8.0] - 2026-11-06
+
+### Added
+- **DataTable `respectColumnSizes`**, all four bindings (`respect-column-sizes`,
+  a json attribute, on `<zen-data-table>`). Each column with a `size`, a
+  resized width, or a pin gets that width as its header's `min-width`, and the
+  root `min-w-0` so the table scrolls inside a flex parent instead of growing
+  it. Rule in core/columns (`respectsColumnSizes`, `columnMinWidth`; 11 new
+  cases in check:columns, 47 total).
+
+### Fixed
+- **DataTable: sized columns were squeezed in tables with pinning or
+  resizing.** Automatic table layout treats `width` as a hint, so at 1100px
+  React's pinning demo drew Name at 86 of its 180px and never scrolled, which
+  left pinning nothing to do; a column resized wider than the room left was
+  squeezed back. `respectColumnSizes` defaults on with `enableColumnPinning` or
+  `enableColumnResizing`, so those tables now keep their sizes and scroll
+  sideways (measured in all four bindings: exact widths, both pinned edges at
+  0 after scrolling, page width unchanged). Tables with neither are unchanged
+  (the squeezed-column list for every demo table is identical before and
+  after).
+
 ## [12.7.0] - 2026-11-06
 
 ### Added

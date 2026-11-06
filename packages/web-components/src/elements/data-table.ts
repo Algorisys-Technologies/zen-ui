@@ -45,6 +45,9 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "enable-column-ordering": "boolean",
     "enable-column-resizing": "boolean",
     "enable-column-pinning": "boolean",
+    // Defaults to on with pinning or resizing: json, so an absent attribute
+    // means unset rather than an explicit false that would turn that off.
+    "respect-column-sizes": "json",
     "persist-key": "string",
     "enable-per-column-filters": "boolean",
     // Defaults to TRUE: json, so an absent attribute means unset, not false.

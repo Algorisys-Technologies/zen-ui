@@ -64,6 +64,7 @@ SKILL.md.
 - `columnPinning?: ColumnPinningState | undefined`
 - `initialColumnPinning?: ColumnPinningState | undefined`
 - `onColumnPinningChange?: ((state: ColumnPinningState) => void) | undefined`
+- `respectColumnSizes?: boolean | undefined` — Keep each column at least its `size` (or the width it was resized to), and scroll the table sideways when they do not fit, instead of letting the browser squeeze them. Unsized columns stay automatic. Default: on with `enableColumnPinning` or `enableColumnResizing`, which both depend on a column really being its size; off otherwise, where `size` is a hint.
 - `headerVariant?: "underline" | "plain" | "branded" | undefined` — Brand intensity of the column-header row. - "plain" (default) — neutral grey chrome, brand color shows up only on selected rows / filter chips / focus rings. Best when the table coexists with other UI on a page. - "underline" — adds a 2-px primary underline under the header row. Light touch; still reads as a data table, not a hero. - "branded" — header band filled with primary-soft + dark-primary label text. For tables that are the focal point of a page (dashboards, single-resource lists).
 - `pageSize?: number | undefined`
 - `pageSizeOptions?: number[] | undefined`

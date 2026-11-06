@@ -64,8 +64,9 @@ issue / PR when its turn comes.
 
 ## DataTable columns: follow-ups from the vanilla port (2026-11-05)
 
-- [ ] **A column's `size` is only a hint in the regular table, in every
-      binding.** Table layout is automatic and the table is 100% wide, so the
+- [x] **A column's `size` is only a hint in the regular table, in every
+      binding.** ✓ 2026-11-06: `respectColumnSizes` (min-width per sized
+      header), default on with pinning or resizing, opt-in elsewhere. Table layout is automatic and the table is 100% wide, so the
       browser squeezes sized columns to fit: measured in React's pinning demo
       at 1100px, Name 86 of 180px, Manager 84 of 180, and the table does not
       scroll at all, which leaves pinning nothing to do. Fix in all bindings

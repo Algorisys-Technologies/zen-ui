@@ -33,6 +33,19 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.8.0",
+    date: "2026-11-06",
+    kind: "fixed",
+    title: "DataTable: pinned and resizable columns keep their width",
+    detail: "Sized columns were squeezed to fit the screen, so pinned columns had nothing to scroll past and a widened column snapped back. They now keep their size and the table scrolls sideways.",
+  },
+  {
+    version: "12.8.0",
+    date: "2026-11-06",
+    kind: "new",
+    title: "DataTable: respectColumnSizes keeps any table's sized columns at their width",
+  },
+  {
     version: "12.7.0",
     date: "2026-11-06",
     kind: "new",

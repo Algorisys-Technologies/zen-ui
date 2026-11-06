@@ -27,9 +27,11 @@ import {
 import {
   clampColumnSize,
   columnLayout,
+  columnMinWidth,
   columnResizeDelta,
   moveColumn,
   orderedColumnIds,
+  respectsColumnSizes,
 } from "@algorisys/zen-ui-core/columns";
 import {
   clampRange,
@@ -303,6 +305,14 @@ export interface DataTableProps<TData> {
   /** Pinning to start with (uncontrolled). Also what Reset columns returns to. */
   initialColumnPinning?: { left?: string[]; right?: string[] };
   onColumnPinningChange?: (pinning: { left: string[]; right: string[] }) => void;
+  /**
+   * Keep each column at least its `size` (or the width it was resized to), and
+   * scroll the table sideways when they do not fit, instead of letting the
+   * browser squeeze them. Unsized columns stay automatic. Default: on with
+   * `enableColumnPinning` or `enableColumnResizing`, which both depend on a
+   * column really being its size; off otherwise, where `size` is a hint.
+   */
+  respectColumnSizes?: boolean;
   /**
    * Remember column order, widths, visibility and pinning in localStorage
    * under `zen-dt:<persistKey>`, the same entry React and Solid write, so a
@@ -738,9 +748,15 @@ export function DataTable<TData>(
   type BodyItem = GroupItem | { kind: "row"; r: DisplayRow };
 
   /* ----- structure ----- */
+  /** `respectColumnSizes` resolved (the div grid sizes its columns itself). */
+  const respectSizes = (): boolean =>
+    respectsColumnSizes(current) && !(current.enableVirtualization && !current.enableRowVirtualization);
   const rootClass = () =>
     cn(
       "zen-space-y-3",
+      // Wider than its container, the table scrolls inside it; without this
+      // a flex parent grows the whole DataTable to the table's width instead.
+      respectSizes() && "zen-min-w-0",
       current.fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
       current.class,
     );
@@ -3489,6 +3505,13 @@ export function DataTable<TData>(
       );
       const width = colSize(col);
       if (width) th.style.width = `${width}px`;
+      const minWidth = columnMinWidth(respectSizes(), {
+        size: width ?? 150,
+        explicitSize: col.size,
+        resized: columnSizingInner[colId(col)] !== undefined,
+        pinned: !!pinSide(col),
+      });
+      if (minWidth !== undefined) th.style.minWidth = `${minWidth}px`;
       markPin(th, col);
       if (sorted) {
         th.setAttribute("data-active", "true");
@@ -3931,7 +3954,10 @@ export function DataTable<TData>(
     el,
     update(next: Partial<DataTableProps<TData>>) {
       current = { ...current, ...next };
-      if (next.class !== undefined || next.fillHeight !== undefined) el.className = rootClass();
+      if (
+        next.class !== undefined || next.fillHeight !== undefined || next.respectColumnSizes !== undefined ||
+        next.enableColumnPinning !== undefined || next.enableColumnResizing !== undefined
+      ) el.className = rootClass();
       if (next.id !== undefined) el.id = current.id ?? "";
       if (next.globalFilter !== undefined && filterInput) {
         filterInput.update({ value: current.globalFilter });

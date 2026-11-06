@@ -200,7 +200,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Data",
     items: [
-      { label: "DataTable", path: "/data-table", description: "TanStack Table + Virtual; sorting, filtering, grouping, windowing", source: "packages/solid/src/components/NewDataTableDemo.tsx", updated: "12.6.0" },
+      { label: "DataTable", path: "/data-table", description: "TanStack Table + Virtual; sorting, filtering, grouping, windowing", source: "packages/solid/src/components/NewDataTableDemo.tsx", updated: "12.8.0" },
       { label: "TreeTable", path: "/tree-table", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/solid/src/components/NewTreeTableDemo.tsx" },
       { label: "Micro charts", path: "/micro-chart", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/solid/src/components/NewMicroChartDemo.tsx" , updated: "12.2.0" },
       { label: "TimerBadge / TestCountdownBar", path: "/countdown", description: "Exam clock from a deadline, not a decrementing number — colour thresholds, auto-expire hook, sticky bar", source: "packages/solid/src/components/NewCountdownDemo.tsx" },
