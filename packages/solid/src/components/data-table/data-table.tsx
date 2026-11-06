@@ -55,7 +55,7 @@ import {
 } from "@thisbeyond/solid-dnd";
 
 import { cellKeyTarget, ownsArrowKeys, rowKeyTarget, type GridCell } from "@algorisys/zen-ui-core/row-keys";
-import { clampColumnSize, columnLabel, columnResizeDelta, moveColumn } from "@algorisys/zen-ui-core/columns";
+import { clampColumnSize, columnLabel, columnMinWidth, columnResizeDelta, moveColumn, respectsColumnSizes } from "@algorisys/zen-ui-core/columns";
 import {
   clampRange,
   inRect,
@@ -290,6 +290,14 @@ export interface DataTableProps<TData, TValue = unknown> {
   columnPinning?: ColumnPinningState;
   initialColumnPinning?: ColumnPinningState;
   onColumnPinningChange?: (state: ColumnPinningState) => void;
+  /**
+   * Keep each column at least its `size` (or the width it was resized to), and
+   * scroll the table sideways when they do not fit, instead of letting the
+   * browser squeeze them. Unsized columns stay automatic. Default: on with
+   * `enableColumnPinning` or `enableColumnResizing`, which both depend on a
+   * column really being its size; off otherwise, where `size` is a hint.
+   */
+  respectColumnSizes?: boolean;
 
   headerVariant?: "plain" | "underline" | "branded";
 
@@ -1013,6 +1021,17 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     return { ...ps, background: headerStickyBg() };
   };
 
+  const respectSizes = () => respectsColumnSizes(props) && !legacyVirtual();
+  const headerMinWidth = (column: Column<TData, unknown>): number | undefined =>
+    column.columns.length
+      ? undefined
+      : columnMinWidth(respectSizes(), {
+          size: column.getSize(),
+          explicitSize: column.columnDef.size,
+          resized: columnSizing()[column.id] !== undefined,
+          pinned: !!props.enableColumnPinning && !!column.getIsPinned(),
+        });
+
   const headerVariantRowClass = () =>
     props.headerVariant === "branded"
       ? "zen-bg-zen-primary-soft [&>th]:zen-text-zen-primary-soft-fg [&>th]:zen-font-semibold"
@@ -1142,6 +1161,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
               headerVariantRow={headerVariantRowClass()}
               headerStickyBg={headerStickyBg()}
               headerPinStyle={headerPinStyle}
+              headerMinWidth={headerMinWidth}
               pinStyle={pinStyle}
               enableColumnResizing={!!props.enableColumnResizing}
               enableColumnOrdering={!!props.enableColumnOrdering}
@@ -1191,6 +1211,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
                 headerVariantRow={headerVariantRowClass()}
                 headerStickyBg={headerStickyBg()}
                 headerPinStyle={headerPinStyle}
+                headerMinWidth={headerMinWidth}
                 pinStyle={pinStyle}
                 enableColumnResizing={!!props.enableColumnResizing}
                 enableColumnOrdering={!!props.enableColumnOrdering}
@@ -1243,6 +1264,9 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     <div
       class={cn(
         "zen-space-y-3",
+        // Wider than its container, the table scrolls inside it; without this
+        // a flex parent grows the whole DataTable to the table's width instead.
+        respectSizes() && "zen-min-w-0",
         props.fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
         props.class,
       )}
@@ -1959,6 +1983,7 @@ interface BodyTableProps<TData> {
   headerVariantRow: string;
   headerStickyBg: string;
   headerPinStyle: (col: Column<TData, unknown>) => JSX.CSSProperties | undefined;
+  headerMinWidth: (col: Column<TData, unknown>) => number | undefined;
   pinStyle: (col: Column<TData, unknown>) => JSX.CSSProperties | undefined;
   enableColumnResizing: boolean;
   enableColumnOrdering: boolean;
@@ -2768,6 +2793,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
                   enableColumnResizing={props.enableColumnResizing}
                   enableColumnOrdering={props.enableColumnOrdering}
                   pinStyle={props.headerPinStyle(header.column)}
+                  minWidth={props.headerMinWidth(header.column)}
                   stickyHeader={props.stickyHeaderActive}
                   stickyBg={props.headerStickyBg}
                 />
@@ -3303,6 +3329,8 @@ function HeaderCell<TData, TValue>(props: {
   enableColumnResizing?: boolean;
   enableColumnOrdering?: boolean;
   pinStyle?: JSX.CSSProperties;
+  /** `respectColumnSizes`: the width the browser may not squeeze this column below. */
+  minWidth?: number;
   stickyHeader?: boolean;
   stickyBg?: string;
 }) {
@@ -3379,6 +3407,7 @@ function HeaderCell<TData, TValue>(props: {
 
   const headStyle = (): JSX.CSSProperties => ({
     width: `${header().column.getSize()}px`,
+    ...(props.minWidth !== undefined ? { "min-width": `${props.minWidth}px` } : {}),
     ...(props.pinStyle ?? {}),
     ...(props.pinStyle ? { "z-index": props.stickyHeader ? 11 : 1 } : {}),
     ...(props.stickyHeader && !props.pinStyle

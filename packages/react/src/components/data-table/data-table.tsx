@@ -75,7 +75,7 @@ import {
 import { FilterCell, filterFnByVariant, textFilterFn, type FilterVariant } from "./filters";
 import { useLocale } from "../locale/locale";
 import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
-import { clampColumnSize, columnLabel, columnResizeDelta, moveColumn } from "@algorisys/zen-ui-core/columns";
+import { clampColumnSize, columnLabel, columnMinWidth, columnResizeDelta, moveColumn, respectsColumnSizes } from "@algorisys/zen-ui-core/columns";
 import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
 import {
   buildExportRequest,
@@ -502,6 +502,14 @@ export interface DataTableProps<TData, TValue = unknown> {
   columnPinning?: ColumnPinningState;
   initialColumnPinning?: ColumnPinningState;
   onColumnPinningChange?: (state: ColumnPinningState) => void;
+  /**
+   * Keep each column at least its `size` (or the width it was resized to), and
+   * scroll the table sideways when they do not fit, instead of letting the
+   * browser squeeze them. Unsized columns stay automatic. Default: on with
+   * `enableColumnPinning` or `enableColumnResizing`, which both depend on a
+   * column really being its size; off otherwise, where `size` is a hint.
+   */
+  respectColumnSizes?: boolean;
 
   /**
    * Brand intensity of the column-header row.
@@ -603,6 +611,7 @@ export function DataTable<TData, TValue = unknown>({
   fillHeight = false,
   totalsOver,
   enableColumnPinning = false,
+  respectColumnSizes,
   columnPinning: columnPinningProp,
   initialColumnPinning,
   onColumnPinningChange,
@@ -1226,6 +1235,19 @@ export function DataTable<TData, TValue = unknown>({
     return { ...ps, background: headerStickyBg };
   };
 
+  /* respectColumnSizes: the width the browser may not squeeze a column below. */
+  const respectSizes =
+    respectsColumnSizes({ respectColumnSizes, enableColumnPinning, enableColumnResizing }) && !legacyVirtual;
+  const headerMinWidth = (column: Column<TData, unknown>): number | undefined =>
+    column.columns.length
+      ? undefined
+      : columnMinWidth(respectSizes, {
+          size: column.getSize(),
+          explicitSize: column.columnDef.size,
+          resized: columnSizing[column.id] !== undefined,
+          pinned: enableColumnPinning && !!column.getIsPinned(),
+        });
+
   /* Any column declaring a footer opts the whole table into a <tfoot>. */
   const hasFooter = React.useMemo(
     () => augmentedColumns.some((c) => (c as { footer?: unknown }).footer !== undefined),
@@ -1252,6 +1274,7 @@ export function DataTable<TData, TValue = unknown>({
               enableColumnResizing={enableColumnResizing}
               enableColumnOrdering={enableColumnOrdering}
               pinStyle={headerPinStyle(header.column)}
+              minWidth={headerMinWidth(header.column)}
               stickyHeader={stickyHeaderActive}
               stickyBg={headerStickyBg}
             />
@@ -1447,6 +1470,9 @@ export function DataTable<TData, TValue = unknown>({
     <div
       className={cn(
         "zen-space-y-3",
+        // Wider than its container, the table scrolls inside it; without this
+        // a flex parent grows the whole DataTable to the table's width instead.
+        respectSizes && "zen-min-w-0",
         fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
         className,
       )}
@@ -2582,6 +2608,7 @@ function HeaderCell<TData, TValue>({
   enableColumnResizing,
   enableColumnOrdering,
   pinStyle,
+  minWidth,
   stickyHeader,
   stickyBg,
 }: {
@@ -2589,6 +2616,8 @@ function HeaderCell<TData, TValue>({
   enableColumnResizing?: boolean;
   enableColumnOrdering?: boolean;
   pinStyle?: React.CSSProperties;
+  /** `respectColumnSizes`: the width the browser may not squeeze this column below. */
+  minWidth?: number;
   stickyHeader?: boolean;
   /** Variant-aware bg for sticky header cells (page bg or primary-soft). */
   stickyBg?: string;
@@ -2663,6 +2692,7 @@ function HeaderCell<TData, TValue>({
    * scrolled body content doesn't bleed through. */
   const headStyle: React.CSSProperties = {
     width: header.column.getSize(),
+    ...(minWidth !== undefined ? { minWidth } : {}),
     ...(pinStyle ?? {}),
     ...(pinStyle ? { zIndex: stickyHeader ? 11 : 1 } : {}),
     ...(stickyHeader && !pinStyle

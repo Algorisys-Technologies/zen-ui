@@ -2,7 +2,7 @@
  * DataTable column management's pure contract: a column's name, moving a
  * column by one place, and the keyboard resize step.
  */
-import { clampColumnSize, columnLabel, columnLayout, columnResizeDelta, moveColumn, orderedColumnIds } from "../packages/core/src/columns";
+import { clampColumnSize, columnLabel, columnLayout, columnResizeDelta, moveColumn, orderedColumnIds, respectsColumnSizes, columnMinWidth } from "../packages/core/src/columns";
 
 let f = 0;
 let n = 0;
@@ -64,6 +64,21 @@ t(columnLayout(ids, { pinning: { left: ["c", "a"] } }).left, ["c", "a"], "left p
 t(columnLayout(ids, { visibility: { a: false }, pinning: { left: ["a"] } }).left, [], "a hidden pinned column is not shown");
 t(columnLayout(ids, { pinning: { left: ["a"], right: ["a"] } }), { left: ["a"], center: ["b", "c", "d"], right: [] }, "pinned to both sides counts as left");
 t(columnLayout(ids, { pinning: { left: ["zz"] } }).left, [], "an unknown pinned id is ignored");
+
+console.log("\nrespectsColumnSizes");
+t(respectsColumnSizes({}), false, "off by default");
+t(respectsColumnSizes({ enableColumnPinning: true }), true, "on with pinning");
+t(respectsColumnSizes({ enableColumnResizing: true }), true, "on with resizing");
+t(respectsColumnSizes({ enableColumnPinning: true, respectColumnSizes: false }), false, "an explicit false wins");
+t(respectsColumnSizes({ respectColumnSizes: true }), true, "or turned on by itself");
+
+console.log("\ncolumnMinWidth");
+t(columnMinWidth(false, { size: 180, explicitSize: 180 }), undefined, "not respecting: no minimum");
+t(columnMinWidth(true, { size: 150 }), undefined, "an unsized column stays automatic");
+t(columnMinWidth(true, { size: 180, explicitSize: 180 }), 180, "an explicit size is the minimum");
+t(columnMinWidth(true, { size: 212.6, resized: true }), 213, "a resized width, whole pixels");
+t(columnMinWidth(true, { size: 150, pinned: true }), 150, "a pinned column, even unsized (its offset assumes it)");
+t(columnMinWidth(true, { size: 36, explicitSize: 36 }), 36, "utility columns too (the selection checkbox)");
 
 console.log(f ? `\n${f} FAILED (of ${n})` : `\nall ${n} passed`);
 process.exit(f ? 1 : 0);
