@@ -184,8 +184,11 @@ const Combobox: React.FC<ComboboxProps> = ({
     const ac = new AbortController();
     abortRef.current = ac;
 
+    // Searching from the keystroke, not from when the debounce fires: until
+    // the response lands the list is the previous query's (narrowed below),
+    // and it should say so. Same in Solid and vanilla.
+    setAsyncLoading(true);
     const t = setTimeout(async () => {
-      setAsyncLoading(true);
       try {
         const results = await onSearch!(query);
         if (seq === seqRef.current && !ac.signal.aborted) {
@@ -216,6 +219,19 @@ const Combobox: React.FC<ComboboxProps> = ({
     () => (isAsync ? asyncResults : options ?? []),
     [isAsync, asyncResults, options],
   );
+  // What the list draws. Async results are the server's match and are shown
+  // as returned (cmdk's filter is off). While a search is in flight they are
+  // still the PREVIOUS query's, so narrow them by label and keywords — else
+  // typing "Sv" over the starter list shows every row until the response.
+  // Same test as Solid and vanilla.
+  const listOptions = React.useMemo(() => {
+    if (!isAsync || !asyncLoading) return allOptions;
+    const q = query.trim().toLowerCase();
+    if (!q) return allOptions;
+    return allOptions.filter((o) =>
+      `${o.label} ${(o.keywords ?? []).join(" ")}`.toLowerCase().includes(q),
+    );
+  }, [isAsync, asyncLoading, allOptions, query]);
   const selectedOption = React.useMemo(
     () => allOptions.find((o) => o.value === selected) ?? null,
     [allOptions, selected],
@@ -294,9 +310,10 @@ const Combobox: React.FC<ComboboxProps> = ({
             {/* CommandEmpty only shows when nothing matches. With a create row
                 present that is exactly when it is NOT empty — you get
                 "Create foo" instead of "No results", which is the point. */}
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            {/* Not while searching: an empty list then means "no answer yet". */}
+            {isAsync && asyncLoading ? null : <CommandEmpty>{emptyMessage}</CommandEmpty>}
             <CommandGroup>
-              {allOptions.map((o) => (
+              {listOptions.map((o) => (
                 <CommandItem
                   key={o.value}
                   value={o.value}

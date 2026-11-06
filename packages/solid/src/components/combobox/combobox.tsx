@@ -162,24 +162,27 @@ export const Combobox = (rawProps: ComboboxProps) => {
       : baseOptions(),
   );
 
+  // Narrows the PREVIOUS query's results while a search is in flight: the
+  // same test sync mode's filter makes, so the stale list never shows rows
+  // that no longer match what was typed. React and vanilla share it.
+  const matchesTyped = (o: ComboboxOption, q: string) =>
+    !q || `${o.label} ${(o.keywords ?? []).join(" ")}`.toLowerCase().includes(q.toLowerCase());
+
   const runSearch = (q: string) => {
     if (!props.onSearch) return;
     const token = ++lastQueryToken;
     setAsyncLoading(true);
-    void props
-      .onSearch(q)
-      .then((res) => {
-        if (token !== lastQueryToken) return;
-        // Together, so the filter below never sees the new results while
-        // still "loading" (it would narrow them by label).
-        batch(() => {
-          setAsyncOptions(res);
-          setAsyncLoading(false);
-        });
-      })
-      .finally(() => {
-        if (token === lastQueryToken) setAsyncLoading(false);
+    // Results and the end of loading land together, so the filter below never
+    // sees the new results while still "loading" (it would narrow them). A
+    // failed search empties the list, as in React and vanilla.
+    const settle = (res: ComboboxOption[]) => {
+      if (token !== lastQueryToken) return;
+      batch(() => {
+        setAsyncOptions(res);
+        setAsyncLoading(false);
       });
+    };
+    void props.onSearch(q).then(settle, () => settle([]));
   };
 
   const onInputChange = (q: string) => {
@@ -222,13 +225,12 @@ export const Combobox = (rawProps: ComboboxProps) => {
       // already matched them: filtering them again by label text would hide a
       // result found by code or keyword, or show none at all on a fuzzy match.
       // While a search is in flight the list is still the PREVIOUS query's, so
-      // narrow it by label as before: unfiltered, typing "Sv" over the "" list
+      // narrow it by label and keywords: unfiltered, typing "Sv" over the "" list
       // flashed every option until the response came.
       allowsEmptyCollection={isAsync()}
       defaultFilter={
         isAsync()
-          ? (opt, input) =>
-              !asyncLoading() || opt.label.toLowerCase().includes(input.toLowerCase())
+          ? (opt, input) => !asyncLoading() || matchesTyped(opt, input)
           : "contains"
       }
       optionValue="value"
@@ -302,7 +304,7 @@ export const Combobox = (rawProps: ComboboxProps) => {
           )}
         >
           <Show when={asyncLoading()}>
-            <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">{loc.t("combobox.loading")}</div>
+            <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">{loc.t("combobox.searching")}</div>
           </Show>
           <KCombobox.Listbox class="zen-max-h-72 zen-overflow-y-auto" />
           <Show when={effectiveOptions().length === 0 && !asyncLoading()}>

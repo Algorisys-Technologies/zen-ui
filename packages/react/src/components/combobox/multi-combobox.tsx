@@ -138,8 +138,9 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
     const ac = new AbortController();
     abortRef.current = ac;
 
+    // Searching from the keystroke, as in Combobox: see there.
+    setAsyncLoading(true);
     const t = setTimeout(async () => {
-      setAsyncLoading(true);
       try {
         const results = await onSearch!(query);
         if (seq === seqRef.current && !ac.signal.aborted) {
@@ -169,6 +170,17 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
     () => (isAsync ? asyncResults : options ?? []),
     [isAsync, asyncResults, options],
   );
+  // What the list draws: async results as the server returned them, but the
+  // PREVIOUS query's narrowed by label and keywords while a search is in
+  // flight. Same as Combobox.
+  const listOptions = React.useMemo(() => {
+    if (!isAsync || !asyncLoading) return allOptions;
+    const q = query.trim().toLowerCase();
+    if (!q) return allOptions;
+    return allOptions.filter((o) =>
+      `${o.label} ${(o.keywords ?? []).join(" ")}`.toLowerCase().includes(q),
+    );
+  }, [isAsync, asyncLoading, allOptions, query]);
 
   /* Cache the label for every option we've seen so chips keep their
    * human label even after the async result page rotates away from
@@ -280,9 +292,9 @@ const MultiCombobox: React.FC<MultiComboboxProps> = ({
             {isAsync && asyncLoading ? (
               <CommandLoading>{loc.t("combobox.searching")}</CommandLoading>
             ) : null}
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            {isAsync && asyncLoading ? null : <CommandEmpty>{emptyMessage}</CommandEmpty>}
             <CommandGroup>
-              {allOptions.map((o) => {
+              {listOptions.map((o) => {
                 const isSelected = selected.includes(o.value);
                 return (
                   <CommandItem
