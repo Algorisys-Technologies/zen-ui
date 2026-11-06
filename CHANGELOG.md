@@ -15,23 +15,44 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.8.1] - 2026-11-06
+
 ### Fixed
 - **Solid Combobox (async): typing did not open the list when the results
   arrived.** Kobalte decides open or shut on the keystroke, while the options
   are still the previous search's, often none; nothing reopened it when
   `onSearch` returned, so the user had to press the arrow. Found by the ERPNext
   port's end-to-end test (Country "Indi": the search returned India, the list
-  stayed shut). In async mode the list now opens empty on the keystroke with
-  the Loading row (`allowsEmptyCollection`), loading starts at the keystroke
-  rather than when the debounce fires, and the server's results are no longer
-  filtered again by label text, which hid results the server matched by code
-  or keyword. While a search is in flight the previous query's results are
-  still narrowed by label, so typing over them does not flash the whole stale
-  list; the new results and the end of loading land in one batch, so the
-  filter never sees one without the other. Sync mode is unchanged. React and
-  vanilla (and so web-components) are not affected: their popover keeps its own
-  open state and they already skip the local filter in async mode. Solid's
-  MultiCombobox has no `onSearch`, so it cannot hit this.
+  stayed shut). In async mode the list now opens empty on the keystroke
+  (`allowsEmptyCollection`), and the server's results are no longer filtered
+  again by label text, which hid results the server matched by code or
+  keyword. Results and the end of loading are set in one `batch`, so the
+  filter never sees new results while still "loading". A rejected `onSearch`
+  now empties the list (it was an unhandled rejection that kept the old one).
+  Sync mode is unchanged. Solid's MultiCombobox has no `onSearch`.
+
+### Changed
+- **Async Combobox / MultiCombobox behave the same in every binding.** Measured
+  side by side (zzz → Sv → Vu → keyword → reject, against one test server)
+  they disagreed in three places; all now match Solid's fixed behaviour:
+  - *Searching from the keystroke.* React and vanilla showed the loading row
+    only when the debounce fired, so for the first ~250ms an empty list read
+    "No results". The row now shows at once, and "No results" is held back
+    while a search is in flight (React's `CommandEmpty` too).
+  - *The stale list is narrowed while loading.* The previous query's results
+    were shown unfiltered until the response came; they are now narrowed by
+    the binding's own sync matcher (label + keywords; vanilla MultiCombobox
+    also value), and drawn exactly as returned once the response lands.
+  - *One label.* Solid's loading row said "Loading…" (`combobox.loading`);
+    every binding now says "Searching…" (`combobox.searching`).
+  - Vanilla: closing the list mid-search left `asyncLoading` stuck true (the
+    aborted search never reached its `finally`); it is reset on close.
+
+### Docs
+- **CLAUDE.md "Ship it"**: `main` takes `--no-ff` (it has merge commits, so
+  `--ff-only` was always refused); push one ref at a time and check
+  `ls-remote`; the dist-pkg tarballs and the npm-package-react branch are
+  steps in the procedure rather than a memory.
 
 ## [12.8.0] - 2026-11-06
 

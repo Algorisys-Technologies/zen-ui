@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.8.1",
+    date: "2026-11-06",
+    kind: "fixed",
+    title: "Solid Combobox: an async list opens when its results arrive",
+    detail: "Typing into an empty async Combobox ran the search but left the list shut until the arrow was pressed. It now opens on the keystroke, and shows what onSearch returned without filtering it again by label.",
+  },
+  {
+    version: "12.8.1",
+    date: "2026-11-06",
+    kind: "improved",
+    title: "Async Combobox and MultiCombobox behave the same in every binding",
+    detail: "\"Searching…\" from the keystroke, the previous results narrowed while a search runs, and an empty list when a search fails.",
+  },
+  {
     version: "12.8.0",
     date: "2026-11-06",
     kind: "fixed",
