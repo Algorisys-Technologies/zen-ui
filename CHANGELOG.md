@@ -15,6 +15,30 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.8.2] - 2026-11-07
+
+### Fixed
+- **Solid DateInput: a closed form of date fields stayed in memory.** Every
+  `DateInput` mounted a Kobalte Popover root, anchor, trigger and content, with
+  the Calendar inside, whether or not the calendar was ever opened. The ERPNext
+  port's leak check (open documents in tabs, close every tab, repeat) failed
+  4 runs of 4 once its forms used DateInput: about 7 MB of a closed form held
+  between close cycles (21.1, 23.9, 23.9, 31.0, 31.0, 23.9, 31.0 MB after each
+  close), no detached DOM, so JS held through the per-field popover tree.
+  The field is now plain markup (box, input, calendar button with
+  aria-haspopup / aria-expanded); the Popover is mounted inside `<Show
+  when={open()}>`, anchored to the field with Kobalte's `anchorRef`. With it,
+  the same check passes over 10 cycles (after each close: 20.0, 19.5, 17.0,
+  17.0, 17.0, 22.3, 17.0, 17.0, 20.5, 17.0 MB).
+- Without a Kobalte trigger, the button and the dismiss rules are explicit: the
+  button toggles; a pointer down inside the field is not "outside"
+  (`onInteractOutside` prevented), so the calendar stays open while typing; a
+  close from inside the calendar (a day picked, Esc) returns focus to the
+  input, a click elsewhere leaves focus there. Driven in the ERPNext app:
+  typed 15/3, opened (focus on the chosen day), picked (value set, focus back),
+  Esc, button toggle, outside click; no page errors.
+
+
 ## [12.8.1] - 2026-11-06
 
 ### Fixed
