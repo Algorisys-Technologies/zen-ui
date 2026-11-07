@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.8.2",
+    date: "2026-11-07",
+    kind: "fixed",
+    title: "Solid DateInput: a closed form of date fields no longer stays in memory",
+    detail: "Each DateInput carried a whole calendar popover, open or not; a closed form could stay in memory. The calendar is now created when it opens and disposed when it closes. The button toggles it.",
+  },
+  {
     version: "12.8.1",
     date: "2026-11-06",
     kind: "fixed",

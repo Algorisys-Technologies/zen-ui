@@ -243,7 +243,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Date & time",
     items: [
-      { label: "DateInput", path: "/date-input", description: "Type a date the way clerks do (150326, t, +7) in the locale's order, with the calendar as a second way in; impossible dates are kept and flagged, never rolled over", source: "packages/solid/src/components/NewDateInputDemo.tsx", since: "12.2.0" },
+      { label: "DateInput", path: "/date-input", description: "Type a date the way clerks do (150326, t, +7) in the locale's order, with the calendar as a second way in; impossible dates are kept and flagged, never rolled over", source: "packages/solid/src/components/NewDateInputDemo.tsx", since: "12.2.0", updated: "12.8.2" },
       { label: "DatePicker", path: "/date-picker", description: "Calendar in a Popover; inline Calendar too", source: "packages/solid/src/components/NewDatePickerDemo.tsx" },
       { label: "DateRangePicker", path: "/date-range-picker", description: "Two-month side-by-side calendar; range anchoring", source: "packages/solid/src/components/NewDateRangePickerDemo.tsx" },
       { label: "DynamicDateRange", path: "/dynamic-date-range", description: "Semantic periods — \"Last 7 days\", \"This quarter\"; stores the question, not the answer", source: "packages/solid/src/components/NewDynamicDateRangeDemo.tsx" },
