@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, createUniqueId, on, splitProps } from "solid-js";
+import { createEffect, createMemo, createSignal, createUniqueId, on, Show, splitProps } from "solid-js";
 import {
   addDays,
   addMonths,
@@ -9,7 +9,7 @@ import {
   type DateOrder,
 } from "@algorisys/zen-ui-core/date-input";
 import { cn } from "../../../lib/cn";
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "../../popover/popover";
+import { Popover, PopoverContent } from "../../popover/popover";
 import { Calendar } from "./date-picker";
 import { useLocale } from "../../locale/locale";
 
@@ -139,9 +139,32 @@ export const DateInput = (props: DateInputProps) => {
     }
   };
 
+  // The calendar is mounted only while it is open. Mounted with every field
+  // (a Popover root, anchor, trigger and content per date field, opened or
+  // not), a form of date fields kept about 7 MB of the last closed form alive
+  // in a consumer's leak check; mounted on demand there is nothing to keep.
+  // The field is plain markup, and the open Popover anchors to it.
+  let anchor: HTMLDivElement | undefined;
+  let panel: HTMLElement | undefined;
+  const close = () => {
+    // Back to the field when focus was in the calendar (a day picked, Esc);
+    // left where it went when the user clicked elsewhere.
+    const inPanel = !!panel && panel.contains(document.activeElement);
+    setOpen(false);
+    if (inPanel) input?.focus();
+  };
+  // A press on the field itself (its box, its calendar button) is not
+  // "outside": the button toggles, the box keeps the calendar open.
+  const dismiss = {
+    onInteractOutside: (e: Event) => {
+      if (anchor?.contains(e.target as Node)) e.preventDefault();
+    },
+  };
+
   return (
-    <Popover open={open()} onOpenChange={setOpen} placement="bottom-start">
-      <PopoverAnchor
+    <>
+      <div
+        ref={anchor}
         class={cn(
           "zen-inline-flex zen-h-zen-control zen-items-center zen-gap-1 zen-rounded-zen-md zen-border zen-border-solid zen-bg-zen-background zen-px-zen-control-x",
           "focus-within:zen-ring-2 focus-within:zen-ring-zen-ring focus-within:zen-ring-offset-2",
@@ -178,46 +201,53 @@ export const DateInput = (props: DateInputProps) => {
         <span id={hintId} class="zen-sr-only">
           {loc.t("dateInput.hint", { pattern: patternFor(order()) })}
         </span>
-        <PopoverTrigger
+        <button
           type="button"
           tabIndex={-1}
           disabled={local.disabled}
           aria-label={loc.t("dateInput.chooseDate")}
+          aria-haspopup="dialog"
+          aria-expanded={open()}
+          onClick={() => (open() ? close() : setOpen(true))}
           class="zen-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-border-0 zen-bg-transparent zen-p-0.5 zen-text-zen-muted-fg hover:zen-text-zen-foreground"
         >
           <CalendarIcon />
-        </PopoverTrigger>
-      </PopoverAnchor>
-      <PopoverContent
-        class="zen-w-auto zen-p-0"
-        onOpenAutoFocus={(e: Event) => {
-          // Open on the chosen day (else today), not on "Previous month": the dates are what the keys are for.
-          const panel = e.currentTarget as HTMLElement;
-          const day =
-            panel.querySelector<HTMLButtonElement>('button[aria-pressed="true"]:not(:disabled)') ??
-            panel.querySelector<HTMLButtonElement>(`button[aria-label="${new Date().toDateString()}"]:not(:disabled)`); // i18n-ignore (a selector, not text)
-          if (day) {
-            e.preventDefault();
-            day.focus();
-          }
-        }}
-        onCloseAutoFocus={(e: Event) => {
-          // Back to the field, not the calendar button: the field is the control.
-          e.preventDefault();
-          input?.focus();
-        }}
-      >
-        <Calendar
-          mode="single"
-          selected={value() ?? undefined}
-          onSelect={(d) => {
-            if (d && acceptable(d)) set(d);
-            setOpen(false);
-          }}
-          disabled={(d: Date) => !acceptable(d)}
-        />
-      </PopoverContent>
-    </Popover>
+        </button>
+      </div>
+      <Show when={open()}>
+        <Popover open onOpenChange={(o) => (o ? setOpen(true) : close())} placement="bottom-start" anchorRef={() => anchor}>
+          <PopoverContent
+            class="zen-w-auto zen-p-0"
+            {...dismiss}
+            onOpenAutoFocus={(e: Event) => {
+              // Open on the chosen day (else today), not on "Previous month": the dates are what the keys are for.
+              panel = e.currentTarget as HTMLElement;
+              const day =
+                panel.querySelector<HTMLButtonElement>('button[aria-pressed="true"]:not(:disabled)') ??
+                panel.querySelector<HTMLButtonElement>(`button[aria-label="${new Date().toDateString()}"]:not(:disabled)`); // i18n-ignore (a selector, not text)
+              if (day) {
+                e.preventDefault();
+                day.focus();
+              }
+            }}
+            onCloseAutoFocus={(e: Event) => {
+              // Focus is placed by close(), not by the Popover.
+              e.preventDefault();
+            }}
+          >
+            <Calendar
+              mode="single"
+              selected={value() ?? undefined}
+              onSelect={(d) => {
+                if (d && acceptable(d)) set(d);
+                close();
+              }}
+              disabled={(d: Date) => !acceptable(d)}
+            />
+          </PopoverContent>
+        </Popover>
+      </Show>
+    </>
   );
 };
 
