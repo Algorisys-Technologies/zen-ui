@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.8.3] - 2026-11-09
+
 ### Fixed
 
 - Solid: the published DOM and SSR builds are now hydratable, so a SolidStart
