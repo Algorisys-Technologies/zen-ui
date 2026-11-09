@@ -15,6 +15,13 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Solid: the published DOM and SSR builds are now hydratable, so a SolidStart
+  app hydrates zen-ui components instead of failing with "Failed attempt to
+  create new DOM elements during hydration". The package also exports the
+  `browser`, `worker` and `default` conditions again.
+
 ## [12.8.2] - 2026-11-07
 
 ### Fixed

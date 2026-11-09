@@ -10,8 +10,12 @@ import { resolve } from "path";
 // still loads the DOM build under "import". Both bundles are self-contained
 // (zen-ui-core inlined); only solid-js is external, keeping a single Solid
 // instance across the server/client boundary for hydration.
+//
+// hydratable must match vite.config.lib.ts: without it the server HTML has no
+// data-hk keys and the DOM build cannot claim it ("Failed attempt to create new
+// DOM elements during hydration").
 export default defineConfig({
-  plugins: [solid({ ssr: true }), UnoCSS()],
+  plugins: [solid({ ssr: true, solid: { hydratable: true } }), UnoCSS()],
   // SSR builds externalise node_modules by default; force everything to be
   // bundled inline (mirrors the client lib build) so the server bundle is
   // self-contained. Only the explicit rollup `external` list stays out.
