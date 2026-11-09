@@ -13,13 +13,15 @@ import {
   onCleanup,
   onMount,
   splitProps,
+  untrack,
   useContext,
   Show,
 } from "solid-js";
 import { Dynamic } from "solid-js/web";
+import { afterTransition, afterWidthTransition } from "@algorisys/zen-ui-core/sidebar";
 import { cn } from "../../lib/cn";
 import type { PolymorphicProps } from "../../lib/polymorphic";
-import { Popover, PopoverTrigger, PopoverContent } from "../popover/popover";
+import { Popover, PopoverContent } from "../popover/popover";
 import { useLocale } from "../locale/locale";
 
 /**
@@ -76,6 +78,18 @@ interface SidebarContextValue {
   setOverlayActive: (v: boolean) => void;
   overlay: Accessor<boolean | { below: number } | undefined>;
 }
+
+/** Every collapse transition runs on the same clock, so nothing finishes early and pops. */
+const MOTION = "zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)]";
+
+/**
+ * Only while the sidebar is collapsed or moving (`data-collapsed`,
+ * `data-transitioning` on the aside) do its parts keep to one line and clip:
+ * a row that wraps would change height as the width moved. Expanded and at
+ * rest they lay out as they always have, labels wrapping and nothing clipped.
+ */
+const COMPACT =
+  "[[data-collapsed]_&]:zen-overflow-hidden [[data-collapsed]_&]:zen-whitespace-nowrap [[data-transitioning]_&]:zen-overflow-hidden [[data-transitioning]_&]:zen-whitespace-nowrap";
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
 
@@ -177,6 +191,26 @@ export const Sidebar = (props: ComponentProps<"aside">) => {
   const hidden = () => ctx.collapsed() && (ctx.collapseMode() === "hidden" || overlay());
   const open = () => overlay() && !ctx.collapsed();
 
+  // Collapsing or expanding, until the width has arrived. Meanwhile the aside
+  // clips and its rows keep to one line (COMPACT), so nothing spills over the
+  // page or changes height mid-move; at rest an expanded sidebar lays out
+  // exactly as it always has.
+  const [transitioning, setTransitioning] = createSignal(false);
+  let cancelMove: (() => void) | undefined;
+  createEffect(
+    on(
+      ctx.collapsed,
+      () => {
+        cancelMove?.();
+        if (!aside || overlay()) return;
+        setTransitioning(true);
+        cancelMove = afterWidthTransition(aside, () => setTransitioning(false));
+      },
+      { defer: true },
+    ),
+  );
+  onCleanup(() => cancelMove?.());
+
   // An open overlay: Esc and a click outside close it, as does following a
   // link in it; it takes focus when it opens and gives it back when it closes.
   createEffect(() => {
@@ -225,10 +259,19 @@ export const Sidebar = (props: ComponentProps<"aside">) => {
         <aside
           ref={(el: HTMLElement) => setAside(el)}
           data-collapsed={ctx.collapsed() || undefined}
+          data-transitioning={transitioning() || undefined}
           inert={hidden() || undefined}
           class={cn(
-            "zen-flex zen-h-full zen-flex-col zen-border-r zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-transition-[width] zen-duration-200 zen-ease-in-out",
-            hidden() ? "zen-w-0 zen-overflow-hidden zen-border-r-0" : ctx.collapsed() ? "zen-w-16" : "zen-w-64",
+            // Only the width animates, and everything inside is laid out so
+            // it does not have to: rows keep their place and the aside clips
+            // whatever no longer fits. It used to restyle every row on the
+            // first frame while the width was still 256px, which threw each
+            // icon 100px to the right and back, and on expand drew full
+            // labels over the page from a 64px rail.
+            "zen-flex zen-h-full zen-flex-col zen-border-r zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-transition-[width]",
+            MOTION,
+            (ctx.collapsed() || transitioning()) && "zen-overflow-hidden",
+            hidden() ? "zen-w-0 zen-border-r-0" : ctx.collapsed() ? "zen-w-16" : "zen-w-64",
             local.class,
           )}
           {...rest}
@@ -251,7 +294,16 @@ export const Sidebar = (props: ComponentProps<"aside">) => {
           inert={hidden() || undefined}
           class={cn(
             "zen-absolute zen-inset-y-0 zen-start-0 zen-flex zen-w-64 zen-flex-col zen-border-r zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-shadow-lg",
-            hidden() && "zen-invisible",
+            // It slides in from its edge on the sidebar's clock rather than
+            // appearing. Visibility is transitioned only on the way out, so
+            // the panel stays drawn until the slide has finished. On the way
+            // in it must not be: a transition's first frame holds its start
+            // value, so the panel was still hidden when focus moved into it,
+            // and the focus went nowhere.
+            MOTION,
+            hidden()
+              ? "zen-invisible -zen-translate-x-full zen-transition-[transform,visibility] rtl:zen-translate-x-full"
+              : "zen-transition-transform",
             local.class,
           )}
         >
@@ -268,11 +320,17 @@ export const SidebarHeader = (props: ComponentProps<"div">) => {
   return (
     <div
       class={cn(
-        "zen-flex zen-items-center zen-gap-2 zen-p-3",
-        // On the rail the header stacks (the toggle over a logo) and its text
-        // goes to screen readers only, as the menu's labels do. Text left
-        // visible spilled out of the 64px rail over the page.
-        rail() && "zen-flex-col zen-px-0 [&>span]:zen-sr-only [&>strong]:zen-sr-only",
+        // The header stays a row on the rail: its inline padding grows just
+        // enough to centre the 36px toggle, and its text fades and is
+        // clipped. It used to restack into a column on the first frame, which
+        // moved the toggle you had just clicked 100px out from under the
+        // pointer. Faded, not sr-only, so the name is still read.
+        "zen-flex zen-items-center zen-gap-2 zen-py-3 zen-transition-[padding]",
+        "[&>span]:zen-transition-opacity [&>strong]:zen-transition-opacity",
+        MOTION,
+        "[&>span]:zen-duration-[var(--zen-sidebar-duration)] [&>strong]:zen-duration-[var(--zen-sidebar-duration)]",
+        COMPACT,
+        rail() ? "zen-px-3.5 [&>span]:zen-opacity-0 [&>strong]:zen-opacity-0" : "zen-px-3",
         local.class,
       )}
       {...rest}
@@ -286,7 +344,12 @@ export const SidebarHeaderLabel = (props: ComponentProps<"span">) => {
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <span
-      class={cn("zen-min-w-0 zen-truncate zen-font-semibold", rail() && "zen-sr-only", local.class)}
+      class={cn(
+        "zen-min-w-0 zen-truncate zen-font-semibold zen-transition-opacity",
+        MOTION,
+        rail() && "zen-opacity-0",
+        local.class,
+      )}
       {...rest}
     />
   );
@@ -324,11 +387,17 @@ export const SidebarContent = (props: ComponentProps<"div">) => {
 };
 
 export const SidebarFooter = (props: ComponentProps<"div">) => {
+  const { rail } = useSidebar();
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <div
       class={cn(
-        "zen-mt-auto zen-flex zen-items-center zen-gap-2 zen-border-t zen-border-zen-border zen-p-3",
+        "zen-mt-auto zen-flex zen-items-center zen-gap-2 zen-border-t zen-border-zen-border zen-py-3 zen-transition-[padding]",
+        MOTION,
+        COMPACT,
+        // On the rail its inset matches the content's, which is what centres
+        // a menu row's icon there; expanded it keeps its 12px.
+        rail() ? "zen-px-2" : "zen-px-3",
         local.class,
       )}
       {...rest}
@@ -347,8 +416,17 @@ export const SidebarGroupLabel = (props: ComponentProps<"div">) => {
   return (
     <div
       class={cn(
-        "zen-px-3 zen-py-1 zen-text-xs zen-font-medium zen-uppercase zen-tracking-wide zen-text-zen-muted-fg",
-        collapsed() && "zen-sr-only",
+        "zen-px-3 zen-py-1 zen-text-xs zen-font-medium zen-uppercase zen-tracking-wide zen-text-zen-muted-fg zen-transition-[margin,opacity]",
+        MOTION,
+        COMPACT,
+        // On the rail it folds away: a negative top margin of its own height
+        // plus the group's gap, eased, so the rows below glide up with the
+        // width instead of jumping 24px on the first frame (shadcn folds it
+        // the same way). The height is the type token's line height plus its
+        // padding, so a theme's line height carries through. Faded, not
+        // sr-only, so the group is still named.
+        collapsed() &&
+          "-zen-mt-[calc(var(--zen-line-height-xs)+var(--zen-space-2)+var(--zen-space-1))] zen-opacity-0",
         local.class,
       )}
       {...rest}
@@ -403,17 +481,25 @@ export const SidebarMenuButton = <T extends ValidComponent = "button">(
       component={local.as}
       data-active={local.active || undefined}
       class={cn(
-        "zen-flex zen-w-full zen-items-center zen-gap-2 zen-rounded-zen-md zen-px-3 zen-py-2 zen-text-sm zen-font-medium zen-no-underline zen-transition-colors",
+        "zen-relative zen-flex zen-w-full zen-items-center zen-gap-2 zen-rounded-zen-md zen-py-2 zen-text-sm zen-font-medium zen-no-underline zen-transition-[color,background-color,padding]",
+        MOTION,
+        COMPACT,
         "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
         "[&>svg]:zen-size-4 [&>svg]:zen-shrink-0",
+        "[&>span]:zen-min-w-0 [[data-collapsed]_&>span]:zen-truncate [[data-transitioning]_&>span]:zen-truncate",
+        "[&>span]:zen-transition-opacity [&>span]:zen-duration-[var(--zen-sidebar-duration)] [&>span]:zen-ease-[var(--zen-sidebar-ease)]",
         // As a link (as={A}) it would otherwise take the browser's underline
         // and link blue: zen-ui ships no element reset. SidebarMenuSubButton
         // has always set both.
         local.active ? "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg" : "zen-text-zen-foreground",
-        // sr-only, not hidden: `display: none` drops the label out of the
-        // accessibility tree, which left a collapsed rail as a column of
-        // buttons with no accessible name at all. Matches SidebarGroupLabel.
-        collapsed() && "zen-relative zen-justify-center zen-px-0 [&>span]:zen-sr-only",
+        // On the rail the icon is centred by padding that eases over — the
+        // content's 8px inset plus 16px puts a 16px icon dead centre of the
+        // 64px rail — not by `justify-center` flipping on the first frame,
+        // which threw it 100px right while the rail was still wide. The label
+        // stays in the row, truncated and faded, and the rail clips it: it
+        // shrinks with the width instead of vanishing at t=0. Faded, not
+        // hidden, so the row keeps its accessible name.
+        collapsed() ? "zen-px-4 [&>span]:zen-opacity-0" : "zen-px-3",
         local.class,
       )}
       {...rest}
@@ -427,7 +513,7 @@ const SUB_LIST_CLASS =
   // UnoCSS's emit order rather than intent.
   "zen-mb-0 zen-ml-4 zen-mr-0 zen-mt-0.5 zen-flex zen-list-none zen-flex-col zen-gap-0.5 zen-border-0 zen-border-l zen-border-solid zen-border-zen-border zen-pb-0 zen-pl-3 zen-pr-0 zen-pt-0";
 
-const Chevron = (props: { open: boolean; after?: boolean }) => (
+const Chevron = (props: { open: boolean; after?: boolean; faded?: boolean }) => (
   <svg
     width="14"
     height="14"
@@ -438,7 +524,14 @@ const Chevron = (props: { open: boolean; after?: boolean }) => (
     stroke-linecap="round"
     stroke-linejoin="round"
     aria-hidden="true"
-    class={cn(props.after ? "zen-ml-1" : "zen-ml-auto", "zen-transition-transform", props.open && "zen-rotate-90")}
+    class={cn(
+      props.after ? "zen-ml-1" : "zen-ml-auto",
+      "zen-transition-[transform,opacity]",
+      MOTION,
+      props.open && "zen-rotate-90",
+      // On the rail it would read as a second icon.
+      props.faded && "zen-opacity-0",
+    )}
   >
     <polyline points="9 18 15 12 9 6" />
   </svg>
@@ -493,58 +586,142 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
   };
 
   // Collapsing while a row is expanded would otherwise reopen it mid-flight as
-  // a flyout, because both modes read the same `open`.
-  createEffect(() => {
-    if (collapsed()) setOpen(false);
-  });
+  // a flyout, because both modes read the same `open`. Only the rail is
+  // tracked: setOpen reads `props.open`, and tracking that too meant a
+  // controlled flyout closed itself the moment its owner opened it.
+  createEffect(
+    on(collapsed, (c) => {
+      if (c) untrack(() => setOpen(false));
+    }),
+  );
 
-  // Resolved once: both branches below read the children, and an unmemoised
-  // `props.children` getter rebuilds the caller's JSX on every read.
+  // Resolved once: the inline list and the flyout both read the children,
+  // and an unmemoised `props.children` getter rebuilds the caller's JSX on
+  // every read. Only one of the two is ever mounted.
   const items = resolveChildren(() => props.children);
 
+  // ONE row for both modes, with the flyout anchored to it, rather than a
+  // different row per mode: swapping rows remounted this one on every
+  // collapse, so it snapped to its rail position while every other row eased
+  // there.
+  let row: HTMLElement | undefined;
+  // A pointerdown outside an open flyout closes it, and this row is outside
+  // it, so the click that follows would reopen it. Kobalte closes it in the
+  // capture phase, before the row hears the pointerdown, so the row cannot
+  // simply read `open()` there: the close is flagged for the rest of the
+  // event's dispatch (a macrotask, not a microtask, which would run between
+  // the two listeners and clear it too early).
+  let openAtPointerDown: boolean | null = null;
+  let closedThisPointerDown = false;
+  const onFlyoutOpenChange = (v: boolean) => {
+    if (!v) {
+      closedThisPointerDown = true;
+      setTimeout(() => (closedThisPointerDown = false));
+    }
+    setOpen(v);
+  };
+
+  // The inline list is mounted only while it is open or closing: it mounts at
+  // 0fr and eases to 1fr a frame later, and closing eases back before it
+  // unmounts, so the rows below glide instead of jumping and a closed list
+  // leaves nothing in the page.
+  const inline = () => open() && !collapsed();
+  const [listMounted, setListMounted] = createSignal(untrack(inline));
+  const [listOpen, setListOpen] = createSignal(untrack(inline));
+  let disclosure: HTMLDivElement | undefined;
+  let cancelList: (() => void) | undefined;
+  createEffect(
+    on(
+      inline,
+      (show) => {
+        cancelList?.();
+        cancelList = undefined;
+        if (show) {
+          setListMounted(true);
+          // Open it a frame later: the mount above lands after this effect
+          // (Solid batches it), and the list must be laid out closed first,
+          // or there is nothing to ease from.
+          const frame = requestAnimationFrame(() => {
+            void disclosure?.offsetHeight;
+            setListOpen(true);
+          });
+          cancelList = () => cancelAnimationFrame(frame);
+        } else {
+          setListOpen(false);
+          if (disclosure) cancelList = afterTransition(disclosure, "grid-template-rows", () => setListMounted(false));
+          else setListMounted(false);
+        }
+      },
+      { defer: true },
+    ),
+  );
+  onCleanup(() => cancelList?.());
+
   return (
-    <Show
-      when={collapsed()}
-      fallback={
-        <>
-          <SidebarMenuButton
-            active={props.active}
-            class={props.class}
-            aria-expanded={open()}
-            onClick={() => setOpen(!open())}
-          >
-            {props.icon}
-            <span>{props.label}</span>
-            <Show when={props.badge !== undefined}>
-              <SidebarMenuBadge>{props.badge}</SidebarMenuBadge>
-            </Show>
-            <Chevron open={open()} after={props.badge !== undefined} />
-          </SidebarMenuButton>
-          <Show when={open()}>
-            <ul class={SUB_LIST_CLASS}>{items()}</ul>
-          </Show>
-        </>
-      }
+    <Popover
+      open={collapsed() && open()}
+      onOpenChange={onFlyoutOpenChange}
+      placement="right-start"
+      anchorRef={() => row}
     >
-      <Popover open={open()} onOpenChange={setOpen} placement="right-start">
-        {/* No chevron here: there is no room on a 48px rail, and as a bare
-            <svg> it would survive the collapsed label rule and read as a
-            second icon. */}
-        <PopoverTrigger as={SidebarMenuButton} active={props.active} class={props.class}>
-          {props.icon}
-          <span>{props.label}</span>
-        </PopoverTrigger>
-        <PopoverContent class="zen-w-56 zen-p-2">
-          <div class="zen-flex zen-items-center zen-gap-2 zen-px-2 zen-pb-1.5 zen-text-xs zen-font-semibold zen-text-zen-muted-fg">
-            {props.label}
-            <Show when={props.badge !== undefined}>
-              <SidebarMenuBadge>{props.badge}</SidebarMenuBadge>
-            </Show>
-          </div>
-          <ul class={cn(SUB_LIST_CLASS, "zen-ml-0 zen-border-l-0 zen-pl-0")}>{items()}</ul>
-        </PopoverContent>
-      </Popover>
-    </Show>
+      <SidebarMenuButton
+        ref={(el: HTMLElement) => (row = el)}
+        active={props.active}
+        class={props.class}
+        aria-expanded={open()}
+        aria-haspopup={collapsed() ? "dialog" : undefined}
+        onPointerDown={() => (openAtPointerDown = open() || closedThisPointerDown)}
+        onClick={() => {
+          setOpen(!(openAtPointerDown ?? open()));
+          openAtPointerDown = null;
+        }}
+      >
+        {props.icon}
+        <span>{props.label}</span>
+        <Show when={props.badge !== undefined}>
+          <SidebarMenuBadge>{props.badge}</SidebarMenuBadge>
+        </Show>
+        <Chevron open={open() && !collapsed()} after={props.badge !== undefined} faded={collapsed()} />
+      </SidebarMenuButton>
+      <Show when={listMounted()}>
+        <div
+          ref={disclosure}
+          inert={!listOpen() || undefined}
+          class={cn(
+            "zen-grid zen-transition-[grid-template-rows,margin]",
+            MOTION,
+            // The list's own top margin moves out here, or a closed track
+            // would still hold it open by 2px.
+            listOpen() ? "zen-mt-0.5 zen-grid-rows-[1fr]" : "zen-mt-0 zen-grid-rows-[0fr]",
+          )}
+        >
+          <ul class={cn(SUB_LIST_CLASS, "zen-mt-0 zen-min-h-0 zen-overflow-hidden")}>
+            <Show when={!(collapsed() && open())}>{items()}</Show>
+          </ul>
+        </div>
+      </Show>
+      <PopoverContent
+        class="zen-w-56 zen-p-2"
+        onCloseAutoFocus={(e: Event) => {
+          // With no Popover trigger there is nothing for Kobalte to return
+          // focus to; give it back to the row unless it has moved elsewhere.
+          e.preventDefault();
+          queueMicrotask(() => {
+            if (!document.activeElement || document.activeElement === document.body) {
+              row?.focus({ preventScroll: true });
+            }
+          });
+        }}
+      >
+        <div class="zen-flex zen-items-center zen-gap-2 zen-px-2 zen-pb-1.5 zen-text-xs zen-font-semibold zen-text-zen-muted-fg">
+          {props.label}
+          <Show when={props.badge !== undefined}>
+            <SidebarMenuBadge>{props.badge}</SidebarMenuBadge>
+          </Show>
+        </div>
+        <ul class={cn(SUB_LIST_CLASS, "zen-ml-0 zen-border-l-0 zen-pl-0")}>{items()}</ul>
+      </PopoverContent>
+    </Popover>
   );
 };
 
@@ -580,6 +757,11 @@ export const SidebarMenuSubButton = <T extends ValidComponent = "button">(
       data-active={local.active || undefined}
       class={cn(
         "zen-flex zen-w-full zen-items-center zen-gap-2 zen-rounded-zen-md zen-px-3 zen-py-1.5 zen-text-sm zen-no-underline zen-transition-colors",
+        // One line while the sidebar is collapsed or moving: wrapped, a
+        // sub-row grew taller as a closing sidebar narrowed and pushed every
+        // row below it down mid-animation.
+        COMPACT,
+        "[[data-collapsed]_&>span]:zen-truncate [[data-transitioning]_&>span]:zen-truncate",
         "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
         "[&>svg]:zen-size-4 [&>svg]:zen-shrink-0",
         local.active
@@ -633,7 +815,8 @@ export const SidebarTrigger = <T extends ValidComponent = "button">(
         toggle();
       }}
       class={cn(
-        "zen-inline-flex zen-h-9 zen-w-9 zen-items-center zen-justify-center zen-rounded-zen-md zen-text-zen-foreground zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+        // Never squeezed by the header's clipped text on the rail.
+        "zen-inline-flex zen-h-9 zen-w-9 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-md zen-text-zen-foreground zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
         local.class,
       )}
       {...rest}

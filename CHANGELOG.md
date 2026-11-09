@@ -15,6 +15,34 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Sidebar: collapsing and expanding were choppy in every binding. Only the
+  width animated while every row restyled on the first frame: icons jumped
+  ~100px right and slid back (346px for a `SidebarMenuSub` row, which was
+  remounted), the toggle moved out from under the pointer, labels vanished at
+  once on collapse and drew over the page on expand, and group headings
+  snapped 24px. Rows now keep their geometry — the icon is centred on the rail
+  by padding that eases, labels truncate and fade, headings fold with an eased
+  margin, the aside clips while it moves — so the measured per-frame icon step
+  is 0.3px. The rail's end state is unchanged, and an expanded sidebar at rest
+  lays out exactly as before: it clips and keeps rows to one line only while
+  collapsed or moving (`data-transitioning`).
+- Sidebar: the overlay slides in and out instead of appearing, and
+  `SidebarMenuSub`'s inline list eases open and closed (it is still unmounted
+  when closed). React's overlay no longer slides shut on page load.
+- Sidebar: motion follows `--zen-duration-fast` (`--zen-sidebar-duration`,
+  `--zen-sidebar-ease`: 200ms, linear, as shadcn), so `prefers-reduced-motion`
+  now stops it; it was a hardcoded `duration-200`.
+- Sidebar: clicking a collapsed `SidebarMenuSub`'s row while its flyout was
+  open closed and reopened it. Solid: a controlled `SidebarMenuSub` closed its
+  own flyout (the collapse effect tracked `props.open`).
+- Core: `@algorisys/zen-ui-core/sidebar` (`afterTransition`,
+  `afterWidthTransition`).
+- Files: `packages/{solid,react}/src/components/sidebar/sidebar.tsx`,
+  `packages/vanilla/src/components/sidebar/sidebar.ts` (web-components
+  inherits it), `packages/core/{src/sidebar.ts,package.json,styles/tokens.css}`.
+
 ## [12.8.3] - 2026-11-09
 
 ### Fixed
