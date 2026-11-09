@@ -34,7 +34,7 @@ SKILL.md.
 
 - `id: string`
 - `label: string` — Icon-only on the bar, so this is the accessible name AND the menu label.
-- `icon: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…`
+- `icon: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "bar-chart" | "cloc…`
 - `onSelect?: (() => void) | undefined`
 - `disabled?: boolean | undefined`
 - `overflow?: "auto" | "never" | undefined` — `never` pins the item to the bar; anything else collapses when needed.
@@ -43,7 +43,7 @@ SKILL.md.
 
 - `id: string`
 - `label: React.ReactNode`
-- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…`
+- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "bar-chart" | "cloc…`
 - `onSelect?: (() => void) | undefined`
 - `disabled?: boolean | undefined`
 - `separatorBefore?: boolean | undefined` — Renders a divider before this entry.

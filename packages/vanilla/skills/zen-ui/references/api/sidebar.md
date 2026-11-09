@@ -17,7 +17,7 @@ SKILL.md.
 - `defaultCollapsed?: boolean | undefined` — uncontrolled initial collapsed state (default false)
 - `collapsed?: boolean | undefined` — controlled collapsed state
 - `onCollapsedChange?: ((collapsed: boolean) => void) | undefined`
-- `collapseMode?: "hidden" | "icon" | undefined` — What collapsing does: shrink to an icon rail (`"icon"`, the default), or hide the sidebar entirely (`"hidden"`), for a menu without icons. A hidden sidebar is inert: nothing in it can take focus.
+- `collapseMode?: SidebarCollapseMode | undefined` — What collapsing does: shrink to an icon rail (`"icon"`, the default), shrink to a rail that keeps a short label under each icon (`"labelled"`), or hide the sidebar entirely (`"hidden"`), for a menu without icons. A hidden sidebar is inert: nothing in it can take focus.
 - `overlay?: boolean | { below: number; } | undefined` — Open over the content instead of beside it: `true` always, or `{ below: 900 }` while the sidebar's container is narrower than 900px. As an overlay it starts closed, takes focus when opened, and closes on Esc, a click outside it, or following a link inside it.
 
 ### Sidebar

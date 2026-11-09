@@ -99,3 +99,44 @@ export function watchSidebarScrollbar(el: HTMLElement): () => void {
     el.style.scrollPaddingBottom = "";
   };
 }
+
+/** Seconds or milliseconds from a computed `transition-duration` entry. */
+const toMs = (t: string): number => (t.trim().endsWith("ms") ? parseFloat(t) : parseFloat(t) * 1000) || 0;
+
+/**
+ * Call `done` once `el`'s width transition has finished, or after its
+ * computed duration plus delay if no `transitionend` arrives (the width did
+ * not change, the tab is hidden, a reduced-motion 0.01ms transition). Returns
+ * a cancel.
+ *
+ * Collapsing into the labelled rail uses it to sequence the move: the rail
+ * narrows with the rows still laid out as rows, and only then do they become
+ * tiles. Switching the layout on the first frame made the menu finish at once
+ * while the width spent the whole duration catching up, so the sidebar
+ * looked slower than its own contents.
+ */
+export function afterWidthTransition(el: HTMLElement, done: () => void): () => void {
+  const cs = getComputedStyle(el);
+  const longest = (v: string) => Math.max(0, ...v.split(",").map(toMs));
+  const wait = longest(cs.transitionDuration) + longest(cs.transitionDelay);
+  let finished = false;
+  const onEnd = (e: TransitionEvent) => {
+    if (e.target === el && e.propertyName === "width") finish();
+  };
+  const timer = setTimeout(() => finish(), wait + 50);
+  const stop = () => {
+    clearTimeout(timer);
+    el.removeEventListener("transitionend", onEnd);
+  };
+  function finish() {
+    if (finished) return;
+    finished = true;
+    stop();
+    done();
+  }
+  el.addEventListener("transitionend", onEnd);
+  return () => {
+    finished = true;
+    stop();
+  };
+}

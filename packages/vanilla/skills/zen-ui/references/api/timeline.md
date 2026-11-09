@@ -25,7 +25,7 @@ SKILL.md.
 - `description?: React.ReactNode`
 - `timestamp?: string | undefined` — Shown beside the title. A display string, not a Date — formatting a date is a locale and timezone decision the caller has already made elsewhere.
 - `dateTime?: string | undefined` — Machine-readable form for `<time dateTime>`, when `timestamp` is prose.
-- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…` — Replaces the dot.
+- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "bar-chart" | "cloc…` — Replaces the dot.
 - `state?: TimelineState | undefined`
 - `group?: string | undefined` — A heading that starts a new run of items — "Today", "March".
 - `children?: React.ReactNode` — Anything richer than a description: a diff, a quote, an attachment.

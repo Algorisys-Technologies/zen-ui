@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Slot } from "@radix-ui/react-slot";
 import {
   SIDEBAR_MENU_BUTTON_ATTR,
+  afterWidthTransition,
   sidebarRailTooltip,
   watchSidebarScrollbar,
   type SidebarCollapseMode,
@@ -59,14 +60,20 @@ interface SidebarContextValue {
   overlayActive: boolean;
   setOverlayActive: (v: boolean) => void;
   overlay: boolean | { below: number } | undefined;
+  /**
+   * The rail the parts are LAID OUT for, which can trail `rail`: collapsing
+   * into the labelled rail keeps the rows as rows until the width has
+   * arrived, then turns them into tiles. Everywhere else it equals `rail`.
+   */
+  railLayout: "icon" | "labelled" | null;
+  setRailLayout: (v: "icon" | "labelled" | null) => void;
   /** The Sidebar's id, so SidebarTrigger can say which element it controls. */
   sidebarId: string;
   setSidebarId: (id: string | undefined) => void;
 }
 
-/** The rail being drawn right now, if any. */
-const railOf = (ctx: SidebarContextValue): "icon" | "labelled" | null =>
-  ctx.rail ? (ctx.collapseMode === "labelled" ? "labelled" : "icon") : null;
+/** The rail the parts are laid out for right now, if any. */
+const railOf = (ctx: SidebarContextValue): "icon" | "labelled" | null => ctx.railLayout;
 
 // The whole sidebar is one scroller: a single thin scrollbar runs its full
 // height, the header and footer stick to its ends, and every section sits in
@@ -142,6 +149,9 @@ export function SidebarProvider({
   const generatedId = `zen-sidebar-${React.useId()}`;
   const [customId, setSidebarId] = React.useState<string | undefined>();
   const sidebarId = customId ?? generatedId;
+  const [railLayout, setRailLayout] = React.useState<"icon" | "labelled" | null>(() =>
+    collapsed && collapseMode !== "hidden" ? (collapseMode === "labelled" ? "labelled" : "icon") : null,
+  );
 
   const value = React.useMemo<SidebarContextValue>(
     () => ({
@@ -153,10 +163,12 @@ export function SidebarProvider({
       overlayActive,
       setOverlayActive,
       overlay: overlayValue,
+      railLayout,
+      setRailLayout,
       sidebarId,
       setSidebarId,
     }),
-    [collapsed, setCollapsed, collapseMode, overlayActive, overlayValue, sidebarId],
+    [collapsed, setCollapsed, collapseMode, overlayActive, overlayValue, railLayout, sidebarId],
   );
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>;
@@ -290,6 +302,26 @@ export const Sidebar = React.forwardRef<
 
   React.useEffect(() => (asideRef.current ? watchSidebarScrollbar(asideRef.current) : undefined), []);
 
+  // Collapsing into the labelled rail is sequenced: the width moves with the
+  // rows still laid out as rows (truncating, as the icon rail's do), and only
+  // once it has arrived do they become tiles. Switching the layout at once
+  // made the menu finish on the first frame while the width spent the whole
+  // duration catching up. Expanding, and the icon rail, switch at once.
+  const railNow = ctx.rail;
+  const prevRailNow = React.useRef<boolean | null>(null);
+  React.useLayoutEffect(() => {
+    const was = prevRailNow.current;
+    prevRailNow.current = railNow;
+    const target = railNow ? (collapseMode === "labelled" ? "labelled" : "icon") : null;
+    const el = asideRef.current;
+    if (target === "labelled" && was === false && el && !overlay) {
+      return afterWidthTransition(el, () => ctx.setRailLayout("labelled"));
+    }
+    ctx.setRailLayout(target);
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs on a change of rail or mode, not of the context object
+  }, [railNow, collapseMode]);
+
   // The rail's tooltip: one for the whole sidebar, positioned beside the row
   // under the pointer or keyboard focus. One element rather than a Tooltip
   // per row, so a 40-row menu mounts one popup instead of forty, and the
@@ -365,6 +397,12 @@ export const Sidebar = React.forwardRef<
         "zen-flex zen-h-full zen-flex-col zen-border-r zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-transition-[width]",
         SCROLLER,
         MOTION,
+        // The labelled rail's own clock; every part inside reads it.
+        // Collapsing is two half-clock steps, so it ends when the others do.
+        collapseMode === "labelled" &&
+          (collapsed
+            ? "zen-[--zen-sidebar-duration:var(--zen-sidebar-labelled-step-duration)]"
+            : "zen-[--zen-sidebar-duration:var(--zen-sidebar-labelled-duration)]"),
         overlay
           ? // Overlay: a full-width panel whose negative end margin cancels its
             // own width, so it takes no room in the row and the content that
@@ -486,7 +524,7 @@ export const SidebarMenuBadge = React.forwardRef<
         // corner, starting at the icon's edge so it never covers the glyph;
         // on the icon rail it fades with the label.
         rail === "labelled" &&
-          "zen-absolute zen-top-0 zen-start-[calc(50%+var(--zen-space-2))] zen-min-w-4 zen-px-1 zen-anim-sidebar-label-rail",
+          "zen-absolute zen-top-0 zen-start-[calc(var(--zen-sidebar-rail-labelled-width)/2+var(--zen-space-1))] zen-min-w-4 zen-px-1 zen-anim-sidebar-label-rail",
         className,
       )}
       {...props}
@@ -501,16 +539,15 @@ SidebarMenuBadge.displayName = "SidebarMenuBadge";
  *   glide up with the width instead of jumping 24px on the first frame.
  *   Faded, not sr-only, so the group is still named.
  * - labelled rail: it stays, as a centred caption over the group's hairline,
- *   truncated to the rail. Re-aligning it from start to centre is not
- *   something a transition can carry, so like the row labels it fades in
- *   once the rail has moved.
+ *   truncated to the rail and sized by the rail's final width, so it
+ *   fades in where it will rest instead of riding the shrinking group.
  */
 function groupLabelClass(rail: "icon" | "labelled" | null, labelledMode: boolean, moved: boolean) {
   return cn(
     rail === "icon"
       ? "zen-grid-rows-[0fr] zen-px-3 zen-py-0 zen-opacity-0"
       : rail === "labelled"
-        ? "zen-grid-rows-[1fr] zen-px-0 zen-py-1 zen-text-center"
+        ? "zen-grid-rows-[1fr] zen-px-0 zen-py-1 zen-text-center [&>span]:zen-w-[calc(var(--zen-sidebar-rail-labelled-width)-var(--zen-space-2))]"
         : "zen-grid-rows-[1fr] zen-px-3 zen-py-1",
     moved && rail === "labelled" && "[&>span]:zen-anim-sidebar-label-rail",
     moved && labelledMode && !rail && "[&>span]:zen-anim-sidebar-label-row",
@@ -656,8 +693,12 @@ SidebarMenuItem.displayName = "SidebarMenuItem";
  *   the rail clips it; it shrinks with the width instead of vanishing at t=0.
  *   Faded, not sr-only, so the row keeps its accessible name.
  * - On the labelled rail the label moves under the icon. That changes its
- *   position scheme, which no transition can carry, so it fades in once the
- *   rail is nearly narrow (zen-anim-sidebar-label-*). The highlight covers
+ *   position scheme, which no transition can carry, so it fades in over the
+ *   move on the sidebar's clock, as the icon rail's labels do. It is placed
+ *   by the rail's final geometry (a fixed start and a width derived from the
+ *   rail width), not centred in the row, so it fades in under the icon
+ *   rather than riding the shrinking row 90px across. The count badge is
+ *   anchored the same way. The highlight covers
  *   the whole tile, label included, with the same rounded-zen-md box as
  *   every other row: not a Material pill around the icon alone, which
  *   understated the click target and left the label outside its own mark.
@@ -686,7 +727,7 @@ function menuButtonClass(o: {
     o.rail === "labelled" ? "zen-px-7 zen-pb-6 zen-pt-1.5" : o.rail === "icon" ? "zen-px-4 zen-py-2" : "zen-px-3 zen-py-2",
     o.rail === "icon" && "[&>span]:zen-opacity-0",
     o.rail === "labelled" &&
-      "[&>span:not([data-sidebar-badge])]:zen-absolute [&>span:not([data-sidebar-badge])]:zen-inset-x-1 [&>span:not([data-sidebar-badge])]:zen-bottom-1.5 [&>span:not([data-sidebar-badge])]:zen-text-center [&>span:not([data-sidebar-badge])]:zen-text-xs",
+      "[&>span:not([data-sidebar-badge])]:zen-absolute [&>span:not([data-sidebar-badge])]:zen-start-1 [&>span:not([data-sidebar-badge])]:zen-w-[calc(var(--zen-sidebar-rail-labelled-width)-var(--zen-space-4))] [&>span:not([data-sidebar-badge])]:zen-bottom-1.5 [&>span:not([data-sidebar-badge])]:zen-text-center [&>span:not([data-sidebar-badge])]:zen-text-xs",
     o.moved && o.rail === "labelled" && "[&>span:not([data-sidebar-badge])]:zen-anim-sidebar-label-rail",
     o.moved && o.labelledMode && !o.rail && "[&>span:not([data-sidebar-badge])]:zen-anim-sidebar-label-row",
     // As a link (asChild <a>) it would otherwise take the browser's

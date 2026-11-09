@@ -15,6 +15,70 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Sidebar: `collapseMode="labelled"` — a rail (`--zen-sidebar-rail-labelled-width`,
+  80px) that keeps a short label under each icon, group headings as captions,
+  the count on the icon's corner. All four bindings; web-components via the
+  `collapse-mode` attribute.
+- Sidebar: one rail tooltip per sidebar, beside the row under the pointer or
+  keyboard focus — every row on the icon rail, truncated labels on the
+  labelled rail. `aria-hidden`, since the row already carries the name.
+- Sidebar: `SidebarTrigger` sets `aria-expanded`, `aria-controls` (the
+  Sidebar's id, the caller's if given) and `type="button"`; active
+  `SidebarMenuButton` / `SidebarMenuSubButton` set `aria-current="page"`.
+- Core: `@algorisys/zen-ui-core/sidebar` (`sidebarRailTooltip`,
+  `watchSidebarScrollbar`, `afterWidthTransition`, `SidebarCollapseMode`);
+  `--zen-sidebar-width`, `--zen-sidebar-rail-width`,
+  `--zen-sidebar-rail-labelled-width`, `--zen-sidebar-duration`,
+  `--zen-sidebar-ease`, `--zen-sidebar-labelled-duration`,
+  `--zen-sidebar-labelled-step-duration` tokens;
+  `zen-anim-sidebar-label-rail/-row`; `bar-chart` icon.
+
+### Changed
+
+- Sidebar collapse/expand: only the width used to animate while every row
+  restyled on the first frame — icons jumped ~100px right and back, the
+  trigger moved out from under the pointer, labels drew over the page on
+  expand. Rows now keep their geometry (icon centred by padding that eases,
+  labels truncate and fade, the aside clips); measured max per-frame icon step
+  99.5px → 0.3px. All sidebar motion runs on `--zen-sidebar-duration` /
+  `--zen-sidebar-ease` (200ms linear, shadcn's), so `prefers-reduced-motion`
+  now stops it. The overlay slides in and out; `SidebarMenuSub`'s inline list
+  eases open and closed.
+- Sidebar, labelled rail: collapsing into it is sequenced — the width moves
+  with the rows still laid out as rows, then they become tiles
+  (`afterWidthTransition`; the parts style by the context's new `railLayout`,
+  which trails `rail`). Switching the layout on the first frame made the menu
+  finish at once while the width caught up, so the sidebar looked slower than
+  its own contents. The two steps share one clock
+  (`--zen-sidebar-labelled-step-duration`, half), so the collapse ends with
+  every other one; expanding runs on `--zen-sidebar-labelled-duration` (⅞,
+  for the shorter travel) so both rails move at one speed. Labels, captions
+  and the count badge are placed by the rail's final geometry, so they fade
+  in where they rest instead of riding the shrinking row.
+- Sidebar is one scroller: a single thin scrollbar runs its full height,
+  `SidebarHeader` / `SidebarFooter` stick to its ends, scroll padding keeps a
+  focused row clear of them, and on a rail the scrollbar gets its own strip
+  (`--zen-sidebar-gutter`, measured). `SidebarContent` no longer scrolls on
+  its own.
+- Visible: footer inset 12px → 8px (its icon lines up with the menu); labels
+  and sub-rows truncate instead of wrapping; the icon-rail header stays a row
+  instead of stacking; a label-only `SidebarHeaderLabel` starts where the
+  icons do.
+- `SidebarMenuSub` renders one row in both modes with the flyout anchored to
+  it, instead of swapping rows (which remounted it on every collapse).
+
+### Fixed
+
+- Sidebar: clicking a rail flyout's row while it was open closed and reopened
+  it. Solid: a controlled `SidebarMenuSub` closed its own flyout (the collapse
+  effect tracked `props.open`). React: the overlay slid shut on page load.
+- Files: `packages/{solid,react}/src/components/sidebar/sidebar.tsx`,
+  `packages/vanilla/src/components/sidebar/sidebar.ts`,
+  `packages/web-components/src/elements/sidebar.ts`, the four Sidebar demos,
+  `packages/core/{src/sidebar.ts,src/icons.ts,src/uno-preset.ts,styles/tokens.css}`.
+
 ## [12.8.3] - 2026-11-09
 
 ### Fixed

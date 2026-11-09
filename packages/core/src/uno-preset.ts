@@ -196,8 +196,8 @@ export const ZEN_ANIMATIONS: Record<string, string> = {
   "slide-out-top": "zen-slide-out-top var(--zen-duration-fast) var(--zen-ease-standard)",
   "slide-in-bottom": "zen-slide-in-bottom var(--zen-duration-moderate) var(--zen-ease-standard)",
   "slide-out-bottom": "zen-slide-out-bottom var(--zen-duration-fast) var(--zen-ease-standard)",
-  "sidebar-label-rail": "zen-sidebar-label-rail var(--zen-sidebar-duration) var(--zen-ease-out)",
-  "sidebar-label-row": "zen-sidebar-label-row var(--zen-sidebar-duration) var(--zen-ease-out)",
+  "sidebar-label-rail": "zen-sidebar-label-rail var(--zen-sidebar-duration) var(--zen-sidebar-ease)",
+  "sidebar-label-row": "zen-sidebar-label-row var(--zen-sidebar-duration) var(--zen-sidebar-ease)",
 };
 
 /** Structural mirror of UnoCSS's DynamicRule, declared here so core keeps its

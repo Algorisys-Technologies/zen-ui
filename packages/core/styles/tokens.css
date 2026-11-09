@@ -795,12 +795,12 @@
 
 /* Sidebar — the label in collapseMode="labelled" moves between beside its
  * icon and under it, which no transition can carry (it changes position
- * scheme). It is faded in instead, held invisible for most of the width
- * change so it does not ride the shrinking row. Two names, one curve: an
- * animation only restarts when its NAME changes, and the label needs to
- * fade both ways. */
-@keyframes zen-sidebar-label-rail { 0%, 70% { opacity: 0; } to { opacity: 1; } }
-@keyframes zen-sidebar-label-row  { 0%, 40% { opacity: 0; } to { opacity: 1; } }
+ * scheme). It fades in instead, over the whole move on the sidebar's own
+ * clock, exactly as the icon rail's labels fade: the two modes keep one
+ * pace. Two names, one curve: an animation only restarts when its NAME
+ * changes, and the label needs to fade both ways. */
+@keyframes zen-sidebar-label-rail { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zen-sidebar-label-row  { from { opacity: 0; } to { opacity: 1; } }
 
 /* ===================================================================== *
  * Sidebar — widths and motion                                           *
@@ -813,13 +813,20 @@
  *   icon:     2 × (0.5rem + 1rem)    + 1rem = 4rem                      *
  *   labelled: 2 × (0.25rem + 1.75rem) + 1rem = 5rem                     *
  * Motion follows shadcn (width, 200ms, linear) and reads                *
- * --zen-duration-fast, so prefers-reduced-motion stops it.              *
+ * --zen-duration-fast, so prefers-reduced-motion stops it. The labelled *
+ * rail travels less (256 -> 80-90px, against 256 -> 64px) in the same   *
+ * time, so it read as slower; its clock is shortened by that ratio,     *
+ * ~7/8, so both rails collapse at one speed. Collapsing into it is two  *
+ * steps (width, then rows into tiles), so each takes half the clock and *
+ * the whole collapse still lasts as long as every other one.            *
  * ===================================================================== */
 :root {
   --zen-sidebar-width: 16rem;
   --zen-sidebar-rail-width: calc(2 * (0.5rem + 1rem) + 1rem);
   --zen-sidebar-rail-labelled-width: calc(2 * (0.25rem + 1.75rem) + 1rem);
   --zen-sidebar-duration: var(--zen-duration-fast);
+  --zen-sidebar-labelled-duration: calc(var(--zen-sidebar-duration) * 0.875);
+  --zen-sidebar-labelled-step-duration: calc(var(--zen-sidebar-duration) * 0.5);
   --zen-sidebar-ease: linear;
 }
 
