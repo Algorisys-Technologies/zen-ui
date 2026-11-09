@@ -202,6 +202,15 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
   icons have no width attribute, so with no stylesheet they expanded to a 930px
   chevron. If you import a dep's CSS, assert it reached the bundle
   (`grep <a-known-class> dist/assets/*.css`), not merely that the build passed.
+- **A root script may only import what the ROOT `package.json` declares.**
+  `bun.lock` is `configVersion: 1`, so Bun installs workspaces isolated: each
+  package gets its own dependencies and nothing is hoisted to the root.
+  `check:types`, `check:nav`, `check:skill-api` and `check:size` import
+  `typescript`, `vite`, the Vite plugins, `react`/`solid-js` and the
+  workspace packages from `scripts/`, and failed with "Cannot find package"
+  on a clean install until those were added to the root `devDependencies`
+  (measured 2026-11-09). Adding an import to a root script means adding the
+  package there too, at the version the packages already use.
 - **A failed command looks identical to a clean one** when you grep its output
   for error lines. `lint:solid` returned "0 issues" for a long time purely
   because ESLint aborted on a missing config. Assert the tool actually ran.
