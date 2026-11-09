@@ -19,8 +19,14 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Solid: the published DOM and SSR builds are now hydratable, so a SolidStart
   app hydrates zen-ui components instead of failing with "Failed attempt to
-  create new DOM elements during hydration". The package also exports the
-  `browser`, `worker` and `default` conditions again.
+  create new DOM elements during hydration". Only the DOM build changed: the
+  SSR config already got `hydratable` from `solid({ ssr: true })`, and now says
+  so explicitly.
+- Solid: `exports` gains `worker` (server build), `browser` and `default`
+  conditions, ordered `worker` before `browser` to match `solid-js` itself. A
+  resolver that sets both (Cloudflare workerd, worker bundles) resolves
+  `solid-js` to its server runtime, so zen-ui must too; the reverse order paired
+  the DOM build with the server runtime.
 
 ## [12.8.2] - 2026-11-07
 

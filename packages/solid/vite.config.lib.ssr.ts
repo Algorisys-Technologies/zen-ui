@@ -11,9 +11,11 @@ import { resolve } from "path";
 // (zen-ui-core inlined); only solid-js is external, keeping a single Solid
 // instance across the server/client boundary for hydration.
 //
-// hydratable must match vite.config.lib.ts: without it the server HTML has no
-// data-hk keys and the DOM build cannot claim it ("Failed attempt to create new
-// DOM elements during hydration").
+// hydratable must match vite.config.lib.ts. vite-plugin-solid already implies it
+// under ssr: true, so this line is a statement of intent rather than a change —
+// the bug was the DOM build, which cloned fresh templates instead of claiming
+// the server's data-hk nodes ("Failed attempt to create new DOM elements during
+// hydration").
 export default defineConfig({
   plugins: [solid({ ssr: true, solid: { hydratable: true } }), UnoCSS()],
   // SSR builds externalise node_modules by default; force everything to be
