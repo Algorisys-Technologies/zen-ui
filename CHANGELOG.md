@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.8.4] - 2026-11-09
+
 ### Fixed
 
 - Sidebar: collapsing and expanding were choppy in every binding. Only the
