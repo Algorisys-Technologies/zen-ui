@@ -14,7 +14,7 @@ import { defineZenElement } from "../lib/define";
 // off and it is exposed as a JS property instead. `collapsed` is the controlled
 // boolean (its presence hands ownership to the caller); `defaultCollapsed`
 // defaults false, so it is a plain boolean attribute. `collapse-mode` is
-// "icon" | "hidden". `overlay` is JSON because it is `true` OR `{ below }`:
+// "icon" | "labelled" | "hidden". `overlay` is JSON because it is `true` OR `{ below }`:
 // `overlay="true"`, or `overlay='{"below":900}'`.
 defineZenElement<SidebarProviderProps>({
   tag: "zen-sidebar-provider",
@@ -33,8 +33,8 @@ defineZenElement<SidebarProps>({
   props: ["sidebar"],
 });
 
-// The header's `sidebar` is optional: with it, the header stacks on the icon
-// rail and its text is read, not shown.
+// The header's `sidebar` is optional: with it, on a rail the header centres
+// its toggle and its text fades: read, not shown.
 defineZenElement<SidebarHeaderProps>({
   tag: "zen-sidebar-header",
   factory: SidebarHeader,

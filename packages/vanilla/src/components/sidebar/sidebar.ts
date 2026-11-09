@@ -9,6 +9,12 @@ import {
 } from "../../lib/component";
 import { controllable } from "../../lib/state";
 import { styled } from "../../lib/styled";
+import {
+  SIDEBAR_MENU_BUTTON_ATTR,
+  sidebarRailTooltip,
+  watchSidebarScrollbar,
+  type SidebarCollapseMode,
+} from "@algorisys/zen-ui-core/sidebar";
 import { useLocale } from "../locale/locale";
 import { Popover } from "../popover/popover";
 
@@ -56,9 +62,15 @@ import { Popover } from "../popover/popover";
  * the tree and holds the part handles, so unmounting means `destroy()`-ing them.
  * The provider owns only the state.
  *
- * Three ways to collapse, all from SidebarProvider:
+ * Four ways to collapse, all from SidebarProvider:
  *  - `collapseMode: "icon"` (the default): shrink to an icon rail.
+ *  - `collapseMode: "labelled"`: shrink to a wider rail that keeps a short
+ *    label under each icon.
  *  - `collapseMode: "hidden"`: hide it entirely, for a menu with no icons.
+ *
+ * The parts that take no context (`SidebarContent`, `SidebarFooter`,
+ * `SidebarGroup`, `SidebarMenuBadge`) style the labelled rail from the
+ * aside's `data-rail` attribute instead, so they need no `sidebar` prop.
  *  - `overlay` (`true`, or `{ below: 900 }` for when its container is narrower
  *    than that): it starts closed and opens OVER the content, and closes on
  *    Esc, a click outside it, or following a link in it.
@@ -75,15 +87,20 @@ export interface SidebarContextValue {
   setCollapsed(v: boolean): void;
   toggle(): void;
   /**
-   * Drawn as an icon rail: collapsed, in the icon mode, not as an overlay. What
-   * the parts style by; in the default mode it is exactly `collapsed`.
+   * Drawn as a rail: collapsed, in the icon or labelled mode, not as an
+   * overlay. What the parts style by; in the default mode it is exactly
+   * `collapsed`.
    */
   readonly rail: boolean;
-  readonly collapseMode: "icon" | "hidden";
+  readonly collapseMode: SidebarCollapseMode;
   /** The sidebar is an overlay right now (always, or because its container is narrow). */
   readonly overlayActive: boolean;
   setOverlayActive(v: boolean): void;
   readonly overlay: boolean | { below: number } | undefined;
+  /** The Sidebar's id, so SidebarTrigger can say which element it controls. */
+  readonly sidebarId: string;
+  /** A caller's own id for the Sidebar; `undefined` goes back to the generated one. */
+  setSidebarId(id: string | undefined): void;
   /**
    * Run `fn` whenever the sidebar's state changes — `collapsed`, and also
    * `rail`, `collapseMode`, `overlay` and `overlayActive`. Returns an unsubscribe.
@@ -100,11 +117,12 @@ export interface SidebarProviderProps {
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
   /**
-   * What collapsing does: shrink to an icon rail (`"icon"`, the default), or
-   * hide the sidebar entirely (`"hidden"`), for a menu without icons. A hidden
-   * sidebar is inert: nothing in it can take focus.
+   * What collapsing does: shrink to an icon rail (`"icon"`, the default),
+   * shrink to a rail that keeps a short label under each icon
+   * (`"labelled"`), or hide the sidebar entirely (`"hidden"`), for a menu
+   * without icons. A hidden sidebar is inert: nothing in it can take focus.
    */
-  collapseMode?: "icon" | "hidden";
+  collapseMode?: SidebarCollapseMode;
   /**
    * Open over the content instead of beside it: `true` always, or
    * `{ below: 900 }` while the sidebar's container is narrower than 900px.
@@ -124,7 +142,16 @@ function requireCtx(ctx: SidebarContextValue | undefined, name: string): Sidebar
   return ctx;
 }
 
-const collapseModeOf = (p: SidebarProviderProps): "icon" | "hidden" => p.collapseMode ?? "icon";
+const collapseModeOf = (p: SidebarProviderProps): SidebarCollapseMode => p.collapseMode ?? "icon";
+
+/** The rail being drawn right now, if any. */
+const railOf = (ctx: SidebarContextValue | undefined): "icon" | "labelled" | null =>
+  ctx?.rail ? (ctx.collapseMode === "labelled" ? "labelled" : "icon") : null;
+
+/** Every collapse transition runs on the same clock, so nothing finishes early and pops. */
+const MOTION = "zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)]";
+
+let sidebarSeq = 0;
 
 /** Compared by value: a web component re-parses its JSON `overlay` attribute on every update. */
 const sameOverlay = (a: SidebarProviderProps["overlay"], b: SidebarProviderProps["overlay"]): boolean =>
@@ -149,6 +176,8 @@ export function SidebarProvider(props: SidebarProviderProps = {}): SidebarProvid
   state.subscribe(emit);
 
   let overlayActive = false;
+  const generatedId = `zen-sidebar-${++sidebarSeq}`;
+  let customId: string | undefined;
 
   const context: SidebarContextValue = {
     get collapsed() {
@@ -161,7 +190,7 @@ export function SidebarProvider(props: SidebarProviderProps = {}): SidebarProvid
       state.set(!state.get());
     },
     get rail() {
-      return state.get() && collapseModeOf(current) === "icon" && !overlayActive;
+      return state.get() && collapseModeOf(current) !== "hidden" && !overlayActive;
     },
     get collapseMode() {
       return collapseModeOf(current);
@@ -176,6 +205,14 @@ export function SidebarProvider(props: SidebarProviderProps = {}): SidebarProvid
     },
     get overlay() {
       return current.overlay;
+    },
+    get sidebarId() {
+      return customId ?? generatedId;
+    },
+    setSidebarId(id) {
+      if (id === customId) return;
+      customId = id;
+      emit();
     },
     subscribe(fn) {
       subs.add(fn);
@@ -213,8 +250,19 @@ export interface SidebarProps extends BaseProps {
   sidebar: SidebarContextValue;
 }
 
+// Only the width animates, and everything inside is laid out so it does not
+// have to: rows keep their place and the aside clips whatever no longer fits.
+// It used to restyle every row on the first frame while the width was still
+// 256px, which threw each icon 100px to the right and back, and on expand
+// drew full labels over the page from a 64px rail.
+//
+// The whole sidebar is one scroller: a single thin scrollbar runs its full
+// height, the header and footer stick to its ends, and every section sits in
+// the same client width, so on a rail they all centre on one axis. The rail
+// widens by the scrollbar's measured width (--zen-sidebar-gutter,
+// watchSidebarScrollbar) rather than letting it eat into the tiles.
 const SIDEBAR_BASE =
-  "zen-flex zen-h-full zen-flex-col zen-border-r zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-transition-[width] zen-duration-200 zen-ease-in-out";
+  "zen-overflow-x-hidden zen-overflow-y-auto zen-[scrollbar-width:thin] zen-[scrollbar-color:var(--zen-color-border)_transparent] zen-flex zen-h-full zen-flex-col zen-border-r zen-border-zen-border zen-bg-zen-background zen-text-zen-foreground zen-transition-[width] zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)]";
 
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -273,6 +321,7 @@ export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
   });
   ro.observe(el);
   disposer.add(() => ro.disconnect());
+  disposer.add(watchSidebarScrollbar(el));
   const isOverlay = () => ctx.overlay === true || narrow;
 
   // An open overlay: Esc and a click outside close it, as does following a link
@@ -328,16 +377,37 @@ export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
           // width, so it takes no room in the row and the content that follows
           // starts where it does, underneath it. The same element and children
           // as the in-flow layout, so crossing the breakpoint rebuilds nothing.
-          cn("zen-relative zen-z-30 zen-w-64 zen-shrink-0 -zen-me-64 zen-shadow-lg", hidden && "zen-invisible")
+          cn(
+            "zen-relative zen-z-30 zen-w-64 zen-shrink-0 -zen-me-64 zen-shadow-lg",
+            // It slides in from its edge on the sidebar's clock rather than
+            // appearing. Visibility is transitioned only on the way out, so the
+            // panel stays drawn until the slide has finished. On the way in it
+            // must not be: a transition's first frame holds its start value,
+            // so the panel was still hidden when focus moved into it, and the
+            // focus went nowhere.
+            hidden
+              ? "zen-invisible -zen-translate-x-full zen-transition-[transform,visibility] rtl:zen-translate-x-full"
+              : "zen-transition-transform",
+          )
         : hidden
-          ? "zen-w-0 zen-overflow-hidden zen-border-r-0"
-          : collapsed
-            ? "zen-w-16"
-            : "zen-w-64",
+          ? "zen-w-0 zen-border-r-0"
+          : !collapsed
+            ? "zen-w-[var(--zen-sidebar-width)]"
+            : ctx.collapseMode === "labelled"
+              ? "zen-w-[calc(var(--zen-sidebar-rail-labelled-width)+var(--zen-sidebar-gutter,0px))]"
+              : "zen-w-[calc(var(--zen-sidebar-rail-width)+var(--zen-sidebar-gutter,0px))]",
       current.class,
     );
     if (collapsed) el.setAttribute("data-collapsed", "");
     else el.removeAttribute("data-collapsed");
+    const rail = railOf(ctx);
+    if (rail) el.setAttribute("data-rail", rail);
+    else el.removeAttribute("data-rail");
+    if (rail !== tipRail) {
+      tipRail = rail;
+      hideTip();
+    }
+    if (current.id === undefined) el.id = ctx.sidebarId;
     if (overlay) el.setAttribute("data-overlay", "");
     else el.removeAttribute("data-overlay");
     el.inert = hidden;
@@ -378,8 +448,69 @@ export function Sidebar(props: SidebarProps): ZenComponent<SidebarProps> {
     applyCollapse();
   }
 
+  // The rail's tooltip: one for the whole sidebar, positioned beside the row
+  // under the pointer or keyboard focus. One element rather than a Tooltip per
+  // row, so a 40-row menu mounts one popup instead of forty. It repeats the
+  // row's name, which the row already has, so it is hidden from assistive tech
+  // rather than announced twice.
+  let tipRail: "icon" | "labelled" | null = null;
+  let tipEl: HTMLDivElement | null = null;
+  function hideTip() {
+    tipEl?.remove();
+    tipEl = null;
+  }
+  const rowAt = (t: EventTarget | null) => {
+    if (!ctx.rail || !(t instanceof Element)) return null;
+    const row = t.closest<HTMLElement>(`[${SIDEBAR_MENU_BUTTON_ATTR}]`);
+    return row && el.contains(row) ? row : null;
+  };
+  const showTip = (row: HTMLElement | null) => {
+    const text = row ? sidebarRailTooltip(row, ctx.collapseMode) : null;
+    if (!row || !text) return hideTip();
+    const r = row.getBoundingClientRect();
+    const rtl = getComputedStyle(row).direction === "rtl";
+    tipEl ??= document.createElement("div");
+    tipEl.setAttribute("aria-hidden", "true");
+    tipEl.setAttribute("data-sidebar-tooltip", "");
+    tipEl.className = cn(
+      "zen-pointer-events-none zen-fixed zen-z-50 zen-whitespace-nowrap zen-rounded-zen-md zen-bg-zen-neutral zen-px-2.5 zen-py-1.5 zen-text-xs zen-text-zen-neutral-fg zen-shadow-md zen-anim-fade-in -zen-translate-y-1/2",
+      rtl ? "-zen-ml-2 -zen-translate-x-full" : "zen-ml-2",
+    );
+    tipEl.style.left = `${rtl ? r.left : r.right}px`;
+    tipEl.style.top = `${r.top + r.height / 2}px`;
+    tipEl.textContent = text;
+    if (!tipEl.isConnected) document.body.append(tipEl);
+  };
+  const onTipOver = (e: Event) => showTip(rowAt(e.target));
+  const onTipFocus = (e: Event) => {
+    const row = rowAt(e.target);
+    if (row?.matches(":focus-visible")) showTip(row);
+  };
+  const onTipKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") hideTip();
+  };
+  el.addEventListener("pointerover", onTipOver);
+  el.addEventListener("pointerleave", hideTip);
+  el.addEventListener("focusin", onTipFocus);
+  el.addEventListener("focusout", hideTip);
+  el.addEventListener("click", hideTip);
+  el.addEventListener("scroll", hideTip, true);
+  el.addEventListener("keydown", onTipKey);
+  disposer.add(() => {
+    el.removeEventListener("pointerover", onTipOver);
+    el.removeEventListener("pointerleave", hideTip);
+    el.removeEventListener("focusin", onTipFocus);
+    el.removeEventListener("focusout", hideTip);
+    el.removeEventListener("click", hideTip);
+    el.removeEventListener("scroll", hideTip, true);
+    el.removeEventListener("keydown", onTipKey);
+    hideTip();
+  });
+
   const render = () => {
     const { sidebar: _s, class: _c, children, ...rest } = current;
+    // A caller's id wins; otherwise the provider's, which SidebarTrigger already points at.
+    ctx.setSidebarId(typeof current.id === "string" ? current.id : undefined);
     sync();
     el.replaceChildren(...toNodes(children));
     removeProps?.();
@@ -422,13 +553,20 @@ export interface SidebarHeaderProps extends BaseProps {
   /**
    * The provider's context. Optional, unlike the other collapse-aware parts,
    * because SidebarHeader took none before: without it the header never
-   * restyles. With it, on the icon rail the header stacks (the toggle over a
-   * logo) and its `<span>` / `<strong>` text is read, not shown.
+   * restyles. With it, on a rail its inline padding centres the toggle and its
+   * `<span>` / `<strong>` text fades: read, not shown.
    */
   sidebar?: SidebarContextValue;
 }
 
-const HEADER_BASE = "zen-flex zen-items-center zen-gap-2 zen-p-3";
+// The header stays a row on the rail: its inline padding grows just enough to
+// centre the 36px toggle, and its text fades and is clipped. It used to
+// restack into a column on the first frame, which moved the toggle you had
+// just clicked 100px out from under the pointer. Faded, not sr-only, so the
+// name is still read. Stuck to the top of the scrolling sidebar, so the toggle
+// never scrolls out of reach.
+const HEADER_BASE =
+  "zen-sticky zen-top-0 zen-z-10 zen-flex zen-shrink-0 zen-items-center zen-gap-2 zen-overflow-hidden zen-whitespace-nowrap zen-bg-zen-background zen-py-3 zen-transition-[padding] [&>span]:zen-transition-opacity [&>strong]:zen-transition-opacity zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)] [&>span]:zen-duration-[var(--zen-sidebar-duration)] [&>strong]:zen-duration-[var(--zen-sidebar-duration)]";
 
 export function SidebarHeader(props: SidebarHeaderProps = {}): ZenComponent<SidebarHeaderProps> {
   let current = { ...props };
@@ -437,11 +575,12 @@ export function SidebarHeader(props: SidebarHeaderProps = {}): ZenComponent<Side
   let removeProps: (() => void) | undefined;
   let unsubscribe: (() => void) | undefined;
 
-  // Text left visible spilled out of the 64px rail over the page.
   const applyRail = () => {
+    const rail = railOf(current.sidebar);
     el.className = cn(
       HEADER_BASE,
-      current.sidebar?.rail && "zen-flex-col zen-px-0 [&>span]:zen-sr-only [&>strong]:zen-sr-only",
+      rail === "icon" ? "zen-px-3.5" : rail === "labelled" ? "zen-px-5.5" : "zen-px-3",
+      rail && "[&>span]:zen-opacity-0 [&>strong]:zen-opacity-0",
       current.class,
     );
   };
@@ -481,7 +620,7 @@ export interface SidebarHeaderLabelProps extends BaseProps {
   sidebar: SidebarContextValue;
 }
 
-/** The app or workspace name in SidebarHeader; on the icon rail it is read, not shown. */
+/** The app or workspace name in SidebarHeader; on a rail it is read, not shown. */
 export function SidebarHeaderLabel(props: SidebarHeaderLabelProps): ZenComponent<SidebarHeaderLabelProps> {
   const ctx = requireCtx(props.sidebar, "SidebarHeaderLabel");
   let current = { ...props };
@@ -490,7 +629,14 @@ export function SidebarHeaderLabel(props: SidebarHeaderLabelProps): ZenComponent
   let removeProps: (() => void) | undefined;
 
   const applyRail = () => {
-    el.className = cn("zen-min-w-0 zen-truncate zen-font-semibold", ctx.rail && "zen-sr-only", current.class);
+    el.className = cn(
+      // Alone in the header (no toggle before it), it starts where the menu's
+      // icons do rather than 8px left of them.
+      "zen-min-w-0 zen-truncate zen-font-semibold zen-transition-opacity first:zen-ps-2",
+      MOTION,
+      ctx.rail && "zen-opacity-0",
+      current.class,
+    );
   };
 
   const render = () => {
@@ -520,29 +666,43 @@ export function SidebarHeaderLabel(props: SidebarHeaderLabelProps): ZenComponent
 
 /**
  * A count or status beside a menu row's label ("Accounts 29"), aligned at the
- * row's end. On the icon rail it is read with the label, not shown (it is a
- * `<span>` in SidebarMenuButton, which screen-reads its spans on the rail).
+ * row's end. On the icon rail it fades with the label and is read with it (it
+ * is a `<span>` in SidebarMenuButton); on the labelled rail it sits on the
+ * icon's top corner, starting at the icon's edge so it never covers the glyph.
  */
 export const SidebarMenuBadge = styled({
   tag: "span",
   className:
-    "zen-ml-auto zen-min-w-5 zen-rounded-zen-sm zen-bg-zen-muted zen-px-1.5 zen-text-center zen-text-xs zen-font-medium zen-tabular-nums zen-text-zen-muted-fg",
+    "zen-ml-auto zen-min-w-5 zen-rounded-zen-sm zen-bg-zen-muted zen-px-1.5 zen-text-center zen-text-xs zen-font-medium zen-tabular-nums zen-text-zen-muted-fg [[data-rail=labelled]_&]:zen-absolute [[data-rail=labelled]_&]:zen-top-0 [[data-rail=labelled]_&]:zen-start-[calc(50%+var(--zen-space-2))] [[data-rail=labelled]_&]:zen-min-w-4 [[data-rail=labelled]_&]:zen-px-1 [[data-rail=labelled]_&]:zen-anim-sidebar-label-rail",
   attrs: () => ({ "data-sidebar-badge": "" }),
 });
 
+// The inline inset of the content and footer is narrower on the labelled rail,
+// so a label has room under its icon. The content grows to push the footer to
+// the bottom; it does not scroll itself — the sidebar does, so one scrollbar
+// spans the whole height.
 export const SidebarContent = styled({
   tag: "div",
-  className: "zen-flex zen-min-h-0 zen-flex-1 zen-flex-col zen-gap-1 zen-overflow-y-auto zen-p-2",
+  className:
+    "zen-flex zen-flex-1 zen-flex-col zen-gap-1 zen-px-2 zen-py-2 zen-transition-[padding] zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)] [[data-rail=labelled]_&]:zen-px-1",
 });
 
+// Inset as SidebarContent is, so a menu row in the footer lines its icon up
+// with the rows above (it sat 4px further in at p-3) and fits the rail. Stuck to
+// the bottom of the scrolling sidebar, over the menu.
 export const SidebarFooter = styled({
   tag: "div",
-  className: "zen-mt-auto zen-flex zen-items-center zen-gap-2 zen-border-t zen-border-zen-border zen-p-3",
+  className:
+    "zen-sticky zen-bottom-0 zen-z-10 zen-mt-auto zen-flex zen-shrink-0 zen-items-center zen-gap-2 zen-overflow-hidden zen-border-t zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-2 zen-transition-[padding] zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)] [[data-rail=labelled]_&]:zen-px-1",
 });
 
+// The labelled rail has no room for a heading, so groups are told apart by a
+// hairline instead. A shadow, not a border, so it takes no layout and nothing
+// below it moves when it appears.
 export const SidebarGroup = styled({
   tag: "div",
-  className: "zen-flex zen-flex-col zen-gap-1 zen-py-2",
+  className:
+    "zen-flex zen-flex-col zen-gap-1 zen-py-2 [[data-rail=labelled]_&]:zen-shadow-[0_-1px_0_var(--zen-color-border)] [[data-rail=labelled]_&]:first:zen-shadow-none",
 });
 
 // The list reset is the component's own job: zen-ui ships no element reset (it is
@@ -566,7 +726,7 @@ export interface SidebarGroupLabelProps extends BaseProps {
 }
 
 const GROUP_LABEL_BASE =
-  "zen-px-3 zen-py-1 zen-text-xs zen-font-medium zen-uppercase zen-tracking-wide zen-text-zen-muted-fg";
+  "zen-grid zen-text-xs zen-font-medium zen-uppercase zen-tracking-wide zen-text-zen-muted-fg zen-transition-[grid-template-rows,opacity,padding] zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)]";
 
 export function SidebarGroupLabel(props: SidebarGroupLabelProps): ZenComponent<SidebarGroupLabelProps> {
   const ctx = requireCtx(props.sidebar, "SidebarGroupLabel");
@@ -575,16 +735,41 @@ export function SidebarGroupLabel(props: SidebarGroupLabelProps): ZenComponent<S
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
-  // sr-only, not hidden: `display: none` would drop the group name out of the
-  // accessibility tree. Matches SidebarMenuButton.
+  // - icon rail: the heading folds away — its row track goes to 0fr, so the
+  //   rows below glide up with the width instead of jumping 24px on the first
+  //   frame. Faded, not sr-only, so the group is still named.
+  // - labelled rail: it stays, as a centred caption over the group's hairline,
+  //   truncated to the rail. Re-aligning it from start to centre is not
+  //   something a transition can carry, so like the row labels it fades in
+  //   once the rail has moved (never on first paint).
+  const inner = document.createElement("span");
+  inner.className = "zen-min-h-0 zen-truncate";
+  el.append(inner);
+  let lastRail = railOf(ctx);
+  let moved = false;
   const applyCollapse = () => {
-    el.className = cn(GROUP_LABEL_BASE, ctx.rail && "zen-sr-only", current.class);
+    const rail = railOf(ctx);
+    if (rail !== lastRail) {
+      lastRail = rail;
+      moved = true;
+    }
+    el.className = cn(
+      GROUP_LABEL_BASE,
+      rail === "icon"
+        ? "zen-grid-rows-[0fr] zen-px-3 zen-py-0 zen-opacity-0"
+        : rail === "labelled"
+          ? "zen-grid-rows-[1fr] zen-px-0 zen-py-1 zen-text-center"
+          : "zen-grid-rows-[1fr] zen-px-3 zen-py-1",
+      moved && rail === "labelled" && "[&>span]:zen-anim-sidebar-label-rail",
+      moved && ctx.collapseMode === "labelled" && !rail && "[&>span]:zen-anim-sidebar-label-row",
+      current.class,
+    );
   };
 
   const render = () => {
     const { sidebar: _s, class: _c, children, ...rest } = current;
     applyCollapse();
-    el.replaceChildren(...toNodes(children));
+    inner.replaceChildren(...toNodes(children));
     removeProps?.();
     removeProps = applyProps(el, rest as Record<string, unknown>);
   };
@@ -624,8 +809,62 @@ export interface SidebarMenuButtonProps extends BaseProps {
   rel?: string;
 }
 
-const MENU_BUTTON_STATIC =
-  "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2 [&>svg]:zen-size-4 [&>svg]:zen-shrink-0";
+/**
+ * A menu row's classes, by where it is drawn. The geometry is what makes
+ * collapsing smooth, so it is worth stating:
+ *
+ * - The icon never re-centres. It sits at content inset + row inset from the
+ *   edge, and each rail width in tokens.css is derived from those insets, so
+ *   on the rail the icon is centred by padding that eases over, not by
+ *   `justify-center` flipping on the first frame (which threw it 100px right
+ *   while the rail was still wide, then slid it back).
+ * - On the icon rail the label stays in the row, truncated and faded, and the
+ *   rail clips it; it shrinks with the width instead of vanishing at t=0.
+ *   Faded, not sr-only, so the row keeps its accessible name.
+ * - On the labelled rail the label moves under the icon. That changes its
+ *   position scheme, which no transition can carry, so it fades in once the
+ *   rail is nearly narrow (zen-anim-sidebar-label-*). The highlight covers
+ *   the whole tile, label included, with the same rounded-zen-md box as
+ *   every other row: not a Material pill around the icon alone, which
+ *   understated the click target and left the label outside its own mark.
+ *
+ * The label is `[&>span:not([data-sidebar-badge])]`, spelled out in every
+ * class below rather than interpolated: UnoCSS extracts classes from the
+ * source text, so a `${...}:zen-truncate` template generates no CSS at all.
+ */
+function menuButtonClass(o: {
+  active: boolean;
+  rail: "icon" | "labelled" | null;
+  labelledMode: boolean;
+  moved: boolean;
+}): string {
+  return cn(
+    "zen-relative zen-flex zen-w-full zen-items-center zen-gap-2 zen-overflow-hidden zen-whitespace-nowrap zen-rounded-zen-md zen-text-sm zen-font-medium zen-no-underline",
+    "zen-transition-[color,background-color,padding]",
+    MOTION,
+    "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+    "[&>svg]:zen-my-0.5 [&>svg]:zen-size-4 [&>svg]:zen-shrink-0",
+    "[&>span:not([data-sidebar-badge])]:zen-min-w-0 [&>span:not([data-sidebar-badge])]:zen-truncate",
+    "[&>span]:zen-transition-opacity [&>span]:zen-duration-[var(--zen-sidebar-duration)] [&>span]:zen-ease-[var(--zen-sidebar-ease)]",
+    // Labelled tile, 50px: 6px, the icon's 20px line, 2px, a 16px label, 6px.
+    // The icon's top (8px) is the same as an expanded row's, so it only
+    // slides sideways.
+    o.rail === "labelled" ? "zen-px-7 zen-pb-6 zen-pt-1.5" : o.rail === "icon" ? "zen-px-4 zen-py-2" : "zen-px-3 zen-py-2",
+    o.rail === "icon" && "[&>span]:zen-opacity-0",
+    o.rail === "labelled" &&
+      "[&>span:not([data-sidebar-badge])]:zen-absolute [&>span:not([data-sidebar-badge])]:zen-inset-x-1 [&>span:not([data-sidebar-badge])]:zen-bottom-1.5 [&>span:not([data-sidebar-badge])]:zen-text-center [&>span:not([data-sidebar-badge])]:zen-text-xs",
+    o.moved && o.rail === "labelled" && "[&>span:not([data-sidebar-badge])]:zen-anim-sidebar-label-rail",
+    o.moved && o.labelledMode && !o.rail && "[&>span:not([data-sidebar-badge])]:zen-anim-sidebar-label-row",
+    // As a link (`as: "a"`) it would otherwise take the browser's underline and
+    // link blue: zen-ui ships no element reset. SidebarMenuSubButton has always
+    // set both.
+    o.active ? "zen-text-zen-primary-soft-fg" : "zen-text-zen-foreground",
+    // The highlight is the row's own background, so on the labelled rail it
+    // is the whole tile — icon and label, exactly the area that is clickable —
+    // and it shrinks into that tile with the row rather than being redrawn.
+    o.active ? "zen-bg-zen-primary-soft" : "hover:zen-bg-zen-muted",
+  );
+}
 
 export function SidebarMenuButton(props: SidebarMenuButtonProps): ZenComponent<SidebarMenuButtonProps> {
   const ctx = requireCtx(props.sidebar, "SidebarMenuButton");
@@ -634,25 +873,38 @@ export function SidebarMenuButton(props: SidebarMenuButtonProps): ZenComponent<S
   if ((current.as ?? "button") === "button" && current.type === undefined) {
     el.setAttribute("type", "button");
   }
+  el.setAttribute(SIDEBAR_MENU_BUTTON_ATTR, "");
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
+  // The labelled label only fades once the rail has actually moved — never on
+  // first paint, which would hide a sidebar's labels behind an animation.
+  let lastRail = railOf(ctx);
+  let moved = false;
   const applyClass = () => {
-    const collapsed = ctx.rail;
+    const rail = railOf(ctx);
+    if (rail !== lastRail) {
+      lastRail = rail;
+      moved = true;
+    }
     el.className = cn(
-      "zen-flex zen-w-full zen-items-center zen-gap-2 zen-rounded-zen-md zen-px-3 zen-py-2 zen-text-sm zen-font-medium zen-no-underline zen-transition-colors",
-      MENU_BUTTON_STATIC,
-      // As a link (`as: "a"`) it would otherwise take the browser's underline
-      // and link blue: zen-ui ships no element reset. SidebarMenuSubButton has
-      // always set both.
-      current.active ? "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg" : "zen-text-zen-foreground",
-      // sr-only, not hidden: a collapsed rail is a column of icon buttons whose
-      // only accessible name is the span. `display: none` would leave them nameless.
-      collapsed && "zen-relative zen-justify-center zen-px-0 [&>span]:zen-sr-only",
+      menuButtonClass({
+        active: !!current.active,
+        rail,
+        labelledMode: ctx.collapseMode === "labelled",
+        moved,
+      }),
       current.class,
     );
     if (current.active) el.setAttribute("data-active", "");
     else el.removeAttribute("data-active");
+    // Unless the caller says otherwise: SidebarMenuSub's `active` means "holds
+    // the current item", not "is the page", and this runs on every context
+    // change, after applyProps has set the caller's value.
+    if (!("aria-current" in current)) {
+      if (current.active) el.setAttribute("aria-current", "page");
+      else el.removeAttribute("aria-current");
+    }
   };
 
   const render = () => {
@@ -711,7 +963,10 @@ export function SidebarMenuSubButton(
   const render = () => {
     const { as: _as, active, class: className, children, ...rest } = current;
     el.className = cn(
-      "zen-flex zen-w-full zen-items-center zen-gap-2 zen-rounded-zen-md zen-px-3 zen-py-1.5 zen-text-sm zen-no-underline zen-transition-colors",
+      // One line, as the rows above are (shadcn truncates both): wrapped, a
+      // sub-row grew taller as a closing sidebar narrowed and pushed every row
+      // below it down mid-animation.
+      "zen-flex zen-w-full zen-items-center zen-gap-2 zen-overflow-hidden zen-whitespace-nowrap zen-rounded-zen-md zen-px-3 zen-py-1.5 zen-text-sm zen-no-underline zen-transition-colors [&>span]:zen-truncate",
       "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
       "[&>svg]:zen-size-4 [&>svg]:zen-shrink-0",
       active
@@ -721,6 +976,8 @@ export function SidebarMenuSubButton(
     );
     if (active) el.setAttribute("data-active", "");
     else el.removeAttribute("data-active");
+    if (active) el.setAttribute("aria-current", "page");
+    else el.removeAttribute("aria-current");
     el.replaceChildren(...toNodes(children));
     removeProps?.();
     removeProps = applyProps(el, rest as Record<string, unknown>);
@@ -753,7 +1010,7 @@ const SUB_LIST_CLASS =
   "zen-mb-0 zen-ml-4 zen-mr-0 zen-mt-0.5 zen-flex zen-list-none zen-flex-col zen-gap-0.5 zen-border-0 zen-border-l zen-border-solid zen-border-zen-border zen-pb-0 zen-pl-3 zen-pr-0 zen-pt-0";
 
 const CHEVRON_MARKUP =
-  `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="zen-ml-auto zen-transition-transform"><polyline points="9 18 15 12 9 6"/></svg>`;
+  `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="zen-ml-auto zen-transition-[transform,opacity] zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)]"><polyline points="9 18 15 12 9 6"/></svg>`;
 
 function makeChevron(open: boolean, after = false): SVGElement {
   const t = document.createElement("template");
@@ -819,59 +1076,28 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     return badge.el;
   };
 
-  const buildExpanded = (md: Disposer) => {
+  // ONE row for both modes, with the flyout's Popover always wrapped around
+  // it, rather than a different row per mode: rebuilding on every collapse
+  // put a fresh row in at its rail position while every other row eased
+  // there. The Popover only ever opens on the rail; expanded, the row's own
+  // click discloses the list inline.
+  const build = (md: Disposer) => {
     el.replaceChildren();
 
     const span = document.createElement("span");
     span.append(...labelNodes());
     const chevron = makeChevron(openState.get(), hasBadge());
 
-    const button = SidebarMenuButton({
+    const row = SidebarMenuButton({
       sidebar: ctx,
       active: current.active,
       class: current.class,
-      "aria-expanded": String(openState.get()),
-      onClick: () => openState.set(!openState.get()),
+      // `active` here means "holds the current item", not "is the page".
+      "aria-current": "false",
+      onClick: () => {
+        if (!ctx.rail) openState.set(!openState.get());
+      },
       children: [...iconNodes, span, hasBadge() ? makeBadge(md) : null, chevron],
-    });
-
-    const list = document.createElement("ul");
-    list.className = SUB_LIST_CLASS;
-
-    const paint = (open: boolean) => {
-      button.el.setAttribute("aria-expanded", String(open));
-      chevron.classList.toggle("zen-rotate-90", open);
-      if (open) {
-        list.replaceChildren(...subItems);
-        if (!list.isConnected) el.append(list);
-      } else {
-        list.remove();
-      }
-    };
-
-    el.append(button.el);
-    paint(openState.get());
-
-    md.add(openState.subscribe(paint));
-    md.add(() => button.destroy());
-  };
-
-  const buildCollapsed = (md: Disposer) => {
-    el.replaceChildren();
-
-    // Match React's effect: entering the collapsed rail closes the disclosure so
-    // it does not immediately re-open as a flyout (both modes read the same state).
-    openState.set(false);
-
-    const span = document.createElement("span");
-    span.append(...labelNodes());
-    // No chevron on a 48px rail: there is no room, and a bare <svg> would survive
-    // the collapsed `[&>span]:sr-only` rule and read as a second icon.
-    const trigger = SidebarMenuButton({
-      sidebar: ctx,
-      active: current.active,
-      class: current.class,
-      children: [...iconNodes, span],
     });
 
     const heading = document.createElement("div");
@@ -885,46 +1111,98 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
 
     const flyList = document.createElement("ul");
     flyList.className = cn(SUB_LIST_CLASS, "zen-ml-0 zen-border-l-0 zen-pl-0");
-    flyList.append(...subItems);
+    // The inline list opens and closes on the sidebar's clock: its row track
+    // eases between 0fr and 1fr, so the rows below glide instead of jumping.
+    // Closed it is inert, so its links cannot take focus. The list's own top
+    // margin moves out to the wrapper, or a closed track would still hold it
+    // open by 2px.
+    const disclosure = document.createElement("div");
+    const list = document.createElement("ul");
+    list.className = cn(SUB_LIST_CLASS, "zen-mt-0 zen-min-h-0 zen-overflow-hidden");
+    disclosure.append(list);
 
     const pop = Popover({
-      trigger,
+      trigger: row,
       children: [heading, flyList],
       side: "right",
       align: "start",
       class: "zen-w-56 zen-p-2",
-      open: openState.get(),
-      onOpenChange: (o) => openState.set(o),
+      open: false,
+      // The Popover hears the row's click too; only a rail opens it.
+      onOpenChange: (o) => {
+        if (ctx.rail) openState.set(o);
+      },
     });
-    // The Popover wrapper is inline-flex; the rail row must fill the width so the
-    // collapsed button centres its icon across the strip.
+    const controls = row.el.getAttribute("aria-controls");
+    // The Popover wrapper is inline-flex; the row must fill the width.
     pop.el.style.display = "flex";
     pop.el.style.width = "100%";
 
-    el.append(pop.el);
+    // The sub items live in one place at a time; see paint() below.
+    const paint = () => {
+      const open = openState.get();
+      const rail = ctx.rail;
+      row.el.setAttribute("aria-expanded", String(open));
+      // The Popover marks its trigger as opening a dialog; only true on the rail.
+      if (rail) {
+        row.el.setAttribute("aria-haspopup", "dialog");
+        if (controls) row.el.setAttribute("aria-controls", controls);
+      } else {
+        row.el.removeAttribute("aria-haspopup");
+        row.el.removeAttribute("aria-controls");
+      }
+      chevron.classList.toggle("zen-rotate-90", open && !rail);
+      // On a rail it would read as a second icon.
+      chevron.classList.toggle("zen-opacity-0", rail);
+      const inline = open && !rail;
+      disclosure.className = cn(
+        "zen-grid zen-transition-[grid-template-rows,margin]",
+        MOTION,
+        inline ? "zen-mt-0.5 zen-grid-rows-[1fr]" : "zen-mt-0 zen-grid-rows-[0fr]",
+      );
+      disclosure.inert = !inline;
+      // The items live in one place at a time: the flyout while it is open,
+      // the inline list otherwise (closed, it keeps them out of sight).
+      if (open && rail) {
+        flyList.replaceChildren(...subItems);
+        pop.update({ open: true });
+      } else {
+        pop.update({ open: false });
+        list.replaceChildren(...subItems);
+      }
+    };
 
-    md.add(openState.subscribe((o) => pop.update({ open: o })));
+    el.append(pop.el, disclosure);
+    paint();
+    repaint = paint;
+
+    md.add(openState.subscribe(paint));
     md.add(() => pop.destroy());
-    md.add(() => trigger.destroy());
+    md.add(() => row.destroy());
   };
 
-  // The mode follows `rail`, not `collapsed`: a hidden sidebar or a closed
-  // overlay is collapsed but keeps its inline rows. Rebuilt only when the mode
-  // changes, since the context also notifies for changes that leave it alone.
-  let builtRail: boolean | undefined;
+  // Entering the rail closes the disclosure, so it does not immediately
+  // re-open as a flyout (both modes read the same state). The context also
+  // notifies for changes that leave the rail alone.
+  let wasRail = ctx.rail;
+  let repaint: (() => void) | null = null;
   const rebuild = () => {
     modeDisposer?.dispose();
     const md = new Disposer();
     modeDisposer = md;
-    builtRail = ctx.rail;
-    if (builtRail) buildCollapsed(md);
-    else buildExpanded(md);
+    build(md);
   };
 
   rebuild();
   disposer.add(
     ctx.subscribe(() => {
-      if (ctx.rail !== builtRail) rebuild();
+      const rail = ctx.rail;
+      if (rail === wasRail) return;
+      wasRail = rail;
+      // Closing repaints through the subscription; otherwise repaint here,
+      // since a rail change alone still moves the items and the chevron.
+      if (rail && openState.get()) openState.set(false);
+      else repaint?.();
     }),
   );
   disposer.add(() => modeDisposer?.dispose());
@@ -972,6 +1250,11 @@ export function SidebarTrigger(props: SidebarTriggerProps): ZenComponent<Sidebar
   const el = document.createElement(current.as ?? "button");
   if ((current.as ?? "button") === "button") el.setAttribute("type", "button");
   el.setAttribute("aria-label", loc.t("sidebar.toggleSidebar"));
+  const applyState = () => {
+    el.setAttribute("aria-expanded", String(!ctx.collapsed));
+    el.setAttribute("aria-controls", ctx.sidebarId);
+  };
+  applyState();
   // An open overlay closes on a pointerdown outside it; the toggle is exempt,
   // so pressing it closes the overlay once (its own click) rather than closing
   // it and then toggling it straight back open.
@@ -986,11 +1269,12 @@ export function SidebarTrigger(props: SidebarTriggerProps): ZenComponent<Sidebar
   };
   el.addEventListener("click", onClick);
   disposer.add(() => el.removeEventListener("click", onClick));
+  disposer.add(ctx.subscribe(applyState));
 
   const render = () => {
     const { sidebar: _s, as: _as, class: className, children, onClick: _oc, ...rest } = current;
     el.className = cn(
-      "zen-inline-flex zen-h-9 zen-w-9 zen-items-center zen-justify-center zen-rounded-zen-md zen-text-zen-foreground zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
+      "zen-inline-flex zen-h-9 zen-w-9 zen-shrink-0 zen-items-center zen-justify-center zen-rounded-zen-md zen-text-zen-foreground zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
       className,
     );
     const kids = toNodes(children);

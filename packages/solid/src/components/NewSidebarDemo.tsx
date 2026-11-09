@@ -16,34 +16,8 @@ import {
   SidebarMenuSubButton,
   SidebarTrigger,
 } from "./sidebar/sidebar";
+import { Icon } from "./icon/icon";
 import { DemoPage, DemoSection } from "./demo-helpers";
-
-const HomeIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-    <polyline points="9 22 9 12 15 12 15 22" />
-  </svg>
-);
-const UsersIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-  </svg>
-);
-const ChartIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="18" y1="20" x2="18" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="6" y1="20" x2="6" y2="14" />
-  </svg>
-);
-const CogIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-  </svg>
-);
 
 const NewSidebarDemo = () => (
   <DemoPage
@@ -52,7 +26,8 @@ const NewSidebarDemo = () => (
       <>
         Collapsible navigation shell. <code>SidebarProvider</code> holds the
         open/collapsed state; the parts compose header / scrollable content /
-        grouped menu / footer. Collapsing shrinks the rail to an icon-only strip.
+        grouped menu / footer. Collapsing shrinks it to an icon rail, a rail that
+        keeps its labels, or hides it.
         Use <code>SidebarMenuButton</code>'s <code>as</code> to render a router{" "}
         <code>Link</code>, and <code>active</code> to mark the current item.
       </>
@@ -74,19 +49,19 @@ const NewSidebarDemo = () => (
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton active>
-                <HomeIcon /><span>Dashboard</span>
+                <Icon name="home" /><span>Dashboard</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton>
-                <UsersIcon /><span>Team</span>
+                <Icon name="users" /><span>Team</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenuButton><CogIcon /><span>Settings</span></SidebarMenuButton>
+        <SidebarMenuButton><Icon name="cog" /><span>Settings</span></SidebarMenuButton>
       </SidebarFooter>
     </Sidebar>
     <div style={{ flex: 1, padding: "16px" }}>Page content…</div>
@@ -106,13 +81,13 @@ const NewSidebarDemo = () => (
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton active>
-                      <HomeIcon />
+                      <Icon name="home" />
                       <span>Dashboard</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton>
-                      <UsersIcon />
+                      <Icon name="users" />
                       <span>Team</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -121,7 +96,7 @@ const NewSidebarDemo = () => (
             </SidebarContent>
             <SidebarFooter>
               <SidebarMenuButton>
-                <CogIcon />
+                <Icon name="cog" />
                 <span>Settings</span>
               </SidebarMenuButton>
             </SidebarFooter>
@@ -138,11 +113,11 @@ const NewSidebarDemo = () => (
       code={`<SidebarMenu>
   <SidebarMenuItem>
     <SidebarMenuButton active>
-      <HomeIcon /><span>Dashboard</span>
+      <Icon name="home" /><span>Dashboard</span>
     </SidebarMenuButton>
   </SidebarMenuItem>
   <SidebarMenuItem>
-    <SidebarMenuSub label="Reports" icon={<ChartIcon />}>
+    <SidebarMenuSub label="Reports" icon={<Icon name="bar-chart" />}>
       <SidebarMenuSubItem>
         <SidebarMenuSubButton as="a" href="#sales" active>
           Sales
@@ -170,12 +145,12 @@ const NewSidebarDemo = () => (
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton active>
-                      <HomeIcon />
+                      <Icon name="home" />
                       <span>Dashboard</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuSub label="Reports" icon={<ChartIcon />}>
+                    <SidebarMenuSub label="Reports" icon={<Icon name="bar-chart" />}>
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton as="a" href="#sales">
                           Sales
@@ -190,7 +165,7 @@ const NewSidebarDemo = () => (
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton>
-                      <UsersIcon />
+                      <Icon name="users" />
                       <span>Team</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -303,13 +278,13 @@ const NewSidebarDemo = () => (
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton as="a" href="#home" active>
-                    <HomeIcon />
+                    <Icon name="home" />
                     <span>Home</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton as="a" href="#team">
-                    <UsersIcon />
+                    <Icon name="users" />
                     <span>Team</span>
                     <SidebarMenuBadge>4</SidebarMenuBadge>
                   </SidebarMenuButton>
@@ -321,6 +296,147 @@ const NewSidebarDemo = () => (
             <SidebarTrigger />
             <p class="zen-mt-2 zen-text-sm zen-text-zen-muted-fg">Page content…</p>
           </div>
+        </div>
+      </SidebarProvider>
+    </DemoSection>
+
+    <DemoSection
+      title="5. A rail that keeps its labels"
+      codeTitle='collapseMode="labelled"'
+      codeDescription="Collapsed, each row keeps a short label under its icon, so the rail can be read rather than remembered. Group headings stay as small captions over a hairline, a count moves onto its icon's corner, and a label too long for the rail is truncated, with the full name in a tooltip. On the icon rail every row has that tooltip."
+      code={`<SidebarProvider collapseMode="labelled">
+  <div style={{ display: "flex", height: "480px" }}>
+    <Sidebar>
+      <SidebarHeader>
+        <SidebarTrigger />
+        <SidebarHeaderLabel>Acme</SidebarHeaderLabel>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton active>
+                <Icon name="home" /><span>Home</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <Icon name="users" /><span>Team</span>
+                <SidebarMenuBadge>4</SidebarMenuBadge>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton>
+                <Icon name="inbox" /><span>Inbox</span>
+                <SidebarMenuBadge>12</SidebarMenuBadge>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            {/* Calendar, Documents, Notifications … */}
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Insights</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuSub label="Reports" icon={<Icon name="bar-chart" />}>…</SidebarMenuSub>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenuButton><Icon name="cog" /><span>Preferences</span></SidebarMenuButton>
+      </SidebarFooter>
+    </Sidebar>
+    <div style={{ flex: 1, padding: "16px" }}>Page content…</div>
+  </div>
+</SidebarProvider>`}
+    >
+      <SidebarProvider collapseMode="labelled" defaultCollapsed>
+        <div class="zen-flex zen-h-120 zen-w-full zen-overflow-hidden zen-rounded-zen-lg zen-border zen-border-zen-border" data-testid="labelled-frame">
+          <Sidebar>
+            <SidebarHeader>
+              <SidebarTrigger />
+              <SidebarHeaderLabel>Acme</SidebarHeaderLabel>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarGroup>
+                <SidebarGroupLabel>Main</SidebarGroupLabel>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton active>
+                      <Icon name="home" />
+                      <span>Home</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Icon name="users" />
+                      <span>Team</span>
+                      <SidebarMenuBadge>4</SidebarMenuBadge>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroup>
+              <SidebarGroup>
+                <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Icon name="inbox" />
+                      <span>Inbox</span>
+                      <SidebarMenuBadge>12</SidebarMenuBadge>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Icon name="calendar" />
+                      <span>Calendar</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Icon name="file" />
+                      <span>Documents</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Icon name="bell" />
+                      <span>Notifications</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroup>
+              <SidebarGroup>
+                <SidebarGroupLabel>Insights</SidebarGroupLabel>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuSub label="Reports" icon={<Icon name="bar-chart" />}>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton as="a" href="#sales">Sales</SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton as="a" href="#forecast">Forecast</SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroup>
+            </SidebarContent>
+            <SidebarFooter>
+              <SidebarMenuButton>
+                <Icon name="cog" />
+                <span>Preferences</span>
+              </SidebarMenuButton>
+            </SidebarFooter>
+          </Sidebar>
+          <div class="zen-flex-1 zen-p-4">Page content…</div>
         </div>
       </SidebarProvider>
     </DemoSection>

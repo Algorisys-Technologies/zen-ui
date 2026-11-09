@@ -18,6 +18,7 @@ import {
   type SidebarContextValue,
   type SidebarProviderProps,
 } from "./sidebar/sidebar";
+import { Icon } from "./icon/icon";
 import { DemoPage } from "./demo-helpers";
 
 /**
@@ -26,29 +27,6 @@ import { DemoPage } from "./demo-helpers";
  * adapted to the vanilla parts, which take the collapse context explicitly as
  * `sidebar` instead of reading React context.
  */
-
-const svg = (markup: string): SVGElement => {
-  const t = document.createElement("template");
-  t.innerHTML = markup;
-  return t.content.firstChild as SVGElement;
-};
-
-const HomeIcon = () =>
-  svg(
-    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-  );
-const UsersIcon = () =>
-  svg(
-    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>`,
-  );
-const ChartIcon = () =>
-  svg(
-    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
-  );
-const CogIcon = () =>
-  svg(
-    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
-  );
 
 const span = (text: string): HTMLSpanElement => {
   const s = document.createElement("span");
@@ -131,7 +109,7 @@ export default function SidebarDemo(): HTMLElement {
   return DemoPage({
     title: "Sidebar",
     description:
-      "Collapsible navigation shell. SidebarProvider holds the open/collapsed state; the parts compose header / scrollable content / grouped menu / footer. Collapsing shrinks the rail to an icon-only strip. React reads the state from context; with no framework, SidebarProvider hands a context object to each part as `sidebar`.",
+      "Collapsible navigation shell. SidebarProvider holds the open/collapsed state; the parts compose header / scrollable content / grouped menu / footer. Collapsing shrinks it to an icon rail, a rail that keeps its labels, or hides it. React reads the state from context; with no framework, SidebarProvider hands a context object to each part as `sidebar`.",
     sections: [
       {
         title: "1. Collapsible rail (click the toggle)",
@@ -151,15 +129,15 @@ export default function SidebarDemo(): HTMLElement {
           SidebarMenu({ children: [
             SidebarMenuItem({ children:
               SidebarMenuButton({ sidebar: ctx, active: true,
-                children: [HomeIcon(), span("Dashboard")] }) }),
+                children: [Icon({ name: "home" }), span("Dashboard")] }) }),
             SidebarMenuItem({ children:
               SidebarMenuButton({ sidebar: ctx,
-                children: [UsersIcon(), span("Team")] }) }),
+                children: [Icon({ name: "users" }), span("Team")] }) }),
           ] }),
         ] }) }),
         SidebarFooter({ children:
           SidebarMenuButton({ sidebar: ctx,
-            children: [CogIcon(), span("Settings")] }) }),
+            children: [Icon({ name: "cog" }), span("Settings")] }) }),
       ] }).el,
       pageContent,
     );
@@ -183,13 +161,13 @@ document.body.append(shell.el);`,
                             children: SidebarMenuButton({
                               sidebar: ctx,
                               active: true,
-                              children: [HomeIcon(), span("Dashboard")],
+                              children: [Icon({ name: "home" }), span("Dashboard")],
                             }),
                           }),
                           SidebarMenuItem({
                             children: SidebarMenuButton({
                               sidebar: ctx,
-                              children: [UsersIcon(), span("Team")],
+                              children: [Icon({ name: "users" }), span("Team")],
                             }),
                           }),
                         ],
@@ -200,7 +178,7 @@ document.body.append(shell.el);`,
                 SidebarFooter({
                   children: SidebarMenuButton({
                     sidebar: ctx,
-                    children: [CogIcon(), span("Settings")],
+                    children: [Icon({ name: "cog" }), span("Settings")],
                   }),
                 }),
               ],
@@ -215,9 +193,9 @@ document.body.append(shell.el);`,
         code: `SidebarMenu({ children: [
   SidebarMenuItem({ children:
     SidebarMenuButton({ sidebar: ctx, active: true,
-      children: [HomeIcon(), span("Dashboard")] }) }),
+      children: [Icon({ name: "home" }), span("Dashboard")] }) }),
   SidebarMenuItem({ children:
-    SidebarMenuSub({ sidebar: ctx, label: "Reports", icon: ChartIcon(), children: [
+    SidebarMenuSub({ sidebar: ctx, label: "Reports", icon: Icon({ name: "bar-chart" }), children: [
       SidebarMenuSubItem({ children:
         SidebarMenuSubButton({ as: "a", href: "#sales", active: true, children: "Sales" }) }),
       SidebarMenuSubItem({ children:
@@ -225,7 +203,7 @@ document.body.append(shell.el);`,
     ] }) }),
   SidebarMenuItem({ children:
     SidebarMenuButton({ sidebar: ctx,
-      children: [UsersIcon(), span("Team")] }) }),
+      children: [Icon({ name: "users" }), span("Team")] }) }),
 ] })`,
         render: () =>
           frame((ctx) =>
@@ -243,14 +221,14 @@ document.body.append(shell.el);`,
                             children: SidebarMenuButton({
                               sidebar: ctx,
                               active: true,
-                              children: [HomeIcon(), span("Dashboard")],
+                              children: [Icon({ name: "home" }), span("Dashboard")],
                             }),
                           }),
                           SidebarMenuItem({
                             children: SidebarMenuSub({
                               sidebar: ctx,
                               label: "Reports",
-                              icon: ChartIcon(),
+                              icon: Icon({ name: "bar-chart" }),
                               children: [
                                 SidebarMenuSubItem({
                                   children: SidebarMenuSubButton({
@@ -273,7 +251,7 @@ document.body.append(shell.el);`,
                           SidebarMenuItem({
                             children: SidebarMenuButton({
                               sidebar: ctx,
-                              children: [UsersIcon(), span("Team")],
+                              children: [Icon({ name: "users" }), span("Team")],
                             }),
                           }),
                         ],
@@ -392,7 +370,7 @@ document.body.append(shell.el);`,
                           as: "a",
                           href: "#home",
                           active: true,
-                          children: [HomeIcon(), span("Home")],
+                          children: [Icon({ name: "home" }), span("Home")],
                         }),
                       }),
                       SidebarMenuItem({
@@ -400,7 +378,7 @@ document.body.append(shell.el);`,
                           sidebar: ctx,
                           as: "a",
                           href: "#team",
-                          children: [UsersIcon(), span("Team"), SidebarMenuBadge({ children: "4" })],
+                          children: [Icon({ name: "users" }), span("Team"), SidebarMenuBadge({ children: "4" })],
                         }),
                       }),
                     ],
@@ -409,6 +387,145 @@ document.body.append(shell.el);`,
               ],
             }).el,
           ),
+      },
+      {
+        title: "5. A rail that keeps its labels",
+        codeTitle: 'collapseMode: "labelled"',
+        codeDescription:
+          "Collapsed, each row keeps a short label under its icon, so the rail can be read rather than remembered. Group headings stay as small captions over a hairline, a count moves onto its icon's corner, and a label too long for the rail is truncated, with the full name in a tooltip. On the icon rail every row has that tooltip.",
+        code: `SidebarProvider({
+  collapseMode: "labelled",
+  children: (ctx) => row(
+    Sidebar({ sidebar: ctx, children: [
+      SidebarHeader({ sidebar: ctx, children: [
+        SidebarTrigger({ sidebar: ctx }),
+        SidebarHeaderLabel({ sidebar: ctx, children: "Acme" }),
+      ] }),
+      SidebarContent({ children: [
+        SidebarGroup({ children: [
+          SidebarGroupLabel({ sidebar: ctx, children: "Main" }),
+          SidebarMenu({ children: [
+            SidebarMenuItem({ children: SidebarMenuButton({ sidebar: ctx, active: true, children: [Icon({ name: "home" }), span("Home")] }) }),
+            SidebarMenuItem({ children: SidebarMenuButton({ sidebar: ctx, children: [Icon({ name: "users" }), span("Team"), SidebarMenuBadge({ children: "4" })] }) }),
+          ] }),
+        ] }),
+        SidebarGroup({ children: [
+          SidebarGroupLabel({ sidebar: ctx, children: "Workspace" }),
+          SidebarMenu({ children: [
+            SidebarMenuItem({ children: SidebarMenuButton({ sidebar: ctx, children: [Icon({ name: "inbox" }), span("Inbox"), SidebarMenuBadge({ children: "12" })] }) }),
+            // Calendar, Documents, Notifications …
+          ] }),
+        ] }),
+        SidebarGroup({ children: [
+          SidebarGroupLabel({ sidebar: ctx, children: "Insights" }),
+          SidebarMenu({ children: SidebarMenuItem({ children: SidebarMenuSub({ sidebar: ctx, label: "Reports", icon: Icon({ name: "bar-chart" }), children: … }) }) }),
+        ] }),
+      ] }),
+      SidebarFooter({ children: SidebarMenuButton({ sidebar: ctx, children: [Icon({ name: "cog" }), span("Preferences")] }) }),
+    ] }),
+    page,
+  ),
+})`,
+        render: () =>
+          SidebarProvider({
+            collapseMode: "labelled",
+            defaultCollapsed: true,
+            children: (ctx) => {
+              const row = document.createElement("div");
+              row.dataset.testid = "labelled-frame";
+              row.style.display = "flex";
+              row.style.height = "480px";
+              row.style.width = "100%";
+              row.style.border = "1px solid var(--zen-color-border)";
+              row.style.borderRadius = "8px";
+              row.style.overflow = "hidden";
+              const page = document.createElement("div");
+              page.style.flex = "1";
+              page.style.padding = "16px";
+              page.textContent = "Page content…";
+              row.append(
+                Sidebar({
+                  sidebar: ctx,
+                  children: [
+                    SidebarHeader({
+                      sidebar: ctx,
+                      children: [
+                        SidebarTrigger({ sidebar: ctx }).el,
+                        SidebarHeaderLabel({ sidebar: ctx, children: "Acme" }).el,
+                      ],
+                    }),
+                    SidebarContent({
+                      children: [
+                        SidebarGroup({
+                          children: [
+                            SidebarGroupLabel({ sidebar: ctx, children: "Main" }),
+                            SidebarMenu({
+                              children: [
+                                SidebarMenuItem({
+                                  children: SidebarMenuButton({
+                                    sidebar: ctx,
+                                    active: true,
+                                    children: [Icon({ name: "home" }), span("Home")],
+                                  }),
+                                }),
+                                SidebarMenuItem({
+                                  children: SidebarMenuButton({
+                                    sidebar: ctx,
+                                    children: [Icon({ name: "users" }), span("Team"), SidebarMenuBadge({ children: "4" })],
+                                  }),
+                                }),
+                              ],
+                            }),
+                          ],
+                        }),
+                        SidebarGroup({
+                          children: [
+                            SidebarGroupLabel({ sidebar: ctx, children: "Workspace" }),
+                            SidebarMenu({
+                              children: [
+                                SidebarMenuItem({
+                                  children: SidebarMenuButton({ sidebar: ctx, children: [Icon({ name: "inbox" }), span("Inbox"), SidebarMenuBadge({ children: "12" })] }),
+                                }),
+                                SidebarMenuItem({
+                                  children: SidebarMenuButton({ sidebar: ctx, children: [Icon({ name: "calendar" }), span("Calendar")] }),
+                                }),
+                                SidebarMenuItem({
+                                  children: SidebarMenuButton({ sidebar: ctx, children: [Icon({ name: "file" }), span("Documents")] }),
+                                }),
+                                SidebarMenuItem({
+                                  children: SidebarMenuButton({ sidebar: ctx, children: [Icon({ name: "bell" }), span("Notifications")] }),
+                                }),
+                              ],
+                            }),
+                          ],
+                        }),
+                        SidebarGroup({
+                          children: [
+                            SidebarGroupLabel({ sidebar: ctx, children: "Insights" }),
+                            SidebarMenu({
+                              children: SidebarMenuItem({
+                                children: SidebarMenuSub({
+                                  sidebar: ctx,
+                                  label: "Reports",
+                                  icon: Icon({ name: "bar-chart" }),
+                                  children: [subLink("#sales", "Sales"), subLink("#forecast", "Forecast")],
+                                }),
+                              }),
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                    SidebarFooter({
+                      children: SidebarMenuButton({ sidebar: ctx, children: [Icon({ name: "cog" }), span("Preferences")] }),
+                    }),
+                  ],
+                }).el,
+                page,
+              );
+              return row;
+            },
+          }).el,
       },
     ],
   });

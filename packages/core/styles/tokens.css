@@ -793,6 +793,36 @@
 @keyframes zen-slide-in-bottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes zen-slide-out-bottom{ from { transform: translateY(0); } to { transform: translateY(100%); } }
 
+/* Sidebar — the label in collapseMode="labelled" moves between beside its
+ * icon and under it, which no transition can carry (it changes position
+ * scheme). It is faded in instead, held invisible for most of the width
+ * change so it does not ride the shrinking row. Two names, one curve: an
+ * animation only restarts when its NAME changes, and the label needs to
+ * fade both ways. */
+@keyframes zen-sidebar-label-rail { 0%, 70% { opacity: 0; } to { opacity: 1; } }
+@keyframes zen-sidebar-label-row  { 0%, 40% { opacity: 0; } to { opacity: 1; } }
+
+/* ===================================================================== *
+ * Sidebar — widths and motion                                           *
+ *                                                                       *
+ * Each rail width is DERIVED from the padding that centres an icon in   *
+ * it — 2 × (content inset + button inset) + icon — so the icon lands    *
+ * dead centre without the row switching to justify-center, which is     *
+ * what made it jump 100px on every collapse. Override a width and the   *
+ * matching inset must move with it.                                     *
+ *   icon:     2 × (0.5rem + 1rem)    + 1rem = 4rem                      *
+ *   labelled: 2 × (0.25rem + 1.75rem) + 1rem = 5rem                     *
+ * Motion follows shadcn (width, 200ms, linear) and reads                *
+ * --zen-duration-fast, so prefers-reduced-motion stops it.              *
+ * ===================================================================== */
+:root {
+  --zen-sidebar-width: 16rem;
+  --zen-sidebar-rail-width: calc(2 * (0.5rem + 1rem) + 1rem);
+  --zen-sidebar-rail-labelled-width: calc(2 * (0.25rem + 1.75rem) + 1rem);
+  --zen-sidebar-duration: var(--zen-duration-fast);
+  --zen-sidebar-ease: linear;
+}
+
 /* ===================================================================== *
  * Tables — the look of a table's header, cells and hovered row          *
  *                                                                       *
