@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.8.3",
+    date: "2026-11-09",
+    kind: "fixed",
+    title: "Solid: server-rendered SolidStart pages hydrate instead of failing on load",
+    detail: "The browser build could not pick up the server's HTML and threw \"Failed attempt to create new DOM elements during hydration\". Worker and edge runtimes now also get the server build, matching Solid itself.",
+  },
+  {
     version: "12.8.2",
     date: "2026-11-07",
     kind: "fixed",

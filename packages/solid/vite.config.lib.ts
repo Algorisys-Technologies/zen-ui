@@ -6,8 +6,11 @@ import { resolve } from "path";
 // Library build for @algorisys/zen-ui-solid. Externalises solid-js (peer
 // dep) so consumers' Solid runtime is single-instance. Bundles
 // @algorisys/zen-ui-core inline so consumers do not need to install it.
+// hydratable lets an SSR app (SolidStart) hydrate the server build's HTML; a
+// plain DOM build creates new elements and fails hydration. It costs nothing in
+// a client-only app.
 export default defineConfig({
-  plugins: [solid(), UnoCSS()],
+  plugins: [solid({ solid: { hydratable: true } }), UnoCSS()],
   build: {
     emptyOutDir: false,
     lib: {
