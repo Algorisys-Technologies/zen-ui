@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.8.4",
+    date: "2026-11-09",
+    kind: "fixed",
+    title: "Sidebar: collapsing and expanding glide instead of jumping",
+    detail: "Icons used to leap about 100px sideways, the toggle moved out from under the pointer and labels spilled over the page mid-animation. Rows now hold their place while the width moves, the overlay slides, and reduced-motion settings stop it.",
+  },
+  {
     version: "12.8.3",
     date: "2026-11-09",
     kind: "fixed",

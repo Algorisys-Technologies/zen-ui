@@ -794,6 +794,19 @@
 @keyframes zen-slide-out-bottom{ from { transform: translateY(0); } to { transform: translateY(100%); } }
 
 /* ===================================================================== *
+ * Sidebar — collapse motion                                             *
+ *                                                                       *
+ * Width, the rows' padding and the labels' fade all run on this one     *
+ * clock, so nothing finishes early and pops. Follows shadcn (200ms,     *
+ * linear) and reads --zen-duration-fast, so prefers-reduced-motion      *
+ * stops it.                                                             *
+ * ===================================================================== */
+:root {
+  --zen-sidebar-duration: var(--zen-duration-fast);
+  --zen-sidebar-ease: linear;
+}
+
+/* ===================================================================== *
  * Tables — the look of a table's header, cells and hovered row          *
  *                                                                       *
  * Set these instead of overriding the table's classes. The defaults are *

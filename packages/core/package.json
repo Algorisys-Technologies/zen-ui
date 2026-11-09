@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-core",
-  "version": "12.8.3",
+  "version": "12.8.4",
   "license": "PolyForm-Noncommercial-1.0.0",
   "private": true,
   "type": "module",
@@ -38,6 +38,7 @@
     "./grid-range": "./src/grid-range.ts",
     "./tree-select": "./src/tree-select.ts",
     "./keys": "./src/keys.ts",
+    "./sidebar": "./src/sidebar.ts",
     "./date-input": "./src/date-input.ts",
     "./lookup": "./src/lookup.ts",
     "./barcode": "./src/barcode.ts",
