@@ -389,7 +389,7 @@ const NewSidebarDemo = () => (
     </DemoSection>
 
     <DemoSection
-      title="Groups the app controls"
+      title="5. Groups the app controls"
       description="An ERP keeps its groups' open state, so the group the current page lives in is open. Collapse to the rail and expand again: the rail's flyout is the row's own state, so the app's groups are never closed for it — onOpenChange reports only what the user did."
       codeTitle="open + onOpenChange on SidebarMenuSub"
       code={`<SidebarMenuSub label="Stock" open={open().Stock} onOpenChange={(v) => setOpen({ ...open(), Stock: v })}>

@@ -299,16 +299,23 @@ export const StepRunner = (props: StepRunnerProps) => {
                 </ul>
               </Show>
 
-              <Show when={step().measure}>
-                {(m) => (
-                  <MeasurementInput
-                    label={m().label ?? step().title}
-                    unit={m().unit}
-                    spec={m().spec}
-                    disabled={!editable()}
-                    value={draft(step().id).value}
-                    onChange={(v) => patchDraft(step().id, { value: v })}
-                  />
+              {/* Keyed by step: one field per step, so text that is not a
+                  number yet (and so never reached the record) cannot follow
+                  the operator to the next step's reading. */}
+              <Show when={step().id} keyed>
+                {(id) => (
+                  <Show when={step().measure}>
+                    {(m) => (
+                      <MeasurementInput
+                        label={m().label ?? step().title}
+                        unit={m().unit}
+                        spec={m().spec}
+                        disabled={!editable()}
+                        value={draft(id).value}
+                        onChange={(v) => patchDraft(id, { value: v })}
+                      />
+                    )}
+                  </Show>
                 )}
               </Show>
 

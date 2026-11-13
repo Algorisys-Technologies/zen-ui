@@ -70,7 +70,7 @@ const KNOWN: Record<string, string> = {
   "DirectionProviderProps.locale": "react vanilla",
   // MES batch, built Solid-first (one binding at a time): the React and vanilla
   // ports remove this line. Drops from ScheduleBacklog onto ProductionSchedule.
-  "ProductionScheduleProps.onPlace": "react vanilla",
+  "ProductionScheduleProps.onPlace": "vanilla",
   // Vanilla dialogs open through their handle (`.open()`), not a prop: idiom.
   "SelectDialogProps.open": "vanilla",
   "ViewSettingsDialogProps.open": "vanilla",

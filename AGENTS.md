@@ -139,6 +139,24 @@ description, then import the name from your binding's package.
 - **PlanningCalendar** — Resource-by-time grid — rows of people or rooms, appointments as blocks, day / week / month views
 - **Gantt** — Project schedule — a collapsing task tree beside bars on a shared clock, with percent-complete fills, slip chips and dependency arrows; opens on a fit axis taken from the data, one tab stop with arrow-key grid navigation
 - **ProductionSchedule** — Shop-floor schedule — work centres as rows holding many operations in lanes, changeovers drawn as time the machine is busy making nothing, finite capacity with overload, and a load histogram of booked over available WORKING hours
+- **StatePill** — A machine’s state as a labelled pill — running, stopped, setup, planned stops and no data, from one shared vocabulary that also says how OEE counts the time
+- **OeeGauge** — OEE as a half-circle gauge with Availability, Performance and Quality underneath — computed from counts and times, banded against a plant’s own targets, and honest about what it cannot compute
+- **StateTimeline** — A machine’s states along a shift, every stretch exactly as wide as its duration — holes in the record hatched as no data, clickable stops, event markers, an axis in the plant’s timezone; stack them to compare machines
+- **AndonTile / AndonBoard** — The plant board read from across the room — one tile per machine with its state, cause and a downtime clock (never an uptime one), optional trouble-first sorting, and a board that says when its data has stopped updating
+- **ReasonCodePicker** — A touch grid for saying why a machine stopped or a part was scrapped — big targets, category chips, search by words or code, and arrow keys that never record a reason on the way past
+- **ScanInput** — A field for a USB barcode scanner — tells a scan from typing by timing, can refuse typed codes, checks each code through one callback, and can catch scans made anywhere on a station page
+- **ProductionProgress** — A work order’s good and scrap against its target — scrap shown and never counted toward the target, over-production reported, a sliver once work starts, and optional cartons or pallets as segments
+- **MeasurementInput** — An inspection reading checked against its limits as it is typed — pass, near a limit or out in words, a scale showing the tolerance and warning bands, locale-aware decimals, one-sided specs
+- **StepRunner** — Operator work instructions one step at a time — enforced order, checklists that must all be ticked, measurements that must be in tolerance, issues that hold the line, and the reason written when a step cannot complete yet
+- **LiveIndicator** — Whether a live screen is current — “Updated 12s ago”, turning to a warning when data stops arriving and to offline when the connection drops, announced to screen readers once per change
+- **ShiftNavigator** — Step through a plant’s shifts in the plant’s own timezone — night shifts belong to the day they start, daylight-saving days keep wall-clock times, and next stops at now unless the screen plans ahead
+- **PlannedVsActual** — Pieces made this shift against the plan — the gap in words, what was made against what was planned so far, where the pace will end up, and a chart of plan and counter readings up to now
+- **RateBars** — Output in equal time buckets, each bar coloured by what the machine was doing — a short green bar ran slow, a red stub stopped — with the rate now, the average and the target
+- **LineCard** — One production line at a glance — state, the order it is running, good and scrap against target, and when it will finish or why it is not moving
+- **CapacityHeatmap** — Booked hours against available hours, resource by period — a real table whose wash deepens with load, with over-capacity and work booked on a closed line drawn as alarms, totals that sum hours, and a drill-down on each cell
+- **ColumnMapper** — Map a spreadsheet’s columns onto your fields — matched by name, never guessed, with every problem in words and a preview of the first rows marking each cell that will not import
+- **GenealogyGraph** — Trace a lot, order or unit both ways — what it was made from and what it went into, each step a column, click any item to trace from it, and a trace cut short says so
+- **RoutingGraph** — A process’s steps and which must finish before which — laid out by longest path, step status for the operator, and editing by keyboard or pointer that refuses any link closing a loop
 - **Pivot** — Drag-and-drop pivot builder; fields into zones, 2D-windowed grid
 - **MediaTimeline** — Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state
 - **Waveform** — Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align

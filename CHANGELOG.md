@@ -17,6 +17,24 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- React: the MES components are ported — StatePill, OeeGauge, StateTimeline,
+  AndonTile / AndonBoard, ReasonCodePicker, ScanInput, ProductionProgress,
+  MeasurementInput, StepRunner, LiveIndicator, ShiftNavigator,
+  PlannedVsActual, RateBars, LineCard, CapacityHeatmap, ColumnMapper,
+  GenealogyGraph, RoutingGraph and ScheduleBacklog — with ProductionSchedule's
+  `onPlace` drop layer and late end caps, AnalyticChart's `threshold` and the
+  Pareto demo, and the Theme demo's touch-density section. Same props, DOM,
+  ARIA and message keys as Solid; the core logic is shared, not copied.
+  Verified against Solid in a browser, route by route: identical headings,
+  accessibility trees equal after clicking every button and filling every
+  field (19 routes, 0 errors), backlog drag-and-drop and undo, and graph
+  connectors meeting their cards in LTR and RTL. MeasurementInput commits on
+  blur when the text changed since focus (React's `onChange` is per
+  keystroke; Solid uses the native `change` event). `check:parity` stays red
+  until vanilla and web-components are ported.
+- React demo helpers: `CodeExample`'s `description` takes JSX, so a
+  description can mark up `code` as Solid's can.
+
 - Icons for an app's business areas — `tag`, `cart`, `package`, `factory`,
   `briefcase`, `book`, `percent`, `building`, `award`, `shield`, `chart` — so a
   Sidebar with `collapseMode="icon"` has a glyph per workspace group. (From
@@ -301,6 +319,11 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: `RadioGroupProps` is exported.
 
 ### Fixed
+
+- StepRunner (Solid and React): text typed into one step's measurement that
+  was not a number yet stayed in the field when the operator moved on to the
+  next step with a measurement, as if it belonged there — the field was one
+  instance reused across steps. It is now one field per step.
 
 - Solid Sidebar: every time a `SidebarMenuSub` group closed — from its own
   row or by collapsing to the rail — its list stayed in memory with one

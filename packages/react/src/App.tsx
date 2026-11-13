@@ -115,6 +115,24 @@ import NewUploadCollectionDemo from "./components/NewUploadCollectionDemo";
 import NewPlanningCalendarDemo from "./components/NewPlanningCalendarDemo";
 import NewGanttDemo from "./components/NewGanttDemo";
 import NewProductionScheduleDemo from "./components/NewProductionScheduleDemo";
+import NewStatePillDemo from "./components/NewStatePillDemo";
+import NewOeeGaugeDemo from "./components/NewOeeGaugeDemo";
+import NewStateTimelineDemo from "./components/NewStateTimelineDemo";
+import NewAndonDemo from "./components/NewAndonDemo";
+import NewReasonCodePickerDemo from "./components/NewReasonCodePickerDemo";
+import NewScanInputDemo from "./components/NewScanInputDemo";
+import NewProductionProgressDemo from "./components/NewProductionProgressDemo";
+import NewMeasurementInputDemo from "./components/NewMeasurementInputDemo";
+import NewStepRunnerDemo from "./components/NewStepRunnerDemo";
+import NewLiveIndicatorDemo from "./components/NewLiveIndicatorDemo";
+import NewShiftNavigatorDemo from "./components/NewShiftNavigatorDemo";
+import NewPlannedVsActualDemo from "./components/NewPlannedVsActualDemo";
+import NewRateBarsDemo from "./components/NewRateBarsDemo";
+import NewLineCardDemo from "./components/NewLineCardDemo";
+import NewCapacityHeatmapDemo from "./components/NewCapacityHeatmapDemo";
+import NewColumnMapperDemo from "./components/NewColumnMapperDemo";
+import NewGenealogyGraphDemo from "./components/NewGenealogyGraphDemo";
+import NewRoutingGraphDemo from "./components/NewRoutingGraphDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewTreeSelectDemo from "./components/NewTreeSelectDemo";
@@ -389,6 +407,24 @@ const App: React.FC = () => {
             <Route path="/planning-calendar" element={<NewPlanningCalendarDemo />} />
             <Route path="/gantt" element={<NewGanttDemo />} />
             <Route path="/production-schedule" element={<NewProductionScheduleDemo />} />
+            <Route path="/state-pill" element={<NewStatePillDemo />} />
+            <Route path="/oee-gauge" element={<NewOeeGaugeDemo />} />
+            <Route path="/state-timeline" element={<NewStateTimelineDemo />} />
+            <Route path="/andon" element={<NewAndonDemo />} />
+            <Route path="/reason-code-picker" element={<NewReasonCodePickerDemo />} />
+            <Route path="/scan-input" element={<NewScanInputDemo />} />
+            <Route path="/production-progress" element={<NewProductionProgressDemo />} />
+            <Route path="/measurement-input" element={<NewMeasurementInputDemo />} />
+            <Route path="/step-runner" element={<NewStepRunnerDemo />} />
+            <Route path="/live-indicator" element={<NewLiveIndicatorDemo />} />
+            <Route path="/shift-navigator" element={<NewShiftNavigatorDemo />} />
+            <Route path="/planned-vs-actual" element={<NewPlannedVsActualDemo />} />
+            <Route path="/rate-bars" element={<NewRateBarsDemo />} />
+            <Route path="/line-card" element={<NewLineCardDemo />} />
+            <Route path="/capacity-heatmap" element={<NewCapacityHeatmapDemo />} />
+            <Route path="/column-mapper" element={<NewColumnMapperDemo />} />
+            <Route path="/genealogy-graph" element={<NewGenealogyGraphDemo />} />
+            <Route path="/routing-graph" element={<NewRoutingGraphDemo />} />
             <Route path="/lazy-options" element={<NewLazyOptionsDemo />} />
             <Route path="/combobox" element={<NewComboboxDemo />} />
             <Route path="/tree-select" element={<NewTreeSelectDemo />} />
