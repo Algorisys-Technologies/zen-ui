@@ -692,6 +692,12 @@ SKILL.md.
 - `live.live: string`
 - `shifts.label: string`
 - `plannedVsActual.title: string`
+- `rateBars.label: string`
+- `rateBars.current: string`
+- `rateBars.average: string`
+- `rateBars.target: string`
+- `rateBars.bucket: string`
+- `rateBars.filling: string`
 - `plannedVsActual.behind: string`
 - `plannedVsActual.ahead: string`
 - `plannedVsActual.on: string`

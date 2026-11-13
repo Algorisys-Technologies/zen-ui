@@ -194,6 +194,15 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   plain-SVG chart (no chart library): the plan dashed over the shift, the
   actual as steps up to now, the gap marked at now, a time axis in the
   plant's zone. `hideChart` for a tile.
+- Rate buckets (`@algorisys/zen-ui-core/rate-bars`): `rateBuckets` — output
+  per equal bucket from counter readings (a reading going down is a counter
+  reset and counts from zero, not as negative output), per hour, the state
+  that covered most of each bucket, the bucket containing now flagged partial
+  with its rate over the elapsed part. `check:rate-bars`.
+- RateBars (Solid; other bindings to follow): output bars coloured by machine
+  state, every bar keeping a 3px stub so a bucket that made nothing still
+  shows why, the filling bucket hatched, a dashed target line, and the rate
+  now / average / target as text.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

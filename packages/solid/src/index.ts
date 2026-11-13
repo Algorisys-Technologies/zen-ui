@@ -758,6 +758,10 @@ export { PlannedVsActual } from "./components/planned-vs-actual/planned-vs-actua
 export type { PlannedVsActualProps } from "./components/planned-vs-actual/planned-vs-actual";
 export { planAt, plannedVsActual, readingAt } from "@algorisys/zen-ui-core/planned-vs-actual";
 export type { CountPoint, PlannedVsActualInput, PlannedVsActualResult } from "@algorisys/zen-ui-core/planned-vs-actual";
+export { RateBars } from "./components/rate-bars/rate-bars";
+export type { RateBarsProps } from "./components/rate-bars/rate-bars";
+export { rateBuckets } from "@algorisys/zen-ui-core/rate-bars";
+export type { RateBucket, RateBucketsInput } from "@algorisys/zen-ui-core/rate-bars";
 export type { LiveState } from "@algorisys/zen-ui-core/live";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {
