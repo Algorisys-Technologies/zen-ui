@@ -19,6 +19,7 @@ export * from "./oee";
 export * from "./state-timeline";
 export * from "./andon";
 export * from "./reason-codes";
+export * from "./scan";
 export * from "./reschedule";
 export * from "./critical-path";
 export * from "./media";

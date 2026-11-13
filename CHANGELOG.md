@@ -95,6 +95,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   move focus but do not select — Enter, Space or a tap does, because choosing
   a reason is often what records the stop. A selected reason the filter hides
   stays selected and is named under the grid. `--zen-reason-min-width`.
+- Scan detection (`@algorisys/zen-ui-core/scan`): `classifyEntry` tells a
+  USB scanner's burst from a person typing by timing (default: 4+ characters,
+  every gap at most 35 ms, no edits); `createScanBuffer` collects bursts typed
+  with no field focused, dropping stray keys and flushing scanners configured
+  with no suffix. `check:scan`.
+- ScanInput (Solid; other bindings to follow): a 48px monospace field for a
+  wedge scanner. Enter submits with `{ source: "scanner" | "keyboard" }`;
+  `onScan` returns an error message, a promise of one, or nothing, and the
+  status line says Checking / Scanned / the error (a newer scan wins over a
+  slower older lookup). `allowTyping={false}` refuses typed codes;
+  `captureGlobal` catches scans made while no field has focus, leaving keys
+  typed into other fields alone. Clears and keeps focus between scans.
+- Icon: `scan-barcode`.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

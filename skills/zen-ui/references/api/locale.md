@@ -690,6 +690,11 @@ SKILL.md.
 - `stateTimeline.events: string`
 - `andon.board: string`
 - `reasonCodes.label: string`
+- `scan.label: string`
+- `scan.accepted: string`
+- `scan.checking: string`
+- `scan.typed: string`
+- `scan.listening: string`
 - `reasonCodes.all: string`
 - `reasonCodes.categories: string`
 - `reasonCodes.search: string`

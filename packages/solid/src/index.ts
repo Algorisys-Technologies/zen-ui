@@ -724,6 +724,10 @@ export { ReasonCodePicker } from "./components/reason-code-picker/reason-code-pi
 export type { ReasonCodePickerProps } from "./components/reason-code-picker/reason-code-picker";
 export { filterReasons, reasonCategories } from "@algorisys/zen-ui-core/reason-codes";
 export type { ReasonCode } from "@algorisys/zen-ui-core/reason-codes";
+export { ScanInput } from "./components/scan-input/scan-input";
+export type { ScanInputProps, ScanSource } from "./components/scan-input/scan-input";
+export { DEFAULT_SCAN_OPTIONS, classifyEntry, createScanBuffer } from "@algorisys/zen-ui-core/scan";
+export type { KeyAt, ScanBuffer, ScanOptions } from "@algorisys/zen-ui-core/scan";
 export type {
   StateSegment,
   StateSegmentInput,
