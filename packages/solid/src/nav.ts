@@ -91,7 +91,7 @@ export const NAV: NavGroup[] = [
       { label: "Button", path: "/button", description: "Variants \u00d7 colours \u00d7 sizes \u00d7 shapes via CVA; polymorphic `as` prop", source: "packages/solid/src/components/NewButtonDemo.tsx" },
       { label: "Badge", path: "/badge", description: "Styled span with variants \u00d7 colours; `as` for clickable badges", source: "packages/solid/src/components/NewBadgeDemo.tsx" },
       { label: "Link", path: "/link", description: "Styled anchor; polymorphic via as, external, disabled", source: "packages/solid/src/components/NewLinkDemo.tsx" },
-      { label: "Theme", path: "/theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/solid/src/components/NewThemeDemo.tsx" },
+      { label: "Theme", path: "/theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/solid/src/components/NewThemeDemo.tsx", updated: "12.9.0" },
       { label: "Localization", path: "/localization", description: "Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use", source: "packages/solid/src/components/NewLocaleDemo.tsx", since: "12.2.0" },
       { label: "DirectionProvider", path: "/direction", description: "Right-to-left support \u2014 tells menus, tabs and sliders which way the page reads", source: "packages/solid/src/components/NewDirectionDemo.tsx" },
       { label: "MessagePopover", path: "/message-popover", description: "Aggregated form validation grouped by severity; click a message to land on the field", source: "packages/solid/src/components/NewMessagePopoverDemo.tsx" },

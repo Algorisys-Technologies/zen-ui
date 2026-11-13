@@ -108,6 +108,12 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `captureGlobal` catches scans made while no field has focus, leaving keys
   typed into other fields alone. Clears and keeps focus between scans.
 - Icon: `scan-barcode`.
+- Touch density: `data-density="touch"` on any element takes inputs,
+  selects, comboboxes, md buttons and menu items to 48px and table rows to
+  52px (measured), for shop-floor tablets. Type does not grow. Checkbox,
+  radio, switch and sm / xs buttons keep fixed sizes (measured: checkbox
+  controls 14–20px at every density); wrap them in a label on touch screens.
+  Theme demo section 6.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

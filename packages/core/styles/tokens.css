@@ -870,10 +870,12 @@
  * everything inside tightens: shorter controls and rows, less padding   *
  * around sections and cards. Type does not shrink — compact is for      *
  * people working all day, and they still have to read it.               *
+ * `data-density="touch"` goes the other way, to 48px targets, for       *
+ * shop-floor tablets.                                                   *
  *                                                                       *
  * Unanchored like the theme selectors, so a compact panel can sit in a  *
- * comfortable page. The compact block comes after the defaults: both    *
- * are (0,1,0), so source order decides. Keep it last.                   *
+ * comfortable page. The compact and touch blocks come after the         *
+ * defaults: all are (0,1,0), so source order decides. Keep them last.   *
  * ===================================================================== */
 :root {
   --zen-control-height: 2.5rem;          /* inputs, selects, md buttons */
@@ -899,6 +901,23 @@
   --zen-bar-padding-y: 0.5rem;
   --zen-card-padding: 0.75rem;
   --zen-menu-item-padding-y: 0.25rem;
+}
+
+/* Touch: for shop-floor tablets and gloved hands. Controls, table rows and
+ * menu items reach a 48px target; type does not grow. Checkbox, radio, switch
+ * and the sm / xs buttons have fixed sizes and do not follow density — on a
+ * touch screen, wrap them in a label (the label is the target) or use md. */
+[data-density="touch"] {
+  --zen-control-height: 3rem;
+  --zen-control-padding-x: 1rem;
+  --zen-table-head-height: 3rem;
+  --zen-table-cell-padding-y: 0.875rem;
+  --zen-section-padding-x: 1.5rem;
+  --zen-section-padding-y: 1.25rem;
+  --zen-anchor-bar-height: 3rem;
+  --zen-bar-padding-y: 0.875rem;
+  --zen-card-padding: 1.25rem;
+  --zen-menu-item-padding-y: 0.875rem;
 }
 
 /* ===================================================================== *

@@ -318,7 +318,9 @@ rest.
 | Shadows | `--zen-shadow-{xs, sm, md, lg, xl, 2xl}` | `shadow-zen-*` utility |
 | Spacing | `--zen-space-{0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16}` | Reserved; not yet used by primitives |
 | Zen-only scales | `--zen-color-<role>-{20, 50, 100, …, 900}` | Available for direct lookup when `data-theme="zen-theme"` |
-| Density | `--zen-control-height`, `--zen-control-padding-x`, `--zen-table-head-height`, `--zen-table-cell-padding-y`, `--zen-section-padding-{x, y}`, `--zen-anchor-bar-height`, `--zen-bar-padding-y`, `--zen-card-padding`, `--zen-menu-item-padding-y` | Inputs, selects, md buttons, table rows, menu items, object page, filter bar, cards. `data-density="compact"` on any element tightens them for its subtree; utilities `h-zen-control`, `px-zen-control-x`, `py-zen-cell-y`, … |
+| Andon / reasons | `--zen-andon-tile-min-width`, `--zen-reason-min-width` | Column width for AndonBoard tiles and ReasonCodePicker buttons |
+| Machine state | `--zen-state-{running, down, setup, planned, idle, unknown}` and `-soft` / `-soft-fg` | StatePill, StateTimeline, AndonTile; each aliases a semantic colour by default |
+| Density | `--zen-control-height`, `--zen-control-padding-x`, `--zen-table-head-height`, `--zen-table-cell-padding-y`, `--zen-section-padding-{x, y}`, `--zen-anchor-bar-height`, `--zen-bar-padding-y`, `--zen-card-padding`, `--zen-menu-item-padding-y` | Inputs, selects, md buttons, table rows, menu items, object page, filter bar, cards. `data-density="compact"` on any element tightens them for its subtree, `data-density="touch"` takes them to 48px for shop-floor tablets; utilities `h-zen-control`, `px-zen-control-x`, `py-zen-cell-y`, … |
 
 ---
 
