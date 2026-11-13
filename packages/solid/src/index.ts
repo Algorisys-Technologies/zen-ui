@@ -701,6 +701,23 @@ export { OeeGauge } from "./components/oee-gauge/oee-gauge";
 export type { OeeGaugeProps, OeeGaugeSize } from "./components/oee-gauge/oee-gauge";
 export { DEFAULT_OEE_BANDS, gaugeAngle, oeeBand, oeeFromCounts } from "@algorisys/zen-ui-core/oee";
 export type { OeeBand, OeeBands, OeeFactors, OeeInputs, OeeResult } from "@algorisys/zen-ui-core/oee";
+export { StateTimeline } from "./components/state-timeline/state-timeline";
+export type { StateTimelineProps, StateTimelineSize } from "./components/state-timeline/state-timeline";
+export {
+  durationMessage,
+  layoutStateTimeline,
+  layoutTimelineEvents,
+  stateTimelineTotals,
+  timelineTicks,
+} from "@algorisys/zen-ui-core/state-timeline";
+export type {
+  StateSegment,
+  StateSegmentInput,
+  StateTimelineWindow,
+  TimelineEvent,
+  TimelineEventInput,
+  TimelineTicks,
+} from "@algorisys/zen-ui-core/state-timeline";
 export type {
   ProductionMove,
   ProductionProposal,

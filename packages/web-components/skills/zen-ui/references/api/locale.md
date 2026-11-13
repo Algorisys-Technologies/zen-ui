@@ -678,6 +678,17 @@ SKILL.md.
 - `oee.noData: string`
 - `oee.valueText: string`
 - `oee.valueTextNoData: string`
+- `stateTimeline.durationHours: string`
+- `stateTimeline.durationMinutes: string`
+- `stateTimeline.durationSeconds: string`
+- `stateTimeline.durationHoursOnly: string`
+- `stateTimeline.durationMinutesOnly: string`
+- `stateTimeline.segment: string`
+- `stateTimeline.ongoing: string`
+- `stateTimeline.summary: string`
+- `stateTimeline.total: string`
+- `stateTimeline.events: string`
+- `stateTimeline.event: string`
 - `objectMarker.flagged: string`
 - `objectMarker.favorite: string`
 - `objectMarker.draft: string`

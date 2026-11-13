@@ -55,6 +55,22 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`aria-valuenow` clamped to the range, the real figure in
   `aria-valuetext`). Sizes `sm` / `md` / `lg`; `bands` for a plant's own
   targets.
+- State timeline (`@algorisys/zen-ui-core/state-timeline`):
+  `layoutStateTimeline` lays a machine's state record on a window as fractions
+  true to duration; holes become explicit no-data segments, an open segment
+  runs to `now` and nothing is laid out after it, overlaps are cut by the later
+  start, and a caller's `id` survives. `stateTimelineTotals`,
+  `layoutTimelineEvents`, `timelineTicks` (round times in an IANA timezone —
+  IST ticks sit at half past UTC), `durationMessage` ("42s", "5m 10s", "25m",
+  "1h 12m"). `check:state-timeline`.
+- StateTimeline (Solid; other bindings to follow): one machine's states along
+  a shift. Stretches exactly as wide as their duration (2px floor), no data
+  hatched, a now line, event markers (listed for screen readers), an axis in
+  the plant's `timeZone` whose label count follows the strip's width.
+  `onSegmentClick` makes segments buttons in one tab stop, walked with arrow
+  keys (visual direction, so RTL works), Home / End; `isSegmentClickable`,
+  `selectedId`. The group's accessible name carries the per-state totals.
+  Stack several with `size="sm"` and `hideAxis` to compare a line.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

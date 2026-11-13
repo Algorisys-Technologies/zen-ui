@@ -16,6 +16,7 @@ export * from "./gantt";
 export * from "./production";
 export * from "./machine-state";
 export * from "./oee";
+export * from "./state-timeline";
 export * from "./reschedule";
 export * from "./critical-path";
 export * from "./media";

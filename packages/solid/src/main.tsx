@@ -82,6 +82,7 @@ import NewGanttDemo from "./components/NewGanttDemo";
 import NewProductionScheduleDemo from "./components/NewProductionScheduleDemo";
 import NewStatePillDemo from "./components/NewStatePillDemo";
 import NewOeeGaugeDemo from "./components/NewOeeGaugeDemo";
+import NewStateTimelineDemo from "./components/NewStateTimelineDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -228,6 +229,7 @@ render(
       <Route path="/production-schedule" component={NewProductionScheduleDemo} />
       <Route path="/state-pill" component={NewStatePillDemo} />
       <Route path="/oee-gauge" component={NewOeeGaugeDemo} />
+      <Route path="/state-timeline" component={NewStateTimelineDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

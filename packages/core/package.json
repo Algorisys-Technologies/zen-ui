@@ -26,6 +26,7 @@
     "./production": "./src/production.ts",
     "./machine-state": "./src/machine-state.ts",
     "./oee": "./src/oee.ts",
+    "./state-timeline": "./src/state-timeline.ts",
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",
