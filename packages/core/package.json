@@ -35,6 +35,7 @@
     "./step-runner": "./src/step-runner.ts",
     "./live": "./src/live.ts",
     "./shifts": "./src/shifts.ts",
+    "./planned-vs-actual": "./src/planned-vs-actual.ts",
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",

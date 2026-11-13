@@ -691,6 +691,16 @@ SKILL.md.
 - `andon.board: string`
 - `live.live: string`
 - `shifts.label: string`
+- `plannedVsActual.title: string`
+- `plannedVsActual.behind: string`
+- `plannedVsActual.ahead: string`
+- `plannedVsActual.on: string`
+- `plannedVsActual.made: string`
+- `plannedVsActual.projection: string`
+- `plannedVsActual.final: string`
+- `plannedVsActual.plan: string`
+- `plannedVsActual.actual: string`
+- `plannedVsActual.now: string`
 - `shifts.named: string`
 - `shifts.previous: string`
 - `shifts.next: string`

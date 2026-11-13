@@ -91,6 +91,7 @@ import NewMeasurementInputDemo from "./components/NewMeasurementInputDemo";
 import NewStepRunnerDemo from "./components/NewStepRunnerDemo";
 import NewLiveIndicatorDemo from "./components/NewLiveIndicatorDemo";
 import NewShiftNavigatorDemo from "./components/NewShiftNavigatorDemo";
+import NewPlannedVsActualDemo from "./components/NewPlannedVsActualDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -246,6 +247,7 @@ render(
       <Route path="/step-runner" component={NewStepRunnerDemo} />
       <Route path="/live-indicator" component={NewLiveIndicatorDemo} />
       <Route path="/shift-navigator" component={NewShiftNavigatorDemo} />
+      <Route path="/planned-vs-actual" component={NewPlannedVsActualDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

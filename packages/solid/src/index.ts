@@ -754,6 +754,10 @@ export {
   wallClockToInstant,
 } from "@algorisys/zen-ui-core/shifts";
 export type { ShiftDef, ShiftRef, ShiftWindow } from "@algorisys/zen-ui-core/shifts";
+export { PlannedVsActual } from "./components/planned-vs-actual/planned-vs-actual";
+export type { PlannedVsActualProps } from "./components/planned-vs-actual/planned-vs-actual";
+export { planAt, plannedVsActual, readingAt } from "@algorisys/zen-ui-core/planned-vs-actual";
+export type { CountPoint, PlannedVsActualInput, PlannedVsActualResult } from "@algorisys/zen-ui-core/planned-vs-actual";
 export type { LiveState } from "@algorisys/zen-ui-core/live";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {

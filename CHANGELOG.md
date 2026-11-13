@@ -182,6 +182,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the current shift, labelled "Night · Thu, Nov 12 · 10:00 PM–06:00 AM" in the
   plant's zone, "Now" on the current one. Next stops at the current shift
   unless `allowFuture`. Step buttons follow density (40px, 48px touch).
+- Planned vs actual (`@algorisys/zen-ui-core/planned-vs-actual`):
+  `plannedVsActual` — plan and actual at now, the gap, ahead / on / behind
+  within a tolerance (default 2% of the plan total), and a projection from
+  the pace so far once 15% of the window has run; final after the end.
+  `planAt` (cumulative plan, linear, 0 before its first point) and
+  `readingAt` (a counter reading holds until the next — never interpolated
+  forward). `check:planned-vs-actual`.
+- PlannedVsActual (Solid; other bindings to follow): "256 pcs behind plan",
+  what was made against what was planned so far, the projection, and a
+  plain-SVG chart (no chart library): the plan dashed over the shift, the
+  actual as steps up to now, the gap marked at now, a time axis in the
+  plant's zone. `hideChart` for a tile.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through
