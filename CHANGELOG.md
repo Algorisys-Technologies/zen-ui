@@ -127,6 +127,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `segments` row of units; `size="sm"` / `hideText` for table rows, counts
   kept in `aria-valuetext`. (Planned as "SegmentedProgress"; renamed for
   what it measures.)
+- Measurement (`@algorisys/zen-ui-core/measurement`): `judgeMeasurement`
+  (pass / warn / fail with the side and deviation; inclusive limits with a
+  floating-point allowance, one-sided specs, an optional warning band, no
+  verdict for an inverted spec) and `measurementScale` (built from the limits,
+  so a wild reading is pinned and flagged off-scale). `check:measurement`.
+- MeasurementInput (Solid; other bindings to follow): an inspection reading
+  checked against its limits as it is typed, in the user's locale. Verdict in
+  words with an icon; spec line ("10.00 ± 0.10 mm", "At least 40 Nm"); a
+  scale with the tolerance and warning bands, nominal and reading. Readings
+  are never rounded to the spec's precision. Screen readers hear the verdict
+  when the reading is committed (Enter / blur), not per keystroke. Indicator
+  colours keep 3:1 (measured lowest 4.45:1 across five themes).
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

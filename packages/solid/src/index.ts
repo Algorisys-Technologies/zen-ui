@@ -732,6 +732,10 @@ export { ProductionProgress } from "./components/production-progress/production-
 export type { ProductionProgressProps } from "./components/production-progress/production-progress";
 export { productionProgress, segmentFill } from "@algorisys/zen-ui-core/production-progress";
 export type { ProductionCounts, ProductionProgressResult } from "@algorisys/zen-ui-core/production-progress";
+export { MeasurementInput } from "./components/measurement-input/measurement-input";
+export type { MeasurementInputProps } from "./components/measurement-input/measurement-input";
+export { judgeMeasurement, measurementScale } from "@algorisys/zen-ui-core/measurement";
+export type { MeasurementJudgement, MeasurementScale, MeasurementSpec, MeasurementVerdict } from "@algorisys/zen-ui-core/measurement";
 export type {
   StateSegment,
   StateSegmentInput,
