@@ -698,6 +698,17 @@ SKILL.md.
 - `columnMapper.label: string`
 - `genealogy.label: string`
 - `routing.label: string`
+- `productionSchedule.late: string`
+- `scheduleBacklog.label: string`
+- `scheduleBacklog.count: string`
+- `scheduleBacklog.hint: string`
+- `scheduleBacklog.place: string`
+- `scheduleBacklog.placeOn: string`
+- `scheduleBacklog.placeAtEnd: string`
+- `scheduleBacklog.cancel: string`
+- `scheduleBacklog.due: string`
+- `scheduleBacklog.overdue: string`
+- `scheduleBacklog.empty: string`
 - `routing.implicit: string`
 - `routing.runsAfter: string`
 - `routing.then: string`

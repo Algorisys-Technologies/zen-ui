@@ -681,7 +681,16 @@ export {
   productionSetupMinutes,
   productionSetupPlan,
 } from "@algorisys/zen-ui-core/production";
-export { productionReschedule } from "@algorisys/zen-ui-core/reschedule";
+export {
+  productionReschedule,
+  productionPlaceProposal,
+  productionNextFreeStart,
+  snapToMinutes,
+  PRODUCTION_DRAG_TYPE,
+} from "@algorisys/zen-ui-core/reschedule";
+export { productionLateMs } from "@algorisys/zen-ui-core/production";
+export { ScheduleBacklog } from "./components/schedule-backlog/schedule-backlog";
+export type { BacklogItem, ScheduleBacklogProps } from "./components/schedule-backlog/schedule-backlog";
 export { StatePill } from "./components/state-pill/state-pill";
 export type { StatePillProps, StatePillSize } from "./components/state-pill/state-pill";
 export {

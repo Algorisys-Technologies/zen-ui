@@ -394,7 +394,9 @@ for (const id of wanted) {
           await sleep(250);
           t("Alt+arrow on a bar proposes a move", (await liveNote())?.startsWith("Moved"), true);
 
-          const undo = page.getByRole("button", { name: /Undo/ });
+          // Section 5's own undo — "Undo" or "Undo (n)" — not any button that
+          // mentions undoing (the backlog section has "Undo placement").
+          const undo = page.getByRole("button", { name: /^Undo( \(\d+\))?$/ });
           t("…and the caller can undo it", await undo.isEnabled(), true);
           await undo.click();
           await sleep(250);

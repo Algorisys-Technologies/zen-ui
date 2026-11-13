@@ -10,6 +10,8 @@ import type {
   ProductionProposal,
   ProductionSetupMatrix,
 } from "@algorisys/zen-ui-core";
+import { productionNextFreeStart, productionPlaceProposal } from "@algorisys/zen-ui-core";
+import { ScheduleBacklog, type BacklogItem } from "./schedule-backlog/schedule-backlog";
 import { Button } from "./button/button";
 import { DemoPage, DemoSection } from "./demo-helpers";
 
@@ -190,6 +192,83 @@ const Reschedulable = () => {
         <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg" aria-live="polite">
           {note()}
         </p>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Last section: work placed from a backlog, and late jobs. The same contract
+ * as rescheduling — the chart and the backlog only propose; this demo applies,
+ * and keeps the undo stack.
+ */
+const LEAVES = [
+  { id: "cnc3", name: "CNC-3" },
+  { id: "cnc4", name: "CNC-4" },
+  { id: "furnace", name: "Furnace 2" },
+  { id: "grind", name: "Grinding" },
+  { id: "insp", name: "Inspection" },
+];
+const DUE_JOBS: ProductionOperation[] = JOBS.map((j) =>
+  j.id === "j3" ? { ...j, due: on(22, 10) } : j.id === "j6" ? { ...j, due: on(23, 8) } : j.id === "j8" ? { ...j, due: on(24, 17) } : j,
+);
+const BACKLOG: BacklogItem[] = [
+  { id: "b1", name: "Spacer · op 10", order: "WO-4501", runMinutes: 180, due: on(22, 17) },
+  { id: "b2", name: "Shaft · op 10", order: "WO-4502", runMinutes: 240, due: on(21, 9) },
+  { id: "b3", name: "Plate · op 10", order: "WO-4510", runMinutes: 120 },
+];
+
+const Placeable = () => {
+  const [jobs, setJobs] = createSignal<ProductionOperation[]>(DUE_JOBS);
+  const [backlog, setBacklog] = createSignal<BacklogItem[]>(BACKLOG);
+  const [history, setHistory] = createSignal<{ jobs: ProductionOperation[]; backlog: BacklogItem[] }[]>([]);
+  const [note, setNote] = createSignal("Drag a job onto a work centre, or use its Place button.");
+
+  const place = (at: { operationId: string; resourceId: string; start?: Date }) => {
+    const item = backlog().find((b) => b.id === at.operationId);
+    if (!item) return;
+    // "At the end" from the Place button; a drop says where.
+    const start = at.start ?? productionNextFreeStart(jobs(), at.resourceId, NOW, { calendar: PLANT });
+    const op: ProductionOperation = { id: item.id, name: item.name, order: item.order, runMinutes: item.runMinutes, due: item.due, resourceId: at.resourceId, start };
+    const proposal = productionPlaceProposal(jobs(), ROUTING, op, { resourceId: at.resourceId, start }, { calendar: PLANT, resources: CELLS });
+    const moved = new Map(proposal.cascade.map((x) => [x.operationId, x]));
+    setHistory([...history(), { jobs: jobs(), backlog: backlog() }]);
+    const placed = moved.get(op.id);
+    setJobs([
+      ...jobs().map((job) => {
+        const shift = moved.get(job.id);
+        return shift ? { ...job, start: shift.to.start, end: shift.to.end, runMinutes: undefined } : job;
+      }),
+      placed ? { ...op, start: placed.to.start, end: placed.to.end, runMinutes: undefined } : op,
+    ]);
+    setBacklog(backlog().filter((b) => b.id !== item.id));
+    setNote(
+      `Placed ${item.name} on ${LEAVES.find((l) => l.id === at.resourceId)?.name}` +
+        (proposal.conflicts.length > 0 ? ` · ${proposal.conflicts.length} conflict(s) reported` : ""),
+    );
+  };
+  const undo = () => {
+    const stack = history();
+    if (stack.length === 0) return;
+    setJobs(stack[stack.length - 1].jobs);
+    setBacklog(stack[stack.length - 1].backlog);
+    setHistory(stack.slice(0, -1));
+    setNote("Undone");
+  };
+
+  return (
+    <div class="zen-flex zen-w-full zen-min-w-0 zen-flex-col zen-gap-4 lg:zen-flex-row">
+      <ScheduleBacklog class="lg:zen-w-72 lg:zen-shrink-0" items={backlog()} resources={LEAVES} onPlace={place} now={NOW} data-testid="backlog" />
+      <div class="zen-flex zen-min-w-0 zen-flex-1 zen-flex-col zen-gap-2">
+        <ProductionSchedule resources={CELLS} operations={jobs()} dependencies={ROUTING} calendar={PLANT} now={NOW} onPlace={place} data-testid="placeable" />
+        <div class="zen-flex zen-items-center zen-gap-3">
+          <Button size="sm" variant="outline" onClick={undo} disabled={history().length === 0}>
+            Undo placement{history().length > 0 ? ` (${history().length})` : ""}
+          </Button>
+          <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg" aria-live="polite" data-testid="place-note">
+            {note()}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -398,6 +477,21 @@ const routing = [
         <ProductionSchedule resources={[]} operations={[]} loading now={NOW} />
         <ProductionSchedule resources={[]} operations={[]} now={NOW} />
       </div>
+    </DemoSection>
+
+    <DemoSection
+      title="Placing work from a backlog, and late jobs"
+      codeTitle="onPlace on the chart, ScheduleBacklog beside it, due on operations"
+      codeDescription="Drag a job from the backlog onto a work centre, or press its Place button and choose one — that path puts the job after the centre's last booking, and it is the one that works on a touch screen or from the keyboard. Like a reschedule, a placement is PROPOSED: productionPlaceProposal gives the same cascade and conflicts a drag would, and this page applies it and keeps the undo stack. Operations with a due date that end after it carry a red end cap and say by how much — the Bracket and the Cover here. Overdue backlog work sorts first."
+      code={`const place = ({ operationId, resourceId, start }) => {
+  const begin = start ?? productionNextFreeStart(ops(), resourceId, new Date(), { calendar });
+  apply(productionPlaceProposal(ops(), routing, toOperation(operationId), { resourceId, start: begin }, { calendar, resources }));
+};
+
+<ScheduleBacklog items={unscheduled()} resources={workCentres} onPlace={place} />
+<ProductionSchedule … onPlace={place} />`}
+    >
+      <Placeable />
     </DemoSection>
   </DemoPage>
 );

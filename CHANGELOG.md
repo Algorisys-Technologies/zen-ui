@@ -261,6 +261,23 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   a picker offers only steps that would not close a loop — the same by
   keyboard, screen reader or pointer. While the routing is the implicit
   chain, the first edit writes the chain out before applying itself.
+- Production scheduling: placing work and lateness. `due` on an operation
+  (core type, so every binding accepts it); `productionLateMs` (0 on time,
+  null without a due date); `productionPlaceProposal` (placing a job not yet
+  on the chart is a move of a job that did not exist — the same cascade and
+  conflicts as a drag); `productionNextFreeStart`; `snapToMinutes`;
+  `PRODUCTION_DRAG_TYPE`. `check:production-place`.
+- ProductionSchedule (Solid; React and vanilla to follow): `onPlace` accepts
+  work dragged in onto a leaf work centre, proposed like a reschedule and
+  snapped to 15 minutes; the drop layer exists only when `onPlace` is given,
+  so charts without it render the DOM they always did. Operations that end
+  after their `due` carry an error-coloured end cap and say "Late by …" in
+  the tooltip and accessible name. No internal undo: placements are
+  proposals and undo stays the caller's (DECISION 2) — the demo keeps it.
+- ScheduleBacklog (Solid; other bindings to follow): unscheduled jobs, overdue
+  first, each draggable onto the chart AND placeable from a Place button
+  (choose a work centre: after its last job) — the path for touch screens and
+  keyboards, where drag and drop does not exist.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through
