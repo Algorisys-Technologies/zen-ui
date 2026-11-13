@@ -4,7 +4,7 @@
 
 # sidebar — API (React, the parity reference)
 
-Exports: `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarHeaderLabel`, `SidebarMenuBadge`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
+Exports: `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarHeaderLabel`, `SidebarMenuBadge`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarMenuSubLabel`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-sidebar>`-style
@@ -87,6 +87,10 @@ SKILL.md.
 - `asChild?: boolean | undefined`
 - `active?: boolean | undefined` — render as the current / selected item
 - …plus the underlying element's standard props (290 inherited).
+
+### SidebarMenuSubLabel
+
+- …plus the underlying element's standard props (281 inherited).
 
 ### SidebarTrigger
 

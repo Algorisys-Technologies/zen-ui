@@ -14,6 +14,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarMenuSubLabel,
   SidebarTrigger,
 } from "./sidebar/sidebar";
 import { DemoPage, DemoSection } from "./demo-helpers";
@@ -104,6 +105,68 @@ const ControlledGroups = () => {
       <p class="zen-m-0 zen-text-sm" data-testid="controlled-log">
         onOpenChange: {log().length ? log().join(", ") : "none yet"}
       </p>
+    </div>
+  );
+};
+
+const HeadedGroups = () => {
+  const [current, setCurrent] = createSignal("Sales orders");
+  const sections = [
+    { heading: "Transactions", items: ["Quotations", "Sales orders", "Invoices"] },
+    { heading: "Pricing", items: ["Price lists", "Discount rules"] },
+  ];
+  return (
+    <div class="zen-flex zen-w-full zen-flex-col zen-gap-2" data-testid="headed">
+      <SidebarProvider>
+        {/* The mark is off by default; this panel turns it on. */}
+        <div
+          class="zen-flex zen-h-96 zen-w-full zen-overflow-hidden zen-rounded-zen-lg zen-border zen-border-zen-border"
+          style={{ "--zen-sidebar-guide-current": "var(--zen-color-primary)" }}
+        >
+          <Sidebar>
+            <SidebarHeader>
+              <SidebarTrigger />
+              <strong>ERP</strong>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuSub label="Selling" icon={<ChartIcon />} defaultOpen>
+                    <For each={sections}>
+                      {(sec) => (
+                        <>
+                          <SidebarMenuSubLabel>{sec.heading}</SidebarMenuSubLabel>
+                          <For each={sec.items}>
+                            {(item) => (
+                              <SidebarMenuSubItem>
+                                <SidebarMenuSubButton
+                                  as="a"
+                                  href={`#${item}`}
+                                  active={current() === item}
+                                  aria-current={current() === item ? "page" : undefined}
+                                  onClick={(e: MouseEvent) => {
+                                    e.preventDefault();
+                                    setCurrent(item);
+                                  }}
+                                >
+                                  {item}
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            )}
+                          </For>
+                        </>
+                      )}
+                    </For>
+                  </SidebarMenuSub>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarContent>
+          </Sidebar>
+          <div class="zen-flex-1 zen-p-4 zen-text-sm" data-testid="headed-current">
+            {current()}
+          </div>
+        </div>
+      </SidebarProvider>
     </div>
   );
 };
@@ -397,6 +460,27 @@ const NewSidebarDemo = () => (
 </SidebarMenuSub>`}
     >
       <ControlledGroups />
+    </DemoSection>
+
+    <DemoSection
+      title="6. Headings in a group, and the current-row mark"
+      description="SidebarMenuSubLabel heads a run of rows: not focusable, and kept out of the list's item count. The guide line is --zen-sidebar-guide (colour) and --zen-sidebar-guide-width; --zen-sidebar-guide-current puts a mark on it beside the active row. The mark is transparent unless you set it — this panel sets it to the primary colour. To style the whole group that holds the current page, [data-sidebar=menu-sub]:has([data-active]) selects its list."
+      codeTitle="SidebarMenuSubLabel, and the guide tokens"
+      code={`<SidebarMenuSub label="Selling" defaultOpen>
+  <SidebarMenuSubLabel>Transactions</SidebarMenuSubLabel>
+  <SidebarMenuSubItem>
+    <SidebarMenuSubButton as={A} href="/orders" active>Sales orders</SidebarMenuSubButton>
+  </SidebarMenuSubItem>
+</SidebarMenuSub>
+
+/* CSS */
+:root {
+  --zen-sidebar-guide-current: var(--zen-color-primary); /* off (transparent) by default */
+  --zen-sidebar-guide: var(--zen-color-border);
+  --zen-sidebar-guide-width: 1px;
+}`}
+    >
+      <HeadedGroups />
     </DemoSection>
   </DemoPage>
 );

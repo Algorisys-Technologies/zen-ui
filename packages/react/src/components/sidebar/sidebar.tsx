@@ -547,7 +547,15 @@ const SUB_LIST_CLASS =
   // Every side is set explicitly: `zen-m-0`/`zen-p-0` plus a directional
   // `zen-ml-4` are the same specificity, so which one wins would come down to
   // UnoCSS's emit order rather than intent.
-  "zen-mb-0 zen-ml-4 zen-mr-0 zen-mt-0.5 zen-flex zen-list-none zen-flex-col zen-gap-0.5 zen-border-0 zen-border-l zen-border-solid zen-border-zen-border zen-pb-0 zen-pl-3 zen-pr-0 zen-pt-0";
+  "zen-mb-0 zen-ml-4 zen-mr-0 zen-mt-0.5 zen-flex zen-list-none zen-flex-col zen-gap-0.5 zen-pb-0 zen-pl-3 zen-pr-0 zen-pt-0";
+
+// The inline list's guide line, from tokens (tokens.css, "the nested list's
+// guide line"). Each side is set on its own for the reason above.
+const SUB_LIST_GUIDE_CLASS =
+  "zen-border-solid zen-border-y-0 zen-border-r-0 zen-border-l-[length:var(--zen-sidebar-guide-width)] zen-border-l-[color:var(--zen-sidebar-guide)]";
+
+// The flyout has no guide, so it has no mark either, whatever the app set.
+const SUB_LIST_FLYOUT_CLASS = "zen-ml-0 zen-border-0 zen-pl-0 [--zen-sidebar-guide-current:transparent]";
 
 const Chevron = ({ open, after, faded }: { open: boolean; after?: boolean; faded?: boolean }) => (
   <svg
@@ -725,9 +733,14 @@ export function SidebarMenuSub({
             listOpen ? "zen-mt-0.5 zen-grid-rows-[1fr]" : "zen-mt-0 zen-grid-rows-[0fr]",
           )}
         >
-          <ul className={cn(SUB_LIST_CLASS, "zen-mt-0 zen-min-h-0 zen-overflow-hidden")}>
-            {collapsed && flyout ? null : children}
-          </ul>
+          {/* The clip for the height animation sits on this wrapper, not on
+              the list: the guide is the list's border, and a clip on the
+              list would cut the current-row mark drawn on top of it. */}
+          <div className="zen-min-h-0 zen-overflow-hidden">
+            <ul data-sidebar="menu-sub" className={cn(SUB_LIST_CLASS, SUB_LIST_GUIDE_CLASS, "zen-mt-0")}>
+              {collapsed && flyout ? null : children}
+            </ul>
+          </div>
         </div>
       ) : null}
       <PopoverContent
@@ -755,7 +768,7 @@ export function SidebarMenuSub({
           {label}
           {hasBadge ? <SidebarMenuBadge>{badge}</SidebarMenuBadge> : null}
         </div>
-        <ul className={cn(SUB_LIST_CLASS, "zen-ml-0 zen-border-l-0 zen-pl-0")}>{children}</ul>
+        <ul className={cn(SUB_LIST_CLASS, SUB_LIST_FLYOUT_CLASS)}>{children}</ul>
       </PopoverContent>
     </Popover>
   );
@@ -797,6 +810,12 @@ export const SidebarMenuSubButton = React.forwardRef<
         active
           ? "zen-bg-zen-primary-soft zen-font-medium zen-text-zen-primary-soft-fg"
           : "zen-text-zen-foreground",
+        // The current-row mark: a bar centred on the list's guide line, level
+        // with this row. Invisible until --zen-sidebar-guide-current is given
+        // a colour. The row starts the list's padding (zen-pl-3) right of the
+        // guide, and half the guide's width further on.
+        active &&
+          "zen-relative before:zen-pointer-events-none before:zen-absolute before:zen-inset-y-1 before:-zen-left-3 before:zen-w-[var(--zen-sidebar-guide-current-width)] before:zen-translate-x-[calc(-50%-var(--zen-sidebar-guide-width)/2)] before:zen-rounded-full before:zen-bg-[var(--zen-sidebar-guide-current)] before:zen-content-empty",
         className,
       )}
       {...props}
@@ -804,6 +823,36 @@ export const SidebarMenuSubButton = React.forwardRef<
   );
 });
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton";
+
+/**
+ * A heading inside a group's list: "Transactions", "Pricing". Text, not a
+ * row: it is not focusable, and `role="presentation"` keeps it out of the
+ * list's item count, so a screen reader still hears "list, 7 items" for seven
+ * links. It renders in the inline list and in the rail's flyout alike.
+ *
+ *   <SidebarMenuSub label="Selling">
+ *     <SidebarMenuSubLabel>Transactions</SidebarMenuSubLabel>
+ *     <SidebarMenuSubItem>…</SidebarMenuSubItem>
+ *   </SidebarMenuSub>
+ */
+export const SidebarMenuSubLabel = React.forwardRef<
+  HTMLLIElement,
+  React.ComponentPropsWithoutRef<"li">
+>(({ className, ...props }, ref) => (
+  <li
+    ref={ref}
+    role="presentation"
+    data-sidebar="menu-sub-label"
+    className={cn(
+      "zen-w-full zen-px-3 zen-pb-0.5 zen-pt-2 zen-text-xs zen-font-semibold zen-text-zen-muted-fg first:zen-pt-1",
+      COMPACT,
+      "[[data-collapsed]_&]:zen-truncate [[data-transitioning]_&]:zen-truncate",
+      className,
+    )}
+    {...props}
+  />
+));
+SidebarMenuSubLabel.displayName = "SidebarMenuSubLabel";
 
 export interface SidebarTriggerProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {

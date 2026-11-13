@@ -14,10 +14,11 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarMenuSubLabel,
   SidebarTrigger,
 } from "./sidebar/sidebar";
 import { CodeExample } from "./demo-helpers";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 const HomeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,6 +101,65 @@ const ControlledGroups = () => {
       <p className="zen-m-0 zen-text-sm" data-testid="controlled-log">
         onOpenChange: {log.length ? log.join(", ") : "none yet"}
       </p>
+    </div>
+  );
+};
+
+const SECTIONS = [
+  { heading: "Transactions", items: ["Quotations", "Sales orders", "Invoices"] },
+  { heading: "Pricing", items: ["Price lists", "Discount rules"] },
+];
+
+const HeadedGroups = () => {
+  const [current, setCurrent] = useState("Sales orders");
+  return (
+    <div className="zen-flex zen-w-full zen-flex-col zen-gap-2" data-testid="headed">
+      <SidebarProvider>
+        {/* The mark is off by default; this panel turns it on. */}
+        <div
+          className="zen-flex zen-h-96 zen-w-full zen-overflow-hidden zen-rounded-zen-lg zen-border zen-border-zen-border"
+          style={{ "--zen-sidebar-guide-current": "var(--zen-color-primary)" } as React.CSSProperties}
+        >
+          <Sidebar>
+            <SidebarHeader>
+              <SidebarTrigger />
+              <strong>ERP</strong>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuSub label="Selling" icon={<ChartIcon />} defaultOpen>
+                    {SECTIONS.map((sec) => (
+                      <Fragment key={sec.heading}>
+                        <SidebarMenuSubLabel>{sec.heading}</SidebarMenuSubLabel>
+                        {sec.items.map((item) => (
+                          <SidebarMenuSubItem key={item}>
+                            <SidebarMenuSubButton asChild active={current === item}>
+                              <a
+                                href={`#${item}`}
+                                aria-current={current === item ? "page" : undefined}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrent(item);
+                                }}
+                              >
+                                {item}
+                              </a>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </Fragment>
+                    ))}
+                  </SidebarMenuSub>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarContent>
+          </Sidebar>
+          <div className="zen-flex-1 zen-p-4 zen-text-sm" data-testid="headed-current">
+            {current}
+          </div>
+        </div>
+      </SidebarProvider>
     </div>
   );
 };
@@ -431,6 +491,31 @@ const NewSidebarDemo: React.FC = () => (
 </SidebarMenuSub>`}
       >
         <ControlledGroups />
+      </CodeExample>
+    </section>
+
+    <section className="demo-section">
+      <h2>6. Headings in a group, and the current-row mark</h2>
+      <CodeExample
+        title="SidebarMenuSubLabel, and the guide tokens"
+        description="SidebarMenuSubLabel heads a run of rows: not focusable, and kept out of the list's item count. The guide line is --zen-sidebar-guide (colour) and --zen-sidebar-guide-width; --zen-sidebar-guide-current puts a mark on it beside the active row. The mark is transparent unless you set it — this panel sets it to the primary colour. To style the whole group that holds the current page, [data-sidebar=menu-sub]:has([data-active]) selects its list."
+        code={`<SidebarMenuSub label="Selling" defaultOpen>
+  <SidebarMenuSubLabel>Transactions</SidebarMenuSubLabel>
+  <SidebarMenuSubItem>
+    <SidebarMenuSubButton asChild active>
+      <Link to="/orders">Sales orders</Link>
+    </SidebarMenuSubButton>
+  </SidebarMenuSubItem>
+</SidebarMenuSub>
+
+/* CSS */
+:root {
+  --zen-sidebar-guide-current: var(--zen-color-primary); /* off (transparent) by default */
+  --zen-sidebar-guide: var(--zen-color-border);
+  --zen-sidebar-guide-width: 1px;
+}`}
+      >
+        <HeadedGroups />
       </CodeExample>
     </section>
   </div>

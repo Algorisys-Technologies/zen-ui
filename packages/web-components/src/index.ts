@@ -48,7 +48,7 @@ export {
   ScrollBar, Search, SegmentedButton, Select, SelectDialog, SelectableCardGroup, Separator,
   Sheet, ShellBar, Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
   SidebarHeader, SidebarHeaderLabel, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub,
-  SidebarMenuSubButton, SidebarMenuSubItem, SidebarProvider, SidebarTrigger, Skeleton,
+  SidebarMenuSubButton, SidebarMenuSubItem, SidebarMenuSubLabel, SidebarProvider, SidebarTrigger, Skeleton,
   SkipToContent, Slider, SplitButton, Stack, StatCard, Tile, TileGrid, QRCode, Barcode, Stepper, Switch, TEXTAREA_CLASS, THEMES,
   Theme, DirectionProvider, MessagePopover, LocaleProvider, useLocale, localeOf, withLocale, provideLocale,
   Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow, Tabs,

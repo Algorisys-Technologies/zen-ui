@@ -1158,6 +1158,7 @@ export {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarMenuSubLabel,
   useSidebar,
 } from "./components/sidebar/sidebar";
 export type {

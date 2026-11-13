@@ -1239,6 +1239,7 @@ export {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarMenuSubLabel,
   SidebarTrigger,
   useSidebar,
 } from "./components/sidebar/sidebar";

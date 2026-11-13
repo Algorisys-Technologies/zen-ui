@@ -807,6 +807,22 @@
 }
 
 /* ===================================================================== *
+ * Sidebar — the nested list's guide line and the current-row mark       *
+ *                                                                       *
+ * The line down the side of a group's open list, and a mark ON that     *
+ * line beside the current page's row. The mark is off by default        *
+ * (transparent): give it a colour to turn it on, e.g.                   *
+ *   --zen-sidebar-guide-current: var(--zen-color-primary);              *
+ * The flyout of a collapsed rail has no guide, so it draws no mark.     *
+ * ===================================================================== */
+:root {
+  --zen-sidebar-guide: var(--zen-color-border);
+  --zen-sidebar-guide-width: 1px;
+  --zen-sidebar-guide-current: transparent;
+  --zen-sidebar-guide-current-width: 2px;
+}
+
+/* ===================================================================== *
  * Tables — the look of a table's header, cells and hovered row          *
  *                                                                       *
  * Set these instead of overriding the table's classes. The defaults are *

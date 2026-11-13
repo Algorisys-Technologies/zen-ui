@@ -17,6 +17,21 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Sidebar (every binding): `SidebarMenuSubLabel` (`<zen-sidebar-menu-sub-label>`)
+  heads a run of rows inside a group — "Transactions", "Pricing" — in the
+  inline list and the rail's flyout alike; it is not focusable and
+  `role="presentation"` keeps it out of the list's item count. The nested
+  list's guide line is now tokens (`--zen-sidebar-guide`,
+  `--zen-sidebar-guide-width`), and `--zen-sidebar-guide-current` draws a mark
+  on it beside the active row — transparent by default, so nothing changes
+  until an app sets it. The inline list carries `data-sidebar="menu-sub"`
+  (style the group holding the current page with
+  `[data-sidebar=menu-sub]:has([data-active])`), and the height animation's
+  clip moved from the list to a wrapper so the mark is not cut off. Measured
+  in all four bindings: sub-list geometry, border width and colour unchanged
+  on the existing demo sections; the mark centred on the guide (330.5px both);
+  no mark in the flyout or where the token is unset. (one-erp's
+  zen-ui-issues, section 3.)
 - React: the MES components are ported — StatePill, OeeGauge, StateTimeline,
   AndonTile / AndonBoard, ReasonCodePicker, ScanInput, ProductionProgress,
   MeasurementInput, StepRunner, LiveIndicator, ShiftNavigator,
