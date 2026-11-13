@@ -739,6 +739,10 @@ export type { MeasurementJudgement, MeasurementScale, MeasurementSpec, Measureme
 export { StepRunner } from "./components/step-runner/step-runner";
 export type { StepRunnerProps, StepRunnerStep } from "./components/step-runner/step-runner";
 export { canCompleteStep, stepRunnerState } from "@algorisys/zen-ui-core/step-runner";
+export { LiveIndicator } from "./components/live-indicator/live-indicator";
+export type { LiveIndicatorProps } from "./components/live-indicator/live-indicator";
+export { liveState } from "@algorisys/zen-ui-core/live";
+export type { LiveState } from "@algorisys/zen-ui-core/live";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {
   StateSegment,

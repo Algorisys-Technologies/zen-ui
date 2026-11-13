@@ -163,6 +163,14 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   pass it). Solid passes both; React, vanilla and web-components draw Pareto
   today with the default threshold and pick up `threshold` / `locale` in the
   port (vanilla's and React's spec-key lists need the field).
+- Live state (`@algorisys/zen-ui-core/live`): `liveState` — offline (the app
+  says the connection is down) over waiting (nothing yet) over stale (past
+  `staleAfterMs` since the last successful update) over live. `check:live`.
+- LiveIndicator (Solid; other bindings to follow): "Updated 12s ago" with a
+  dot, turning to "Not updated for 3m 10s" and "Offline, last update 20s ago".
+  The visible age ticks every second but is not a live region; a hidden one
+  announces only state changes (measured: 23 visible changes, 2 announcements
+  in 23 seconds).
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

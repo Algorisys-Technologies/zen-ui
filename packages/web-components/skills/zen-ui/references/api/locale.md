@@ -689,6 +689,13 @@ SKILL.md.
 - `stateTimeline.total: string`
 - `stateTimeline.events: string`
 - `andon.board: string`
+- `live.live: string`
+- `live.updated: string`
+- `live.justNow: string`
+- `live.stale: string`
+- `live.waiting: string`
+- `live.offline: string`
+- `live.offlineFor: string`
 - `reasonCodes.label: string`
 - `scan.label: string`
 - `productionProgress.goodOfTarget: string`

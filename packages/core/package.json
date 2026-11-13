@@ -33,6 +33,7 @@
     "./production-progress": "./src/production-progress.ts",
     "./measurement": "./src/measurement.ts",
     "./step-runner": "./src/step-runner.ts",
+    "./live": "./src/live.ts",
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",
