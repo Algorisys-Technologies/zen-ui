@@ -302,6 +302,22 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Solid Sidebar: every time a `SidebarMenuSub` group closed — from its own
+  row or by collapsing to the rail — its list stayed in memory with one
+  listener: +1 listener and +2 nodes per close, forever (one-erp's leak
+  report). Since 12.8.4 the sub-list eases `margin` beside
+  `grid-template-rows` and was removed when `grid-template-rows` ended; the
+  `margin` transition then ended on a detached node, so Kobalte's global
+  transition tracker (`@kobalte/utils`, which hears `transitionend` on body)
+  never forgot the element. Its after-transition callbacks also wait for that
+  map to empty, so they stopped running for the rest of the session. Core
+  `afterTransition` now waits for every property that started on the element,
+  not just the named one, which fixes all three users in every binding.
+  Measured on the BUILT Solid dist in a one-erp-shaped app (router, 5 groups ×
+  7 pages, 35 in-app navigations plus one rail round-trip per round, forced
+  GC): 12.8.2 and 12.8.3 flat, 12.8.4 and HEAD +5 listeners / +10 nodes a
+  round, fixed flat at 58 / 363 over 7 rounds. Page navigation alone never
+  leaked.
 - Sidebar: collapsing to the rail closed groups the app controls, in every
   binding. `SidebarMenuSub` shared one `open` between the inline list and the
   rail's flyout and closed it on collapse, which reached a controlled owner as
