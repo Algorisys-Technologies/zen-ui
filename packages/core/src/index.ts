@@ -29,6 +29,7 @@ export * from "./planned-vs-actual";
 export * from "./rate-bars";
 export * from "./line-eta";
 export * from "./capacity";
+export * from "./column-mapper";
 export * from "./reschedule";
 export * from "./critical-path";
 export * from "./media";

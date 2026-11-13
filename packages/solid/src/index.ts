@@ -770,6 +770,10 @@ export { CapacityHeatmap } from "./components/capacity-heatmap/capacity-heatmap"
 export type { CapacityHeatmapProps } from "./components/capacity-heatmap/capacity-heatmap";
 export { capacityCell, capacityGrid } from "@algorisys/zen-ui-core/capacity";
 export type { CapacityCell, CapacityGrid, CapacityGridInput, CapacityStatus } from "@algorisys/zen-ui-core/capacity";
+export { ColumnMapper } from "./components/column-mapper/column-mapper";
+export type { ColumnMapperProps } from "./components/column-mapper/column-mapper";
+export { autoMap, detectDelimiter, parseDelimited, parseImportDate, validateMapping } from "@algorisys/zen-ui-core/column-mapper";
+export type { CellErrorKind, ColumnMapping, MapperField, MappingValidation } from "@algorisys/zen-ui-core/column-mapper";
 export type { LiveState } from "@algorisys/zen-ui-core/live";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {

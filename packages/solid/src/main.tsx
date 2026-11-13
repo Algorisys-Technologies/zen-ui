@@ -95,6 +95,7 @@ import NewPlannedVsActualDemo from "./components/NewPlannedVsActualDemo";
 import NewRateBarsDemo from "./components/NewRateBarsDemo";
 import NewLineCardDemo from "./components/NewLineCardDemo";
 import NewCapacityHeatmapDemo from "./components/NewCapacityHeatmapDemo";
+import NewColumnMapperDemo from "./components/NewColumnMapperDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -254,6 +255,7 @@ render(
       <Route path="/rate-bars" component={NewRateBarsDemo} />
       <Route path="/line-card" component={NewLineCardDemo} />
       <Route path="/capacity-heatmap" component={NewCapacityHeatmapDemo} />
+      <Route path="/column-mapper" component={NewColumnMapperDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

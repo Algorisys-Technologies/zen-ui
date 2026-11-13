@@ -225,6 +225,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   them above the table, row / column / grand totals, and `onCellClick` for a
   drill-down. Measured label contrast over 300 labels in five themes: lowest
   4.79:1.
+- Column mapping (`@algorisys/zen-ui-core/column-mapper`): `parseDelimited`
+  (quotes, doubled quotes, newlines in quotes, BOM, CRLF), `detectDelimiter`
+  (`,` `;` tab `|` — European exports use `;`), `autoMap` (exact match on a
+  field's id, label or aliases, case / accents / punctuation ignored, never a
+  fuzzy guess), `parseImportDate` (ISO or a full date in the locale's order —
+  no "today" shortcuts in an import), `validateMapping` (unmapped required
+  fields, fields mapped twice, and every bad cell with its row and column).
+  `check:column-mapper`.
+- ColumnMapper (Solid; other bindings to follow): each column with sample
+  values, a "Maps to" select and its status; every problem in words above;
+  a preview of the first rows with each cell that will not import marked and
+  its reason given to screen readers. Numbers and dates read in the user's
+  locale.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through
