@@ -900,3 +900,42 @@
   --zen-card-padding: 0.75rem;
   --zen-menu-item-padding-y: 0.25rem;
 }
+
+/* ===================================================================== *
+ * Machine state — the colours shop-floor components draw states in     *
+ *                                                                       *
+ * One family per TONE (core/src/machine-state.ts maps the nine states   *
+ * onto six tones). Each aliases a semantic colour by default, so every  *
+ * theme and dark mode work with nothing set; override a family to give  *
+ * a plant its own andon colours without restyling form errors:          *
+ *   :root { --zen-state-planned: #6250d6; ... }                         *
+ *                                                                       *
+ * Declared on every theme scope, not :root alone: a var() alias is      *
+ * resolved where it is declared, so a :root-only alias would hand a     *
+ * nested data-theme region the outer theme's colours.                   *
+ *                                                                       *
+ * `unknown` has no fill on purpose. Nothing has been heard from the     *
+ * machine, and any colour would claim something about those minutes;   *
+ * components draw it as a dashed outline instead.                       *
+ * ===================================================================== */
+:root,
+[data-theme] {
+  --zen-state-running: var(--zen-color-success);
+  --zen-state-running-soft: var(--zen-color-success-soft);
+  --zen-state-running-soft-fg: var(--zen-color-success-soft-fg);
+  --zen-state-down: var(--zen-color-error);
+  --zen-state-down-soft: var(--zen-color-error-soft);
+  --zen-state-down-soft-fg: var(--zen-color-error-soft-fg);
+  --zen-state-setup: var(--zen-color-warning);
+  --zen-state-setup-soft: var(--zen-color-warning-soft);
+  --zen-state-setup-soft-fg: var(--zen-color-warning-soft-fg);
+  --zen-state-planned: var(--zen-color-info);
+  --zen-state-planned-soft: var(--zen-color-info-soft);
+  --zen-state-planned-soft-fg: var(--zen-color-info-soft-fg);
+  --zen-state-idle: var(--zen-color-muted-fg);
+  --zen-state-idle-soft: var(--zen-color-neutral-soft);
+  --zen-state-idle-soft-fg: var(--zen-color-neutral-soft-fg);
+  --zen-state-unknown: var(--zen-color-muted-fg);
+  --zen-state-unknown-soft: transparent;
+  --zen-state-unknown-soft-fg: var(--zen-color-muted-fg);
+}

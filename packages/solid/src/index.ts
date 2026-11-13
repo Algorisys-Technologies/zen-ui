@@ -682,6 +682,21 @@ export {
   productionSetupPlan,
 } from "@algorisys/zen-ui-core/production";
 export { productionReschedule } from "@algorisys/zen-ui-core/reschedule";
+export { StatePill } from "./components/state-pill/state-pill";
+export type { StatePillProps, StatePillSize } from "./components/state-pill/state-pill";
+export {
+  MACHINE_STATES,
+  isAvailabilityLoss,
+  isMachineState,
+  machineStateCategory,
+  machineStateMessageKey,
+  machineStateTone,
+} from "@algorisys/zen-ui-core/machine-state";
+export type {
+  MachineState,
+  MachineStateCategory,
+  MachineStateTone,
+} from "@algorisys/zen-ui-core/machine-state";
 export type {
   ProductionMove,
   ProductionProposal,

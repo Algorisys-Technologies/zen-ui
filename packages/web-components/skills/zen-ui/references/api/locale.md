@@ -659,6 +659,15 @@ SKILL.md.
 - `notificationsInbox.hoursAgo: string`
 - `notificationsInbox.daysAgo: string`
 - `notificationsInbox.unread: string`
+- `machineState.running: string`
+- `machineState.idle: string`
+- `machineState.stopped: string`
+- `machineState.fault: string`
+- `machineState.waiting: string`
+- `machineState.setup: string`
+- `machineState.cleaning: string`
+- `machineState.maintenance: string`
+- `machineState.unknown: string`
 - `objectMarker.flagged: string`
 - `objectMarker.favorite: string`
 - `objectMarker.draft: string`

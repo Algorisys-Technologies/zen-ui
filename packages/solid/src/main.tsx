@@ -80,6 +80,7 @@ import NewUploadCollectionDemo from "./components/NewUploadCollectionDemo";
 import NewPlanningCalendarDemo from "./components/NewPlanningCalendarDemo";
 import NewGanttDemo from "./components/NewGanttDemo";
 import NewProductionScheduleDemo from "./components/NewProductionScheduleDemo";
+import NewStatePillDemo from "./components/NewStatePillDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -224,6 +225,7 @@ render(
       <Route path="/planning-calendar" component={NewPlanningCalendarDemo} />
       <Route path="/gantt" component={NewGanttDemo} />
       <Route path="/production-schedule" component={NewProductionScheduleDemo} />
+      <Route path="/state-pill" component={NewStatePillDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

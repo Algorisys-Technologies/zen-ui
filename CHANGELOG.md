@@ -17,6 +17,28 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Machine state, the shared vocabulary for shop-floor components
+  (`@algorisys/zen-ui-core/machine-state`): nine states — running, idle,
+  stopped, fault, waiting, setup, cleaning, maintenance, unknown — each with a
+  colour TONE (six: running, down, setup, planned, idle, unknown) and an OEE
+  CATEGORY (productive, unplanned-loss, changeover, planned-stop, no-demand,
+  no-data). `machineStateTone`, `machineStateCategory`, `isAvailabilityLoss`,
+  `isMachineState`, `machineStateMessageKey`; `check:machine-state` pins the
+  table, including that every state drawn as down is counted as an unplanned
+  loss and the reverse. Waiting (starved / blocked) is down, not idle.
+  Labels are in the message catalogue (`machineState.*`; unknown reads
+  "No data").
+- `--zen-state-<tone>` / `-soft` / `-soft-fg` tokens and `zen-*-zen-state-*`
+  utilities. Each aliases a semantic colour, declared on every theme scope so a
+  nested `data-theme` resolves its own; override one family to give a plant
+  its own andon colours without restyling form errors. Measured label contrast
+  over 45 pills in the five themes: lowest 4.79:1.
+- StatePill (Solid; React, vanilla and web-components to follow — `check:parity`
+  is red until they land): a state as a labelled pill, label always drawn.
+  `state` gives colour and label, children replace the label, and `tone` +
+  a label covers a vocabulary that is not ours (PackML Held, a plant's
+  "Starved"). `unknown` is a dashed outline with no fill. Sizes `sm` / `md`.
+
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through
   `aria-labelledby`, so a screen reader announces the question before the

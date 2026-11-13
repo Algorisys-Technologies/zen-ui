@@ -14,6 +14,7 @@ export * from "./virtual-window";
 export * from "./planning";
 export * from "./gantt";
 export * from "./production";
+export * from "./machine-state";
 export * from "./reschedule";
 export * from "./critical-path";
 export * from "./media";
