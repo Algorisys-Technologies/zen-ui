@@ -213,6 +213,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   instead ("Fault for 23m: Hydraulic pressure low", "No data for 5m 12s").
   `href` makes the card a link through its name (stretched over the card), so
   the progress bar is not nested inside a button or link.
+- Capacity (`@algorisys/zen-ui-core/capacity`): `capacityCell` / `capacityGrid`
+  — load from booked and available hours; free / ok / high (from 85%) /
+  over (strictly above 100%, with a floating-point allowance); work booked
+  where there is no capacity is `no-capacity`, the worst case rather than a
+  division by zero; no work and no capacity is `closed`. Totals sum hours,
+  then divide. `check:capacity`.
+- CapacityHeatmap (Solid; other bindings to follow): a real table, every cell
+  printing its load and hours over a wash that deepens with load; over and
+  no-capacity cells as alarms (error colours and a 2px outline), a count of
+  them above the table, row / column / grand totals, and `onCellClick` for a
+  drill-down. Measured label contrast over 300 labels in five themes: lowest
+  4.79:1.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

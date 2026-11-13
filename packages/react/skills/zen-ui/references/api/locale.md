@@ -694,6 +694,16 @@ SKILL.md.
 - `plannedVsActual.title: string`
 - `rateBars.label: string`
 - `lineCard.eta: string`
+- `capacity.label: string`
+- `capacity.resource: string`
+- `capacity.total: string`
+- `capacity.over: string`
+- `capacity.noCapacity: string`
+- `capacity.closed: string`
+- `capacity.hours: string`
+- `capacity.booked: string`
+- `capacity.overCount: string`
+- `capacity.cell: string`
 - `lineCard.done: string`
 - `lineCard.noRate: string`
 - `lineCard.noOrder: string`

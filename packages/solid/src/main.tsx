@@ -94,6 +94,7 @@ import NewShiftNavigatorDemo from "./components/NewShiftNavigatorDemo";
 import NewPlannedVsActualDemo from "./components/NewPlannedVsActualDemo";
 import NewRateBarsDemo from "./components/NewRateBarsDemo";
 import NewLineCardDemo from "./components/NewLineCardDemo";
+import NewCapacityHeatmapDemo from "./components/NewCapacityHeatmapDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -252,6 +253,7 @@ render(
       <Route path="/planned-vs-actual" component={NewPlannedVsActualDemo} />
       <Route path="/rate-bars" component={NewRateBarsDemo} />
       <Route path="/line-card" component={NewLineCardDemo} />
+      <Route path="/capacity-heatmap" component={NewCapacityHeatmapDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

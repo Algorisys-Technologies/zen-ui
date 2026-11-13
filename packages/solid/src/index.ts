@@ -766,6 +766,10 @@ export { LineCard } from "./components/line-card/line-card";
 export type { LineCardProps } from "./components/line-card/line-card";
 export { lineEta } from "@algorisys/zen-ui-core/line-eta";
 export type { LineEta } from "@algorisys/zen-ui-core/line-eta";
+export { CapacityHeatmap } from "./components/capacity-heatmap/capacity-heatmap";
+export type { CapacityHeatmapProps } from "./components/capacity-heatmap/capacity-heatmap";
+export { capacityCell, capacityGrid } from "@algorisys/zen-ui-core/capacity";
+export type { CapacityCell, CapacityGrid, CapacityGridInput, CapacityStatus } from "@algorisys/zen-ui-core/capacity";
 export type { LiveState } from "@algorisys/zen-ui-core/live";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {
