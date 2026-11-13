@@ -742,6 +742,18 @@ export { canCompleteStep, stepRunnerState } from "@algorisys/zen-ui-core/step-ru
 export { LiveIndicator } from "./components/live-indicator/live-indicator";
 export type { LiveIndicatorProps } from "./components/live-indicator/live-indicator";
 export { liveState } from "@algorisys/zen-ui-core/live";
+export { ShiftNavigator } from "./components/shift-navigator/shift-navigator";
+export type { ShiftNavigatorProps } from "./components/shift-navigator/shift-navigator";
+export {
+  addPlantDays,
+  nextShift,
+  plantDayOf,
+  previousShift,
+  shiftAt,
+  shiftWindow,
+  wallClockToInstant,
+} from "@algorisys/zen-ui-core/shifts";
+export type { ShiftDef, ShiftRef, ShiftWindow } from "@algorisys/zen-ui-core/shifts";
 export type { LiveState } from "@algorisys/zen-ui-core/live";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {

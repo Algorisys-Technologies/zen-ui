@@ -171,6 +171,17 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   The visible age ticks every second but is not a live region; a hidden one
   announces only state changes (measured: 23 visible changes, 2 announcements
   in 23 seconds).
+- Shifts (`@algorisys/zen-ui-core/shifts`): `shiftAt` (which shift an
+  instant is in, or the next / previous one from a gap), `shiftWindow`,
+  `nextShift`, `previousShift`, `wallClockToInstant`, `plantDayOf`,
+  `addPlantDays`. Wall-clock times in the plant's IANA zone; a night shift
+  belongs to the day it starts; across daylight saving a shift keeps its
+  wall-clock times and its length changes (Berlin's 24 Oct 2026 night shift
+  is 9 hours). `check:shifts`, verified from three machine time zones.
+- ShiftNavigator (Solid; other bindings to follow): previous / next / back to
+  the current shift, labelled "Night · Thu, Nov 12 · 10:00 PM–06:00 AM" in the
+  plant's zone, "Now" on the current one. Next stops at the current shift
+  unless `allowFuture`. Step buttons follow density (40px, 48px touch).
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

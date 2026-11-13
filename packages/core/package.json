@@ -34,6 +34,7 @@
     "./measurement": "./src/measurement.ts",
     "./step-runner": "./src/step-runner.ts",
     "./live": "./src/live.ts",
+    "./shifts": "./src/shifts.ts",
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",

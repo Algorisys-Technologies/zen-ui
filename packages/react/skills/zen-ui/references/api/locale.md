@@ -690,6 +690,12 @@ SKILL.md.
 - `stateTimeline.events: string`
 - `andon.board: string`
 - `live.live: string`
+- `shifts.label: string`
+- `shifts.named: string`
+- `shifts.previous: string`
+- `shifts.next: string`
+- `shifts.current: string`
+- `shifts.now: string`
 - `live.updated: string`
 - `live.justNow: string`
 - `live.stale: string`
