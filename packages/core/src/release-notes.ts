@@ -33,6 +33,41 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.9.0",
+    date: "2026-11-13",
+    kind: "new",
+    title: "Shop-floor components, in every binding",
+    detail: "StatePill, OeeGauge, StateTimeline, AndonBoard, ReasonCodePicker, ScanInput, ProductionProgress, MeasurementInput, StepRunner, LiveIndicator, ShiftNavigator, PlannedVsActual, RateBars, LineCard, CapacityHeatmap, ColumnMapper, GenealogyGraph and RoutingGraph — a manufacturing screen's parts, over one shared core.",
+  },
+  {
+    version: "12.9.0",
+    date: "2026-11-13",
+    kind: "new",
+    title: "Drag work from a backlog onto the schedule; late jobs flagged",
+    detail: "ScheduleBacklog and ProductionSchedule's onPlace propose a placement and never apply it, so undo stays yours. An operation with a due date shows when it ends late.",
+  },
+  {
+    version: "12.9.0",
+    date: "2026-11-13",
+    kind: "new",
+    title: "Touch density, Pareto charts, sidebar headings and a current-page mark",
+    detail: "data-density=\"touch\" takes controls to 48px for tablets; AnalyticChart draws pareto; SidebarMenuSubLabel heads rows inside a group, and --zen-sidebar-guide-current marks the current page.",
+  },
+  {
+    version: "12.9.0",
+    date: "2026-11-13",
+    kind: "fixed",
+    title: "Outlines that never drew now do",
+    detail: "DataTable's selected row and focused cell, SpreadsheetGrid's selected cell and MediaTimeline's focus ring were meant to be outlined and were not.",
+  },
+  {
+    version: "12.9.0",
+    date: "2026-11-13",
+    kind: "fixed",
+    title: "Solid Sidebar: closing a group no longer leaks memory",
+    detail: "Each close left its list in memory, and collapsing to the rail no longer closes groups your app controls.",
+  },
+  {
     version: "12.8.4",
     date: "2026-11-09",
     kind: "fixed",

@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.9.0] - 2026-11-13
+
 ### Added
 
 - Sidebar (every binding): `SidebarMenuSubLabel` (`<zen-sidebar-menu-sub-label>`)
@@ -91,8 +93,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   nested `data-theme` resolves its own; override one family to give a plant
   its own andon colours without restyling form errors. Measured label contrast
   over 45 pills in the five themes: lowest 4.79:1.
-- StatePill (Solid; React, vanilla and web-components to follow — `check:parity`
-  is red until they land): a state as a labelled pill, label always drawn.
+- StatePill (built in Solid first; in every binding as of this release): a state as a labelled pill, label always drawn.
   `state` gives colour and label, children replace the label, and `tone` +
   a label covers a vocabulary that is not ours (PackML Held, a plant's
   "Starved"). `unknown` is a dashed outline with no fill. Sizes `sm` / `md`.
@@ -104,7 +105,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `null`, never NaN or 0; nothing is clamped, so a Performance over 100% (a
   wrong ideal cycle time) stays visible. `oeeBand` with configurable
   thresholds (defaults 65% / 85%), `gaugeAngle`. `check:oee`.
-- OeeGauge (Solid; other bindings to follow): OEE as a half-circle gauge, with
+- OeeGauge (built in Solid first; in every binding as of this release): OEE as a half-circle gauge, with
   the band zones as a ring outside the track and Availability / Performance /
   Quality underneath when `factors` is given. `role="meter"`; the number is
   always printed and the band named in words ("Near target"), so colour is
@@ -121,7 +122,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `layoutTimelineEvents`, `timelineTicks` (round times in an IANA timezone —
   IST ticks sit at half past UTC), `durationMessage` ("42s", "5m 10s", "25m",
   "1h 12m"). `check:state-timeline`.
-- StateTimeline (Solid; other bindings to follow): one machine's states along
+- StateTimeline (built in Solid first; in every binding as of this release): one machine's states along
   a shift. Stretches exactly as wide as their duration (2px floor), no data
   hatched, a now line, event markers (listed for screen readers), an axis in
   the plant's `timeZone` whose label count follows the strip's width.
@@ -133,7 +134,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   measures trouble, not uptime — none for running or idle), `sortAndonTiles`
   (down, no data, setup, planned, idle, running; longest in state first),
   `boardFreshness` (stale past a limit, default 2 min). `check:andon`.
-- AndonTile / AndonBoard (Solid; other bindings to follow): the plant board,
+- AndonTile / AndonBoard (built in Solid first; in every binding as of this release): the plant board,
   one tile per machine with name, line, state in words, cause and a live
   clock, framed and washed in the state's tone (no data dashed). The board
   takes `lastUpdated` — the last SUCCESSFUL refresh — and past `staleAfterMs`
@@ -146,7 +147,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (the plant's own order, with counts) and `filterReasons` — label, code and
   description, every word in any order, case and accents ignored.
   `check:reason-codes`.
-- ReasonCodePicker (Solid; other bindings to follow): a touch grid for why a
+- ReasonCodePicker (built in Solid first; in every binding as of this release): a touch grid for why a
   machine stopped or a part was scrapped. 48px-plus targets, category chips
   when there is more than one category, search once there are more than 12
   reasons. A listbox with one tab stop; arrow keys (Down / Up by visual row)
@@ -158,7 +159,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   every gap at most 35 ms, no edits); `createScanBuffer` collects bursts typed
   with no field focused, dropping stray keys and flushing scanners configured
   with no suffix. `check:scan`.
-- ScanInput (Solid; other bindings to follow): a 48px monospace field for a
+- ScanInput (built in Solid first; in every binding as of this release): a 48px monospace field for a
   wedge scanner. Enter submits with `{ source: "scanner" | "keyboard" }`;
   `onScan` returns an error message, a promise of one, or nothing, and the
   status line says Checking / Scanned / the error (a newer scan wins over a
@@ -178,7 +179,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   over-production is reported, and good + scrap past the target scale down
   together so scrap stays visible. `segmentFill` for cartons / pallets.
   `check:production-progress`.
-- ProductionProgress (Solid; other bindings to follow): good and scrap against
+- ProductionProgress (built in Solid first; in every binding as of this release): good and scrap against
   a work order's target, "361 of 500 good · 19 scrap · 139 to go". Colour is
   what the parts are (good primary, success once done; scrap error), never a
   ramp by percentage. A 2px sliver once work has started; optional
@@ -190,7 +191,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   floating-point allowance, one-sided specs, an optional warning band, no
   verdict for an inverted spec) and `measurementScale` (built from the limits,
   so a wild reading is pinned and flagged off-scale). `check:measurement`.
-- MeasurementInput (Solid; other bindings to follow): an inspection reading
+- MeasurementInput (built in Solid first; in every binding as of this release): an inspection reading
   checked against its limits as it is typed, in the user's locale. Verdict in
   words with an icon; spec line ("10.00 ± 0.10 mm", "At least 40 Nm"); a
   scale with the tolerance and warning bands, nominal and reading. Readings
@@ -202,7 +203,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and `canCompleteStep` (checklist all ticked; measurement entered and in
   tolerance unless allowed). Sequential by default, issues hold the line, only
   optional steps skip. `check:step-runner`.
-- StepRunner (Solid; other bindings to follow): operator work instructions, a
+- StepRunner (built in Solid first; in every binding as of this release): operator work instructions, a
   list of steps beside the current one. Checklists as 48px toggles,
   measurements through MeasurementInput, Complete / Skip / Report issue, and
   the reason written under the button when a step cannot complete yet. Done
@@ -224,7 +225,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Live state (`@algorisys/zen-ui-core/live`): `liveState` — offline (the app
   says the connection is down) over waiting (nothing yet) over stale (past
   `staleAfterMs` since the last successful update) over live. `check:live`.
-- LiveIndicator (Solid; other bindings to follow): "Updated 12s ago" with a
+- LiveIndicator (built in Solid first; in every binding as of this release): "Updated 12s ago" with a
   dot, turning to "Not updated for 3m 10s" and "Offline, last update 20s ago".
   The visible age ticks every second but is not a live region; a hidden one
   announces only state changes (measured: 23 visible changes, 2 announcements
@@ -236,7 +237,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   belongs to the day it starts; across daylight saving a shift keeps its
   wall-clock times and its length changes (Berlin's 24 Oct 2026 night shift
   is 9 hours). `check:shifts`, verified from three machine time zones.
-- ShiftNavigator (Solid; other bindings to follow): previous / next / back to
+- ShiftNavigator (built in Solid first; in every binding as of this release): previous / next / back to
   the current shift, labelled "Night · Thu, Nov 12 · 10:00 PM–06:00 AM" in the
   plant's zone, "Now" on the current one. Next stops at the current shift
   unless `allowFuture`. Step buttons follow density (40px, 48px touch).
@@ -247,7 +248,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `planAt` (cumulative plan, linear, 0 before its first point) and
   `readingAt` (a counter reading holds until the next — never interpolated
   forward). `check:planned-vs-actual`.
-- PlannedVsActual (Solid; other bindings to follow): "256 pcs behind plan",
+- PlannedVsActual (built in Solid first; in every binding as of this release): "256 pcs behind plan",
   what was made against what was planned so far, the projection, and a
   plain-SVG chart (no chart library): the plan dashed over the shift, the
   actual as steps up to now, the gap marked at now, a time axis in the
@@ -257,7 +258,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   reset and counts from zero, not as negative output), per hour, the state
   that covered most of each bucket, the bucket containing now flagged partial
   with its rate over the elapsed part. `check:rate-bars`.
-- RateBars (Solid; other bindings to follow): output bars coloured by machine
+- RateBars (built in Solid first; in every binding as of this release): output bars coloured by machine
   state, every bar keeping a 3px stub so a bucket that made nothing still
   shows why, the filling bucket hatched, a dashed target line, and the rate
   now / average / target as text.
@@ -265,7 +266,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   running with a rate; done once good reaches the target; no time for a line
   that is stopped, in setup, idle or in a planned stop; unknown with no data.
   `check:line-eta`.
-- LineCard (Solid; other bindings to follow): a line's name, StatePill, OEE,
+- LineCard (built in Solid first; in every binding as of this release): a line's name, StatePill, OEE,
   the order as a ProductionProgress, and a last line that answers "when will
   it finish?" — "Done by 11:00 AM" in the plant's zone, or what it is doing
   instead ("Fault for 23m: Hydraulic pressure low", "No data for 5m 12s").
@@ -277,7 +278,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   where there is no capacity is `no-capacity`, the worst case rather than a
   division by zero; no work and no capacity is `closed`. Totals sum hours,
   then divide. `check:capacity`.
-- CapacityHeatmap (Solid; other bindings to follow): a real table, every cell
+- CapacityHeatmap (built in Solid first; in every binding as of this release): a real table, every cell
   printing its load and hours over a wash that deepens with load; over and
   no-capacity cells as alarms (error colours and a 2px outline), a count of
   them above the table, row / column / grand totals, and `onCellClick` for a
@@ -291,7 +292,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   no "today" shortcuts in an import), `validateMapping` (unmapped required
   fields, fields mapped twice, and every bad cell with its row and column).
   `check:column-mapper`.
-- ColumnMapper (Solid; other bindings to follow): each column with sample
+- ColumnMapper (built in Solid first; in every binding as of this release): each column with sample
   values, a "Maps to" select and its status; every problem in words above;
   a preview of the first rows with each cell that will not import marked and
   its reason given to screen readers. Numbers and dates read in the user's
@@ -301,7 +302,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   positive), each node once at its shortest distance, loops ending, nodes
   past `maxDepth` cut and counted per side, columns ordered by neighbours'
   positions so lines cross less. `check:genealogy`.
-- GenealogyGraph (Solid; other bindings to follow): columns from "Made from"
+- GenealogyGraph (built in Solid first; in every binding as of this release): columns from "Made from"
   through the traced item to "Went into", cards joined by measured curves
   (following wrap, resize and direction changes), click any card to trace
   from it, and a cut trace that says so ("4 more further on"). Each card's
@@ -312,7 +313,7 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   unknown steps and loops), `effectiveLinks`, `startableSteps`. Loops and
   dangling links in stored data are left out of the layout, not drawn.
   `check:routing`.
-- RoutingGraph (Solid; other bindings to follow): steps laid out left to right
+- RoutingGraph (built in Solid first; in every binding as of this release): steps laid out left to right
   with arrowed links; a link that skips a column runs over the top in its own
   lane, never behind a card it does not touch. Read-only with step status, or
   editable: the selected step lists what it runs after (each removable) and
@@ -325,14 +326,14 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   on the chart is a move of a job that did not exist — the same cascade and
   conflicts as a drag); `productionNextFreeStart`; `snapToMinutes`;
   `PRODUCTION_DRAG_TYPE`. `check:production-place`.
-- ProductionSchedule (Solid; React and vanilla to follow): `onPlace` accepts
+- ProductionSchedule (built in Solid first; in every binding as of this release): `onPlace` accepts
   work dragged in onto a leaf work centre, proposed like a reschedule and
   snapped to 15 minutes; the drop layer exists only when `onPlace` is given,
   so charts without it render the DOM they always did. Operations that end
   after their `due` carry an error-coloured end cap and say "Late by …" in
   the tooltip and accessible name. No internal undo: placements are
   proposals and undo stays the caller's (DECISION 2) — the demo keeps it.
-- ScheduleBacklog (Solid; other bindings to follow): unscheduled jobs, overdue
+- ScheduleBacklog (built in Solid first; in every binding as of this release): unscheduled jobs, overdue
   first, each draggable onto the chart AND placeable from a Place button
   (choose a work centre: after its last job) — the path for touch screens and
   keyboards, where drag and drop does not exist.
