@@ -45,6 +45,15 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   2×8px bar instead of an 8×8px dot. The radio is a `<button>`, whose default
   `1px 6px` padding left a 16px control 2px of content width. Solid draws its
   control on a `div` and was unaffected.
+- `<zen-radio-group>` ignored its starting `value` / `default-value`: every
+  radio came up unchecked, and every radio was its own tab stop, so Tab walked
+  the options instead of entering the group once. A parent custom element
+  connects before its children, so the group painted while its
+  `<zen-radio-group-item>`s had not built their radios yet, and nothing painted
+  again. Vanilla's RadioGroup now repaints (and re-applies group `disabled`)
+  when radios appear inside it after a render. Measured on the demo: 7 of 7
+  groups wrong before, 0 after; selecting, arrow keys and a later `value`
+  change still work.
 
 ## [12.8.4] - 2026-11-09
 

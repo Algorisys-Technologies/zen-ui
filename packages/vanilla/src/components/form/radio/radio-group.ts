@@ -310,6 +310,19 @@ export function RadioGroup(props: RadioGroupProps): ZenComponent<RadioGroupProps
 
   render();
   disposer.add(state.subscribe(paint));
+
+  // Radios that appear after a render still need the group's state. This is the
+  // web-components case: a parent element connects before its children, so
+  // <zen-radio-group> renders while its <zen-radio-group-item>s are still empty
+  // hosts, and their buttons arrive a moment later. Without this they came up
+  // unchecked whatever the value, with every radio its own tab stop. Watches
+  // child lists only — paint() writes attributes, so it cannot retrigger itself.
+  const late = new MutationObserver(() => {
+    if (current.disabled) for (const item of itemEls()) item.disabled = true;
+    paint();
+  });
+  late.observe(el, { childList: true, subtree: true });
+  disposer.add(() => late.disconnect());
   disposer.add(() => cleanups.dispose());
   disposer.add(() => removeProps?.());
 
