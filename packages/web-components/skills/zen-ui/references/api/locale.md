@@ -689,6 +689,12 @@ SKILL.md.
 - `stateTimeline.total: string`
 - `stateTimeline.events: string`
 - `andon.board: string`
+- `reasonCodes.label: string`
+- `reasonCodes.all: string`
+- `reasonCodes.categories: string`
+- `reasonCodes.search: string`
+- `reasonCodes.none: string`
+- `reasonCodes.selectedHidden: string`
 - `andon.stale: string`
 - `andon.updated: string`
 - `andon.justNow: string`

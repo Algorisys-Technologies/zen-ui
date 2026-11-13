@@ -84,6 +84,17 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   machine on a wall board by where it always is). `onTileClick` / `onClick`
   make tiles buttons. `--zen-andon-tile-min-width` sets the column width.
   Measured label contrast over 165 tile labels in five themes: lowest 4.64:1.
+- Reason codes (`@algorisys/zen-ui-core/reason-codes`): `reasonCategories`
+  (the plant's own order, with counts) and `filterReasons` — label, code and
+  description, every word in any order, case and accents ignored.
+  `check:reason-codes`.
+- ReasonCodePicker (Solid; other bindings to follow): a touch grid for why a
+  machine stopped or a part was scrapped. 48px-plus targets, category chips
+  when there is more than one category, search once there are more than 12
+  reasons. A listbox with one tab stop; arrow keys (Down / Up by visual row)
+  move focus but do not select — Enter, Space or a tap does, because choosing
+  a reason is often what records the stop. A selected reason the filter hides
+  stays selected and is named under the grid. `--zen-reason-min-width`.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

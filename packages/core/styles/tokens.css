@@ -946,3 +946,9 @@
 :root {
   --zen-andon-tile-min-width: 14rem;
 }
+
+/* The narrowest a ReasonCodePicker button gets before the grid drops a
+ * column. Wide enough for a two-line reason at a size gloved hands can hit. */
+:root {
+  --zen-reason-min-width: 10rem;
+}

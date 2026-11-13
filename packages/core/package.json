@@ -28,6 +28,7 @@
     "./oee": "./src/oee.ts",
     "./state-timeline": "./src/state-timeline.ts",
     "./andon": "./src/andon.ts",
+    "./reason-codes": "./src/reason-codes.ts",
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",
