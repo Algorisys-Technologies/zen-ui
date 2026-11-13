@@ -688,6 +688,12 @@ SKILL.md.
 - `stateTimeline.summary: string`
 - `stateTimeline.total: string`
 - `stateTimeline.events: string`
+- `andon.board: string`
+- `andon.stale: string`
+- `andon.updated: string`
+- `andon.justNow: string`
+- `andon.tile: string`
+- `andon.tileFor: string`
 - `stateTimeline.event: string`
 - `objectMarker.flagged: string`
 - `objectMarker.favorite: string`

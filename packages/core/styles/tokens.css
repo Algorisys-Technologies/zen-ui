@@ -939,3 +939,10 @@
   --zen-state-unknown-soft: transparent;
   --zen-state-unknown-soft-fg: var(--zen-color-muted-fg);
 }
+
+/* The narrowest an andon tile gets before AndonBoard drops a column. Wall
+ * boards read from across the room want this larger; a supervisor's tablet
+ * may want it smaller. */
+:root {
+  --zen-andon-tile-min-width: 14rem;
+}

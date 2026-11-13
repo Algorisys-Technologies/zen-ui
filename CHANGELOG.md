@@ -71,6 +71,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   keys (visual direction, so RTL works), Home / End; `isSegmentClickable`,
   `selectedId`. The group's accessible name carries the per-state totals.
   Stack several with `size="sm"` and `hideAxis` to compare a line.
+- Andon (`@algorisys/zen-ui-core/andon`): `andonShowsClock` (the clock
+  measures trouble, not uptime — none for running or idle), `sortAndonTiles`
+  (down, no data, setup, planned, idle, running; longest in state first),
+  `boardFreshness` (stale past a limit, default 2 min). `check:andon`.
+- AndonTile / AndonBoard (Solid; other bindings to follow): the plant board,
+  one tile per machine with name, line, state in words, cause and a live
+  clock, framed and washed in the state's tone (no data dashed). The board
+  takes `lastUpdated` — the last SUCCESSFUL refresh — and past `staleAfterMs`
+  greys its tiles and says how old they are, since a frozen board looks like a
+  calm plant. Tiles keep the order given unless `sort` is set (people find a
+  machine on a wall board by where it always is). `onTileClick` / `onClick`
+  make tiles buttons. `--zen-andon-tile-min-width` sets the column width.
+  Measured label contrast over 165 tile labels in five themes: lowest 4.64:1.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through
