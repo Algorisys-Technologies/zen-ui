@@ -971,3 +971,9 @@
 :root {
   --zen-reason-min-width: 10rem;
 }
+
+/* StepRunner's list of steps beside the current one, on screens wide enough
+ * for both. */
+:root {
+  --zen-step-rail-width: 16rem;
+}

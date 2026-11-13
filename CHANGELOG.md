@@ -139,6 +139,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   are never rounded to the spec's precision. Screen readers hear the verdict
   when the reading is committed (Enter / blur), not per keystroke. Indicator
   colours keep 3:1 (measured lowest 4.45:1 across five themes).
+- Step runner (`@algorisys/zen-ui-core/step-runner`): `stepRunnerState`
+  (current step, locked / open / done / skipped / issue per step, complete)
+  and `canCompleteStep` (checklist all ticked; measurement entered and in
+  tolerance unless allowed). Sequential by default, issues hold the line, only
+  optional steps skip. `check:step-runner`.
+- StepRunner (Solid; other bindings to follow): operator work instructions, a
+  list of steps beside the current one. Checklists as 48px toggles,
+  measurements through MeasurementInput, Complete / Skip / Report issue, and
+  the reason written under the button when a step cannot complete yet. Done
+  steps open for review. Controlled (`records` / `onRecordsChange`, so a run
+  survives a reload) or not; `onStepComplete`, `onReportIssue`, `onComplete`.
+  Announces the step it moves to, not every tick. `--zen-step-rail-width`.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

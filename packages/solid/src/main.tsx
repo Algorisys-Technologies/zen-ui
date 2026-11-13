@@ -88,6 +88,7 @@ import NewReasonCodePickerDemo from "./components/NewReasonCodePickerDemo";
 import NewScanInputDemo from "./components/NewScanInputDemo";
 import NewProductionProgressDemo from "./components/NewProductionProgressDemo";
 import NewMeasurementInputDemo from "./components/NewMeasurementInputDemo";
+import NewStepRunnerDemo from "./components/NewStepRunnerDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -240,6 +241,7 @@ render(
       <Route path="/scan-input" component={NewScanInputDemo} />
       <Route path="/production-progress" component={NewProductionProgressDemo} />
       <Route path="/measurement-input" component={NewMeasurementInputDemo} />
+      <Route path="/step-runner" component={NewStepRunnerDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

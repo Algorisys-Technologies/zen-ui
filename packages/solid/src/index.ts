@@ -736,6 +736,10 @@ export { MeasurementInput } from "./components/measurement-input/measurement-inp
 export type { MeasurementInputProps } from "./components/measurement-input/measurement-input";
 export { judgeMeasurement, measurementScale } from "@algorisys/zen-ui-core/measurement";
 export type { MeasurementJudgement, MeasurementScale, MeasurementSpec, MeasurementVerdict } from "@algorisys/zen-ui-core/measurement";
+export { StepRunner } from "./components/step-runner/step-runner";
+export type { StepRunnerProps, StepRunnerStep } from "./components/step-runner/step-runner";
+export { canCompleteStep, stepRunnerState } from "@algorisys/zen-ui-core/step-runner";
+export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {
   StateSegment,
   StateSegmentInput,
