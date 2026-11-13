@@ -13,7 +13,7 @@ SKILL.md.
 
 ### AnalyticChartSpec (type)
 
-- `type: string` — A registered kind: bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, or your own.
+- `type: string` — A registered kind: bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, pareto, or your own.
 - `data: ChartRow[]`
 - `x?: string | undefined` — The category / label field (the name of each slice, stage or tile).
 - `series?: AnalyticSeries[] | undefined` — The value fields. Pie, donut, funnel, gauge, treemap and waterfall use the first.
@@ -23,6 +23,7 @@ SKILL.md.
 - `total?: string | undefined` — Waterfall: the field that marks a row as a running total (Opening, Gross profit, Closing).
 - `max?: number | undefined` — Gauge: the value that fills the dial. Default 100.
 - `target?: number | undefined` — Gauge: where the target sits, drawn as a mark on the dial.
+- `threshold?: number | undefined` — Pareto: the cumulative share that ends the vital few. Default 0.8.
 - `zoom?: boolean | undefined` — Category-axis zoom: a slider under the chart, and the wheel / pinch.
 - `legend?: boolean | undefined` — Default: shown when there is more than one series.
 - `title?: string | undefined` — The chart's accessible name, and the table view's caption.
@@ -50,6 +51,7 @@ SKILL.md.
 - `theme: ChartTheme`
 - `format: (value: number, axis?: "primary" | "secondary") => string` — Formats a value on the given axis (the primary unless said).
 - `rtl: boolean` — The page reads right to left.
+- `locale?: string | undefined` — BCP 47, for the few labels a kind formats itself (Pareto's percent axis). Undefined: the browser's.
 - `width?: number | undefined` — The chart's width in px, when known: lets category labels wrap instead of dropping.
 - `t: (key: string, values?: Record<string, string | number>) => string` — A catalogue word (`analyticChart.*`), translated when the app supplied one.
 

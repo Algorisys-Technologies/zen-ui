@@ -953,6 +953,7 @@ export const DEFAULT_MESSAGES = {
   "analyticChart.change": "Change",
   "analyticChart.runningTotal": "Running total",
   "analyticChart.total": "Total",
+  "analyticChart.cumulative": "Cumulative",
   "analyticChart.value": "Value",
   "analyticChart.max": "Maximum",
   "analyticChart.target": "Target",

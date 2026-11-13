@@ -151,6 +151,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   steps open for review. Controlled (`records` / `onRecordsChange`, so a run
   survives a reload) or not; `onStepComplete`, `onReportIssue`, `onComplete`.
   Announces the step it moves to, not every tick. `--zen-step-rail-width`.
+- AnalyticChart: a `pareto` kind, built into core, so every binding draws it.
+  Rows sort largest first (zero and blank last); bars in the series colour,
+  with the vital few — the rows that together reach `threshold` (default
+  0.8) — full strength and the rest faded; a cumulative line on its own
+  0–100% axis with the threshold marked. Shares read with one decimal in the
+  tooltip and table, so 79.7% is not shown as a threshold-reaching "80%".
+  Selecting a bar or a table row reports the ORIGINAL row. `paretoRows` is
+  exported. New optional spec field `threshold` and context field `locale`
+  (percent labels in the chart's locale; the browser's when a binding does not
+  pass it). Solid passes both; React, vanilla and web-components draw Pareto
+  today with the default threshold and pick up `threshold` / `locale` in the
+  port (vanilla's and React's spec-key lists need the field).
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

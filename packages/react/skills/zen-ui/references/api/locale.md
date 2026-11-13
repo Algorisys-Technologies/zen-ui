@@ -851,6 +851,7 @@ SKILL.md.
 - `analyticChart.change: string`
 - `analyticChart.runningTotal: string`
 - `analyticChart.total: string`
+- `analyticChart.cumulative: string`
 - `analyticChart.value: string`
 - `analyticChart.max: string`
 - `analyticChart.target: string`
