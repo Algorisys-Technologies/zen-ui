@@ -774,6 +774,10 @@ export { ColumnMapper } from "./components/column-mapper/column-mapper";
 export type { ColumnMapperProps } from "./components/column-mapper/column-mapper";
 export { autoMap, detectDelimiter, parseDelimited, parseImportDate, validateMapping } from "@algorisys/zen-ui-core/column-mapper";
 export type { CellErrorKind, ColumnMapping, MapperField, MappingValidation } from "@algorisys/zen-ui-core/column-mapper";
+export { GenealogyGraph } from "./components/genealogy-graph/genealogy-graph";
+export type { GenealogyGraphProps, GenealogyNode } from "./components/genealogy-graph/genealogy-graph";
+export { traceGenealogy } from "@algorisys/zen-ui-core/genealogy";
+export type { GenealogyEdge, GenealogyNodeInput, GenealogyTrace } from "@algorisys/zen-ui-core/genealogy";
 export type { LiveState } from "@algorisys/zen-ui-core/live";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {

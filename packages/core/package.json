@@ -40,6 +40,7 @@
     "./line-eta": "./src/line-eta.ts",
     "./capacity": "./src/capacity.ts",
     "./column-mapper": "./src/column-mapper.ts",
+    "./genealogy": "./src/genealogy.ts",
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",

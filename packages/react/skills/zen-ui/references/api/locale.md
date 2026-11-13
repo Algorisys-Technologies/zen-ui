@@ -696,6 +696,16 @@ SKILL.md.
 - `lineCard.eta: string`
 - `capacity.label: string`
 - `columnMapper.label: string`
+- `genealogy.label: string`
+- `genealogy.upstream: string`
+- `genealogy.downstream: string`
+- `genealogy.focus: string`
+- `genealogy.levelUp: string`
+- `genealogy.levelDown: string`
+- `genealogy.cutUp: string`
+- `genealogy.cutDown: string`
+- `genealogy.node: string`
+- `genealogy.none: string`
 - `columnMapper.column: string`
 - `columnMapper.sample: string`
 - `columnMapper.mapsTo: string`

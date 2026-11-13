@@ -238,6 +238,16 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   a preview of the first rows with each cell that will not import marked and
   its reason given to screen readers. Numbers and dates read in the user's
   locale.
+- Genealogy (`@algorisys/zen-ui-core/genealogy`): `traceGenealogy` —
+  breadth-first both ways from a focus (upstream negative levels, downstream
+  positive), each node once at its shortest distance, loops ending, nodes
+  past `maxDepth` cut and counted per side, columns ordered by neighbours'
+  positions so lines cross less. `check:genealogy`.
+- GenealogyGraph (Solid; other bindings to follow): columns from "Made from"
+  through the traced item to "Went into", cards joined by measured curves
+  (following wrap, resize and direction changes), click any card to trace
+  from it, and a cut trace that says so ("4 more further on"). Each card's
+  accessible name says what it was made from and what it went into.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

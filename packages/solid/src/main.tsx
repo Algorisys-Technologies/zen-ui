@@ -96,6 +96,7 @@ import NewRateBarsDemo from "./components/NewRateBarsDemo";
 import NewLineCardDemo from "./components/NewLineCardDemo";
 import NewCapacityHeatmapDemo from "./components/NewCapacityHeatmapDemo";
 import NewColumnMapperDemo from "./components/NewColumnMapperDemo";
+import NewGenealogyGraphDemo from "./components/NewGenealogyGraphDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -256,6 +257,7 @@ render(
       <Route path="/line-card" component={NewLineCardDemo} />
       <Route path="/capacity-heatmap" component={NewCapacityHeatmapDemo} />
       <Route path="/column-mapper" component={NewColumnMapperDemo} />
+      <Route path="/genealogy-graph" component={NewGenealogyGraphDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />
