@@ -27,6 +27,7 @@ export * from "./live";
 export * from "./shifts";
 export * from "./planned-vs-actual";
 export * from "./rate-bars";
+export * from "./line-eta";
 export * from "./reschedule";
 export * from "./critical-path";
 export * from "./media";

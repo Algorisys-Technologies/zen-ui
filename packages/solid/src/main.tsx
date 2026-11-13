@@ -93,6 +93,7 @@ import NewLiveIndicatorDemo from "./components/NewLiveIndicatorDemo";
 import NewShiftNavigatorDemo from "./components/NewShiftNavigatorDemo";
 import NewPlannedVsActualDemo from "./components/NewPlannedVsActualDemo";
 import NewRateBarsDemo from "./components/NewRateBarsDemo";
+import NewLineCardDemo from "./components/NewLineCardDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -250,6 +251,7 @@ render(
       <Route path="/shift-navigator" component={NewShiftNavigatorDemo} />
       <Route path="/planned-vs-actual" component={NewPlannedVsActualDemo} />
       <Route path="/rate-bars" component={NewRateBarsDemo} />
+      <Route path="/line-card" component={NewLineCardDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

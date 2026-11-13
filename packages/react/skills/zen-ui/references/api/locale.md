@@ -693,6 +693,13 @@ SKILL.md.
 - `shifts.label: string`
 - `plannedVsActual.title: string`
 - `rateBars.label: string`
+- `lineCard.eta: string`
+- `lineCard.done: string`
+- `lineCard.noRate: string`
+- `lineCard.noOrder: string`
+- `lineCard.since: string`
+- `lineCard.sinceWhy: string`
+- `lineCard.oee: string`
 - `rateBars.current: string`
 - `rateBars.average: string`
 - `rateBars.target: string`

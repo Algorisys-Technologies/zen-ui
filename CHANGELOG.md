@@ -203,6 +203,16 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   state, every bar keeping a 3px stub so a bucket that made nothing still
   shows why, the filling bucket hatched, a dashed target line, and the rate
   now / average / target as text.
+- Line ETA (`@algorisys/zen-ui-core/line-eta`): `lineEta` — an ETA only while
+  running with a rate; done once good reaches the target; no time for a line
+  that is stopped, in setup, idle or in a planned stop; unknown with no data.
+  `check:line-eta`.
+- LineCard (Solid; other bindings to follow): a line's name, StatePill, OEE,
+  the order as a ProductionProgress, and a last line that answers "when will
+  it finish?" — "Done by 11:00 AM" in the plant's zone, or what it is doing
+  instead ("Fault for 23m: Hydraulic pressure low", "No data for 5m 12s").
+  `href` makes the card a link through its name (stretched over the card), so
+  the progress bar is not nested inside a button or link.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through
