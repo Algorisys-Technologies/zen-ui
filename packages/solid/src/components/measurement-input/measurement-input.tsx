@@ -75,6 +75,8 @@ export const MeasurementInput = (props: MeasurementInputProps) => {
   ]);
   const loc = useLocale();
   const id = createUniqueId();
+  const specId = `${id}-spec`;
+  const verdictId = `${id}-verdict`;
   const digits = () => local.precision ?? decimalsOf(local.spec);
   const fmt = (n: number, d = digits()) =>
     new Intl.NumberFormat(loc.locale(), { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
@@ -172,7 +174,7 @@ export const MeasurementInput = (props: MeasurementInputProps) => {
           disabled={local.disabled}
           value={text()}
           aria-invalid={tone() === "fail" ? true : undefined}
-          aria-describedby={`${id}-spec ${id}-verdict`}
+          aria-describedby={[specId, verdictId].join(" ")}
           class={cn(
             "zen-h-12 zen-w-40 zen-rounded-zen-md zen-border-2 zen-border-solid zen-bg-zen-background zen-px-3 zen-text-end zen-font-mono zen-text-lg zen-tabular-nums",
             "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
@@ -187,7 +189,7 @@ export const MeasurementInput = (props: MeasurementInputProps) => {
           <span class="zen-text-base zen-text-zen-foreground">{local.unit}</span>
         </Show>
         <span
-          id={`${id}-verdict`}
+          id={verdictId}
           class={cn(
             "zen-ms-2 zen-inline-flex zen-items-center zen-gap-1.5 zen-text-sm zen-font-semibold",
             tone() === "fail" ? "zen-text-zen-error" : tone() === "warn" ? "zen-text-zen-warning-soft-fg" : "zen-text-zen-success-soft-fg",
@@ -202,7 +204,7 @@ export const MeasurementInput = (props: MeasurementInputProps) => {
           </Show>
         </span>
       </div>
-      <span id={`${id}-spec`} class="zen-text-xs zen-tabular-nums zen-text-zen-muted-fg">
+      <span id={specId} class="zen-text-xs zen-tabular-nums zen-text-zen-muted-fg">
         {specText()}
       </span>
 
