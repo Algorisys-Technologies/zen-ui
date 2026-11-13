@@ -64,6 +64,20 @@ const zenRadii = Object.keys(zenUnoTheme.borderRadius);
  */
 const zenShadows = Object.keys(zenUnoTheme.boxShadow);
 
+/**
+ * One more generator / merger disagreement, and this one DELETED classes. In
+ * UnoCSS (Tailwind v3 semantics) a bare `outline` is `outline-style: solid`;
+ * tailwind-merge v3 follows Tailwind v4, where a bare `outline` sets the
+ * outline WIDTH. So `cn("zen-outline zen-outline-2")` read as two widths and
+ * dropped `zen-outline`, leaving a width and a colour with no style — an
+ * outline that draws nothing. DataTable's selected row, SpreadsheetGrid's
+ * selected cell and MediaTimeline's focus ring all wrote that pairing.
+ *
+ * Grouping a bare `outline` as `outline-solid` (what it generates) makes it a
+ * STYLE again, so it sits beside a width and still replaces another style.
+ */
+const UNO_AS = new Map([["outline", "outline-solid"]]);
+
 const twMerge = extendTailwindMerge({
   // The density keys are spacing, so `zen-h-zen-control` and a caller's
   // `zen-h-8` are one conflict group and the caller's wins.
@@ -71,7 +85,9 @@ const twMerge = extendTailwindMerge({
   experimentalParseClassName({ className, parseClassName }) {
     const parsed = parseClassName(className);
     const m = basePattern.exec(parsed.baseClassName);
-    return m ? { ...parsed, baseClassName: `${m[1]}${m[2]}` } : parsed;
+    if (!m) return parsed;
+    const base = `${m[1]}${m[2]}`;
+    return { ...parsed, baseClassName: UNO_AS.get(base) ?? base };
   },
 });
 

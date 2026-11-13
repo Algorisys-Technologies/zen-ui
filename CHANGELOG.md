@@ -297,6 +297,16 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Outlines that never drew, in every binding: DataTable's selected-row
+  outline and keyboard-focus outline, SpreadsheetGrid's selected-cell
+  outline, and MediaTimeline's focus ring. Each paired a bare `zen-outline`
+  (UnoCSS: `outline-style: solid`) with a width such as `zen-outline-2`, and
+  `cn()`'s tailwind-merge v3 — which follows Tailwind v4, where a bare
+  `outline` is a WIDTH — read the two as conflicting widths and dropped
+  `zen-outline`, leaving a width and a colour with no style. `cn()` now groups
+  a bare `outline` as the style it generates. Measured: the selected row and
+  cell draw a solid outline in Solid, React, vanilla and web-components.
+
 - BoundRadioGroup: the field label was not connected to the group. It rendered
   `<label for={id}>`, but no element carried that id — the group is a `div`,
   which `for` cannot target anyway — so a screen reader announced the options

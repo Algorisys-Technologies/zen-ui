@@ -76,5 +76,12 @@ console.log("  unrelated utilities must NOT eat each other");
 check(cn("zen-rounded-zen-md", "zen-p-8"), "zen-rounded-zen-md zen-p-8", "radius + padding coexist");
 check(cn("zen-rounded-zen-md", "zen-rounded-l-zen-full"), "zen-rounded-zen-md zen-rounded-l-zen-full", "all-sides + one-side coexist");
 
+console.log("  outline: Uno's bare `outline` is a STYLE (solid), tailwind-merge v3 reads it as a WIDTH");
+check(cn("zen-outline zen-outline-2 zen-outline-zen-error"), "zen-outline zen-outline-2 zen-outline-zen-error", "style + width + colour all kept");
+check(cn("data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1"), "data-[state=selected]:zen-outline data-[state=selected]:zen-outline-1", "…under a variant too");
+check(cn("zen-outline-dashed", "zen-outline"), "zen-outline", "outline replaces another style");
+check(cn("zen-outline-1", "zen-outline-2"), "zen-outline-2", "widths still override each other");
+check(cn("focus-visible:zen-outline-none zen-outline zen-outline-2"), "focus-visible:zen-outline-none zen-outline zen-outline-2", "a variant's outline-none does not eat the base outline");
+
 console.log(fails ? `\n${fails} FAILED\n` : "\nall passed\n");
 process.exit(fails ? 1 : 0);
