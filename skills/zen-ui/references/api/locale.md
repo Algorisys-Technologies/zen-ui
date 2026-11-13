@@ -668,6 +668,16 @@ SKILL.md.
 - `machineState.cleaning: string`
 - `machineState.maintenance: string`
 - `machineState.unknown: string`
+- `oee.label: string`
+- `oee.availability: string`
+- `oee.performance: string`
+- `oee.quality: string`
+- `oee.band.poor: string`
+- `oee.band.fair: string`
+- `oee.band.good: string`
+- `oee.noData: string`
+- `oee.valueText: string`
+- `oee.valueTextNoData: string`
 - `objectMarker.flagged: string`
 - `objectMarker.favorite: string`
 - `objectMarker.draft: string`

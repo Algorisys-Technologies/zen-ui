@@ -697,6 +697,10 @@ export type {
   MachineStateCategory,
   MachineStateTone,
 } from "@algorisys/zen-ui-core/machine-state";
+export { OeeGauge } from "./components/oee-gauge/oee-gauge";
+export type { OeeGaugeProps, OeeGaugeSize } from "./components/oee-gauge/oee-gauge";
+export { DEFAULT_OEE_BANDS, gaugeAngle, oeeBand, oeeFromCounts } from "@algorisys/zen-ui-core/oee";
+export type { OeeBand, OeeBands, OeeFactors, OeeInputs, OeeResult } from "@algorisys/zen-ui-core/oee";
 export type {
   ProductionMove,
   ProductionProposal,

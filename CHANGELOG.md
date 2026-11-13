@@ -38,6 +38,23 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `state` gives colour and label, children replace the label, and `tone` +
   a label covers a vocabulary that is not ours (PackML Held, a plant's
   "Starved"). `unknown` is a dashed outline with no fill. Sizes `sm` / `md`.
+- OEE (`@algorisys/zen-ui-core/oee`): `oeeFromCounts` turns planned time, run
+  time, ideal cycle time and counts into Availability, Performance, Quality and
+  OEE. OEE is good × ideal cycle ÷ planned time — equal to A × P × Q wherever
+  all three exist, and still a true 0 for a machine that never ran, where P is
+  undefined and the product would be NaN. A factor that cannot be computed is
+  `null`, never NaN or 0; nothing is clamped, so a Performance over 100% (a
+  wrong ideal cycle time) stays visible. `oeeBand` with configurable
+  thresholds (defaults 65% / 85%), `gaugeAngle`. `check:oee`.
+- OeeGauge (Solid; other bindings to follow): OEE as a half-circle gauge, with
+  the band zones as a ring outside the track and Availability / Performance /
+  Quality underneath when `factors` is given. `role="meter"`; the number is
+  always printed and the band named in words ("Near target"), so colour is
+  never the only carrier. `null` draws an empty track and "No data", never a 0.
+  An impossible value over 100% fills the arc and prints as it is
+  (`aria-valuenow` clamped to the range, the real figure in
+  `aria-valuetext`). Sizes `sm` / `md` / `lg`; `bands` for a plant's own
+  targets.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

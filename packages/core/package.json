@@ -25,6 +25,7 @@
     "./gantt": "./src/gantt.ts",
     "./production": "./src/production.ts",
     "./machine-state": "./src/machine-state.ts",
+    "./oee": "./src/oee.ts",
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",
