@@ -778,6 +778,10 @@ export { GenealogyGraph } from "./components/genealogy-graph/genealogy-graph";
 export type { GenealogyGraphProps, GenealogyNode } from "./components/genealogy-graph/genealogy-graph";
 export { traceGenealogy } from "@algorisys/zen-ui-core/genealogy";
 export type { GenealogyEdge, GenealogyNodeInput, GenealogyTrace } from "@algorisys/zen-ui-core/genealogy";
+export { RoutingGraph } from "./components/routing-graph/routing-graph";
+export type { RoutingGraphProps, RoutingStep, RoutingStepStatus } from "./components/routing-graph/routing-graph";
+export { canAddLink, effectiveLinks, routingLayout, startableSteps, wouldCreateCycle } from "@algorisys/zen-ui-core/routing";
+export type { LinkRefusal, RoutingLayout, RoutingLink, RoutingStepInput } from "@algorisys/zen-ui-core/routing";
 export type { LiveState } from "@algorisys/zen-ui-core/live";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {

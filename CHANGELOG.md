@@ -248,6 +248,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (following wrap, resize and direction changes), click any card to trace
   from it, and a cut trace that says so ("4 more further on"). Each card's
   accessible name says what it was made from and what it went into.
+- Routing (`@algorisys/zen-ui-core/routing`): `routingLayout` (layers by
+  longest path; the implicit chain in step order, flagged, when there are no
+  links), `canAddLink` / `wouldCreateCycle` (refusing self-links, duplicates,
+  unknown steps and loops), `effectiveLinks`, `startableSteps`. Loops and
+  dangling links in stored data are left out of the layout, not drawn.
+  `check:routing`.
+- RoutingGraph (Solid; other bindings to follow): steps laid out left to right
+  with arrowed links; a link that skips a column runs over the top in its own
+  lane, never behind a card it does not touch. Read-only with step status, or
+  editable: the selected step lists what it runs after (each removable) and
+  a picker offers only steps that would not close a loop — the same by
+  keyboard, screen reader or pointer. While the routing is the implicit
+  chain, the first edit writes the chain out before applying itself.
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

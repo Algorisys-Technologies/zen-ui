@@ -31,6 +31,7 @@ export * from "./line-eta";
 export * from "./capacity";
 export * from "./column-mapper";
 export * from "./genealogy";
+export * from "./routing";
 export * from "./reschedule";
 export * from "./critical-path";
 export * from "./media";
