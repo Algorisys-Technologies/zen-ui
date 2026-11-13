@@ -1,4 +1,4 @@
-import { type JSX, splitProps } from "solid-js";
+import { type JSX, Show, splitProps } from "solid-js";
 import { RadioGroup as KRadioGroup } from "@kobalte/core/radio-group";
 import { cn } from "../../../lib/cn";
 
@@ -6,8 +6,8 @@ import { cn } from "../../../lib/cn";
  * RadioGroup + RadioGroupItem — Solid port built on Kobalte's
  * RadioGroup primitive.
  *
- *   <RadioGroup value={x()} onChange={setX}>
- *     <RadioGroupItem value="a">A</RadioGroupItem>
+ *   <RadioGroup value={x()} onChange={setX} label="Plan">
+ *     <RadioGroupItem value="a" label="A" />
  *     <RadioGroupItem value="b">B</RadioGroupItem>
  *   </RadioGroup>
  *
@@ -30,6 +30,11 @@ export type RadioGroupProps = Omit<
   disabled?: boolean;
   required?: boolean;
   orientation?: "horizontal" | "vertical";
+  /** Names the group — the question the options answer. Wired to the group's
+   *  `aria-labelledby`, so a screen reader announces it before the options. */
+  label?: JSX.Element;
+  /** Help text under the options, wired to the group's `aria-describedby`. */
+  description?: JSX.Element;
   class?: string;
   children?: JSX.Element;
 };
@@ -44,8 +49,16 @@ export const RadioGroup = (props: RadioGroupProps) => {
     "disabled",
     "required",
     "orientation",
+    "label",
+    "description",
     "children",
   ]);
+  const itemsClass = () =>
+    local.orientation === "horizontal" ? "zen-flex zen-gap-3" : "zen-grid zen-gap-2";
+  // Without a label or description the root IS the item container, exactly as
+  // before these props existed; with one, the root stacks heading, items and
+  // help text, and the items get a container of their own.
+  const framed = () => local.label != null || local.description != null;
   return (
     <KRadioGroup
       {...rest}
@@ -56,12 +69,21 @@ export const RadioGroup = (props: RadioGroupProps) => {
       disabled={local.disabled}
       required={local.required}
       orientation={local.orientation}
-      class={cn(
-        local.orientation === "horizontal" ? "zen-flex zen-gap-3" : "zen-grid zen-gap-2",
-        local.class,
-      )}
+      class={cn(framed() ? "zen-flex zen-flex-col zen-gap-2" : itemsClass(), local.class)}
     >
-      {local.children}
+      <Show when={framed()} fallback={local.children}>
+        <Show when={local.label != null}>
+          <KRadioGroup.Label class="zen-text-sm zen-font-medium zen-leading-none zen-text-zen-foreground">
+            {local.label}
+          </KRadioGroup.Label>
+        </Show>
+        <div class={itemsClass()}>{local.children}</div>
+        <Show when={local.description != null}>
+          <KRadioGroup.Description class="zen-text-xs zen-text-zen-muted-fg">
+            {local.description}
+          </KRadioGroup.Description>
+        </Show>
+      </Show>
     </KRadioGroup>
   );
 };
@@ -84,6 +106,9 @@ export type RadioGroupItemProps = Omit<
   value: string;
   disabled?: boolean;
   size?: RadioSize;
+  /** The option's text. Same as passing it as children; when both are given,
+   *  `label` wins. */
+  label?: JSX.Element;
   class?: string;
   children?: JSX.Element;
 };
@@ -94,10 +119,12 @@ export const RadioGroupItem = (props: RadioGroupItemProps) => {
     "value",
     "disabled",
     "size",
+    "label",
     "children",
     "id",
   ]);
   const size = () => local.size ?? "md";
+  const text = () => local.label ?? local.children;
   return (
     <KRadioGroup.Item
       {...rest}
@@ -123,8 +150,8 @@ export const RadioGroupItem = (props: RadioGroupItemProps) => {
           <span class={cn("zen-block zen-rounded-zen-full zen-bg-zen-primary", DOT_SIZES[size()])} />
         </KRadioGroup.ItemIndicator>
       </KRadioGroup.ItemControl>
-      {local.children ? (
-        <KRadioGroup.ItemLabel class="zen-text-sm">{local.children}</KRadioGroup.ItemLabel>
+      {text() ? (
+        <KRadioGroup.ItemLabel class="zen-text-sm">{text()}</KRadioGroup.ItemLabel>
       ) : null}
     </KRadioGroup.Item>
   );

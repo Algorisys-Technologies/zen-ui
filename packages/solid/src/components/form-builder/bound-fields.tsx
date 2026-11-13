@@ -51,6 +51,10 @@ type FormStore<_T = unknown> = any;
 
 const Frame = (props: {
   id: string;
+  /** For a control that is not labelable (a radio group is a div): the label
+   *  takes this id for the control's `aria-labelledby`, instead of a `for`
+   *  that would point at nothing. */
+  labelId?: string;
   label?: JSX.Element;
   description?: JSX.Element;
   error?: string;
@@ -61,7 +65,8 @@ const Frame = (props: {
   <div class={cn("zen-flex zen-flex-col zen-gap-1.5", props.class)}>
     <Show when={props.label}>
       <label
-        for={props.id}
+        for={props.labelId ? undefined : props.id}
+        id={props.labelId}
         class={cn(
           "zen-text-sm zen-font-medium zen-leading-none",
           props.error ? "zen-text-zen-error" : "zen-text-zen-foreground",
@@ -352,6 +357,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>(
       {(field: { name: string; value: unknown; error: string }) => (
         <Frame
           id={`${props.name}-${field.name}`}
+          labelId={`${props.name}-${field.name}-label`}
           label={props.label}
           description={props.description}
           error={field.error}
@@ -359,6 +365,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>(
           class={props.fieldClass}
         >
           <RadioGroup
+            aria-labelledby={props.label ? `${props.name}-${field.name}-label` : undefined}
             value={(field.value as string | undefined) ?? ""}
             onChange={(v) => {
               setValue(props.of as never, props.name as never, v as never);

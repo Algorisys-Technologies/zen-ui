@@ -143,7 +143,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Switch", path: "/switch", description: "Toggle for immediate settings; sizes, controlled / uncontrolled", source: "packages/solid/src/components/NewSwitchDemo.tsx" },
       { label: "Checkbox", path: "/checkbox", description: "Binary + indeterminate tri-state; sizes, form submission", source: "packages/solid/src/components/NewCheckboxDemo.tsx" },
-      { label: "RadioGroup", path: "/radio-group", description: "Roving tabindex, arrow-key nav, form submission", source: "packages/solid/src/components/NewRadioGroupDemo.tsx" },
+      { label: "RadioGroup", path: "/radio-group", description: "Roving tabindex, arrow-key nav, form submission", source: "packages/solid/src/components/NewRadioGroupDemo.tsx", updated: "12.9.0" },
       { label: "Slider", path: "/slider", description: "Single + range, vertical, full keyboard control", source: "packages/solid/src/components/NewSliderDemo.tsx" },
       { label: "Select", path: "/select", description: "Keyboard nav, option groups, form submission", source: "packages/solid/src/components/NewSelectDemo.tsx" , updated: "12.2.0" },
     ],
@@ -237,7 +237,7 @@ export const NAV: NavGroup[] = [
     group: "Forms",
     items: [
       { label: "Form", path: "/form-new", description: "Form primitives with validation wiring", source: "packages/solid/src/components/NewFormDemo.tsx" },
-      { label: "BoundFields", path: "/bound-fields", description: "Bound* field wrappers \u2014 form-wired, no boilerplate", source: "packages/solid/src/components/NewBoundFieldsDemo.tsx" },
+      { label: "BoundFields", path: "/bound-fields", description: "Bound* field wrappers \u2014 form-wired, no boilerplate", source: "packages/solid/src/components/NewBoundFieldsDemo.tsx", updated: "12.9.0" },
     ],
   },
   {

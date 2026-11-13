@@ -42,7 +42,7 @@ real props; guessing prop names is how agents invent APIs.
 - [link.md](link.md) — `Link`, `linkVariants`, `LinkProps`
 - [popover.md](popover.md) — `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverAnchor`
 - [checkbox.md](checkbox.md) — `Checkbox`, `CheckboxProps`, `CheckboxSize`
-- [radio-group.md](radio-group.md) — `RadioGroup`, `RadioGroupItem`, `RadioGroupItemProps`, `RadioSize`
+- [radio-group.md](radio-group.md) — `RadioGroup`, `RadioGroupItem`, `RadioGroupProps`, `RadioGroupItemProps`, `RadioSize`
 - [switch.md](switch.md) — `Switch`, `SwitchProps`, `SwitchSize`
 - [select.md](select.md) — `Select`, `SelectGroup`, `SelectValue`, `SelectTrigger`, `SelectContent`, `SelectLabel`, `SelectItem`, `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`
 - [phone-input.md](phone-input.md) — `PhoneInput`, `PhoneInputProps`, `PhoneValue`

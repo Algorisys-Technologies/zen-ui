@@ -212,6 +212,29 @@ form.append(
           return form;
         },
       },
+      {
+        title: "7. Group label and description",
+        codeTitle: "label names the group; description is its help text",
+        code: `RadioGroup({
+  defaultValue: "standard",
+  label: "Shipping speed",
+  description: "Express orders placed before 2 pm leave the same day.",
+  children: [
+    RadioGroupItem({ value: "standard", label: "Standard" }),
+    RadioGroupItem({ value: "express", label: "Express" }),
+  ],
+});`,
+        render: () =>
+          RadioGroup({
+            defaultValue: "standard",
+            label: "Shipping speed",
+            description: "Express orders placed before 2 pm leave the same day.",
+            children: [
+              RadioGroupItem({ value: "standard", label: "Standard" }),
+              RadioGroupItem({ value: "express", label: "Express" }),
+            ],
+          }).el,
+      },
     ],
   });
 }

@@ -15,6 +15,37 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- RadioGroup: `label` and `description` props, in every binding (attributes on
+  `<zen-radio-group>`). `label` becomes the group's accessible name through
+  `aria-labelledby`, so a screen reader announces the question before the
+  options; `description` is wired to `aria-describedby`. A caller's own
+  `aria-labelledby` / `aria-describedby` are kept and ours appended. Without
+  either prop the group renders exactly as before — the root stays the item
+  container; with one, the root stacks heading, items and help text, and the
+  items get their own container (which honours `orientation`).
+- RadioGroupItem: `label` prop. Solid treats it as an alias for children. React,
+  vanilla and web-components wrap the radio in a `<label>` with the text, so
+  clicking the text selects it and the text names the radio — React previously
+  dropped an item's children silently, so a hand-written `<label htmlFor>` was
+  the only way. Vanilla reads it at creation (the item's `el` becomes the
+  `<label>`).
+- React: `RadioGroupProps` is exported.
+
+### Fixed
+
+- BoundRadioGroup: the field label was not connected to the group. It rendered
+  `<label for={id}>`, but no element carried that id — the group is a `div`,
+  which `for` cannot target anyway — so a screen reader announced the options
+  with no question. The frame's label now takes an id and the group points at it
+  with `aria-labelledby` (measured: group name "" → "Priority" in Solid and
+  React; vanilla, which no demo mounts, measured directly: "" → "Tier").
+- RadioGroup (React, vanilla, web-components): the selected dot rendered as a
+  2×8px bar instead of an 8×8px dot. The radio is a `<button>`, whose default
+  `1px 6px` padding left a 16px control 2px of content width. Solid draws its
+  control on a `div` and was unaffected.
+
 ## [12.8.4] - 2026-11-09
 
 ### Fixed

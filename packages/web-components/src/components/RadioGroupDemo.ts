@@ -204,6 +204,34 @@ group.addEventListener("zen-value-change", (e) => { group.value = e.detail; });`
           return form;
         },
       },
+      {
+        title: "7. Group label and description",
+        codeTitle: "label names the group; description is its help text",
+        code: `<zen-radio-group
+  default-value="standard"
+  label="Shipping speed"
+  description="Express orders placed before 2 pm leave the same day."
+>
+  <zen-radio-group-item value="standard" label="Standard"></zen-radio-group-item>
+  <zen-radio-group-item value="express" label="Express"></zen-radio-group-item>
+</zen-radio-group>`,
+        render: () => {
+          const labelled = (value: string, text: string) => {
+            const it = item(value);
+            it.setAttribute("label", text);
+            return it;
+          };
+          return group(
+            {
+              "default-value": "standard",
+              label: "Shipping speed",
+              description: "Express orders placed before 2 pm leave the same day.",
+            },
+            labelled("standard", "Standard"),
+            labelled("express", "Express"),
+          );
+        },
+      },
     ],
   });
 }

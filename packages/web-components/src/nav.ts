@@ -124,7 +124,7 @@ export const NAV: NavGroup[] = [
       { to: "/checkbox", label: "Checkbox", description: "Tri-state checkbox (true / false / indeterminate) with a single prop, sizes, and native form submission", source: "packages/web-components/src/components/CheckboxDemo.ts" },
       { to: "/phone-input", label: "PhoneInput", description: "Composition: Select (country) + Input (number)", source: "packages/web-components/src/components/PhoneInputDemo.ts" },
       { to: "/time-picker", label: "TimePicker", description: "Segmented HH:MM(:SS) input, 12h / 24h, AM/PM, auto-advance + arrow stepping", source: "packages/web-components/src/components/TimePickerDemo.ts" },
-      { to: "/radio-group", label: "RadioGroup", description: "Roving tabindex, arrow-key nav, form submission", source: "packages/web-components/src/components/RadioGroupDemo.ts" },
+      { to: "/radio-group", label: "RadioGroup", description: "Roving tabindex, arrow-key nav, form submission", source: "packages/web-components/src/components/RadioGroupDemo.ts", updated: "12.9.0" },
       { to: "/tag-input", label: "TagInput", description: "Type + Enter chip input; comma-paste splits, Backspace removes, per-tag validator, max-N", source: "packages/web-components/src/components/TagInputDemo.ts" },
       { to: "/pagination", label: "Pagination", description: "Page navigation with truncated ranges; paginationRange() helper", source: "packages/web-components/src/components/PaginationDemo.ts" },
       { to: "/sheet", label: "Sheet / Drawer", description: "Slide-in side panel on hand-written portal/focus-trap/scroll-lock; right / left / top / bottom", source: "packages/web-components/src/components/SheetDemo.ts" },

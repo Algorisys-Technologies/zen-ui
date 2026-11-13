@@ -226,6 +226,7 @@ export {
   RadioGroupItem,
 } from "./components/form/radio/radio-group";
 export type {
+  RadioGroupProps,
   RadioGroupItemProps,
   RadioSize,
 } from "./components/form/radio/radio-group";

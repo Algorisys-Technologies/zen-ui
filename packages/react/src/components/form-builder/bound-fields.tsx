@@ -52,6 +52,10 @@ import { Switch } from "../form/switch/switch";
 
 interface BoundFieldFrameProps {
   id: string;
+  /** For a control that is not labelable (a radio group is a div): the label
+   *  takes this id for the control's `aria-labelledby`, instead of a `for`
+   *  that would point at nothing. */
+  labelId?: string;
   label?: React.ReactNode;
   description?: React.ReactNode;
   error?: React.ReactNode;
@@ -62,6 +66,7 @@ interface BoundFieldFrameProps {
 
 const BoundFieldFrame: React.FC<BoundFieldFrameProps> = ({
   id,
+  labelId,
   label,
   description,
   error,
@@ -72,7 +77,8 @@ const BoundFieldFrame: React.FC<BoundFieldFrameProps> = ({
   <div className={cn("zen-flex zen-flex-col zen-gap-1.5", className)}>
     {label ? (
       <label
-        htmlFor={id}
+        htmlFor={labelId ? undefined : id}
+        id={labelId}
         className={cn(
           "zen-text-sm zen-font-medium zen-leading-none",
           error ? "zen-text-zen-error" : "zen-text-zen-foreground",
@@ -444,6 +450,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>({
       render={({ field }) => (
         <BoundFieldFrame
           id={id}
+          labelId={`${id}-label`}
           label={label}
           description={description}
           required={required}
@@ -451,6 +458,7 @@ export function BoundRadioGroup<TFields extends FieldValues = FieldValues>({
           className={fieldClassName}
         >
           <RadioGroup
+            aria-labelledby={label ? `${id}-label` : undefined}
             value={(field.value as string | undefined) ?? ""}
             onValueChange={field.onChange}
             disabled={disabled}

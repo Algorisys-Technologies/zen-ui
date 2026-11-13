@@ -101,6 +101,36 @@ const NewRadioGroupDemo = () => {
           <RadioGroupItem value="c">C</RadioGroupItem>
         </RadioGroup>
       </DemoSection>
+
+      <DemoSection
+        title="Group label and description"
+        codeTitle="label names the group; description is its help text"
+        codeDescription={
+          <>
+            <code>label</code> becomes the group's accessible name, so a screen
+            reader announces the question before the options.{" "}
+            <code>description</code> is wired to <code>aria-describedby</code>.
+            Items take <code>label</code> too, as an alternative to children.
+          </>
+        }
+        code={`<RadioGroup
+  defaultValue="standard"
+  label="Shipping speed"
+  description="Express orders placed before 2 pm leave the same day."
+>
+  <RadioGroupItem value="standard" label="Standard" />
+  <RadioGroupItem value="express" label="Express" />
+</RadioGroup>`}
+      >
+        <RadioGroup
+          defaultValue="standard"
+          label="Shipping speed"
+          description="Express orders placed before 2 pm leave the same day."
+        >
+          <RadioGroupItem value="standard" label="Standard" />
+          <RadioGroupItem value="express" label="Express" />
+        </RadioGroup>
+      </DemoSection>
     </DemoPage>
   );
 };

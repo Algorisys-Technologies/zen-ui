@@ -38,6 +38,10 @@ export interface BoundSelectOption {
 
 interface FrameConfig {
   id: string;
+  /** For a control that is not labelable (a radio group is a div): the label
+   *  takes this id for the control's `aria-labelledby`, instead of a `for`
+   *  that would point at nothing. */
+  labelId?: string;
   label?: Child;
   description?: Child;
   required?: boolean;
@@ -59,7 +63,8 @@ function frame(
   let labelEl: HTMLLabelElement | null = null;
   if (cfg.label != null) {
     labelEl = document.createElement("label");
-    labelEl.setAttribute("for", cfg.id);
+    if (cfg.labelId) labelEl.id = cfg.labelId;
+    else labelEl.setAttribute("for", cfg.id);
     const span = document.createElement("span");
     span.append(...toChildNodes(cfg.label));
     labelEl.append(span);
@@ -291,6 +296,7 @@ export function BoundRadioGroup<T extends Record<string, unknown>>(
   });
 
   const control = RadioGroup({
+    "aria-labelledby": label != null ? `${id}-label` : undefined,
     value: (form.getValue(name) as string | undefined) ?? "",
     onValueChange: (v) => form.setValue(name, v as T[typeof name]),
     disabled,
@@ -303,7 +309,10 @@ export function BoundRadioGroup<T extends Record<string, unknown>>(
   });
   disposer.add(() => control.destroy());
 
-  const { el, paint } = frame({ id, label, description, required, class: fieldClass }, control.el);
+  const { el, paint } = frame(
+    { id, labelId: `${id}-label`, label, description, required, class: fieldClass },
+    control.el,
+  );
 
   const sync = () => {
     const error = form.getError(name);
