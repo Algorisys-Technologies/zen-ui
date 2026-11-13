@@ -1,0 +1,95 @@
+/**
+ * Library preflight — the minimum element-reset needed for the shadcn-style
+ * utility classes to behave as expected.
+ *
+ * UnoCSS's presetUno preflight only initialises its internal CSS variables; it
+ * does NOT include Tailwind v3's element reset. Without these rules a `border`
+ * utility leaves a `currentColor` outline, `<button>` shows OS-native chrome,
+ * and form controls render in browser-default fonts. shadcn relies on the
+ * Tailwind v3 reset being in place.
+ *
+ * This file is deliberately surgical: only the rules that fix observed
+ * issues are included. Heading / list / margin resets are intentionally
+ * omitted to preserve browser-default typography for consumer content.
+ *
+ * Load order matters: this file is imported by src/index.ts AFTER tokens.css
+ * but BEFORE virtual:uno.css so utility classes still win on specificity.
+ */
+
+/* ----------------------------------------------------------------------- *
+ * 1. Box sizing + border reset
+ *
+ *    box-sizing: border-box is what every sizing utility in the library
+ *    assumes. Without it, `w-full` measures the CONTENT box, so a padded,
+ *    bordered control — Input is w-full + px-3 + border — renders 26px wider
+ *    than its container and overflows it. In a flex row that swallows the gap
+ *    and the controls collide; the focus ring then overlaps the next field.
+ *    Tailwind v3's preflight sets this, and this file exists precisely because
+ *    the library relies on that reset being present.
+ *
+ *    With the border rules applied, `border` (a width-only utility) renders an
+ *    edge in the design-token grey instead of the element's current text
+ *    color. Color and width can then be customised independently.
+ * ----------------------------------------------------------------------- */
+*,
+::before,
+::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: var(--zen-color-border);
+}
+
+/* ----------------------------------------------------------------------- *
+ * 2. Button chrome reset
+ *
+ *    Removes the OS-native button outset border / background so that
+ *    buttons styled via cva render exactly as the utility classes
+ *    describe.
+ * ----------------------------------------------------------------------- */
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  -webkit-appearance: button;
+  background-color: transparent;
+  background-image: none;
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+/* ----------------------------------------------------------------------- *
+ * 3. Form-element font inheritance
+ *
+ *    By default <button>, <input>, <select>, <textarea> render in the
+ *    user-agent's "system" font, ignoring the page font-family. This rule
+ *    makes them inherit the cascade so our typography is consistent.
+ *    index.css already sets font-family: inherit on these; we extend to
+ *    other inheritable text properties.
+ * ----------------------------------------------------------------------- */
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+/* ----------------------------------------------------------------------- *
+ * 4. Disabled cursor
+ *
+ *    `:disabled` elements should not show the pointer cursor even when
+ *    matched by the broader button rule above.
+ * ----------------------------------------------------------------------- */
+:disabled {
+  cursor: default;
+}
