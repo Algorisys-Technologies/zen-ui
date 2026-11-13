@@ -72,18 +72,28 @@ export const reviveCalendar = <C extends { exceptions?: Array<{ date: string | D
         })),
       } as C);
 
+/* Every date-bearing prop, revived; on update only the keys present. */
+const revive = (props: Partial<GanttProps>, all: boolean): Partial<GanttProps> => {
+  const p = props as Record<string, unknown>;
+  const out: Record<string, unknown> = { ...p };
+  const has = (k: string) => all || k in p;
+  if (has("tasks")) out.tasks = reviveTasks(p.tasks as RawTask[] | undefined);
+  if (has("calendar")) out.calendar = reviveCalendar(p.calendar as never);
+  for (const k of ["date", "defaultDate", "now"]) {
+    if (has(k)) out[k] = asDate(p[k] as string | Date | undefined);
+  }
+  return out as Partial<GanttProps>;
+};
+
 defineZenElement<GanttProps>({
   tag: "zen-gantt",
-  factory: (props) =>
-    Gantt({
-      ...props,
-      tasks: reviveTasks(props.tasks as unknown as RawTask[]),
-      calendar: reviveCalendar(props.calendar as never),
-      // Same treatment, same reason: an attribute can only hand over a string.
-      date: asDate(props.date as unknown as string | Date | undefined),
-      defaultDate: asDate(props.defaultDate as unknown as string | Date | undefined),
-      now: asDate(props.now as unknown as string | Date | undefined),
-    }),
+  factory: (props) => {
+    const comp = Gantt(revive(props, true) as GanttProps);
+    // define.ts calls update() directly after the first build: revive there
+    // too, or a later `tasks` attribute reaches the chart as strings.
+    const update = comp.update.bind(comp);
+    return { ...comp, el: comp.el, update: (next) => update(revive(next, false)) };
+  },
   attrs: {
     tasks: "json",
     dependencies: "json",

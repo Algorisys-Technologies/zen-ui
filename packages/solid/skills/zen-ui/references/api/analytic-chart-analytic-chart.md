@@ -19,8 +19,8 @@ SKILL.md.
 - `locale?: string | undefined` — BCP 47. Default: the LocaleProvider's, else the browser's.
 - `onSelect?: ((selection: ChartSelection) => void) | undefined` — A click on a mark, or a table row's button. Without it nothing is clickable.
 - `toolbar?: boolean | undefined` — The Chart / Table switch and the downloads. Default true.
-- `view?: "table" | "chart" | undefined` — Controlled view.
-- `defaultView?: "table" | "chart" | undefined`
+- `view?: "chart" | "table" | undefined` — Controlled view.
+- `defaultView?: "chart" | "table" | undefined`
 - `onViewChange?: ((view: "chart" | "table") => void) | undefined`
 - `height?: string | number | undefined` — Height of the chart (and of the table view, so switching does not reflow). Default 320.
 - `renderer?: "svg" | "canvas" | undefined` — `svg` (default) or `canvas` for very large data. Read once, when the chart mounts.

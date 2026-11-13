@@ -38,6 +38,20 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   every button and field on 21 routes, 0 errors; backlog drag-and-drop and
   undo; graph connectors in LTR and RTL; `check:schedule-dom vanilla` passes
   150 assertions. MeasurementInput commits on the native `change` event.
+- Web components: `<zen-state-pill>`, `<zen-oee-gauge>`, `<zen-state-timeline>`,
+  `<zen-andon-tile>` / `<zen-andon-board>`, `<zen-reason-code-picker>`,
+  `<zen-scan-input>`, `<zen-production-progress>`, `<zen-measurement-input>`,
+  `<zen-step-runner>`, `<zen-live-indicator>`, `<zen-shift-navigator>`,
+  `<zen-planned-vs-actual>`, `<zen-rate-bars>`, `<zen-line-card>`,
+  `<zen-capacity-heatmap>`, `<zen-column-mapper>`, `<zen-genealogy-graph>`,
+  `<zen-routing-graph>` and `<zen-schedule-backlog>` over the vanilla
+  factories; `<zen-production-schedule>` fires `zen-place` and revives `due`;
+  `<zen-analytic-chart threshold>`. ISO strings in attributes and JSON become
+  Dates (all-digit strings become epoch numbers); callbacks are `zen-…`
+  events; flags that default to true are properties only, since an absent
+  boolean attribute reads as false. Same end state as vanilla on 21 routes,
+  `check:schedule-dom web-components` 150 assertions. With this,
+  `check:parity` is green: every binding ships the MES components.
 - React demo helpers: `CodeExample`'s `description` takes JSX, so a
   description can mark up `code` as Solid's can.
 
@@ -325,6 +339,13 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: `RadioGroupProps` is exported.
 
 ### Fixed
+
+- `<zen-gantt>` and `<zen-production-schedule>`: changing the `tasks` /
+  `operations` attribute after the first render broke the chart
+  (`task.start.getTime is not a function`, `d.getFullYear is not a
+  function`). The ISO strings were turned into Dates only when the element was
+  built; later updates went to the chart raw. They are revived on every
+  update now. Setting the data as a property with Dates was never affected.
 
 - Vanilla Gantt, ProductionSchedule and PlanningCalendar: the view switcher
   (Day / Week / Month / Year / Fit) announced no current view. Every button

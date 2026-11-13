@@ -4,7 +4,7 @@
 
 # production — API (React, the parity reference)
 
-Exports: `ProductionConflict`, `ProductionConflictKind`, `ProductionFlatten`, `ProductionFlattenOptions`, `ProductionLoadBucket`, `ProductionLoadOptions`, `ProductionOperationNode`, `ProductionPlacement`, `ProductionPlacementOptions`, `ProductionResourceNode`, `ProductionRow`, `ProductionSetupMatrix`, `flattenProductionResources`, `packProductionLanes`, `productionConflicts`, `productionLoad`, `productionPeakLoad`, `productionPlacement`, `productionSequenceConflicts`, `productionSetupMinutes`, `productionSetupPlan`
+Exports: `ProductionConflict`, `ProductionConflictKind`, `ProductionFlatten`, `ProductionFlattenOptions`, `ProductionLoadBucket`, `ProductionLoadOptions`, `ProductionOperationNode`, `ProductionPlacement`, `ProductionPlacementOptions`, `ProductionResourceNode`, `ProductionRow`, `ProductionSetupMatrix`, `flattenProductionResources`, `packProductionLanes`, `productionConflicts`, `productionLoad`, `productionPeakLoad`, `productionPlacement`, `productionSequenceConflicts`, `productionSetupMinutes`, `productionSetupPlan`, `productionLateMs`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-production>`-style
@@ -86,3 +86,4 @@ SKILL.md.
 - `productionSequenceConflicts(dependencies: GanttDependency[], placements: Map<string, ProductionPlacement>, options?: { calendar?: GanttCalendar; }): ProductionConflict[]`
 - `productionSetupMinutes(matrix: ProductionSetupMatrix, from: string | null, to: string | null): number`
 - `productionSetupPlan<O extends ProductionOperationNode>(operations: O[], matrix: ProductionSetupMatrix): Map<string, number>`
+- `productionLateMs(end: Date, due: Date | undefined): number | null`

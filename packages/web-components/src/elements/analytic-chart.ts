@@ -42,6 +42,8 @@ defineZenElement<AnalyticChartProps>({
     total: "string",
     max: "number",
     target: "number",
+    // Pareto: the cumulative share the "vital few" reach. A fraction, 0.8 unless set.
+    threshold: "number",
     zoom: "boolean",
     legend: "json",
     description: "string",

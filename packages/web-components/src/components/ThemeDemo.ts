@@ -177,6 +177,17 @@ export default function ThemeDemo(): HTMLElement {
           return [g];
         },
       },
+      {
+        title: "6. Touch density",
+        codeTitle: "48px targets for shop-floor tablets and gloved hands",
+        codeDescription: `data-density="touch" takes inputs, selects, md buttons, table rows and menu items to 48px. Type does not grow. Checkbox, radio, switch and the sm / xs buttons keep their fixed sizes: on a touch screen, wrap them in a label so the label is the target, or use md.`,
+        code: `<html data-density="touch">  <!-- or just the operator panel -->`,
+        render: () => {
+          const g = el("div", {}, densitySample("comfortable"), el("div", { "data-density": "touch" }, densitySample("touch")));
+          g.className = "zen-grid zen-grid-cols-1 zen-gap-6 sm:zen-grid-cols-2";
+          return [g];
+        },
+      },
     ],
   });
 }

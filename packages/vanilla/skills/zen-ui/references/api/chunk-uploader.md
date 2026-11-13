@@ -35,7 +35,7 @@ SKILL.md.
 
 ### Other exports
 
-- `ChunkUploadStatus` = `"paused" | "error" | "complete" | "uploading" | "idle"`
+- `ChunkUploadStatus` = `"paused" | "error" | "complete" | "idle" | "uploading"`
 
 ### Types
 

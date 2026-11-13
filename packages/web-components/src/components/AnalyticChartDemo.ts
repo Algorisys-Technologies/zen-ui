@@ -9,6 +9,18 @@ import { DemoPage } from "./demo-helpers";
  * the marks look clickable at all).
  */
 
+const STOPS = [
+  { cause: "Tool change", minutes: 42 },
+  { cause: "Jam at infeed", minutes: 185 },
+  { cause: "No blanks", minutes: 96 },
+  { cause: "Changeover", minutes: 140 },
+  { cause: "Sensor fault", minutes: 18 },
+  { cause: "Lubrication", minutes: 11 },
+  { cause: "Waiting for crane", minutes: 27 },
+  { cause: "Other", minutes: 9 },
+];
+const MINUTES_SERIES = [{ key: "minutes", label: "Minutes" }];
+
 const MONTHS = [
   { month: "Apr", revenue: 1240000, cost: 870000, margin: 0.298 },
   { month: "May", revenue: 1385000, cost: 952000, margin: 0.313 },
@@ -137,7 +149,7 @@ const SUPPLIERS = [
 
 const inr = (v: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
 
-const KINDS = ["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap"];
+const KINDS = ["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap", "pareto"];
 
 type ChartEl = HTMLElement & Record<string, unknown>;
 
@@ -169,6 +181,22 @@ const button = (label: string, variant: string, testid?: string): HTMLElement =>
   b.textContent = label;
   return b;
 };
+
+/** Section 12: a live zen-select, so the section is not a dead control. */
+function pareto(): HTMLElement {
+  const pick = document.createElement("p");
+  pick.className = "zen-m-0 zen-text-sm";
+  pick.dataset.testid = "pareto-pick";
+  pick.textContent = "Selected: —";
+  const el = chart(
+    { type: "pareto", x: "cause", height: "320", "data-testid": "pareto" },
+    { title: "Downtime by cause, this week", data: STOPS, series: MINUTES_SERIES },
+  );
+  onSelect(el, (s) => {
+    pick.textContent = ["Selected: ", String(s.row.cause), " (row ", String(s.index), ")"].join("");
+  });
+  return column(full(el), pick);
+}
 
 export default function AnalyticChartDemo(): HTMLElement {
   return DemoPage({
@@ -452,6 +480,21 @@ export default function AnalyticChartDemo(): HTMLElement {
           }
           return ul;
         },
+      },
+      {
+        title: "12. Pareto",
+        codeTitle: "type pareto: largest first, a cumulative line, the vital few marked",
+        codeDescription:
+          "Downtime minutes by cause, given in any order. The bars sort largest first; the line is the running share of the total on its own 0–100% axis; the bars that together reach the threshold (80% unless set) stay full colour and the rest fade — those are the causes to fix first. Click a bar, or a row's button in the table view: zen-select carries the original row, not its position after sorting.",
+        code: `<zen-analytic-chart id="stops" type="pareto" x="cause" threshold="0.8"></zen-analytic-chart>
+<script>
+  const el = document.getElementById("stops");
+  el.title = "Downtime by cause, this week";
+  el.data = stops;          // any order
+  el.series = [{ key: "minutes", label: "Minutes" }];
+  el.addEventListener("zen-select", (e) => open(e.detail.row));
+</script>`,
+        render: () => pareto(),
       },
     ],
   });
