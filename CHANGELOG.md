@@ -17,6 +17,11 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Icons for an app's business areas — `tag`, `cart`, `package`, `factory`,
+  `briefcase`, `book`, `percent`, `building`, `award`, `shield`, `chart` — so a
+  Sidebar with `collapseMode="icon"` has a glyph per workspace group. (From
+  one-erp's vendored zen-ui.)
+
 - Machine state, the shared vocabulary for shop-floor components
   (`@algorisys/zen-ui-core/machine-state`): nine states — running, idle,
   stopped, fault, waiting, setup, cleaning, maintenance, unknown — each with a
@@ -296,6 +301,11 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: `RadioGroupProps` is exported.
 
 ### Fixed
+
+- `check:types` and `check:nav` failed in a fresh checkout (`tsc: command not
+  found`, `Cannot find package 'typescript'`): the root scripts import
+  `typescript`, but only the React and vanilla packages declared it, and it
+  reached the root only by Bun's hoisting. The root now declares it.
 
 - NativeSelect (Solid) showed its first option, whatever `value` said, when
   its options were rendered with `<For>`: spread props land before children
