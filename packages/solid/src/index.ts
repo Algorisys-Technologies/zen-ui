@@ -728,6 +728,10 @@ export { ScanInput } from "./components/scan-input/scan-input";
 export type { ScanInputProps, ScanSource } from "./components/scan-input/scan-input";
 export { DEFAULT_SCAN_OPTIONS, classifyEntry, createScanBuffer } from "@algorisys/zen-ui-core/scan";
 export type { KeyAt, ScanBuffer, ScanOptions } from "@algorisys/zen-ui-core/scan";
+export { ProductionProgress } from "./components/production-progress/production-progress";
+export type { ProductionProgressProps } from "./components/production-progress/production-progress";
+export { productionProgress, segmentFill } from "@algorisys/zen-ui-core/production-progress";
+export type { ProductionCounts, ProductionProgressResult } from "@algorisys/zen-ui-core/production-progress";
 export type {
   StateSegment,
   StateSegmentInput,

@@ -691,6 +691,12 @@ SKILL.md.
 - `andon.board: string`
 - `reasonCodes.label: string`
 - `scan.label: string`
+- `productionProgress.goodOfTarget: string`
+- `productionProgress.scrap: string`
+- `productionProgress.remaining: string`
+- `productionProgress.done: string`
+- `productionProgress.over: string`
+- `productionProgress.segments: string`
 - `scan.accepted: string`
 - `scan.checking: string`
 - `scan.typed: string`

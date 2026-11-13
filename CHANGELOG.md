@@ -114,6 +114,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   radio, switch and sm / xs buttons keep fixed sizes (measured: checkbox
   controls 14–20px at every density); wrap them in a label on touch screens.
   Theme demo section 6.
+- Production progress (`@algorisys/zen-ui-core/production-progress`):
+  `productionProgress` — remaining, over-target, done, started and bar
+  fractions from target / good / scrap; scrap never counts toward the target,
+  over-production is reported, and good + scrap past the target scale down
+  together so scrap stays visible. `segmentFill` for cartons / pallets.
+  `check:production-progress`.
+- ProductionProgress (Solid; other bindings to follow): good and scrap against
+  a work order's target, "361 of 500 good · 19 scrap · 139 to go". Colour is
+  what the parts are (good primary, success once done; scrap error), never a
+  ramp by percentage. A 2px sliver once work has started; optional
+  `segments` row of units; `size="sm"` / `hideText` for table rows, counts
+  kept in `aria-valuetext`. (Planned as "SegmentedProgress"; renamed for
+  what it measures.)
 
 - RadioGroup: `label` and `description` props, in every binding (attributes on
   `<zen-radio-group>`). `label` becomes the group's accessible name through

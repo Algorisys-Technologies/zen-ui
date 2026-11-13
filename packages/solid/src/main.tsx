@@ -86,6 +86,7 @@ import NewStateTimelineDemo from "./components/NewStateTimelineDemo";
 import NewAndonDemo from "./components/NewAndonDemo";
 import NewReasonCodePickerDemo from "./components/NewReasonCodePickerDemo";
 import NewScanInputDemo from "./components/NewScanInputDemo";
+import NewProductionProgressDemo from "./components/NewProductionProgressDemo";
 import NewComboboxDemo from "./components/NewComboboxDemo";
 import NewMultiComboboxDemo from "./components/NewMultiComboboxDemo";
 import NewLazyOptionsDemo from "./components/NewLazyOptionsDemo";
@@ -236,6 +237,7 @@ render(
       <Route path="/andon" component={NewAndonDemo} />
       <Route path="/reason-code-picker" component={NewReasonCodePickerDemo} />
       <Route path="/scan-input" component={NewScanInputDemo} />
+      <Route path="/production-progress" component={NewProductionProgressDemo} />
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />

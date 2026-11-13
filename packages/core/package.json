@@ -30,6 +30,7 @@
     "./andon": "./src/andon.ts",
     "./reason-codes": "./src/reason-codes.ts",
     "./scan": "./src/scan.ts",
+    "./production-progress": "./src/production-progress.ts",
     "./reschedule": "./src/reschedule.ts",
     "./critical-path": "./src/critical-path.ts",
     "./media": "./src/media.ts",
