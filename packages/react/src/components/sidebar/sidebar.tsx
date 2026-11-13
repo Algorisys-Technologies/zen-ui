@@ -633,11 +633,15 @@ export function SidebarMenuSub({
     [isControlled, onOpenChange],
   );
 
-  // Collapsing while a row is expanded would otherwise reopen it mid-flight as
-  // a flyout, because both modes read the same `open`.
+  // The rail's flyout is this row's own state, apart from `open` (the inline
+  // expansion, which the owner may control). Sharing them made collapsing
+  // close the row through onOpenChange, so an app that keeps its groups' open
+  // state recorded a close the user never made, and the group the current
+  // page lives in came back shut on expanding. Collapsing or expanding closes
+  // only the flyout.
+  const [flyout, setFlyout] = React.useState(false);
   React.useEffect(() => {
-    if (collapsed) setOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setFlyout(false);
   }, [collapsed]);
 
   // ONE row for both modes, with the flyout anchored to it, rather than a
@@ -656,7 +660,7 @@ export function SidebarMenuSub({
       closedThisPointerDown.current = true;
       setTimeout(() => (closedThisPointerDown.current = false));
     }
-    setOpen(v);
+    setFlyout(v);
   };
 
   // The inline list is mounted only while it is open or closing: it mounts at
@@ -686,19 +690,20 @@ export function SidebarMenuSub({
   }, [inline]);
 
   return (
-    <Popover open={collapsed && open} onOpenChange={onFlyoutOpenChange}>
+    <Popover open={collapsed && flyout} onOpenChange={onFlyoutOpenChange}>
       <PopoverAnchor asChild>
         <SidebarMenuButton
           ref={rowRef}
           active={active}
           className={className}
-          aria-expanded={open}
+          aria-expanded={collapsed ? flyout : open}
           aria-haspopup={collapsed ? "dialog" : undefined}
           onPointerDown={() => {
-            openAtPointerDown.current = open || closedThisPointerDown.current;
+            openAtPointerDown.current = collapsed ? flyout || closedThisPointerDown.current : open;
           }}
           onClick={() => {
-            setOpen(!(openAtPointerDown.current ?? open));
+            if (collapsed) setFlyout(!(openAtPointerDown.current ?? flyout));
+            else setOpen(!(openAtPointerDown.current ?? open));
             openAtPointerDown.current = null;
           }}
         >
@@ -721,7 +726,7 @@ export function SidebarMenuSub({
           )}
         >
           <ul className={cn(SUB_LIST_CLASS, "zen-mt-0 zen-min-h-0 zen-overflow-hidden")}>
-            {collapsed && open ? null : children}
+            {collapsed && flyout ? null : children}
           </ul>
         </div>
       ) : null}

@@ -178,7 +178,7 @@ export const NAV: NavGroup[] = [
       // counted 68 components against React's 70.
       { label: "Breadcrumb", path: "/breadcrumb", description: "Hierarchical navigation path; collapsible ellipsis for deep trees", source: "packages/solid/src/components/NewBreadcrumbDemo.tsx" , updated: "12.2.0" },
       { label: "Pagination", path: "/pagination", description: "Page navigation with truncated ranges", source: "packages/solid/src/components/NewPaginationDemo.tsx" },
-      { label: "Sidebar", path: "/sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/solid/src/components/NewSidebarDemo.tsx" , updated: "12.8.4" },
+      { label: "Sidebar", path: "/sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/solid/src/components/NewSidebarDemo.tsx" , updated: "12.9.0" },
     ],
   },
   {

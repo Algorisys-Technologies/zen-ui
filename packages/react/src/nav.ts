@@ -182,7 +182,7 @@ export const NAV: NavGroup[] = [
       { to: "/notifications-inbox", label: "NotificationsInbox", description: "Bell icon + popover panel; day-grouped feed with unread badge + per-row actions", source: "packages/react/src/components/NewNotificationsInboxDemo.tsx" },
       { to: "/breadcrumb", label: "Breadcrumb", description: "Hierarchical navigation path; collapsible ellipsis for deep trees", source: "packages/react/src/components/NewBreadcrumbDemo.tsx", updated: "12.3.0" },
       { to: "/pagination", label: "Pagination", description: "Page navigation with truncated ranges; usePaginationRange hook", source: "packages/react/src/components/NewPaginationDemo.tsx" },
-      { to: "/sidebar", label: "Sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/react/src/components/NewSidebarDemo.tsx", updated: "12.8.4" },
+      { to: "/sidebar", label: "Sidebar", description: "Collapsible navigation shell; provider + trigger + grouped menu", source: "packages/react/src/components/NewSidebarDemo.tsx", updated: "12.9.0" },
     ],
   },
   {

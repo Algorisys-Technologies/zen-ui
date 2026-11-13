@@ -302,6 +302,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Sidebar: collapsing to the rail closed groups the app controls, in every
+  binding. `SidebarMenuSub` shared one `open` between the inline list and the
+  rail's flyout and closed it on collapse, which reached a controlled owner as
+  `onOpenChange(false)` — an app that opens the group the current page lives
+  in recorded a close the user never made, and the group came back shut. The
+  flyout now has its own state: collapsing or expanding closes only the
+  flyout, opening a flyout no longer reports an inline open, and
+  `open` / `onOpenChange` describe only the inline expansion. An uncontrolled
+  group open before collapsing is likewise still open after expanding.
+  (Reported from one-erp, whose React and Solid fix this carries; vanilla —
+  and web-components through it — fixed here.) New demo section in every
+  binding: "Groups the app controls".
+
 - `check:types` and `check:nav` failed in a fresh checkout (`tsc: command not
   found`, `Cannot find package 'typescript'`): the root scripts import
   `typescript`, but only the React and vanilla packages declared it, and it

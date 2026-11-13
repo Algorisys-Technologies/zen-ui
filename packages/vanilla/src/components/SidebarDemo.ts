@@ -410,6 +410,64 @@ document.body.append(shell.el);`,
             }).el,
           ),
       },
+      {
+        title: "5. Groups the app controls",
+        description:
+          "An ERP keeps its groups' open state, so the group the current page lives in is open. Collapse to the rail and expand again: the rail's flyout is the row's own state, so the app's groups are never closed for it — onOpenChange reports only what the user did.",
+        codeTitle: "open + onOpenChange on SidebarMenuSub, pushed back with update()",
+        code: `const stock = SidebarMenuSub({ sidebar: ctx, label: "Stock", open: state.Stock,
+  onOpenChange: (v) => { state.Stock = v; stock.update({ open: v }); },
+  children: [...] });`,
+        render: () => {
+          const state: Record<string, boolean> = { Stock: true };
+          const log: string[] = [];
+          const logEl = document.createElement("p");
+          logEl.className = "zen-m-0 zen-text-sm";
+          logEl.dataset.testid = "controlled-log";
+          const paintLog = () => (logEl.textContent = `onOpenChange: ${log.length ? log.join(", ") : "none yet"}`);
+          paintLog();
+          const groups = [
+            { name: "Selling", items: ["Quotations", "Sales orders"] },
+            { name: "Stock", items: ["Items", "Stock entries"] },
+            { name: "Buying", items: ["Suppliers", "Purchase orders"] },
+          ];
+          const shell = frame((ctx) =>
+            Sidebar({
+              sidebar: ctx,
+              children: [
+                SidebarHeader({ sidebar: ctx, children: [SidebarTrigger({ sidebar: ctx }), brand("ERP")] }),
+                SidebarContent({
+                  children: SidebarMenu({
+                    children: groups.map((g) => {
+                      const sub = SidebarMenuSub({
+                        sidebar: ctx,
+                        label: g.name,
+                        icon: ChartIcon(),
+                        open: state[g.name] ?? false,
+                        onOpenChange: (v) => {
+                          state[g.name] = v;
+                          log.push(`${g.name}: ${v ? "open" : "close"}`);
+                          paintLog();
+                          sub.update({ open: v });
+                        },
+                        children: g.items.map((item) =>
+                          SidebarMenuSubItem({ children: SidebarMenuSubButton({ as: "a", href: `#${item}`, children: item }) }),
+                        ),
+                      });
+                      return SidebarMenuItem({ children: sub });
+                    }),
+                  }),
+                }),
+              ],
+            }).el,
+          );
+          const wrap = document.createElement("div");
+          wrap.className = "zen-flex zen-w-full zen-flex-col zen-gap-2";
+          wrap.dataset.testid = "controlled";
+          wrap.append(shell, logEl);
+          return wrap;
+        },
+      },
     ],
   });
 }

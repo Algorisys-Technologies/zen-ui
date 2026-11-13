@@ -585,15 +585,14 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
     props.onOpenChange?.(v);
   };
 
-  // Collapsing while a row is expanded would otherwise reopen it mid-flight as
-  // a flyout, because both modes read the same `open`. Only the rail is
-  // tracked: setOpen reads `props.open`, and tracking that too meant a
-  // controlled flyout closed itself the moment its owner opened it.
-  createEffect(
-    on(collapsed, (c) => {
-      if (c) untrack(() => setOpen(false));
-    }),
-  );
+  // The rail's flyout is this row's own state, apart from `open` (the inline
+  // expansion, which the owner may control). Sharing them made collapsing
+  // close the row through onOpenChange, so an app that keeps its groups' open
+  // state recorded a close the user never made, and the group the current
+  // page lives in came back shut on expanding. Collapsing or expanding closes
+  // only the flyout.
+  const [flyout, setFlyout] = createSignal(false);
+  createEffect(on(collapsed, () => setFlyout(false), { defer: true }));
 
   // Resolved once: the inline list and the flyout both read the children,
   // and an unmemoised `props.children` getter rebuilds the caller's JSX on
@@ -618,7 +617,7 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
       closedThisPointerDown = true;
       setTimeout(() => (closedThisPointerDown = false));
     }
-    setOpen(v);
+    setFlyout(v);
   };
 
   // The inline list is mounted only while it is open or closing: it mounts at
@@ -659,7 +658,7 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
 
   return (
     <Popover
-      open={collapsed() && open()}
+      open={collapsed() && flyout()}
       onOpenChange={onFlyoutOpenChange}
       placement="right-start"
       anchorRef={() => row}
@@ -668,11 +667,12 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
         ref={(el: HTMLElement) => (row = el)}
         active={props.active}
         class={props.class}
-        aria-expanded={open()}
+        aria-expanded={collapsed() ? flyout() : open()}
         aria-haspopup={collapsed() ? "dialog" : undefined}
-        onPointerDown={() => (openAtPointerDown = open() || closedThisPointerDown)}
+        onPointerDown={() => (openAtPointerDown = collapsed() ? flyout() || closedThisPointerDown : open())}
         onClick={() => {
-          setOpen(!(openAtPointerDown ?? open()));
+          if (collapsed()) setFlyout(!(openAtPointerDown ?? flyout()));
+          else setOpen(!(openAtPointerDown ?? open()));
           openAtPointerDown = null;
         }}
       >
@@ -696,7 +696,7 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
           )}
         >
           <ul class={cn(SUB_LIST_CLASS, "zen-mt-0 zen-min-h-0 zen-overflow-hidden")}>
-            <Show when={!(collapsed() && open())}>{items()}</Show>
+            <Show when={!(collapsed() && flyout())}>{items()}</Show>
           </ul>
         </div>
       </Show>

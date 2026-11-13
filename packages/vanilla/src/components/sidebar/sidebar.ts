@@ -907,6 +907,19 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     onChange: (o) => current.onOpenChange?.(o),
   });
 
+  // The rail's flyout is this row's own state, apart from `open` (the inline
+  // expansion, which the owner may control). Sharing them made collapsing
+  // close the row through onOpenChange, so an app that keeps its groups' open
+  // state recorded a close the user never made, and the group the current
+  // page lives in came back shut on expanding. A rail change closes only this.
+  let flyout = false;
+  let repaint: (() => void) | null = null;
+  const setFlyout = (v: boolean) => {
+    if (flyout === v) return;
+    flyout = v;
+    repaint?.();
+  };
+
   const disposer = new Disposer();
   let modeDisposer: Disposer | null = null;
 
@@ -922,7 +935,6 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
   // put a fresh row in at its rail position while every other row eased
   // there. The Popover only ever opens on the rail; expanded, the row's own
   // click discloses the list inline.
-  let repaint: (() => void) | null = null;
   const build = (md: Disposer) => {
     el.replaceChildren();
 
@@ -979,9 +991,10 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
       align: "start",
       class: "zen-w-56 zen-p-2",
       open: false,
-      // The Popover hears the row's click too; only a rail opens it.
+      // The Popover hears the row's click too; only a rail opens it, and it
+      // opens the flyout — never the owner's `open`.
       onOpenChange: (o) => {
-        if (ctx.rail) openState.set(o);
+        if (ctx.rail) setFlyout(o);
       },
     });
     const controls = row.el.getAttribute("aria-controls");
@@ -993,7 +1006,7 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     const paint = () => {
       const open = openState.get();
       const rail = ctx.rail;
-      row.el.setAttribute("aria-expanded", String(open));
+      row.el.setAttribute("aria-expanded", String(rail ? flyout : open));
       // The Popover marks its trigger as opening a dialog; only true on the rail.
       if (rail) {
         row.el.setAttribute("aria-haspopup", "dialog");
@@ -1005,7 +1018,7 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
       chevron.classList.toggle("zen-rotate-90", open && !rail);
       // On the rail it would read as a second icon.
       chevron.classList.toggle("zen-opacity-0", rail);
-      if (open && rail) {
+      if (flyout && rail) {
         flyList.replaceChildren(...subItems);
         pop.update({ open: true });
       } else {
@@ -1045,9 +1058,9 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     md.add(() => row.destroy());
   };
 
-  // Entering the rail closes the disclosure, so it does not immediately
-  // re-open as a flyout (both modes read the same state). The context also
-  // notifies for changes that leave the rail alone.
+  // A rail change closes the flyout only; the inline expansion is left as the
+  // user (or the owner) set it. The context also notifies for changes that
+  // leave the rail alone.
   let wasRail = ctx.rail;
   const rebuild = () => {
     modeDisposer?.dispose();
@@ -1062,10 +1075,10 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
       const rail = ctx.rail;
       if (rail === wasRail) return;
       wasRail = rail;
-      // Closing repaints through the subscription; otherwise repaint here,
-      // since a rail change alone still moves the items and the chevron.
-      if (rail && openState.get()) openState.set(false);
-      else repaint?.();
+      // Repaint either way: a rail change alone still moves the items and the
+      // chevron.
+      flyout = false;
+      repaint?.();
     }),
   );
   disposer.add(() => modeDisposer?.dispose());

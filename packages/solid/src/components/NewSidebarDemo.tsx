@@ -17,6 +17,7 @@ import {
   SidebarTrigger,
 } from "./sidebar/sidebar";
 import { DemoPage, DemoSection } from "./demo-helpers";
+import { For, createSignal } from "solid-js";
 
 const HomeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -44,6 +45,68 @@ const CogIcon = () => (
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
   </svg>
 );
+
+/**
+ * Last section: groups whose open state the APP keeps — an ERP opens the group
+ * the current page lives in. Every onOpenChange is logged, so a close the
+ * user never made would show.
+ */
+const ControlledGroups = () => {
+  const [open, setOpen] = createSignal<Record<string, boolean>>({ Stock: true });
+  const [log, setLog] = createSignal<string[]>([]);
+  const groups = [
+    { name: "Selling", items: ["Quotations", "Sales orders"] },
+    { name: "Stock", items: ["Items", "Stock entries"] },
+    { name: "Buying", items: ["Suppliers", "Purchase orders"] },
+  ];
+  return (
+    <div class="zen-flex zen-w-full zen-flex-col zen-gap-2" data-testid="controlled">
+      <SidebarProvider>
+        <div class="zen-flex zen-h-80 zen-w-full zen-overflow-hidden zen-rounded-zen-lg zen-border zen-border-zen-border">
+          <Sidebar>
+            <SidebarHeader>
+              <SidebarTrigger />
+              <strong>ERP</strong>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <For each={groups}>
+                  {(g) => (
+                    <SidebarMenuItem>
+                      <SidebarMenuSub
+                        label={g.name}
+                        icon={<ChartIcon />}
+                        open={open()[g.name] ?? false}
+                        onOpenChange={(v) => {
+                          setOpen({ ...open(), [g.name]: v });
+                          setLog([...log(), `${g.name}: ${v ? "open" : "close"}`]);
+                        }}
+                      >
+                        <For each={g.items}>
+                          {(item) => (
+                            <SidebarMenuSubItem>
+                              <SidebarMenuSubButton as="a" href={`#${item}`}>
+                                {item}
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          )}
+                        </For>
+                      </SidebarMenuSub>
+                    </SidebarMenuItem>
+                  )}
+                </For>
+              </SidebarMenu>
+            </SidebarContent>
+          </Sidebar>
+          <div class="zen-flex-1 zen-p-4 zen-text-sm">Page content…</div>
+        </div>
+      </SidebarProvider>
+      <p class="zen-m-0 zen-text-sm" data-testid="controlled-log">
+        onOpenChange: {log().length ? log().join(", ") : "none yet"}
+      </p>
+    </div>
+  );
+};
 
 const NewSidebarDemo = () => (
   <DemoPage
@@ -323,6 +386,17 @@ const NewSidebarDemo = () => (
           </div>
         </div>
       </SidebarProvider>
+    </DemoSection>
+
+    <DemoSection
+      title="Groups the app controls"
+      description="An ERP keeps its groups' open state, so the group the current page lives in is open. Collapse to the rail and expand again: the rail's flyout is the row's own state, so the app's groups are never closed for it — onOpenChange reports only what the user did."
+      codeTitle="open + onOpenChange on SidebarMenuSub"
+      code={`<SidebarMenuSub label="Stock" open={open().Stock} onOpenChange={(v) => setOpen({ ...open(), Stock: v })}>
+  …
+</SidebarMenuSub>`}
+    >
+      <ControlledGroups />
     </DemoSection>
   </DemoPage>
 );
