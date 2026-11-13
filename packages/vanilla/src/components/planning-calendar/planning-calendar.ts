@@ -212,7 +212,7 @@ export function PlanningCalendar(
           Button({
             variant: view === v ? "solid" : "outline",
             size: "sm",
-            "aria-pressed": view === v,
+            "aria-pressed": String(view === v),
             children: loc.t(VIEW_LABEL[v]),
             onClick: () => setView(v),
           }),

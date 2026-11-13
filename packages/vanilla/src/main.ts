@@ -120,6 +120,24 @@ import UploadCollectionDemo from "./components/UploadCollectionDemo";
 import PlanningCalendarDemo from "./components/PlanningCalendarDemo";
 import GanttDemo from "./components/GanttDemo";
 import ProductionScheduleDemo from "./components/ProductionScheduleDemo";
+import StatePillDemo from "./components/StatePillDemo";
+import OeeGaugeDemo from "./components/OeeGaugeDemo";
+import StateTimelineDemo from "./components/StateTimelineDemo";
+import AndonDemo from "./components/AndonDemo";
+import ReasonCodePickerDemo from "./components/ReasonCodePickerDemo";
+import ScanInputDemo from "./components/ScanInputDemo";
+import ProductionProgressDemo from "./components/ProductionProgressDemo";
+import MeasurementInputDemo from "./components/MeasurementInputDemo";
+import StepRunnerDemo from "./components/StepRunnerDemo";
+import LiveIndicatorDemo from "./components/LiveIndicatorDemo";
+import ShiftNavigatorDemo from "./components/ShiftNavigatorDemo";
+import PlannedVsActualDemo from "./components/PlannedVsActualDemo";
+import RateBarsDemo from "./components/RateBarsDemo";
+import LineCardDemo from "./components/LineCardDemo";
+import CapacityHeatmapDemo from "./components/CapacityHeatmapDemo";
+import ColumnMapperDemo from "./components/ColumnMapperDemo";
+import GenealogyGraphDemo from "./components/GenealogyGraphDemo";
+import RoutingGraphDemo from "./components/RoutingGraphDemo";
 import FormDemo from "./components/FormDemo";
 import PivotDemo from "./components/PivotDemo";
 import MediaTimelineDemo from "./components/MediaTimelineDemo";
@@ -248,6 +266,24 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/planning-calendar": PlanningCalendarDemo,
   "/gantt": GanttDemo,
   "/production-schedule": ProductionScheduleDemo,
+  "/state-pill": StatePillDemo,
+  "/oee-gauge": OeeGaugeDemo,
+  "/state-timeline": StateTimelineDemo,
+  "/andon": AndonDemo,
+  "/reason-code-picker": ReasonCodePickerDemo,
+  "/scan-input": ScanInputDemo,
+  "/production-progress": ProductionProgressDemo,
+  "/measurement-input": MeasurementInputDemo,
+  "/step-runner": StepRunnerDemo,
+  "/live-indicator": LiveIndicatorDemo,
+  "/shift-navigator": ShiftNavigatorDemo,
+  "/planned-vs-actual": PlannedVsActualDemo,
+  "/rate-bars": RateBarsDemo,
+  "/line-card": LineCardDemo,
+  "/capacity-heatmap": CapacityHeatmapDemo,
+  "/column-mapper": ColumnMapperDemo,
+  "/genealogy-graph": GenealogyGraphDemo,
+  "/routing-graph": RoutingGraphDemo,
   "/form": FormDemo,
   "/pivot": PivotDemo,
   "/media-timeline": MediaTimelineDemo,

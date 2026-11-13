@@ -32,6 +32,12 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   blur when the text changed since focus (React's `onChange` is per
   keystroke; Solid uses the native `change` event). `check:parity` stays red
   until vanilla and web-components are ported.
+- Vanilla: the same MES components, factories over the shared core, with
+  the same prop names (`check:props` compares them; the `onPlace` gap is
+  closed). Verified against React route by route: identical end state after
+  every button and field on 21 routes, 0 errors; backlog drag-and-drop and
+  undo; graph connectors in LTR and RTL; `check:schedule-dom vanilla` passes
+  150 assertions. MeasurementInput commits on the native `change` event.
 - React demo helpers: `CodeExample`'s `description` takes JSX, so a
   description can mark up `code` as Solid's can.
 
@@ -319,6 +325,17 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: `RadioGroupProps` is exported.
 
 ### Fixed
+
+- Vanilla Gantt, ProductionSchedule and PlanningCalendar: the view switcher
+  (Day / Week / Month / Year / Fit) announced no current view. Every button
+  carried `aria-pressed=""` — a boolean went through the attribute helper,
+  which writes booleans as presence attributes — and an empty value reads as
+  unset. They now say `true` / `false`, as React's do (measured: 16, 9 and 4
+  pressed buttons on the three demo pages, matching React; 0 empty).
+- Vanilla ScanInput with `captureGlobal`: a field dropped from the page
+  without `destroy()` kept reading keystrokes, and after a scan-speed burst
+  swallowed the Enter meant for whatever was focused on the next page — the
+  demo router drops pages that way. A detached field now hears nothing.
 
 - StepRunner (Solid and React): text typed into one step's measurement that
   was not a number yet stayed in the field when the operator moved on to the
