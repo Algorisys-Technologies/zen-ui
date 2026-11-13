@@ -68,6 +68,8 @@ const KNOWN: Record<string, string> = {
   "PivotFilterMenuProps.sortDirection": "react vanilla",
   "PivotFieldChipProps.dragHandleProps": "solid",
   "DirectionProviderProps.locale": "react vanilla",
+  // MES batch, built Solid-first (one binding at a time): the React and vanilla
+  // ports remove this line. Drops from ScheduleBacklog onto ProductionSchedule.
   // Vanilla dialogs open through their handle (`.open()`), not a prop: idiom.
   "SelectDialogProps.open": "vanilla",
   "ViewSettingsDialogProps.open": "vanilla",

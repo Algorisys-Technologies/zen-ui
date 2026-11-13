@@ -9,6 +9,18 @@ import { DemoPage } from "./demo-helpers";
  * and a change is an `update()` on the chart that shows it.
  */
 
+const STOPS = [
+  { cause: "Tool change", minutes: 42 },
+  { cause: "Jam at infeed", minutes: 185 },
+  { cause: "No blanks", minutes: 96 },
+  { cause: "Changeover", minutes: 140 },
+  { cause: "Sensor fault", minutes: 18 },
+  { cause: "Lubrication", minutes: 11 },
+  { cause: "Waiting for crane", minutes: 27 },
+  { cause: "Other", minutes: 9 },
+];
+const MINUTES_SERIES = [{ key: "minutes", label: "Minutes" }];
+
 const MONTHS = [
   { month: "Apr", revenue: 1240000, cost: 870000, margin: 0.298 },
   { month: "May", revenue: 1385000, cost: 952000, margin: 0.313 },
@@ -137,7 +149,7 @@ const SUPPLIERS = [
 
 const inr = (v: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
 
-const KINDS = ["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap"];
+const KINDS = ["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap", "pareto"];
 
 const column = (...children: Node[]): HTMLElement => {
   const d = document.createElement("div");
@@ -152,6 +164,30 @@ const twoUp = (...children: Node[]): HTMLElement => {
   return d;
 };
 const FULL = { width: "100%" };
+
+/** Section 12: a live onSelect, so the section is not a dead control. */
+function pareto(): HTMLElement {
+  const pick = document.createElement("p");
+  pick.className = "zen-m-0 zen-text-sm";
+  pick.dataset.testid = "pareto-pick";
+  pick.textContent = "Selected: —";
+  return column(
+    AnalyticChart({
+      type: "pareto",
+      title: "Downtime by cause, this week",
+      data: STOPS,
+      x: "cause",
+      series: MINUTES_SERIES,
+      height: 320,
+      class: "zen-w-full",
+      "data-testid": "pareto",
+      onSelect: (s) => {
+        pick.textContent = ["Selected: ", String(s.row.cause), " (row ", String(s.index), ")"].join("");
+      },
+    }).el,
+    pick,
+  );
+}
 
 export default function AnalyticChartDemo(): HTMLElement {
   return DemoPage({
@@ -474,6 +510,22 @@ AnalyticChart({ type: "radar", data: suppliers, x: "measure",
           }
           return ul;
         },
+      },
+      {
+        title: "12. Pareto",
+        codeTitle: "type pareto: largest first, a cumulative line, the vital few marked",
+        codeDescription:
+          "Downtime minutes by cause, given in any order. The bars sort largest first; the line is the running share of the total on its own 0–100% axis; the bars that together reach the threshold (80% unless set) stay full colour and the rest fade — those are the causes to fix first. Click a bar, or a row's button in the table view: onSelect gets the original row, not its position after sorting.",
+        code: `AnalyticChart({
+  type: "pareto",
+  title: "Downtime by cause, this week",
+  data: stops,          // any order
+  x: "cause",
+  series: [{ key: "minutes", label: "Minutes" }],
+  threshold: 0.8,
+  onSelect: (s) => open(s.row),
+})`,
+        render: () => pareto(),
       },
     ],
   });

@@ -4,6 +4,18 @@ import { registerChartKind, legendOf, seriesOf, toNumber, type ChartSelection } 
 import { Button } from "./button/button";
 import { DemoPage, DemoSection } from "./demo-helpers";
 
+// Downtime minutes by cause, in the order a shift log lists them — not by size.
+const STOPS = [
+  { cause: "Tool change", minutes: 42 },
+  { cause: "Jam at infeed", minutes: 185 },
+  { cause: "No blanks", minutes: 96 },
+  { cause: "Changeover", minutes: 140 },
+  { cause: "Sensor fault", minutes: 18 },
+  { cause: "Lubrication", minutes: 11 },
+  { cause: "Waiting for crane", minutes: 27 },
+  { cause: "Other", minutes: 9 },
+];
+
 const MONTHS = [
   { month: "Apr", revenue: 1240000, cost: 870000, margin: 0.298 },
   { month: "May", revenue: 1385000, cost: 952000, margin: 0.313 },
@@ -134,6 +146,7 @@ const inr = (v: number) => new Intl.NumberFormat("en-IN", { style: "currency", c
 
 const NewAnalyticChartDemo = () => {
   const [picked, setPicked] = createSignal<ChartSelection | undefined>();
+  const [paretoPick, setParetoPick] = createSignal<ChartSelection | undefined>();
   const [drillYear, setDrillYear] = createSignal<string | undefined>();
   const [horizontal, setHorizontal] = createSignal(false);
   const [region, setRegion] = createSignal<string | undefined>();
@@ -434,13 +447,45 @@ const NewAnalyticChartDemo = () => {
       <DemoSection
         title="11. Every built-in type"
         codeTitle="chartKinds() lists what is registered"
-        code={`chartKinds() // ${"bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap"}`}
+        code={`chartKinds() // ${"bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, pareto"}`}
       >
         <ul class="zen-m-0 zen-flex zen-flex-wrap zen-gap-2 zen-p-0" data-testid="kinds">
-          <For each={["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap"]}>
+          <For each={["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap", "pareto"]}>
             {(k) => <li class="zen-list-none zen-rounded-zen-sm zen-bg-zen-muted zen-px-2 zen-py-0.5 zen-font-mono zen-text-xs">{k}</li>}
           </For>
         </ul>
+      </DemoSection>
+
+      <DemoSection
+        title="12. Pareto"
+        codeTitle="type pareto: largest first, a cumulative line, the vital few marked"
+        codeDescription="Downtime minutes by cause, given in any order. The bars sort largest first; the line is the running share of the total on its own 0–100% axis; the bars that together reach the threshold (80% unless set) stay full colour and the rest fade — those are the causes to fix first. Click a bar, or a row's button in the table view: onSelect gets the original row, not its position after sorting."
+        code={`<AnalyticChart
+  type="pareto"
+  title="Downtime by cause, this week"
+  data={stops}          // any order
+  x="cause"
+  series={[{ key: "minutes", label: "Minutes" }]}
+  threshold={0.8}
+  onSelect={(s) => open(s.row)}
+/>`}
+      >
+        <div class="zen-flex zen-w-full zen-flex-col zen-gap-2">
+          <AnalyticChart
+            type="pareto"
+            title="Downtime by cause, this week"
+            data={STOPS}
+            x="cause"
+            series={[{ key: "minutes", label: "Minutes" }]}
+            height={320}
+            class="zen-w-full"
+            data-testid="pareto"
+            onSelect={(s) => setParetoPick(s)}
+          />
+          <p class="zen-m-0 zen-text-sm" data-testid="pareto-pick">
+            Selected: {paretoPick() ? `${String(paretoPick()?.row.cause)} (row ${paretoPick()?.index})` : "—"}
+          </p>
+        </div>
       </DemoSection>
     </DemoPage>
   );

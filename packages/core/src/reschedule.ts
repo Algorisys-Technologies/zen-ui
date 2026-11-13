@@ -362,3 +362,50 @@ export function productionReschedule<O extends ProductionOperationNode>(
 
   return { move, cascade, conflicts, cycles };
 }
+
+/** The drag payload type a backlog and the schedule share: the operation's id. */
+export const PRODUCTION_DRAG_TYPE = "application/x-zen-operation";
+
+/** Round epoch ms to the nearest `minutes`. */
+export function snapToMinutes(ms: number, minutes: number): number {
+  const step = minutes * 60_000;
+  return step > 0 ? Math.round(ms / step) * step : ms;
+}
+
+/**
+ * Placing a job from the backlog. It is a move of a job that was not on the
+ * chart: the schedule with the job added, rescheduled — so the proposal has
+ * the same cascade and conflicts a drag would. A job that IS on the chart
+ * already is moved, not duplicated. Proposes; never applies.
+ */
+export function productionPlaceProposal<O extends ProductionOperationNode>(
+  operations: O[],
+  dependencies: GanttDependency[],
+  operation: Omit<O, "resourceId" | "start"> & { id: string },
+  at: { resourceId: string; start: Date },
+  options: ProductionRescheduleOptions = {},
+): ProductionProposal {
+  const exists = operations.some((o) => o.id === operation.id);
+  const all = exists ? operations : [...operations, { ...operation, resourceId: at.resourceId, start: at.start } as O];
+  return productionReschedule(all, dependencies, { operationId: operation.id, start: at.start, resourceId: at.resourceId }, options);
+}
+
+/**
+ * Where "put it on the end of this work centre" starts: after the last
+ * booking on it (changeover included), or `after`, whichever is later.
+ */
+export function productionNextFreeStart<O extends ProductionOperationNode>(
+  operations: O[],
+  resourceId: string,
+  after: Date,
+  options: { calendar?: GanttCalendar; calendarFor?: (resourceId: string) => GanttCalendar | undefined } = {},
+): Date {
+  const calendar = options.calendarFor?.(resourceId) ?? options.calendar;
+  let latest = after.getTime();
+  for (const o of operations) {
+    if (o.resourceId !== resourceId) continue;
+    const placed = productionPlacement(o, calendar);
+    if (placed && placed.span.end.getTime() > latest) latest = placed.span.end.getTime();
+  }
+  return new Date(latest);
+}

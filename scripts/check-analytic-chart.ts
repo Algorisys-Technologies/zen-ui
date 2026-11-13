@@ -16,6 +16,7 @@ import {
   tableToCsv,
   targetStops,
   waterfallBars,
+  paretoRows,
   type AnalyticChartSpec,
   type ChartContext,
 } from "../packages/core/src/analytic-chart";
@@ -55,7 +56,7 @@ const SALES = [
 ];
 
 console.log("\nregistry");
-const BUILT_IN = ["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap"];
+const BUILT_IN = ["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap", "pareto"];
 t(chartKinds(), BUILT_IN, "the twelve built-ins, in order");
 let threw = "";
 try {
@@ -219,6 +220,40 @@ t(
   "\"Say \"\"hi\"\", ok\"\r\n'=SUM(A1)\r\n'-5 net",
   "CSV quotes, and defuses a formula",
 );
+
+console.log("\npareto");
+// Downtime minutes by cause, in the order a report lists them, not by size.
+const STOPS = [
+  { cause: "Tool change", minutes: 30 },
+  { cause: "Jam", minutes: 120 },
+  { cause: "No blanks", minutes: 60 },
+  { cause: "Setup", minutes: 90 },
+  { cause: "Other", minutes: "" },
+  { cause: "Sensor", minutes: 0 },
+];
+const pa: AnalyticChartSpec = { type: "pareto", data: STOPS, x: "cause", series: [{ key: "minutes", label: "Minutes" }] };
+const pr = paretoRows(pa);
+t(pr.rows.map((r) => r.label), ["Jam", "Setup", "No blanks", "Tool change", "Sensor", "Other"], "largest first; zero and blank last, in input order");
+t(pr.rows.map((r) => r.index), [1, 3, 2, 0, 5, 4], "each keeps its original row index");
+t(pr.rows.map((r) => r.share), [0.4, 0.7, 0.9, 1, 1, 1], "cumulative share of the total");
+t([pr.total, pr.vitalCount], [300, 3], "total; the vital few reach 80% at the third cause");
+t(paretoRows({ ...pa, threshold: 0.6 }).vitalCount, 2, "a plant's own threshold");
+t(paretoRows({ ...pa, data: [{ cause: "a", minutes: 0 }] }).rows[0].share, 0, "a zero total: shares of 0, not NaN");
+t(paretoRows({ ...pa, data: [{ cause: "a", minutes: -5 }, { cause: "b", minutes: 5 }] }).rows.map((r) => r.value), [5, 0], "a negative value counts as 0, not as a reduction");
+const po = buildChartOption(pa, ctx());
+t(po.xAxis.data, ["Jam", "Setup", "No blanks", "Tool change", "Sensor", "Other"], "categories in Pareto order");
+t(po.series[0].data.map((d: { value: number }) => d.value), [120, 90, 60, 30, 0, 0], "bars: the values, sorted");
+t(po.series[0].data.map((d: { itemStyle: { opacity: number } }) => d.itemStyle.opacity), [1, 1, 1, 0.45, 0.45, 0.45], "the vital few full colour, the rest faded");
+t([po.series[1].type, po.series[1].yAxisIndex, po.series[1].data], ["line", 1, [0.4, 0.7, 0.9, 1, 1, 1]], "the cumulative line on the second axis, as fractions");
+t([po.yAxis[1].min, po.yAxis[1].max], [0, 1], "the second axis runs 0 to 100%");
+t(po.series[1].markLine.data[0].yAxis, 0.8, "the threshold is marked");
+t(po.yAxis[1].axisLabel.formatter(0.8), "80%", "percent labels, whatever the value format is");
+const ptab = chartTable(pa, ctx());
+t(ptab.columns.map((c) => c.label), ["cause", "Minutes", "Cumulative"], "table: cause, value, cumulative share");
+t(ptab.rows.slice(0, 2).map((r) => [r.index, r.cells]), [[0, ["Jam", 120, "40%"]], [1, ["Setup", 90, "70%"]]], "table rows in Pareto order, indexed by position");
+t(chartTable({ ...pa, data: [{ cause: "a", minutes: 797 }, { cause: "b", minutes: 203 }] }, ctx()).rows[0].cells[2], "79.7%", "a share just under the threshold is not rounded up to it");
+t(selectionAt(pa, 0), { row: STOPS[1], index: 1, seriesKey: "minutes", value: 120 }, "selecting the first bar selects the original row");
+t(selectionAt(pa, 9), undefined, "out of range selects nothing");
 
 console.log("\nmerging a caller's option");
 t(mergeOption({ a: { b: 1, c: 2 }, d: [1] }, { a: { b: 9 }, d: [2, 3] }), { a: { b: 9, c: 2 }, d: [2, 3] }, "objects merge, arrays replace");

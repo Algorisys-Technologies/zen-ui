@@ -4,7 +4,7 @@
 
 # reschedule — API (React, the parity reference)
 
-Exports: `productionReschedule`, `ProductionMove`, `ProductionProposal`, `ProductionRescheduleOptions`, `ProductionShift`
+Exports: `productionReschedule`, `productionPlaceProposal`, `productionNextFreeStart`, `snapToMinutes`, `PRODUCTION_DRAG_TYPE`, `ProductionMove`, `ProductionProposal`, `ProductionRescheduleOptions`, `ProductionShift`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-reschedule>`-style
@@ -42,3 +42,7 @@ SKILL.md.
 ### Other exports
 
 - `productionReschedule<O extends ProductionOperationNode>(operations: O[], dependencies: GanttDependency[], move: ProductionMove, options?: ProductionRescheduleOptions): ProductionProposal`
+- `productionPlaceProposal<O extends ProductionOperationNode>(operations: O[], dependencies: GanttDependency[], operation: Omit<O, "resourceId" | "start"> & { id: string; }, at: { resourceId: string; start: Date; }, options?: ProductionRescheduleOptions): ProductionProposal`
+- `productionNextFreeStart<O extends ProductionOperationNode>(operations: O[], resourceId: string, after: Date, options?: { calendar?: GanttCalendar; calendarFor?: (resourceId: string) => GanttCalendar | undefined; }): Date`
+- `snapToMinutes(ms: number, minutes: number): number`
+- `PRODUCTION_DRAG_TYPE: "application/x-zen-operation"`

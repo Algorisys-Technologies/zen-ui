@@ -84,6 +84,7 @@ const SPEC_KEYS = [
   "total",
   "max",
   "target",
+  "threshold",
   "zoom",
   "legend",
   "title",
@@ -151,13 +152,14 @@ export const AnalyticChart = (props: AnalyticChartProps) => {
     return s as unknown as AnalyticChartSpec;
   });
 
-  const base = createMemo<Pick<ChartContext, "format" | "t">>(() => {
+  const base = createMemo<Pick<ChartContext, "format" | "t" | "locale">>(() => {
     const opts = { locale: local.locale ?? locale.locale(), currency: local.currency ?? locale.currency() };
     const primary = makeFormatter(local.format, opts);
     const secondary = local.secondaryFormat ? makeFormatter(local.secondaryFormat, opts) : primary;
     return {
       format: (v, axis) => (axis === "secondary" ? secondary(v) : primary(v)),
       t: t as ChartContext["t"],
+      locale: opts.locale,
     };
   });
 

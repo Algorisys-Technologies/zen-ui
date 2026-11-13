@@ -4,7 +4,7 @@
 
 # production — API (React, the parity reference)
 
-Exports: `ProductionConflict`, `ProductionConflictKind`, `ProductionFlatten`, `ProductionFlattenOptions`, `ProductionLoadBucket`, `ProductionLoadOptions`, `ProductionOperationNode`, `ProductionPlacement`, `ProductionPlacementOptions`, `ProductionResourceNode`, `ProductionRow`, `ProductionSetupMatrix`, `flattenProductionResources`, `packProductionLanes`, `productionConflicts`, `productionLoad`, `productionPeakLoad`, `productionPlacement`, `productionSequenceConflicts`, `productionSetupMinutes`, `productionSetupPlan`
+Exports: `ProductionConflict`, `ProductionConflictKind`, `ProductionFlatten`, `ProductionFlattenOptions`, `ProductionLoadBucket`, `ProductionLoadOptions`, `ProductionOperationNode`, `ProductionPlacement`, `ProductionPlacementOptions`, `ProductionResourceNode`, `ProductionRow`, `ProductionSetupMatrix`, `flattenProductionResources`, `packProductionLanes`, `productionConflicts`, `productionLoad`, `productionPeakLoad`, `productionPlacement`, `productionSequenceConflicts`, `productionSetupMinutes`, `productionSetupPlan`, `productionLateMs`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-production>`-style
@@ -48,6 +48,7 @@ SKILL.md.
 - `end?: Date | undefined` — An explicit end, which wins over `runMinutes` — a stated end is a statement, a duration is a derivation. Measured from the end of setup.
 - `setupMinutes?: number | undefined` — Changeover before the run, in working minutes. It occupies the machine and makes nothing, which is exactly why it has to be counted rather than assumed away. A stated number is a STATEMENT and wins over anything derived, the same way `end` wins over `runMinutes`. Leave it off and a `ProductionSetupMatrix` derives it from what ran before — see `setupFamily`.
 - `setupFamily?: string | undefined` — What this operation is, for changeover purposes — a product, a colour, a material, a tooling set. Changeover is SEQUENCE-DEPENDENT and that is not a refinement: going from white paint to black costs minutes, and black to white costs an hour of washing out. A per-operation duration cannot express a cost that depends on what the machine did before, so the matrix is keyed on the pair.
+- `due?: Date | undefined` — When the operation is due. Optional: a bar that ends after it is drawn late and says by how much (`productionLateMs`). Reported, never enforced — due dates get renegotiated.
 - `load?: number | undefined` — How much of the resource's capacity this consumes. Default 1. A job that needs both operators on a two-operator cell is 2.
 - `percentComplete?: number | undefined`
 - `status?: GanttTaskStatus | undefined`
@@ -85,3 +86,4 @@ SKILL.md.
 - `productionSequenceConflicts(dependencies: GanttDependency[], placements: Map<string, ProductionPlacement>, options?: { calendar?: GanttCalendar; }): ProductionConflict[]`
 - `productionSetupMinutes(matrix: ProductionSetupMatrix, from: string | null, to: string | null): number`
 - `productionSetupPlan<O extends ProductionOperationNode>(operations: O[], matrix: ProductionSetupMatrix): Map<string, number>`
+- `productionLateMs(end: Date, due: Date | undefined): number | null`

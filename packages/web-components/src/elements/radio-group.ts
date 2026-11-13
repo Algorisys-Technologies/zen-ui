@@ -19,12 +19,15 @@ defineZenElement<RadioGroupProps>({
     name: "string",
     required: "boolean",
     orientation: "string",
+    label: "string",
+    description: "string",
   },
   events: { onValueChange: "zen-value-change" },
 });
 
 // The item renders inert markup (the indicator dot); it ignores any children, so
-// its light-DOM slot is discarded.
+// its light-DOM slot is discarded. `label` gives it its text — read when the
+// element connects, so set it in the markup rather than toggling it later.
 defineZenElement<RadioGroupItemProps>({
   tag: "zen-radio-group-item",
   factory: RadioGroupItem,
@@ -32,6 +35,7 @@ defineZenElement<RadioGroupItemProps>({
     value: "string",
     size: "string",
     disabled: "boolean",
+    label: "string",
   },
   childrenProp: false,
 });

@@ -1,7 +1,7 @@
 import {
   SidebarProvider, Sidebar, SidebarHeader, SidebarHeaderLabel, SidebarMenuBadge, SidebarContent,
   SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
-  SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarTrigger,
+  SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarMenuSubLabel, SidebarTrigger,
   type SidebarProviderProps, type SidebarProps, type SidebarHeaderProps,
   type SidebarHeaderLabelProps, type SidebarGroupLabelProps,
   type SidebarMenuButtonProps, type SidebarMenuSubProps, type SidebarMenuSubButtonProps,
@@ -55,6 +55,9 @@ defineZenElement({ tag: "zen-sidebar-group", factory: SidebarGroup });
 defineZenElement({ tag: "zen-sidebar-menu", factory: SidebarMenu });
 defineZenElement({ tag: "zen-sidebar-menu-item", factory: SidebarMenuItem });
 defineZenElement({ tag: "zen-sidebar-menu-sub-item", factory: SidebarMenuSubItem });
+// A heading inside a group's list ("Transactions"): text, not focusable, and
+// kept out of the list's item count.
+defineZenElement({ tag: "zen-sidebar-menu-sub-label", factory: SidebarMenuSubLabel });
 
 defineZenElement<SidebarGroupLabelProps>({
   tag: "zen-sidebar-group-label",

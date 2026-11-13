@@ -19,14 +19,14 @@ SKILL.md.
 - `locale?: string | undefined` — BCP 47. Default: the LocaleProvider's, else the browser's.
 - `onSelect?: ((selection: ChartSelection) => void) | undefined` — A click on a mark, or a table row's button. Without it nothing is clickable.
 - `toolbar?: boolean | undefined` — The Chart / Table switch and the downloads. Default true.
-- `view?: "table" | "chart" | undefined` — Controlled view.
-- `defaultView?: "table" | "chart" | undefined`
+- `view?: "chart" | "table" | undefined` — Controlled view.
+- `defaultView?: "chart" | "table" | undefined`
 - `onViewChange?: ((view: "chart" | "table") => void) | undefined`
 - `height?: string | number | undefined` — Height of the chart (and of the table view, so switching does not reflow). Default 320.
 - `renderer?: "svg" | "canvas" | undefined` — `svg` (default) or `canvas` for very large data. Read once, when the chart mounts.
 - `option?: EChartsOption | undefined` — Raw ECharts settings, deep-merged over what the kind built: for what the spec does not cover.
 - `fileName?: string | undefined` — Download file name, without extension. Default: the title, else "chart".
-- `type: string` — A registered kind: bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, or your own.
+- `type: string` — A registered kind: bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, pareto, or your own.
 - `data: import("packages/core/src/analytic-chart").ChartRow[]`
 - `x?: string | undefined` — The category / label field (the name of each slice, stage or tile).
 - `series?: import("packages/core/src/analytic-chart").AnalyticSeries[] | undefined` — The value fields. Pie, donut, funnel, gauge, treemap and waterfall use the first.
@@ -36,6 +36,7 @@ SKILL.md.
 - `total?: string | undefined` — Waterfall: the field that marks a row as a running total (Opening, Gross profit, Closing).
 - `max?: number | undefined` — Gauge: the value that fills the dial. Default 100.
 - `target?: number | undefined` — Gauge: where the target sits, drawn as a mark on the dial.
+- `threshold?: number | undefined` — Pareto: the cumulative share that ends the vital few. Default 0.8.
 - `zoom?: boolean | undefined` — Category-axis zoom: a slider under the chart, and the wheel / pinch.
 - `legend?: boolean | undefined` — Default: shown when there is more than one series.
 - `title?: string | undefined` — The chart's accessible name, and the table view's caption.

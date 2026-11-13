@@ -15,6 +15,442 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.9.0] - 2026-11-13
+
+### Added
+
+- Sidebar (every binding): `SidebarMenuSubLabel` (`<zen-sidebar-menu-sub-label>`)
+  heads a run of rows inside a group — "Transactions", "Pricing" — in the
+  inline list and the rail's flyout alike; it is not focusable and
+  `role="presentation"` keeps it out of the list's item count. The nested
+  list's guide line is now tokens (`--zen-sidebar-guide`,
+  `--zen-sidebar-guide-width`), and `--zen-sidebar-guide-current` draws a mark
+  on it beside the active row — transparent by default, so nothing changes
+  until an app sets it. The inline list carries `data-sidebar="menu-sub"`
+  (style the group holding the current page with
+  `[data-sidebar=menu-sub]:has([data-active])`), and the height animation's
+  clip moved from the list to a wrapper so the mark is not cut off. Measured
+  in all four bindings: sub-list geometry, border width and colour unchanged
+  on the existing demo sections; the mark centred on the guide (330.5px both);
+  no mark in the flyout or where the token is unset. (one-erp's
+  zen-ui-issues, section 3.)
+- React: the MES components are ported — StatePill, OeeGauge, StateTimeline,
+  AndonTile / AndonBoard, ReasonCodePicker, ScanInput, ProductionProgress,
+  MeasurementInput, StepRunner, LiveIndicator, ShiftNavigator,
+  PlannedVsActual, RateBars, LineCard, CapacityHeatmap, ColumnMapper,
+  GenealogyGraph, RoutingGraph and ScheduleBacklog — with ProductionSchedule's
+  `onPlace` drop layer and late end caps, AnalyticChart's `threshold` and the
+  Pareto demo, and the Theme demo's touch-density section. Same props, DOM,
+  ARIA and message keys as Solid; the core logic is shared, not copied.
+  Verified against Solid in a browser, route by route: identical headings,
+  accessibility trees equal after clicking every button and filling every
+  field (19 routes, 0 errors), backlog drag-and-drop and undo, and graph
+  connectors meeting their cards in LTR and RTL. MeasurementInput commits on
+  blur when the text changed since focus (React's `onChange` is per
+  keystroke; Solid uses the native `change` event). `check:parity` stays red
+  until vanilla and web-components are ported.
+- Vanilla: the same MES components, factories over the shared core, with
+  the same prop names (`check:props` compares them; the `onPlace` gap is
+  closed). Verified against React route by route: identical end state after
+  every button and field on 21 routes, 0 errors; backlog drag-and-drop and
+  undo; graph connectors in LTR and RTL; `check:schedule-dom vanilla` passes
+  150 assertions. MeasurementInput commits on the native `change` event.
+- Web components: `<zen-state-pill>`, `<zen-oee-gauge>`, `<zen-state-timeline>`,
+  `<zen-andon-tile>` / `<zen-andon-board>`, `<zen-reason-code-picker>`,
+  `<zen-scan-input>`, `<zen-production-progress>`, `<zen-measurement-input>`,
+  `<zen-step-runner>`, `<zen-live-indicator>`, `<zen-shift-navigator>`,
+  `<zen-planned-vs-actual>`, `<zen-rate-bars>`, `<zen-line-card>`,
+  `<zen-capacity-heatmap>`, `<zen-column-mapper>`, `<zen-genealogy-graph>`,
+  `<zen-routing-graph>` and `<zen-schedule-backlog>` over the vanilla
+  factories; `<zen-production-schedule>` fires `zen-place` and revives `due`;
+  `<zen-analytic-chart threshold>`. ISO strings in attributes and JSON become
+  Dates (all-digit strings become epoch numbers); callbacks are `zen-…`
+  events; flags that default to true are properties only, since an absent
+  boolean attribute reads as false. Same end state as vanilla on 21 routes,
+  `check:schedule-dom web-components` 150 assertions. With this,
+  `check:parity` is green: every binding ships the MES components.
+- React demo helpers: `CodeExample`'s `description` takes JSX, so a
+  description can mark up `code` as Solid's can.
+
+- Icons for an app's business areas — `tag`, `cart`, `package`, `factory`,
+  `briefcase`, `book`, `percent`, `building`, `award`, `shield`, `chart` — so a
+  Sidebar with `collapseMode="icon"` has a glyph per workspace group. (From
+  one-erp's vendored zen-ui.)
+
+- Machine state, the shared vocabulary for shop-floor components
+  (`@algorisys/zen-ui-core/machine-state`): nine states — running, idle,
+  stopped, fault, waiting, setup, cleaning, maintenance, unknown — each with a
+  colour TONE (six: running, down, setup, planned, idle, unknown) and an OEE
+  CATEGORY (productive, unplanned-loss, changeover, planned-stop, no-demand,
+  no-data). `machineStateTone`, `machineStateCategory`, `isAvailabilityLoss`,
+  `isMachineState`, `machineStateMessageKey`; `check:machine-state` pins the
+  table, including that every state drawn as down is counted as an unplanned
+  loss and the reverse. Waiting (starved / blocked) is down, not idle.
+  Labels are in the message catalogue (`machineState.*`; unknown reads
+  "No data").
+- `--zen-state-<tone>` / `-soft` / `-soft-fg` tokens and `zen-*-zen-state-*`
+  utilities. Each aliases a semantic colour, declared on every theme scope so a
+  nested `data-theme` resolves its own; override one family to give a plant
+  its own andon colours without restyling form errors. Measured label contrast
+  over 45 pills in the five themes: lowest 4.79:1.
+- StatePill (built in Solid first; in every binding as of this release): a state as a labelled pill, label always drawn.
+  `state` gives colour and label, children replace the label, and `tone` +
+  a label covers a vocabulary that is not ours (PackML Held, a plant's
+  "Starved"). `unknown` is a dashed outline with no fill. Sizes `sm` / `md`.
+- OEE (`@algorisys/zen-ui-core/oee`): `oeeFromCounts` turns planned time, run
+  time, ideal cycle time and counts into Availability, Performance, Quality and
+  OEE. OEE is good × ideal cycle ÷ planned time — equal to A × P × Q wherever
+  all three exist, and still a true 0 for a machine that never ran, where P is
+  undefined and the product would be NaN. A factor that cannot be computed is
+  `null`, never NaN or 0; nothing is clamped, so a Performance over 100% (a
+  wrong ideal cycle time) stays visible. `oeeBand` with configurable
+  thresholds (defaults 65% / 85%), `gaugeAngle`. `check:oee`.
+- OeeGauge (built in Solid first; in every binding as of this release): OEE as a half-circle gauge, with
+  the band zones as a ring outside the track and Availability / Performance /
+  Quality underneath when `factors` is given. `role="meter"`; the number is
+  always printed and the band named in words ("Near target"), so colour is
+  never the only carrier. `null` draws an empty track and "No data", never a 0.
+  An impossible value over 100% fills the arc and prints as it is
+  (`aria-valuenow` clamped to the range, the real figure in
+  `aria-valuetext`). Sizes `sm` / `md` / `lg`; `bands` for a plant's own
+  targets.
+- State timeline (`@algorisys/zen-ui-core/state-timeline`):
+  `layoutStateTimeline` lays a machine's state record on a window as fractions
+  true to duration; holes become explicit no-data segments, an open segment
+  runs to `now` and nothing is laid out after it, overlaps are cut by the later
+  start, and a caller's `id` survives. `stateTimelineTotals`,
+  `layoutTimelineEvents`, `timelineTicks` (round times in an IANA timezone —
+  IST ticks sit at half past UTC), `durationMessage` ("42s", "5m 10s", "25m",
+  "1h 12m"). `check:state-timeline`.
+- StateTimeline (built in Solid first; in every binding as of this release): one machine's states along
+  a shift. Stretches exactly as wide as their duration (2px floor), no data
+  hatched, a now line, event markers (listed for screen readers), an axis in
+  the plant's `timeZone` whose label count follows the strip's width.
+  `onSegmentClick` makes segments buttons in one tab stop, walked with arrow
+  keys (visual direction, so RTL works), Home / End; `isSegmentClickable`,
+  `selectedId`. The group's accessible name carries the per-state totals.
+  Stack several with `size="sm"` and `hideAxis` to compare a line.
+- Andon (`@algorisys/zen-ui-core/andon`): `andonShowsClock` (the clock
+  measures trouble, not uptime — none for running or idle), `sortAndonTiles`
+  (down, no data, setup, planned, idle, running; longest in state first),
+  `boardFreshness` (stale past a limit, default 2 min). `check:andon`.
+- AndonTile / AndonBoard (built in Solid first; in every binding as of this release): the plant board,
+  one tile per machine with name, line, state in words, cause and a live
+  clock, framed and washed in the state's tone (no data dashed). The board
+  takes `lastUpdated` — the last SUCCESSFUL refresh — and past `staleAfterMs`
+  greys its tiles and says how old they are, since a frozen board looks like a
+  calm plant. Tiles keep the order given unless `sort` is set (people find a
+  machine on a wall board by where it always is). `onTileClick` / `onClick`
+  make tiles buttons. `--zen-andon-tile-min-width` sets the column width.
+  Measured label contrast over 165 tile labels in five themes: lowest 4.64:1.
+- Reason codes (`@algorisys/zen-ui-core/reason-codes`): `reasonCategories`
+  (the plant's own order, with counts) and `filterReasons` — label, code and
+  description, every word in any order, case and accents ignored.
+  `check:reason-codes`.
+- ReasonCodePicker (built in Solid first; in every binding as of this release): a touch grid for why a
+  machine stopped or a part was scrapped. 48px-plus targets, category chips
+  when there is more than one category, search once there are more than 12
+  reasons. A listbox with one tab stop; arrow keys (Down / Up by visual row)
+  move focus but do not select — Enter, Space or a tap does, because choosing
+  a reason is often what records the stop. A selected reason the filter hides
+  stays selected and is named under the grid. `--zen-reason-min-width`.
+- Scan detection (`@algorisys/zen-ui-core/scan`): `classifyEntry` tells a
+  USB scanner's burst from a person typing by timing (default: 4+ characters,
+  every gap at most 35 ms, no edits); `createScanBuffer` collects bursts typed
+  with no field focused, dropping stray keys and flushing scanners configured
+  with no suffix. `check:scan`.
+- ScanInput (built in Solid first; in every binding as of this release): a 48px monospace field for a
+  wedge scanner. Enter submits with `{ source: "scanner" | "keyboard" }`;
+  `onScan` returns an error message, a promise of one, or nothing, and the
+  status line says Checking / Scanned / the error (a newer scan wins over a
+  slower older lookup). `allowTyping={false}` refuses typed codes;
+  `captureGlobal` catches scans made while no field has focus, leaving keys
+  typed into other fields alone. Clears and keeps focus between scans.
+- Icon: `scan-barcode`.
+- Touch density: `data-density="touch"` on any element takes inputs,
+  selects, comboboxes, md buttons and menu items to 48px and table rows to
+  52px (measured), for shop-floor tablets. Type does not grow. Checkbox,
+  radio, switch and sm / xs buttons keep fixed sizes (measured: checkbox
+  controls 14–20px at every density); wrap them in a label on touch screens.
+  Theme demo section 6.
+- Production progress (`@algorisys/zen-ui-core/production-progress`):
+  `productionProgress` — remaining, over-target, done, started and bar
+  fractions from target / good / scrap; scrap never counts toward the target,
+  over-production is reported, and good + scrap past the target scale down
+  together so scrap stays visible. `segmentFill` for cartons / pallets.
+  `check:production-progress`.
+- ProductionProgress (built in Solid first; in every binding as of this release): good and scrap against
+  a work order's target, "361 of 500 good · 19 scrap · 139 to go". Colour is
+  what the parts are (good primary, success once done; scrap error), never a
+  ramp by percentage. A 2px sliver once work has started; optional
+  `segments` row of units; `size="sm"` / `hideText` for table rows, counts
+  kept in `aria-valuetext`. (Planned as "SegmentedProgress"; renamed for
+  what it measures.)
+- Measurement (`@algorisys/zen-ui-core/measurement`): `judgeMeasurement`
+  (pass / warn / fail with the side and deviation; inclusive limits with a
+  floating-point allowance, one-sided specs, an optional warning band, no
+  verdict for an inverted spec) and `measurementScale` (built from the limits,
+  so a wild reading is pinned and flagged off-scale). `check:measurement`.
+- MeasurementInput (built in Solid first; in every binding as of this release): an inspection reading
+  checked against its limits as it is typed, in the user's locale. Verdict in
+  words with an icon; spec line ("10.00 ± 0.10 mm", "At least 40 Nm"); a
+  scale with the tolerance and warning bands, nominal and reading. Readings
+  are never rounded to the spec's precision. Screen readers hear the verdict
+  when the reading is committed (Enter / blur), not per keystroke. Indicator
+  colours keep 3:1 (measured lowest 4.45:1 across five themes).
+- Step runner (`@algorisys/zen-ui-core/step-runner`): `stepRunnerState`
+  (current step, locked / open / done / skipped / issue per step, complete)
+  and `canCompleteStep` (checklist all ticked; measurement entered and in
+  tolerance unless allowed). Sequential by default, issues hold the line, only
+  optional steps skip. `check:step-runner`.
+- StepRunner (built in Solid first; in every binding as of this release): operator work instructions, a
+  list of steps beside the current one. Checklists as 48px toggles,
+  measurements through MeasurementInput, Complete / Skip / Report issue, and
+  the reason written under the button when a step cannot complete yet. Done
+  steps open for review. Controlled (`records` / `onRecordsChange`, so a run
+  survives a reload) or not; `onStepComplete`, `onReportIssue`, `onComplete`.
+  Announces the step it moves to, not every tick. `--zen-step-rail-width`.
+- AnalyticChart: a `pareto` kind, built into core, so every binding draws it.
+  Rows sort largest first (zero and blank last); bars in the series colour,
+  with the vital few — the rows that together reach `threshold` (default
+  0.8) — full strength and the rest faded; a cumulative line on its own
+  0–100% axis with the threshold marked. Shares read with one decimal in the
+  tooltip and table, so 79.7% is not shown as a threshold-reaching "80%".
+  Selecting a bar or a table row reports the ORIGINAL row. `paretoRows` is
+  exported. New optional spec field `threshold` and context field `locale`
+  (percent labels in the chart's locale; the browser's when a binding does not
+  pass it). Solid passes both; React, vanilla and web-components draw Pareto
+  today with the default threshold and pick up `threshold` / `locale` in the
+  port (vanilla's and React's spec-key lists need the field).
+- Live state (`@algorisys/zen-ui-core/live`): `liveState` — offline (the app
+  says the connection is down) over waiting (nothing yet) over stale (past
+  `staleAfterMs` since the last successful update) over live. `check:live`.
+- LiveIndicator (built in Solid first; in every binding as of this release): "Updated 12s ago" with a
+  dot, turning to "Not updated for 3m 10s" and "Offline, last update 20s ago".
+  The visible age ticks every second but is not a live region; a hidden one
+  announces only state changes (measured: 23 visible changes, 2 announcements
+  in 23 seconds).
+- Shifts (`@algorisys/zen-ui-core/shifts`): `shiftAt` (which shift an
+  instant is in, or the next / previous one from a gap), `shiftWindow`,
+  `nextShift`, `previousShift`, `wallClockToInstant`, `plantDayOf`,
+  `addPlantDays`. Wall-clock times in the plant's IANA zone; a night shift
+  belongs to the day it starts; across daylight saving a shift keeps its
+  wall-clock times and its length changes (Berlin's 24 Oct 2026 night shift
+  is 9 hours). `check:shifts`, verified from three machine time zones.
+- ShiftNavigator (built in Solid first; in every binding as of this release): previous / next / back to
+  the current shift, labelled "Night · Thu, Nov 12 · 10:00 PM–06:00 AM" in the
+  plant's zone, "Now" on the current one. Next stops at the current shift
+  unless `allowFuture`. Step buttons follow density (40px, 48px touch).
+- Planned vs actual (`@algorisys/zen-ui-core/planned-vs-actual`):
+  `plannedVsActual` — plan and actual at now, the gap, ahead / on / behind
+  within a tolerance (default 2% of the plan total), and a projection from
+  the pace so far once 15% of the window has run; final after the end.
+  `planAt` (cumulative plan, linear, 0 before its first point) and
+  `readingAt` (a counter reading holds until the next — never interpolated
+  forward). `check:planned-vs-actual`.
+- PlannedVsActual (built in Solid first; in every binding as of this release): "256 pcs behind plan",
+  what was made against what was planned so far, the projection, and a
+  plain-SVG chart (no chart library): the plan dashed over the shift, the
+  actual as steps up to now, the gap marked at now, a time axis in the
+  plant's zone. `hideChart` for a tile.
+- Rate buckets (`@algorisys/zen-ui-core/rate-bars`): `rateBuckets` — output
+  per equal bucket from counter readings (a reading going down is a counter
+  reset and counts from zero, not as negative output), per hour, the state
+  that covered most of each bucket, the bucket containing now flagged partial
+  with its rate over the elapsed part. `check:rate-bars`.
+- RateBars (built in Solid first; in every binding as of this release): output bars coloured by machine
+  state, every bar keeping a 3px stub so a bucket that made nothing still
+  shows why, the filling bucket hatched, a dashed target line, and the rate
+  now / average / target as text.
+- Line ETA (`@algorisys/zen-ui-core/line-eta`): `lineEta` — an ETA only while
+  running with a rate; done once good reaches the target; no time for a line
+  that is stopped, in setup, idle or in a planned stop; unknown with no data.
+  `check:line-eta`.
+- LineCard (built in Solid first; in every binding as of this release): a line's name, StatePill, OEE,
+  the order as a ProductionProgress, and a last line that answers "when will
+  it finish?" — "Done by 11:00 AM" in the plant's zone, or what it is doing
+  instead ("Fault for 23m: Hydraulic pressure low", "No data for 5m 12s").
+  `href` makes the card a link through its name (stretched over the card), so
+  the progress bar is not nested inside a button or link.
+- Capacity (`@algorisys/zen-ui-core/capacity`): `capacityCell` / `capacityGrid`
+  — load from booked and available hours; free / ok / high (from 85%) /
+  over (strictly above 100%, with a floating-point allowance); work booked
+  where there is no capacity is `no-capacity`, the worst case rather than a
+  division by zero; no work and no capacity is `closed`. Totals sum hours,
+  then divide. `check:capacity`.
+- CapacityHeatmap (built in Solid first; in every binding as of this release): a real table, every cell
+  printing its load and hours over a wash that deepens with load; over and
+  no-capacity cells as alarms (error colours and a 2px outline), a count of
+  them above the table, row / column / grand totals, and `onCellClick` for a
+  drill-down. Measured label contrast over 300 labels in five themes: lowest
+  4.79:1.
+- Column mapping (`@algorisys/zen-ui-core/column-mapper`): `parseDelimited`
+  (quotes, doubled quotes, newlines in quotes, BOM, CRLF), `detectDelimiter`
+  (`,` `;` tab `|` — European exports use `;`), `autoMap` (exact match on a
+  field's id, label or aliases, case / accents / punctuation ignored, never a
+  fuzzy guess), `parseImportDate` (ISO or a full date in the locale's order —
+  no "today" shortcuts in an import), `validateMapping` (unmapped required
+  fields, fields mapped twice, and every bad cell with its row and column).
+  `check:column-mapper`.
+- ColumnMapper (built in Solid first; in every binding as of this release): each column with sample
+  values, a "Maps to" select and its status; every problem in words above;
+  a preview of the first rows with each cell that will not import marked and
+  its reason given to screen readers. Numbers and dates read in the user's
+  locale.
+- Genealogy (`@algorisys/zen-ui-core/genealogy`): `traceGenealogy` —
+  breadth-first both ways from a focus (upstream negative levels, downstream
+  positive), each node once at its shortest distance, loops ending, nodes
+  past `maxDepth` cut and counted per side, columns ordered by neighbours'
+  positions so lines cross less. `check:genealogy`.
+- GenealogyGraph (built in Solid first; in every binding as of this release): columns from "Made from"
+  through the traced item to "Went into", cards joined by measured curves
+  (following wrap, resize and direction changes), click any card to trace
+  from it, and a cut trace that says so ("4 more further on"). Each card's
+  accessible name says what it was made from and what it went into.
+- Routing (`@algorisys/zen-ui-core/routing`): `routingLayout` (layers by
+  longest path; the implicit chain in step order, flagged, when there are no
+  links), `canAddLink` / `wouldCreateCycle` (refusing self-links, duplicates,
+  unknown steps and loops), `effectiveLinks`, `startableSteps`. Loops and
+  dangling links in stored data are left out of the layout, not drawn.
+  `check:routing`.
+- RoutingGraph (built in Solid first; in every binding as of this release): steps laid out left to right
+  with arrowed links; a link that skips a column runs over the top in its own
+  lane, never behind a card it does not touch. Read-only with step status, or
+  editable: the selected step lists what it runs after (each removable) and
+  a picker offers only steps that would not close a loop — the same by
+  keyboard, screen reader or pointer. While the routing is the implicit
+  chain, the first edit writes the chain out before applying itself.
+- Production scheduling: placing work and lateness. `due` on an operation
+  (core type, so every binding accepts it); `productionLateMs` (0 on time,
+  null without a due date); `productionPlaceProposal` (placing a job not yet
+  on the chart is a move of a job that did not exist — the same cascade and
+  conflicts as a drag); `productionNextFreeStart`; `snapToMinutes`;
+  `PRODUCTION_DRAG_TYPE`. `check:production-place`.
+- ProductionSchedule (built in Solid first; in every binding as of this release): `onPlace` accepts
+  work dragged in onto a leaf work centre, proposed like a reschedule and
+  snapped to 15 minutes; the drop layer exists only when `onPlace` is given,
+  so charts without it render the DOM they always did. Operations that end
+  after their `due` carry an error-coloured end cap and say "Late by …" in
+  the tooltip and accessible name. No internal undo: placements are
+  proposals and undo stays the caller's (DECISION 2) — the demo keeps it.
+- ScheduleBacklog (built in Solid first; in every binding as of this release): unscheduled jobs, overdue
+  first, each draggable onto the chart AND placeable from a Place button
+  (choose a work centre: after its last job) — the path for touch screens and
+  keyboards, where drag and drop does not exist.
+
+- RadioGroup: `label` and `description` props, in every binding (attributes on
+  `<zen-radio-group>`). `label` becomes the group's accessible name through
+  `aria-labelledby`, so a screen reader announces the question before the
+  options; `description` is wired to `aria-describedby`. A caller's own
+  `aria-labelledby` / `aria-describedby` are kept and ours appended. Without
+  either prop the group renders exactly as before — the root stays the item
+  container; with one, the root stacks heading, items and help text, and the
+  items get their own container (which honours `orientation`).
+- RadioGroupItem: `label` prop. Solid treats it as an alias for children. React,
+  vanilla and web-components wrap the radio in a `<label>` with the text, so
+  clicking the text selects it and the text names the radio — React previously
+  dropped an item's children silently, so a hand-written `<label htmlFor>` was
+  the only way. Vanilla reads it at creation (the item's `el` becomes the
+  `<label>`).
+- React: `RadioGroupProps` is exported.
+
+### Fixed
+
+- `<zen-gantt>` and `<zen-production-schedule>`: changing the `tasks` /
+  `operations` attribute after the first render broke the chart
+  (`task.start.getTime is not a function`, `d.getFullYear is not a
+  function`). The ISO strings were turned into Dates only when the element was
+  built; later updates went to the chart raw. They are revived on every
+  update now. Setting the data as a property with Dates was never affected.
+
+- Vanilla Gantt, ProductionSchedule and PlanningCalendar: the view switcher
+  (Day / Week / Month / Year / Fit) announced no current view. Every button
+  carried `aria-pressed=""` — a boolean went through the attribute helper,
+  which writes booleans as presence attributes — and an empty value reads as
+  unset. They now say `true` / `false`, as React's do (measured: 16, 9 and 4
+  pressed buttons on the three demo pages, matching React; 0 empty).
+- Vanilla ScanInput with `captureGlobal`: a field dropped from the page
+  without `destroy()` kept reading keystrokes, and after a scan-speed burst
+  swallowed the Enter meant for whatever was focused on the next page — the
+  demo router drops pages that way. A detached field now hears nothing.
+
+- StepRunner (Solid and React): text typed into one step's measurement that
+  was not a number yet stayed in the field when the operator moved on to the
+  next step with a measurement, as if it belonged there — the field was one
+  instance reused across steps. It is now one field per step.
+
+- Solid Sidebar: every time a `SidebarMenuSub` group closed — from its own
+  row or by collapsing to the rail — its list stayed in memory with one
+  listener: +1 listener and +2 nodes per close, forever (one-erp's leak
+  report). Since 12.8.4 the sub-list eases `margin` beside
+  `grid-template-rows` and was removed when `grid-template-rows` ended; the
+  `margin` transition then ended on a detached node, so Kobalte's global
+  transition tracker (`@kobalte/utils`, which hears `transitionend` on body)
+  never forgot the element. Its after-transition callbacks also wait for that
+  map to empty, so they stopped running for the rest of the session. Core
+  `afterTransition` now waits for every property that started on the element,
+  not just the named one, which fixes all three users in every binding.
+  Measured on the BUILT Solid dist in a one-erp-shaped app (router, 5 groups ×
+  7 pages, 35 in-app navigations plus one rail round-trip per round, forced
+  GC): 12.8.2 and 12.8.3 flat, 12.8.4 and HEAD +5 listeners / +10 nodes a
+  round, fixed flat at 58 / 363 over 7 rounds. Page navigation alone never
+  leaked.
+- Sidebar: collapsing to the rail closed groups the app controls, in every
+  binding. `SidebarMenuSub` shared one `open` between the inline list and the
+  rail's flyout and closed it on collapse, which reached a controlled owner as
+  `onOpenChange(false)` — an app that opens the group the current page lives
+  in recorded a close the user never made, and the group came back shut. The
+  flyout now has its own state: collapsing or expanding closes only the
+  flyout, opening a flyout no longer reports an inline open, and
+  `open` / `onOpenChange` describe only the inline expansion. An uncontrolled
+  group open before collapsing is likewise still open after expanding.
+  (Reported from one-erp, whose React and Solid fix this carries; vanilla —
+  and web-components through it — fixed here.) New demo section in every
+  binding: "Groups the app controls".
+
+- `check:types` and `check:nav` failed in a fresh checkout (`tsc: command not
+  found`, `Cannot find package 'typescript'`): the root scripts import
+  `typescript`, but only the React and vanilla packages declared it, and it
+  reached the root only by Bun's hoisting. The root now declares it.
+
+- NativeSelect (Solid) showed its first option, whatever `value` said, when
+  its options were rendered with `<For>`: spread props land before children
+  are inserted, and a native `<select>` given a value it has no option for
+  yet selects nothing. NativeSelect now applies `value` itself after render,
+  on change, and whenever its options change. Verified by removing the
+  `selected`-on-each-option workarounds from ColumnMapper, RoutingGraph and
+  ScheduleBacklog: all three select correctly through plain `value`.
+
+- Outlines that never drew, in every binding: DataTable's selected-row
+  outline and keyboard-focus outline, SpreadsheetGrid's selected-cell
+  outline, and MediaTimeline's focus ring. Each paired a bare `zen-outline`
+  (UnoCSS: `outline-style: solid`) with a width such as `zen-outline-2`, and
+  `cn()`'s tailwind-merge v3 — which follows Tailwind v4, where a bare
+  `outline` is a WIDTH — read the two as conflicting widths and dropped
+  `zen-outline`, leaving a width and a colour with no style. `cn()` now groups
+  a bare `outline` as the style it generates. Measured: the selected row and
+  cell draw a solid outline in Solid, React, vanilla and web-components.
+
+- BoundRadioGroup: the field label was not connected to the group. It rendered
+  `<label for={id}>`, but no element carried that id — the group is a `div`,
+  which `for` cannot target anyway — so a screen reader announced the options
+  with no question. The frame's label now takes an id and the group points at it
+  with `aria-labelledby` (measured: group name "" → "Priority" in Solid and
+  React; vanilla, which no demo mounts, measured directly: "" → "Tier").
+- RadioGroup (React, vanilla, web-components): the selected dot rendered as a
+  2×8px bar instead of an 8×8px dot. The radio is a `<button>`, whose default
+  `1px 6px` padding left a 16px control 2px of content width. Solid draws its
+  control on a `div` and was unaffected.
+- `<zen-radio-group>` ignored its starting `value` / `default-value`: every
+  radio came up unchecked, and every radio was its own tab stop, so Tab walked
+  the options instead of entering the group once. A parent custom element
+  connects before its children, so the group painted while its
+  `<zen-radio-group-item>`s had not built their radios yet, and nothing painted
+  again. Vanilla's RadioGroup now repaints (and re-applies group `disabled`)
+  when radios appear inside it after a render. Measured on the demo: 7 of 7
+  groups wrong before, 0 after; selecting, arrow keys and a later `value`
+  change still work.
+
 ## [12.8.4] - 2026-11-09
 
 ### Fixed

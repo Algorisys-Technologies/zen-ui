@@ -663,7 +663,9 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
         Button({
           variant: current.view === v ? "solid" : "outline",
           size: "sm",
-          "aria-pressed": current.view === v,
+          // A boolean would land as aria-pressed="" (the helper writes
+          // booleans as presence attributes), which reads as unset.
+          "aria-pressed": String(current.view === v),
           children: loc.t(VIEW_LABEL[v]),
           onClick: () => current.onViewChange(v),
         }),

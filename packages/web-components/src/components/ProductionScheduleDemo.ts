@@ -6,7 +6,8 @@ import type {
   ProductionResource,
   ProductionSetupMatrix,
 } from "@algorisys/zen-ui-vanilla";
-import { Button } from "@algorisys/zen-ui-vanilla";
+import type { BacklogItem } from "@algorisys/zen-ui-vanilla";
+import { Button, productionNextFreeStart, productionPlaceProposal } from "@algorisys/zen-ui-vanilla";
 import { DemoPage } from "./demo-helpers";
 
 /**
@@ -227,6 +228,126 @@ function reschedulable(): HTMLElement {
   return wrap;
 }
 
+/**
+ * Last section: work placed from a backlog, and late jobs. The same contract
+ * as rescheduling — the chart and the backlog only propose; this demo applies,
+ * and keeps the undo stack. Both elements report through `zen-place` with the
+ * same detail, so one handler serves the drop and the Place button.
+ */
+const LEAVES = [
+  { id: "cnc3", name: "CNC-3" },
+  { id: "cnc4", name: "CNC-4" },
+  { id: "furnace", name: "Furnace 2" },
+  { id: "grind", name: "Grinding" },
+  { id: "insp", name: "Inspection" },
+];
+const DUE_JOBS: ProductionOperation[] = JOBS.map((j) =>
+  j.id === "j3" ? { ...j, due: on(22, 10) } : j.id === "j6" ? { ...j, due: on(23, 8) } : j.id === "j8" ? { ...j, due: on(24, 17) } : j,
+);
+const BACKLOG: BacklogItem[] = [
+  { id: "b1", name: "Spacer · op 10", order: "WO-4501", runMinutes: 180, due: on(22, 17) },
+  { id: "b2", name: "Shaft · op 10", order: "WO-4502", runMinutes: 240, due: on(21, 9) },
+  { id: "b3", name: "Plate · op 10", order: "WO-4510", runMinutes: 120 },
+];
+
+type PlaceAt = { operationId: string; resourceId: string; start?: Date };
+
+function placeable(): HTMLElement {
+  const wrap = document.createElement("div");
+  wrap.className = "zen-flex zen-w-full zen-min-w-0 zen-flex-col zen-gap-4 lg:zen-flex-row";
+  const side = document.createElement("div");
+  side.className = "zen-flex zen-min-w-0 zen-flex-1 zen-flex-col zen-gap-2";
+  const bar = document.createElement("div");
+  bar.className = "zen-flex zen-items-center zen-gap-3";
+  const note = document.createElement("p");
+  note.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+  note.setAttribute("aria-live", "polite");
+  note.dataset.testid = "place-note";
+  note.textContent = "Drag a job onto a work centre, or use its Place button.";
+
+  let jobs: ProductionOperation[] = DUE_JOBS;
+  let backlog: BacklogItem[] = BACKLOG;
+  const history: { jobs: ProductionOperation[]; backlog: BacklogItem[] }[] = [];
+
+  const sync = () => {
+    chart.operations = jobs;
+    list.items = backlog;
+    undo.update({
+      disabled: history.length === 0,
+      children: history.length > 0 ? `Undo placement (${history.length})` : "Undo placement",
+    });
+  };
+
+  const place = (at: PlaceAt) => {
+    const item = backlog.find((b) => b.id === at.operationId);
+    if (!item) return;
+    // "At the end" from the Place button; a drop says where.
+    const start = at.start ?? productionNextFreeStart(jobs, at.resourceId, NOW, { calendar: PLANT });
+    const op: ProductionOperation = {
+      id: item.id,
+      name: item.name,
+      order: item.order,
+      runMinutes: item.runMinutes,
+      due: item.due,
+      resourceId: at.resourceId,
+      start,
+    };
+    const proposal = productionPlaceProposal(jobs, ROUTING, op, { resourceId: at.resourceId, start }, { calendar: PLANT, resources: CELLS });
+    const moved = new Map(proposal.cascade.map((x) => [x.operationId, x]));
+    history.push({ jobs, backlog });
+    const placed = moved.get(op.id);
+    jobs = [
+      ...jobs.map((job) => {
+        const shift = moved.get(job.id);
+        return shift ? { ...job, start: shift.to.start, end: shift.to.end, runMinutes: undefined } : job;
+      }),
+      placed ? { ...op, start: placed.to.start, end: placed.to.end, runMinutes: undefined } : op,
+    ];
+    backlog = backlog.filter((b) => b.id !== item.id);
+    note.textContent =
+      `Placed ${item.name} on ${LEAVES.find((l) => l.id === at.resourceId)?.name ?? at.resourceId}` +
+      (proposal.conflicts.length > 0 ? ` · ${proposal.conflicts.length} conflict(s) reported` : "");
+    sync();
+  };
+  const onPlace = (e: Event) => place((e as CustomEvent<PlaceAt>).detail);
+
+  const undo = Button({
+    size: "sm",
+    variant: "outline",
+    children: "Undo placement",
+    disabled: true,
+    onClick: () => {
+      const previous = history.pop();
+      if (!previous) return;
+      jobs = previous.jobs;
+      backlog = previous.backlog;
+      note.textContent = "Undone";
+      sync();
+    },
+  });
+
+  const list = document.createElement("zen-schedule-backlog") as ScheduleEl;
+  list.className = "lg:zen-w-72 lg:zen-shrink-0";
+  list.dataset.testid = "backlog";
+  Object.assign(list, { items: backlog, resources: LEAVES, now: NOW });
+  list.addEventListener("zen-place", onPlace);
+
+  const chart = schedule({
+    resources: CELLS,
+    operations: jobs,
+    dependencies: ROUTING,
+    calendar: PLANT,
+    now: NOW,
+  });
+  // Listening is what makes the leaf rows drop targets.
+  chart.addEventListener("zen-place", onPlace);
+
+  bar.append(undo.el, note);
+  side.append(chart, bar);
+  wrap.append(list, side);
+  return wrap;
+}
+
 /** Section 7: a live click handler, so the section is not a dead control. */
 function clickable(): HTMLElement {
   const wrap = document.createElement("div");
@@ -428,6 +549,23 @@ chart.addEventListener("zen-operation-click", (e) => openJobCard(e.detail[0]));`
           );
           return wrap;
         },
+      },
+      {
+        title: "Placing work from a backlog, and late jobs",
+        codeTitle: "zen-place on the chart, <zen-schedule-backlog> beside it, due on operations",
+        codeDescription:
+          "Drag a job from the backlog onto a work centre, or press its Place button and choose one — that path puts the job after the centre's last booking, and it is the one that works on a touch screen or from the keyboard. Like a reschedule, a placement is PROPOSED: productionPlaceProposal gives the same cascade and conflicts a drag would, and this page applies it and keeps the undo stack. Operations with a due date that end after it carry a red end cap and say by how much — the Bracket and the Cover here. Overdue backlog work sorts first.",
+        code: `const place = ({ operationId, resourceId, start }) => {
+  const begin = start ?? productionNextFreeStart(ops, resourceId, new Date(), { calendar });
+  apply(productionPlaceProposal(ops, routing, toOperation(operationId), { resourceId, start: begin }, { calendar, resources }));
+};
+
+<zen-schedule-backlog id="backlog"></zen-schedule-backlog>   <!-- items, resources: properties -->
+<zen-production-schedule id="chart"></zen-production-schedule>
+
+backlog.addEventListener("zen-place", (e) => place(e.detail));
+chart.addEventListener("zen-place", (e) => place(e.detail));`,
+        render: () => placeable(),
       },
     ],
   });

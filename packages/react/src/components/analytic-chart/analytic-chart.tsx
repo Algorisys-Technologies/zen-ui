@@ -109,6 +109,7 @@ export const AnalyticChart = React.forwardRef<HTMLDivElement, AnalyticChartProps
       total,
       max,
       target,
+      threshold,
       zoom,
       legend,
       title,
@@ -145,19 +146,20 @@ export const AnalyticChart = React.forwardRef<HTMLDivElement, AnalyticChartProps
     // Rebuilt only when a spec field changes, so a parent re-render that passes
     // the same rows does not redraw the chart.
     const spec = React.useMemo<AnalyticChartSpec>(
-      () => ({ type, data, x, y, series, stacked, horizontal, total, max, target, zoom, legend, title, description }),
-      [type, data, x, y, series, stacked, horizontal, total, max, target, zoom, legend, title, description],
+      () => ({ type, data, x, y, series, stacked, horizontal, total, max, target, threshold, zoom, legend, title, description }),
+      [type, data, x, y, series, stacked, horizontal, total, max, target, threshold, zoom, legend, title, description],
     );
 
     const fmtLocale = localeProp ?? locale.locale;
     const fmtCurrency = currency ?? locale.currency;
-    const base = React.useMemo<Pick<ChartContext, "format" | "t">>(() => {
+    const base = React.useMemo<Pick<ChartContext, "format" | "t" | "locale">>(() => {
       const opts = { locale: fmtLocale, currency: fmtCurrency };
       const primary = makeFormatter(format, opts);
       const secondary = secondaryFormat ? makeFormatter(secondaryFormat, opts) : primary;
       return {
         format: (v, axis) => (axis === "secondary" ? secondary(v) : primary(v)),
         t: t as ChartContext["t"],
+        locale: opts.locale,
       };
     }, [fmtLocale, fmtCurrency, format, secondaryFormat, t]);
 

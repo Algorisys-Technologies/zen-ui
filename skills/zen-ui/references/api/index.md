@@ -42,7 +42,7 @@ real props; guessing prop names is how agents invent APIs.
 - [link.md](link.md) — `Link`, `linkVariants`, `LinkProps`
 - [popover.md](popover.md) — `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverAnchor`
 - [checkbox.md](checkbox.md) — `Checkbox`, `CheckboxProps`, `CheckboxSize`
-- [radio-group.md](radio-group.md) — `RadioGroup`, `RadioGroupItem`, `RadioGroupItemProps`, `RadioSize`
+- [radio-group.md](radio-group.md) — `RadioGroup`, `RadioGroupItem`, `RadioGroupProps`, `RadioGroupItemProps`, `RadioSize`
 - [switch.md](switch.md) — `Switch`, `SwitchProps`, `SwitchSize`
 - [select.md](select.md) — `Select`, `SelectGroup`, `SelectValue`, `SelectTrigger`, `SelectContent`, `SelectLabel`, `SelectItem`, `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`
 - [phone-input.md](phone-input.md) — `PhoneInput`, `PhoneInputProps`, `PhoneValue`
@@ -119,8 +119,45 @@ real props; guessing prop names is how agents invent APIs.
 - [gantt-gantt.md](gantt-gantt.md) — `Gantt`, `GanttProps`, `GanttTask`, `GanttAssignee`
 - [zen-ui-core-gantt.md](zen-ui-core-gantt.md) — `GanttAnchoredView`, `GanttBarAnchor`, `GanttCalendar`, `GanttCalendarException`, `GanttColumnUnit`, `GanttConnector`, `GanttDependency`, `GanttDependencyType`, `GanttFitOptions`, `GanttFlattenOptions`, `GanttPaneColumn`, `GanttRow`, `GanttSegmentOptions`, `GanttSpan`, `GanttTaskNode`, `GanttTaskStatus`, `GanttView`, `GanttWorkingPeriod`, `GANTT_CALENDAR_24_7`, `GANTT_PANE_COLUMNS`, `ganttAddWorkingMs`, `ganttFitRange`, `ganttFitUnit`, `ganttIsWorking`, `ganttSubWorkingMs`, `ganttPaneColumns`, `ganttRangeColumns`, `ganttSpanLabel`, `ganttWorkingMs`, `ganttWorkingPeriodsOn`, `ganttWorkingSegments`
 - [production-schedule.md](production-schedule.md) — `ProductionSchedule`, `ProductionScheduleProps`, `ProductionResource`, `ProductionOperation`, `ProductionPaneColumn`
-- [production.md](production.md) — `ProductionConflict`, `ProductionConflictKind`, `ProductionFlatten`, `ProductionFlattenOptions`, `ProductionLoadBucket`, `ProductionLoadOptions`, `ProductionOperationNode`, `ProductionPlacement`, `ProductionPlacementOptions`, `ProductionResourceNode`, `ProductionRow`, `ProductionSetupMatrix`, `flattenProductionResources`, `packProductionLanes`, `productionConflicts`, `productionLoad`, `productionPeakLoad`, `productionPlacement`, `productionSequenceConflicts`, `productionSetupMinutes`, `productionSetupPlan`
-- [reschedule.md](reschedule.md) — `productionReschedule`, `ProductionMove`, `ProductionProposal`, `ProductionRescheduleOptions`, `ProductionShift`
+- [production.md](production.md) — `ProductionConflict`, `ProductionConflictKind`, `ProductionFlatten`, `ProductionFlattenOptions`, `ProductionLoadBucket`, `ProductionLoadOptions`, `ProductionOperationNode`, `ProductionPlacement`, `ProductionPlacementOptions`, `ProductionResourceNode`, `ProductionRow`, `ProductionSetupMatrix`, `flattenProductionResources`, `packProductionLanes`, `productionConflicts`, `productionLoad`, `productionPeakLoad`, `productionPlacement`, `productionSequenceConflicts`, `productionSetupMinutes`, `productionSetupPlan`, `productionLateMs`
+- [reschedule.md](reschedule.md) — `productionReschedule`, `productionPlaceProposal`, `productionNextFreeStart`, `snapToMinutes`, `PRODUCTION_DRAG_TYPE`, `ProductionMove`, `ProductionProposal`, `ProductionRescheduleOptions`, `ProductionShift`
+- [schedule-backlog.md](schedule-backlog.md) — `ScheduleBacklog`, `BacklogItem`, `ScheduleBacklogProps`
+- [state-pill.md](state-pill.md) — `StatePill`, `StatePillProps`, `StatePillSize`
+- [machine-state.md](machine-state.md) — `MACHINE_STATES`, `isAvailabilityLoss`, `isMachineState`, `machineStateCategory`, `machineStateMessageKey`, `machineStateTone`, `MachineState`, `MachineStateCategory`, `MachineStateTone`
+- [oee-gauge.md](oee-gauge.md) — `OeeGauge`, `OeeGaugeProps`, `OeeGaugeSize`
+- [oee.md](oee.md) — `DEFAULT_OEE_BANDS`, `gaugeAngle`, `oeeBand`, `oeeFromCounts`, `OeeBand`, `OeeBands`, `OeeFactors`, `OeeInputs`, `OeeResult`
+- [state-timeline-state-timeline.md](state-timeline-state-timeline.md) — `StateTimeline`, `StateTimelineProps`, `StateTimelineSize`
+- [zen-ui-core-state-timeline.md](zen-ui-core-state-timeline.md) — `durationMessage`, `layoutStateTimeline`, `layoutTimelineEvents`, `stateTimelineTotals`, `timelineTicks`, `StateSegment`, `StateSegmentInput`, `StateTimelineWindow`, `TimelineEvent`, `TimelineEventInput`, `TimelineTicks`
+- [andon-andon.md](andon-andon.md) — `AndonBoard`, `AndonTile`, `AndonBoardProps`, `AndonItem`, `AndonTileProps`
+- [zen-ui-core-andon.md](zen-ui-core-andon.md) — `ANDON_TONE_ORDER`, `DEFAULT_ANDON_STALE_MS`, `andonShowsClock`, `boardFreshness`, `sortAndonTiles`, `AndonSortable`
+- [reason-code-picker.md](reason-code-picker.md) — `ReasonCodePicker`, `ReasonCodePickerProps`
+- [reason-codes.md](reason-codes.md) — `filterReasons`, `reasonCategories`, `ReasonCode`
+- [scan-input.md](scan-input.md) — `ScanInput`, `ScanInputProps`, `ScanSource`
+- [scan.md](scan.md) — `DEFAULT_SCAN_OPTIONS`, `classifyEntry`, `createScanBuffer`, `KeyAt`, `ScanBuffer`, `ScanOptions`
+- [production-progress-production-progress.md](production-progress-production-progress.md) — `ProductionProgress`, `ProductionProgressProps`
+- [zen-ui-core-production-progress.md](zen-ui-core-production-progress.md) — `productionProgress`, `segmentFill`, `ProductionCounts`, `ProductionProgressResult`
+- [measurement-input.md](measurement-input.md) — `MeasurementInput`, `MeasurementInputProps`
+- [measurement.md](measurement.md) — `judgeMeasurement`, `measurementScale`, `MeasurementJudgement`, `MeasurementScale`, `MeasurementSpec`, `MeasurementVerdict`
+- [step-runner-step-runner.md](step-runner-step-runner.md) — `StepRunner`, `StepRunnerProps`, `StepRunnerStep`
+- [zen-ui-core-step-runner.md](zen-ui-core-step-runner.md) — `canCompleteStep`, `stepRunnerState`, `StepBlock`, `StepDef`, `StepRecord`, `StepRecordStatus`, `StepRunnerState`, `StepRunStatus`
+- [live-indicator.md](live-indicator.md) — `LiveIndicator`, `LiveIndicatorProps`
+- [live.md](live.md) — `liveState`, `LiveState`
+- [shift-navigator.md](shift-navigator.md) — `ShiftNavigator`, `ShiftNavigatorProps`
+- [shifts.md](shifts.md) — `addPlantDays`, `nextShift`, `plantDayOf`, `previousShift`, `shiftAt`, `shiftWindow`, `wallClockToInstant`, `ShiftDef`, `ShiftRef`, `ShiftWindow`
+- [planned-vs-actual-planned-vs-actual.md](planned-vs-actual-planned-vs-actual.md) — `PlannedVsActual`, `PlannedVsActualProps`
+- [zen-ui-core-planned-vs-actual.md](zen-ui-core-planned-vs-actual.md) — `planAt`, `plannedVsActual`, `readingAt`, `CountPoint`, `PlannedVsActualInput`, `PlannedVsActualResult`
+- [rate-bars-rate-bars.md](rate-bars-rate-bars.md) — `RateBars`, `RateBarsProps`
+- [zen-ui-core-rate-bars.md](zen-ui-core-rate-bars.md) — `rateBuckets`, `RateBucket`, `RateBucketsInput`
+- [line-card.md](line-card.md) — `LineCard`, `LineCardProps`
+- [line-eta.md](line-eta.md) — `lineEta`, `LineEta`
+- [capacity-heatmap.md](capacity-heatmap.md) — `CapacityHeatmap`, `CapacityHeatmapProps`
+- [capacity.md](capacity.md) — `capacityCell`, `capacityGrid`, `CapacityCell`, `CapacityGrid`, `CapacityGridInput`, `CapacityStatus`
+- [column-mapper-column-mapper.md](column-mapper-column-mapper.md) — `ColumnMapper`, `ColumnMapperProps`
+- [zen-ui-core-column-mapper.md](zen-ui-core-column-mapper.md) — `autoMap`, `detectDelimiter`, `parseDelimited`, `parseImportDate`, `validateMapping`, `CellErrorKind`, `ColumnMapping`, `MapperField`, `MappingValidation`
+- [genealogy-graph.md](genealogy-graph.md) — `GenealogyGraph`, `GenealogyGraphProps`, `GenealogyNode`
+- [genealogy.md](genealogy.md) — `traceGenealogy`, `GenealogyEdge`, `GenealogyNodeInput`, `GenealogyTrace`
+- [routing-graph.md](routing-graph.md) — `RoutingGraph`, `RoutingGraphProps`, `RoutingStep`, `RoutingStepStatus`
+- [routing.md](routing.md) — `canAddLink`, `effectiveLinks`, `routingLayout`, `startableSteps`, `wouldCreateCycle`, `LinkRefusal`, `RoutingLayout`, `RoutingLink`, `RoutingStepInput`
 - [critical-path.md](critical-path.md) — `productionCriticalPath`, `ProductionCriticalPath`, `ProductionCriticalPathOptions`, `ProductionFloat`
 - [upload-collection.md](upload-collection.md) — `UploadCollection`, `UploadCollectionProps`, `UploadItem`, `UploadStatus`
 - [spreadsheet-grid.md](spreadsheet-grid.md) — `SpreadsheetGrid`, `SheetCalculator`, `SpreadsheetGridProps`, `SheetCalculatorProps`
@@ -151,7 +188,7 @@ real props; guessing prop names is how agents invent APIs.
 - [command.md](command.md) — `Command`, `CommandInput`, `CommandList`, `CommandEmpty`, `CommandLoading`, `CommandGroup`, `CommandItem`, `CommandSeparator`
 - [breadcrumb.md](breadcrumb.md) — `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`, `BreadcrumbSeparator`, `BreadcrumbEllipsis`
 - [pagination.md](pagination.md) — `Pagination`, `usePaginationRange`, `PaginationProps`
-- [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarHeaderLabel`, `SidebarMenuBadge`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
+- [sidebar.md](sidebar.md) — `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarHeaderLabel`, `SidebarMenuBadge`, `SidebarContent`, `SidebarFooter`, `SidebarGroup`, `SidebarGroupLabel`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`, `SidebarMenuSubLabel`, `SidebarTrigger`, `useSidebar`, `SidebarProviderProps`, `SidebarMenuButtonProps`, `SidebarMenuSubProps`, `SidebarMenuSubButtonProps`, `SidebarTriggerProps`
 - [chart-chart.md](chart-chart.md) — `Chart`, `ChartProps`, `ChartSeries`
 - [analytic-chart-analytic-chart.md](analytic-chart-analytic-chart.md) — `AnalyticChart`, `AnalyticChartProps`
 - [zen-ui-core-analytic-chart.md](zen-ui-core-analytic-chart.md) — `registerChartKind`, `getChartKind`, `chartKinds`, `selectionAt`, `makeFormatter`, `cartesianFrame`, `legendOf`, `seriesOf`, `toNumber`, `AnalyticChartSpec`, `AnalyticSeries`, `ChartKind`, `ChartContext`, `ChartSelection`, `ChartTable`, `ChartTheme`, `ChartRow`, `ValueFormat`, `EChartsOption`

@@ -48,7 +48,7 @@ export interface AnalyticSeries {
 }
 
 export interface AnalyticChartSpec {
-  /** A registered kind: bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, or your own. */
+  /** A registered kind: bar, line, area, combo, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, pareto, or your own. */
   type: string;
   data: ChartRow[];
   /** The category / label field (the name of each slice, stage or tile). */
@@ -67,6 +67,8 @@ export interface AnalyticChartSpec {
   max?: number;
   /** Gauge: where the target sits, drawn as a mark on the dial. */
   target?: number;
+  /** Pareto: the cumulative share that ends the vital few. Default 0.8. */
+  threshold?: number;
   /** Category-axis zoom: a slider under the chart, and the wheel / pinch. */
   zoom?: boolean;
   /** Default: shown when there is more than one series. */
@@ -100,6 +102,8 @@ export interface ChartContext {
   format: (value: number, axis?: "primary" | "secondary") => string;
   /** The page reads right to left. */
   rtl: boolean;
+  /** BCP 47, for the few labels a kind formats itself (Pareto's percent axis). Undefined: the browser's. */
+  locale?: string;
   /** The chart's width in px, when known: lets category labels wrap instead of dropping. */
   width?: number;
   /** A catalogue word (`analyticChart.*`), translated when the app supplied one. */
@@ -619,6 +623,149 @@ const waterfallKind: ChartKind = {
   },
 };
 
+/**
+ * A Pareto's rows: largest first (zero and blank last, keeping their order),
+ * with the running total and its share of the whole, and how many rows it
+ * takes to reach `threshold` — the vital few. A negative value counts as 0:
+ * a Pareto ranks contributions, and a cause cannot reduce the downtime of the
+ * others.
+ */
+export function paretoRows(spec: AnalyticChartSpec): {
+  rows: { index: number; label: string; value: number; cumulative: number; share: number }[];
+  total: number;
+  vitalCount: number;
+} {
+  const key = spec.series?.[0]?.key;
+  const items = spec.data.map((row, index) => ({
+    index,
+    label: label(spec.x ? row[spec.x] : ""),
+    value: Math.max(0, (key ? toNumber(row[key]) : null) ?? 0),
+    blank: key ? toNumber(row[key]) === null : true,
+  }));
+  // Stable: equal values keep their order; blanks sort after real zeros.
+  items.sort((a, b) => b.value - a.value || Number(a.blank) - Number(b.blank) || a.index - b.index);
+  const total = items.reduce((n, r) => n + r.value, 0);
+  let cumulative = 0;
+  const rows = items.map((r) => {
+    cumulative += r.value;
+    return { index: r.index, label: r.label, value: r.value, cumulative, share: total > 0 ? cumulative / total : 0 };
+  });
+  const threshold = spec.threshold ?? 0.8;
+  const reach = rows.findIndex((r) => r.share >= threshold - 1e-9);
+  return { rows, total, vitalCount: total > 0 ? (reach < 0 ? rows.length : reach + 1) : 0 };
+}
+
+// Whole percents on the axis; one decimal where a share is READ (tooltip,
+// table), because 79.7% rounded to "80%" claims a cause reached the threshold
+// when it did not.
+const percentOf = (ctx: ChartContext, digits = 1) => {
+  let nf: Intl.NumberFormat;
+  try {
+    nf = new Intl.NumberFormat(ctx.locale, { style: "percent", maximumFractionDigits: digits });
+  } catch {
+    nf = new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: digits });
+  }
+  return (v: number) => nf.format(v);
+};
+
+const paretoKind: ChartKind = {
+  id: "pareto",
+  modules: () =>
+    Promise.all([
+      import("echarts/charts").then(({ BarChart, LineChart }) => [BarChart, LineChart]),
+      import("echarts/components").then(({ GridComponent, DataZoomComponent, MarkLineComponent }) => [
+        GridComponent,
+        DataZoomComponent,
+        MarkLineComponent,
+      ]),
+    ]).then((m) => m.flat()),
+  build: (spec, ctx) => {
+    const { rows, vitalCount } = paretoRows(spec);
+    const s = seriesOf(spec)[0];
+    const pct = percentOf(ctx);
+    const axisPct = percentOf(ctx, 0);
+    const threshold = spec.threshold ?? 0.8;
+    const frame = cartesianFrame({ ...spec, horizontal: false, legend: false }, ctx, {
+      secondary: true,
+      categories: rows.map((r) => r.label),
+    }) as { yAxis: Record<string, unknown>[] } & EChartsOption;
+    frame.yAxis[1] = {
+      ...frame.yAxis[1],
+      min: 0,
+      max: 1,
+      axisLabel: { ...(frame.yAxis[1].axisLabel as object), formatter: (v: number) => axisPct(v) },
+    };
+    const colour = s?.color ?? ctx.theme.palette[0];
+    return {
+      ...frame,
+      legend: { show: false },
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        formatter: (params: { dataIndex: number; name: string }[]) => {
+          const r = rows[params[0]?.dataIndex ?? 0];
+          if (!r) return "";
+          return `${escapeHtml(r.label)}<br/>${escapeHtml(s?.label ?? "")}: <b>${escapeHtml(ctx.format(r.value))}</b><br/>${escapeHtml(ctx.t("analyticChart.cumulative"))}: ${escapeHtml(pct(r.share))}`;
+        },
+      },
+      series: [
+        {
+          id: s?.key ?? "value",
+          name: s?.label,
+          type: "bar",
+          barMaxWidth: 48,
+          // The vital few in full colour; the trivial many faded — the chart's
+          // whole point is which bars to fix first.
+          data: rows.map((r, i) => ({ value: r.value, itemStyle: { color: colour, opacity: i < vitalCount ? 1 : 0.45, borderRadius: [3, 3, 0, 0] } })),
+        },
+        {
+          id: "__cumulative",
+          name: ctx.t("analyticChart.cumulative"),
+          type: "line",
+          yAxisIndex: 1,
+          symbol: "circle",
+          symbolSize: 6,
+          lineStyle: { color: ctx.theme.foreground, width: 2 },
+          itemStyle: { color: ctx.theme.foreground },
+          data: rows.map((r) => r.share),
+          markLine: {
+            silent: true,
+            symbol: "none",
+            lineStyle: { color: ctx.theme.muted, type: "dashed" },
+            // At the line's start, inside the plot: at its end it lands on
+            // the axis's own tick label and the two print over each other.
+            label: { formatter: () => pct(threshold), color: ctx.theme.muted, position: "insideStartTop" },
+            data: [{ yAxis: threshold }],
+          },
+        },
+      ],
+    };
+  },
+  table: (spec, ctx) => {
+    const { rows } = paretoRows(spec);
+    const s = seriesOf(spec)[0];
+    const pct = percentOf(ctx);
+    return {
+      columns: [
+        ...(spec.x ? [{ key: spec.x, label: spec.x }] : []),
+        { key: s?.key ?? "value", label: s?.label ?? "", numeric: true },
+        { key: "cumulative", label: ctx.t("analyticChart.cumulative"), numeric: true },
+      ],
+      rows: rows.map((r, position) => ({
+        index: position,
+        cells: [...(spec.x ? [r.label] : []), r.value, pct(r.share)],
+      })),
+    };
+  },
+  // A click and a table row both give the position in Pareto order; this maps
+  // it back to the row in `data`, so the two cannot report different things.
+  select: (spec, p) => {
+    const r = paretoRows(spec).rows[p.dataIndex];
+    if (!r) return undefined;
+    return { row: spec.data[r.index], index: r.index, seriesKey: spec.series?.[0]?.key, value: r.value };
+  },
+};
+
 const funnelKind: ChartKind = {
   id: "funnel",
   modules: () => import("echarts/charts").then(pick(["FunnelChart"])),
@@ -996,6 +1143,7 @@ for (const kind of [
   heatmapKind,
   scatterKind,
   treemapKind,
+  paretoKind,
 ]) {
   registerChartKind(kind);
 }

@@ -8,6 +8,11 @@ import {
   productionLoad,
   productionReschedule,
   productionSequenceConflicts,
+  productionLateMs,
+  snapToMinutes,
+  directionOf,
+  durationMessage,
+  PRODUCTION_DRAG_TYPE,
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
@@ -154,6 +159,16 @@ export interface ProductionScheduleProps {
    * never does the work of a drag and then gets told no.
    */
   canReschedule?: (operation: ProductionOperation) => boolean;
+  /**
+   * Accepts work dragged in from a backlog (`ScheduleBacklog`, or anything
+   * that sets `PRODUCTION_DRAG_TYPE` to an operation id) onto a work centre.
+   * The drop is PROPOSED, like a reschedule: this is called with where it
+   * landed (snapped to 15 minutes) and nothing changes until the caller passes
+   * new `operations` — `productionPlaceProposal` gives the cascade and
+   * conflicts. Only leaf work centres accept a drop; a parent stands for its
+   * children. Without it the chart renders exactly as before.
+   */
+  onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
 
   /**
    * How many operations may stack on one row before the rest are counted as
@@ -641,6 +656,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
               msPerPx={msPerPx()}
               onPropose={propose}
               isCritical={isCritical}
+              onPlace={props.onPlace}
             />
           )}
           renderFooter={
@@ -825,9 +841,36 @@ const ProductionTrack = (props: {
   msPerPx: number;
   onPropose: (move: ProductionMove) => void;
   isCritical: (id: string) => boolean;
+  onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
 }) => {
   const loc = useLocale();
-  return (
+  const accepts = () => props.onPlace !== undefined && !props.row.hasChildren;
+  // Where a drag is hovering, as a fraction of the track — drawn as a line.
+  const [hover, setHover] = createSignal<number | null>(null);
+  const fractionAt = (el: HTMLElement, clientX: number) => {
+    const r = el.getBoundingClientRect();
+    const f = directionOf(el) === "rtl" ? (r.right - clientX) / r.width : (clientX - r.left) / r.width;
+    return Math.min(1, Math.max(0, f));
+  };
+  const carries = (e: DragEvent) => !!e.dataTransfer && [...e.dataTransfer.types].includes(PRODUCTION_DRAG_TYPE);
+  const onDragOver = (e: DragEvent & { currentTarget: HTMLDivElement }) => {
+    if (!accepts() || !carries(e)) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    setHover(fractionAt(e.currentTarget, e.clientX));
+  };
+  const onDrop = (e: DragEvent & { currentTarget: HTMLDivElement }) => {
+    setHover(null);
+    if (!accepts() || !carries(e)) return;
+    e.preventDefault();
+    const id = e.dataTransfer?.getData(PRODUCTION_DRAG_TYPE);
+    if (!id) return;
+    const from = props.range.start.getTime();
+    const span = props.range.end.getTime() - from;
+    const start = new Date(snapToMinutes(from + fractionAt(e.currentTarget, e.clientX) * span, 15));
+    props.onPlace?.({ operationId: id, resourceId: props.row.resource.id, start });
+  };
+  const content = () => (
   <>
     <Show when={props.row.lanes.length === 0}>
       {/* An expanded parent draws nothing because its children draw its work —
@@ -859,6 +902,30 @@ const ProductionTrack = (props: {
     </Index>
   </>
   );
+  /* The drop layer exists only when drops are accepted, so a chart without
+     `onPlace` renders the DOM it always did. */
+  return (
+    <Show when={accepts()} fallback={content()}>
+      <div
+        data-drop-target=""
+        class={cn("zen-absolute zen-inset-0", hover() !== null && "zen-bg-zen-primary-soft")}
+        onDragOver={onDragOver}
+        onDragLeave={() => setHover(null)}
+        onDrop={onDrop}
+      >
+        {content()}
+        <Show when={hover()}>
+          {(f) => (
+            <span
+              aria-hidden="true"
+              class="zen-pointer-events-none zen-absolute zen-inset-y-0 zen-w-0.5 zen-bg-zen-primary"
+              style={{ "inset-inline-start": `${f() * 100}%` }}
+            />
+          )}
+        </Show>
+      </div>
+    </Show>
+  );
 };
 
 const ProductionBar = (props: {
@@ -877,6 +944,12 @@ const ProductionBar = (props: {
   const placed = () => placeAppointment(props.placement.span, props.range);
   const status = () => operation().status ?? "on-track";
   const progress = () => operation().percentComplete ?? null;
+  const lateMs = () => productionLateMs(props.placement.span.end, operation().due) ?? 0;
+  const lateText = () => {
+    if (lateMs() <= 0) return null;
+    const d = durationMessage(lateMs());
+    return loc.t("productionSchedule.late", { duration: loc.t(d.key, d.values) });
+  };
 
   /* PHYSICAL pixels of drag, held here and discarded on release. It is the ONLY
      state this component keeps about a move: the proposal goes to the caller,
@@ -1002,6 +1075,7 @@ const ProductionBar = (props: {
       `${formatTime(props.placement.span.start)} – ${formatTime(props.placement.span.end)}`,
       props.placement.setup ? loc.t("productionSchedule.inclChangeover") : null,
       props.critical ? loc.t("productionSchedule.onCriticalPath") : null,
+      lateText(),
       progress() === null ? null : `${Math.round(progress()!)}%`,
     ]
       .filter(Boolean)
@@ -1059,6 +1133,7 @@ const ProductionBar = (props: {
               progress:
                 progress() === null ? "" : loc.t("productionSchedule.barProgress", { percent: Math.round(progress()!) }),
             })}
+            <Show when={lateText()}>{(text) => <>. {text()}</>}</Show>
           </span>
           <Index each={pieces()}>
             {(piece) => (
@@ -1098,6 +1173,16 @@ const ProductionBar = (props: {
               </span>
             )}
           </Index>
+          {/* Late: a solid end cap in the error colour. Status is the bar's fill,
+              so lateness gets its own mark rather than a recolour — and words
+              in the tooltip and the accessible name. */}
+          <Show when={lateMs() > 0}>
+            <span
+              aria-hidden="true"
+              data-late=""
+              class="zen-absolute zen-inset-y-0 zen-end-0 zen-w-1.5 zen-rounded-e-zen-sm zen-bg-zen-error"
+            />
+          </Show>
         </button>
       )}
     </Show>

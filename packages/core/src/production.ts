@@ -96,6 +96,12 @@ export interface ProductionOperationNode {
    */
   setupFamily?: string;
   /**
+   * When the operation is due. Optional: a bar that ends after it is drawn
+   * late and says by how much (`productionLateMs`). Reported, never enforced —
+   * due dates get renegotiated.
+   */
+  due?: Date;
+  /**
    * How much of the resource's capacity this consumes. Default 1. A job that
    * needs both operators on a two-operator cell is 2.
    */
@@ -803,4 +809,14 @@ export function productionConflicts<O extends ProductionOperationNode>(
   }
 
   return out;
+}
+
+/**
+ * How late something finishing at `end` is against `due`, in ms: 0 when on
+ * time (finishing exactly at the due time is on time), null with no due date —
+ * which is not "on time", nobody said when it was due.
+ */
+export function productionLateMs(end: Date, due: Date | undefined): number | null {
+  if (!due) return null;
+  return Math.max(0, end.getTime() - due.getTime());
 }

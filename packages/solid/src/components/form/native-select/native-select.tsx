@@ -1,4 +1,4 @@
-import { type JSX, splitProps } from "solid-js";
+import { type JSX, createEffect, onCleanup, onMount, splitProps } from "solid-js";
 import { cn } from "../../../lib/cn";
 
 /**
@@ -24,10 +24,32 @@ const CHEVRON_URL =
   "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e\")";
 
 export const NativeSelect = (props: NativeSelectProps) => {
-  const [local, rest] = splitProps(props, ["class", "style", "children"]);
+  const [local, rest] = splitProps(props, ["class", "style", "children", "value", "ref"]);
+  /* `value` is applied here, not spread. Spread props land before the
+     children are inserted, and a native <select> told to take a value it has
+     no <option> for yet selects nothing — so a select whose options come from
+     a <For> showed its FIRST option whatever the value. It is re-applied when
+     the value changes and whenever the options do. */
+  let el: HTMLSelectElement | undefined;
+  const apply = () => {
+    if (el && local.value !== undefined) el.value = String(local.value);
+  };
+  createEffect(apply);
+  onMount(() => {
+    if (!el) return;
+    apply();
+    const mo = new MutationObserver(apply);
+    mo.observe(el, { childList: true, subtree: true });
+    onCleanup(() => mo.disconnect());
+  });
   return (
     <select
       {...rest}
+      ref={(node) => {
+        el = node;
+        const r = local.ref as unknown;
+        if (typeof r === "function") (r as (n: HTMLSelectElement) => void)(node);
+      }}
       class={cn(
         "zen-h-zen-control zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-zen-control-x zen-py-2 zen-text-sm",
         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",

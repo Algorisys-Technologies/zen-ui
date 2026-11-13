@@ -4,6 +4,18 @@ import { registerChartKind, legendOf, seriesOf, toNumber, type ChartSelection } 
 import { Button } from "./button/button";
 import { CodeExample } from "./demo-helpers";
 
+const STOPS = [
+  { cause: "Tool change", minutes: 42 },
+  { cause: "Jam at infeed", minutes: 185 },
+  { cause: "No blanks", minutes: 96 },
+  { cause: "Changeover", minutes: 140 },
+  { cause: "Sensor fault", minutes: 18 },
+  { cause: "Lubrication", minutes: 11 },
+  { cause: "Waiting for crane", minutes: 27 },
+  { cause: "Other", minutes: 9 },
+];
+const MINUTES_SERIES = [{ key: "minutes", label: "Minutes" }];
+
 const MONTHS = [
   { month: "Apr", revenue: 1240000, cost: 870000, margin: 0.298 },
   { month: "May", revenue: 1385000, cost: 952000, margin: 0.313 },
@@ -133,10 +145,11 @@ const SUPPLIERS = [
 const inr = (v: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
 
 const FULL = { width: "100%" } as const;
-const KINDS = ["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap"];
+const KINDS = ["bar", "line", "area", "combo", "pie", "donut", "waterfall", "funnel", "gauge", "heatmap", "scatter", "treemap", "pareto"];
 
 const NewAnalyticChartDemo: React.FC = () => {
   const [picked, setPicked] = useState<ChartSelection | undefined>();
+  const [paretoPick, setParetoPick] = useState<ChartSelection | undefined>();
   const [drillYear, setDrillYear] = useState<string | undefined>();
   const [horizontal, setHorizontal] = useState(false);
   const [region, setRegion] = useState<string | undefined>();
@@ -464,6 +477,40 @@ const NewAnalyticChartDemo: React.FC = () => {
               </li>
             ))}
           </ul>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>12. Pareto</h2>
+        <CodeExample
+          title="type pareto: largest first, a cumulative line, the vital few marked"
+          description="Downtime minutes by cause, given in any order. The bars sort largest first; the line is the running share of the total on its own 0–100% axis; the bars that together reach the threshold (80% unless set) stay full colour and the rest fade — those are the causes to fix first. Click a bar, or a row's button in the table view: onSelect gets the original row, not its position after sorting."
+          code={`<AnalyticChart
+  type="pareto"
+  title="Downtime by cause, this week"
+  data={stops}          // any order
+  x="cause"
+  series={[{ key: "minutes", label: "Minutes" }]}
+  threshold={0.8}
+  onSelect={(s) => open(s.row)}
+/>`}
+        >
+          <div className="zen-flex zen-w-full zen-flex-col zen-gap-2">
+            <AnalyticChart
+              type="pareto"
+              title="Downtime by cause, this week"
+              data={STOPS}
+              x="cause"
+              series={MINUTES_SERIES}
+              height={320}
+              className="zen-w-full"
+              data-testid="pareto"
+              onSelect={setParetoPick}
+            />
+            <p className="zen-m-0 zen-text-sm" data-testid="pareto-pick">
+              Selected: {paretoPick ? `${String(paretoPick.row.cause)} (row ${paretoPick.index})` : "—"}
+            </p>
+          </div>
         </CodeExample>
       </section>
     </div>

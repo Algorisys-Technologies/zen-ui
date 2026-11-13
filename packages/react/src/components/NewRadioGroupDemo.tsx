@@ -191,6 +191,30 @@ const NewRadioGroupDemo: React.FC = () => {
           </form>
         </CodeExample>
       </section>
+
+      <section className="demo-section">
+        <h2>7. Group label and description</h2>
+        <CodeExample
+          title="label names the group; description is its help text"
+          code={`<RadioGroup
+  defaultValue="standard"
+  label="Shipping speed"
+  description="Express orders placed before 2 pm leave the same day."
+>
+  <RadioGroupItem value="standard" label="Standard" />
+  <RadioGroupItem value="express" label="Express" />
+</RadioGroup>`}
+        >
+          <RadioGroup
+            defaultValue="standard"
+            label="Shipping speed"
+            description="Express orders placed before 2 pm leave the same day."
+          >
+            <RadioGroupItem value="standard" label="Standard" />
+            <RadioGroupItem value="express" label="Express" />
+          </RadioGroup>
+        </CodeExample>
+      </section>
     </div>
   );
 };

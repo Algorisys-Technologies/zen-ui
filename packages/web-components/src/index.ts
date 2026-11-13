@@ -48,7 +48,7 @@ export {
   ScrollBar, Search, SegmentedButton, Select, SelectDialog, SelectableCardGroup, Separator,
   Sheet, ShellBar, Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
   SidebarHeader, SidebarHeaderLabel, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub,
-  SidebarMenuSubButton, SidebarMenuSubItem, SidebarProvider, SidebarTrigger, Skeleton,
+  SidebarMenuSubButton, SidebarMenuSubItem, SidebarMenuSubLabel, SidebarProvider, SidebarTrigger, Skeleton,
   SkipToContent, Slider, SplitButton, Stack, StatCard, Tile, TileGrid, QRCode, Barcode, Stepper, Switch, TEXTAREA_CLASS, THEMES,
   Theme, DirectionProvider, MessagePopover, LocaleProvider, useLocale, localeOf, withLocale, provideLocale,
   Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow, Tabs,
@@ -222,3 +222,40 @@ export { defineZenElement } from "./lib/define";
 export type { ElementDef, AttrType } from "./lib/define";
 export { defineZenElements } from "./elements";
 export { documentShortcuts } from "./elements/shortcuts";
+
+// MES components and their core logic (12.9.0), re-exported from vanilla.
+export {
+  productionPlaceProposal, productionNextFreeStart, snapToMinutes, PRODUCTION_DRAG_TYPE,
+  productionLateMs, ScheduleBacklog, StatePill, MACHINE_STATES, isAvailabilityLoss, isMachineState,
+  machineStateCategory, machineStateMessageKey, machineStateTone, OeeGauge, DEFAULT_OEE_BANDS,
+  gaugeAngle, oeeBand, oeeFromCounts, StateTimeline, durationMessage, layoutStateTimeline,
+  layoutTimelineEvents, stateTimelineTotals, timelineTicks, AndonBoard, AndonTile,
+  ANDON_TONE_ORDER, DEFAULT_ANDON_STALE_MS, andonShowsClock, boardFreshness, sortAndonTiles,
+  ReasonCodePicker, filterReasons, reasonCategories, ScanInput, DEFAULT_SCAN_OPTIONS,
+  classifyEntry, createScanBuffer, ProductionProgress, productionProgress, segmentFill,
+  MeasurementInput, judgeMeasurement, measurementScale, StepRunner, canCompleteStep,
+  stepRunnerState, LiveIndicator, liveState, ShiftNavigator, addPlantDays, nextShift, plantDayOf,
+  previousShift, shiftAt, shiftWindow, wallClockToInstant, PlannedVsActual, planAt,
+  plannedVsActual, readingAt, RateBars, rateBuckets, LineCard, lineEta, CapacityHeatmap,
+  capacityCell, capacityGrid, ColumnMapper, autoMap, detectDelimiter, parseDelimited,
+  parseImportDate, validateMapping, GenealogyGraph, traceGenealogy, RoutingGraph, canAddLink,
+  effectiveLinks, routingLayout, startableSteps, wouldCreateCycle,
+} from "@algorisys/zen-ui-vanilla";
+export type {
+  BacklogItem, ScheduleBacklogProps, StatePillProps, StatePillSize, MachineState,
+  MachineStateCategory, MachineStateTone, OeeGaugeProps, OeeGaugeSize, OeeBand, OeeBands,
+  OeeFactors, OeeInputs, OeeResult, StateTimelineProps, StateTimelineSize, AndonBoardProps,
+  AndonItem, AndonTileProps, AndonSortable, ReasonCodePickerProps, ReasonCode, ScanInputProps,
+  ScanSource, KeyAt, ScanBuffer, ScanOptions, ProductionProgressProps, ProductionCounts,
+  ProductionProgressResult, MeasurementInputProps, MeasurementJudgement, MeasurementScale,
+  MeasurementSpec, MeasurementVerdict, StepRunnerProps, StepRunnerStep, LiveIndicatorProps,
+  ShiftNavigatorProps, ShiftDef, ShiftRef, ShiftWindow, PlannedVsActualProps, CountPoint,
+  PlannedVsActualInput, PlannedVsActualResult, RateBarsProps, RateBucket, RateBucketsInput,
+  LineCardProps, LineEta, CapacityHeatmapProps, CapacityCell, CapacityGrid, CapacityGridInput,
+  CapacityStatus, ColumnMapperProps, CellErrorKind, ColumnMapping, MapperField, MappingValidation,
+  GenealogyGraphProps, GenealogyNode, GenealogyEdge, GenealogyNodeInput, GenealogyTrace,
+  RoutingGraphProps, RoutingStep, RoutingStepStatus, LinkRefusal, RoutingLayout, RoutingLink,
+  RoutingStepInput, LiveState, StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState,
+  StepRunStatus, StateSegment, StateSegmentInput, StateTimelineWindow, TimelineEvent,
+  TimelineEventInput, TimelineTicks,
+} from "@algorisys/zen-ui-vanilla";

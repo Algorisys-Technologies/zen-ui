@@ -83,6 +83,7 @@ const SPEC_KEYS = [
   "total",
   "max",
   "target",
+  "threshold",
   "zoom",
   "legend",
   "title",
@@ -158,13 +159,14 @@ export function AnalyticChart(props: AnalyticChartProps): ZenComponent<AnalyticC
     for (const k of SPEC_KEYS) s[k] = current[k];
     return s as unknown as AnalyticChartSpec;
   };
-  const base = (): Pick<ChartContext, "format" | "t"> => {
+  const base = (): Pick<ChartContext, "format" | "t" | "locale"> => {
     const opts = { locale: current.locale ?? loc.locale, currency: current.currency ?? loc.currency };
     const primary = makeFormatter(current.format, opts);
     const secondary = current.secondaryFormat ? makeFormatter(current.secondaryFormat, opts) : primary;
     return {
       format: (v, axis) => (axis === "secondary" ? secondary(v) : primary(v)),
       t: t as ChartContext["t"],
+      locale: opts.locale,
     };
   };
   const empty = () => current.data.length === 0;

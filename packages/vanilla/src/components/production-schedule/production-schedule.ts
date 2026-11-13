@@ -7,6 +7,11 @@ import {
   productionLoad,
   productionReschedule,
   productionSequenceConflicts,
+  productionLateMs,
+  snapToMinutes,
+  directionOf,
+  durationMessage,
+  PRODUCTION_DRAG_TYPE,
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
@@ -152,6 +157,16 @@ export interface ProductionScheduleProps extends BaseProps {
    * the work of a drag and then gets told no.
    */
   canReschedule?: (operation: ProductionOperation) => boolean;
+  /**
+   * Accepts work dragged in from a backlog (`ScheduleBacklog`, or anything
+   * that sets `PRODUCTION_DRAG_TYPE` to an operation id) onto a work centre.
+   * The drop is PROPOSED, like a reschedule: this is called with where it
+   * landed (snapped to 15 minutes) and nothing changes until the caller passes
+   * new `operations` through `update()` — `productionPlaceProposal` gives the
+   * cascade and conflicts. Only leaf work centres accept a drop; a parent
+   * stands for its children. Without it the chart renders exactly as before.
+   */
+  onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
 
   /** How many operations may stack on one row. Default 3; it sets EVERY row's height. */
   maxLanes?: number;
@@ -508,6 +523,12 @@ export function ProductionSchedule(
     const progress = operation.percentComplete ?? null;
     const movable =
       current.onReschedule !== undefined && (current.canReschedule?.(operation) ?? true);
+    const lateMs = productionLateMs(placement.span.end, operation.due) ?? 0;
+    const lateText = (() => {
+      if (lateMs <= 0) return null;
+      const d = durationMessage(lateMs);
+      return loc.t("productionSchedule.late", { duration: loc.t(d.key, d.values) });
+    })();
 
     const title = [
       operation.name,
@@ -515,6 +536,7 @@ export function ProductionSchedule(
       `${formatTime(placement.span.start)} – ${formatTime(placement.span.end)}`,
       placement.setup ? loc.t("productionSchedule.inclChangeover") : null,
       critical ? loc.t("productionSchedule.onCriticalPath") : null,
+      lateText,
       progress === null ? null : `${Math.round(progress)}%`,
     ]
       .filter(Boolean)
@@ -560,7 +582,7 @@ export function ProductionSchedule(
           end: formatTime(placement.span.end),
           changeover: placement.setup ? loc.t("productionSchedule.barChangeover") : "",
           progress: progress === null ? "" : loc.t("productionSchedule.barProgress", { percent: Math.round(progress) }),
-        }),
+        }) + (lateText ? ". " + lateText : ""),
       ),
     );
 
@@ -612,6 +634,16 @@ export function ProductionSchedule(
         }
         node.append(piece);
       }
+    }
+
+    /* Late: a solid end cap in the error colour. Status is the bar's fill, so
+       lateness gets its own mark rather than a recolour — and words in the
+       title and the accessible name. */
+    if (lateMs > 0) {
+      const cap = el("span", "zen-absolute zen-inset-y-0 zen-end-0 zen-w-1.5 zen-rounded-e-zen-sm zen-bg-zen-error");
+      cap.setAttribute("aria-hidden", "true");
+      cap.setAttribute("data-late", "");
+      node.append(cap);
     }
 
     if (!movable) {
@@ -691,6 +723,57 @@ export function ProductionSchedule(
     });
 
     return node;
+  }
+
+  /**
+   * The drop layer for a leaf row's track, when `onPlace` is given. It exists
+   * only then, so a chart without `onPlace` renders the DOM it always did.
+   * The hover line is written straight onto this layer's nodes — a drag over
+   * one track must not rebuild the grid under the pointer.
+   */
+  function dropLayer(row: Row, axis: ScheduleAxis, content: Array<Node | AnyZenComponent>): HTMLElement {
+    const layer = el("div", "zen-absolute zen-inset-0");
+    layer.setAttribute("data-drop-target", "");
+    layer.append(...toNodes(content));
+    const line = el("span", "zen-pointer-events-none zen-absolute zen-inset-y-0 zen-w-0.5 zen-bg-zen-primary");
+    line.setAttribute("aria-hidden", "true");
+
+    // Where a drag is hovering, as a fraction of the track.
+    const fractionAt = (clientX: number) => {
+      const r = layer.getBoundingClientRect();
+      const f = directionOf(layer) === "rtl" ? (r.right - clientX) / r.width : (clientX - r.left) / r.width;
+      return Math.min(1, Math.max(0, f));
+    };
+    const carries = (e: DragEvent) => [...(e.dataTransfer?.types ?? [])].includes(PRODUCTION_DRAG_TYPE);
+    const setHover = (hover: number | null) => {
+      layer.classList.toggle("zen-bg-zen-primary-soft", hover !== null);
+      if (hover !== null && hover !== 0) {
+        line.style.insetInlineStart = String(hover * 100) + "%";
+        if (!line.isConnected) layer.append(line);
+      } else {
+        line.remove();
+      }
+    };
+
+    layer.addEventListener("dragover", (e) => {
+      if (!carries(e)) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+      setHover(fractionAt(e.clientX));
+    });
+    layer.addEventListener("dragleave", () => setHover(null));
+    layer.addEventListener("drop", (e) => {
+      setHover(null);
+      if (!carries(e)) return;
+      e.preventDefault();
+      const id = e.dataTransfer?.getData(PRODUCTION_DRAG_TYPE);
+      if (!id) return;
+      const from = axis.range.start.getTime();
+      const span = axis.range.end.getTime() - from;
+      const start = new Date(snapToMinutes(from + fractionAt(e.clientX) * span, 15));
+      current.onPlace?.({ operationId: id, resourceId: row.resource.id, start });
+    });
+    return layer;
   }
 
   function loadStrip(axis: ScheduleAxis, buckets: ProductionLoadBucket[]): Array<Node> {
@@ -974,6 +1057,37 @@ export function ProductionSchedule(
       render: (row: Row) => paneCell(key, row, rowLoad.get(row.index), rowFloat.get(row.index)),
     }));
 
+    const trackContent = (row: Row): Array<Node | AnyZenComponent> => {
+      if (row.lanes.length === 0) {
+        /* An expanded parent draws nothing because its children draw its work
+           — which is a fact worth saying, not a blank cell. */
+        return [
+          el(
+            "span",
+            "zen-sr-only",
+            row.hasChildren && row.expanded
+              ? loc.t("productionSchedule.workBelow")
+              : loc.t("productionSchedule.nothingBooked"),
+          ),
+        ];
+      }
+      const out: Array<Node | AnyZenComponent> = [];
+      row.lanes.forEach((lane, laneIndex) => {
+        for (const placement of lane) {
+          const node = bar(
+            placement,
+            row,
+            axis,
+            laneTop(laneIndex),
+            cpa?.byOperation.get(placement.operation.id)?.critical ?? false,
+            msPerPx,
+          );
+          if (node) out.push(node);
+        }
+      });
+      return out;
+    };
+
     const options = {
       rows: flat.rows,
       rowId: (row: Row) => row.resource.id,
@@ -982,34 +1096,8 @@ export function ProductionSchedule(
       timelineColIndex: COL_INDEX.timeline,
       rowHeight,
       renderTrack: (row: Row): Array<Node | AnyZenComponent> => {
-        if (row.lanes.length === 0) {
-          /* An expanded parent draws nothing because its children draw its work
-             — which is a fact worth saying, not a blank cell. */
-          return [
-            el(
-              "span",
-              "zen-sr-only",
-              row.hasChildren && row.expanded
-                ? loc.t("productionSchedule.workBelow")
-                : loc.t("productionSchedule.nothingBooked"),
-            ),
-          ];
-        }
-        const out: Array<Node | AnyZenComponent> = [];
-        row.lanes.forEach((lane, laneIndex) => {
-          for (const placement of lane) {
-            const node = bar(
-              placement,
-              row,
-              axis,
-              laneTop(laneIndex),
-              cpa?.byOperation.get(placement.operation.id)?.critical ?? false,
-              msPerPx,
-            );
-            if (node) out.push(node);
-          }
-        });
-        return out;
+        const content = trackContent(row);
+        return current.onPlace !== undefined && !row.hasChildren ? [dropLayer(row, axis, content)] : content;
       },
       renderFooter: totalLoad ? (a: ScheduleAxis) => loadStrip(a, totalLoad) : undefined,
       axis,

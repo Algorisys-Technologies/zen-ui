@@ -629,6 +629,27 @@ export const SidebarMenuItem = styled({ tag: "li", className: "zen-w-full" });
 
 export const SidebarMenuSubItem = styled({ tag: "li", className: "zen-w-full" });
 
+/**
+ * A heading inside a group's list: "Transactions", "Pricing". Text, not a
+ * row: it is not focusable, and `role="presentation"` keeps it out of the
+ * list's item count, so a screen reader still hears "list, 7 items" for seven
+ * links. It renders in the inline list and in the rail's flyout alike.
+ *
+ *   SidebarMenuSub({ sidebar: ctx, label: "Selling", children: [
+ *     SidebarMenuSubLabel({ children: "Transactions" }),
+ *     SidebarMenuSubItem({ children: … }),
+ *   ] })
+ */
+export const SidebarMenuSubLabel = styled({
+  tag: "li",
+  className: cn(
+    "zen-w-full zen-px-3 zen-pb-0.5 zen-pt-2 zen-text-xs zen-font-semibold zen-text-zen-muted-fg first:zen-pt-1",
+    COMPACT,
+    "[[data-collapsed]_&]:zen-truncate [[data-transitioning]_&]:zen-truncate",
+  ),
+  attrs: () => ({ role: "presentation", "data-sidebar": "menu-sub-label" }),
+});
+
 /* -------------------------------------------------------------------------- */
 /* Group label — hides its text on the collapsed rail                         */
 /* -------------------------------------------------------------------------- */
@@ -815,6 +836,12 @@ export function SidebarMenuSubButton(
       active
         ? "zen-bg-zen-primary-soft zen-font-medium zen-text-zen-primary-soft-fg"
         : "zen-text-zen-foreground",
+      // The current-row mark: a bar centred on the list's guide line, level
+      // with this row. Invisible until --zen-sidebar-guide-current is given a
+      // colour. The row starts the list's padding (zen-pl-3) right of the
+      // guide, and half the guide's width further on.
+      active &&
+        "zen-relative before:zen-pointer-events-none before:zen-absolute before:zen-inset-y-1 before:-zen-left-3 before:zen-w-[var(--zen-sidebar-guide-current-width)] before:zen-translate-x-[calc(-50%-var(--zen-sidebar-guide-width)/2)] before:zen-rounded-full before:zen-bg-[var(--zen-sidebar-guide-current)] before:zen-content-empty",
       className,
     );
     if (active) el.setAttribute("data-active", "");
@@ -848,7 +875,15 @@ export function SidebarMenuSubButton(
 // Every side is set explicitly: `zen-m-0`/`zen-p-0` plus a directional `zen-ml-4`
 // are the same specificity, so which wins would come down to UnoCSS's emit order.
 const SUB_LIST_CLASS =
-  "zen-mb-0 zen-ml-4 zen-mr-0 zen-mt-0.5 zen-flex zen-list-none zen-flex-col zen-gap-0.5 zen-border-0 zen-border-l zen-border-solid zen-border-zen-border zen-pb-0 zen-pl-3 zen-pr-0 zen-pt-0";
+  "zen-mb-0 zen-ml-4 zen-mr-0 zen-mt-0.5 zen-flex zen-list-none zen-flex-col zen-gap-0.5 zen-pb-0 zen-pl-3 zen-pr-0 zen-pt-0";
+
+// The inline list's guide line, from tokens (tokens.css, "the nested list's
+// guide line"). Each side is set on its own for the reason above.
+const SUB_LIST_GUIDE_CLASS =
+  "zen-border-solid zen-border-y-0 zen-border-r-0 zen-border-l-[length:var(--zen-sidebar-guide-width)] zen-border-l-[color:var(--zen-sidebar-guide)]";
+
+// The flyout has no guide, so it has no mark either, whatever the app set.
+const SUB_LIST_FLYOUT_CLASS = "zen-ml-0 zen-border-0 zen-pl-0 [--zen-sidebar-guide-current:transparent]";
 
 const CHEVRON_MARKUP =
   `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="zen-ml-auto zen-transition-[transform,opacity] zen-duration-[var(--zen-sidebar-duration)] zen-ease-[var(--zen-sidebar-ease)]"><polyline points="9 18 15 12 9 6"/></svg>`;
@@ -907,6 +942,19 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     onChange: (o) => current.onOpenChange?.(o),
   });
 
+  // The rail's flyout is this row's own state, apart from `open` (the inline
+  // expansion, which the owner may control). Sharing them made collapsing
+  // close the row through onOpenChange, so an app that keeps its groups' open
+  // state recorded a close the user never made, and the group the current
+  // page lives in came back shut on expanding. A rail change closes only this.
+  let flyout = false;
+  let repaint: (() => void) | null = null;
+  const setFlyout = (v: boolean) => {
+    if (flyout === v) return;
+    flyout = v;
+    repaint?.();
+  };
+
   const disposer = new Disposer();
   let modeDisposer: Disposer | null = null;
 
@@ -922,7 +970,6 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
   // put a fresh row in at its rail position while every other row eased
   // there. The Popover only ever opens on the rail; expanded, the row's own
   // click discloses the list inline.
-  let repaint: (() => void) | null = null;
   const build = (md: Disposer) => {
     el.replaceChildren();
 
@@ -950,7 +997,7 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     if (hasBadge()) heading.append(makeBadge(md));
 
     const flyList = document.createElement("ul");
-    flyList.className = cn(SUB_LIST_CLASS, "zen-ml-0 zen-border-l-0 zen-pl-0");
+    flyList.className = cn(SUB_LIST_CLASS, SUB_LIST_FLYOUT_CLASS);
 
     // The inline list is mounted only while it is open or closing: it mounts
     // at 0fr and eases to 1fr, and closing eases back before it unmounts, so
@@ -959,8 +1006,15 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     // closed track would still hold it open by 2px.
     const disclosure = document.createElement("div");
     const list = document.createElement("ul");
-    list.className = cn(SUB_LIST_CLASS, "zen-mt-0 zen-min-h-0 zen-overflow-hidden");
-    disclosure.append(list);
+    list.className = cn(SUB_LIST_CLASS, SUB_LIST_GUIDE_CLASS, "zen-mt-0");
+    list.setAttribute("data-sidebar", "menu-sub");
+    // The clip for the height animation sits on a wrapper, not on the list:
+    // the guide is the list's border, and a clip on the list would cut the
+    // current-row mark drawn on top of it.
+    const clip = document.createElement("div");
+    clip.className = "zen-min-h-0 zen-overflow-hidden";
+    clip.append(list);
+    disclosure.append(clip);
     const setDisclosure = (openNow: boolean) => {
       disclosure.className = cn(
         "zen-grid zen-transition-[grid-template-rows,margin]",
@@ -979,9 +1033,10 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
       align: "start",
       class: "zen-w-56 zen-p-2",
       open: false,
-      // The Popover hears the row's click too; only a rail opens it.
+      // The Popover hears the row's click too; only a rail opens it, and it
+      // opens the flyout — never the owner's `open`.
       onOpenChange: (o) => {
-        if (ctx.rail) openState.set(o);
+        if (ctx.rail) setFlyout(o);
       },
     });
     const controls = row.el.getAttribute("aria-controls");
@@ -993,7 +1048,7 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     const paint = () => {
       const open = openState.get();
       const rail = ctx.rail;
-      row.el.setAttribute("aria-expanded", String(open));
+      row.el.setAttribute("aria-expanded", String(rail ? flyout : open));
       // The Popover marks its trigger as opening a dialog; only true on the rail.
       if (rail) {
         row.el.setAttribute("aria-haspopup", "dialog");
@@ -1005,7 +1060,7 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
       chevron.classList.toggle("zen-rotate-90", open && !rail);
       // On the rail it would read as a second icon.
       chevron.classList.toggle("zen-opacity-0", rail);
-      if (open && rail) {
+      if (flyout && rail) {
         flyList.replaceChildren(...subItems);
         pop.update({ open: true });
       } else {
@@ -1045,9 +1100,9 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
     md.add(() => row.destroy());
   };
 
-  // Entering the rail closes the disclosure, so it does not immediately
-  // re-open as a flyout (both modes read the same state). The context also
-  // notifies for changes that leave the rail alone.
+  // A rail change closes the flyout only; the inline expansion is left as the
+  // user (or the owner) set it. The context also notifies for changes that
+  // leave the rail alone.
   let wasRail = ctx.rail;
   const rebuild = () => {
     modeDisposer?.dispose();
@@ -1062,10 +1117,10 @@ export function SidebarMenuSub(props: SidebarMenuSubProps): ZenComponent<Sidebar
       const rail = ctx.rail;
       if (rail === wasRail) return;
       wasRail = rail;
-      // Closing repaints through the subscription; otherwise repaint here,
-      // since a rail change alone still moves the items and the chevron.
-      if (rail && openState.get()) openState.set(false);
-      else repaint?.();
+      // Repaint either way: a rail change alone still moves the items and the
+      // chevron.
+      flyout = false;
+      repaint?.();
     }),
   );
   disposer.add(() => modeDisposer?.dispose());

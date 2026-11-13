@@ -511,7 +511,15 @@ const SUB_LIST_CLASS =
   // Every side is set explicitly: `zen-m-0`/`zen-p-0` plus a directional
   // `zen-ml-4` are the same specificity, so which one wins would come down to
   // UnoCSS's emit order rather than intent.
-  "zen-mb-0 zen-ml-4 zen-mr-0 zen-mt-0.5 zen-flex zen-list-none zen-flex-col zen-gap-0.5 zen-border-0 zen-border-l zen-border-solid zen-border-zen-border zen-pb-0 zen-pl-3 zen-pr-0 zen-pt-0";
+  "zen-mb-0 zen-ml-4 zen-mr-0 zen-mt-0.5 zen-flex zen-list-none zen-flex-col zen-gap-0.5 zen-pb-0 zen-pl-3 zen-pr-0 zen-pt-0";
+
+// The inline list's guide line, from tokens (tokens.css, "the nested list's
+// guide line"). Each side is set on its own for the reason above.
+const SUB_LIST_GUIDE_CLASS =
+  "zen-border-solid zen-border-y-0 zen-border-r-0 zen-border-l-[length:var(--zen-sidebar-guide-width)] zen-border-l-[color:var(--zen-sidebar-guide)]";
+
+// The flyout has no guide, so it has no mark either, whatever the app set.
+const SUB_LIST_FLYOUT_CLASS = "zen-ml-0 zen-border-0 zen-pl-0 [--zen-sidebar-guide-current:transparent]";
 
 const Chevron = (props: { open: boolean; after?: boolean; faded?: boolean }) => (
   <svg
@@ -585,15 +593,14 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
     props.onOpenChange?.(v);
   };
 
-  // Collapsing while a row is expanded would otherwise reopen it mid-flight as
-  // a flyout, because both modes read the same `open`. Only the rail is
-  // tracked: setOpen reads `props.open`, and tracking that too meant a
-  // controlled flyout closed itself the moment its owner opened it.
-  createEffect(
-    on(collapsed, (c) => {
-      if (c) untrack(() => setOpen(false));
-    }),
-  );
+  // The rail's flyout is this row's own state, apart from `open` (the inline
+  // expansion, which the owner may control). Sharing them made collapsing
+  // close the row through onOpenChange, so an app that keeps its groups' open
+  // state recorded a close the user never made, and the group the current
+  // page lives in came back shut on expanding. Collapsing or expanding closes
+  // only the flyout.
+  const [flyout, setFlyout] = createSignal(false);
+  createEffect(on(collapsed, () => setFlyout(false), { defer: true }));
 
   // Resolved once: the inline list and the flyout both read the children,
   // and an unmemoised `props.children` getter rebuilds the caller's JSX on
@@ -618,7 +625,7 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
       closedThisPointerDown = true;
       setTimeout(() => (closedThisPointerDown = false));
     }
-    setOpen(v);
+    setFlyout(v);
   };
 
   // The inline list is mounted only while it is open or closing: it mounts at
@@ -659,7 +666,7 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
 
   return (
     <Popover
-      open={collapsed() && open()}
+      open={collapsed() && flyout()}
       onOpenChange={onFlyoutOpenChange}
       placement="right-start"
       anchorRef={() => row}
@@ -668,11 +675,12 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
         ref={(el: HTMLElement) => (row = el)}
         active={props.active}
         class={props.class}
-        aria-expanded={open()}
+        aria-expanded={collapsed() ? flyout() : open()}
         aria-haspopup={collapsed() ? "dialog" : undefined}
-        onPointerDown={() => (openAtPointerDown = open() || closedThisPointerDown)}
+        onPointerDown={() => (openAtPointerDown = collapsed() ? flyout() || closedThisPointerDown : open())}
         onClick={() => {
-          setOpen(!(openAtPointerDown ?? open()));
+          if (collapsed()) setFlyout(!(openAtPointerDown ?? flyout()));
+          else setOpen(!(openAtPointerDown ?? open()));
           openAtPointerDown = null;
         }}
       >
@@ -695,9 +703,14 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
             listOpen() ? "zen-mt-0.5 zen-grid-rows-[1fr]" : "zen-mt-0 zen-grid-rows-[0fr]",
           )}
         >
-          <ul class={cn(SUB_LIST_CLASS, "zen-mt-0 zen-min-h-0 zen-overflow-hidden")}>
-            <Show when={!(collapsed() && open())}>{items()}</Show>
-          </ul>
+          {/* The clip for the height animation sits on this wrapper, not on
+              the list: the guide is the list's border, and a clip on the
+              list would cut the current-row mark drawn on top of it. */}
+          <div class="zen-min-h-0 zen-overflow-hidden">
+            <ul data-sidebar="menu-sub" class={cn(SUB_LIST_CLASS, SUB_LIST_GUIDE_CLASS, "zen-mt-0")}>
+              <Show when={!(collapsed() && flyout())}>{items()}</Show>
+            </ul>
+          </div>
         </div>
       </Show>
       <PopoverContent
@@ -719,7 +732,7 @@ export const SidebarMenuSub = (rawProps: SidebarMenuSubProps) => {
             <SidebarMenuBadge>{props.badge}</SidebarMenuBadge>
           </Show>
         </div>
-        <ul class={cn(SUB_LIST_CLASS, "zen-ml-0 zen-border-l-0 zen-pl-0")}>{items()}</ul>
+        <ul class={cn(SUB_LIST_CLASS, SUB_LIST_FLYOUT_CLASS)}>{items()}</ul>
       </PopoverContent>
     </Popover>
   );
@@ -767,6 +780,40 @@ export const SidebarMenuSubButton = <T extends ValidComponent = "button">(
         local.active
           ? "zen-bg-zen-primary-soft zen-font-medium zen-text-zen-primary-soft-fg"
           : "zen-text-zen-foreground",
+        // The current-row mark: a bar centred on the list's guide line, level
+        // with this row. Invisible until --zen-sidebar-guide-current is given
+        // a colour. The row starts the list's padding (zen-pl-3) right of the
+        // guide, and half the guide's width further on.
+        local.active &&
+          "zen-relative before:zen-pointer-events-none before:zen-absolute before:zen-inset-y-1 before:-zen-left-3 before:zen-w-[var(--zen-sidebar-guide-current-width)] before:zen-translate-x-[calc(-50%-var(--zen-sidebar-guide-width)/2)] before:zen-rounded-full before:zen-bg-[var(--zen-sidebar-guide-current)] before:zen-content-empty",
+        local.class,
+      )}
+      {...rest}
+    />
+  );
+};
+
+/**
+ * A heading inside a group's list: "Transactions", "Pricing". Text, not a
+ * row: it is not focusable, and `role="presentation"` keeps it out of the
+ * list's item count, so a screen reader still hears "list, 7 items" for seven
+ * links. It renders in the inline list and in the rail's flyout alike.
+ *
+ *   <SidebarMenuSub label="Selling">
+ *     <SidebarMenuSubLabel>Transactions</SidebarMenuSubLabel>
+ *     <SidebarMenuSubItem>…</SidebarMenuSubItem>
+ *   </SidebarMenuSub>
+ */
+export const SidebarMenuSubLabel = (props: ComponentProps<"li">) => {
+  const [local, rest] = splitProps(props, ["class"]);
+  return (
+    <li
+      role="presentation"
+      data-sidebar="menu-sub-label"
+      class={cn(
+        "zen-w-full zen-px-3 zen-pb-0.5 zen-pt-2 zen-text-xs zen-font-semibold zen-text-zen-muted-fg first:zen-pt-1",
+        COMPACT,
+        "[[data-collapsed]_&]:zen-truncate [[data-transitioning]_&]:zen-truncate",
         local.class,
       )}
       {...rest}

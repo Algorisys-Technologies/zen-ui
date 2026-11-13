@@ -14,6 +14,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarMenuSubLabel,
   SidebarTrigger,
   type SidebarContextValue,
   type SidebarProviderProps,
@@ -409,6 +410,145 @@ document.body.append(shell.el);`,
               ],
             }).el,
           ),
+      },
+      {
+        title: "5. Groups the app controls",
+        description:
+          "An ERP keeps its groups' open state, so the group the current page lives in is open. Collapse to the rail and expand again: the rail's flyout is the row's own state, so the app's groups are never closed for it — onOpenChange reports only what the user did.",
+        codeTitle: "open + onOpenChange on SidebarMenuSub, pushed back with update()",
+        code: `const stock = SidebarMenuSub({ sidebar: ctx, label: "Stock", open: state.Stock,
+  onOpenChange: (v) => { state.Stock = v; stock.update({ open: v }); },
+  children: [...] });`,
+        render: () => {
+          const state: Record<string, boolean> = { Stock: true };
+          const log: string[] = [];
+          const logEl = document.createElement("p");
+          logEl.className = "zen-m-0 zen-text-sm";
+          logEl.dataset.testid = "controlled-log";
+          const paintLog = () => (logEl.textContent = `onOpenChange: ${log.length ? log.join(", ") : "none yet"}`);
+          paintLog();
+          const groups = [
+            { name: "Selling", items: ["Quotations", "Sales orders"] },
+            { name: "Stock", items: ["Items", "Stock entries"] },
+            { name: "Buying", items: ["Suppliers", "Purchase orders"] },
+          ];
+          const shell = frame((ctx) =>
+            Sidebar({
+              sidebar: ctx,
+              children: [
+                SidebarHeader({ sidebar: ctx, children: [SidebarTrigger({ sidebar: ctx }), brand("ERP")] }),
+                SidebarContent({
+                  children: SidebarMenu({
+                    children: groups.map((g) => {
+                      const sub = SidebarMenuSub({
+                        sidebar: ctx,
+                        label: g.name,
+                        icon: ChartIcon(),
+                        open: state[g.name] ?? false,
+                        onOpenChange: (v) => {
+                          state[g.name] = v;
+                          log.push(`${g.name}: ${v ? "open" : "close"}`);
+                          paintLog();
+                          sub.update({ open: v });
+                        },
+                        children: g.items.map((item) =>
+                          SidebarMenuSubItem({ children: SidebarMenuSubButton({ as: "a", href: `#${item}`, children: item }) }),
+                        ),
+                      });
+                      return SidebarMenuItem({ children: sub });
+                    }),
+                  }),
+                }),
+              ],
+            }).el,
+          );
+          const wrap = document.createElement("div");
+          wrap.className = "zen-flex zen-w-full zen-flex-col zen-gap-2";
+          wrap.dataset.testid = "controlled";
+          wrap.append(shell, logEl);
+          return wrap;
+        },
+      },
+      {
+        title: "6. Headings in a group, and the current-row mark",
+        description:
+          "SidebarMenuSubLabel heads a run of rows: not focusable, and kept out of the list's item count. The guide line is --zen-sidebar-guide (colour) and --zen-sidebar-guide-width; --zen-sidebar-guide-current puts a mark on it beside the active row. The mark is transparent unless you set it — this panel sets it to the primary colour. To style the whole group that holds the current page, [data-sidebar=menu-sub]:has([data-active]) selects its list.",
+        codeTitle: "SidebarMenuSubLabel, and the guide tokens",
+        code: `SidebarMenuSub({ sidebar: ctx, label: "Selling", defaultOpen: true, children: [
+  SidebarMenuSubLabel({ children: "Transactions" }),
+  SidebarMenuSubItem({ children: SidebarMenuSubButton({ as: "a", href: "/orders", active: true, children: "Sales orders" }) }),
+] });
+
+/* CSS */
+:root {
+  --zen-sidebar-guide-current: var(--zen-color-primary); /* off (transparent) by default */
+  --zen-sidebar-guide: var(--zen-color-border);
+  --zen-sidebar-guide-width: 1px;
+}`,
+        render: () => {
+          const sections = [
+            { heading: "Transactions", items: ["Quotations", "Sales orders", "Invoices"] },
+            { heading: "Pricing", items: ["Price lists", "Discount rules"] },
+          ];
+          let current = "Sales orders";
+          const buttons = new Map<string, ReturnType<typeof SidebarMenuSubButton>>();
+          const currentEl = document.createElement("div");
+          currentEl.dataset.testid = "headed-current";
+          const pick = (item: string) => {
+            current = item;
+            for (const [name, b] of buttons) {
+              b.update({ active: name === current, "aria-current": name === current ? "page" : undefined });
+            }
+            currentEl.textContent = current;
+          };
+          const shell = frame((ctx) =>
+            Sidebar({
+              sidebar: ctx,
+              children: [
+                SidebarHeader({ sidebar: ctx, children: [SidebarTrigger({ sidebar: ctx }), brand("ERP")] }),
+                SidebarContent({
+                  children: SidebarMenu({
+                    children: SidebarMenuItem({
+                      children: SidebarMenuSub({
+                        sidebar: ctx,
+                        label: "Selling",
+                        icon: ChartIcon(),
+                        defaultOpen: true,
+                        children: sections.flatMap((sec) => [
+                          SidebarMenuSubLabel({ children: sec.heading }),
+                          ...sec.items.map((item) => {
+                            const b = SidebarMenuSubButton({
+                              as: "a",
+                              href: `#${item}`,
+                              children: item,
+                              onClick: (e: Event) => {
+                                e.preventDefault();
+                                pick(item);
+                              },
+                            });
+                            buttons.set(item, b);
+                            return SidebarMenuSubItem({ children: b });
+                          }),
+                        ]),
+                      }),
+                    }),
+                  }),
+                }),
+              ],
+            }).el,
+          );
+          // The mark is off by default; this panel turns it on.
+          shell.style.setProperty("--zen-sidebar-guide-current", "var(--zen-color-primary)");
+          shell.querySelector<HTMLElement>("div[style*='height: 320px']")?.style.setProperty("height", "384px");
+          pick(current);
+          const page = shell.querySelector<HTMLElement>("div[style*='flex: 1']");
+          page?.replaceChildren(currentEl);
+          const wrap = document.createElement("div");
+          wrap.className = "zen-flex zen-w-full zen-flex-col zen-gap-2";
+          wrap.dataset.testid = "headed";
+          wrap.append(shell);
+          return wrap;
+        },
       },
     ],
   });

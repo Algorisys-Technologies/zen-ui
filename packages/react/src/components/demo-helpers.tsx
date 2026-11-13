@@ -8,7 +8,7 @@ import "./demo-helpers.css";
  */
 export interface CodeExampleProps {
   title: string;
-  description?: string;
+  description?: ReactNode;
   code: string;
   /**
    * Live preview rendered above the code block. Optional — omit for

@@ -49,7 +49,9 @@ const ITEM_SIZES: Record<RadioSize, string> = {
 };
 
 const ITEM_BASE = [
-  "zen-aspect-square zen-rounded-zen-full zen-border zen-border-zen-border zen-text-zen-primary",
+  // zen-p-0: a <button>'s default padding is 1px 6px, which left a 16px radio
+  // 2px of content width and squeezed the dot into a 2×8 bar.
+  "zen-aspect-square zen-p-0 zen-rounded-zen-full zen-border zen-border-zen-border zen-text-zen-primary",
   "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
   "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
   "data-[state=checked]:zen-border-zen-primary",
@@ -60,6 +62,12 @@ export interface RadioGroupItemProps extends BaseProps {
   value: string;
   size?: RadioSize;
   disabled?: boolean;
+  /**
+   * The option's text. The item's `el` becomes a `<label>` around the radio, so
+   * clicking the text selects it and the text is the radio's accessible name.
+   * Read at creation: an item made without one stays a bare radio.
+   */
+  label?: Child;
 }
 
 /**
@@ -70,9 +78,16 @@ export interface RadioGroupItemProps extends BaseProps {
  */
 export function RadioGroupItem(props: RadioGroupItemProps): ZenComponent<RadioGroupItemProps> {
   let current: RadioGroupItemProps = { ...props };
-  const el = document.createElement("button");
-  el.type = "button";
-  el.setAttribute("role", "radio");
+  const radio = document.createElement("button");
+  radio.type = "button";
+  radio.setAttribute("role", "radio");
+  const labelled = props.label != null;
+  const text = document.createElement("span");
+  const el: HTMLElement = labelled ? document.createElement("label") : radio;
+  if (labelled) {
+    el.className = "zen-inline-flex zen-items-center zen-gap-2 zen-text-sm";
+    el.append(radio, text);
+  }
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
 
@@ -87,18 +102,19 @@ export function RadioGroupItem(props: RadioGroupItemProps): ZenComponent<RadioGr
   indicator.append(dot);
 
   const render = () => {
-    const { value, size = "md", disabled, class: className, children: _ch, ...rest } = current;
+    const { value, size = "md", disabled, label, class: className, children: _ch, ...rest } = current;
 
-    el.className = cn(ITEM_BASE, ITEM_SIZES[size], className);
-    el.dataset.value = value;
-    if (!el.hasAttribute("data-state")) el.setAttribute("data-state", "unchecked");
-    if (!el.hasAttribute("aria-checked")) el.setAttribute("aria-checked", "false");
-    el.disabled = Boolean(disabled);
-    indicator.hidden = el.getAttribute("data-state") !== "checked";
-    el.replaceChildren(indicator);
+    radio.className = cn(ITEM_BASE, ITEM_SIZES[size], className);
+    radio.dataset.value = value;
+    if (!radio.hasAttribute("data-state")) radio.setAttribute("data-state", "unchecked");
+    if (!radio.hasAttribute("aria-checked")) radio.setAttribute("aria-checked", "false");
+    radio.disabled = Boolean(disabled);
+    indicator.hidden = radio.getAttribute("data-state") !== "checked";
+    radio.replaceChildren(indicator);
+    if (labelled) text.replaceChildren(...toNodes(label));
 
     removeProps?.();
-    removeProps = applyProps(el, rest as Record<string, unknown>);
+    removeProps = applyProps(radio, rest as Record<string, unknown>);
   };
 
   render();
@@ -128,8 +144,15 @@ export interface RadioGroupProps extends BaseProps {
   required?: boolean;
   /** Which arrow-key axis navigates. Both axes work when omitted, matching Radix. */
   orientation?: "horizontal" | "vertical";
+  /** Names the group — the question the options answer. Wired to the group's
+   *  `aria-labelledby`, so a screen reader announces it before the options. */
+  label?: Child;
+  /** Help text under the options, wired to the group's `aria-describedby`. */
+  description?: Child;
   children?: Child;
 }
+
+let groupSeq = 0;
 
 export function RadioGroup(props: RadioGroupProps): ZenComponent<RadioGroupProps> {
   let current: RadioGroupProps = { ...props };
@@ -144,6 +167,9 @@ export function RadioGroup(props: RadioGroupProps): ZenComponent<RadioGroupProps
   // one value a radio group can hold. Only attached when `name` is given.
   const hidden = document.createElement("input");
   hidden.type = "hidden";
+
+  const uid = `zen-radio-group-${++groupSeq}`;
+  const wired = new Set<string>();
 
   const state = controllable<string>({
     value: current.value,
@@ -180,19 +206,48 @@ export function RadioGroup(props: RadioGroupProps): ZenComponent<RadioGroupProps
       name,
       required,
       orientation,
+      label,
+      description,
       class: className,
       children,
       ...rest
     } = current;
 
     cleanups.dispose();
-    el.className = cn("zen-grid zen-gap-2", className);
+    // Without a label or description the group IS the item container, exactly
+    // as before these props existed; with one, it stacks heading, items and
+    // help text, and the items get a container of their own.
+    const framed = label != null || description != null;
+    el.className = cn(framed ? "zen-flex zen-flex-col zen-gap-2" : "zen-grid zen-gap-2", className);
     if (required) el.setAttribute("aria-required", "true");
     else el.removeAttribute("aria-required");
     if (orientation) el.setAttribute("aria-orientation", orientation);
     else el.removeAttribute("aria-orientation");
 
-    el.replaceChildren(...toNodes(children));
+    if (framed) {
+      const parts: Node[] = [];
+      if (label != null) {
+        const heading = document.createElement("span");
+        heading.id = `${uid}-label`;
+        heading.className = "zen-text-sm zen-font-medium zen-leading-none zen-text-zen-foreground";
+        heading.append(...toNodes(label));
+        parts.push(heading);
+      }
+      const items = document.createElement("div");
+      items.className = orientation === "horizontal" ? "zen-flex zen-gap-3" : "zen-grid zen-gap-2";
+      items.append(...toNodes(children));
+      parts.push(items);
+      if (description != null) {
+        const help = document.createElement("div");
+        help.id = `${uid}-description`;
+        help.className = "zen-text-xs zen-text-zen-muted-fg";
+        help.append(...toNodes(description));
+        parts.push(help);
+      }
+      el.replaceChildren(...parts);
+    } else {
+      el.replaceChildren(...toNodes(children));
+    }
 
     // Group-level disabled cascades to every item the caller handed us.
     if (disabled) for (const item of itemEls()) item.disabled = true;
@@ -229,10 +284,45 @@ export function RadioGroup(props: RadioGroupProps): ZenComponent<RadioGroupProps
 
     removeProps?.();
     removeProps = applyProps(el, rest as Record<string, unknown>);
+
+    // After the caller's props, so a caller's own aria-labelledby /
+    // aria-describedby are kept and ours appended rather than either winning.
+    // An attribute is only ever removed if this render loop set it: something
+    // outside may own it (BoundRadioGroup writes aria-describedby itself, then
+    // calls update()), and that must survive a re-render.
+    const own = rest as Record<string, unknown>;
+    const wire = (attr: string, mine: string | undefined) => {
+      if (mine == null) {
+        if (wired.has(attr)) {
+          wired.delete(attr);
+          const theirs = own[attr] as string | undefined;
+          if (theirs) el.setAttribute(attr, theirs);
+          else el.removeAttribute(attr);
+        }
+        return;
+      }
+      wired.add(attr);
+      el.setAttribute(attr, [own[attr] as string | undefined, mine].filter(Boolean).join(" "));
+    };
+    wire("aria-labelledby", label != null ? `${uid}-label` : undefined);
+    wire("aria-describedby", description != null ? `${uid}-description` : undefined);
   };
 
   render();
   disposer.add(state.subscribe(paint));
+
+  // Radios that appear after a render still need the group's state. This is the
+  // web-components case: a parent element connects before its children, so
+  // <zen-radio-group> renders while its <zen-radio-group-item>s are still empty
+  // hosts, and their buttons arrive a moment later. Without this they came up
+  // unchecked whatever the value, with every radio its own tab stop. Watches
+  // child lists only — paint() writes attributes, so it cannot retrigger itself.
+  const late = new MutationObserver(() => {
+    if (current.disabled) for (const item of itemEls()) item.disabled = true;
+    paint();
+  });
+  late.observe(el, { childList: true, subtree: true });
+  disposer.add(() => late.disconnect());
   disposer.add(() => cleanups.dispose());
   disposer.add(() => removeProps?.());
 
