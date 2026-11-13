@@ -258,13 +258,13 @@ export const RoutingGraph = (props: RoutingGraphProps) => {
             <div class="zen-flex zen-flex-wrap zen-items-end zen-gap-2">
               <label class="zen-flex zen-flex-col zen-gap-1 zen-text-xs zen-font-medium zen-text-zen-muted-fg">
                 {loc.t("routing.addAfter")}
-                <NativeSelect class="zen-min-w-48" disabled={candidates().length === 0} onChange={(e) => setPick(e.currentTarget.value)}>
-                  <option value="" selected={pick() === ""}>
+                <NativeSelect class="zen-min-w-48" value={pick()} disabled={candidates().length === 0} onChange={(e) => setPick(e.currentTarget.value)}>
+                  <option value="">
                     {candidates().length ? loc.t("routing.choose") : loc.t("routing.noCandidates")}
                   </option>
                   <For each={candidates()}>
                     {(s) => (
-                      <option value={s.id} selected={pick() === s.id}>
+                      <option value={s.id}>
                         {s.label}
                       </option>
                     )}

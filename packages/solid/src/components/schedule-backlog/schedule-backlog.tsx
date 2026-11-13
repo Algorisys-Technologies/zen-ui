@@ -130,10 +130,10 @@ export const ScheduleBacklog = (props: ScheduleBacklogProps) => {
                 <div class="zen-flex zen-flex-wrap zen-items-end zen-gap-2">
                   <label class="zen-flex zen-flex-col zen-gap-1 zen-text-xs zen-font-medium zen-text-zen-muted-fg">
                     {loc.t("scheduleBacklog.placeOn")}
-                    <NativeSelect class="zen-min-w-40" onChange={(e) => setTarget(e.currentTarget.value)}>
-                      <option value="" selected={target() === ""} disabled>—</option>
+                    <NativeSelect class="zen-min-w-40" value={target()} onChange={(e) => setTarget(e.currentTarget.value)}>
+                      <option value="" disabled>—</option>
                       <For each={local.resources}>
-                        {(r) => <option value={r.id} selected={target() === r.id}>{r.name}</option>}
+                        {(r) => <option value={r.id}>{r.name}</option>}
                       </For>
                     </NativeSelect>
                   </label>

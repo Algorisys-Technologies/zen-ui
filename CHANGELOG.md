@@ -297,6 +297,14 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- NativeSelect (Solid) showed its first option, whatever `value` said, when
+  its options were rendered with `<For>`: spread props land before children
+  are inserted, and a native `<select>` given a value it has no option for
+  yet selects nothing. NativeSelect now applies `value` itself after render,
+  on change, and whenever its options change. Verified by removing the
+  `selected`-on-each-option workarounds from ColumnMapper, RoutingGraph and
+  ScheduleBacklog: all three select correctly through plain `value`.
+
 - Outlines that never drew, in every binding: DataTable's selected-row
   outline and keyboard-focus outline, SpreadsheetGrid's selected-cell
   outline, and MediaTimeline's focus ring. Each paired a bare `zen-outline`

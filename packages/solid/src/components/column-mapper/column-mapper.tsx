@@ -132,19 +132,15 @@ export const ColumnMapper = (props: ColumnMapperProps) => {
                     <td class="zen-px-2 zen-py-2">
                       <NativeSelect
                         id={selectId()}
+                        value={target()}
                         aria-invalid={duplicated() ? true : undefined}
                         class={cn("zen-w-full zen-min-w-40", duplicated() && "zen-border-zen-error")}
                         onChange={(e) => set(h, e.currentTarget.value)}
                       >
-                        {/* `selected` on the options, not `value` on the select: the
-                            select's value is set before its options exist, and a
-                            native select then selects nothing. */}
-                        <option value="" selected={!target()}>
-                          {loc.t("columnMapper.ignore")}
-                        </option>
+                        <option value="">{loc.t("columnMapper.ignore")}</option>
                         <For each={local.fields}>
                           {(f) => (
-                            <option value={f.id} selected={target() === f.id}>
+                            <option value={f.id}>
                               {f.required ? loc.t("columnMapper.required", { label: f.label }) : f.label}
                             </option>
                           )}
