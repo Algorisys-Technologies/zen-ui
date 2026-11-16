@@ -103,8 +103,14 @@ say "Generating catalogue previews"
 #
 # Per-binding processes mean one bad route cannot cost the other three, and
 # `timeout` turns a wedge into a failed deploy, which is a thing you can see.
+#
+# 900s, not 300: a binding that took ~90s when this was written took 648s for
+# react on 2026-11-16 (139 routes, a busy machine, a dozen routes waiting out
+# their render timeout). At 300 the timeout fired mid-run, and the failure read
+# as a browser crash rather than a slow run — gen-previews now exits on the
+# SIGTERM instead, so a real timeout says so. 900 still catches a wedge.
 for b in react solid vanilla web-components; do
-  timeout 300 node scripts/gen-previews.mjs "$b" || die "preview generation failed or timed out: $b"
+  timeout 900 node scripts/gen-previews.mjs "$b" || die "preview generation failed or timed out ($?): $b"
 done
 
 npx --yes vite build apps/landing      --base "$BASE"               --config apps/landing/vite.config.ts

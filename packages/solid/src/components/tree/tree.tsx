@@ -1,5 +1,7 @@
 import { type JSX, For, Show, createMemo, createSignal, splitProps } from "solid-js";
 import { arrowStep } from "@algorisys/zen-ui-core";
+import type { Density } from "@algorisys/zen-ui-core/density";
+import { treeRowDensityClass } from "@algorisys/zen-ui-core/variants";
 import { cn } from "../../lib/cn";
 import { Icon, type IconName } from "../icon/icon";
 
@@ -27,6 +29,13 @@ export type TreeProps = Omit<JSX.HTMLAttributes<HTMLUListElement>, "onSelect"> &
   onSelectedChange?: (id: string) => void;
   /** Classes for one node's row, after its own (so a caller's padding or colour wins). */
   itemClassName?: (node: TreeNode) => string | undefined | false | null;
+  /**
+   * How much room a row takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
 };
 
 type FlatNode = {
@@ -64,6 +73,7 @@ function flatten(
 export const Tree = (props: TreeProps) => {
   const [local, rest] = splitProps(props, [
     "itemClassName",
+    "density",
     "items",
     "expanded",
     "defaultExpanded",
@@ -172,6 +182,7 @@ export const Tree = (props: TreeProps) => {
                   "hover:zen-bg-zen-muted",
                   isSelected() && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-font-medium",
                   row.node.disabled && "zen-cursor-not-allowed zen-opacity-50",
+                  treeRowDensityClass[local.density ?? "comfortable"],
                   local.itemClassName?.(row.node),
                 )}
               >

@@ -301,6 +301,25 @@ const NewTreeDemo: React.FC = () => {
           </div>
         </CodeExample>
       </section>
+
+      <section className="demo-section">
+        <h2>9. Density</h2>
+        <CodeExample
+          title='density="compact" | "comfortable" | "touch"'
+          description="compact: tighter rows for a long hierarchy. touch: 48px rows to tap. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was."
+          code={`<Tree items={items} density="compact" />
+<Tree items={items} density="touch" />`}
+        >
+          <div className="zen-flex zen-flex-wrap zen-gap-6">
+            <div style={panel} data-testid="tree-compact">
+              <Tree items={FILES} defaultExpanded={["src"]} aria-label="Compact tree" density="compact" />
+            </div>
+            <div style={panel} data-testid="tree-touch">
+              <Tree items={FILES} defaultExpanded={["src"]} aria-label="Touch tree" density="touch" />
+            </div>
+          </div>
+        </CodeExample>
+      </section>
     </div>
   );
 };

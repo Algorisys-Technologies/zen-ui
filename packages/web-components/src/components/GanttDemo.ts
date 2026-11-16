@@ -506,10 +506,11 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
       },
       {
         title: "13. Row height, chart height and colours",
-        codeTitle: "row-height, max-body-height, rowClassName, barClassName",
+        codeTitle: "row-height, max-body-height, header-class-name, rowClassName, barClassName",
         codeDescription:
-          "row-height sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). max-body-height replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. The small print (subtitles, percentages) follows --zen-schedule-label-font-size.",
-        code: `<zen-gantt row-height="48" max-body-height="300"></zen-gantt>
+          "row-height sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). max-body-height replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. header-class-name styles the header row and its frozen pane. The small print (subtitles, percentages) follows --zen-schedule-label-font-size.",
+        code: `<zen-gantt row-height="48" max-body-height="300"
+  header-class-name="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"></zen-gantt>
 
 <script>
   chart.rowClassName = (t) => t.children && "zen-bg-zen-muted/40";
@@ -526,7 +527,22 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
           });
           chart.setAttribute("row-height", "48");
           chart.setAttribute("max-body-height", "300");
+          chart.setAttribute("header-class-name", "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg");
           return tagged("gantt-styled", chart, { vars: { "--zen-schedule-label-font-size": "11px" } });
+        },
+      },
+      {
+        title: "14. Density",
+        codeTitle: 'density: "compact" | "comfortable" | "touch"',
+        codeDescription:
+          "compact: 28px rows for a long plan read all day. touch: 48px rows and 32px bars, for a tablet on the shop floor. rowHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was.",
+        code: `<zen-gantt density="compact"></zen-gantt>
+<zen-gantt density="touch"></zen-gantt>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.append(tagged("gantt-compact", (() => { const c = gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW }); c.setAttribute("density", "compact"); return c; })()), tagged("gantt-touch", (() => { const c = gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW }); c.setAttribute("density", "touch"); return c; })()));
+          return box;
         },
       },
     ],

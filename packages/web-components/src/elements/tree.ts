@@ -11,6 +11,8 @@ import { defineZenElement } from "../lib/define";
 defineZenElement<TreeProps>({
   tag: "zen-tree",
   factory: Tree,
+  // compact | comfortable | touch (opt-in; does not follow data-density)
+  attrs: { density: "string" },
   props: ["items", "expanded", "defaultExpanded", "selected", "defaultSelected", "itemClassName"],
   events: {
     onExpandedChange: "zen-expanded-change",

@@ -175,6 +175,25 @@ const NewPlanningCalendarDemo = () => (
         </div>
       </CodeExample>
     </section>
+
+    <section className="demo-section">
+      <h2>7. Density</h2>
+      <CodeExample
+        title='density="compact" | "comfortable" | "touch"'
+        description="compact: 24px lanes. touch: 48px appointments. laneHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was."
+        code={`<PlanningCalendar rows={team} density="compact" />
+<PlanningCalendar rows={team} density="touch" />`}
+      >
+        <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <div data-testid="lanes-compact" className="zen-w-full">
+            <PlanningCalendar rows={TEAM} now={NOW} defaultDate={NOW} density="compact" />
+          </div>
+          <div data-testid="lanes-touch" className="zen-w-full">
+            <PlanningCalendar rows={TEAM} now={NOW} defaultDate={NOW} density="touch" />
+          </div>
+        </div>
+      </CodeExample>
+    </section>
   </div>
 );
 

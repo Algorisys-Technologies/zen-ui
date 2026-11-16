@@ -47,6 +47,14 @@ export interface PivotGridProps {
   style?: React.CSSProperties;
   /** The grid's height (px, or any CSS length). Default: fills its parent, as before. */
   height?: number | string;
+  /** Classes for every column-header cell (the corner and the totals header too), after their own. */
+  headerClassName?: string;
+  /** Classes for every row-label cell, after their own. */
+  rowHeaderClassName?: string;
+  /** Keep the column headers at the top while the grid scrolls down. Default true. */
+  stickyHeader?: boolean;
+  /** Keep the row labels at the start edge while the grid scrolls sideways. Default true. */
+  stickyRowHeaders?: boolean;
 }
 
 export type PivotTotalCell = { value: unknown; isLoading?: boolean } | null;
@@ -90,6 +98,10 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
   className,
   style,
   height,
+  headerClassName,
+  rowHeaderClassName,
+  stickyHeader = true,
+  stickyRowHeaders = true,
 }) => {
   const loc = useLocale();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -162,7 +174,9 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
   };
   // Logical, so the row labels freeze at the START edge: on the right in a
   // right-to-left page, where they used to stick on the wrong side.
-  const stickyLeft = (depth: number): React.CSSProperties => ({ insetInlineStart: `${depth * rowHeaderWidth}px` });
+  // A sticky cell with no offset scrolls like any other: that is the switch.
+  const stickyLeft = (depth: number): React.CSSProperties =>
+    stickyRowHeaders ? { insetInlineStart: `${depth * rowHeaderWidth}px` } : {};
   const totalsCols = totals?.row ? Math.max(1, totals.columns ?? 1) : 0;
   const totalsIdx = Array.from({ length: totalsCols }, (_, i) => i);
   /** Totals column i, pinned to the end edge; the last one sits at the edge. */
@@ -174,7 +188,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
   });
   const totalCell = (cell: PivotTotalCell) =>
     cell?.isLoading ? <div className={cn("zen-ml-auto zen-h-3 zen-w-10", SKELETON_BAR)} /> : ((cell?.value as string) ?? "-");
-  const stickyTop = (i: number): React.CSSProperties => ({ position: "sticky", top: `${i * rowHeight}px` });
+  const stickyTop = (i: number): React.CSSProperties => (stickyHeader ? { position: "sticky", top: `${i * rowHeight}px` } : {});
   const stripe = (row: number) => (row % 2 === 1 ? "zen-bg-zen-muted" : "zen-bg-zen-background");
 
   return (
@@ -207,6 +221,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                         className={cn(
                           STICKY_CORNER,
                           "zen-px-2 zen-py-1 zen-text-start zen-align-bottom zen-text-sm zen-font-medium zen-capitalize zen-text-zen-muted-fg",
+                          headerClassName,
                         )}
                         style={{
                           ...stickyLeft(depth),
@@ -229,7 +244,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                 {cols.padLeft > 0 ? (
                   <th
                     aria-hidden
-                    className="zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0"
+                    className={cn("zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0", headerClassName)}
                     style={{ ...stickyTop(headerRowIndex), ...headerCellStyle, width: `${cols.padLeft}px`, minWidth: `${cols.padLeft}px` }}
                   />
                 ) : null}
@@ -243,7 +258,10 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                       key={colIndex}
                       scope="col"
                       colSpan={span}
-                      className="zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground"
+                      className={cn(
+                        "zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground",
+                        headerClassName,
+                      )}
                       style={{
                         width: `${colWidth * span}px`,
                         minWidth: `${colWidth * span}px`,
@@ -264,7 +282,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                 {cols.padRight > 0 ? (
                   <th
                     aria-hidden
-                    className="zen-border-0 zen-bg-zen-muted zen-p-0"
+                    className={cn("zen-border-0 zen-bg-zen-muted zen-p-0", headerClassName)}
                     style={{ width: `${cols.padRight}px`, minWidth: `${cols.padRight}px` }}
                   />
                 ) : null}
@@ -276,7 +294,10 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                         scope="col"
                         data-pivot-total="column"
                         rowSpan={headerRows.length}
-                        className="zen-sticky zen-top-0 zen-z-30 zen-truncate zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground"
+                        className={cn(
+                          "zen-sticky zen-top-0 zen-z-30 zen-truncate zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground",
+                          headerClassName,
+                        )}
                         style={totalsColStyle(i)}
                       >
                         {totals?.columnHeader?.(i) ?? loc.t("pivot.total")}
@@ -313,6 +334,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                               STICKY_ROW_LABEL,
                               "zen-break-words zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-align-top zen-text-xs zen-font-medium zen-leading-tight zen-text-zen-foreground",
                               rowIndex > 0 ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0",
+                              rowHeaderClassName,
                             )}
                             style={{
                               ...stickyLeft(depth),

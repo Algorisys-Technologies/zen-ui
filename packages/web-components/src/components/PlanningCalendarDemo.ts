@@ -196,6 +196,20 @@ export default function PlanningCalendarDemo(): HTMLElement {
         code: `<zen-planning-calendar lane-height="44"></zen-planning-calendar>`,
         render: () => tagged("lanes-tall", pc(TEAM, { "lane-height": "44" })),
       },
+      {
+        title: "7. Density",
+        codeTitle: 'density: "compact" | "comfortable" | "touch"',
+        codeDescription:
+          "compact: 24px lanes. touch: 48px appointments. laneHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was.",
+        code: `<zen-planning-calendar density="compact"></zen-planning-calendar>
+<zen-planning-calendar density="touch"></zen-planning-calendar>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.append(tagged("lanes-compact", pc(TEAM, { density: "compact" })), tagged("lanes-touch", pc(TEAM, { density: "touch" })));
+          return box;
+        },
+      },
     ],
   });
 }

@@ -33,6 +33,27 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.13.0",
+    date: "2026-11-17",
+    kind: "new",
+    title: "Compact and touch density for schedules, calendar, sheet and tree",
+    detail: "density=\"touch\" gives 48px rows, appointments, cells and tree rows for shop-floor tablets; compact fits more on screen. Opt-in per component: data-density does not change them.",
+  },
+  {
+    version: "12.13.0",
+    date: "2026-11-17",
+    kind: "new",
+    title: "Header styling for schedules and pivots, and a pivot you can unfreeze",
+    detail: "headerClassName on Gantt and ProductionSchedule; headerClassName and rowHeaderClassName on PivotGrid, with stickyHeader and stickyRowHeaders to let its headers scroll away.",
+  },
+  {
+    version: "12.13.0",
+    date: "2026-11-17",
+    kind: "fixed",
+    title: "Vanilla: pinning in the older virtualized table, and a footer in line",
+    detail: "Pinned columns now stick in enableVirtualization's grid, whose header now scrolls with its rows; a footer without totals no longer sits one column out with row selection.",
+  },
+  {
     version: "12.12.0",
     date: "2026-11-16",
     kind: "new",

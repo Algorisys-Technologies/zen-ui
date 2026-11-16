@@ -21,6 +21,7 @@ SKILL.md.
 - `defaultSelected?: string | null | undefined`
 - `onSelectedChange?: ((id: string) => void) | undefined`
 - `itemClassName?: ((node: TreeNode) => string | undefined | false | null) | undefined` — Classes for one node's row, after its own (so a caller's padding or colour wins).
+- `density?: Density | undefined` — How much room a row takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `aria-label?: string | undefined` — Accessible name — a tree must have one.
 - …plus the underlying element's standard props (278 inherited).
 

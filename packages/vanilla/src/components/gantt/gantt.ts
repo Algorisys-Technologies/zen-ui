@@ -30,7 +30,6 @@ import { Tooltip } from "../tooltip/tooltip";
 import { toNodes, type AnyZenComponent, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
 import {
   INDENT_PX,
-  ROW_PX,
   ScheduleGrid,
   resolveScheduleAxis,
   type ScheduleAxis,
@@ -166,12 +165,25 @@ export interface GanttProps extends BaseProps {
    * `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
    */
   barClassName?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
+  /**
+   * How much room a row and its bar takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
 }
 
-const BAR_PX = 18;
+import { ganttBarPx, scheduleRowPx, type Density } from "@algorisys/zen-ui-core/density";
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
  *  exactly ROW_PX / 2 — the y the connector routes are computed at. */
-const barTop = (rowHeight: number) => (rowHeight - BAR_PX) / 2;
+const barTop = (rowHeight: number, barPx: number) => (rowHeight - barPx) / 2;
 
 /** The frozen pane's columns. Fixed, because a sticky pane cannot be sized by
  *  its content without moving as you scroll. */
@@ -491,7 +503,9 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
 
   /** The bar on the axis: one per row, broken into pieces where work stops. */
   // Never shorter than a bar plus a few px, or the bar would overhang its row.
-  const rowHeightOf = (): number => Math.max(BAR_PX + 4, current.rowHeight ?? ROW_PX);
+  // Density sets the row and bar; an explicit rowHeight wins over it.
+  const barPxOf = (): number => ganttBarPx(current.density);
+  const rowHeightOf = (): number => Math.max(barPxOf() + 4, scheduleRowPx(current.density, current.rowHeight));
 
   function track(
     row: Row,
@@ -575,8 +589,8 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     bar.setAttribute("data-gantt-bar", "");
     bar.style.insetInlineStart = `${placement.startPct}%`;
     bar.style.width = `${placement.widthPct}%`;
-    bar.style.top = `${barTop(rowHeightOf())}px`;
-    bar.style.height = `${BAR_PX}px`;
+    bar.style.top = `${barTop(rowHeightOf(), barPxOf())}px`;
+    bar.style.height = `${barPxOf()}px`;
     bar.title = `${row.task.name} · ${formatDay(row.span!.start)} – ${formatDay(row.span!.end)}${
       row.progress === null ? "" : ` · ${Math.round(progress)}%`
     }`;
@@ -646,8 +660,8 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       outside.setAttribute("aria-hidden", "true");
       if (labelBefore) outside.style.insetInlineEnd = `calc(${100 - placement.startPct}% + 4px)`;
       else outside.style.insetInlineStart = `calc(${endPct}% + 4px)`;
-      outside.style.top = `${barTop(rowHeightOf())}px`;
-      outside.style.height = `${BAR_PX}px`;
+      outside.style.top = `${barTop(rowHeightOf(), barPxOf())}px`;
+      outside.style.height = `${barPxOf()}px`;
       out.push(outside);
     }
     return out;
@@ -785,6 +799,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       rowHeight: rowHeightOf(),
       rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.task, row) : undefined,
       maxBodyHeight: current.maxBodyHeight,
+      headerClassName: current.headerClassName,
       axis,
       view: viewOf(),
       anchor: dateOf(),

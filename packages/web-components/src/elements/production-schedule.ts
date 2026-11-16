@@ -123,6 +123,9 @@ defineZenElement<ProductionScheduleProps>({
     "row-height": "number",
     // px; any CSS length through the `maxBodyHeight` property.
     "max-body-height": "number",
+    "header-class-name": "string",
+    // compact | comfortable | touch (opt-in; does not follow data-density)
+    density: "string",
   },
   /* `showDependencies` and `showLoad` are PROPERTIES rather than attributes,
      because both default to TRUE and an ABSENT boolean attribute coerces to

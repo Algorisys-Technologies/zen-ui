@@ -25,6 +25,7 @@ export * from "./measurement";
 export * from "./step-runner";
 export * from "./live";
 export * from "./status-bar";
+export * from "./density";
 export * from "./shifts";
 export * from "./planned-vs-actual";
 export * from "./rate-bars";

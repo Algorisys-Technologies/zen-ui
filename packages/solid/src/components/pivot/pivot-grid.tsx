@@ -54,6 +54,14 @@ export interface PivotGridProps {
   style?: JSX.CSSProperties;
   /** The grid's height (px, or any CSS length). Default: fills its parent, as before. */
   height?: number | string;
+  /** Classes for every column-header cell (the corner and the totals header too), after their own. */
+  headerClassName?: string;
+  /** Classes for every row-label cell, after their own. */
+  rowHeaderClassName?: string;
+  /** Keep the column headers at the top while the grid scrolls down. Default true. */
+  stickyHeader?: boolean;
+  /** Keep the row labels at the start edge while the grid scrolls sideways. Default true. */
+  stickyRowHeaders?: boolean;
 }
 
 export type PivotTotalCell = { value: unknown; isLoading?: boolean } | null;
@@ -102,6 +110,8 @@ export function PivotGrid(props: PivotGridProps) {
   // Logical, so the row labels freeze at the START edge: on the right in a
   // right-to-left page, where they used to stick on the wrong side.
   function stickyRowLeftStyle(depth: number): Record<string, string> {
+    // A sticky cell with no offset scrolls like any other: that is the switch.
+    if (props.stickyRowHeaders === false) return {};
     return { "inset-inline-start": `${depth * rowHeaderWidth()}px` };
   }
 
@@ -117,6 +127,7 @@ export function PivotGrid(props: PivotGridProps) {
   const totalsIdx = () => Array.from({ length: totalsCols() }, (_, i) => i);
 
   function stickyHeaderTopStyle(headerRowIndex: number): Record<string, string> {
+    if (props.stickyHeader === false) return {};
     return { top: `${headerRowIndex * rowHeight()}px` };
   }
 
@@ -278,7 +289,7 @@ export function PivotGrid(props: PivotGridProps) {
                           <th
                             role="columnheader"
                             scope="col"
-                            class={cn(STICKY_CORNER, CORNER_HEADER_CLASS, "zen-align-bottom")}
+                            class={cn(STICKY_CORNER, CORNER_HEADER_CLASS, "zen-align-bottom", props.headerClassName)}
                             style={{
                               // Index hands back a NUMBER, where For hands back
                               // an accessor. Calling it would throw.
@@ -302,7 +313,7 @@ export function PivotGrid(props: PivotGridProps) {
                   </Show>
                   <Show when={visibleColWindow().paddingLeft > 0}>
                     <th
-                      class="zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0"
+                      class={cn("zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0", props.headerClassName)}
                       style={{
                         ...stickyHeaderTopStyle(headerRowIndex),
                         ...headerCellStyle(),
@@ -325,7 +336,10 @@ export function PivotGrid(props: PivotGridProps) {
                         <th
                           role="columnheader"
                           scope="col"
-                          class="zen-sticky zen-z-10 zen-bg-zen-background zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground zen-truncate"
+                          class={cn(
+                            "zen-sticky zen-z-10 zen-bg-zen-background zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground zen-truncate",
+                            props.headerClassName,
+                          )}
                           colSpan={header()?.colSpan || 1}
                           style={{
                             width: `${virtualCol.size * (header()?.colSpan || 1)}px`,
@@ -345,7 +359,7 @@ export function PivotGrid(props: PivotGridProps) {
                   </For>
                   <Show when={visibleColWindow().paddingRight > 0}>
                     <th
-                      class="zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0"
+                      class={cn("zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0", props.headerClassName)}
                       style={{
                         ...stickyHeaderTopStyle(headerRowIndex),
                         ...headerCellStyle(),
@@ -362,7 +376,10 @@ export function PivotGrid(props: PivotGridProps) {
                           scope="col"
                           data-pivot-total="column"
                           rowSpan={headerRows().length}
-                          class="zen-sticky zen-top-0 zen-z-30 zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground zen-truncate"
+                          class={cn(
+                            "zen-sticky zen-top-0 zen-z-30 zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground zen-truncate",
+                            props.headerClassName,
+                          )}
                           style={totalsColStyle(i)}
                         >
                           {props.totals?.columnHeader?.(i) ?? loc.t("pivot.total")}
@@ -416,7 +433,8 @@ export function PivotGrid(props: PivotGridProps) {
                                   STICKY_ROW_LABEL,
                                   ROW_LABEL_CLASS,
                                   "zen-bg-zen-background zen-align-top",
-                                  rowIndex > 0 && header()?.isVisible !== false ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0"
+                                  rowIndex > 0 && header()?.isVisible !== false ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0",
+                                  props.rowHeaderClassName,
                                 )}
                                 rowSpan={header()?.rowSpan || 1}
                                 style={{

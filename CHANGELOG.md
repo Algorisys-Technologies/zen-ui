@@ -15,6 +15,51 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.13.0] - 2026-11-17
+
+Built Solid first and ported in order (React, vanilla, web components), each
+binding verified before the next. check:props carried temporary Solid-first
+KNOWN lines during each port; none remain.
+
+### Added
+
+- Opt-in `density` ("compact" | "comfortable" | "touch") on Gantt,
+  ProductionSchedule, PlanningCalendar, SpreadsheetGrid and Tree, in every
+  binding (a `density` attribute in web components). Sizes in the new
+  core/density.ts. Comfortable equals the old constants (row 36, Gantt bar
+  18, lane bar 16, calendar lane 30); touch is row 48 / bar 32 / lane 54
+  (48px block). Cell and tree-row classes are in core/variants.ts, where
+  comfortable adds nothing. An explicit rowHeight / laneHeight wins.
+  `check:density` (12 assertions).
+- `headerClassName` on Gantt / ProductionSchedule / ScheduleGrid (the header
+  row and its frozen pane). PivotGrid `headerClassName`, `rowHeaderClassName`,
+  `stickyHeader`, `stickyRowHeaders` (both default true; off drops the
+  cell's sticky offset). In web components the two switches are json
+  attributes, so leaving them out keeps the headers frozen.
+- check:table-dom: 52 assertions per binding (header classes, the pivot
+  freeze switches, 11 density measurements). It now waits for vanilla's
+  ResizeObserver to apply pin offsets, and polls for the pivot's next-frame
+  redraw. Both flaked once under load with no code changed.
+
+### Fixed
+
+- Vanilla / web components: pinning in the older div grid
+  (enableVirtualization). Offsets are summed from the grid's widths (an
+  unsized pinned column counts as 150px, as TanStack does), the selection
+  column pins with left pins, and the sides are logical with
+  --zen-pin-dir. The header, which sits outside the rows' scroller, now
+  follows it sideways.
+- Vanilla / web components: a footer without totals has its select-column
+  cell (it was one column off with row selection).
+
+### Changed (demos)
+
+- The vanilla and web-components DataTable demos follow React's section
+  list: 0–32 plus a 7b, with seven sections added. Solid gained "24. Column
+  footers" and pivot "4. The same component". Each schedule, calendar,
+  sheet and tree demo has a Density section; Pivot has "6. Header styling,
+  and switching the freeze off".
+
 ## [12.12.0] - 2026-11-16
 
 12.11.0's Solid-first props and fixes, ported to React, vanilla and web

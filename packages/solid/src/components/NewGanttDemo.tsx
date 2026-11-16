@@ -481,14 +481,15 @@ const NewGanttDemo = () => (
 
     <DemoSection
       title="13. Row height, chart height and colours"
-      codeTitle="rowHeight, maxBodyHeight, rowClassName, barClassName"
-      codeDescription="rowHeight sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. The small print (subtitles, percentages) follows --zen-schedule-label-font-size."
+      codeTitle="rowHeight, maxBodyHeight, rowClassName, barClassName, headerClassName"
+      codeDescription="rowHeight sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. headerClassName styles the header row and its frozen pane. The small print (subtitles, percentages) follows --zen-schedule-label-font-size."
       code={`<Gantt
   tasks={plan}
   rowHeight={48}
   maxBodyHeight={300}
   rowClassName={(t) => t.children && "zen-bg-zen-muted/40"}
   barClassName={(t) => t.assignees?.some((a) => a.id === "u3") && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"}
+  headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
 />`}
     >
       <div data-testid="gantt-styled" class="zen-w-full" style={{ "--zen-schedule-label-font-size": "11px" }}>
@@ -501,7 +502,25 @@ const NewGanttDemo = () => (
           maxBodyHeight={300}
           rowClassName={(t) => (t.children ? "zen-bg-zen-muted/40" : undefined)}
           barClassName={(t) => t.assignees?.some((a) => a.id === MEI.id) && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"}
+          headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
         />
+      </div>
+    </DemoSection>
+
+    <DemoSection
+      title="14. Density"
+      codeTitle='density="compact" | "comfortable" | "touch"'
+      codeDescription="compact: 28px rows for a long plan read all day. touch: 48px rows and 32px bars, for a tablet on the shop floor. rowHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was."
+      code={`<Gantt tasks={plan} density="compact" />
+<Gantt tasks={plan} density="touch" />`}
+    >
+      <div class="zen-flex zen-w-full zen-flex-col zen-gap-4">
+        <div data-testid="gantt-compact" class="zen-w-full">
+          <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} defaultDate={NOW} density="compact" />
+        </div>
+        <div data-testid="gantt-touch" class="zen-w-full">
+          <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} defaultDate={NOW} density="touch" />
+        </div>
       </div>
     </DemoSection>
   </DemoPage>

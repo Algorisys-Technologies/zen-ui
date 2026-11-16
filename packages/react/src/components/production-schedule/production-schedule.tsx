@@ -43,7 +43,6 @@ import { Skeleton } from "../skeleton/skeleton";
 import { TooltipProvider } from "../tooltip/tooltip";
 import {
   INDENT_PX,
-  ROW_PX,
   ScheduleGrid,
   useScheduleAxis,
   useScrollerMetrics,
@@ -257,6 +256,19 @@ export interface ProductionScheduleProps {
   rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
   /** Classes for an operation's bar, applied after its status colours so they win. */
   barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+  /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
+  /**
+   * How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
   className?: string;
 }
 
@@ -294,7 +306,7 @@ const COL_INDEX: Record<ProductionPaneColumn | "timeline", number> = {
 const DEFAULT_PANE: ProductionPaneColumn[] = ["resource", "jobs", "capacity", "load"];
 
 /** One lane's bar, and the gap to the next. Row height is derived from these. */
-const LANE_BAR_PX = 16;
+import { laneBarPx, scheduleRowPx, type Density } from "@algorisys/zen-ui-core/density";
 const LANE_GAP_PX = 4;
 /** Space above and below the stack, so bars never touch the row border. */
 const LANE_PAD_PX = 14;
@@ -369,6 +381,8 @@ export const ProductionSchedule = ({
   emptyState,
   rowHeight: rowHeightProp,
   maxBodyHeight,
+  headerClassName,
+  density,
   rowClassName,
   barClassName,
   className,
@@ -468,12 +482,14 @@ export const ProductionSchedule = ({
      would break both the window (arithmetic, not measurement) and the connector
      routes (which place an endpoint at rowIndex * rowHeight + rowHeight / 2). */
   const laneCount = Math.max(1, ...rows.map((row) => row.lanes.length));
+  // Density sets the lane bars and the least row height; rowHeight wins over it.
+  const laneBar = laneBarPx(density);
   const rowHeight = Math.max(
-    rowHeightProp ?? ROW_PX,
-    laneCount * LANE_BAR_PX + (laneCount - 1) * LANE_GAP_PX + LANE_PAD_PX,
+    scheduleRowPx(density, rowHeightProp),
+    laneCount * laneBar + (laneCount - 1) * LANE_GAP_PX + LANE_PAD_PX,
   );
-  const stackTop = (rowHeight - (laneCount * LANE_BAR_PX + (laneCount - 1) * LANE_GAP_PX)) / 2;
-  const laneTop = (lane: number) => stackTop + lane * (LANE_BAR_PX + LANE_GAP_PX);
+  const stackTop = (rowHeight - (laneCount * laneBar + (laneCount - 1) * LANE_GAP_PX)) / 2;
+  const laneTop = (lane: number) => stackTop + lane * (laneBar + LANE_GAP_PX);
 
   /** Every operation placed on the axis, keyed by id — routing needs it. */
   const placements = React.useMemo(() => {
@@ -499,7 +515,7 @@ export const ProductionSchedule = ({
         widthPct: placed.widthPct,
         /* The LANE's centre, not the row's. A routing arrow that pointed at the
            middle of a three-lane row would miss every bar in it. */
-        yOffset: laneTop(lane) + LANE_BAR_PX / 2,
+        yOffset: laneTop(lane) + laneBar / 2,
       });
     }
     /* Routing links name OPERATIONS, and a link whose endpoint folded into a
@@ -517,7 +533,7 @@ export const ProductionSchedule = ({
           rowIndex: index,
           startPct: placed.startPct,
           widthPct: placed.widthPct,
-          yOffset: laneTop(0) + LANE_BAR_PX / 2,
+          yOffset: laneTop(0) + laneBar / 2,
         });
       }
     }
@@ -712,10 +728,11 @@ export const ProductionSchedule = ({
         isCritical={isCritical}
         onPlace={onPlace}
         barClass={barClassName}
+        barPx={laneBar}
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose, isCritical, onPlace, barClassName],
+    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose, isCritical, onPlace, barClassName, laneBar],
   );
 
   const renderFooter = React.useCallback(
@@ -779,6 +796,7 @@ export const ProductionSchedule = ({
         rowHeight={rowHeight}
         rowClass={rowClassName ? (row) => rowClassName(row.resource, row) : undefined}
         maxBodyHeight={maxBodyHeight}
+        headerClassName={headerClassName}
         renderFooter={totalLoad ? renderFooter : undefined}
         view={view}
         anchor={anchor}
@@ -971,6 +989,7 @@ const ProductionTrack = ({
   isCritical,
   onPlace,
   barClass,
+  barPx,
 }: {
   row: Row;
   range: PlanningRange;
@@ -982,6 +1001,7 @@ const ProductionTrack = ({
   isCritical: (id: string) => boolean;
   onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
   barClass?: (operation: ProductionOperation) => string | undefined | false | null;
+  barPx: number;
 }) => {
   const loc = useLocale();
   const accepts = onPlace !== undefined && !row.hasChildren;
@@ -1035,6 +1055,7 @@ const ProductionTrack = ({
           onPropose={onPropose}
           critical={isCritical(placement.operation.id)}
           barClass={barClass?.(placement.operation) || undefined}
+          barPx={barPx}
         />
       )),
     )}
@@ -1074,6 +1095,7 @@ const ProductionBar = ({
   onPropose,
   critical,
   barClass,
+  barPx,
 }: {
   placement: ProductionPlacement<ProductionOperation>;
   row: Row;
@@ -1085,6 +1107,7 @@ const ProductionBar = ({
   onPropose: (move: ProductionMove) => void;
   critical: boolean;
   barClass?: string;
+  barPx: number;
 }) => {
   const loc = useLocale();
   const { operation } = placement;
@@ -1273,7 +1296,7 @@ const ProductionBar = ({
         insetInlineStart: `${placed.startPct}%`,
         width: `${placed.widthPct}%`,
         top,
-        height: LANE_BAR_PX,
+        height: barPx,
         /* Logical, so the preview follows the pointer under RTL too. */
         ...(dragPx !== null ? { translate: `${dragPx}px` } : null),
       }}

@@ -147,6 +147,20 @@ el.addEventListener("zen-cells-change", (e) => save(e.detail));`,
           return tagged("sheet-styled", sheet);
         },
       },
+      {
+        title: "7. Density",
+        codeTitle: 'density: "compact" | "comfortable" | "touch"',
+        codeDescription:
+          "compact: 20px cells, more of the sheet on screen. touch: 48px cells to tap into. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was.",
+        code: `<zen-spreadsheet-grid density="compact"></zen-spreadsheet-grid>
+<zen-spreadsheet-grid density="touch"></zen-spreadsheet-grid>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-flex-wrap zen-gap-6";
+          box.append(tagged("sheet-compact", grid("zen-spreadsheet-grid", { rows: "3", cols: "3", "read-only": "", density: "compact", cells: JSON.stringify({ A1: "Qty", B1: 4, A2: "Rate", B2: 12.5, A3: "Total", B3: "=B1*B2" }) })), tagged("sheet-touch", grid("zen-spreadsheet-grid", { rows: "3", cols: "3", "read-only": "", density: "touch", cells: JSON.stringify({ A1: "Qty", B1: 4, A2: "Rate", B2: 12.5, A3: "Total", B3: "=B1*B2" }) })));
+          return box;
+        },
+      },
     ],
   });
 }

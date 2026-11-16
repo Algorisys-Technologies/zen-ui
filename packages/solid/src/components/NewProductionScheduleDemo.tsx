@@ -496,14 +496,15 @@ const routing = [
 
     <DemoSection
       title="Row height, chart height and colours"
-      codeTitle="rowHeight, maxBodyHeight, rowClassName, barClassName"
-      codeDescription="rowHeight is the least height of a row — a resource that stacks more lanes still gets the room it needs, and every row shares the result. maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a resource's row (the furnace, down for maintenance); barClassName colours an operation's bar over its status colours (one work order in teal, so it can be followed across machines)."
+      codeTitle="rowHeight, maxBodyHeight, rowClassName, barClassName, headerClassName"
+      codeDescription="rowHeight is the least height of a row — a resource that stacks more lanes still gets the room it needs, and every row shares the result. maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a resource's row (the furnace, down for maintenance); barClassName colours an operation's bar over its status colours (one work order in teal, so it can be followed across machines). headerClassName styles the header row and its frozen pane."
       code={`<ProductionSchedule
   resources={cells} operations={jobs}
   rowHeight={48}
   maxBodyHeight={280}
   rowClassName={(r) => r.id === "furnace" && "zen-bg-zen-warning-soft"}
   barClassName={(op) => op.order === "WO-4490" && "zen-bg-zen-accent-light-blue zen-border-zen-accent-light-blue"}
+  headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
 />`}
     >
       <div data-testid="production-styled" class="zen-w-full">
@@ -517,7 +518,25 @@ const routing = [
           maxBodyHeight={280}
           rowClassName={(r) => (r.id === "furnace" ? "zen-bg-zen-warning-soft" : undefined)}
           barClassName={(op) => op.order === "WO-4490" && "zen-bg-zen-accent-light-blue zen-border-zen-accent-light-blue"}
+          headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
         />
+      </div>
+    </DemoSection>
+
+    <DemoSection
+      title="Density"
+      codeTitle='density="compact" | "comfortable" | "touch"'
+      codeDescription="compact: shorter rows and 12px lane bars. touch: 48px rows at least, and 32px bars a finger can hit. rowHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was."
+      code={`<ProductionSchedule resources={cells} operations={jobs} density="compact" />
+<ProductionSchedule resources={cells} operations={jobs} density="touch" />`}
+    >
+      <div class="zen-flex zen-w-full zen-flex-col zen-gap-4">
+        <div data-testid="production-compact" class="zen-w-full">
+          <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} density="compact" />
+        </div>
+        <div data-testid="production-touch" class="zen-w-full">
+          <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} density="touch" />
+        </div>
       </div>
     </DemoSection>
   </DemoPage>

@@ -49,6 +49,8 @@ SKILL.md.
 - `maxBodyHeight?: string | number | undefined` — The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem.
 - `rowClassName?: ((resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined) | undefined` — Classes for a resource's row — a tint for a down machine.
 - `barClassName?: ((operation: ProductionOperation) => string | undefined | false | null) | undefined` — Classes for an operation's bar, applied after its status colours so they win.
+- `headerClassName?: string | undefined` — Classes for the header: the row and its frozen pane, applied after their own, so a caller's background and text colour win (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+- `density?: Density | undefined` — How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `className?: string | undefined`
 
 ### ProductionResource (type)

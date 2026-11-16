@@ -30,6 +30,32 @@ const COL_TOTALS = Array.from({ length: T_COLS }, (_, c) => {
   return sum;
 });
 const GRAND_TOTAL = ROW_TOTALS.reduce((a, b) => a + b, 0);
+const plainGrid = (): HTMLElement => {
+  const box = document.createElement("div");
+  box.setAttribute("data-testid", "pivot-unfrozen");
+  const grid = document.createElement("zen-pivot-grid");
+  for (const [k, v] of Object.entries({
+    height: "300",
+    "total-rows": String(T_ROWS),
+    "total-cols": String(T_COLS),
+    "row-header-depth": "2",
+    "col-header-depth": "3",
+    "col-width": "130",
+    "header-class-name": "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
+    "row-header-class-name": "zen-font-semibold",
+    "sticky-header": "false",
+    "sticky-row-headers": "false",
+  })) grid.setAttribute(k, v);
+  Object.assign(grid, {
+    layout: TOTALS_LAYOUT,
+    getCell: (r: number, c: number) => ({ value: money(salaryAt(r, c)) }),
+    getRowHeader: (r: number, d: number) => ({ value: dimensionValueAt(TOTALS_LAYOUT.rows[d], r, d, TOTALS_LAYOUT.rows) }),
+    getColHeader: (d: number, c: number) =>
+      d < 2 ? { value: dimensionValueAt(TOTALS_LAYOUT.columns[d], c, d, TOTALS_LAYOUT.columns) } : { value: "Salary" },
+  });
+  box.append(grid);
+  return box;
+};
 const totalsGrid = (dir?: "rtl"): HTMLElement => {
   const box = document.createElement("div");
   if (dir) box.dir = dir;
@@ -286,6 +312,22 @@ const next = moveFieldToZone(layout, "country", "rows", { index: 0 });`,
           const box = document.createElement("div");
           box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
           box.append(totalsGrid(), totalsGrid("rtl"));
+          return box;
+        },
+      },
+      {
+        title: "6. Header styling, and switching the freeze off",
+        codeTitle: "header-class-name, row-header-class-name, sticky-header, sticky-row-headers",
+        codeDescription:
+          "header-class-name styles every column-header cell — the corner and a totals header too — and row-header-class-name every row label, each after its own classes, so yours win. The headers stay put while the grid scrolls by default; sticky-header=\"false\" and sticky-row-headers=\"false\" let them scroll away with the cells, for a short grid that is read whole or printed.",
+        code: `<zen-pivot-grid height="300" …
+  header-class-name="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
+  row-header-class-name="zen-font-semibold"
+  sticky-header="false" sticky-row-headers="false"></zen-pivot-grid>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.append(plainGrid());
           return box;
         },
       },

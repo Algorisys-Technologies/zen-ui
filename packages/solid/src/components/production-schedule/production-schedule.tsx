@@ -42,7 +42,6 @@ import { Icon } from "../icon/icon";
 import { Skeleton } from "../skeleton/skeleton";
 import {
   INDENT_PX,
-  ROW_PX,
   ScheduleGrid,
   createScheduleAxis,
   createScrollerMetrics,
@@ -208,6 +207,19 @@ export interface ProductionScheduleProps {
   rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
   /** Classes for an operation's bar, applied after its status colours so they win. */
   barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+  /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
+  /**
+   * How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
 
   class?: string;
 }
@@ -246,7 +258,7 @@ const COL_INDEX: Record<ProductionPaneColumn | "timeline", number> = {
 const DEFAULT_PANE: ProductionPaneColumn[] = ["resource", "jobs", "capacity", "load"];
 
 /** One lane's bar, and the gap to the next. Row height is derived from these. */
-const LANE_BAR_PX = 16;
+import { laneBarPx, scheduleRowPx, type Density } from "@algorisys/zen-ui-core/density";
 const LANE_GAP_PX = 4;
 /** Space above and below the stack, so bars never touch the row border. */
 const LANE_PAD_PX = 14;
@@ -383,12 +395,14 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
      would break both the window (arithmetic, not measurement) and the connector
      routes (which place an endpoint at rowIndex * rowHeight + rowHeight / 2). */
   const laneCount = () => Math.max(1, ...rows().map((row) => row.lanes.length));
+  // Density sets the lane bars and the least row height; rowHeight wins over it.
+  const laneBar = () => laneBarPx(props.density);
   const rowHeight = () =>
-    Math.max(props.rowHeight ?? ROW_PX, laneCount() * LANE_BAR_PX + (laneCount() - 1) * LANE_GAP_PX + LANE_PAD_PX);
+    Math.max(scheduleRowPx(props.density, props.rowHeight), laneCount() * laneBar() + (laneCount() - 1) * LANE_GAP_PX + LANE_PAD_PX);
   const laneTop = (lane: number) => {
     const stackTop =
-      (rowHeight() - (laneCount() * LANE_BAR_PX + (laneCount() - 1) * LANE_GAP_PX)) / 2;
-    return stackTop + lane * (LANE_BAR_PX + LANE_GAP_PX);
+      (rowHeight() - (laneCount() * laneBar() + (laneCount() - 1) * LANE_GAP_PX)) / 2;
+    return stackTop + lane * (laneBar() + LANE_GAP_PX);
   };
 
   /** Every operation placed on the axis, keyed by id — routing needs it. */
@@ -417,7 +431,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
         widthPct: placed.widthPct,
         /* The LANE's centre, not the row's. A routing arrow that pointed at the
            middle of a three-lane row would miss every bar in it. */
-        yOffset: laneTop(lane) + LANE_BAR_PX / 2,
+        yOffset: laneTop(lane) + laneBar() / 2,
       });
     }
     /* Ids that name a RESOURCE rather than an operation are resolved too, so a
@@ -432,7 +446,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
           rowIndex: index,
           startPct: placed.startPct,
           widthPct: placed.widthPct,
-          yOffset: laneTop(0) + LANE_BAR_PX / 2,
+          yOffset: laneTop(0) + laneBar() / 2,
         });
       }
     }
@@ -662,9 +676,11 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
           rowHeight={rowHeight()}
           rowClass={props.rowClassName ? (row) => props.rowClassName?.(row.resource, row) : undefined}
           maxBodyHeight={props.maxBodyHeight}
+          headerClassName={props.headerClassName}
           renderTrack={(row) => (
             <ProductionTrack
               barClass={props.barClassName}
+              barPx={laneBar()}
               row={row}
               range={axis.range()}
               laneTop={laneTop}
@@ -860,6 +876,7 @@ const ProductionTrack = (props: {
   isCritical: (id: string) => boolean;
   onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
   barClass?: (operation: ProductionOperation) => string | undefined | false | null;
+  barPx: number;
 }) => {
   const loc = useLocale();
   const accepts = () => props.onPlace !== undefined && !props.row.hasChildren;
@@ -914,6 +931,7 @@ const ProductionTrack = (props: {
               onPropose={props.onPropose}
               critical={props.isCritical(placement().operation.id)}
               barClass={props.barClass?.(placement().operation) || undefined}
+              barPx={props.barPx}
             />
           )}
         </Index>
@@ -958,6 +976,7 @@ const ProductionBar = (props: {
   onPropose: (move: ProductionMove) => void;
   critical: boolean;
   barClass?: string;
+  barPx: number;
 }) => {
   const loc = useLocale();
   const operation = () => props.placement.operation;
@@ -1139,7 +1158,7 @@ const ProductionBar = (props: {
             "inset-inline-start": `${box().startPct}%`,
             width: `${box().widthPct}%`,
             top: `${props.top}px`,
-            height: `${LANE_BAR_PX}px`,
+            height: `${props.barPx}px`,
             ...(dragPx() !== null ? { translate: `${dragPx()}px` } : null),
           }}
           title={title()}

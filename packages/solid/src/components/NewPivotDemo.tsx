@@ -11,7 +11,7 @@ import {
   memberCount,
 } from "./pivot-demo-data";
 
-// --- Section 4: totals and right to left -------------------------------------
+// --- Section 5: totals and right to left -------------------------------------
 // A fixed layout, so the totals show without building one first. A cell's
 // "salary" comes from its seed, as getCell's does; the totals add up exactly
 // those numbers.
@@ -36,6 +36,28 @@ const COL_TOTALS = Array.from({ length: T_COLS }, (_, c) => {
   return sum;
 });
 const GRAND_TOTAL = ROW_TOTALS.reduce((a, b) => a + b, 0);
+const plainGrid = () => (
+  <div data-testid="pivot-unfrozen">
+    <PivotGrid
+      layout={TOTALS_LAYOUT}
+      height={300}
+      totalRows={T_ROWS}
+      totalCols={T_COLS}
+      rowHeaderDepth={2}
+      colHeaderDepth={3}
+      colWidth={130}
+      getCell={(r, c) => ({ value: money(salaryAt(r, c)) })}
+      getRowHeader={(r, d) => ({ value: dimensionValueAt(TOTALS_LAYOUT.rows[d], r, d, TOTALS_LAYOUT.rows) })}
+      getColHeader={(d, c) =>
+        d < 2 ? { value: dimensionValueAt(TOTALS_LAYOUT.columns[d], c, d, TOTALS_LAYOUT.columns) } : { value: "Salary" }
+      }
+      headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
+      rowHeaderClassName="zen-font-semibold"
+      stickyHeader={false}
+      stickyRowHeaders={false}
+    />
+  </div>
+);
 const totalsGrid = (dir?: "rtl") => (
   <div dir={dir} data-testid={dir === "rtl" ? "pivot-rtl" : "pivot-totals"}>
     <PivotGrid
@@ -232,7 +254,25 @@ const totalRows = () => layout().rows.reduce((n, key) => n * memberCount(key), 1
       </DemoSection>
 
       <DemoSection
-        title="4. Totals, height and right to left"
+        title="4. The same component, four times"
+        codeTitle="Every binding shares the model, not the renderer"
+        codeDescription="This binding drags with @thisbeyond/solid-dnd, React's with @dnd-kit, and vanilla and web components with native HTML5 drag-and-drop — they share no drag code at all. Every rule about what a drop MEANS lives in @algorisys/zen-ui-core/pivot instead: which zone a field is in, what moving it does, what a screen reader is told. The window maths for the filter menus and the grid comes from @algorisys/zen-ui-core/virtual-window."
+        code={`import {
+  moveFieldToZone, zoneOf, describeMove,
+  type PivotLayout, type PivotMembersRequest,
+} from "@algorisys/zen-ui-core/pivot";
+
+// the same call, in every binding:
+const next = moveFieldToZone(layout, "country", "rows", { index: 0 });`}
+      >
+        <p class="zen-m-0 zen-text-sm zen-text-zen-muted-fg">
+          The model is pinned by <code>bun run check:pivot</code> and the window maths by{" "}
+          <code>check:virtual-window</code> — neither needs a browser, because neither is about rendering.
+        </p>
+      </DemoSection>
+
+      <DemoSection
+        title="5. Totals, height and right to left"
         codeTitle="totals={{ row, column, grand }}"
         codeDescription="A totals column pinned to the end edge and a totals row pinned to the bottom, both in view while the grid scrolls both ways. The grid adds nothing up itself — an average's total is not the sum of the averages, and the data may be on a server — so each total is an accessor, like getCell; columns gives one totals column per value field. height sizes the grid without a sized parent. In a right-to-left page the row labels freeze on the right."
         code={`<PivotGrid
@@ -252,6 +292,21 @@ const totalRows = () => layout().rows.reduce((n, key) => n * memberCount(key), 1
           {totalsGrid()}
           {totalsGrid("rtl")}
         </div>
+      </DemoSection>
+
+      <DemoSection
+        title="6. Header styling, and switching the freeze off"
+        codeTitle="headerClassName, rowHeaderClassName, stickyHeader, stickyRowHeaders"
+        codeDescription="headerClassName styles every column-header cell — the corner and a totals header too — and rowHeaderClassName every row label, each after its own classes, so yours win. The headers stay put while the grid scrolls by default; stickyHeader={false} and stickyRowHeaders={false} let them scroll away with the cells, for a short grid that is read whole or printed."
+        code={`<PivotGrid
+  layout={layout} height={300} …
+  headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
+  rowHeaderClassName="zen-font-semibold"
+  stickyHeader={false}
+  stickyRowHeaders={false}
+/>`}
+      >
+        <div class="zen-w-full">{plainGrid()}</div>
       </DemoSection>
     </DemoPage>
   );

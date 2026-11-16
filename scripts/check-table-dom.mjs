@@ -127,6 +127,28 @@ const dataTable = async (page, origin) => {
   await page.waitForSelector("table tbody tr");
   if (!(await page.$('[data-testid="frozen-rows"]'))) return false;
   await page.waitForSelector('[data-testid="frozen-rows"] tbody tr');
+  // Pins are applied after layout (vanilla measures them in a ResizeObserver):
+  // wait until they are, or a busy machine measures an unpinned table. This
+  // flaked once, 8 of 52, with nothing changed.
+  for (const id of ["frozen-rows", "rtl-pinned"]) {
+    await page
+      .waitForFunction(
+        (id) => {
+          const ths = [...document.querySelectorAll(`[data-testid="${id}"] thead th`)];
+          return ths.some((t) => t.style.insetInlineStart !== "") && ths.some((t) => t.style.insetInlineEnd !== "");
+        },
+        id,
+        { timeout: 8000 },
+      )
+      .catch(() => {});
+  }
+  await page
+    .waitForFunction(
+      () => [...document.querySelectorAll('[data-testid="frozen-rows"] tr[data-pinned-row]')].every((tr) => tr.style.position === "sticky"),
+      undefined,
+      { timeout: 8000 },
+    )
+    .catch(() => {});
 
   console.log("  -- styling");
   const st = await page.$eval('[data-testid="styled-cells"]', (w) => {
@@ -188,6 +210,15 @@ const dataTable = async (page, origin) => {
   await sleep(200);
   const f2 = await tableGeo(page, "sticky-footer");
   t("…and mid-scroll", near(f2.footBottom, f2.sc.b), true);
+  // With row selection on, a footer without totals must still put a cell under
+  // the checkbox column; vanilla's skipped it, and every footer cell sat one
+  // column to the left of its column.
+  const aligned = await page.$eval('[data-testid="sticky-footer"]', (w) => {
+    const head = [...w.querySelectorAll("thead tr:first-child th")].find((h) => h.textContent.trim().startsWith("Item"));
+    const foot = [...w.querySelectorAll("tfoot td")].find((c) => c.textContent.includes("60 lines"));
+    return head && foot ? Math.abs(head.getBoundingClientRect().left - foot.getBoundingClientRect().left) <= 1 : null;
+  });
+  t("a plain footer sits under its own column (with row selection)", aligned, true);
 
   console.log("  -- the Columns menu, from the keyboard alone");
   const w = page.locator('[data-testid="frozen-rows"]');
@@ -262,15 +293,132 @@ const pivot = async (page, origin) => {
     const out = [];
     for (const x of [0, -700, -1400, -99999]) {
       sc.scrollLeft = x;
-      await new Promise((r) => setTimeout(r, 250));
-      const b = sc.getBoundingClientRect();
-      const el = document.elementFromPoint(b.left + b.width * 0.4, b.top + b.height * 0.5);
-      out.push(/^\$/.test(el?.textContent?.trim() ?? ""));
+      // Polled, not a fixed wait: a grid that redraws on the next frame can be
+      // late on a busy machine (this flaked once at 250ms). A grid that never
+      // draws the columns — the bug this guards — still fails after 2s.
+      let drawn = false;
+      for (let i = 0; i < 20 && !drawn; i++) {
+        await new Promise((r) => setTimeout(r, 100));
+        const b = sc.getBoundingClientRect();
+        const el = document.elementFromPoint(b.left + b.width * 0.4, b.top + b.height * 0.5);
+        drawn = /^\$/.test(el?.textContent?.trim() ?? "");
+      }
+      out.push(drawn);
     }
     return out;
   });
   t("pivot RTL: the cells under the viewport are drawn at every scroll", painted, [true, true, true, true]);
+
+  // Header classes, and the freeze switched off: the headers scroll away.
+  if (await page.$('[data-testid="pivot-unfrozen"]')) {
+    await page.$eval('[data-testid="pivot-unfrozen"]', (e) => e.scrollIntoView({ block: "center" }));
+    const primarySoft = await page.evaluate(() => {
+      const ref = document.createElement("span");
+      ref.className = "zen-bg-zen-primary-soft";
+      document.body.append(ref);
+      const bg = getComputedStyle(ref).backgroundColor;
+      ref.remove();
+      return bg;
+    });
+    const look = await page.$eval('[data-testid="pivot-unfrozen"]', (w) => ({
+      head: getComputedStyle(w.querySelector("thead th[scope=col]:not([aria-hidden])")).backgroundColor,
+      label: getComputedStyle(w.querySelector("tbody th[scope=row]")).fontWeight,
+    }));
+    t("pivot headerClassName reaches the column headers", look.head, primarySoft);
+    t("pivot rowHeaderClassName reaches the row labels", look.label, "600");
+    const moved = await page.$eval('[data-testid="pivot-unfrozen"] [role="region"]', async (sc) => {
+      const at = () => {
+        const h = sc.querySelector("thead th[scope=col]:not([aria-hidden])").getBoundingClientRect();
+        const l = sc.querySelector("tbody th[scope=row]").getBoundingClientRect();
+        return { top: h.top, left: l.left };
+      };
+      const before = at();
+      sc.scrollTop = 200;
+      sc.scrollLeft = 300;
+      await new Promise((r) => setTimeout(r, 250));
+      const after = at();
+      return { headerScrolled: after.top < before.top - 100, labelScrolled: after.left < before.left - 100 };
+    });
+    t("pivot stickyHeader={false}: the column headers scroll away", moved.headerScrolled, true);
+    t("pivot stickyRowHeaders={false}: the row labels scroll away", moved.labelScrolled, true);
+  } else {
+    console.log("  NOT PORTED pivot header styling / freeze switches");
+    notPorted.push("pivot header styling");
+  }
   return true;
+};
+
+/**
+ * The opt-in `density` prop, measured: touch reaches 48px targets, compact is
+ * smaller than comfortable. (Comfortable itself is check:schedule-dom's and the
+ * other sections' territory: they assert today's sizes.)
+ */
+const densities = async (page, origin) => {
+  let any = false;
+  const sizes = (id, sel, prop = "height") =>
+    page.$eval(`[data-testid="${id}"]`, (w, [sel, prop]) => [...new Set([...w.querySelectorAll(sel)].map((e) => Math.round(e.getBoundingClientRect()[prop])))].sort((a, b) => a - b), [sel, prop]);
+  const has = async (route, id) => {
+    await page.goto(`${origin}/${route}`);
+    return !!(await page.waitForSelector(`[data-testid="${id}"]`, { timeout: 8000 }).catch(() => null));
+  };
+  const ROWS = '[role="treegrid"] [role="row"]:not([aria-rowindex="1"])';
+  if (await has("gantt", "gantt-touch")) {
+    any = true;
+    await page.waitForSelector('[data-testid="gantt-touch"] [data-gantt-bar]');
+    t("gantt touch: rows 48, bars 32", [await sizes("gantt-touch", ROWS), await sizes("gantt-touch", "[data-gantt-bar]")], [[48], [32]]);
+    t("gantt compact: rows 28, bars 14", [await sizes("gantt-compact", ROWS), await sizes("gantt-compact", "[data-gantt-bar]")], [[28], [14]]);
+  }
+  if (await has("production-schedule", "production-touch")) {
+    any = true;
+    await page.waitForSelector('[data-testid="production-touch"] [data-gantt-bar]');
+    const touchRows = await sizes("production-touch", ROWS);
+    t("production touch: one row height, at least 48", touchRows.length === 1 && touchRows[0] >= 48, true);
+    t("production touch: lane bars 32", await sizes("production-touch", "[data-gantt-bar]"), [32]);
+    t("production compact: lane bars 12", await sizes("production-compact", "[data-gantt-bar]"), [12]);
+  }
+  if (await has("planning-calendar", "lanes-touch")) {
+    any = true;
+    const block = '[style*="top"]:is(button, [role="button"])';
+    t("calendar touch: appointments 48", await sizes("lanes-touch", block), [48]);
+    t("calendar compact: appointments 18", await sizes("lanes-compact", block), [18]);
+  }
+  if (await has("spreadsheet-grid", "sheet-touch")) {
+    any = true;
+    const touch = await sizes("sheet-touch", '[role="gridcell"]');
+    const compact = await sizes("sheet-compact", '[role="gridcell"]');
+    t("sheet touch: cells at least 48", touch.every((h) => h >= 48) && touch.length > 0, true);
+    t("sheet compact: cells under 24", compact.every((h) => h < 24) && compact.length > 0, true);
+  }
+  if (await has("tree", "tree-touch")) {
+    any = true;
+    const touch = await sizes("tree-touch", '[role="treeitem"] > div');
+    const compact = await sizes("tree-compact", '[role="treeitem"] > div');
+    t("tree touch: rows at least 48", touch.every((h) => h >= 48) && touch.length > 0, true);
+    t("tree compact: rows under 28", compact.every((h) => h < 28) && compact.length > 0, true);
+  }
+  return any;
+};
+
+/** headerClassName on the schedules: the header row and its frozen pane take it. */
+const scheduleHeaders = async (page, origin) => {
+  let any = false;
+  for (const [route, id] of [["gantt", "gantt-styled"], ["production-schedule", "production-styled"]]) {
+    await page.goto(`${origin}/${route}`);
+    if (!(await page.waitForSelector(`[data-testid="${id}"] [role="row"]`, { timeout: 8000 }).catch(() => null))) continue;
+    any = true;
+    const r = await page.$eval(`[data-testid="${id}"]`, (w) => {
+      const ref = document.createElement("span");
+      ref.className = "zen-bg-zen-primary-soft";
+      document.body.append(ref);
+      const want = getComputedStyle(ref).backgroundColor;
+      ref.remove();
+      const header = w.querySelector('[role="row"][aria-rowindex="1"]');
+      const pane = header?.firstElementChild;
+      return { want, row: header && getComputedStyle(header).backgroundColor, pane: pane && getComputedStyle(pane).backgroundColor };
+    });
+    t(`${route} headerClassName reaches the header row and its pane`, [r.row, r.pane], [r.want, r.want]);
+  }
+  return any;
 };
 
 const browser = await chromium.launch();
@@ -287,7 +435,7 @@ for (const id of wanted) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    for (const [name, run] of [["DataTable", dataTable], ["PivotGrid", pivot]]) {
+    for (const [name, run] of [["DataTable", dataTable], ["PivotGrid", pivot], ["schedule headers", scheduleHeaders], ["density", densities]]) {
       if (!(await run(page, origin))) {
         notPorted.push(`${id} ${name}`);
         console.log(`  NOT PORTED ${name}`);

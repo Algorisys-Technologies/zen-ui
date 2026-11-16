@@ -25,6 +25,7 @@ const shared = {
     formats: "json",
     "read-only": "boolean",
     "col-width": "string",
+    density: "string",
   },
   props: ["cells", "formats", "onCellsChange", "onCellCommit", "cellClassName"],
   events: { onCellsChange: "zen-cells-change", onCellCommit: "zen-cell-commit" },

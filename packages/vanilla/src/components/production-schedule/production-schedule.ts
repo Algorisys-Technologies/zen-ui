@@ -41,7 +41,6 @@ import { Skeleton } from "../skeleton/skeleton";
 import { toNodes, type AnyZenComponent, type BaseProps, type Child, type ZenComponent } from "../../lib/component";
 import {
   INDENT_PX,
-  ROW_PX,
   ScheduleGrid,
   resolveScheduleAxis,
   type ScheduleAxis,
@@ -199,6 +198,19 @@ export interface ProductionScheduleProps extends BaseProps {
   rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
   /** Classes for an operation's bar, applied after its status colours so they win. */
   barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+  /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
+  /**
+   * How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
 }
 
 type Row = ProductionRowData<ProductionResource, ProductionOperation>;
@@ -235,7 +247,7 @@ const COL_INDEX: Record<ProductionPaneColumn | "timeline", number> = {
 const DEFAULT_PANE: ProductionPaneColumn[] = ["resource", "jobs", "capacity", "load"];
 
 /** One lane's bar, and the gap to the next. Row height is derived from these. */
-const LANE_BAR_PX = 16;
+import { laneBarPx, scheduleRowPx, type Density } from "@algorisys/zen-ui-core/density";
 const LANE_GAP_PX = 4;
 /** Space above and below the stack, so bars never touch the row border. */
 const LANE_PAD_PX = 14;
@@ -579,7 +591,7 @@ export function ProductionSchedule(
     node.style.insetInlineStart = `${placed.startPct}%`;
     node.style.width = `${placed.widthPct}%`;
     node.style.top = `${top}px`;
-    node.style.height = `${LANE_BAR_PX}px`;
+    node.style.height = `${laneBarPx(current.density)}px`;
     /* No tooltip component here, deliberately, and the other two bindings
        agree: a tooltip trigger installs pointer handlers on a bar that is
        DRAGGABLE, and they compete with the pointer capture the drag needs. */
@@ -939,12 +951,14 @@ export function ProductionSchedule(
        would break both the window (arithmetic, not measurement) and the
        connector routes (which place an endpoint from rowHeight). */
     const laneCount = Math.max(1, ...flat.rows.map((row) => row.lanes.length));
+    // Density sets the lane bars and the least row height; rowHeight wins over it.
+    const laneBar = laneBarPx(current.density);
     const rowHeight = Math.max(
-      current.rowHeight ?? ROW_PX,
-      laneCount * LANE_BAR_PX + (laneCount - 1) * LANE_GAP_PX + LANE_PAD_PX,
+      scheduleRowPx(current.density, current.rowHeight),
+      laneCount * laneBar + (laneCount - 1) * LANE_GAP_PX + LANE_PAD_PX,
     );
-    const stackTop = (rowHeight - (laneCount * LANE_BAR_PX + (laneCount - 1) * LANE_GAP_PX)) / 2;
-    const laneTop = (lane: number) => stackTop + lane * (LANE_BAR_PX + LANE_GAP_PX);
+    const stackTop = (rowHeight - (laneCount * laneBar + (laneCount - 1) * LANE_GAP_PX)) / 2;
+    const laneTop = (lane: number) => stackTop + lane * (laneBar + LANE_GAP_PX);
 
     const cpa = current.showCriticalPath
       ? productionCriticalPath(current.operations ?? [], current.dependencies ?? [], {
@@ -1015,7 +1029,7 @@ export function ProductionSchedule(
               widthPct: placed.widthPct,
               /* The LANE's centre, not the row's. An arrow pointed at the middle
                  of a three-lane row would miss every bar in it. */
-              yOffset: laneTop(laneIndex) + LANE_BAR_PX / 2,
+              yOffset: laneTop(laneIndex) + laneBar / 2,
             });
           }
         }
@@ -1032,7 +1046,7 @@ export function ProductionSchedule(
             rowIndex: index,
             startPct: placed.startPct,
             widthPct: placed.widthPct,
-            yOffset: laneTop(0) + LANE_BAR_PX / 2,
+            yOffset: laneTop(0) + laneBar / 2,
           });
         }
       }
@@ -1110,6 +1124,7 @@ export function ProductionSchedule(
       rowHeight,
       rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.resource, row) : undefined,
       maxBodyHeight: current.maxBodyHeight,
+      headerClassName: current.headerClassName,
       renderTrack: (row: Row): Array<Node | AnyZenComponent> => {
         const content = trackContent(row);
         return current.onPlace !== undefined && !row.hasChildren ? [dropLayer(row, axis, content)] : content;

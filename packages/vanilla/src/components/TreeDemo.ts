@@ -305,6 +305,24 @@ Tree({ items, defaultExpanded: ["src"], "aria-label": "Project files" });
           return box;
         },
       },
+      {
+        title: "9. Density",
+        codeTitle: 'density: "compact" | "comfortable" | "touch"',
+        codeDescription:
+          "compact: tighter rows for a long hierarchy. touch: 48px rows to tap. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was.",
+        code: `Tree({ items, density: "compact" })
+Tree({ items, density: "touch" })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-flex-wrap zen-gap-6";
+          const a = panel(Tree({ items: FILES, defaultExpanded: ["src"], "aria-label": "Compact tree", density: "compact" }).el);
+          a.setAttribute("data-testid", "tree-compact");
+          const b = panel(Tree({ items: FILES, defaultExpanded: ["src"], "aria-label": "Touch tree", density: "touch" }).el);
+          b.setAttribute("data-testid", "tree-touch");
+          box.append(a, b);
+          return box;
+        },
+      },
     ],
   });
 }

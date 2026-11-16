@@ -26,6 +26,7 @@ SKILL.md.
 - `hideToolbar?: boolean | undefined` — Hide the toolbar when your page already has one.
 - `emptyMessage?: React.ReactNode` — Message when there are no resources.
 - `laneHeight?: number | undefined` — Height of one lane in px (appointments stack in lanes inside a row). Default 30.
+- `density?: Density | undefined` — How much room a lane takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `className?: string | undefined`
 
 ### PlanningRow (type)

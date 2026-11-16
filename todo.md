@@ -15,10 +15,39 @@ issue / PR when its turn comes.
    the API reference: where Solid's shape would not suit React, reconcile before
    porting, not after.
 3. **Publish to npm** (owner, 2026-11-04: "just like tinyfly and yappydraw",
-   https://www.npmjs.com/package/@algorisys/tinyfly). Queued after the current
-   task, not started. Match how those packages publish (scope, metadata,
-   workflow); the tarballs already install cleanly (CLAUDE.md, check:package).
-   When it is live, add it to "Ship it" in CLAUDE.md.
+   https://www.npmjs.com/package/@algorisys/tinyfly). **On hold in the backlog
+   (owner, 2026-11-16)** — not next; start only when the owner says so. Match
+   how those packages publish (scope, metadata, workflow); the tarballs already
+   install cleanly (CLAUDE.md, check:package). When it is live, add it to
+   "Ship it" in CLAUDE.md.
+
+## Open after 12.12.0 (2026-11-16)
+
+- [x] **Publish the site for 12.10–12.12** — done 2026-11-16 (gh-pages
+      e720a4bd, dev@be81ee4d; all five pages verified live). Two blockers:
+      the owner freed inotify watches (ENOSPC), and deploy.sh's 300s preview
+      timeout was too short (react took 648s) and posed as a browser crash —
+      fixed in be81ee4d (900s, gen-previews exits on SIGTERM).
+- [x] **Demo section numbering drifts between bindings** — fixed 2026-11-17.
+      Solid gained React's "24. Column footers" and Pivot's "4. The same
+      component". Vanilla and web-components' DataTable demo was rebuilt to
+      React's list: 0–32 in React's order, with the seven missing sections added
+      (11 resizing, 12 ordering, 13 per-column filters, 14 CSV/JSON export, 17
+      virtualization combo, 24 column footers, 25 everything together) and the
+      rest renamed and reordered. One extra stays, as 7b: vanilla's "filtering
+      and sorting on the server", which React has no section for. Section 17
+      says pinning is not drawn in vanilla's older grid (item below).
+- [x] **Vanilla footer without totals has no select-column cell** — fixed
+      2026-11-17; check:table-dom asserts the footer sits under its column with
+      row selection on (fails without the fix: 1 of 35).
+- [x] **Styling/freezing gaps left from the 12.11 audit** — done 2026-11-17,
+      all four bindings: pinning in vanilla's older div grid (and its header
+      now follows the rows sideways); `headerClassName` on Gantt /
+      ProductionSchedule; PivotGrid `headerClassName`, `rowHeaderClassName`,
+      `stickyHeader`, `stickyRowHeaders` (web components: json attributes for
+      the two switches, which default to true). check:table-dom 41 per binding.
+- [ ] **Opt-in density for schedules/calendar/sheet/tree**: an explicit prop,
+      not `data-density` (following it would reflow existing touch apps).
 
 
 

@@ -48,6 +48,13 @@ defineZenElement<PivotGridProps>({
     label: "string",
     // px; any CSS length through the `height` property.
     height: "number",
+    "header-class-name": "string",
+    "row-header-class-name": "string",
+    // Default TRUE: json, so an absent attribute means unset (frozen), not an
+    // explicit false — a boolean attribute would unfreeze every grid that did
+    // not say otherwise. `sticky-header="false"` turns it off.
+    "sticky-header": "json",
+    "sticky-row-headers": "json",
   },
   // `totals` is accessors, like getCell: a property.
   props: ["layout", "getCell", "getRowHeader", "getColHeader", "totals"],
