@@ -56,13 +56,6 @@ const KNOWN: Record<string, string> = {
   // Solid-first (12.11.0, the owner's build order): ported to React, vanilla
   // and web components in the next step, which removes these lines.
   ...Object.fromEntries(
-    ["enableRowPinning", "rowPinning", "initialRowPinning", "onRowPinningChange", "stickyFooter"].map(
-      (m) => [`DataTableProps.${m}`, "vanilla"],
-    ),
-  ),
-  "PivotGridProps.height": "vanilla",
-  "PivotGridProps.totals": "vanilla",
-  ...Object.fromEntries(
     ["GanttProps", "ProductionScheduleProps"].flatMap((i) =>
       ["barClass", "maxBodyHeight", "rowClass", "rowHeight"].map((m) => [`${i}.${m}`, "vanilla"]),
     ),

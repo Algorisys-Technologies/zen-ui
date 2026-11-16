@@ -32,6 +32,9 @@ import {
   moveColumn,
   orderedColumnIds,
   respectsColumnSizes,
+  columnCellClass,
+  columnHeaderClass,
+  pinnedRowOrder,
 } from "@algorisys/zen-ui-core/columns";
 import {
   clampRange,
@@ -152,6 +155,14 @@ export interface DataTableColumnMeta<TData = unknown> {
    * Default: a number for a column with a total, text otherwise.
    */
   exportFormat?: ExportColumnFormat;
+  /**
+   * Classes for this column's cells: a string for every body and footer
+   * cell, or a function of the row for per-cell styling (`(r) => r.balance < 0
+   * && "zen-text-zen-error"`), asked about body cells only.
+   */
+  className?: string | ((row: TData) => string | undefined | false | null);
+  /** Classes for this column's header cell. */
+  headerClassName?: string;
 }
 
 export interface DataTableColumn<TData> {
@@ -306,6 +317,18 @@ export interface DataTableProps<TData> {
   initialColumnPinning?: { left?: string[]; right?: string[] };
   onColumnPinningChange?: (pinning: { left: string[]; right: string[] }) => void;
   /**
+   * Pin rows to the top or bottom of the body: `{ top: [rowId], bottom: [rowId] }`.
+   * A pinned row stays in view while the others scroll (with `stickyHeader`
+   * or `fillHeight`), and stays even when a filter or the page would hide it.
+   * The plain body only: ignored with virtualization, row ordering or grouping.
+   * Change it with `update({ rowPinning })`; there is no built-in pin control.
+   */
+  enableRowPinning?: boolean;
+  rowPinning?: { top?: string[]; bottom?: string[] };
+  initialRowPinning?: { top?: string[]; bottom?: string[] };
+  /** Reserved for parity with React and Solid, whose TanStack rows can be pinned by code; vanilla never changes the pins itself. */
+  onRowPinningChange?: (pinning: { top: string[]; bottom: string[] }) => void;
+  /**
    * Keep each column at least its `size` (or the width it was resized to), and
    * scroll the table sideways when they do not fit, instead of letting the
    * browser squeeze them. Unsized columns stay automatic. Default: on with
@@ -344,6 +367,12 @@ export interface DataTableProps<TData> {
   headerVariant?: "plain" | "underline" | "branded";
   /** Pin the header to the top of a `maxBodyHeight` scroll viewport (non-virtualized only). */
   stickyHeader?: boolean;
+  /**
+   * Keep the footer row in view at the bottom while the rows scroll, as a
+   * table with totals already does. Needs a scrolling body: `stickyHeader`,
+   * `fillHeight` or row virtualization.
+   */
+  stickyFooter?: boolean;
   /**
    * Fill the parent's height: the rows scroll inside the table, under a header
    * that stays put, and the pager stays below. For a list that is the page's
@@ -534,7 +563,7 @@ const ROW_FOCUS_CLASS = [
 const TABLE_HEAD_CLASS =
   "zen-h-zen-head zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-2 zen-text-start zen-align-middle zen-[font-size:var(--zen-table-head-font-size)] zen-[line-height:var(--zen-line-height-xs)] zen-[font-weight:var(--zen-table-head-font-weight)] zen-[text-transform:var(--zen-table-head-text-transform)] zen-[letter-spacing:var(--zen-table-head-letter-spacing)] zen-text-zen-muted-fg";
 const TABLE_CELL_CLASS =
-  "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground";
+  "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-align-middle zen-text-zen-cell zen-text-zen-foreground";
 const VIRT_CELL_CLASS =
   "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-flex zen-items-center zen-text-sm zen-text-zen-foreground zen-min-w-0 zen-overflow-hidden";
 const VIRT_HEAD_CLASS =
@@ -680,6 +709,13 @@ export function DataTable<TData>(
   let pinningInner: { left: string[]; right: string[] } = normalisePinning(
     persisted?.columnPinning ?? current.initialColumnPinning,
   );
+  const rowPinningInner = {
+    top: [...(current.initialRowPinning?.top ?? [])],
+    bottom: [...(current.initialRowPinning?.bottom ?? [])],
+  };
+  /** The rows pinned in the current paint, by side (pinnedRowOrder). */
+  let pinnedTop = new Set<string>();
+  let pinnedBottom = new Set<string>();
 
   /* Keyboard rows: a roving tabindex, so the table is one tab stop and the
    * arrows move within it. The index is clamped to the rows on screen when
@@ -758,6 +794,8 @@ export function DataTable<TData>(
       // a flex parent grows the whole DataTable to the table's width instead.
       respectSizes() && "zen-min-w-0",
       current.fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
+      // The edge shadow of a pinned column faces the scrolling ones: flipped in RTL.
+      current.enableColumnPinning && "rtl:zen-[--zen-pin-dir:-1]",
       current.class,
     );
   const el = h("div", rootClass());
@@ -2276,6 +2314,9 @@ export function DataTable<TData>(
 
   /* ----- the regular table ----- */
   const rowOrderingActive = (): boolean => !!current.enableRowOrdering && !isVirt();
+  /** Row pinning, in the plain body: not virtualized, ordered or grouped. */
+  const rowPinningActive = (): boolean =>
+    !!current.enableRowPinning && !rowVirt() && !isVirt() && !rowOrderingActive() && !groupingActive();
 
   function totalColumnCount(): number {
     return leafColumns().length + (current.enableRowSelection ? 1 : 0) + (rowOrderingActive() ? 1 : 0);
@@ -2308,6 +2349,10 @@ export function DataTable<TData>(
     if (selected) tr.setAttribute("data-state", "selected");
     rowElById.set(id, tr);
     rowIdOfEl.set(tr, id);
+    if (pinnedTop.has(id) || pinnedBottom.has(id)) {
+      tr.dataset.pinnedRow = id;
+      tr.dataset.pinnedSide = pinnedTop.has(id) ? "top" : "bottom";
+    }
     // A context menu is attached: rows and cells say which they are.
     if (menuActive()) tr.setAttribute("data-row-id", id);
     if (keyboard) {
@@ -2378,7 +2423,7 @@ export function DataTable<TData>(
 
     for (const col of leafColumns()) {
       const columnId = colId(col);
-      const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass())) as HTMLTableCellElement;
+      const td = h("td", cn(TABLE_CELL_CLASS, sepCellClass(), columnCellClass(col.meta, { original: r.row }))) as HTMLTableCellElement;
       markPin(td, col);
       if (nav) {
         // Its place in the grid; paintNav sets the tab stop and the selection.
@@ -3269,24 +3314,58 @@ export function DataTable<TData>(
     for (const cell of table.querySelectorAll<HTMLElement>("[data-pin]")) {
       const key = cell.dataset.pinCol!;
       if (cell.dataset.pin === "left" && left.has(key)) {
-        cell.style.left = `${left.get(key)}px`;
+        // Logical: "left" is the START edge, the right edge in an RTL page.
+        cell.style.insetInlineStart = `${left.get(key)}px`;
         cell.style.boxShadow =
-          key === lastLeft ? "inset -1px 0 0 var(--zen-color-border), 4px 0 6px -4px rgba(0,0,0,0.12)" : "";
+          key === lastLeft
+            ? "inset calc(-1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
+            : "";
       } else if (cell.dataset.pin === "right" && right.has(key)) {
-        cell.style.right = `${right.get(key)}px`;
+        cell.style.insetInlineEnd = `${right.get(key)}px`;
         cell.style.boxShadow =
-          key === firstRight ? "inset 1px 0 0 var(--zen-color-border), -4px 0 6px -4px rgba(0,0,0,0.12)" : "";
+          key === firstRight
+            ? "inset calc(1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(-4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
+            : "";
       }
     }
   }
   /* After layout: pinned offsets, and the header row's height, which the
    * sticky filter row sits under (--zen-dt-header-h, as in React). */
+  /* Pinned rows stick under the header (top) or above the footer (bottom),
+   * each below the ones pinned before it — the header, the footer and every
+   * pinned row measured, not assumed. Only when the body scrolls. */
+  function applyRowPins(table: HTMLElement): void {
+    const stickyActive = !!(current.stickyHeader || current.fillHeight) && !isVirt();
+    const rows = [...table.querySelectorAll<HTMLElement>("tbody tr[data-pinned-row]")];
+    if (!stickyActive) return;
+    const head = table.querySelector("thead")?.getBoundingClientRect().height ?? 0;
+    const tfoot = table.querySelector("tfoot");
+    const footSticky = !!tfoot && (tfoot.hasAttribute("data-totals") || !!current.stickyFooter);
+    const foot = footSticky ? tfoot!.getBoundingClientRect().height : 0;
+    const place = (tr: HTMLElement, side: "top" | "bottom", at: number) => {
+      tr.style.position = "sticky";
+      tr.style[side] = `${at}px`;
+      tr.style.zIndex = "5";
+      tr.style.background = "var(--zen-color-background)";
+    };
+    let y = head;
+    for (const tr of rows.filter((r) => r.dataset.pinnedSide === "top")) {
+      place(tr, "top", y);
+      y += tr.getBoundingClientRect().height;
+    }
+    y = foot;
+    for (const tr of rows.filter((r) => r.dataset.pinnedSide === "bottom").reverse()) {
+      place(tr, "bottom", y);
+      y += tr.getBoundingClientRect().height;
+    }
+  }
   function watchPins(table: HTMLElement): void {
     pinObserver?.disconnect();
     pinObserver = null;
-    if (!current.enableColumnPinning && !current.enablePerColumnFilters) return;
+    if (!current.enableColumnPinning && !current.enablePerColumnFilters && !rowPinningActive()) return;
     pinObserver = new ResizeObserver(() => {
       if (current.enableColumnPinning) applyPinOffsets(table);
+      if (rowPinningActive()) applyRowPins(table);
       const head = table.querySelector<HTMLElement>("thead tr"); // i18n-ignore (a selector)
       if (head && current.enablePerColumnFilters) {
         table.style.setProperty("--zen-dt-header-h", `${head.getBoundingClientRect().height}px`);
@@ -3501,6 +3580,7 @@ export function DataTable<TData>(
           "zen-p-0 zen-transition-colors zen-relative",
           sortable && "hover:zen-bg-zen-muted",
           "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
+          columnHeaderClass(col.meta),
         ),
       );
       const width = colSize(col);
@@ -3595,22 +3675,35 @@ export function DataTable<TData>(
       // Totals: right-aligned figures, kept in view at the bottom while the
       // rows scroll under them. A footer without totals renders exactly as it
       // always has.
+      // stickyFooter keeps a footer without totals in view too.
+      const footerSticky = stickyActive && (hasTotals || !!current.stickyFooter);
       const totalCellClass = (isTotal: boolean): string =>
         cn(
           TABLE_CELL_CLASS,
           sepCellClass(),
-          isTotal && "zen-text-end zen-tabular-nums",
-          stickyActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
+          hasTotals && isTotal && "zen-text-end zen-tabular-nums",
+          footerSticky && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
         );
+      // A pinned footer cell paints its own background: opaque, so the cells
+      // passing under it do not show through the footer's translucent tint.
+      const footPin = (td: HTMLElement): void => {
+        if (!td.dataset.pin) return;
+        td.style.background = footerSticky
+          ? "var(--zen-color-muted)"
+          : "color-mix(in srgb, var(--zen-color-muted) 50%, var(--zen-color-background))";
+        td.style.zIndex = footerSticky ? "2" : "1";
+      };
       // The drag column's cell, so the footer sits under its columns.
       if (rowOrderingActive()) {
-        const td = h("td", hasTotals ? totalCellClass(false) : cn(TABLE_CELL_CLASS, sepCellClass()));
+        const td = h("td", totalCellClass(false));
         markUtilityPin(td, "__drag__");
+        footPin(td);
         tr.append(td);
       }
       if (expansionActive()) {
-        const td = h("td", hasTotals ? totalCellClass(false) : cn(TABLE_CELL_CLASS, sepCellClass()));
+        const td = h("td", totalCellClass(false));
         markUtilityPin(td, "__expand__");
+        footPin(td);
         tr.append(td);
       }
       if (hasTotals) {
@@ -3619,6 +3712,7 @@ export function DataTable<TData>(
         if (current.enableRowSelection) {
           const td = h("td", totalCellClass(false));
           markUtilityPin(td, "__select__");
+          footPin(td);
           tr.append(td);
         }
       }
@@ -3628,8 +3722,9 @@ export function DataTable<TData>(
       // The filtered rows (every page), or this page's own rows.
       const totalRows = current.totalsOver === "page" ? display : processed;
       for (const col of leafColumns()) {
-        const td = h("td", hasTotals ? totalCellClass(!!col.meta?.aggregate) : cn(TABLE_CELL_CLASS, sepCellClass()));
+        const td = h("td", cn(totalCellClass(!!col.meta?.aggregate), columnCellClass(col.meta)));
         markPin(td, col);
+        footPin(td);
         if (col.footer) {
           const content = col.footer(display.map((r: (typeof display)[number]) => r.row));
           collectInto(content, mounted);
@@ -3860,9 +3955,24 @@ export function DataTable<TData>(
       const start = Math.min(effPageIndex(), Math.max(0, Math.ceil(items.length / size) - 1)) * size;
       pageItems = items.slice(start, start + size);
     } else pageItems = items;
-    const display = pageItems
+    let display = pageItems
       ? pageItems.flatMap((it) => (it.kind === "row" ? [it.r] : []))
       : computeDisplay(processed);
+    // Pinned rows first and last, taken from all the data so a filter or the
+    // page cannot hide them (TanStack's keepPinnedRows, in React and Solid).
+    pinnedTop = new Set();
+    pinnedBottom = new Set();
+    if (rowPinningActive()) {
+      const pinned = pinnedRowOrder(
+        current.data.map((row, index) => ({ row, index })),
+        display,
+        (r) => rowIdOf(r.row, r.index),
+        current.rowPinning ?? rowPinningInner,
+      );
+      display = pinned.rows;
+      pinnedTop = pinned.top;
+      pinnedBottom = pinned.bottom;
+    }
     lastDisplay = display;
     rowElById = new Map();
     subElById = new Map();

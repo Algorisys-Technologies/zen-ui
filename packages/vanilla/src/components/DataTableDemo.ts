@@ -290,6 +290,47 @@ const endAligned = (text: string): HTMLElement => {
   span.textContent = text;
   return span;
 };
+
+/* -------------------- sections 36–38: styling, frozen rows, RTL ------ */
+const styledColumns: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", meta: { className: "zen-font-medium" } },
+  { accessorKey: "department", header: "Department" },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: ({ row }) => row.salary.toLocaleString("en-IN"),
+    meta: {
+      headerClassName: "zen-text-end",
+      // A function of the row: per-cell styling.
+      className: (p: Person) => ["zen-text-end zen-tabular-nums", p.salary >= 65_000 && "zen-font-semibold zen-text-zen-success"].filter(Boolean).join(" "),
+    },
+  },
+  { accessorKey: "status", header: "Status", meta: { className: (p: Person) => p.status === "suspended" && "zen-text-zen-error" } },
+];
+type IdLine = TotalLine & { id: string };
+const frozenColumns: DataTableColumn<IdLine>[] = [
+  { accessorKey: "item", header: "Item", size: 160 },
+  { accessorKey: "customer", header: "Customer", size: 200 },
+  { accessorKey: "due", header: "Latest due", size: 140, meta: { aggregate: "max" } },
+  { accessorKey: "qty", header: "Qty", size: 110, meta: { aggregate: "sum", className: "zen-text-end zen-tabular-nums", headerClassName: "zen-text-end" } },
+  { accessorKey: "rate", header: "Rate", size: 130, meta: { aggregate: "avg", className: "zen-text-end zen-tabular-nums" }, cell: ({ row }) => inrTotal.format(row.rate) },
+  { accessorKey: "amount", header: "Amount", size: 160, meta: { aggregate: "sum", className: "zen-text-end zen-tabular-nums", formatTotal: (v) => `₹${inrTotal.format(v as number)}` }, cell: ({ row }) => inrTotal.format(row.amount) },
+];
+const LINES_WITH_IDS: IdLine[] = LINES.map((l, i) => ({ ...l, id: `L${i + 1}` }));
+const footerColumns: DataTableColumn<IdLine>[] = [
+  { accessorKey: "item", header: "Item", footer: () => "60 lines, prices ex-tax" },
+  { accessorKey: "customer", header: "Customer" },
+  { accessorKey: "due", header: "Due" },
+];
+const wrapped = (testid: string, child: HTMLElement, opts: { maxWidth?: string; dir?: string } = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  if (opts.maxWidth) box.style.maxWidth = opts.maxWidth;
+  if (opts.dir) box.dir = opts.dir;
+  box.append(child);
+  return box;
+};
 const totalColumns: DataTableColumn<TotalLine>[] = [
   { accessorKey: "item", header: "Item" },
   { accessorKey: "customer", header: "Customer" },
@@ -1307,6 +1348,97 @@ DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true })
           );
           return box;
         },
+      },
+      {
+        title: "36. Styling columns and cells",
+        codeTitle: "meta.className, meta.headerClassName, --zen-table-cell-font-size",
+        codeDescription:
+          "A column's className styles its cells — a string for all of them, or a function of the row for one cell at a time (salaries from ₹65,000 in green, a suspended status in red). headerClassName styles its header. The body text size and line height are tokens, set here through the table's style.",
+        code: `const columns: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", meta: { className: "zen-font-medium" } },
+  { accessorKey: "salary", header: "Salary (₹)",
+    meta: {
+      headerClassName: "zen-text-end",
+      className: (p) => cn("zen-text-end", p.salary >= 65_000 && "zen-text-zen-success"),
+    } },
+  { accessorKey: "status", header: "Status",
+    meta: { className: (p) => p.status === "suspended" && "zen-text-zen-error" } },
+];
+
+DataTable({ data: people, columns,
+  style: { "--zen-table-cell-font-size": "13px", "--zen-table-cell-line-height": "18px" } })`,
+        render: () => {
+          const table = DataTable({ data: SMALL, columns: styledColumns });
+          table.el.style.setProperty("--zen-table-cell-font-size", "13px");
+          table.el.style.setProperty("--zen-table-cell-line-height", "18px");
+          return wrapped("styled-cells", table.el);
+        },
+      },
+      {
+        title: "37. Frozen rows, a sticky footer, pinned totals",
+        codeTitle: "enableRowPinning + rowPinning: { top, bottom }",
+        codeDescription:
+          "Pinned rows stay in view under the header (top) or above the footer (bottom) while the rest scroll, and stay even when a filter or the page would hide them. A pinned column's total stays with its column when you scroll sideways. stickyFooter does the same for a footer without totals.",
+        code: `DataTable({
+  data: lines, columns, getRowId: (l) => l.id,
+  enableRowPinning: true, initialRowPinning: { top: ["L1"], bottom: ["L60"] },
+  enableColumnPinning: true, initialColumnPinning: { left: ["item"], right: ["amount"] },
+  stickyHeader: true, maxBodyHeight: 320,
+})
+
+DataTable({ data: lines, columns, stickyHeader: true, stickyFooter: true, maxBodyHeight: 240 })
+// columns: { accessorKey: "item", header: "Item", footer: () => "60 lines, prices ex-tax" }, …`,
+        render: () => {
+          const frozen = DataTable({
+            data: LINES_WITH_IDS,
+            columns: frozenColumns,
+            getRowId: (l) => l.id,
+            enableRowPinning: true,
+            initialRowPinning: { top: ["L1"], bottom: ["L60"] },
+            enableColumnPinning: true,
+            initialColumnPinning: { left: ["item"], right: ["amount"] },
+            enableColumnVisibility: true,
+            enableRowSelection: true,
+            stickyHeader: true,
+            maxBodyHeight: 320,
+          });
+          const footer = DataTable({
+            data: LINES_WITH_IDS,
+            columns: footerColumns,
+            getRowId: (l) => l.id,
+            stickyHeader: true,
+            stickyFooter: true,
+            maxBodyHeight: 240,
+          });
+          const box = document.createElement("div");
+          box.className = "zen-grid zen-gap-6";
+          box.append(wrapped("frozen-rows", frozen.el, { maxWidth: "640px" }), wrapped("sticky-footer", footer.el));
+          return box;
+        },
+      },
+      {
+        title: "38. Right to left",
+        codeTitle: 'Pinned columns follow the reading direction (dir="rtl")',
+        codeDescription:
+          "Pinned to the left means pinned to the START: in a right-to-left page the column sticks on the right, where its row begins, and the edge shadow faces the scrolling columns.",
+        code: `const box = document.createElement("div");
+box.dir = "rtl";
+box.append(DataTable({ data: lines, columns, enableColumnPinning: true,
+  initialColumnPinning: { left: ["item"], right: ["amount"] }, stickyHeader: true }).el);`,
+        render: () =>
+          wrapped(
+            "rtl-pinned",
+            DataTable({
+              data: LINES_WITH_IDS.slice(0, 12),
+              columns: frozenColumns,
+              getRowId: (l) => l.id,
+              enableColumnPinning: true,
+              initialColumnPinning: { left: ["item"], right: ["amount"] },
+              stickyHeader: true,
+              maxBodyHeight: 260,
+            }).el,
+            { maxWidth: "640px", dir: "rtl" },
+          ),
       },
     ],
   });
