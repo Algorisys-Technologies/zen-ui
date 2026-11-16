@@ -567,15 +567,16 @@ ProductionSchedule({ …, onPlace: place }).el`,
       },
       {
         title: "Row height, chart height and colours",
-        codeTitle: "rowHeight, maxBodyHeight, rowClassName, barClassName",
+        codeTitle: "rowHeight, maxBodyHeight, rowClassName, barClassName, headerClassName",
         codeDescription:
-          "rowHeight is the least height of a row — a resource that stacks more lanes still gets the room it needs, and every row shares the result. maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a resource's row (the furnace, down for maintenance); barClassName colours an operation's bar over its status colours (one work order in teal, so it can be followed across machines).",
+          "rowHeight is the least height of a row — a resource that stacks more lanes still gets the room it needs, and every row shares the result. maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a resource's row (the furnace, down for maintenance); barClassName colours an operation's bar over its status colours (one work order in teal, so it can be followed across machines). headerClassName styles the header row and its frozen pane.",
         code: `ProductionSchedule({
   resources: cells, operations: jobs,
   rowHeight: 48,
   maxBodyHeight: 280,
   rowClassName: (r) => r.id === "furnace" && "zen-bg-zen-warning-soft",
   barClassName: (op) => op.order === "WO-4490" && "zen-bg-zen-accent-light-blue zen-border-zen-accent-light-blue",
+  headerClassName: "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
 })`,
         render: () =>
           tagged(
@@ -590,6 +591,7 @@ ProductionSchedule({ …, onPlace: place }).el`,
               maxBodyHeight: 280,
               rowClassName: (r) => (r.id === "furnace" ? "zen-bg-zen-warning-soft" : undefined),
               barClassName: (op) => op.order === "WO-4490" && "zen-bg-zen-accent-light-blue zen-border-zen-accent-light-blue",
+              headerClassName: "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
             }).el,
           ),
       },

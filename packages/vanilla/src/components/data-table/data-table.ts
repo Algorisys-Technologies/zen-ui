@@ -3750,14 +3750,65 @@ export function DataTable<TData>(
   }
 
   /* ----- virtualized body ----- */
+  /** A grid column's width; a pinned column without a size gets 150px (TanStack's default
+   *  in React and Solid), because its neighbours' sticky offsets are sums of widths. */
+  const virtWidth = (col: DataTableColumn<TData>): number | undefined =>
+    colSize(col) ?? (current.enableColumnPinning && pinSide(col) ? 150 : undefined);
+
   function gridTemplate(): string {
     const parts: string[] = [];
     if (current.enableRowSelection) parts.push("36px");
     for (const col of leafColumns()) {
-      const width = colSize(col);
+      const width = virtWidth(col);
       parts.push(width ? `${width}px` : "minmax(0, 1fr)");
     }
     return parts.join(" ");
+  }
+
+  /* Pinning in the older grid, as React's and Solid's: sticky cells at offsets
+   * summed from the grid's own widths (leafColumns() is already left, centre,
+   * right). The selection column pins with any left pin. Logical sides, so a
+   * right-to-left page pins to the right, and the edge shadow flips with
+   * --zen-pin-dir (set on the root). */
+  function virtPins(): Map<string, { side: "left" | "right"; offset: number; edge: boolean }> {
+    const out = new Map<string, { side: "left" | "right"; offset: number; edge: boolean }>();
+    if (!current.enableColumnPinning) return out;
+    const cols = leafColumns();
+    const left = cols.filter((c) => pinSide(c) === "left");
+    const right = cols.filter((c) => pinSide(c) === "right");
+    let x = 0;
+    if (left.length && current.enableRowSelection) {
+      out.set("__select__", { side: "left", offset: 0, edge: false });
+      x = 36;
+    }
+    left.forEach((c, i) => {
+      out.set(colId(c), { side: "left", offset: x, edge: i === left.length - 1 });
+      x += virtWidth(c) ?? 0;
+    });
+    x = 0;
+    [...right].reverse().forEach((c, i) => {
+      out.set(colId(c), { side: "right", offset: x, edge: i === right.length - 1 });
+      x += virtWidth(c) ?? 0;
+    });
+    return out;
+  }
+  function stickVirt(
+    cell: HTMLElement,
+    pin: { side: "left" | "right"; offset: number; edge: boolean } | undefined,
+    head: boolean,
+  ): void {
+    if (!pin) return;
+    cell.style.position = "sticky";
+    if (pin.side === "left") cell.style.insetInlineStart = `${pin.offset}px`;
+    else cell.style.insetInlineEnd = `${pin.offset}px`;
+    cell.style.zIndex = head ? "2" : "1";
+    cell.style.background = head ? headerStickyBg() : "var(--zen-color-background)";
+    if (pin.edge) {
+      cell.style.boxShadow =
+        pin.side === "left"
+          ? "inset calc(-1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)" // i18n-ignore (a CSS value)
+          : "inset calc(1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(-4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"; // i18n-ignore (a CSS value)
+    }
   }
 
   function paintVirtHeader(processed: DisplayRow[]): void {
@@ -3771,8 +3822,10 @@ export function DataTable<TData>(
         ? "2px solid var(--zen-color-primary)"
         : "1px solid var(--zen-color-border)";
 
+    const pins = virtPins();
     if (current.enableRowSelection) {
       const cell = h("div", "zen-flex zen-items-center zen-justify-center zen-px-2");
+      stickVirt(cell, pins.get("__select__"), true);
       const cb = Checkbox({
         checked: headerCheckState(processed),
         onCheckedChange: () => toggleAll(processed),
@@ -3809,12 +3862,23 @@ export function DataTable<TData>(
         cell.style.position = "relative";
         cell.append(resizeHandle(col, cell));
       }
+      // After the resize handle's `relative`: a pinned cell is sticky, which
+      // also positions the handle.
+      stickVirt(cell, pins.get(colId(col)), true);
       virtHeaderEl.append(cell);
     }
     // The filter row: the grid's next row, cell for cell.
     if (current.enablePerColumnFilters) {
-      if (current.enableRowSelection) virtHeaderEl.append(h("div"));
-      for (const col of leafColumns()) virtHeaderEl.append(filterCell("div", col, "zen-px-2 zen-py-1"));
+      if (current.enableRowSelection) {
+        const spacer = h("div");
+        stickVirt(spacer, pins.get("__select__"), true);
+        virtHeaderEl.append(spacer);
+      }
+      for (const col of leafColumns()) {
+        const cell = filterCell("div", col, "zen-px-2 zen-py-1");
+        stickVirt(cell, pins.get(colId(col)), true);
+        virtHeaderEl.append(cell);
+      }
     }
   }
 
@@ -3831,8 +3895,10 @@ export function DataTable<TData>(
     rowEl.style.height = "100%";
     if (selected) rowEl.setAttribute("data-state", "selected");
 
+    const pins = virtPins();
     if (current.enableRowSelection) {
       const cell = h("div", "zen-flex zen-items-center zen-justify-center zen-px-2");
+      stickVirt(cell, pins.get("__select__"), false);
       // Owned by VirtualizedItems' collectComponents (Checkbox exposes el + destroy).
       cell.append(
         Checkbox({
@@ -3845,7 +3911,8 @@ export function DataTable<TData>(
     }
 
     for (const col of leafColumns()) {
-      const cell = h("div", cn(VIRT_CELL_CLASS, sepCellClass()));
+      const cell = h("div", cn(VIRT_CELL_CLASS, sepCellClass(), columnCellClass(col.meta, { original: row })));
+      stickVirt(cell, pins.get(colId(col)), false);
       cell.append(...toNodes(renderCell(col, row, index)));
       rowEl.append(cell);
     }
@@ -4014,6 +4081,17 @@ export function DataTable<TData>(
           children: renderVirtRow,
         }) as ZenComponent<{ items: DisplayRow[] }>;
         containerEl.append(virt.el);
+        // The header is outside the rows' scroller, so it follows it sideways:
+        // a wide grid's header and columns used to part company on scroll,
+        // and a pinned header cell had no scroll to stick against.
+        const header = virtHeaderEl;
+        const rows = virt.el;
+        header.style.overflow = "hidden";
+        const follow = (): void => {
+          header.scrollLeft = rows.scrollLeft;
+        };
+        rows.addEventListener("scroll", follow, { passive: true });
+        disposer.add(() => rows.removeEventListener("scroll", follow));
       }
     }
 

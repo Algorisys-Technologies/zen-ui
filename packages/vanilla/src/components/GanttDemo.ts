@@ -481,15 +481,16 @@ Gantt({ tasks: plan }).el
       },
       {
         title: "13. Row height, chart height and colours",
-        codeTitle: "rowHeight, maxBodyHeight, rowClassName, barClassName",
+        codeTitle: "rowHeight, maxBodyHeight, rowClassName, barClassName, headerClassName",
         codeDescription:
-          "rowHeight sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. The small print (subtitles, percentages) follows --zen-schedule-label-font-size.",
+          "rowHeight sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. headerClassName styles the header row and its frozen pane. The small print (subtitles, percentages) follows --zen-schedule-label-font-size.",
         code: `Gantt({
   tasks: plan,
   rowHeight: 48,
   maxBodyHeight: 300,
   rowClassName: (t) => t.children && "zen-bg-zen-muted/40",
   barClassName: (t) => t.assignees?.some((a) => a.id === "u3") && "zen-bg-zen-accent-purple zen-border-zen-accent-purple",
+  headerClassName: "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
 })`,
         render: () =>
           tagged(
@@ -503,6 +504,7 @@ Gantt({ tasks: plan }).el
               maxBodyHeight: 300,
               rowClassName: (t) => (t.children ? "zen-bg-zen-muted/40" : undefined),
               barClassName: (t) => t.assignees?.some((a) => a.id === MEI.id) && "zen-bg-zen-accent-purple zen-border-zen-accent-purple",
+              headerClassName: "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
             }).el,
             { "--zen-schedule-label-font-size": "11px" },
           ),

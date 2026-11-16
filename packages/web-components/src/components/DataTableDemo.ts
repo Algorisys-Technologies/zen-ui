@@ -1037,7 +1037,7 @@ table.addEventListener("zen-row-order-change", (e) => {
         title: "17. Virtualization + pinning + resize + reorder + filters",
         codeTitle: "The virtualized grid wires column resize, reorder, and per-column filters",
         codeDescription:
-          "Drag any header sideways to reorder; drag the right edge to resize. Per-column filters render as a second row under the header. All on 2 000 virtualized rows. (Pinning is not drawn in this binding's older virtualized grid yet — enableRowVirtualization, section 6b, pins; todo.md tracks the rest.)",
+          "Drag any header sideways to reorder; drag the right edge to resize. Per-column filters render as a second row under the header. All on 2 000 virtualized rows. Name stays at the start and Salary at the end as the grid scrolls sideways; the header follows the columns.",
         code: `<zen-data-table enable-virtualization enable-column-pinning enable-column-resizing enable-column-ordering enable-per-column-filters enable-sorting max-body-height="360"></zen-data-table>
 <!-- data and columns are set as properties -->`,
         render: () =>

@@ -943,6 +943,14 @@ export interface PivotGridProps {
   style?: Partial<CSSStyleDeclaration> | Record<string, string>;
   /** The grid's height (px, or any CSS length). Default: fills its parent, as before. */
   height?: number | string;
+  /** Classes for every column-header cell (the corner and the totals header too), after their own. */
+  headerClassName?: string;
+  /** Classes for every row-label cell, after their own. */
+  rowHeaderClassName?: string;
+  /** Keep the column headers at the top while the grid scrolls down. Default true. */
+  stickyHeader?: boolean;
+  /** Keep the row labels at the start edge while the grid scrolls sideways. Default true. */
+  stickyRowHeaders?: boolean;
 }
 
 export type PivotTotalCell = { value: unknown; isLoading?: boolean } | null;
@@ -1088,6 +1096,8 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
     }
     if (current.style) Object.assign(el.style, current.style);
 
+    const stickHead = current.stickyHeader !== false;
+    const stickRows = current.stickyRowHeaders !== false;
     const totals = current.totals;
     const totalsCols = totals?.row ? Math.max(1, totals.columns ?? 1) : 0;
     /** Totals column i, pinned to the end edge; the last one sits at the edge. */
@@ -1115,11 +1125,13 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
           th.className = cn(
             STICKY_CORNER,
             "zen-px-2 zen-py-1 zen-text-start zen-align-bottom zen-text-sm zen-font-medium zen-capitalize zen-text-zen-muted-fg",
+            current.headerClassName,
           );
           th.style.position = "sticky";
           // Logical: the labels freeze at the START edge (the right, in RTL).
-          th.style.insetInlineStart = `${depth * rowHeaderWidth}px`;
-          th.style.top = `${headerRowIndex * rowHeight}px`;
+          // A sticky cell with no offset scrolls like any other: that is the switch.
+          if (stickRows) th.style.insetInlineStart = `${depth * rowHeaderWidth}px`;
+          if (stickHead) th.style.top = `${headerRowIndex * rowHeight}px`;
           fixHeight(th, rowHeight);
           fixWidth(th, rowHeaderWidth);
           if (headerRowIndex === headerRows.length - 1) {
@@ -1136,9 +1148,9 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
       if (cols.padLeft > 0) {
         const th = document.createElement("th");
         th.setAttribute("aria-hidden", "true");
-        th.className = "zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0";
+        th.className = cn("zen-sticky zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0", current.headerClassName);
         th.style.position = "sticky";
-        th.style.top = `${headerRowIndex * rowHeight}px`;
+        if (stickHead) th.style.top = `${headerRowIndex * rowHeight}px`;
         fixHeight(th, rowHeight);
         th.style.width = `${cols.padLeft}px`;
         th.style.minWidth = `${cols.padLeft}px`;
@@ -1152,10 +1164,12 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
         const th = document.createElement("th");
         th.setAttribute("scope", "col");
         th.colSpan = span;
-        th.className =
-          "zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground";
+        th.className = cn(
+          "zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground",
+          current.headerClassName,
+        );
         th.style.position = "sticky";
-        th.style.top = `${headerRowIndex * rowHeight}px`;
+        if (stickHead) th.style.top = `${headerRowIndex * rowHeight}px`;
         fixWidth(th, colWidth * span);
         fixHeight(th, rowHeight);
         if (header?.isLoading) th.append(h("div", cn("zen-h-3 zen-w-full", SKELETON_BAR)));
@@ -1166,7 +1180,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
       if (cols.padRight > 0) {
         const th = document.createElement("th");
         th.setAttribute("aria-hidden", "true");
-        th.className = "zen-border-0 zen-bg-zen-muted zen-p-0";
+        th.className = cn("zen-border-0 zen-bg-zen-muted zen-p-0", current.headerClassName);
         th.style.width = `${cols.padRight}px`;
         th.style.minWidth = `${cols.padRight}px`;
         tr.append(th);
@@ -1178,8 +1192,10 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
           th.setAttribute("scope", "col");
           th.dataset.pivotTotal = "column";
           th.rowSpan = headerRows.length;
-          th.className =
-            "zen-sticky zen-top-0 zen-z-30 zen-truncate zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground";
+          th.className = cn(
+            "zen-sticky zen-top-0 zen-z-30 zen-truncate zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground",
+            current.headerClassName,
+          );
           totalsColStyle(th, i);
           th.style.top = "0px";
           th.textContent = totals?.columnHeader?.(i) ?? loc.t("pivot.total");
@@ -1217,8 +1233,9 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
             STICKY_ROW_LABEL,
             "zen-break-words zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-align-top zen-text-xs zen-font-medium zen-leading-tight zen-text-zen-foreground",
             rowIndex > 0 ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0",
+            current.rowHeaderClassName,
           );
-          th.style.insetInlineStart = `${depth * rowHeaderWidth}px`;
+          if (stickRows) th.style.insetInlineStart = `${depth * rowHeaderWidth}px`;
           fixWidth(th, rowHeaderWidth);
           if (header?.isLoading) {
             th.append(h("div", cn("zen-h-3 zen-w-1/2", SKELETON_BAR)));

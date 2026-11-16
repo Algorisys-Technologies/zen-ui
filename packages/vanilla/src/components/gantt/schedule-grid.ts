@@ -268,6 +268,12 @@ export interface ScheduleGridOptions<R extends ScheduleRowShape> {
   /** The scroller's maximum height (px, or any CSS length). Default 32rem. */
   maxBodyHeight?: number | string;
   /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
+  /**
    * A strip under the rows, aligned to the axis and stuck to the bottom.
    * Rendered OUTSIDE the `treegrid` element: a div that is not a `row` inside a
    * grid is invalid ARIA, and a fake row would be counted by `aria-rowcount`.
@@ -683,7 +689,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
   function buildHeader(): HTMLElement {
     const header = el(
       "div",
-      "zen-sticky zen-top-0 zen-z-30 zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted",
+      cn("zen-sticky zen-top-0 zen-z-30 zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted", current.headerClassName),
     );
     header.setAttribute("role", "row");
     header.setAttribute("aria-rowindex", "1");
@@ -692,7 +698,10 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
 
     const pane = el(
       "div",
-      "zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
+      cn(
+        "zen-sticky zen-z-40 zen-flex zen-shrink-0 zen-items-center zen-border-e zen-border-zen-border zen-bg-zen-muted zen-text-xs zen-font-semibold zen-text-zen-muted-fg",
+        current.headerClassName,
+      ),
     );
     pane.style.width = `${current.axis.paneWidth}px`;
     pane.style.insetInlineStart = "0";

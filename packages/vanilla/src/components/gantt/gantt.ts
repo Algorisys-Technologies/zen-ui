@@ -166,6 +166,12 @@ export interface GanttProps extends BaseProps {
    * `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
    */
   barClassName?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
 }
 
 const BAR_PX = 18;
@@ -785,6 +791,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       rowHeight: rowHeightOf(),
       rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.task, row) : undefined,
       maxBodyHeight: current.maxBodyHeight,
+      headerClassName: current.headerClassName,
       axis,
       view: viewOf(),
       anchor: dateOf(),

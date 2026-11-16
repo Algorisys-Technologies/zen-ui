@@ -199,6 +199,12 @@ export interface ProductionScheduleProps extends BaseProps {
   rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
   /** Classes for an operation's bar, applied after its status colours so they win. */
   barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+  /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
 }
 
 type Row = ProductionRowData<ProductionResource, ProductionOperation>;
@@ -1110,6 +1116,7 @@ export function ProductionSchedule(
       rowHeight,
       rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.resource, row) : undefined,
       maxBodyHeight: current.maxBodyHeight,
+      headerClassName: current.headerClassName,
       renderTrack: (row: Row): Array<Node | AnyZenComponent> => {
         const content = trackContent(row);
         return current.onPlace !== undefined && !row.hasChildren ? [dropLayer(row, axis, content)] : content;
