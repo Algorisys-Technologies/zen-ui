@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.10.0",
+    date: "2026-11-16",
+    kind: "new",
+    title: "StatusBar, in Solid first",
+    detail: "The strip along the bottom of an app: text and buttons on two sides, coloured chips for problems, and the least important items giving way first when it is narrow. React, vanilla and web components follow in the next release.",
+  },
+  {
     version: "12.9.0",
     date: "2026-11-13",
     kind: "new",
