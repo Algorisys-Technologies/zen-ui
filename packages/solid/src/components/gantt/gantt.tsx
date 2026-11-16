@@ -171,13 +171,28 @@ export interface GanttProps {
   /** Replaces the whole no-tasks surface. */
   emptyState?: JSX.Element;
 
+  /**
+   * Every row's height in px. Default 36. One value for all rows: the row
+   * window and the dependency arrows place rows at index × height.
+   */
+  rowHeight?: number;
+  /** The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem. */
+  maxBodyHeight?: number | string;
+  /** Classes for a task's row — a tint for a critical or late task. */
+  rowClassName?: (task: GanttTask, row: GanttRow<GanttTask>) => string | undefined;
+  /**
+   * Classes for a task's bar, applied after its status colours so they win:
+   * `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
+   */
+  barClassName?: (task: GanttTask) => string | undefined | false | null;
+
   class?: string;
 }
 
 const BAR_PX = 18;
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
  *  exactly ROW_PX / 2 — which is the y the connector routes are computed at. */
-const BAR_TOP = (ROW_PX - BAR_PX) / 2;
+const barTop = (rowHeight: number) => (rowHeight - BAR_PX) / 2;
 
 /**
  * The frozen pane's columns. Fixed widths, because a sticky pane cannot be
@@ -303,6 +318,8 @@ type Row = GanttRow<GanttTask>;
 
 export const Gantt = (props: GanttProps) => {
   const loc = useLocale();
+  // Never shorter than a bar plus a few px, or the bar would overhang its row.
+  const rowHeight = () => Math.max(BAR_PX + 4, props.rowHeight ?? ROW_PX);
   /* Fit, not month, and certainly not week. A seven-day window is right for a
      calendar and wrong for a plan; a month is right for a plan that fits in one
      and wrong for the majority that do not. Fit is the only default that is
@@ -402,7 +419,7 @@ export const Gantt = (props: GanttProps) => {
         anchors.set(id, { rowIndex: index, startPct: placement.startPct, widthPct: placement.widthPct });
       }
     }
-    return ganttConnectors(anchors, links, { axisWidth: axis.axisWidth(), rowHeight: ROW_PX });
+    return ganttConnectors(anchors, links, { axisWidth: axis.axisWidth(), rowHeight: rowHeight() });
   });
 
   const setView = (next: GanttView) => {
@@ -508,8 +525,13 @@ export const Gantt = (props: GanttProps) => {
               axisWidth={axisWidth}
               placement={placements().get(row.index) ?? null}
               onTaskClick={props.onTaskClick}
+              rowHeight={rowHeight()}
+              barClass={props.barClassName?.(row.task) || undefined}
             />
           )}
+          rowHeight={rowHeight()}
+          rowClass={props.rowClassName ? (row) => props.rowClassName?.(row.task, row) : undefined}
+          maxBodyHeight={props.maxBodyHeight}
           view={view()}
           anchor={anchor()}
           now={now()}
@@ -578,7 +600,7 @@ const GanttPaneCell = (props: { column: GanttPaneColumn; row: Row; onToggle: (id
             {task().name}
           </span>
           <Show when={task().subtitle}>
-            <span class="zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg">{task().subtitle}</span>
+            <span class="zen-block zen-truncate zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">{task().subtitle}</span>
           </Show>
         </span>
       </Show>
@@ -621,6 +643,8 @@ const GanttTrack = (props: {
   axisWidth: number;
   placement: PlanningPlacement | null;
   onTaskClick?: (task: GanttTask, row: Row) => void;
+  rowHeight: number;
+  barClass?: string;
 }) => {
   const loc = useLocale();
   const task = () => props.row.task;
@@ -709,7 +733,7 @@ const GanttTrack = (props: {
               /* Drawn as pieces, the button is only the hit area and the focus
                  ring — the skin moves onto each piece, or the gaps would be
                  filled by the button's own background. */
-              pieces() === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[props.row.status]),
+              pieces() === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[props.row.status], props.barClass),
               /* Square off a cut edge so a bar continuing past the view does not
                  look like it ends there. */
               pieces() === null && placement().clippedStart && "zen-rounded-s-none zen-border-s-0",
@@ -719,7 +743,7 @@ const GanttTrack = (props: {
             style={{
               "inset-inline-start": `${placement().startPct}%`,
               width: `${placement().widthPct}%`,
-              top: `${BAR_TOP}px`,
+              top: `${barTop(props.rowHeight)}px`,
               height: `${BAR_PX}px`,
             }}
             title={`${task().name} · ${formatDay(props.row.span!.start)} – ${formatDay(props.row.span!.end)}${
@@ -750,6 +774,7 @@ const GanttTrack = (props: {
                       "zen-absolute zen-inset-y-0 zen-overflow-hidden",
                       BAR_CLASS[props.row.status],
                       "zen-rounded-zen-sm zen-border",
+                      props.barClass,
                     )}
                     style={{ "inset-inline-start": `${piece.startPct}%`, width: `${piece.widthPct}%` }}
                   >
@@ -774,7 +799,7 @@ const GanttTrack = (props: {
               <span
                 aria-hidden="true"
                 class={cn(
-                  "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-text-[10px] zen-font-medium",
+                  "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium",
                   labelOnFill()
                     ? cn("zen-start-1", FILL_TEXT_CLASS[props.row.status])
                     : "zen-end-1 zen-text-zen-foreground",
@@ -788,12 +813,12 @@ const GanttTrack = (props: {
           <Show when={props.row.progress !== null && labelOutside()}>
             <span
               aria-hidden="true"
-              class="zen-absolute zen-flex zen-items-center zen-text-[10px] zen-font-medium zen-text-zen-muted-fg"
+              class="zen-absolute zen-flex zen-items-center zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg"
               style={{
                 ...(labelBefore()
                   ? { "inset-inline-end": `calc(${100 - placement().startPct}% + 4px)` }
                   : { "inset-inline-start": `calc(${endPct()}% + 4px)` }),
-                top: `${BAR_TOP}px`,
+                top: `${barTop(props.rowHeight)}px`,
                 height: `${BAR_PX}px`,
               }}
             >

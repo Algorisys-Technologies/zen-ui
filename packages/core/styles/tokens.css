@@ -841,6 +841,12 @@
   --zen-table-row-hover: var(--zen-color-muted);
 }
 
+/* The small print on a schedule (Gantt, ProductionSchedule, PlanningCalendar):
+ * a task's subtitle, a bar's percentage, an axis sub-label. */
+:root {
+  --zen-schedule-label-font-size: 10px;
+}
+
 /* The narrowest a launchpad tile gets before TileGrid drops a column. */
 :root {
   --zen-tile-min-width: 13rem;

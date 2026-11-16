@@ -98,6 +98,8 @@ export interface PlanningCalendarProps {
   hideToolbar?: boolean;
   /** Message when there are no resources. */
   emptyMessage?: JSX.Element;
+  /** Height of one lane in px (appointments stack in lanes inside a row). Default 30. */
+  laneHeight?: number;
   class?: string;
 }
 
@@ -127,6 +129,8 @@ const TEXT_MIN_WIDTH_PCT = 3;
 
 export const PlanningCalendar = (props: PlanningCalendarProps) => {
   const loc = useLocale();
+  // Never so short that a block (lane − 6px) has no height.
+  const lanePx = () => Math.max(14, props.laneHeight ?? LANE_PX);
   const [innerView, setInnerView] = createSignal<PlanningView>(props.defaultView ?? "week");
   const [innerDate, setInnerDate] = createSignal<Date>(props.defaultDate ?? new Date());
 
@@ -252,7 +256,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
                         {column.label}
                       </div>
                       <Show when={column.sublabel}>
-                        <div class="zen-text-[10px] zen-text-zen-muted-fg">{column.sublabel}</div>
+                        <div class="zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">{column.sublabel}</div>
                       </Show>
                     </div>
                   )}
@@ -276,7 +280,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
 
                   <div
                     class="zen-relative zen-flex-1"
-                    style={{ "min-height": `${entry.laneCount * LANE_PX + 8}px` }}
+                    style={{ "min-height": `${entry.laneCount * lanePx() + 8}px` }}
                   >
                     {/* The column rules, drawn as a background layer rather than
                         as parents of the blocks: a block that spans four hours
@@ -326,8 +330,8 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
                           style={{
                             "inset-inline-start": `${block.placement.startPct}%`,
                             width: `${block.placement.widthPct}%`,
-                            top: `${block.lane * LANE_PX + 4}px`,
-                            height: `${LANE_PX - 6}px`,
+                            top: `${block.lane * lanePx() + 4}px`,
+                            height: `${lanePx() - 6}px`,
                           }}
                     title={`${block.appointment.title} · ${formatTimeRange(block.appointment.start, block.appointment.end)}`} // i18n-ignore (data joined by a separator, no words)
                         >

@@ -25,6 +25,8 @@ export type TreeProps = Omit<JSX.HTMLAttributes<HTMLUListElement>, "onSelect"> &
   selected?: string | null;
   defaultSelected?: string | null;
   onSelectedChange?: (id: string) => void;
+  /** Classes for one node's row, after its own (so a caller's padding or colour wins). */
+  itemClassName?: (node: TreeNode) => string | undefined | false | null;
 };
 
 type FlatNode = {
@@ -61,6 +63,7 @@ function flatten(
 
 export const Tree = (props: TreeProps) => {
   const [local, rest] = splitProps(props, [
+    "itemClassName",
     "items",
     "expanded",
     "defaultExpanded",
@@ -169,6 +172,7 @@ export const Tree = (props: TreeProps) => {
                   "hover:zen-bg-zen-muted",
                   isSelected() && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-font-medium",
                   row.node.disabled && "zen-cursor-not-allowed zen-opacity-50",
+                  local.itemClassName?.(row.node),
                 )}
               >
                 <Show

@@ -195,6 +195,20 @@ export interface ProductionScheduleProps {
   loading?: boolean;
   loadingRows?: number;
   emptyState?: JSX.Element;
+
+  /**
+   * The least height of a row in px. Default 36. Rows are taller when a
+   * resource stacks more lanes (see `maxLanes`); every row shares one height,
+   * because the row window and the routing arrows place rows at index × height.
+   */
+  rowHeight?: number;
+  /** The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem. */
+  maxBodyHeight?: number | string;
+  /** Classes for a resource's row — a tint for a down machine. */
+  rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
+  /** Classes for an operation's bar, applied after its status colours so they win. */
+  barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+
   class?: string;
 }
 
@@ -370,7 +384,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
      routes (which place an endpoint at rowIndex * rowHeight + rowHeight / 2). */
   const laneCount = () => Math.max(1, ...rows().map((row) => row.lanes.length));
   const rowHeight = () =>
-    Math.max(ROW_PX, laneCount() * LANE_BAR_PX + (laneCount() - 1) * LANE_GAP_PX + LANE_PAD_PX);
+    Math.max(props.rowHeight ?? ROW_PX, laneCount() * LANE_BAR_PX + (laneCount() - 1) * LANE_GAP_PX + LANE_PAD_PX);
   const laneTop = (lane: number) => {
     const stackTop =
       (rowHeight() - (laneCount() * LANE_BAR_PX + (laneCount() - 1) * LANE_GAP_PX)) / 2;
@@ -646,8 +660,11 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
           colCount={6}
           timelineColIndex={COL_INDEX.timeline}
           rowHeight={rowHeight()}
+          rowClass={props.rowClassName ? (row) => props.rowClassName?.(row.resource, row) : undefined}
+          maxBodyHeight={props.maxBodyHeight}
           renderTrack={(row) => (
             <ProductionTrack
+              barClass={props.barClassName}
               row={row}
               range={axis.range()}
               laneTop={laneTop}
@@ -738,7 +755,7 @@ const ProductionPaneCell = (props: {
             {resource().name}
           </span>
           <Show when={resource().subtitle}>
-            <span class="zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg">
+            <span class="zen-block zen-truncate zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">
               {resource().subtitle}
             </span>
           </Show>
@@ -765,7 +782,7 @@ const ProductionPaneCell = (props: {
           {/* Never silently dropped: a row that hid six jobs is the worst thing
               this component could do. */}
           <Show when={props.row.overflow > 0}>
-            <span class="zen-ms-1 zen-text-[10px] zen-text-zen-error">+{props.row.overflow}</span>
+            <span class="zen-ms-1 zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-error">+{props.row.overflow}</span>
           </Show>
         </span>
       </Show>
@@ -842,6 +859,7 @@ const ProductionTrack = (props: {
   onPropose: (move: ProductionMove) => void;
   isCritical: (id: string) => boolean;
   onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
+  barClass?: (operation: ProductionOperation) => string | undefined | false | null;
 }) => {
   const loc = useLocale();
   const accepts = () => props.onPlace !== undefined && !props.row.hasChildren;
@@ -895,6 +913,7 @@ const ProductionTrack = (props: {
               msPerPx={props.msPerPx}
               onPropose={props.onPropose}
               critical={props.isCritical(placement().operation.id)}
+              barClass={props.barClass?.(placement().operation) || undefined}
             />
           )}
         </Index>
@@ -938,6 +957,7 @@ const ProductionBar = (props: {
   msPerPx: number;
   onPropose: (move: ProductionMove) => void;
   critical: boolean;
+  barClass?: string;
 }) => {
   const loc = useLocale();
   const operation = () => props.placement.operation;
@@ -1142,6 +1162,7 @@ const ProductionBar = (props: {
                 class={cn(
                   "zen-absolute zen-inset-y-0 zen-overflow-hidden zen-rounded-zen-sm zen-border",
                   BAR_CLASS[status()],
+                  props.barClass,
                 )}
                 style={{
                   "inset-inline-start": `${piece().startPct}%`,

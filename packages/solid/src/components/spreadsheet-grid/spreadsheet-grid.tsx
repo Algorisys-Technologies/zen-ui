@@ -45,6 +45,11 @@ export interface SpreadsheetGridProps {
   /** Column width. Default `"6rem"`. */
   colWidth?: string;
   onCellCommit?: (ref: string, raw: CellValue, evaluated: CellValue) => void;
+  /**
+   * Classes for one cell, from its address and evaluated value — a negative
+   * figure in red, an input cell shaded: `(ref, v) => typeof v === "number" && v < 0 && "zen-text-zen-error"`.
+   */
+  cellClassName?: (ref: string, value: CellValue) => string | undefined | false | null;
   class?: string;
 }
 
@@ -247,6 +252,7 @@ export const SpreadsheetGrid = (props: SpreadsheetGridProps) => {
                                   ? "zen-text-end zen-tabular-nums"
                                   : "zen-text-start",
                                 isCellError(value()) && "zen-text-zen-error",
+                                props.cellClassName?.(ref(), value()),
                               )}
                               title={
                                 typeof cells()[ref()] === "string" &&
