@@ -453,7 +453,11 @@ export type { StepRunnerProps, StepRunnerStep } from "./components/step-runner/s
 export { canCompleteStep, stepRunnerState } from "@algorisys/zen-ui-core/step-runner";
 export { LiveIndicator } from "./components/live-indicator/live-indicator";
 export type { LiveIndicatorProps } from "./components/live-indicator/live-indicator";
+export { StatusBar } from "./components/status-bar/status-bar";
+export type { StatusBarProps, StatusBarItem, StatusBarColor } from "./components/status-bar/status-bar";
 export { liveState } from "@algorisys/zen-ui-core/live";
+export { statusBarCollapse, statusBarSides } from "@algorisys/zen-ui-core/status-bar";
+export type { StatusBarAlign, StatusBarLayoutItem } from "@algorisys/zen-ui-core/status-bar";
 export { ShiftNavigator } from "./components/shift-navigator/shift-navigator";
 export type { ShiftNavigatorProps } from "./components/shift-navigator/shift-navigator";
 export {
