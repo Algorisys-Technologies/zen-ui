@@ -836,6 +836,8 @@
   --zen-table-head-text-transform: none;
   --zen-table-head-letter-spacing: normal;
   --zen-table-cell-padding-x: 0.5rem;
+  --zen-table-cell-font-size: var(--zen-font-size-sm);
+  --zen-table-cell-line-height: var(--zen-line-height-sm);
   --zen-table-row-hover: var(--zen-color-muted);
 }
 

@@ -81,7 +81,17 @@ const UNO_AS = new Map([["outline", "outline-solid"]]);
 const twMerge = extendTailwindMerge({
   // The density keys are spacing, so `zen-h-zen-control` and a caller's
   // `zen-h-8` are one conflict group and the caller's wins.
-  extend: { theme: { radius: zenRadii, shadow: zenShadows, spacing: Object.keys(zenUnoTheme.spacing) } },
+  // The font sizes, so `zen-text-zen-cell` reads as a SIZE: tailwind-merge
+  // would otherwise take an unknown text-* value for a colour, and drop the
+  // cell's `zen-text-zen-foreground` beside it.
+  extend: {
+    theme: {
+      radius: zenRadii,
+      shadow: zenShadows,
+      spacing: Object.keys(zenUnoTheme.spacing),
+      text: Object.keys(zenUnoTheme.fontSize),
+    },
+  },
   experimentalParseClassName({ className, parseClassName }) {
     const parsed = parseClassName(className);
     const m = basePattern.exec(parsed.baseClassName);

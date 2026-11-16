@@ -115,7 +115,12 @@ export const TableCell = (
   const [local, rest] = splitProps(props, ["class"]);
   return (
     <td
-      class={cn("zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground", local.class)}
+      class={cn(
+        // zen-text-zen-cell: --zen-table-cell-font-size / -line-height, whose
+        // defaults are the small text this always used.
+        "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-align-middle zen-text-zen-cell zen-text-zen-foreground",
+        local.class,
+      )}
       {...rest}
     />
   );

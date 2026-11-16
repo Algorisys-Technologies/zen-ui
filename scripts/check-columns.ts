@@ -2,7 +2,7 @@
  * DataTable column management's pure contract: a column's name, moving a
  * column by one place, and the keyboard resize step.
  */
-import { clampColumnSize, columnLabel, columnLayout, columnResizeDelta, moveColumn, orderedColumnIds, respectsColumnSizes, columnMinWidth } from "../packages/core/src/columns";
+import { clampColumnSize, columnLabel, columnLayout, columnResizeDelta, moveColumn, orderedColumnIds, respectsColumnSizes, columnMinWidth, columnCellClass, columnHeaderClass, withUtilityPins, withoutUtilityPins } from "../packages/core/src/columns";
 
 let f = 0;
 let n = 0;
@@ -79,6 +79,26 @@ t(columnMinWidth(true, { size: 180, explicitSize: 180 }), 180, "an explicit size
 t(columnMinWidth(true, { size: 212.6, resized: true }), 213, "a resized width, whole pixels");
 t(columnMinWidth(true, { size: 150, pinned: true }), 150, "a pinned column, even unsized (its offset assumes it)");
 t(columnMinWidth(true, { size: 36, explicitSize: 36 }), 36, "utility columns too (the selection checkbox)");
+
+console.log("\ncolumn classes (meta.className / meta.headerClassName)");
+t(columnCellClass({ className: "zen-text-end" }, { original: {} }), "zen-text-end", "a string applies to body cells");
+t(columnCellClass({ className: "zen-text-end" }), "zen-text-end", "…and to the footer");
+const neg = (r: { amount: number }) => r.amount < 0 && "zen-text-zen-error";
+t(columnCellClass({ className: neg }, { original: { amount: -5 } }), "zen-text-zen-error", "a function sees the row's original data");
+t(columnCellClass({ className: neg }, { original: { amount: 5 } }), undefined, "…and false means no class");
+t(columnCellClass({ className: neg }), undefined, "a function is not asked about the footer");
+t(columnCellClass(undefined, { original: {} }), undefined, "no meta: nothing");
+t(columnHeaderClass({ headerClassName: "zen-text-end" }), "zen-text-end", "headerClassName");
+t(columnHeaderClass({ className: "x" }), undefined, "className is not the header's");
+
+console.log("\nutility columns pin with the left pins");
+const util = ["__drag__", "__select__"];
+t(withUtilityPins({ left: ["name"], right: ["total"] }, util), { left: ["__drag__", "__select__", "name"], right: ["total"] }, "left pins present: drag and select go first");
+t(withUtilityPins({ left: [], right: ["total"] }, util), { left: [], right: ["total"] }, "nothing pinned left: utilities scroll as before");
+t(withUtilityPins({}, util), { left: [], right: [] }, "an empty state");
+t(withUtilityPins({ left: ["__select__", "name"] }, util), { left: ["__drag__", "__select__", "name"], right: [] }, "never duplicated, kept in display order");
+t(withUtilityPins({ left: ["name"] }, []), { left: ["name"], right: [] }, "no utility columns: unchanged");
+t(withoutUtilityPins({ left: ["__drag__", "__select__", "name"], right: ["total", "__expand__"] }), { left: ["name"], right: ["total"] }, "what the app is told: its own pins only");
 
 console.log(f ? `\n${f} FAILED (of ${n})` : `\nall ${n} passed`);
 process.exit(f ? 1 : 0);

@@ -53,6 +53,13 @@ const ALWAYS = new Set(["class", "id", "style", "children", "ref", "asChild"]);
  * is debt with a home: closing it means deleting the line.
  */
 const KNOWN: Record<string, string> = {
+  // Solid-first (12.11.0, the owner's build order): ported to React, vanilla
+  // and web components in the next step, which removes these lines.
+  ...Object.fromEntries(
+    ["enableRowPinning", "rowPinning", "initialRowPinning", "onRowPinningChange", "stickyFooter"].map(
+      (m) => [`DataTableProps.${m}`, "react vanilla"],
+    ),
+  ),
   // TreeTable's controlled state, never ported to vanilla.
   ...Object.fromEntries(
     ["expanded", "globalFilter", "onGlobalFilterChange", "sorting", "onSortingChange", "rowSelection", "rowClass"].map(

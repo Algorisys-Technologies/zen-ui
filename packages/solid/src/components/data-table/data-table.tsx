@@ -27,6 +27,7 @@ import {
   type ColumnFiltersState,
   type ColumnOrderState,
   type ColumnPinningState,
+  type RowPinningState,
   type ColumnSizingState,
   type ExpandedState,
   type FilterFn,
@@ -55,7 +56,7 @@ import {
 } from "@thisbeyond/solid-dnd";
 
 import { cellKeyTarget, ownsArrowKeys, rowKeyTarget, type GridCell } from "@algorisys/zen-ui-core/row-keys";
-import { clampColumnSize, columnLabel, columnMinWidth, columnResizeDelta, moveColumn, respectsColumnSizes } from "@algorisys/zen-ui-core/columns";
+import { clampColumnSize, columnCellClass, columnHeaderClass, columnLabel, columnMinWidth, columnResizeDelta, moveColumn, respectsColumnSizes, withUtilityPins, withoutUtilityPins } from "@algorisys/zen-ui-core/columns";
 import {
   clampRange,
   inRect,
@@ -75,7 +76,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "../dropdown-menu/dropdown-menu";
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "../context-menu/context-menu";
@@ -275,6 +281,12 @@ export interface DataTableProps<TData, TValue = unknown> {
 
   stickyHeader?: boolean;
   /**
+   * Keep the footer row in view at the bottom while the rows scroll, as a
+   * table with totals already does. Needs a scrolling body: `stickyHeader`,
+   * `fillHeight` or row virtualization.
+   */
+  stickyFooter?: boolean;
+  /**
    * Fill the parent's height: the rows scroll inside the table, under a header
    * that stays put, and the pager stays below. For a list that is the page's
    * main pane. The parent must give it a height (a flex child with min-height 0,
@@ -290,6 +302,16 @@ export interface DataTableProps<TData, TValue = unknown> {
   columnPinning?: ColumnPinningState;
   initialColumnPinning?: ColumnPinningState;
   onColumnPinningChange?: (state: ColumnPinningState) => void;
+  /**
+   * Pin rows to the top or bottom of the body: `{ top: [rowId], bottom: [rowId] }`.
+   * A pinned row stays in view while the others scroll (with `stickyHeader`
+   * or `fillHeight`), and stays even when a filter or the page would hide it.
+   * The plain body only: ignored with virtualization or row ordering.
+   */
+  enableRowPinning?: boolean;
+  rowPinning?: RowPinningState;
+  initialRowPinning?: RowPinningState;
+  onRowPinningChange?: (state: RowPinningState) => void;
   /**
    * Keep each column at least its `size` (or the width it was resized to), and
    * scroll the table sideways when they do not fit, instead of letting the
@@ -309,6 +331,7 @@ export interface DataTableProps<TData, TValue = unknown> {
   emptyMessage?: string;
   loading?: boolean;
   class?: string;
+  style?: JSX.CSSProperties | string;
 
   manualPagination?: DataTableManualPagination;
   manualSorting?: boolean;
@@ -427,6 +450,12 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     "exportContext",
     "exportTitle",
     "stickyHeader",
+    "stickyFooter",
+    "enableRowPinning",
+    "rowPinning",
+    "initialRowPinning",
+    "onRowPinningChange",
+    "style",
     "enableColumnPinning",
     "columnPinning",
     "initialColumnPinning",
@@ -492,6 +521,9 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     persisted?.columnPinning ??
       props.initialColumnPinning ?? { left: [], right: [] },
   );
+  const [rowPinningInner, setRowPinningInner] = createSignal<RowPinningState>(
+    props.initialRowPinning ?? { top: [], bottom: [] },
+  );
   const [expandedInner, setExpandedInner] = createSignal<ExpandedState>({});
   const [groupingInner, setGroupingInner] = createSignal<GroupingState>(
     props.initialGrouping ?? [],
@@ -503,6 +535,13 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
   const visibility = () => props.columnVisibility ?? visibilityInner();
   const globalFilter = () => props.globalFilter ?? globalFilterInner();
   const columnPinning = () => props.columnPinning ?? columnPinningInner();
+  // What the table renders: the select / drag / expand columns stick with
+  // anything pinned left, so a row's checkbox does not scroll away from it.
+  const renderedPinning = (): ColumnPinningState =>
+    props.enableColumnPinning
+      ? withUtilityPins(columnPinning(), augmentedColumns().map((c) => c.id ?? ""))
+      : columnPinning();
+  const rowPinning = () => props.rowPinning ?? rowPinningInner();
   const expanded = () => props.expanded ?? expandedInner();
   const grouping = () => props.grouping ?? groupingInner();
 
@@ -756,7 +795,10 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
         return columnSizing();
       },
       get columnPinning() {
-        return columnPinning();
+        return renderedPinning();
+      },
+      get rowPinning() {
+        return rowPinning();
       },
       get expanded() {
         return expanded();
@@ -791,6 +833,14 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
       return !!props.enableColumnResizing;
     },
     columnResizeMode: "onChange",
+    get enableRowPinning() {
+      return !!props.enableRowPinning;
+    },
+    onRowPinningChange: (updater) => {
+      const next = typeof updater === "function" ? updater(rowPinning()) : updater;
+      if (props.rowPinning === undefined) setRowPinningInner(next);
+      props.onRowPinningChange?.(next);
+    },
     get enableColumnPinning() {
       return !!props.enableColumnPinning;
     },
@@ -822,7 +872,9 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
       setColumnSizing(next);
     },
     onColumnPinningChange: (updater) => {
-      const next = typeof updater === "function" ? updater(columnPinning()) : updater;
+      // TanStack's updaters start from what it renders (utility columns
+      // included); the app is told, and persists, its own pins only.
+      const next = withoutUtilityPins(typeof updater === "function" ? updater(renderedPinning()) : updater);
       if (props.columnPinning === undefined) setColumnPinningInner(next);
       props.onColumnPinningChange?.(next);
     },
@@ -996,16 +1048,20 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
     if (!pin) return undefined;
     const isLastLeft = pin === "left" && column.getIsLastColumn("left");
     const isFirstRight = pin === "right" && column.getIsFirstColumn("right");
+    // Logical sides, so "left" means the START edge: in a right-to-left page
+    // the pinned column sticks on the right, where its row begins. The edge
+    // shadow is physical, so it flips with --zen-pin-dir (set to -1 under rtl
+    // on the root).
     return {
       position: "sticky",
-      left: pin === "left" ? `${column.getStart("left")}px` : undefined,
-      right: pin === "right" ? `${column.getAfter("right")}px` : undefined,
+      "inset-inline-start": pin === "left" ? `${column.getStart("left")}px` : undefined,
+      "inset-inline-end": pin === "right" ? `${column.getAfter("right")}px` : undefined,
       background: "var(--zen-color-background)",
       "z-index": 1,
       "box-shadow": isLastLeft
-        ? "inset -1px 0 0 var(--zen-color-border), 4px 0 6px -4px rgba(0,0,0,0.12)"
+        ? "inset calc(-1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
         : isFirstRight
-          ? "inset 1px 0 0 var(--zen-color-border), -4px 0 6px -4px rgba(0,0,0,0.12)"
+          ? "inset calc(1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(-4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
           : undefined,
     };
   };
@@ -1187,6 +1243,8 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
               onRowActivate={props.onRowActivate}
               rowLabel={props.rowLabel}
               virtualize={rowVirtual()}
+              rowPinning={!!props.enableRowPinning && !rowVirtual()}
+              stickyFooter={!!props.stickyFooter}
               estimatedRowHeight={props.rowEstimatedHeight}
             />
           }
@@ -1227,6 +1285,7 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
                 renderCell={renderCellContent}
                 expansionEnabled={false}
                 renderSubRow={undefined}
+                stickyFooter={!!props.stickyFooter}
                 rowOrderingActive
               />
             </SortableProvider>
@@ -1268,8 +1327,10 @@ export function DataTable<TData, TValue = unknown>(rawProps: DataTableProps<TDat
         // a flex parent grows the whole DataTable to the table's width instead.
         respectSizes() && "zen-min-w-0",
         props.fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
+        props.enableColumnPinning && "rtl:zen-[--zen-pin-dir:-1]",
         props.class,
       )}
+      style={props.style}
     >
       <Toolbar
         {...toolbarMenuProps}
@@ -1891,32 +1952,36 @@ function ColumnsMenu<TData>(props: {
                     </DropdownMenuCheckboxItem>
                   }
                 >
-                  <div class="zen-flex zen-items-center zen-gap-2 zen-px-2 zen-py-1.5 zen-text-sm">
-                    <Checkbox
-                      checked={column.getIsVisible()}
-                      onChange={(v) => column.toggleVisibility(v)}
-                      aria-label={loc.t("dataTable.toggleColumn", { label: label() })}
-                    />
-                    <span class="zen-flex-1 zen-truncate">{label()}</span>
-                    <PinButton
-                      active={column.getIsPinned() === "left"}
-                      side="left"
-                      label={label()}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        column.pin(column.getIsPinned() === "left" ? false : "left");
-                      }}
-                    />
-                    <PinButton
-                      active={column.getIsPinned() === "right"}
-                      side="right"
-                      label={label()}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        column.pin(column.getIsPinned() === "right" ? false : "right");
-                      }}
-                    />
-                  </div>
+                  {/* Each column is a submenu: show it, and where it is pinned.
+                      Every choice is a menu item, so all of it works from the
+                      keyboard — the pin buttons that sat in the row here could
+                      not be reached with Tab inside a menu. Same as vanilla. */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger data-column-id={column.id}>
+                      <span class="zen-flex-1 zen-truncate">{label()}</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuCheckboxItem
+                        checked={column.getIsVisible()}
+                        onChange={(v) => column.toggleVisibility(v)}
+                      >
+                        {loc.t("dataTable.showColumn")}
+                      </DropdownMenuCheckboxItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup
+                        value={column.getIsPinned() || "none"}
+                        onChange={(v: string) => column.pin(v === "left" || v === "right" ? v : false)}
+                      >
+                        <DropdownMenuRadioItem value="none">{loc.t("dataTable.pinNone")}</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="left">
+                          {loc.t("dataTable.pinTo", { side: loc.t("dataTable.sideLeft") })}
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="right">
+                          {loc.t("dataTable.pinTo", { side: loc.t("dataTable.sideRight") })}
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                 </Show>
               );
             }}
@@ -1933,38 +1998,6 @@ function ColumnsMenu<TData>(props: {
         </DropdownMenuContent>
       </DropdownMenu>
     </Show>
-  );
-}
-
-function PinButton(props: {
-  active: boolean;
-  side: "left" | "right";
-  label: string;
-  onClick: (e: MouseEvent) => void;
-}) {
-  const loc = useLocale();
-  const side = () => loc.t(props.side === "left" ? "dataTable.sideLeft" : "dataTable.sideRight");
-  return (
-    <button
-      type="button"
-      onClick={(e) => props.onClick(e)}
-      aria-label={loc.t(props.active ? "dataTable.unpinColumnFrom" : "dataTable.pinColumnTo", {
-        label: props.label,
-        side: side(),
-      })}
-      aria-pressed={props.active}
-      title={loc.t(props.active ? "dataTable.unpinFrom" : "dataTable.pinTo", { side: side() })}
-      class={cn(
-        "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
-        "zen-border-0 zen-cursor-pointer zen-text-xs",
-        props.active
-          ? "zen-bg-zen-primary zen-text-zen-primary-fg"
-          : "zen-bg-transparent zen-text-zen-muted-fg hover:zen-bg-zen-muted hover:zen-text-zen-foreground",
-        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-      )}
-    >
-      {props.side === "left" ? "◀" : "▶"}
-    </button>
   );
 }
 
@@ -2015,6 +2048,10 @@ interface BodyTableProps<TData> {
   /** A context menu is attached: rows and cells say which they are, and a right-click focuses them. */
   menuTargets?: boolean;
   onRowMove?: (from: number, to: number) => void;
+  /** Row pinning is on and this body can honour it (the plain body). */
+  rowPinning?: boolean;
+  /** Keep a footer without totals in view too. */
+  stickyFooter?: boolean;
 }
 
 /** One rendered body row when virtualized: a data row, or the panel an expanded row opens. */
@@ -2025,7 +2062,70 @@ interface BodyItem<TData> {
 
 function BodyTable<TData>(props: BodyTableProps<TData>) {
   const loc = useLocale();
-  const rows = () => props.table.getRowModel().rows;
+  // Pinned rows first and last; TanStack keeps them even when a filter or
+  // the page would drop them.
+  const rows = () =>
+    props.rowPinning
+      ? [...props.table.getTopRows(), ...props.table.getCenterRows(), ...props.table.getBottomRows()]
+      : props.table.getRowModel().rows;
+
+  // Pinned rows stick under the header (top) or above the footer (bottom),
+  // each below the ones pinned before it — so the header, the footer and
+  // every pinned row are measured, not assumed.
+  const [headH, setHeadH] = createSignal(0);
+  const [footH, setFootH] = createSignal(0);
+  const [pinH, setPinH] = createSignal<Record<string, number>>({});
+  const pinRO =
+    typeof ResizeObserver === "undefined"
+      ? undefined
+      : new ResizeObserver((entries) => {
+          let heights: Record<string, number> | undefined;
+          for (const e of entries) {
+            const el = e.target as HTMLElement;
+            const h = el.getBoundingClientRect().height;
+            if (el.tagName === "THEAD") setHeadH(h);
+            else if (el.tagName === "TFOOT") setFootH(h);
+            else if (el.dataset.pinnedRow) (heights ??= { ...pinH() })[el.dataset.pinnedRow] = h;
+          }
+          if (heights) setPinH(heights);
+        });
+  onCleanup(() => pinRO?.disconnect());
+  const observe = (el: Element) => {
+    pinRO?.observe(el);
+    onCleanup(() => pinRO?.unobserve(el));
+  };
+  // A pinned column's footer cell is pinned with it (it scrolled away from
+  // its column before). Opaque, so the cells passing under it do not show
+  // through the footer's translucent tint.
+  const footerPinStyle = (column: Column<TData, unknown>): JSX.CSSProperties | undefined => {
+    const pin = props.pinStyle(column);
+    if (!pin) return undefined;
+    return {
+      ...pin,
+      background: footerSticky()
+        ? "var(--zen-color-muted)"
+        : "color-mix(in srgb, var(--zen-color-muted) 50%, var(--zen-color-background))",
+      "z-index": footerSticky() ? 2 : 1,
+    };
+  };
+  const footerSticky = () => props.stickyHeaderActive && (hasTotals() || !!props.stickyFooter);
+  const pinnedRowStyle = (row: Row<TData>): JSX.CSSProperties | undefined => {
+    if (!props.rowPinning || !props.stickyHeaderActive) return undefined;
+    const side = row.getIsPinned();
+    if (!side) return undefined;
+    const list = side === "top" ? props.table.getTopRows() : props.table.getBottomRows();
+    const at = list.findIndex((r) => r.id === row.id);
+    const before = side === "top" ? list.slice(0, at) : list.slice(at + 1);
+    const heights = pinH();
+    let offset = 0;
+    for (const r of before) offset += heights[r.id] ?? 0;
+    return {
+      position: "sticky",
+      [side === "top" ? "top" : "bottom"]: `${offset + (side === "top" ? headH() : footerSticky() ? footH() : 0)}px`,
+      "z-index": 5,
+      background: "var(--zen-color-background)",
+    };
+  };
   const totalOf = (column: { columnDef: { meta?: unknown } }) => !!(column.columnDef.meta as { aggregate?: unknown } | undefined)?.aggregate;
   const hasTotals = () => props.table.getAllLeafColumns().some(totalOf);
   const colCount = () => props.table.getAllLeafColumns().length;
@@ -2650,6 +2750,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
     <TableRow
       ref={(el: HTMLTableRowElement) => {
         measureRow(el, virt);
+        if (props.rowPinning) observe(el);
         if (!props.keyboard) return;
         rowRefs.set(row.id, el);
         onCleanup(() => { if (rowRefs.get(row.id) === el) rowRefs.delete(row.id); });
@@ -2659,6 +2760,8 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
         }
       }}
       data-index={virt?.index}
+      data-pinned-row={props.rowPinning && row.getIsPinned() ? row.id : undefined}
+      style={pinnedRowStyle(row)}
       aria-rowindex={virt ? headerRowCount() + virt.index + 1 : undefined}
       tabIndex={props.keyboard ? (index() === tabStop() ? 0 : -1) : undefined}
       aria-label={props.keyboard ? props.rowLabel?.(row) : undefined}
@@ -2725,6 +2828,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
               }}
               class={cn(
                 props.sepCellClass,
+                columnCellClass(cell.column.columnDef.meta, row),
                 navCol() !== undefined &&
                   "focus:zen-outline focus:zen-outline-2 focus:-zen-outline-offset-2 focus:zen-outline-zen-ring",
                 isSelected() && "zen-bg-zen-primary-soft",
@@ -2780,7 +2884,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
   // "useDragDropContext is not a function or its return value is not
   // iterable" error.
   const HeaderRows = () => (
-    <TableHeader class={props.headerVariantThead}>
+    <TableHeader class={props.headerVariantThead} ref={(el: HTMLTableSectionElement) => props.rowPinning && observe(el)}>
       <For each={props.table.getHeaderGroups()}>
         {(hg) => (
           <TableRow
@@ -2918,7 +3022,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
                               props.editingCell?.rowId === row.id &&
                               props.editingCell?.columnId === cell.column.id;
                             return (
-                              <TableCell class={props.sepCellClass} style={pin}>
+                              <TableCell class={cn(props.sepCellClass, columnCellClass(cell.column.columnDef.meta, row))} style={pin}>
                                 <EditableCell
                                   cell={cell}
                                   editing={isEditing()}
@@ -2970,7 +3074,10 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
         {/* Totals (a column's meta.aggregate): right-aligned figures, and kept in
           * view at the bottom while the rows scroll under it. A footer without
           * totals renders exactly as it always has. */}
-        <TableFooter data-totals={hasTotals() ? "" : undefined}>
+        <TableFooter
+          data-totals={hasTotals() ? "" : undefined}
+          ref={(el: HTMLTableSectionElement) => props.rowPinning && observe(el)}
+        >
           <For each={props.table.getFooterGroups()}>
             {(fg) => (
               <TableRow>
@@ -2978,14 +3085,12 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
                   {(header) => (
                     <TableCell
                       colSpan={header.colSpan}
-                      class={
-                        hasTotals()
-                          ? cn(
-                              totalOf(header.column) && "zen-text-end zen-tabular-nums",
-                              props.stickyHeaderActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
-                            )
-                          : undefined
-                      }
+                      class={cn(
+                        hasTotals() && totalOf(header.column) && "zen-text-end zen-tabular-nums",
+                        footerSticky() && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
+                        columnCellClass(header.column.columnDef.meta),
+                      ) || undefined}
+                      style={footerPinStyle(header.column)}
                     >
                       <Show when={!header.isPlaceholder}>
                         {flexRender(header.column.columnDef.footer, header.getContext())}
@@ -3433,6 +3538,7 @@ function HeaderCell<TData, TValue>(props: {
             "zen-p-0 zen-transition-colors zen-relative",
             canSort() && "hover:zen-bg-zen-muted",
             "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
+            columnHeaderClass(header().column.columnDef.meta),
           )}
           style={headStyle()}
         >
@@ -3445,6 +3551,7 @@ function HeaderCell<TData, TValue>(props: {
         sorted={sorted()}
         canSort={canSort()}
         style={headStyle()}
+        class={columnHeaderClass(header().column.columnDef.meta)}
       >
         {innerContent()}
       </SortableHeaderTh>
@@ -3458,6 +3565,7 @@ function SortableHeaderTh(props: {
   sorted: false | "asc" | "desc";
   canSort: boolean;
   style: JSX.CSSProperties;
+  class?: string;
   children: JSX.Element;
 }) {
   // A drag id fixed for this row/header's life — see DragHandle above.
@@ -3490,6 +3598,7 @@ function SortableHeaderTh(props: {
         "zen-p-0 zen-transition-colors",
         props.canSort && "hover:zen-bg-zen-muted",
         "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
+        props.class,
       )}
       style={style()}
     >
@@ -3737,6 +3846,7 @@ function VirtualizedBody<TData>(props: {
                       return (
                         <div
                           role="cell"
+                          class={columnCellClass(cell.column.columnDef.meta, row)}
                           style={{
                             padding: "var(--zen-space-2) var(--zen-space-1)",
                             display: "flex",
@@ -3835,6 +3945,7 @@ function VirtHeaderCell<TData, TValue>(props: {
           : "zen-font-medium zen-text-zen-muted-fg",
         canSort() && "hover:zen-bg-zen-muted",
         "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
+        columnHeaderClass(props.header.column.columnDef.meta),
       )}
       style={{
         "min-width": 0,
@@ -3878,6 +3989,7 @@ function VirtSortableHeaderCell<TData, TValue>(props: {
           : "zen-font-medium zen-text-zen-muted-fg",
         canSort() && "hover:zen-bg-zen-muted",
         "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
+        columnHeaderClass(props.header.column.columnDef.meta),
       )}
       style={{
         "min-width": 0,
