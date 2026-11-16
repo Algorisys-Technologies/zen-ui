@@ -279,7 +279,66 @@ const pivot = async (page, origin) => {
     return out;
   });
   t("pivot RTL: the cells under the viewport are drawn at every scroll", painted, [true, true, true, true]);
+
+  // Header classes, and the freeze switched off: the headers scroll away.
+  if (await page.$('[data-testid="pivot-unfrozen"]')) {
+    await page.$eval('[data-testid="pivot-unfrozen"]', (e) => e.scrollIntoView({ block: "center" }));
+    const primarySoft = await page.evaluate(() => {
+      const ref = document.createElement("span");
+      ref.className = "zen-bg-zen-primary-soft";
+      document.body.append(ref);
+      const bg = getComputedStyle(ref).backgroundColor;
+      ref.remove();
+      return bg;
+    });
+    const look = await page.$eval('[data-testid="pivot-unfrozen"]', (w) => ({
+      head: getComputedStyle(w.querySelector("thead th[scope=col]:not([aria-hidden])")).backgroundColor,
+      label: getComputedStyle(w.querySelector("tbody th[scope=row]")).fontWeight,
+    }));
+    t("pivot headerClassName reaches the column headers", look.head, primarySoft);
+    t("pivot rowHeaderClassName reaches the row labels", look.label, "600");
+    const moved = await page.$eval('[data-testid="pivot-unfrozen"] [role="region"]', async (sc) => {
+      const at = () => {
+        const h = sc.querySelector("thead th[scope=col]:not([aria-hidden])").getBoundingClientRect();
+        const l = sc.querySelector("tbody th[scope=row]").getBoundingClientRect();
+        return { top: h.top, left: l.left };
+      };
+      const before = at();
+      sc.scrollTop = 200;
+      sc.scrollLeft = 300;
+      await new Promise((r) => setTimeout(r, 250));
+      const after = at();
+      return { headerScrolled: after.top < before.top - 100, labelScrolled: after.left < before.left - 100 };
+    });
+    t("pivot stickyHeader={false}: the column headers scroll away", moved.headerScrolled, true);
+    t("pivot stickyRowHeaders={false}: the row labels scroll away", moved.labelScrolled, true);
+  } else {
+    console.log("  NOT PORTED pivot header styling / freeze switches");
+    notPorted.push("pivot header styling");
+  }
   return true;
+};
+
+/** headerClassName on the schedules: the header row and its frozen pane take it. */
+const scheduleHeaders = async (page, origin) => {
+  let any = false;
+  for (const [route, id] of [["gantt", "gantt-styled"], ["production-schedule", "production-styled"]]) {
+    await page.goto(`${origin}/${route}`);
+    if (!(await page.waitForSelector(`[data-testid="${id}"] [role="row"]`, { timeout: 8000 }).catch(() => null))) continue;
+    any = true;
+    const r = await page.$eval(`[data-testid="${id}"]`, (w) => {
+      const ref = document.createElement("span");
+      ref.className = "zen-bg-zen-primary-soft";
+      document.body.append(ref);
+      const want = getComputedStyle(ref).backgroundColor;
+      ref.remove();
+      const header = w.querySelector('[role="row"][aria-rowindex="1"]');
+      const pane = header?.firstElementChild;
+      return { want, row: header && getComputedStyle(header).backgroundColor, pane: pane && getComputedStyle(pane).backgroundColor };
+    });
+    t(`${route} headerClassName reaches the header row and its pane`, [r.row, r.pane], [r.want, r.want]);
+  }
+  return any;
 };
 
 const browser = await chromium.launch();
@@ -296,7 +355,7 @@ for (const id of wanted) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    for (const [name, run] of [["DataTable", dataTable], ["PivotGrid", pivot]]) {
+    for (const [name, run] of [["DataTable", dataTable], ["PivotGrid", pivot], ["schedule headers", scheduleHeaders]]) {
       if (!(await run(page, origin))) {
         notPorted.push(`${id} ${name}`);
         console.log(`  NOT PORTED ${name}`);

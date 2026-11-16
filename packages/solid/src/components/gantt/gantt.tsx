@@ -185,6 +185,12 @@ export interface GanttProps {
    * `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
    */
   barClassName?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
 
   class?: string;
 }
@@ -532,6 +538,7 @@ export const Gantt = (props: GanttProps) => {
           rowHeight={rowHeight()}
           rowClass={props.rowClassName ? (row) => props.rowClassName?.(row.task, row) : undefined}
           maxBodyHeight={props.maxBodyHeight}
+          headerClassName={props.headerClassName}
           view={view()}
           anchor={anchor()}
           now={now()}

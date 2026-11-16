@@ -208,6 +208,12 @@ export interface ProductionScheduleProps {
   rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
   /** Classes for an operation's bar, applied after its status colours so they win. */
   barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+  /**
+   * Classes for the header: the row and its frozen pane, applied after their
+   * own, so a caller's background and text colour win
+   * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+   */
+  headerClassName?: string;
 
   class?: string;
 }
@@ -662,6 +668,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
           rowHeight={rowHeight()}
           rowClass={props.rowClassName ? (row) => props.rowClassName?.(row.resource, row) : undefined}
           maxBodyHeight={props.maxBodyHeight}
+          headerClassName={props.headerClassName}
           renderTrack={(row) => (
             <ProductionTrack
               barClass={props.barClassName}

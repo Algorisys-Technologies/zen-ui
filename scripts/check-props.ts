@@ -53,6 +53,14 @@ const ALWAYS = new Set(["class", "id", "style", "children", "ref", "asChild"]);
  * is debt with a home: closing it means deleting the line.
  */
 const KNOWN: Record<string, string> = {
+  // Solid-first (owner's build order, 2026-11-17): header classes and the pivot
+  // freeze switches. Ported to React, vanilla and web components next; these
+  // lines go as each binding lands.
+  ...Object.fromEntries(
+    ["GanttProps.headerClass", "ProductionScheduleProps.headerClass", "PivotGridProps.headerClass", "PivotGridProps.rowHeaderClass", "PivotGridProps.stickyHeader", "PivotGridProps.stickyRowHeaders"].map(
+      (k) => [k, "react vanilla"],
+    ),
+  ),
   // TreeTable's controlled state, never ported to vanilla.
   ...Object.fromEntries(
     ["expanded", "globalFilter", "onGlobalFilterChange", "sorting", "onSortingChange", "rowSelection", "rowClass"].map(

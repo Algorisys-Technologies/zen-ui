@@ -36,6 +36,28 @@ const COL_TOTALS = Array.from({ length: T_COLS }, (_, c) => {
   return sum;
 });
 const GRAND_TOTAL = ROW_TOTALS.reduce((a, b) => a + b, 0);
+const plainGrid = () => (
+  <div data-testid="pivot-unfrozen">
+    <PivotGrid
+      layout={TOTALS_LAYOUT}
+      height={300}
+      totalRows={T_ROWS}
+      totalCols={T_COLS}
+      rowHeaderDepth={2}
+      colHeaderDepth={3}
+      colWidth={130}
+      getCell={(r, c) => ({ value: money(salaryAt(r, c)) })}
+      getRowHeader={(r, d) => ({ value: dimensionValueAt(TOTALS_LAYOUT.rows[d], r, d, TOTALS_LAYOUT.rows) })}
+      getColHeader={(d, c) =>
+        d < 2 ? { value: dimensionValueAt(TOTALS_LAYOUT.columns[d], c, d, TOTALS_LAYOUT.columns) } : { value: "Salary" }
+      }
+      headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
+      rowHeaderClassName="zen-font-semibold"
+      stickyHeader={false}
+      stickyRowHeaders={false}
+    />
+  </div>
+);
 const totalsGrid = (dir?: "rtl") => (
   <div dir={dir} data-testid={dir === "rtl" ? "pivot-rtl" : "pivot-totals"}>
     <PivotGrid
@@ -270,6 +292,21 @@ const next = moveFieldToZone(layout, "country", "rows", { index: 0 });`}
           {totalsGrid()}
           {totalsGrid("rtl")}
         </div>
+      </DemoSection>
+
+      <DemoSection
+        title="6. Header styling, and switching the freeze off"
+        codeTitle="headerClassName, rowHeaderClassName, stickyHeader, stickyRowHeaders"
+        codeDescription="headerClassName styles every column-header cell — the corner and a totals header too — and rowHeaderClassName every row label, each after its own classes, so yours win. The headers stay put while the grid scrolls by default; stickyHeader={false} and stickyRowHeaders={false} let them scroll away with the cells, for a short grid that is read whole or printed."
+        code={`<PivotGrid
+  layout={layout} height={300} …
+  headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
+  rowHeaderClassName="zen-font-semibold"
+  stickyHeader={false}
+  stickyRowHeaders={false}
+/>`}
+      >
+        <div class="zen-w-full">{plainGrid()}</div>
       </DemoSection>
     </DemoPage>
   );
