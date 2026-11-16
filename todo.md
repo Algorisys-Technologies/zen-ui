@@ -15,10 +15,30 @@ issue / PR when its turn comes.
    the API reference: where Solid's shape would not suit React, reconcile before
    porting, not after.
 3. **Publish to npm** (owner, 2026-11-04: "just like tinyfly and yappydraw",
-   https://www.npmjs.com/package/@algorisys/tinyfly). Queued after the current
-   task, not started. Match how those packages publish (scope, metadata,
-   workflow); the tarballs already install cleanly (CLAUDE.md, check:package).
-   When it is live, add it to "Ship it" in CLAUDE.md.
+   https://www.npmjs.com/package/@algorisys/tinyfly). **On hold in the backlog
+   (owner, 2026-11-16)** — not next; start only when the owner says so. Match
+   how those packages publish (scope, metadata, workflow); the tarballs already
+   install cleanly (CLAUDE.md, check:package). When it is live, add it to
+   "Ship it" in CLAUDE.md.
+
+## Open after 12.12.0 (2026-11-16)
+
+- [ ] **Publish the site for 12.10–12.12** — owner has it in progress.
+      `./deploy.sh --publish` failed here: the machine's inotify watches are
+      exhausted, so gen-previews' vite dev server dies with ENOSPC.
+- [ ] **Demo section numbering drifts between bindings**: the DataTable demo's
+      new sections are 29–31 in Solid, 30–32 in React, 36–38 in vanilla and web
+      components; Pivot's are 4 in Solid, 5 elsewhere. CLAUDE.md asks for the
+      same sections; route snapshots do not compare numbering.
+- [ ] **Vanilla footer without totals has no select-column cell**: with
+      `enableRowSelection`, its footer cells sit one column to the left of their
+      columns (totals footers add the cell; plain footers do not). Pre-existing;
+      `stickyFooter` makes it more visible.
+- [ ] **Styling/freezing gaps left from the 12.11 audit**: pinning in vanilla's
+      older div grid (`enableVirtualization`); a header class hook on the
+      schedules and PivotGrid; a way to turn off PivotGrid's frozen headers.
+- [ ] **Opt-in density for schedules/calendar/sheet/tree**: an explicit prop,
+      not `data-density` (following it would reflow existing touch apps).
 
 
 
