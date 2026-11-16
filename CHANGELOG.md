@@ -15,8 +15,50 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.11.0] - 2026-11-16
+
+Solid first, by the owner's build order; React, vanilla and web components
+get the new props and the fixes in the next release. `check:props` carries
+KNOWN lines for every Solid-only prop until then (DataTable row pinning and
+stickyFooter; PivotGrid height and totals; Gantt and ProductionSchedule
+rowHeight, maxBodyHeight, rowClass and barClass; PlanningCalendar laneHeight;
+SpreadsheetGrid cellClass). Solid's TreeProps is a type alias, which the
+check cannot read, so Tree `itemClassName` is tracked by hand.
+
 ### Added
 
+- DataTable (Solid): `enableRowPinning`, `rowPinning`, `initialRowPinning`,
+  `onRowPinningChange`. Pinned rows render first and last, and stick under
+  the measured header or above the measured footer at measured cumulative
+  offsets. Plain body only (ignored when virtualized or with row ordering).
+- DataTable (Solid): `stickyFooter`, so a footer without totals sticks too;
+  `style` on the root.
+- DataTable and TreeTable (Solid): column `meta.className` (a string, or a
+  function of the row) and `meta.headerClassName`, resolved by core
+  `columnCellClass` / `columnHeaderClass`.
+- Tokens `--zen-table-cell-font-size` and `--zen-table-cell-line-height`
+  (default the sm pair). Body cells use the theme size `zen-text-zen-cell`,
+  and `cn()` now knows the theme's font sizes; without that, tailwind-merge
+  read `zen-text-zen-cell` as a colour and dropped the cell's text colour.
+  check:cn covers it.
+- PivotGrid (Solid): `totals={{ row, column, grand, columns, columnHeader,
+  label }}`, a totals column per value pinned to the end edge and a totals
+  row pinned to the bottom. `height`, `class`, `style`. Message `pivot.total`.
+- Gantt and ProductionSchedule (Solid): `rowHeight`, `maxBodyHeight`,
+  `rowClassName`, `barClassName`. ScheduleGrid takes `rowClass` and
+  `maxBodyHeight`. Gantt's bar offset follows its row height.
+  ProductionSchedule's rowHeight is a floor under the lane-derived height.
+- PlanningCalendar `laneHeight`, SpreadsheetGrid `cellClassName`, and Tree
+  `itemClassName` (Solid).
+- Token `--zen-schedule-label-font-size` (10px). It replaces every
+  `zen-text-[10px]` in Gantt, ProductionSchedule, PlanningCalendar and
+  ScheduleGrid.
+- core columns: `withUtilityPins` / `withoutUtilityPins`; check:columns has
+  14 more assertions.
+- `check:table-dom` / `check:table-dom:all`: DataTable and PivotGrid
+  geometry in a browser, 34 assertions on Solid. Mutation-tested: two of the
+  fixed bugs put back each failed exactly their own assertion. Added to the
+  release procedure.
 - StatusBar in React, vanilla and web components (`<zen-status-bar>`), ported
   from Solid with the same props. `check:parity` is green again. Vanilla's
   `update({ items })` and the element's `el.items = …` keep the bar's DOM, so
@@ -25,6 +67,25 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   fires `zen-collapse` with the ids that gave way. Measured against Solid in
   one browser: identical item widths (to 0.01px) and the same collapse result
   at every width from 1000px down to 60px in all four bindings.
+
+### Fixed (Solid)
+
+- Pinned columns used physical `left`/`right`. They now use
+  `inset-inline-start`/`-end`, and the edge shadow flips through
+  `--zen-pin-dir` (set to -1 under `rtl:` on the root). Measured: in RTL the
+  pins hold the right edge through scrollLeft -400.
+- A pinned column's footer and total cells were not pinned. They take the
+  column's pin style; they are opaque and sit at z 2 when sticky.
+- The Columns menu's in-row pin buttons were unreachable with Tab inside a
+  menu. Each column is now a submenu (Show column; Not pinned / Pin to left /
+  Pin to right), as vanilla has, and PinButton is gone. Pinning by keyboard
+  alone is asserted in check:table-dom.
+- The select / drag / expand columns did not pin with left pins (vanilla's
+  markUtilityPin did).
+- PivotGrid: the row labels used physical `left`, and the column window
+  clamped scrollLeft with Math.max(0, …). RTL reports 0 down to a negative
+  number, so the window never moved. They now use inset-inline-start,
+  logical borders and Math.abs.
 
 ## [12.10.0] - 2026-11-16
 

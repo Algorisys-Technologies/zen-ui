@@ -33,6 +33,27 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.11.0",
+    date: "2026-11-16",
+    kind: "new",
+    title: "Frozen rows, pivot totals, and styling by column, row and cell (Solid)",
+    detail: "DataTable pins rows and keeps a footer in view; a column's className can style one cell at a time; PivotGrid draws grand totals; schedules take a row height, a chart height and row and bar classes. The other bindings follow next release.",
+  },
+  {
+    version: "12.11.0",
+    date: "2026-11-16",
+    kind: "fixed",
+    title: "Pinned columns and pivots read right to left (Solid)",
+    detail: "Pinned columns stick to the start edge in RTL pages, a pivot draws past its first screen there, a pinned column's total stays with it, and the Columns menu pins from the keyboard.",
+  },
+  {
+    version: "12.11.0",
+    date: "2026-11-16",
+    kind: "new",
+    title: "StatusBar in React, vanilla and web components",
+    detail: "The same props as Solid's; <zen-status-bar> for web components.",
+  },
+  {
     version: "12.10.0",
     date: "2026-11-16",
     kind: "new",
