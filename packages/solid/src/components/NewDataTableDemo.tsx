@@ -298,6 +298,11 @@ const frozenColumns: ColumnDef<TotalLine & { id: string }>[] = [
   { accessorKey: "amount", header: "Amount", size: 160, meta: { aggregate: "sum", className: "zen-text-end zen-tabular-nums", formatTotal: (v) => `₹${inrTotal.format(v as number)}` }, cell: (c) => inrTotal.format(c.getValue<number>()) },
 ];
 const LINES_WITH_IDS = LINES.map((l, i) => ({ ...l, id: `L${i + 1}` }));
+const footerColumns: ColumnDef<TotalLine & { id: string }>[] = [
+  { accessorKey: "item", header: "Item", footer: "60 lines, prices ex-tax" },
+  { accessorKey: "customer", header: "Customer" },
+  { accessorKey: "due", header: "Due" },
+];
 
 // --- Section 26: export on the server ----------------------------------------
 // A stand-in for your server: 100,000 ledger lines that never come to the browser.
@@ -1446,6 +1451,22 @@ const columns = [
               enableRowSelection
               stickyHeader
               maxBodyHeight={320}
+            />
+          </div>
+        </CodeExample>
+        <CodeExample
+          title="stickyFooter: a footer without totals stays in view too"
+          code={`<DataTable data={lines} columns={columns} stickyHeader stickyFooter maxBodyHeight={240} />
+// columns: { accessorKey: "item", header: "Item", footer: "60 lines, prices ex-tax" }, …`}
+        >
+          <div data-testid="sticky-footer" class="zen-w-full">
+            <DataTable
+              data={LINES_WITH_IDS}
+              columns={footerColumns}
+              getRowId={(l) => l.id}
+              stickyHeader
+              stickyFooter
+              maxBodyHeight={240}
             />
           </div>
         </CodeExample>

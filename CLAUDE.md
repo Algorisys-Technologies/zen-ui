@@ -507,6 +507,7 @@ bun run lint           # and lint:solid / lint:vanilla / lint:wc — 0 problems 
 node scripts/visual-check.mjs react && node scripts/visual-check.mjs solid
 bun run check:schedule-dom       # react: Gantt + ProductionSchedule, LTR and RTL
 bun run check:schedule-dom:all   # …every binding, once they are ported
+bun run check:table-dom:all      # DataTable + PivotGrid freezing, totals, RTL, styling hooks
 
 git commit && git tag v<version>
 git checkout main && git merge --no-ff dev -m "Merge dev: <version>"
