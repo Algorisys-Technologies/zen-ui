@@ -70,6 +70,7 @@ defineZenElement<PlanningCalendarProps>({
     now: "string",
     "hide-toolbar": "boolean",
     "empty-message": "string",
+    "lane-height": "number",
   },
   props: ["rows", "views", "date", "defaultDate", "now", "emptyMessage"],
   events: { onAppointmentClick: "zen-appointment-click" },

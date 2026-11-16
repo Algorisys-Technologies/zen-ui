@@ -46,8 +46,11 @@ defineZenElement<PivotGridProps>({
     "col-width": "number",
     "row-header-width": "number",
     label: "string",
+    // px; any CSS length through the `height` property.
+    height: "number",
   },
-  props: ["layout", "getCell", "getRowHeader", "getColHeader"],
+  // `totals` is accessors, like getCell: a property.
+  props: ["layout", "getCell", "getRowHeader", "getColHeader", "totals"],
   events: { onVisibleRangeChange: "zen-visible-range-change" },
   childrenProp: false,
 });

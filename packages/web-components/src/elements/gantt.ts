@@ -112,6 +112,9 @@ defineZenElement<GanttProps>({
     columns: "json",
     loading: "boolean",
     "loading-rows": "number",
+    "row-height": "number",
+    // px; any CSS length through the `maxBodyHeight` property.
+    "max-body-height": "number",
   },
   /* `showDependencies` is a PROPERTY rather than an attribute, and the rule it
      follows is lib/define.ts's: an ABSENT boolean attribute coerces to `false`,
@@ -136,6 +139,9 @@ defineZenElement<GanttProps>({
     "now",
     "columns",
     "emptyState",
+    "maxBodyHeight",
+    "rowClassName",
+    "barClassName",
   ],
   events: {
     onTaskClick: "zen-task-click",

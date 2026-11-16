@@ -26,7 +26,7 @@ const shared = {
     "read-only": "boolean",
     "col-width": "string",
   },
-  props: ["cells", "formats", "onCellsChange", "onCellCommit"],
+  props: ["cells", "formats", "onCellsChange", "onCellCommit", "cellClassName"],
   events: { onCellsChange: "zen-cells-change", onCellCommit: "zen-cell-commit" },
   childrenProp: false as const,
 } satisfies Partial<Parameters<typeof defineZenElement<SpreadsheetGridProps>>[0]>;

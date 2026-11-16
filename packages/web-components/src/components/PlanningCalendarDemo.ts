@@ -1,5 +1,16 @@
 import { DemoPage } from "./demo-helpers";
 
+const tagged = (testid: string, child: Node, opts: { maxWidth?: string; dir?: string; vars?: Record<string, string> } = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  if (opts.maxWidth) box.style.maxWidth = opts.maxWidth;
+  if (opts.dir) box.dir = opts.dir;
+  for (const [k, v] of Object.entries(opts.vars ?? {})) box.style.setProperty(k, v);
+  box.append(child);
+  return box;
+};
+
 interface Appointment {
   id: string;
   start: Date;
@@ -176,6 +187,14 @@ export default function PlanningCalendarDemo(): HTMLElement {
         code: `<zen-planning-calendar rows="[]" empty-message="No one is scheduled this week">
 </zen-planning-calendar>`,
         render: () => pc([], { "empty-message": "No one is scheduled this week" }),
+      },
+      {
+        title: "6. Lane height",
+        codeTitle: "lane-height",
+        codeDescription:
+          "Appointments that overlap stack in lanes inside a row; lane-height sets how tall each lane is (30px by default). Taller lanes suit a touch screen. The small print follows --zen-schedule-label-font-size.",
+        code: `<zen-planning-calendar lane-height="44"></zen-planning-calendar>`,
+        render: () => tagged("lanes-tall", pc(TEAM, { "lane-height": "44" })),
       },
     ],
   });
