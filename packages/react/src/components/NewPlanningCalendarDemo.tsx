@@ -162,6 +162,19 @@ const NewPlanningCalendarDemo = () => (
       <PlanningCalendar rows={[]} now={NOW} defaultDate={NOW} emptyMessage="No one is scheduled this week" />
       </CodeExample>
     </section>
+
+    <section className="demo-section">
+      <h2>6. Lane height</h2>
+      <CodeExample
+        title="laneHeight"
+        description="Appointments that overlap stack in lanes inside a row; laneHeight sets how tall each lane is (30px by default). Taller lanes suit a touch screen. The small print follows --zen-schedule-label-font-size."
+        code={`<PlanningCalendar rows={team} laneHeight={44} />`}
+      >
+        <div data-testid="lanes-tall" className="zen-w-full">
+          <PlanningCalendar rows={TEAM} now={NOW} defaultDate={NOW} laneHeight={44} />
+        </div>
+      </CodeExample>
+    </section>
   </div>
 );
 

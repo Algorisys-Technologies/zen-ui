@@ -51,6 +51,11 @@ export interface SpreadsheetGridProps {
   colWidth?: string;
   /** Fires with the evaluated value whenever a cell is committed. */
   onCellCommit?: (ref: string, raw: CellValue, evaluated: CellValue) => void;
+  /**
+   * Classes for one cell, from its address and evaluated value — a negative
+   * figure in red, an input cell shaded: `(ref, v) => typeof v === "number" && v < 0 && "zen-text-zen-error"`.
+   */
+  cellClassName?: (ref: string, value: CellValue) => string | undefined | false | null;
   className?: string;
 }
 
@@ -63,6 +68,7 @@ export const SpreadsheetGrid = ({
   readOnly = false,
   colWidth = "6rem",
   onCellCommit,
+  cellClassName,
   className,
 }: SpreadsheetGridProps) => {
   const loc = useLocale();
@@ -254,6 +260,7 @@ export const SpreadsheetGrid = ({
                              type signal in a sheet. */
                           typeof value === "number" ? "zen-text-end zen-tabular-nums" : "zen-text-start",
                           error && "zen-text-zen-error",
+                          cellClassName?.(ref, value),
                         )}
                         title={typeof cells[ref] === "string" && String(cells[ref]).startsWith("=") ? String(cells[ref]) : undefined}
                       >

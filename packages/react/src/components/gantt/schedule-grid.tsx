@@ -228,6 +228,10 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
    * between rows.
    */
   rowHeight?: number;
+  /** Classes for one row (the whole strip: pane and timeline). */
+  rowClass?: (row: R) => string | undefined;
+  /** The scroller's maximum height (px, or any CSS length). Default 32rem. */
+  maxBodyHeight?: number | string;
   /**
    * A strip under the rows, aligned to the axis and stuck to the bottom of the
    * scroller — a load histogram, a capacity trace, a shift band.
@@ -502,6 +506,8 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   timelineColIndex,
   renderTrack,
   rowHeight = ROW_PX,
+  rowClass,
+  maxBodyHeight,
   renderFooter,
   view,
   anchor,
@@ -864,7 +870,11 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
         onFocus={() => {
           hadFocusRef.current = true;
         }}
-        className="zen-relative zen-max-h-[32rem] zen-overflow-auto zen-rounded-zen-md zen-border zen-border-zen-border focus-visible:zen-outline-none"
+        className={cn(
+          "zen-relative zen-overflow-auto zen-rounded-zen-md zen-border zen-border-zen-border focus-visible:zen-outline-none",
+          maxBodyHeight === undefined && "zen-max-h-[32rem]",
+        )}
+        style={maxBodyHeight === undefined ? undefined : { maxHeight: maxBodyHeight }}
       >
         <div
           style={{ width: paneWidth + axisWidth }}
@@ -927,7 +937,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
                     {column.label}
                   </span>
                   {column.sublabel && (
-                    <span className="zen-text-[10px] zen-text-zen-muted-fg">{column.sublabel}</span>
+                    <span className="zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">{column.sublabel}</span>
                   )}
                 </div>
               ))}
@@ -956,6 +966,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
                 timelineColIndex={timelineColIndex}
                 renderTrack={renderTrack}
                 rowHeight={rowHeight}
+                rowClass={rowClass?.(row)}
                 /* -1 on every row but one. The grid is a single tab stop, and
                    which cell holds it is the roving tabindex's whole job. */
                 tabCol={row.index === tabRow ? activeCol : -1}
@@ -1023,6 +1034,7 @@ interface ScheduleRowProps<R extends ScheduleRowShape> {
     axisWidth: number;
     paneWidth: number;
   }) => React.ReactNode;
+  rowClass?: string;
   /** Which cell of THIS row carries the grid's single tab stop, or -1. */
   tabCol: number;
   onFocusCell: (row: number, col: number) => void;
@@ -1038,6 +1050,7 @@ function ScheduleRow<R extends ScheduleRowShape>({
   timelineColIndex,
   renderTrack,
   rowHeight,
+  rowClass,
   tabCol,
   onFocusCell,
 }: ScheduleRowProps<R>) {
@@ -1053,7 +1066,7 @@ function ScheduleRow<R extends ScheduleRowShape>({
          reader: the indent is a paddingInlineStart nobody can hear. */
       aria-level={row.depth + 1}
       aria-expanded={row.hasChildren ? row.expanded : undefined}
-      className="zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0"
+      className={cn("zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0", rowClass)}
       style={{ height: rowHeight, boxSizing: "border-box" }}
     >
       <div

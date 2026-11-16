@@ -244,6 +244,19 @@ export interface ProductionScheduleProps {
   loading?: boolean;
   loadingRows?: number;
   emptyState?: React.ReactNode;
+
+  /**
+   * The least height of a row in px. Default 36. Rows are taller when a
+   * resource stacks more lanes (see `maxLanes`); every row shares one height,
+   * because the row window and the routing arrows place rows at index × height.
+   */
+  rowHeight?: number;
+  /** The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem. */
+  maxBodyHeight?: number | string;
+  /** Classes for a resource's row — a tint for a down machine. */
+  rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
+  /** Classes for an operation's bar, applied after its status colours so they win. */
+  barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
   className?: string;
 }
 
@@ -354,6 +367,10 @@ export const ProductionSchedule = ({
   loading,
   loadingRows = 6,
   emptyState,
+  rowHeight: rowHeightProp,
+  maxBodyHeight,
+  rowClassName,
+  barClassName,
   className,
 }: ProductionScheduleProps) => {
   const loc = useLocale();
@@ -452,7 +469,7 @@ export const ProductionSchedule = ({
      routes (which place an endpoint at rowIndex * rowHeight + rowHeight / 2). */
   const laneCount = Math.max(1, ...rows.map((row) => row.lanes.length));
   const rowHeight = Math.max(
-    ROW_PX,
+    rowHeightProp ?? ROW_PX,
     laneCount * LANE_BAR_PX + (laneCount - 1) * LANE_GAP_PX + LANE_PAD_PX,
   );
   const stackTop = (rowHeight - (laneCount * LANE_BAR_PX + (laneCount - 1) * LANE_GAP_PX)) / 2;
@@ -694,10 +711,11 @@ export const ProductionSchedule = ({
         onPropose={propose}
         isCritical={isCritical}
         onPlace={onPlace}
+        barClass={barClassName}
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose, isCritical, onPlace],
+    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose, isCritical, onPlace, barClassName],
   );
 
   const renderFooter = React.useCallback(
@@ -759,6 +777,8 @@ export const ProductionSchedule = ({
         timelineColIndex={COL_INDEX.timeline}
         renderTrack={renderTrack}
         rowHeight={rowHeight}
+        rowClass={rowClassName ? (row) => rowClassName(row.resource, row) : undefined}
+        maxBodyHeight={maxBodyHeight}
         renderFooter={totalLoad ? renderFooter : undefined}
         view={view}
         anchor={anchor}
@@ -845,7 +865,7 @@ const ProductionPaneCell = ({
             {resource.name}
           </span>
           {resource.subtitle && (
-            <span className="zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg">
+            <span className="zen-block zen-truncate zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">
               {resource.subtitle}
             </span>
           )}
@@ -879,7 +899,7 @@ const ProductionPaneCell = ({
         {/* Never silently dropped: a row that hid six jobs is the worst thing
             this component could do. */}
         {row.overflow > 0 && (
-          <span className="zen-ms-1 zen-text-[10px] zen-text-zen-error">+{row.overflow}</span>
+          <span className="zen-ms-1 zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-error">+{row.overflow}</span>
         )}
       </span>
     );
@@ -950,6 +970,7 @@ const ProductionTrack = ({
   onPropose,
   isCritical,
   onPlace,
+  barClass,
 }: {
   row: Row;
   range: PlanningRange;
@@ -960,6 +981,7 @@ const ProductionTrack = ({
   onPropose: (move: ProductionMove) => void;
   isCritical: (id: string) => boolean;
   onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
+  barClass?: (operation: ProductionOperation) => string | undefined | false | null;
 }) => {
   const loc = useLocale();
   const accepts = onPlace !== undefined && !row.hasChildren;
@@ -1012,6 +1034,7 @@ const ProductionTrack = ({
           msPerPx={msPerPx}
           onPropose={onPropose}
           critical={isCritical(placement.operation.id)}
+          barClass={barClass?.(placement.operation) || undefined}
         />
       )),
     )}
@@ -1050,6 +1073,7 @@ const ProductionBar = ({
   msPerPx,
   onPropose,
   critical,
+  barClass,
 }: {
   placement: ProductionPlacement<ProductionOperation>;
   row: Row;
@@ -1060,6 +1084,7 @@ const ProductionBar = ({
   msPerPx: number;
   onPropose: (move: ProductionMove) => void;
   critical: boolean;
+  barClass?: string;
 }) => {
   const loc = useLocale();
   const { operation } = placement;
@@ -1271,6 +1296,7 @@ const ProductionBar = ({
           className={cn(
             "zen-absolute zen-inset-y-0 zen-overflow-hidden zen-rounded-zen-sm zen-border",
             BAR_CLASS[status],
+            barClass,
           )}
           style={{ insetInlineStart: `${piece.startPct}%`, width: `${piece.widthPct}%` }}
         >

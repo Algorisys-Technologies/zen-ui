@@ -64,11 +64,12 @@ const KNOWN: Record<string, string> = {
   "PivotGridProps.totals": "vanilla",
   ...Object.fromEntries(
     ["GanttProps", "ProductionScheduleProps"].flatMap((i) =>
-      ["barClass", "maxBodyHeight", "rowClass", "rowHeight"].map((m) => [`${i}.${m}`, "react vanilla"]),
+      ["barClass", "maxBodyHeight", "rowClass", "rowHeight"].map((m) => [`${i}.${m}`, "vanilla"]),
     ),
   ),
-  "PlanningCalendarProps.laneHeight": "react vanilla",
-  "SpreadsheetGridProps.cellClass": "react vanilla",
+  "PlanningCalendarProps.laneHeight": "vanilla",
+  "SpreadsheetGridProps.cellClass": "vanilla",
+  "TreeProps.itemClass": "vanilla",
   // TreeTable's controlled state, never ported to vanilla.
   ...Object.fromEntries(
     ["expanded", "globalFilter", "onGlobalFilterChange", "sorting", "onSortingChange", "rowSelection", "rowClass"].map(
