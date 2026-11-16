@@ -531,6 +531,20 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
           return tagged("gantt-styled", chart, { vars: { "--zen-schedule-label-font-size": "11px" } });
         },
       },
+      {
+        title: "14. Density",
+        codeTitle: 'density: "compact" | "comfortable" | "touch"',
+        codeDescription:
+          "compact: 28px rows for a long plan read all day. touch: 48px rows and 32px bars, for a tablet on the shop floor. rowHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was.",
+        code: `<zen-gantt density="compact"></zen-gantt>
+<zen-gantt density="touch"></zen-gantt>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.append(tagged("gantt-compact", (() => { const c = gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW }); c.setAttribute("density", "compact"); return c; })()), tagged("gantt-touch", (() => { const c = gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW }); c.setAttribute("density", "touch"); return c; })()));
+          return box;
+        },
+      },
     ],
   });
 }

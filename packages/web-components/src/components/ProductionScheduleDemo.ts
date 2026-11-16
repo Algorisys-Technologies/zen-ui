@@ -606,6 +606,20 @@ chart.addEventListener("zen-place", (e) => place(e.detail));`,
           return tagged("production-styled", chart);
         },
       },
+      {
+        title: "Density",
+        codeTitle: 'density: "compact" | "comfortable" | "touch"',
+        codeDescription:
+          "compact: shorter rows and 12px lane bars. touch: 48px rows at least, and 32px bars a finger can hit. rowHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was.",
+        code: `<zen-production-schedule density="compact"></zen-production-schedule>
+<zen-production-schedule density="touch"></zen-production-schedule>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.append(tagged("production-compact", (() => { const c = schedule({ resources: CELLS, operations: JOBS, dependencies: ROUTING, calendar: PLANT, now: NOW }); c.setAttribute("density", "compact"); return c; })()), tagged("production-touch", (() => { const c = schedule({ resources: CELLS, operations: JOBS, dependencies: ROUTING, calendar: PLANT, now: NOW }); c.setAttribute("density", "touch"); return c; })()));
+          return box;
+        },
+      },
     ],
   });
 }
