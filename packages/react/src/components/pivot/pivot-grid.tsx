@@ -35,13 +35,42 @@ export interface PivotGridProps {
   /** Names the grid for a screen reader. */
   label?: string;
   onVisibleRangeChange?: (range: { rowStart: number; rowEnd: number; colStart: number; colEnd: number }) => void;
+  /**
+   * Grand totals, asked for like the cells: a totals column per value (pinned
+   * to the end edge) and a totals row (pinned to the bottom). The grid sums
+   * nothing itself — an average's total is not the sum of averages, and the
+   * data may live on a server — so each part is an accessor. Give only the
+   * parts you want: `row` draws the totals columns, `column` the totals row.
+   */
+  totals?: PivotTotals;
+  className?: string;
+  style?: React.CSSProperties;
+  /** The grid's height (px, or any CSS length). Default: fills its parent, as before. */
+  height?: number | string;
+}
+
+export type PivotTotalCell = { value: unknown; isLoading?: boolean } | null;
+
+export interface PivotTotals {
+  /** How many totals columns — usually one per value field. Default 1. */
+  columns?: number;
+  /** Totals column i's header. Default "Total". */
+  columnHeader?: (i: number) => string;
+  /** Row `row`'s total in totals column i. */
+  row?: (row: number, i: number) => PivotTotalCell;
+  /** Column `col`'s total, in the totals row. */
+  column?: (col: number) => PivotTotalCell;
+  /** Where the totals row meets totals column i. */
+  grand?: (i: number) => PivotTotalCell;
+  /** The totals row's label. Default "Total". */
+  label?: string;
 }
 
 const SKELETON_BAR = "zen-rounded-zen-sm zen-bg-zen-muted-fg/25 motion-safe:zen-animate-pulse";
 const STICKY_CORNER =
-  "zen-sticky zen-z-30 zen-box-border zen-border-r zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
+  "zen-sticky zen-z-30 zen-box-border zen-border-e zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
 const STICKY_ROW_LABEL =
-  "zen-sticky zen-z-20 zen-border-r zen-border-zen-border zen-shadow-[1px_0_0_0_var(--zen-border)]";
+  "zen-sticky zen-z-20 zen-border-e zen-border-zen-border zen-shadow-[1px_0_0_0_var(--zen-border)]";
 
 export const PivotGrid: React.FC<PivotGridProps> = ({
   layout,
@@ -57,6 +86,10 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
   rowHeaderWidth = 160,
   label,
   onVisibleRangeChange,
+  totals,
+  className,
+  style,
+  height,
 }) => {
   const loc = useLocale();
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -87,7 +120,10 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
   // scroll frame in the component whose entire job is virtualization.
   const cols = React.useMemo(() => {
     if (totalCols <= 0) return { minIndex: 0, maxIndex: -1, items: [] as number[], padLeft: 0, padRight: 0 };
-    const left = Math.max(0, scrollLeft);
+    // abs: a right-to-left scroller reports scrollLeft as 0 down to a negative
+    // number, which Math.max(0, …) pinned at 0 — the window never moved and
+    // the columns past the first screen were never drawn.
+    const left = Math.abs(scrollLeft);
     const minIndex = Math.max(0, Math.floor((left - frozenWidth) / colWidth) - 4);
     const maxIndex = Math.min(totalCols - 1, Math.ceil((left + viewportWidth - frozenWidth) / colWidth) + 4);
     const safeMax = Math.max(minIndex, maxIndex);
@@ -124,12 +160,28 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
     minHeight: `${rowHeight}px`,
     maxHeight: `${rowHeight}px`,
   };
-  const stickyLeft = (depth: number): React.CSSProperties => ({ left: `${depth * rowHeaderWidth}px` });
+  // Logical, so the row labels freeze at the START edge: on the right in a
+  // right-to-left page, where they used to stick on the wrong side.
+  const stickyLeft = (depth: number): React.CSSProperties => ({ insetInlineStart: `${depth * rowHeaderWidth}px` });
+  const totalsCols = totals?.row ? Math.max(1, totals.columns ?? 1) : 0;
+  const totalsIdx = Array.from({ length: totalsCols }, (_, i) => i);
+  /** Totals column i, pinned to the end edge; the last one sits at the edge. */
+  const totalsColStyle = (i: number): React.CSSProperties => ({
+    insetInlineEnd: `${(totalsCols - 1 - i) * colWidth}px`,
+    width: `${colWidth}px`,
+    minWidth: `${colWidth}px`,
+    maxWidth: `${colWidth}px`,
+  });
+  const totalCell = (cell: PivotTotalCell) =>
+    cell?.isLoading ? <div className={cn("zen-ml-auto zen-h-3 zen-w-10", SKELETON_BAR)} /> : ((cell?.value as string) ?? "-");
   const stickyTop = (i: number): React.CSSProperties => ({ position: "sticky", top: `${i * rowHeight}px` });
   const stripe = (row: number) => (row % 2 === 1 ? "zen-bg-zen-muted" : "zen-bg-zen-background");
 
   return (
-    <div className="zen-flex zen-h-full zen-w-full zen-min-h-0 zen-min-w-0 zen-flex-col zen-gap-2">
+    <div
+      className={cn("zen-flex zen-h-full zen-w-full zen-min-h-0 zen-min-w-0 zen-flex-col zen-gap-2", className)}
+      style={{ ...(height !== undefined ? { height: typeof height === "number" ? `${height}px` : height } : {}), ...style }}
+    >
       <div
         ref={scrollRef}
         className="zen-min-h-0 zen-w-full zen-min-w-0 zen-flex-1 zen-overflow-auto zen-overscroll-contain zen-border-l zen-border-t zen-border-zen-border zen-bg-zen-background"
@@ -140,7 +192,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
       >
         <table
           className="zen-w-max zen-min-w-full zen-shrink-0 zen-border-separate zen-border-spacing-0 zen-text-zen-foreground"
-          style={{ borderCollapse: "separate", width: `${frozenWidth + totalCols * colWidth}px` }}
+          style={{ borderCollapse: "separate", width: `${frozenWidth + (totalCols + totalsCols) * colWidth}px` }}
         >
           <thead className="zen-bg-zen-muted">
             {headerRows.map((headerRowIndex) => (
@@ -216,6 +268,21 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                     style={{ width: `${cols.padRight}px`, minWidth: `${cols.padRight}px` }}
                   />
                 ) : null}
+
+                {headerRowIndex === 0
+                  ? totalsIdx.map((i) => (
+                      <th
+                        key={`total-${i}`}
+                        scope="col"
+                        data-pivot-total="column"
+                        rowSpan={headerRows.length}
+                        className="zen-sticky zen-top-0 zen-z-30 zen-truncate zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground"
+                        style={totalsColStyle(i)}
+                      >
+                        {totals?.columnHeader?.(i) ?? loc.t("pivot.total")}
+                      </th>
+                    ))
+                  : null}
               </tr>
             ))}
           </thead>
@@ -293,6 +360,21 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                   {cols.padRight > 0 ? (
                     <td aria-hidden className={cn("zen-border-0 zen-p-0", stripe(rowIndex))} style={{ width: `${cols.padRight}px` }} />
                   ) : null}
+
+                  {/* Row totals, pinned to the end edge */}
+                  {totalsIdx.map((i) => (
+                    <td
+                      key={`total-${i}`}
+                      data-pivot-total="row"
+                      className={cn(
+                        "zen-sticky zen-z-20 zen-truncate zen-border-b zen-border-s zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums",
+                        stripe(rowIndex),
+                      )}
+                      style={totalsColStyle(i)}
+                    >
+                      {totalCell(totals?.row?.(rowIndex, i) ?? null)}
+                    </td>
+                  ))}
                 </tr>
               );
             })}
@@ -309,6 +391,47 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
               ) : null;
             })()}
           </tbody>
+          {totals?.column ? (
+            <tfoot>
+              <tr data-pivot-total="totals-row">
+                {rowHeaderDepth > 0 ? (
+                  <th
+                    scope="row"
+                    colSpan={rowHeaderDepth}
+                    className="zen-sticky zen-bottom-0 zen-z-30 zen-border-t zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-semibold zen-text-zen-foreground"
+                    style={{ insetInlineStart: "0px", ...headerCellStyle }}
+                  >
+                    {totals.label ?? loc.t("pivot.total")}
+                  </th>
+                ) : null}
+                {cols.padLeft > 0 ? (
+                  <td aria-hidden className="zen-sticky zen-bottom-0 zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0" style={{ width: `${cols.padLeft}px` }} />
+                ) : null}
+                {cols.items.map((colIndex) => (
+                  <td
+                    key={colIndex}
+                    className="zen-sticky zen-bottom-0 zen-z-10 zen-truncate zen-border-t zen-border-e zen-border-zen-border/50 zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums"
+                    style={{ width: `${colWidth}px`, minWidth: `${colWidth}px`, maxWidth: `${colWidth}px`, ...headerCellStyle }}
+                  >
+                    {totalCell(totals.column?.(colIndex) ?? null)}
+                  </td>
+                ))}
+                {cols.padRight > 0 ? (
+                  <td aria-hidden className="zen-sticky zen-bottom-0 zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0" style={{ width: `${cols.padRight}px` }} />
+                ) : null}
+                {totalsIdx.map((i) => (
+                  <td
+                    key={`grand-${i}`}
+                    data-pivot-total="grand"
+                    className="zen-sticky zen-bottom-0 zen-z-30 zen-truncate zen-border-t zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums"
+                    style={{ ...totalsColStyle(i), ...headerCellStyle }}
+                  >
+                    {totalCell(totals.grand?.(i) ?? null)}
+                  </td>
+                ))}
+              </tr>
+            </tfoot>
+          ) : null}
         </table>
       </div>
     </div>

@@ -57,11 +57,11 @@ const KNOWN: Record<string, string> = {
   // and web components in the next step, which removes these lines.
   ...Object.fromEntries(
     ["enableRowPinning", "rowPinning", "initialRowPinning", "onRowPinningChange", "stickyFooter"].map(
-      (m) => [`DataTableProps.${m}`, "react vanilla"],
+      (m) => [`DataTableProps.${m}`, "vanilla"],
     ),
   ),
-  "PivotGridProps.height": "react vanilla",
-  "PivotGridProps.totals": "react vanilla",
+  "PivotGridProps.height": "vanilla",
+  "PivotGridProps.totals": "vanilla",
   ...Object.fromEntries(
     ["GanttProps", "ProductionScheduleProps"].flatMap((i) =>
       ["barClass", "maxBodyHeight", "rowClass", "rowHeight"].map((m) => [`${i}.${m}`, "react vanilla"]),

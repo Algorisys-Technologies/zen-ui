@@ -14,6 +14,7 @@ import {
   type ColumnFiltersState,
   type ColumnOrderState,
   type ColumnPinningState,
+  type RowPinningState,
   type ColumnSizingState,
   type ExpandedState,
   type FilterFn,
@@ -54,7 +55,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "../dropdown-menu/dropdown-menu";
 import { Input } from "../form/input/input";
@@ -75,7 +81,7 @@ import {
 import { FilterCell, filterFnByVariant, textFilterFn, type FilterVariant } from "./filters";
 import { useLocale } from "../locale/locale";
 import { aggregate as aggregateValues, totalPrecision, type AggregateKind } from "@algorisys/zen-ui-core/aggregate";
-import { clampColumnSize, columnLabel, columnMinWidth, columnResizeDelta, moveColumn, respectsColumnSizes } from "@algorisys/zen-ui-core/columns";
+import { clampColumnSize, columnCellClass, columnHeaderClass, columnLabel, columnMinWidth, columnResizeDelta, moveColumn, respectsColumnSizes, withUtilityPins, withoutUtilityPins } from "@algorisys/zen-ui-core/columns";
 import { formatNumber, validLocale } from "@algorisys/zen-ui-core/number-format";
 import {
   buildExportRequest,
@@ -472,6 +478,12 @@ export interface DataTableProps<TData, TValue = unknown> {
    */
   stickyHeader?: boolean;
   /**
+   * Keep the footer row in view at the bottom while the rows scroll, as a
+   * table with totals already does. Needs a scrolling body: `stickyHeader`,
+   * `fillHeight` or row virtualization.
+   */
+  stickyFooter?: boolean;
+  /**
    * Fill the parent's height: the rows scroll inside the table, under a header
    * that stays put, and the pager stays below. For a list that is the page's
    * main pane. The parent must give it a height (a flex child with min-height 0,
@@ -502,6 +514,16 @@ export interface DataTableProps<TData, TValue = unknown> {
   columnPinning?: ColumnPinningState;
   initialColumnPinning?: ColumnPinningState;
   onColumnPinningChange?: (state: ColumnPinningState) => void;
+  /**
+   * Pin rows to the top or bottom of the body: `{ top: [rowId], bottom: [rowId] }`.
+   * A pinned row stays in view while the others scroll (with `stickyHeader`
+   * or `fillHeight`), and stays even when a filter or the page would hide it.
+   * The plain body only: ignored with virtualization or row ordering.
+   */
+  enableRowPinning?: boolean;
+  rowPinning?: RowPinningState;
+  initialRowPinning?: RowPinningState;
+  onRowPinningChange?: (state: RowPinningState) => void;
   /**
    * Keep each column at least its `size` (or the width it was resized to), and
    * scroll the table sideways when they do not fit, instead of letting the
@@ -534,6 +556,7 @@ export interface DataTableProps<TData, TValue = unknown> {
   emptyMessage?: string;
   loading?: boolean;
   className?: string;
+  style?: React.CSSProperties;
 
   /* server-driven pagination */
   manualPagination?: DataTableManualPagination;
@@ -608,6 +631,11 @@ export function DataTable<TData, TValue = unknown>({
   exportContext,
   exportTitle,
   stickyHeader = false,
+  stickyFooter = false,
+  enableRowPinning = false,
+  rowPinning: rowPinningProp,
+  initialRowPinning,
+  onRowPinningChange,
   fillHeight = false,
   totalsOver,
   enableColumnPinning = false,
@@ -629,6 +657,7 @@ export function DataTable<TData, TValue = unknown>({
   emptyMessage: emptyMessageProp,
   loading = false,
   className,
+  style,
 
   manualPagination,
   manualSorting = false,
@@ -680,6 +709,10 @@ export function DataTable<TData, TValue = unknown>({
         initialColumnPinning ?? { left: [], right: [] },
     );
   const columnPinning = columnPinningProp ?? columnPinningInner;
+  const [rowPinningInner, setRowPinningInner] = React.useState<RowPinningState>(
+    () => initialRowPinning ?? { top: [], bottom: [] },
+  );
+  const rowPinning = rowPinningProp ?? rowPinningInner;
   const [expandedInner, setExpandedInner] = React.useState<ExpandedState>({});
   const expanded = expandedProp ?? expandedInner;
   const [groupingInner, setGroupingInner] = React.useState<GroupingState>(
@@ -885,7 +918,12 @@ export function DataTable<TData, TValue = unknown>({
       globalFilter,
       columnOrder,
       columnSizing,
-      columnPinning,
+      // What the table renders: the select / drag / expand columns stick with
+      // anything pinned left, so a row's checkbox does not scroll away from it.
+      columnPinning: enableColumnPinning
+        ? withUtilityPins(columnPinning, augmentedColumns.map((c) => c.id ?? ""))
+        : columnPinning,
+      rowPinning,
       expanded,
       grouping,
       ...(manualPagination
@@ -906,6 +944,12 @@ export function DataTable<TData, TValue = unknown>({
     enableColumnResizing,
     columnResizeMode: "onChange",
     enableColumnPinning,
+    enableRowPinning,
+    onRowPinningChange: (updater) => {
+      const next = typeof updater === "function" ? updater(rowPinning) : updater;
+      if (rowPinningProp === undefined) setRowPinningInner(next);
+      onRowPinningChange?.(next);
+    },
     enableGrouping: groupingActive,
     getRowId,
     manualPagination: !!manualPagination,
@@ -920,8 +964,14 @@ export function DataTable<TData, TValue = unknown>({
     },
     onColumnSizingChange: setColumnSizing,
     onColumnPinningChange: (updater) => {
-      const next =
-        typeof updater === "function" ? updater(columnPinning) : updater;
+      // TanStack's updaters start from what it renders (utility columns
+      // included); the app is told, and persists, its own pins only.
+      const rendered = enableColumnPinning
+        ? withUtilityPins(columnPinning, augmentedColumns.map((c) => c.id ?? ""))
+        : columnPinning;
+      const next = withoutUtilityPins(
+        typeof updater === "function" ? updater(rendered) : updater,
+      );
       if (columnPinningProp === undefined) setColumnPinningInner(next);
       onColumnPinningChange?.(next);
     },
@@ -1149,16 +1199,17 @@ export function DataTable<TData, TValue = unknown>({
       const isFirstRight = pin === "right" && column.getIsFirstColumn("right");
       return {
         position: "sticky",
-        left: pin === "left" ? `${column.getStart("left")}px` : undefined,
-        right: pin === "right" ? `${column.getAfter("right")}px` : undefined,
+        // Logical sides: "left" is the START edge, the right edge in an RTL page.
+        insetInlineStart: pin === "left" ? `${column.getStart("left")}px` : undefined,
+        insetInlineEnd: pin === "right" ? `${column.getAfter("right")}px` : undefined,
         background: "var(--zen-color-background)",
         // Body cells: z=1 so they sit above non-pinned cells while scrolling.
         // Sticky-header cells override to z=11 below.
         zIndex: 1,
         boxShadow: isLastLeft
-          ? "inset -1px 0 0 var(--zen-color-border), 4px 0 6px -4px rgba(0,0,0,0.12)"
+          ? "inset calc(-1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
           : isFirstRight
-          ? "inset 1px 0 0 var(--zen-color-border), -4px 0 6px -4px rgba(0,0,0,0.12)"
+          ? "inset calc(1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(-4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
           : undefined,
       };
     },
@@ -1322,6 +1373,21 @@ export function DataTable<TData, TValue = unknown>({
     ? { maxHeight: maxBodyHeight }
     : undefined;
 
+  const footerSticky = stickyHeaderActive && (hasTotals || stickyFooter);
+  /* A pinned column's footer cell is pinned with it (it scrolled away from
+   * its column before). Opaque, so the cells passing under it do not show
+   * through the footer's translucent tint. */
+  const footerPinStyle = (column: Column<TData, unknown>): React.CSSProperties | undefined => {
+    const pin = pinStyle(column);
+    if (!pin) return undefined;
+    return {
+      ...pin,
+      background: footerSticky
+        ? "var(--zen-color-muted)"
+        : "color-mix(in srgb, var(--zen-color-muted) 50%, var(--zen-color-background))",
+      zIndex: footerSticky ? 2 : 1,
+    };
+  };
   const footer = hasFooter ? (
     <TableFooter data-totals={hasTotals ? "" : undefined}>
       {table.getFooterGroups().map((fg) => (
@@ -1331,13 +1397,13 @@ export function DataTable<TData, TValue = unknown>({
               key={header.id}
               colSpan={header.colSpan}
               className={
-                hasTotals
-                  ? cn(
-                      totalOf(header.column) && "zen-text-end zen-tabular-nums",
-                      stickyHeaderActive && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
-                    )
-                  : undefined
+                cn(
+                  hasTotals && totalOf(header.column) && "zen-text-end zen-tabular-nums",
+                  footerSticky && "zen-sticky zen-bottom-0 zen-z-[1] zen-bg-zen-muted",
+                  columnCellClass(header.column.columnDef.meta),
+                ) || undefined
               }
+              style={footerPinStyle(header.column)}
             >
               {header.isPlaceholder
                 ? null
@@ -1385,6 +1451,9 @@ export function DataTable<TData, TValue = unknown>({
       keyboard={!sortableRows && enableKeyboardNavigation && !enableCellNavigation}
       cellNav={!sortableRows && enableCellNavigation}
       virtualize={rowVirtual}
+      rowPinning={enableRowPinning && !rowVirtual && !sortableRows}
+      stickyHeaderActive={stickyHeaderActive}
+      footerSticky={footerSticky}
       estimatedRowHeight={rowEstimatedHeight}
       headerRowCount={table.getHeaderGroups().length * (enablePerColumnFilters ? 2 : 1)}
       rowDrag={virtualRowDrag}
@@ -1474,8 +1543,10 @@ export function DataTable<TData, TValue = unknown>({
         // a flex parent grows the whole DataTable to the table's width instead.
         respectSizes && "zen-min-w-0",
         fillHeight && "zen-flex zen-h-full zen-min-h-0 zen-flex-col [&>*]:zen-shrink-0",
+        enableColumnPinning && "rtl:zen-[--zen-pin-dir:-1]",
         className,
       )}
+      style={style}
     >
       <Toolbar
         {...toolbarMenuProps}
@@ -2456,37 +2527,39 @@ function ColumnsMenu<TData>({
               </DropdownMenuCheckboxItem>
             );
           }
-          const pin = column.getIsPinned();
+          /* Each column is a submenu: show it, and where it is pinned. Every
+             choice is a menu item, so all of it works from the keyboard — the
+             pin buttons that sat in the row here could not be reached with Tab
+             inside a menu. Same as Solid and vanilla. */
           return (
-            <div
-              key={column.id}
-              className="zen-flex zen-items-center zen-gap-2 zen-px-2 zen-py-1.5 zen-text-sm"
-            >
-              <Checkbox
-                checked={column.getIsVisible()}
-                onCheckedChange={(v) => column.toggleVisibility(v === true)}
-                aria-label={loc.t("dataTable.toggleColumn", { label })}
-              />
-              <span className="zen-flex-1 zen-truncate">{label}</span>
-              <PinButton
-                active={pin === "left"}
-                side="left"
-                label={label}
-                onClick={(e) => {
-                  e.preventDefault();
-                  column.pin(pin === "left" ? false : "left");
-                }}
-              />
-              <PinButton
-                active={pin === "right"}
-                side="right"
-                label={label}
-                onClick={(e) => {
-                  e.preventDefault();
-                  column.pin(pin === "right" ? false : "right");
-                }}
-              />
-            </div>
+            <DropdownMenuSub key={column.id}>
+              <DropdownMenuSubTrigger data-column-id={column.id}>
+                <span className="zen-flex-1 zen-truncate">{label}</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuCheckboxItem
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(v) => column.toggleVisibility(v === true)}
+                  // Stays open, so the pin can be set in the same visit.
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  {loc.t("dataTable.showColumn")}
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={column.getIsPinned() || "none"}
+                  onValueChange={(v) => column.pin(v === "left" || v === "right" ? v : false)}
+                >
+                  <DropdownMenuRadioItem value="none">{loc.t("dataTable.pinNone")}</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="left">
+                    {loc.t("dataTable.pinTo", { side: loc.t("dataTable.sideLeft") })}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="right">
+                    {loc.t("dataTable.pinTo", { side: loc.t("dataTable.sideRight") })}
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           );
         })}
         <DropdownMenuSeparator />
@@ -2498,40 +2571,6 @@ function ColumnsMenu<TData>({
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-function PinButton({
-  active,
-  side,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  side: "left" | "right";
-  label: string;
-  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}) {
-  const loc = useLocale();
-  const sideWord = loc.t(side === "left" ? "dataTable.sideLeft" : "dataTable.sideRight");
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={loc.t(active ? "dataTable.unpinColumnFrom" : "dataTable.pinColumnTo", { label, side: sideWord })}
-      aria-pressed={active}
-      title={loc.t(active ? "dataTable.unpinFrom" : "dataTable.pinTo", { side: sideWord })}
-      className={cn(
-        "zen-inline-flex zen-items-center zen-justify-center zen-h-6 zen-w-6 zen-rounded-zen-sm",
-        "zen-border-0 zen-cursor-pointer zen-text-xs",
-        active
-          ? "zen-bg-zen-primary zen-text-zen-primary-fg"
-          : "zen-bg-transparent zen-text-zen-muted-fg hover:zen-bg-zen-muted hover:zen-text-zen-foreground",
-        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-      )}
-    >
-      {side === "left" ? "◀" : "▶"}
-    </button>
   );
 }
 
@@ -2714,6 +2753,7 @@ function HeaderCell<TData, TValue>({
         "zen-p-0 zen-transition-colors zen-relative",
         canSort && "hover:zen-bg-zen-muted",
         "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
+        columnHeaderClass(header.column.columnDef.meta),
       )}
       style={headStyle}
     >
@@ -2866,14 +2906,15 @@ function VirtualizedBody<TData>({
       const isFirstRight = pin === "right" && column.getIsFirstColumn("right");
       return {
         position: "sticky",
-        left: pin === "left" ? `${column.getStart("left")}px` : undefined,
-        right: pin === "right" ? `${column.getAfter("right")}px` : undefined,
+        // Logical sides: "left" is the START edge, the right edge in an RTL page.
+        insetInlineStart: pin === "left" ? `${column.getStart("left")}px` : undefined,
+        insetInlineEnd: pin === "right" ? `${column.getAfter("right")}px` : undefined,
         background: "var(--zen-color-background)",
         zIndex: 1,
         boxShadow: isLastLeft
-          ? "inset -1px 0 0 var(--zen-color-border), 4px 0 6px -4px rgba(0,0,0,0.12)"
+          ? "inset calc(-1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
           : isFirstRight
-          ? "inset 1px 0 0 var(--zen-color-border), -4px 0 6px -4px rgba(0,0,0,0.12)"
+          ? "inset calc(1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(-4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
           : undefined,
       };
     },
@@ -3099,6 +3140,7 @@ function VirtualizedBody<TData>({
                     <div
                       key={cell.id}
                       role="cell"
+                      className={columnCellClass(cell.column.columnDef.meta, row)}
                       style={{
                         padding: "var(--zen-space-2) var(--zen-space-1)",
                         display: "flex",
@@ -3210,6 +3252,7 @@ function VirtHeaderCell<TData, TValue>({
           : "zen-font-medium zen-text-zen-muted-fg",
         canSort && "hover:zen-bg-zen-muted",
         "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
+        columnHeaderClass(header.column.columnDef.meta),
       )}
       style={{
         minWidth: 0,
@@ -3272,6 +3315,7 @@ function VirtSortableHeaderCell<TData, TValue>({
           : "zen-font-medium zen-text-zen-muted-fg",
         canSort && "hover:zen-bg-zen-muted",
         "data-[active=true]:zen-bg-zen-primary-soft data-[active=true]:zen-text-zen-primary-soft-fg",
+        columnHeaderClass(header.column.columnDef.meta),
       )}
       style={{
         minWidth: 0,

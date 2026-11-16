@@ -134,7 +134,7 @@ const TableCell = React.forwardRef<
     ref={ref}
     className={cn(
       // Zen theme cell: 8px horizontal, 12px vertical
-      "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-align-middle zen-text-sm zen-text-zen-foreground",
+      "zen-[padding-inline:var(--zen-table-cell-padding-x)] zen-py-zen-cell-y zen-align-middle zen-text-zen-cell zen-text-zen-foreground",
       className,
     )}
     {...props}
