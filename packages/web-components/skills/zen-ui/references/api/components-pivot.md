@@ -39,6 +39,10 @@ SKILL.md.
 - `rowHeaderWidth?: number | undefined`
 - `label?: string | undefined` — Names the grid for a screen reader.
 - `onVisibleRangeChange?: ((range: { rowStart: number; rowEnd: number; colStart: number; colEnd: number; }) => void) | undefined`
+- `totals?: PivotTotals | undefined` — Grand totals, asked for like the cells: a totals column per value (pinned to the end edge) and a totals row (pinned to the bottom). The grid sums nothing itself — an average's total is not the sum of averages, and the data may live on a server — so each part is an accessor. Give only the parts you want: `row` draws the totals columns, `column` the totals row.
+- `className?: string | undefined`
+- `style?: React.CSSProperties | undefined`
+- `height?: string | number | undefined` — The grid's height (px, or any CSS length). Default: fills its parent, as before.
 
 ### PivotDropZone
 

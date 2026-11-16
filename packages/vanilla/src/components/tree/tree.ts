@@ -50,6 +50,8 @@ export interface TreeProps extends BaseProps {
   selected?: string | null;
   defaultSelected?: string | null;
   onSelectedChange?: (id: string) => void;
+  /** Classes for one node's row, after its own (so a caller's padding or colour wins). */
+  itemClassName?: (node: TreeNode) => string | undefined | false | null;
 }
 
 /** One visible row: the node plus where it sits. */
@@ -230,6 +232,7 @@ export function Tree(props: TreeProps): ZenComponent<TreeProps> {
       "hover:zen-bg-zen-muted",
       isSelected && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-font-medium",
       row.node.disabled && "zen-cursor-not-allowed zen-opacity-50",
+      current.itemClassName?.(row.node),
     );
 
     div.addEventListener("keydown", (e) => onKeyDown(e, row));

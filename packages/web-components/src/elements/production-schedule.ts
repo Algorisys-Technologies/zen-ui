@@ -120,6 +120,9 @@ defineZenElement<ProductionScheduleProps>({
     columns: "json",
     loading: "boolean",
     "loading-rows": "number",
+    "row-height": "number",
+    // px; any CSS length through the `maxBodyHeight` property.
+    "max-body-height": "number",
   },
   /* `showDependencies` and `showLoad` are PROPERTIES rather than attributes,
      because both default to TRUE and an ABSENT boolean attribute coerces to
@@ -143,6 +146,9 @@ defineZenElement<ProductionScheduleProps>({
     "now",
     "columns",
     "canReschedule",
+    "maxBodyHeight",
+    "rowClassName",
+    "barClassName",
     "emptyState",
   ],
   events: {

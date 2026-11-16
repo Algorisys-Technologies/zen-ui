@@ -283,6 +283,24 @@ const NewTreeDemo: React.FC = () => {
           </div>
         </CodeExample>
       </section>
+
+      <section className="demo-section">
+        <h2>8. Styling rows</h2>
+        <CodeExample
+          title="itemClassName"
+          description="Classes for one node's row, applied after its own so a caller's padding or colour wins: here roomier rows, and folders in semibold."
+          code={`<Tree items={items} itemClassName={(n) => cn("zen-py-2", n.children && "zen-font-semibold")} />`}
+        >
+          <div style={panel} data-testid="tree-styled">
+            <Tree
+              items={FILES}
+              defaultExpanded={["src"]}
+              aria-label="Styled tree"
+              itemClassName={(n) => (n.children ? "zen-py-2 zen-font-semibold" : "zen-py-2")}
+            />
+          </div>
+        </CodeExample>
+      </section>
     </div>
   );
 };

@@ -81,6 +81,14 @@ declare module "@tanstack/react-table" {
      * "number" for a column with a total or a number filter, else "text".
      */
     exportFormat?: import("@algorisys/zen-ui-core/export-request").ExportColumnFormat;
+    /**
+     * Classes for this column's cells: a string for every body and footer
+     * cell, or a function of the row for per-cell styling (`(r) => r.balance < 0
+     * && "zen-text-zen-error"`), asked about body cells only.
+     */
+    className?: string | ((row: TData) => string | undefined | false | null);
+    /** Classes for this column's header cell. */
+    headerClassName?: string;
   }
 }
 

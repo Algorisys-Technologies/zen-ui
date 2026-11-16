@@ -1,5 +1,16 @@
 import { DemoPage } from "./demo-helpers";
 
+const tagged = (testid: string, child: Node, opts: { maxWidth?: string; dir?: string; vars?: Record<string, string> } = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  if (opts.maxWidth) box.style.maxWidth = opts.maxWidth;
+  if (opts.dir) box.dir = opts.dir;
+  for (const [k, v] of Object.entries(opts.vars ?? {})) box.style.setProperty(k, v);
+  box.append(child);
+  return box;
+};
+
 const INVOICE = {
   A1: "Item", B1: "Qty", C1: "Unit", D1: "Total",
   A2: "Pallet racking", B2: 3, C2: 420, D2: "=B2*C2",
@@ -111,6 +122,29 @@ el.addEventListener("zen-cells-change", (e) => save(e.detail));`,
             said,
           );
           return wrap;
+        },
+      },
+      {
+        title: "6. Styling cells",
+        codeTitle: "cellClassName",
+        codeDescription:
+          "Classes for one cell, from its address and its evaluated value: here a negative result in red and bold, and the input column shaded so it reads as the place to type. A function, so it is set as a property.",
+        code: `sheet.cellClassName = (ref, v) => [
+  typeof v === "number" && v < 0 && "zen-text-zen-error zen-font-semibold",
+  ref.startsWith("B") && "zen-bg-zen-primary-soft",
+].filter(Boolean).join(" ");`,
+        render: () => {
+          const sheet = grid("zen-spreadsheet-grid", {
+            rows: "4",
+            cols: "3",
+            "read-only": "",
+            cells: JSON.stringify({ A1: "Opening", B1: 120, A2: "Spent", B2: 180, A3: "Balance", B3: "=B1-B2", C3: "=B3*2" }),
+          });
+          (sheet as unknown as Record<string, unknown>).cellClassName = (ref: string, v: unknown) =>
+            [typeof v === "number" && v < 0 && "zen-text-zen-error zen-font-semibold", ref.startsWith("B") && "zen-bg-zen-primary-soft"]
+              .filter(Boolean)
+              .join(" ");
+          return tagged("sheet-styled", sheet);
         },
       },
     ],

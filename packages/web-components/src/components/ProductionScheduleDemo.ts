@@ -10,6 +10,17 @@ import type { BacklogItem } from "@algorisys/zen-ui-vanilla";
 import { Button, productionNextFreeStart, productionPlaceProposal } from "@algorisys/zen-ui-vanilla";
 import { DemoPage } from "./demo-helpers";
 
+const tagged = (testid: string, child: Node, opts: { maxWidth?: string; dir?: string; vars?: Record<string, string> } = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  if (opts.maxWidth) box.style.maxWidth = opts.maxWidth;
+  if (opts.dir) box.dir = opts.dir;
+  for (const [k, v] of Object.entries(opts.vars ?? {})) box.style.setProperty(k, v);
+  box.append(child);
+  return box;
+};
+
 /**
  * Every chart below is a <zen-production-schedule>, built the way a framework
  * template binds one: attributes for the primitives, PROPERTIES for the trees
@@ -566,6 +577,32 @@ chart.addEventListener("zen-operation-click", (e) => openJobCard(e.detail[0]));`
 backlog.addEventListener("zen-place", (e) => place(e.detail));
 chart.addEventListener("zen-place", (e) => place(e.detail));`,
         render: () => placeable(),
+      },
+      {
+        title: "Row height, chart height and colours",
+        codeTitle: "row-height, max-body-height, rowClassName, barClassName",
+        codeDescription:
+          "row-height is the least height of a row — a resource that stacks more lanes still gets the room it needs, and every row shares the result. max-body-height replaces the 32rem the chart scrolls after. rowClassName tints a resource's row (the furnace, down for maintenance); barClassName colours an operation's bar over its status colours (one work order in teal, so it can be followed across machines).",
+        code: `<zen-production-schedule row-height="48" max-body-height="280"></zen-production-schedule>
+
+<script>
+  chart.rowClassName = (r) => r.id === "furnace" && "zen-bg-zen-warning-soft";
+  chart.barClassName = (op) => op.order === "WO-4490" && "zen-bg-zen-accent-light-blue zen-border-zen-accent-light-blue";
+</script>`,
+        render: () => {
+          const chart = schedule({
+            resources: CELLS,
+            operations: JOBS,
+            dependencies: ROUTING,
+            calendar: PLANT,
+            now: NOW,
+            rowClassName: (r: ProductionResource) => (r.id === "furnace" ? "zen-bg-zen-warning-soft" : undefined),
+            barClassName: (op: ProductionOperation) => op.order === "WO-4490" && "zen-bg-zen-accent-light-blue zen-border-zen-accent-light-blue",
+          });
+          chart.setAttribute("row-height", "48");
+          chart.setAttribute("max-body-height", "280");
+          return tagged("production-styled", chart);
+        },
       },
     ],
   });

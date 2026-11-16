@@ -19,7 +19,11 @@ import { defineZenElement } from "../lib/define";
 // fires zen-cell-edit instead, as onCellsEdit absent does in the factory) and
 // `zen-row-order-change` (detail: the row ids in their new order). Column
 // layout: `zen-column-visibility-change` / `-order-change` / `-pinning-change`
-// (detail: the new state); `persist-key` remembers it across reloads.
+// (detail: the new state); `persist-key` remembers it across reloads. Frozen
+// rows: `enable-row-pinning` with `row-pinning` / `initial-row-pinning` as json
+// (`{"top":["L1"],"bottom":["L60"]}`); `sticky-footer` keeps a plain footer in
+// view. A column's `meta.className` may be a function of the row, so a styled
+// column set goes in through the `columns` property.
 defineZenElement<DataTableProps<Record<string, unknown>>>({
   tag: "zen-data-table",
   factory: DataTable,
@@ -58,6 +62,10 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "enable-export": "boolean",
     "export-only-selected": "boolean",
     "sticky-header": "boolean",
+    "sticky-footer": "boolean",
+    "enable-row-pinning": "boolean",
+    "row-pinning": "json",
+    "initial-row-pinning": "json",
     "page-size": "number",
     "max-body-height": "number",
     "row-estimated-height": "number",
@@ -82,6 +90,8 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     "expanded",
     "columnPinning",
     "initialColumnPinning",
+    "rowPinning",
+    "initialRowPinning",
     "manualPagination",
     "sorting",
     "rowSelection",
@@ -102,6 +112,7 @@ defineZenElement<DataTableProps<Record<string, unknown>>>({
     onColumnVisibilityChange: "zen-column-visibility-change",
     onColumnOrderChange: "zen-column-order-change",
     onColumnPinningChange: "zen-column-pinning-change",
+    onRowPinningChange: "zen-row-pinning-change",
     onColumnFiltersChange: "zen-column-filters-change",
     onExpandedChange: "zen-expanded-change",
     onGroupingChange: "zen-grouping-change",

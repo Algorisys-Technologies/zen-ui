@@ -8,6 +8,50 @@ import {
   memberCount,
 } from "./pivot-demo-data";
 
+// --- Section 5: totals and right to left -------------------------------------
+const TOTALS_LAYOUT = {
+  rows: ["department", "name"],
+  columns: ["country", "gender"],
+  values: [{ id: "salary", aggregation: "sum" }],
+  filters: {},
+};
+const T_ROWS = memberCount("department") * memberCount("name");
+const T_COLS = memberCount("country") * memberCount("gender");
+const salaryAt = (row: number, col: number) => Math.round(cellSeed(row, col) * 45.4 + 40000);
+const money = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+const ROW_TOTALS = Array.from({ length: T_ROWS }, (_, r) => {
+  let sum = 0;
+  for (let c = 0; c < T_COLS; c++) sum += salaryAt(r, c);
+  return sum;
+});
+const COL_TOTALS = Array.from({ length: T_COLS }, (_, c) => {
+  let sum = 0;
+  for (let r = 0; r < T_ROWS; r++) sum += salaryAt(r, c);
+  return sum;
+});
+const GRAND_TOTAL = ROW_TOTALS.reduce((a, b) => a + b, 0);
+const totalsGrid = (dir?: "rtl"): HTMLElement => {
+  const box = document.createElement("div");
+  if (dir) box.dir = dir;
+  box.setAttribute("data-testid", dir === "rtl" ? "pivot-rtl" : "pivot-totals");
+  const grid = document.createElement("zen-pivot-grid");
+  for (const [k, v] of Object.entries({ height: "360", "total-rows": String(T_ROWS), "total-cols": String(T_COLS), "row-header-depth": "2", "col-header-depth": "3", "col-width": "130" })) grid.setAttribute(k, v);
+  Object.assign(grid, {
+    layout: TOTALS_LAYOUT,
+    getCell: (r: number, c: number) => ({ value: money(salaryAt(r, c)) }),
+    getRowHeader: (r: number, d: number) => ({ value: dimensionValueAt(TOTALS_LAYOUT.rows[d], r, d, TOTALS_LAYOUT.rows) }),
+    getColHeader: (d: number, c: number) =>
+      d < 2 ? { value: dimensionValueAt(TOTALS_LAYOUT.columns[d], c, d, TOTALS_LAYOUT.columns) } : { value: "Salary" },
+    totals: {
+      row: (r: number) => ({ value: money(ROW_TOTALS[r]) }),
+      column: (c: number) => ({ value: money(COL_TOTALS[c]) }),
+      grand: () => ({ value: money(GRAND_TOTAL) }),
+    },
+  });
+  box.append(grid);
+  return box;
+};
+
 /**
  * Pivot demo — the web-components port. <zen-pivot-workbench> holds no data: you
  * drag fields into zones, it fires `zen-layout-apply` with a PivotLayout, and the
@@ -222,6 +266,28 @@ const next = moveFieldToZone(layout, "country", "rows", { index: 0 });`,
             "zen-m-0 zen-text-sm zen-text-zen-muted-fg",
             "The model is pinned by bun run check:pivot and the window maths by check:virtual-window — neither needs a browser, because neither is about rendering.",
           ),
+      },
+      {
+        title: "5. Totals, height and right to left",
+        codeTitle: "totals: { row, column, grand }",
+        codeDescription:
+          "A totals column pinned to the end edge and a totals row pinned to the bottom, both in view while the grid scrolls both ways. The grid adds nothing up itself — an average's total is not the sum of the averages, and the data may be on a server — so each total is an accessor, set as a property like getCell. height sizes the grid without a sized parent. In a right-to-left page the row labels freeze on the right.",
+        code: `<zen-pivot-grid height="360" total-rows="60" total-cols="20"
+  row-header-depth="2" col-header-depth="3"></zen-pivot-grid>
+
+<script>
+  grid.totals = {
+    row: (row) => ({ value: rowTotal(row) }),       // the totals column
+    column: (col) => ({ value: colTotal(col) }),    // the totals row
+    grand: () => ({ value: grandTotal() }),
+  };
+</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.append(totalsGrid(), totalsGrid("rtl"));
+          return box;
+        },
       },
     ],
   });

@@ -193,13 +193,28 @@ export interface GanttProps {
   /** Replaces the whole no-tasks surface. */
   emptyState?: React.ReactNode;
 
+  /**
+   * Every row's height in px. Default 36. One value for all rows: the row
+   * window and the dependency arrows place rows at index × height.
+   */
+  rowHeight?: number;
+  /** The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem. */
+  maxBodyHeight?: number | string;
+  /** Classes for a task's row — a tint for a critical or late task. */
+  rowClassName?: (task: GanttTask, row: GanttRow<GanttTask>) => string | undefined;
+  /**
+   * Classes for a task's bar, applied after its status colours so they win:
+   * `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
+   */
+  barClassName?: (task: GanttTask) => string | undefined | false | null;
+
   className?: string;
 }
 
 const BAR_PX = 18;
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
  *  exactly ROW_PX / 2 — which is the y the connector routes are computed at. */
-const BAR_TOP = (ROW_PX - BAR_PX) / 2;
+const barTop = (rowHeight: number) => (rowHeight - BAR_PX) / 2;
 
 /**
  * The frozen pane's columns. Fixed widths, because a sticky pane cannot be
@@ -357,9 +372,15 @@ export const Gantt = ({
   loading,
   loadingRows = 6,
   emptyState,
+  rowHeight: rowHeightProp,
+  maxBodyHeight,
+  rowClassName,
+  barClassName,
   className,
 }: GanttProps) => {
   const loc = useLocale();
+  // Never shorter than a bar plus a few px, or the bar would overhang its row.
+  const rowHeight = Math.max(BAR_PX + 4, rowHeightProp ?? ROW_PX);
   /* Fit, not month, and certainly not week. A seven-day window is right for a
      calendar and wrong for a plan; a month is right for a plan that fits in one
      and wrong for the majority that do not. Fit is the only default that is
@@ -489,8 +510,8 @@ export const Gantt = ({
         anchors.set(id, { rowIndex: index, startPct: placement.startPct, widthPct: placement.widthPct });
       }
     }
-    return ganttConnectors(anchors, dependencies, { axisWidth, rowHeight: ROW_PX });
-  }, [showDependencies, dependencies, rowIndexById, placements, axisWidth]);
+    return ganttConnectors(anchors, dependencies, { axisWidth, rowHeight });
+  }, [showDependencies, dependencies, rowIndexById, placements, axisWidth, rowHeight]);
 
   const setView = (next: GanttView) => {
     /* Leaving fit re-anchors, when the anchor is nowhere near the plan.
@@ -517,9 +538,11 @@ export const Gantt = ({
         axisWidth={width}
         placement={placements.get(row.index) ?? null}
         onTaskClick={onTaskClick}
+        rowHeight={rowHeight}
+        barClass={barClassName?.(row.task) || undefined}
       />
     ),
-    [range, placements, onTaskClick],
+    [range, placements, onTaskClick, rowHeight, barClassName],
   );
 
   if (loading) {
@@ -575,6 +598,9 @@ export const Gantt = ({
         colCount={5}
         timelineColIndex={COL_INDEX.timeline}
         renderTrack={renderTrack}
+        rowHeight={rowHeight}
+        rowClass={rowClassName ? (row) => rowClassName(row.task, row) : undefined}
+        maxBodyHeight={maxBodyHeight}
         view={view}
         anchor={anchor}
         now={now}
@@ -645,7 +671,7 @@ const GanttPaneCell = ({
             {task.name}
           </span>
           {task.subtitle && (
-            <span className="zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg">
+            <span className="zen-block zen-truncate zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">
               {task.subtitle}
             </span>
           )}
@@ -686,12 +712,16 @@ const GanttTrack = ({
   axisWidth,
   placement,
   onTaskClick,
+  rowHeight,
+  barClass,
 }: {
   row: Row;
   range: PlanningRange;
   axisWidth: number;
   placement: PlanningPlacement | null;
   onTaskClick?: (task: GanttTask, row: Row) => void;
+  rowHeight: number;
+  barClass?: string;
 }) => {
   const loc = useLocale();
   const { task } = row;
@@ -785,7 +815,7 @@ const GanttTrack = ({
           /* Drawn as pieces, the button is only the hit area and the focus
              ring — the skin moves onto each piece, or the gaps would be
              filled by the button's own background. */
-          pieces === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[row.status]),
+          pieces === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[row.status], barClass),
           /* Square off a cut edge so a bar continuing past the view does
              not look like it ends there. */
           pieces === null && placement.clippedStart && "zen-rounded-s-none zen-border-s-0",
@@ -795,7 +825,7 @@ const GanttTrack = ({
         style={{
           insetInlineStart: `${placement.startPct}%`,
           width: `${placement.widthPct}%`,
-          top: BAR_TOP,
+          top: barTop(rowHeight),
           height: BAR_PX,
         }}
         title={`${task.name} · ${formatDay(row.span!.start)} – ${formatDay(row.span!.end)}${
@@ -822,7 +852,7 @@ const GanttTrack = ({
             <span
               key={piece.key}
               aria-hidden="true"
-              className={cn("zen-absolute zen-inset-y-0 zen-overflow-hidden", BAR_CLASS[row.status], "zen-rounded-zen-sm zen-border")}
+              className={cn("zen-absolute zen-inset-y-0 zen-overflow-hidden", BAR_CLASS[row.status], "zen-rounded-zen-sm zen-border", barClass)}
               style={{ insetInlineStart: `${piece.startPct}%`, width: `${piece.widthPct}%` }}
             >
               {row.progress !== null && piece.fillPct > 0 && (
@@ -844,7 +874,7 @@ const GanttTrack = ({
           <span
             aria-hidden="true"
             className={cn(
-              "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-text-[10px] zen-font-medium",
+              "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium",
               labelOnFill
                 ? cn("zen-start-1", FILL_TEXT_CLASS[row.status])
                 : "zen-end-1 zen-text-zen-foreground",
@@ -858,12 +888,12 @@ const GanttTrack = ({
       {row.progress !== null && labelOutside && (
         <span
           aria-hidden="true"
-          className="zen-absolute zen-flex zen-items-center zen-text-[10px] zen-font-medium zen-text-zen-muted-fg"
+          className="zen-absolute zen-flex zen-items-center zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg"
           style={{
             ...(labelBefore
               ? { insetInlineEnd: `calc(${100 - placement.startPct}% + 4px)` }
               : { insetInlineStart: `calc(${endPct}% + 4px)` }),
-            top: BAR_TOP,
+            top: barTop(rowHeight),
             height: BAR_PX,
           }}
         >

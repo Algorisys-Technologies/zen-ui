@@ -11,7 +11,7 @@ import { defineZenElement } from "../lib/define";
 defineZenElement<TreeProps>({
   tag: "zen-tree",
   factory: Tree,
-  props: ["items", "expanded", "defaultExpanded", "selected", "defaultSelected"],
+  props: ["items", "expanded", "defaultExpanded", "selected", "defaultSelected", "itemClassName"],
   events: {
     onExpandedChange: "zen-expanded-change",
     onSelectedChange: "zen-selected-change",

@@ -36,6 +36,10 @@ SKILL.md.
 - `loading?: boolean | undefined` — Show skeleton rows instead of the chart.
 - `loadingRows?: number | undefined` — How many skeleton rows. Default 6.
 - `emptyState?: React.ReactNode` — Replaces the whole no-tasks surface.
+- `rowHeight?: number | undefined` — Every row's height in px. Default 36. One value for all rows: the row window and the dependency arrows place rows at index × height.
+- `maxBodyHeight?: string | number | undefined` — The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem.
+- `rowClassName?: ((task: GanttTask, row: GanttRow<GanttTask>) => string | undefined) | undefined` — Classes for a task's row — a tint for a critical or late task.
+- `barClassName?: ((task: GanttTask) => string | undefined | false | null) | undefined` — Classes for a task's bar, applied after its status colours so they win: `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
 - `className?: string | undefined`
 
 ### GanttTask (type)

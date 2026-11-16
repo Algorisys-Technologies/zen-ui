@@ -249,6 +249,23 @@ tree.defaultExpanded = ["l1", "l2", "l3", "l4", "l5"];`,
         render: () =>
           panel(tree(ICON_FILES, "Keyboard demo", { defaultExpanded: ["src", "components"] })),
       },
+      {
+        title: "8. Styling rows",
+        codeTitle: "itemClassName",
+        codeDescription:
+          "Classes for one node's row, applied after its own so a caller's padding or colour wins: here roomier rows, and folders in semibold.",
+        code: `tree.itemClassName = (n) => (n.children ? "zen-py-2 zen-font-semibold" : "zen-py-2");`,
+        render: () => {
+          const box = panel(
+            tree(FILES, "Styled tree", {
+              defaultExpanded: ["src"],
+              itemClassName: (n: TreeNode) => (n.children ? "zen-py-2 zen-font-semibold" : "zen-py-2"),
+            }),
+          );
+          box.setAttribute("data-testid", "tree-styled");
+          return box;
+        },
+      },
     ],
   });
 }

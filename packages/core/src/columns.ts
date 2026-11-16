@@ -205,3 +205,30 @@ export function withUtilityPins(state: PinState, present: readonly string[]): { 
 export function withoutUtilityPins(state: PinState): { left: string[]; right: string[] } {
   return { left: (state.left ?? []).filter((id) => !isUtility(id)), right: (state.right ?? []).filter((id) => !isUtility(id)) };
 }
+
+/**
+ * Rows in pinned order: the top pins (in pin order), the displayed rows that
+ * are not pinned, then the bottom pins. Pinned rows come from `all`, so a pin
+ * holds when a filter or the page would hide the row — what TanStack's row
+ * pinning does in React and Solid (keepPinnedRows); vanilla has no TanStack.
+ * Ids that are not in the data are ignored.
+ */
+export function pinnedRowOrder<T>(
+  all: readonly T[],
+  display: readonly T[],
+  idOf: (row: T) => string,
+  pinning: { top?: readonly string[]; bottom?: readonly string[] },
+): { rows: T[]; top: Set<string>; bottom: Set<string> } {
+  const byId = new Map(all.map((r) => [idOf(r), r] as const));
+  const pick = (list: readonly string[] = []) => list.filter((id) => byId.has(id));
+  const topIds = pick(pinning.top);
+  const bottomIds = pick(pinning.bottom).filter((id) => !topIds.includes(id));
+  const top = new Set(topIds);
+  const bottom = new Set(bottomIds);
+  const center = display.filter((r) => !top.has(idOf(r)) && !bottom.has(idOf(r)));
+  return {
+    rows: [...topIds.map((id) => byId.get(id)!), ...center, ...bottomIds.map((id) => byId.get(id)!)],
+    top,
+    bottom,
+  };
+}

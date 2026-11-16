@@ -21,6 +21,7 @@ import {
 } from "@algorisys/zen-ui-core/grid-range";
 
 import { cn } from "../../lib/cn";
+import { columnCellClass } from "@algorisys/zen-ui-core/columns";
 import { Table, TableBody, TableCell, TableRow } from "./table";
 import { EditableCell, type CellEditPayload, type EditingState } from "./edit-cell";
 import { useLocale } from "../locale/locale";
@@ -74,6 +75,12 @@ export interface BodyTableProps<TData> {
   onRowMove?: (from: number, to: number) => void;
   /** A context menu is attached: rows and cells say which they are, and a right-click focuses them. */
   menuTargets?: boolean;
+  /** Row pinning is on and this body can honour it (the plain body). */
+  rowPinning?: boolean;
+  /** The body scrolls under a sticky header: pinned rows can stick. */
+  stickyHeaderActive?: boolean;
+  /** The footer sticks: bottom-pinned rows sit above it. */
+  footerSticky?: boolean;
 }
 
 /** One rendered body row when virtualized: a data row, or the panel an expanded row opens. */
@@ -125,7 +132,20 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
     rowDrag,
     menuTargets,
   } = props;
-  const rows = table.getRowModel().rows;
+  // Pinned rows first and last; TanStack keeps them even when a filter or
+  // the page would drop them.
+  // Memoised on what the three lists derive from: a fresh array each render
+  // would re-run every hook that depends on the rows.
+  const rowModel = table.getRowModel();
+  const rowPinningState = table.getState().rowPinning;
+  const rows = React.useMemo(
+    () =>
+      props.rowPinning
+        ? [...table.getTopRows(), ...table.getCenterRows(), ...table.getBottomRows()]
+        : rowModel.rows,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getTopRows / getCenterRows / getBottomRows are TanStack memos over exactly these two
+    [props.rowPinning, rowModel, rowPinningState],
+  );
   const tableRef = React.useRef<HTMLTableElement>(null);
   // The <table> as state too, for VirtualRows: a child's layout effects run
   // before its ancestors' refs are attached, so on the first commit the
@@ -810,9 +830,10 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
           ref={navCol !== undefined ? cellRef(cellKey(row.id, cell.column.id)) : undefined}
           className={
             navCol === undefined
-              ? sepCellClass
+              ? cn(sepCellClass, columnCellClass(cell.column.columnDef.meta, row))
               : cn(
                   sepCellClass,
+                  columnCellClass(cell.column.columnDef.meta, row),
                   "focus:zen-outline focus:zen-outline-2 focus:-zen-outline-offset-2 focus:zen-outline-zen-ring",
                   isSelected && "zen-bg-zen-primary-soft",
                 )
@@ -844,6 +865,55 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       );
     });
 
+  /* Pinned rows stick under the header (top) or above the footer (bottom),
+   * each below the ones pinned before it — so the header, the footer and
+   * every pinned row are measured, not assumed. */
+  const [stickDims, setStickDims] = React.useState<{ head: number; foot: number; rows: Record<string, number> }>({
+    head: 0,
+    foot: 0,
+    rows: {},
+  });
+  const pinnedKey = props.rowPinning
+    ? [...table.getTopRows(), ...table.getBottomRows()].map((r) => r.id).join("\u0000")
+    : "";
+  React.useLayoutEffect(() => {
+    if (!props.rowPinning || !tableEl || typeof ResizeObserver === "undefined") return;
+    const measure = () => {
+      const head = tableEl.querySelector("thead")?.getBoundingClientRect().height ?? 0;
+      const foot = tableEl.querySelector("tfoot")?.getBoundingClientRect().height ?? 0;
+      const rows: Record<string, number> = {};
+      tableEl.querySelectorAll<HTMLElement>("tr[data-pinned-row]").forEach((tr) => {
+        rows[tr.dataset.pinnedRow!] = tr.getBoundingClientRect().height;
+      });
+      setStickDims((prev) =>
+        prev.head === head && prev.foot === foot && JSON.stringify(prev.rows) === JSON.stringify(rows)
+          ? prev
+          : { head, foot, rows },
+      );
+    };
+    const ro = new ResizeObserver(measure);
+    tableEl.querySelectorAll("thead, tfoot, tr[data-pinned-row]").forEach((el) => ro.observe(el));
+    measure();
+    return () => ro.disconnect();
+  }, [props.rowPinning, tableEl, pinnedKey]);
+  const pinnedRowStyle = (row: Row<TData>): React.CSSProperties | undefined => {
+    if (!props.rowPinning || !props.stickyHeaderActive) return undefined;
+    const side = row.getIsPinned();
+    if (!side) return undefined;
+    const list = side === "top" ? table.getTopRows() : table.getBottomRows();
+    const at = list.findIndex((r) => r.id === row.id);
+    const before = side === "top" ? list.slice(0, at) : list.slice(at + 1);
+    let offset = 0;
+    for (const r of before) offset += stickDims.rows[r.id] ?? 0;
+    const edge = offset + (side === "top" ? stickDims.head : props.footerSticky ? stickDims.foot : 0);
+    return {
+      position: "sticky",
+      ...(side === "top" ? { top: `${edge}px` } : { bottom: `${edge}px` }),
+      zIndex: 5,
+      background: "var(--zen-color-background)",
+    };
+  };
+
   const dataRow = (row: Row<TData>, index: number, virt?: VirtRow) => (
     <TableRow
       key={virt ? `row:${row.id}` : undefined}
@@ -865,6 +935,8 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
           : undefined
       }
       data-index={virt?.index}
+      data-pinned-row={props.rowPinning && row.getIsPinned() ? row.id : undefined}
+      style={pinnedRowStyle(row)}
       aria-rowindex={virt ? (props.headerRowCount ?? 1) + virt.index + 1 : undefined}
       data-dragging={rowDrag && dragId === row.id ? "true" : undefined}
       data-row-id={menuTargets ? row.id : undefined}
@@ -938,7 +1010,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
                 {row.getVisibleCells().map((cell) => {
                   const isEditing = editingCell?.rowId === row.id && editingCell?.columnId === cell.column.id;
                   return (
-                    <TableCell key={cell.id} className={sepCellClass} style={pinStyle(cell.column)}>
+                    <TableCell key={cell.id} className={cn(sepCellClass, columnCellClass(cell.column.columnDef.meta, row))} style={pinStyle(cell.column)}>
                       <EditableCell
                         cell={cell}
                         editing={isEditing}

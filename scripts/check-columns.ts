@@ -2,7 +2,7 @@
  * DataTable column management's pure contract: a column's name, moving a
  * column by one place, and the keyboard resize step.
  */
-import { clampColumnSize, columnLabel, columnLayout, columnResizeDelta, moveColumn, orderedColumnIds, respectsColumnSizes, columnMinWidth, columnCellClass, columnHeaderClass, withUtilityPins, withoutUtilityPins } from "../packages/core/src/columns";
+import { clampColumnSize, columnLabel, columnLayout, columnResizeDelta, moveColumn, orderedColumnIds, respectsColumnSizes, columnMinWidth, columnCellClass, columnHeaderClass, withUtilityPins, withoutUtilityPins, pinnedRowOrder } from "../packages/core/src/columns";
 
 let f = 0;
 let n = 0;
@@ -99,6 +99,19 @@ t(withUtilityPins({}, util), { left: [], right: [] }, "an empty state");
 t(withUtilityPins({ left: ["__select__", "name"] }, util), { left: ["__drag__", "__select__", "name"], right: [] }, "never duplicated, kept in display order");
 t(withUtilityPins({ left: ["name"] }, []), { left: ["name"], right: [] }, "no utility columns: unchanged");
 t(withoutUtilityPins({ left: ["__drag__", "__select__", "name"], right: ["total", "__expand__"] }), { left: ["name"], right: ["total"] }, "what the app is told: its own pins only");
+
+console.log("\nrow pinning (the order vanilla renders; TanStack's in React and Solid)");
+const all = ["a", "b", "c", "d", "e"].map((id) => ({ id }));
+const idOf = (r: { id: string }) => r.id;
+const pinOrder = (xs: { id: string }[]) => xs.map(idOf).join("");
+const page = all.slice(0, 3); // a b c: the page / the filter's result
+t(pinOrder(pinnedRowOrder(all, page, idOf, {}).rows), "abc", "nothing pinned: the display, untouched");
+t(pinOrder(pinnedRowOrder(all, page, idOf, { top: ["c"], bottom: ["a"] }).rows), "cba", "top first, bottom last, the rest between");
+t(pinOrder(pinnedRowOrder(all, page, idOf, { top: ["e"] }).rows), "eabc", "a pinned row off the page (or filtered out) still shows");
+t(pinOrder(pinnedRowOrder(all, page, idOf, { top: ["d", "b"] }).rows), "dbac", "top rows keep the pin order");
+t(pinOrder(pinnedRowOrder(all, page, idOf, { top: ["zz"], bottom: ["a"] }).rows), "bca", "an id that is not in the data is ignored");
+const sides = pinnedRowOrder(all, page, idOf, { top: ["c"], bottom: ["a", "e"] });
+t([[...sides.top], [...sides.bottom]], [["c"], ["a", "e"]], "and says which rows are top and bottom");
 
 console.log(f ? `\n${f} FAILED (of ${n})` : `\nall ${n} passed`);
 process.exit(f ? 1 : 0);

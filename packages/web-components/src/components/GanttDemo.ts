@@ -1,6 +1,17 @@
 import type { GanttCalendar, GanttDependency, GanttRow, GanttTask } from "@algorisys/zen-ui-vanilla";
 import { DemoPage } from "./demo-helpers";
 
+const tagged = (testid: string, child: Node, opts: { maxWidth?: string; dir?: string; vars?: Record<string, string> } = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  if (opts.maxWidth) box.style.maxWidth = opts.maxWidth;
+  if (opts.dir) box.dir = opts.dir;
+  for (const [k, v] of Object.entries(opts.vars ?? {})) box.style.setProperty(k, v);
+  box.append(child);
+  return box;
+};
+
 /**
  * Every chart below is a <zen-gantt>, built the way a framework template binds
  * one: attributes for the primitives, PROPERTIES for the trees and the
@@ -492,6 +503,31 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
 // Ctrl+End      last row of the plan, scrolled in and focused
 // PageDown      one screenful at a time`,
         render: () => gantt({ tasks: BIG_PLAN, now: NOW, defaultExpanded: ["w0", "w1"] }),
+      },
+      {
+        title: "13. Row height, chart height and colours",
+        codeTitle: "row-height, max-body-height, rowClassName, barClassName",
+        codeDescription:
+          "row-height sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). max-body-height replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. The small print (subtitles, percentages) follows --zen-schedule-label-font-size.",
+        code: `<zen-gantt row-height="48" max-body-height="300"></zen-gantt>
+
+<script>
+  chart.rowClassName = (t) => t.children && "zen-bg-zen-muted/40";
+  chart.barClassName = (t) => t.assignees?.some((a) => a.id === "u3") && "zen-bg-zen-accent-purple zen-border-zen-accent-purple";
+</script>`,
+        render: () => {
+          const chart = gantt({
+            tasks: PLAN,
+            dependencies: LINKS,
+            now: NOW,
+            defaultDate: NOW,
+            rowClassName: (t: GanttTask) => (t.children ? "zen-bg-zen-muted/40" : undefined),
+            barClassName: (t: GanttTask) => t.assignees?.some((a) => a.id === MEI.id) && "zen-bg-zen-accent-purple zen-border-zen-accent-purple",
+          });
+          chart.setAttribute("row-height", "48");
+          chart.setAttribute("max-body-height", "300");
+          return tagged("gantt-styled", chart, { vars: { "--zen-schedule-label-font-size": "11px" } });
+        },
       },
     ],
   });

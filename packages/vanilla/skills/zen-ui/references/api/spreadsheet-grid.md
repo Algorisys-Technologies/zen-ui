@@ -21,6 +21,7 @@ SKILL.md.
 - `readOnly?: boolean | undefined`
 - `colWidth?: string | undefined` — Column width. Default `"6rem"`.
 - `onCellCommit?: ((ref: string, raw: CellValue, evaluated: CellValue) => void) | undefined` — Fires with the evaluated value whenever a cell is committed.
+- `cellClassName?: ((ref: string, value: CellValue) => string | undefined | false | null) | undefined` — Classes for one cell, from its address and evaluated value — a negative figure in red, an input cell shaded: `(ref, v) => typeof v === "number" && v < 0 && "zen-text-zen-error"`.
 - `className?: string | undefined`
 
 ### SheetCalculator
@@ -34,6 +35,7 @@ SKILL.md.
 - `readOnly?: boolean | undefined`
 - `colWidth?: string | undefined` — Column width. Default `"6rem"`.
 - `onCellCommit?: ((ref: string, raw: CellValue, evaluated: CellValue) => void) | undefined` — Fires with the evaluated value whenever a cell is committed.
+- `cellClassName?: ((ref: string, value: CellValue) => string | undefined | false | null) | undefined` — Classes for one cell, from its address and evaluated value — a negative figure in red, an input cell shaded: `(ref, v) => typeof v === "number" && v < 0 && "zen-text-zen-error"`.
 - `className?: string | undefined`
 
 ### Types

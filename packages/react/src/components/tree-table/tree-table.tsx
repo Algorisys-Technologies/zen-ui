@@ -16,6 +16,7 @@ import {
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { arrowStep } from "@algorisys/zen-ui-core";
+import { columnCellClass, columnHeaderClass } from "@algorisys/zen-ui-core/columns";
 import {
   Table,
   TableBody,
@@ -589,6 +590,7 @@ export function TreeTable<TData, TValue = unknown>({
                 return (
                   <TableHead
                     key={header.id}
+                    className={columnHeaderClass(header.column.columnDef.meta)}
                     style={header.column.getSize() ? { width: header.getSize() } : undefined}
                     aria-sort={
                       sorted === "asc"
@@ -669,7 +671,7 @@ export function TreeTable<TData, TValue = unknown>({
                   onClick={() => onRowClick?.(row)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className={columnCellClass(cell.column.columnDef.meta, row)}>
                       {cell.column.id === hierarchyId ? (
                         <span
                           className="zen-flex zen-items-center zen-gap-1"

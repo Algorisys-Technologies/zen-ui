@@ -1,6 +1,15 @@
 import { PlanningCalendar, type PlanningRow } from "./planning-calendar/planning-calendar";
 import { DemoPage } from "./demo-helpers";
 
+const tagged = (testid: string, child: Node, style: Record<string, string> = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  for (const [k, v] of Object.entries(style)) box.style.setProperty(k, v);
+  box.append(child);
+  return box;
+};
+
 /* A fixed reference day, so the demo reads the same on any date and the probe
    has something to assert against. 2026-07-21 is a Tuesday. */
 const NOW = new Date(2026, 6, 21, 11, 30, 0, 0);
@@ -144,6 +153,14 @@ cal.update({ view: "day" });   // controlled: push the view back in`,
           "No resources means there is nothing to compare, so the grid is not drawn at all — an empty axis with no rows under it reads as a component that failed to load.",
         code: `PlanningCalendar({ rows: [], emptyMessage: "No one is scheduled this week" }).el`,
         render: () => PlanningCalendar({ rows: [], now: NOW, defaultDate: NOW, emptyMessage: "No one is scheduled this week" }).el,
+      },
+      {
+        title: "6. Lane height",
+        codeTitle: "laneHeight",
+        codeDescription:
+          "Appointments that overlap stack in lanes inside a row; laneHeight sets how tall each lane is (30px by default). Taller lanes suit a touch screen. The small print follows --zen-schedule-label-font-size.",
+        code: `PlanningCalendar({ rows: team, laneHeight: 44 })`,
+        render: () => tagged("lanes-tall", PlanningCalendar({ rows: TEAM, now: NOW, defaultDate: NOW, laneHeight: 44 }).el),
       },
     ],
   });

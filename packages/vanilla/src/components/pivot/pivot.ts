@@ -931,13 +931,42 @@ export interface PivotGridProps {
     colStart: number;
     colEnd: number;
   }) => void;
+  /**
+   * Grand totals, asked for like the cells: a totals column per value (pinned
+   * to the end edge) and a totals row (pinned to the bottom). The grid sums
+   * nothing itself — an average's total is not the sum of averages, and the
+   * data may live on a server — so each part is an accessor. Give only the
+   * parts you want: `row` draws the totals columns, `column` the totals row.
+   */
+  totals?: PivotTotals;
+  class?: string;
+  style?: Partial<CSSStyleDeclaration> | Record<string, string>;
+  /** The grid's height (px, or any CSS length). Default: fills its parent, as before. */
+  height?: number | string;
+}
+
+export type PivotTotalCell = { value: unknown; isLoading?: boolean } | null;
+
+export interface PivotTotals {
+  /** How many totals columns — usually one per value field. Default 1. */
+  columns?: number;
+  /** Totals column i's header. Default "Total". */
+  columnHeader?: (i: number) => string;
+  /** Row `row`'s total in totals column i. */
+  row?: (row: number, i: number) => PivotTotalCell;
+  /** Column `col`'s total, in the totals row. */
+  column?: (col: number) => PivotTotalCell;
+  /** Where the totals row meets totals column i. */
+  grand?: (i: number) => PivotTotalCell;
+  /** The totals row's label. Default "Total". */
+  label?: string;
 }
 
 const SKELETON_BAR = "zen-rounded-zen-sm zen-bg-zen-muted-fg/25 motion-safe:zen-animate-pulse";
 const STICKY_CORNER =
-  "zen-sticky zen-z-30 zen-box-border zen-border-r zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
+  "zen-sticky zen-z-30 zen-box-border zen-border-e zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
 const STICKY_ROW_LABEL =
-  "zen-sticky zen-z-20 zen-border-r zen-border-zen-border zen-shadow-[1px_0_0_0_var(--zen-border)]";
+  "zen-sticky zen-z-20 zen-border-e zen-border-zen-border zen-shadow-[1px_0_0_0_var(--zen-border)]";
 
 /**
  * PivotGrid — a table windowed in BOTH directions. It never sees your data: it
@@ -971,6 +1000,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
   const thead = document.createElement("thead");
   thead.className = "zen-bg-zen-muted";
   const tbody = document.createElement("tbody");
+  const tfoot = document.createElement("tfoot");
   table.append(thead, tbody);
   scrollEl.append(table);
   el.append(scrollEl);
@@ -991,7 +1021,10 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
     if (totalCols <= 0) {
       return { minIndex: 0, maxIndex: -1, items: [] as number[], padLeft: 0, padRight: 0 };
     }
-    const left = Math.max(0, scrollLeft);
+    // abs: a right-to-left scroller reports scrollLeft as 0 down to a negative
+    // number, which Math.max(0, …) pinned at 0 — the window never moved and
+    // the columns past the first screen were never drawn.
+    const left = Math.abs(scrollLeft);
     const minIndex = Math.max(0, Math.floor((left - frozenWidth) / colWidth) - 4);
     const maxIndex = Math.min(
       totalCols - 1,
@@ -1049,7 +1082,26 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
     if (!force && key === lastKey) return;
     lastKey = key;
 
-    table.style.width = `${frozenWidth + totalCols * colWidth}px`;
+    el.className = cn("zen-flex zen-h-full zen-w-full zen-min-h-0 zen-min-w-0 zen-flex-col zen-gap-2", current.class);
+    if (current.height !== undefined) {
+      el.style.height = typeof current.height === "number" ? `${current.height}px` : current.height;
+    }
+    if (current.style) Object.assign(el.style, current.style);
+
+    const totals = current.totals;
+    const totalsCols = totals?.row ? Math.max(1, totals.columns ?? 1) : 0;
+    /** Totals column i, pinned to the end edge; the last one sits at the edge. */
+    const totalsColStyle = (cell: HTMLElement, i: number) => {
+      cell.style.position = "sticky";
+      cell.style.insetInlineEnd = `${(totalsCols - 1 - i) * colWidth}px`;
+      fixWidth(cell, colWidth);
+    };
+    const totalCell = (cell: HTMLElement, value: PivotTotalCell) => {
+      if (value?.isLoading) cell.append(h("div", cn("zen-ml-auto zen-h-3 zen-w-10", SKELETON_BAR)));
+      else cell.textContent = (value?.value as string) ?? "-";
+    };
+
+    table.style.width = `${frozenWidth + (totalCols + totalsCols) * colWidth}px`;
 
     const headerRows = Array.from({ length: Math.max(colHeaderDepth, 1) }, (_, i) => i);
     thead.replaceChildren();
@@ -1065,7 +1117,8 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
             "zen-px-2 zen-py-1 zen-text-start zen-align-bottom zen-text-sm zen-font-medium zen-capitalize zen-text-zen-muted-fg",
           );
           th.style.position = "sticky";
-          th.style.left = `${depth * rowHeaderWidth}px`;
+          // Logical: the labels freeze at the START edge (the right, in RTL).
+          th.style.insetInlineStart = `${depth * rowHeaderWidth}px`;
           th.style.top = `${headerRowIndex * rowHeight}px`;
           fixHeight(th, rowHeight);
           fixWidth(th, rowHeaderWidth);
@@ -1119,6 +1172,21 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
         tr.append(th);
       }
 
+      if (headerRowIndex === 0) {
+        for (let i = 0; i < totalsCols; i++) {
+          const th = document.createElement("th");
+          th.setAttribute("scope", "col");
+          th.dataset.pivotTotal = "column";
+          th.rowSpan = headerRows.length;
+          th.className =
+            "zen-sticky zen-top-0 zen-z-30 zen-truncate zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground";
+          totalsColStyle(th, i);
+          th.style.top = "0px";
+          th.textContent = totals?.columnHeader?.(i) ?? loc.t("pivot.total");
+          tr.append(th);
+        }
+      }
+
       thead.append(tr);
     }
 
@@ -1150,7 +1218,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
             "zen-break-words zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-align-top zen-text-xs zen-font-medium zen-leading-tight zen-text-zen-foreground",
             rowIndex > 0 ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0",
           );
-          th.style.left = `${depth * rowHeaderWidth}px`;
+          th.style.insetInlineStart = `${depth * rowHeaderWidth}px`;
           fixWidth(th, rowHeaderWidth);
           if (header?.isLoading) {
             th.append(h("div", cn("zen-h-3 zen-w-1/2", SKELETON_BAR)));
@@ -1193,6 +1261,19 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
         tr.append(td);
       }
 
+      // Row totals, pinned to the end edge.
+      for (let i = 0; i < totalsCols; i++) {
+        const td = document.createElement("td");
+        td.dataset.pivotTotal = "row";
+        td.className = cn(
+          "zen-sticky zen-z-20 zen-truncate zen-border-b zen-border-s zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums",
+          stripe(rowIndex),
+        );
+        totalsColStyle(td, i);
+        totalCell(td, totals?.row?.(rowIndex, i) ?? null);
+        tr.append(td);
+      }
+
       tbody.append(tr);
     }
 
@@ -1208,6 +1289,61 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
         tbody.append(tr);
       }
     }
+
+    // The totals row, pinned to the bottom.
+    tfoot.replaceChildren();
+    if (totals?.column) {
+      const tr = document.createElement("tr");
+      tr.dataset.pivotTotal = "totals-row";
+      const bottom = (cell: HTMLElement) => {
+        cell.style.position = "sticky";
+        cell.style.bottom = "0px";
+        fixHeight(cell, rowHeight);
+      };
+      if (rowHeaderDepth > 0) {
+        const th = document.createElement("th");
+        th.setAttribute("scope", "row");
+        th.colSpan = rowHeaderDepth;
+        th.className =
+          "zen-sticky zen-bottom-0 zen-z-30 zen-border-t zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-semibold zen-text-zen-foreground";
+        bottom(th);
+        th.style.insetInlineStart = "0px";
+        th.textContent = totals.label ?? loc.t("pivot.total");
+        tr.append(th);
+      }
+      const pad = (width: number) => {
+        const td = document.createElement("td");
+        td.setAttribute("aria-hidden", "true");
+        td.className = "zen-sticky zen-bottom-0 zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0";
+        td.style.position = "sticky";
+        td.style.bottom = "0px";
+        td.style.width = `${width}px`;
+        tr.append(td);
+      };
+      if (cols.padLeft > 0) pad(cols.padLeft);
+      for (const colIndex of cols.items) {
+        const td = document.createElement("td");
+        td.className =
+          "zen-sticky zen-bottom-0 zen-z-10 zen-truncate zen-border-t zen-border-e zen-border-zen-border/50 zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums";
+        bottom(td);
+        fixWidth(td, colWidth);
+        totalCell(td, totals.column(colIndex));
+        tr.append(td);
+      }
+      if (cols.padRight > 0) pad(cols.padRight);
+      for (let i = 0; i < totalsCols; i++) {
+        const td = document.createElement("td");
+        td.dataset.pivotTotal = "grand";
+        td.className =
+          "zen-sticky zen-bottom-0 zen-z-30 zen-truncate zen-border-t zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums";
+        totalsColStyle(td, i);
+        bottom(td);
+        totalCell(td, totals.grand?.(i) ?? null);
+        tr.append(td);
+      }
+      tfoot.append(tr);
+      if (!tfoot.isConnected) table.append(tfoot);
+    } else if (tfoot.isConnected) tfoot.remove();
 
     reportRange(rowStart, rowEnd, cols.minIndex, cols.maxIndex);
   };

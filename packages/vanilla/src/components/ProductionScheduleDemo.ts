@@ -12,6 +12,15 @@ import type {
 import { productionNextFreeStart, productionPlaceProposal } from "@algorisys/zen-ui-core";
 import { ScheduleBacklog, type BacklogItem } from "./schedule-backlog/schedule-backlog";
 import { Button } from "./button/button";
+
+const tagged = (testid: string, child: Node, style: Record<string, string> = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  for (const [k, v] of Object.entries(style)) box.style.setProperty(k, v);
+  box.append(child);
+  return box;
+};
 import { DemoPage } from "./demo-helpers";
 
 const NOW = new Date(2026, 6, 21, 10, 30, 0, 0);
@@ -555,6 +564,34 @@ ProductionSchedule({ resources: [], operations: [] }).el`,
 ScheduleBacklog({ items: unscheduled, resources: workCentres, onPlace: place }).el
 ProductionSchedule({ …, onPlace: place }).el`,
         render: () => placeable(),
+      },
+      {
+        title: "Row height, chart height and colours",
+        codeTitle: "rowHeight, maxBodyHeight, rowClassName, barClassName",
+        codeDescription:
+          "rowHeight is the least height of a row — a resource that stacks more lanes still gets the room it needs, and every row shares the result. maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a resource's row (the furnace, down for maintenance); barClassName colours an operation's bar over its status colours (one work order in teal, so it can be followed across machines).",
+        code: `ProductionSchedule({
+  resources: cells, operations: jobs,
+  rowHeight: 48,
+  maxBodyHeight: 280,
+  rowClassName: (r) => r.id === "furnace" && "zen-bg-zen-warning-soft",
+  barClassName: (op) => op.order === "WO-4490" && "zen-bg-zen-accent-light-blue zen-border-zen-accent-light-blue",
+})`,
+        render: () =>
+          tagged(
+            "production-styled",
+            ProductionSchedule({
+              resources: CELLS,
+              operations: JOBS,
+              dependencies: ROUTING,
+              calendar: PLANT,
+              now: NOW,
+              rowHeight: 48,
+              maxBodyHeight: 280,
+              rowClassName: (r) => (r.id === "furnace" ? "zen-bg-zen-warning-soft" : undefined),
+              barClassName: (op) => op.order === "WO-4490" && "zen-bg-zen-accent-light-blue zen-border-zen-accent-light-blue",
+            }).el,
+          ),
       },
     ],
   });

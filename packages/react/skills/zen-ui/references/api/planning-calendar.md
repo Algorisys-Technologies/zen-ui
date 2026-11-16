@@ -25,6 +25,7 @@ SKILL.md.
 - `now?: Date | undefined` — Reference "now" for the marker and today highlight. Injectable for tests.
 - `hideToolbar?: boolean | undefined` — Hide the toolbar when your page already has one.
 - `emptyMessage?: React.ReactNode` — Message when there are no resources.
+- `laneHeight?: number | undefined` — Height of one lane in px (appointments stack in lanes inside a row). Default 30.
 - `className?: string | undefined`
 
 ### PlanningRow (type)

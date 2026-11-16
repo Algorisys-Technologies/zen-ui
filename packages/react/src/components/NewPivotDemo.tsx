@@ -11,6 +11,55 @@ import {
   memberCount,
 } from "./pivot-demo-data";
 
+// --- Section 5: totals and right to left -------------------------------------
+// A fixed layout, so the totals show without building one first. A cell's
+// "salary" comes from its seed, as getCell's does; the totals add up exactly
+// those numbers.
+const TOTALS_LAYOUT: PivotLayout = {
+  rows: ["department", "name"],
+  columns: ["country", "gender"],
+  values: [{ id: "salary", aggregation: "sum" }],
+  filters: {},
+};
+const T_ROWS = memberCount("department") * memberCount("name");
+const T_COLS = memberCount("country") * memberCount("gender");
+const salaryAt = (row: number, col: number) => Math.round(cellSeed(row, col) * 45.4 + 40000);
+const money = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+const ROW_TOTALS = Array.from({ length: T_ROWS }, (_, r) => {
+  let sum = 0;
+  for (let c = 0; c < T_COLS; c++) sum += salaryAt(r, c);
+  return sum;
+});
+const COL_TOTALS = Array.from({ length: T_COLS }, (_, c) => {
+  let sum = 0;
+  for (let r = 0; r < T_ROWS; r++) sum += salaryAt(r, c);
+  return sum;
+});
+const GRAND_TOTAL = ROW_TOTALS.reduce((a, b) => a + b, 0);
+const TotalsGrid = ({ dir }: { dir?: "rtl" }) => (
+  <div dir={dir} data-testid={dir === "rtl" ? "pivot-rtl" : "pivot-totals"}>
+    <PivotGrid
+      layout={TOTALS_LAYOUT}
+      height={360}
+      totalRows={T_ROWS}
+      totalCols={T_COLS}
+      rowHeaderDepth={2}
+      colHeaderDepth={3}
+      colWidth={130}
+      getCell={(r, c) => ({ value: money(salaryAt(r, c)) })}
+      getRowHeader={(r, d) => ({ value: dimensionValueAt(TOTALS_LAYOUT.rows[d], r, d, TOTALS_LAYOUT.rows) })}
+      getColHeader={(d, c) =>
+        d < 2 ? { value: dimensionValueAt(TOTALS_LAYOUT.columns[d], c, d, TOTALS_LAYOUT.columns) } : { value: "Salary" }
+      }
+      totals={{
+        row: (r) => ({ value: money(ROW_TOTALS[r]) }),
+        column: (c) => ({ value: money(COL_TOTALS[c]) }),
+        grand: () => ({ value: money(GRAND_TOTAL) }),
+      }}
+    />
+  </div>
+);
+
 const NewPivotDemo: React.FC = () => {
   const [layout, setLayout] = useState<PivotLayout | null>(null);
 
@@ -185,6 +234,31 @@ const next = moveFieldToZone(layout, "country", "rows", { index: 0 });`}
             The model is pinned by <code>bun run check:pivot</code> (60 checks) and the window maths by{" "}
             <code>check:virtual-window</code> — neither needs a browser, because neither is about rendering.
           </p>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>5. Totals, height and right to left</h2>
+        <CodeExample
+          title="totals={{ row, column, grand }}"
+          description="A totals column pinned to the end edge and a totals row pinned to the bottom, both in view while the grid scrolls both ways. The grid adds nothing up itself — an average's total is not the sum of the averages, and the data may be on a server — so each total is an accessor, like getCell; columns gives one totals column per value field. height sizes the grid without a sized parent. In a right-to-left page the row labels freeze on the right."
+          code={`<PivotGrid
+  layout={layout} height={360}
+  totalRows={rows} totalCols={cols} rowHeaderDepth={2} colHeaderDepth={3}
+  getCell={getCell} getRowHeader={getRowHeader} getColHeader={getColHeader}
+  totals={{
+    row: (row) => ({ value: rowTotal(row) }),       // the totals column
+    column: (col) => ({ value: colTotal(col) }),    // the totals row
+    grand: () => ({ value: grandTotal() }),
+  }}
+/>
+
+<div dir="rtl"><PivotGrid … /></div>`}
+        >
+          <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+            <TotalsGrid />
+            <TotalsGrid dir="rtl" />
+          </div>
         </CodeExample>
       </section>
     </div>
