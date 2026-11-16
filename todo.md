@@ -46,8 +46,9 @@ issue / PR when its turn comes.
       ProductionSchedule; PivotGrid `headerClassName`, `rowHeaderClassName`,
       `stickyHeader`, `stickyRowHeaders` (web components: json attributes for
       the two switches, which default to true). check:table-dom 41 per binding.
-- [ ] **Opt-in density for schedules/calendar/sheet/tree**: an explicit prop,
-      not `data-density` (following it would reflow existing touch apps).
+- [x] **Opt-in density for schedules/calendar/sheet/tree** — shipped in
+      12.13.0 (2026-11-17), all four bindings: `density` prop (web components:
+      attribute), sizes in core/density.ts, check:density + check:table-dom.
 
 
 
