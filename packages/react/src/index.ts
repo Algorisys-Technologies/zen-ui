@@ -972,6 +972,10 @@ export { canCompleteStep, stepRunnerState } from "@algorisys/zen-ui-core/step-ru
 export { LiveIndicator } from "./components/live-indicator/live-indicator";
 export type { LiveIndicatorProps } from "./components/live-indicator/live-indicator";
 export { liveState } from "@algorisys/zen-ui-core/live";
+export { StatusBar } from "./components/status-bar/status-bar";
+export type { StatusBarProps, StatusBarItem, StatusBarColor } from "./components/status-bar/status-bar";
+export { statusBarCollapse, statusBarSides } from "@algorisys/zen-ui-core/status-bar";
+export type { StatusBarAlign, StatusBarLayoutItem } from "@algorisys/zen-ui-core/status-bar";
 export { ShiftNavigator } from "./components/shift-navigator/shift-navigator";
 export type { ShiftNavigatorProps } from "./components/shift-navigator/shift-navigator";
 export {

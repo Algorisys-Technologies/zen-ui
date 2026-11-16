@@ -159,6 +159,8 @@ export const zenUnoTheme = {
     "3xl": ["var(--zen-font-size-3xl)", "var(--zen-line-height-3xl)"],
     "4xl": ["var(--zen-font-size-4xl)", "var(--zen-line-height-4xl)"],
     "5xl": ["var(--zen-font-size-5xl)", "var(--zen-line-height-5xl)"],
+    // A table body cell (tokens.css: defaults to the sm pair).
+    "zen-cell": ["var(--zen-table-cell-font-size)", "var(--zen-table-cell-line-height)"],
   },
   fontWeight: {
     light: "var(--zen-font-weight-light)",

@@ -313,6 +313,7 @@ export const DEFAULT_MESSAGES = {
   "pivot.values": "{label} values",
   "pivot.loadingValue": "Loading value",
   "pivot.loadingMore": "Loading more…",
+  "pivot.total": "Total",
   "pivot.dropHere": "Drop fields here",
   "pivot.move": "Move {label}",
   "pivot.removeFromLayout": "Remove from layout",

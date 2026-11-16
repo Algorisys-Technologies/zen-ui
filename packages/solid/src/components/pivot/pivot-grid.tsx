@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, For, Index, onCleanup, Show, untrack } from "solid-js";
+import { type JSX, createEffect, createMemo, createSignal, For, Index, onCleanup, Show, untrack } from "solid-js";
 import { createVirtualizer } from "@tanstack/solid-virtual";
 import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
@@ -9,8 +9,8 @@ const CORNER_HEADER_CLASS = "zen-px-2 zen-py-1 zen-text-start zen-text-sm zen-fo
 const ROW_LABEL_CLASS = "zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-normal-case zen-tracking-normal zen-text-zen-foreground zen-break-words zen-leading-tight";
 
 const STICKY_HEAD = "zen-bg-zen-muted";
-const STICKY_CORNER = "zen-sticky zen-z-30 zen-box-border zen-border-r zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
-const STICKY_ROW_LABEL = "zen-sticky zen-z-20 zen-border-r zen-border-zen-border zen-shadow-[1px_0_0_0_var(--zen-border)]";
+const STICKY_CORNER = "zen-sticky zen-z-30 zen-box-border zen-border-e zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
+const STICKY_ROW_LABEL = "zen-sticky zen-z-20 zen-border-e zen-border-zen-border zen-shadow-[1px_0_0_0_var(--zen-border)]";
 
 export interface PivotGridProps {
   layout: PivotLayout;
@@ -40,6 +40,37 @@ export interface PivotGridProps {
 
   // Fetching
   onVisibleRangeChange?: (range: { rowStart: number; rowEnd: number; colStart: number; colEnd: number }) => void;
+
+  /**
+   * Grand totals, asked for like the cells: a totals column per value (pinned
+   * to the end edge) and a totals row (pinned to the bottom). The grid sums
+   * nothing itself — an average's total is not the sum of averages, and the
+   * data may live on a server — so each part is an accessor. Give only the
+   * parts you want: `row` draws the totals columns, `column` the totals row.
+   */
+  totals?: PivotTotals;
+
+  class?: string;
+  style?: JSX.CSSProperties;
+  /** The grid's height (px, or any CSS length). Default: fills its parent, as before. */
+  height?: number | string;
+}
+
+export type PivotTotalCell = { value: unknown; isLoading?: boolean } | null;
+
+export interface PivotTotals {
+  /** How many totals columns — usually one per value field. Default 1. */
+  columns?: number;
+  /** Totals column i's header. Default "Total". */
+  columnHeader?: (i: number) => string;
+  /** Row `row`'s total in totals column i. */
+  row?: (row: number, i: number) => PivotTotalCell;
+  /** Column `col`'s total, in the totals row. */
+  column?: (col: number) => PivotTotalCell;
+  /** Where the totals row meets totals column i. */
+  grand?: (i: number) => PivotTotalCell;
+  /** The totals row's label. Default "Total". */
+  label?: string;
 }
 
 function rowStripeBg(rowIndex: number): string {
@@ -68,9 +99,22 @@ export function PivotGrid(props: PivotGridProps) {
     "max-height": `${rowHeight()}px`,
   });
 
+  // Logical, so the row labels freeze at the START edge: on the right in a
+  // right-to-left page, where they used to stick on the wrong side.
   function stickyRowLeftStyle(depth: number): Record<string, string> {
-    return { left: `${depth * rowHeaderWidth()}px` };
+    return { "inset-inline-start": `${depth * rowHeaderWidth()}px` };
   }
+
+  const totalsCols = () => (props.totals?.row ? Math.max(1, props.totals.columns ?? 1) : 0);
+  const hasTotalsRow = () => !!props.totals?.column;
+  /** Totals column i, pinned to the end edge; the last one sits at the edge. */
+  const totalsColStyle = (i: number): Record<string, string> => ({
+    "inset-inline-end": `${(totalsCols() - 1 - i) * colWidth()}px`,
+    width: `${colWidth()}px`,
+    "min-width": `${colWidth()}px`,
+    "max-width": `${colWidth()}px`,
+  });
+  const totalsIdx = () => Array.from({ length: totalsCols() }, (_, i) => i);
 
   function stickyHeaderTopStyle(headerRowIndex: number): Record<string, string> {
     return { top: `${headerRowIndex * rowHeight()}px` };
@@ -119,7 +163,10 @@ export function PivotGrid(props: PivotGridProps) {
     const frozen = frozenLabelsWidthPx();
     if (total <= 0) return { minIndex: 0, maxIndex: -1, items: [], paddingLeft: 0, paddingRight: 0 };
     
-    const sLeft = Math.max(0, scrollLeft());
+    // abs: a right-to-left scroller reports scrollLeft as 0 down to a negative
+    // number, which Math.max(0, …) pinned at 0 — the window never moved and
+    // the columns past the first screen were never drawn.
+    const sLeft = Math.abs(scrollLeft());
     const minIndex = Math.max(0, Math.floor((sLeft - frozen) / colWidth()) - 4);
     const maxIndex = Math.min(total - 1, Math.ceil((sLeft + viewportWidth() - frozen) / colWidth()) + 4);
     const safeMax = Math.max(minIndex, maxIndex);
@@ -169,13 +216,27 @@ export function PivotGrid(props: PivotGridProps) {
     return Math.max(0, rowVirtualizer.getTotalSize() - last.end);
   };
 
-  const tableWidthPx = () => frozenLabelsWidthPx() + props.totalCols * colWidth();
-  const totalColSpan = () => props.rowHeaderDepth + Math.max(visibleColWindow().items.length, 1) + 2;
+  const tableWidthPx = () => frozenLabelsWidthPx() + (props.totalCols + totalsCols()) * colWidth();
+  const totalColSpan = () => props.rowHeaderDepth + Math.max(visibleColWindow().items.length, 1) + 2 + totalsCols();
+
+  const totalCellContent = (cell: PivotTotalCell) => (
+    <Show when={!cell?.isLoading} fallback={<div class={cn("zen-ml-auto zen-h-3 zen-w-10", SKELETON_BAR)} />}>
+      {(cell?.value as string) ?? "-"}
+    </Show>
+  );
 
   const headerRows = () => Array.from({ length: Math.max(props.colHeaderDepth, 1) }, (_, index) => index);
 
   return (
-    <div class="zen-flex zen-flex-col zen-gap-2 zen-w-full zen-h-full zen-min-h-0 zen-min-w-0">
+    <div
+      class={cn("zen-flex zen-flex-col zen-gap-2 zen-w-full zen-h-full zen-min-h-0 zen-min-w-0", props.class)}
+      style={{
+        ...(props.height !== undefined
+          ? { height: typeof props.height === "number" ? `${props.height}px` : props.height }
+          : {}),
+        ...(props.style ?? {}),
+      }}
+    >
       <div
         ref={scrollRef}
         class="zen-flex-1 zen-min-h-0 zen-min-w-0 zen-w-full zen-overflow-auto zen-overscroll-contain zen-rounded-none zen-border-l zen-border-t zen-border-zen-border zen-bg-zen-background"
@@ -292,6 +353,22 @@ export function PivotGrid(props: PivotGridProps) {
                       }}
                       aria-hidden="true"
                     />
+                  </Show>
+                  <Show when={headerRowIndex === 0}>
+                    <For each={totalsIdx()}>
+                      {(i) => (
+                        <th
+                          role="columnheader"
+                          scope="col"
+                          data-pivot-total="column"
+                          rowSpan={headerRows().length}
+                          class="zen-sticky zen-top-0 zen-z-30 zen-border-b zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-align-bottom zen-text-xs zen-font-semibold zen-text-zen-foreground zen-truncate"
+                          style={totalsColStyle(i)}
+                        >
+                          {props.totals?.columnHeader?.(i) ?? loc.t("pivot.total")}
+                        </th>
+                      )}
+                    </For>
                   </Show>
                 </tr>
               )}
@@ -411,6 +488,25 @@ export function PivotGrid(props: PivotGridProps) {
                         aria-hidden="true"
                       />
                     </Show>
+
+                    {/* Row totals, pinned to the end edge */}
+                    <For each={totalsIdx()}>
+                      {(i) => {
+                        const cell = createMemo(() => props.totals?.row?.(rowIndex, i) ?? null);
+                        return (
+                          <td
+                            data-pivot-total="row"
+                            class={cn(
+                              "zen-sticky zen-z-20 zen-border-b zen-border-s zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums zen-truncate",
+                              rowStripeBg(rowIndex),
+                            )}
+                            style={totalsColStyle(i)}
+                          >
+                            {totalCellContent(cell())}
+                          </td>
+                        );
+                      }}
+                    </For>
                   </tr>
                 );
               }}
@@ -427,6 +523,68 @@ export function PivotGrid(props: PivotGridProps) {
               </tr>
             </Show>
           </tbody>
+          <Show when={hasTotalsRow()}>
+            <tfoot>
+              <tr data-pivot-total="totals-row">
+                <Show when={props.rowHeaderDepth > 0}>
+                  <th
+                    scope="row"
+                    colSpan={props.rowHeaderDepth}
+                    class="zen-sticky zen-bottom-0 zen-z-30 zen-border-t zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-semibold zen-text-zen-foreground"
+                    style={{ "inset-inline-start": "0px", ...headerCellStyle() }}
+                  >
+                    {props.totals?.label ?? loc.t("pivot.total")}
+                  </th>
+                </Show>
+                <Show when={visibleColWindow().paddingLeft > 0}>
+                  <td
+                    class="zen-sticky zen-bottom-0 zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0"
+                    style={colPadStyle(visibleColWindow().paddingLeft)}
+                    aria-hidden="true"
+                  />
+                </Show>
+                <For each={visibleColWindow().items}>
+                  {(virtualCol) => {
+                    const cell = createMemo(() => props.totals?.column?.(virtualCol.index) ?? null);
+                    return (
+                      <td
+                        class="zen-sticky zen-bottom-0 zen-z-10 zen-border-t zen-border-e zen-border-zen-border/50 zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums zen-truncate"
+                        style={{
+                          width: `${virtualCol.size}px`,
+                          "min-width": `${virtualCol.size}px`,
+                          "max-width": `${virtualCol.size}px`,
+                          ...headerCellStyle(),
+                        }}
+                      >
+                        {totalCellContent(cell())}
+                      </td>
+                    );
+                  }}
+                </For>
+                <Show when={visibleColWindow().paddingRight > 0}>
+                  <td
+                    class="zen-sticky zen-bottom-0 zen-z-10 zen-border-0 zen-bg-zen-muted zen-p-0"
+                    style={colPadStyle(visibleColWindow().paddingRight)}
+                    aria-hidden="true"
+                  />
+                </Show>
+                <For each={totalsIdx()}>
+                  {(i) => {
+                    const cell = createMemo(() => props.totals?.grand?.(i) ?? null);
+                    return (
+                      <td
+                        data-pivot-total="grand"
+                        class="zen-sticky zen-bottom-0 zen-z-30 zen-border-t zen-border-s zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums zen-truncate"
+                        style={{ ...totalsColStyle(i), ...headerCellStyle() }}
+                      >
+                        {totalCellContent(cell())}
+                      </td>
+                    );
+                  }}
+                </For>
+              </tr>
+            </tfoot>
+          </Show>
         </table>
       </div>
     </div>

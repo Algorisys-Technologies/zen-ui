@@ -125,6 +125,7 @@ import NewProductionProgressDemo from "./components/NewProductionProgressDemo";
 import NewMeasurementInputDemo from "./components/NewMeasurementInputDemo";
 import NewStepRunnerDemo from "./components/NewStepRunnerDemo";
 import NewLiveIndicatorDemo from "./components/NewLiveIndicatorDemo";
+import NewStatusBarDemo from "./components/NewStatusBarDemo";
 import NewShiftNavigatorDemo from "./components/NewShiftNavigatorDemo";
 import NewPlannedVsActualDemo from "./components/NewPlannedVsActualDemo";
 import NewRateBarsDemo from "./components/NewRateBarsDemo";
@@ -417,6 +418,7 @@ const App: React.FC = () => {
             <Route path="/measurement-input" element={<NewMeasurementInputDemo />} />
             <Route path="/step-runner" element={<NewStepRunnerDemo />} />
             <Route path="/live-indicator" element={<NewLiveIndicatorDemo />} />
+            <Route path="/status-bar" element={<NewStatusBarDemo />} />
             <Route path="/shift-navigator" element={<NewShiftNavigatorDemo />} />
             <Route path="/planned-vs-actual" element={<NewPlannedVsActualDemo />} />
             <Route path="/rate-bars" element={<NewRateBarsDemo />} />

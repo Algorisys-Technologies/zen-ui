@@ -142,6 +142,8 @@ real props; guessing prop names is how agents invent APIs.
 - [zen-ui-core-step-runner.md](zen-ui-core-step-runner.md) — `canCompleteStep`, `stepRunnerState`, `StepBlock`, `StepDef`, `StepRecord`, `StepRecordStatus`, `StepRunnerState`, `StepRunStatus`
 - [live-indicator.md](live-indicator.md) — `LiveIndicator`, `LiveIndicatorProps`
 - [live.md](live.md) — `liveState`, `LiveState`
+- [status-bar-status-bar.md](status-bar-status-bar.md) — `StatusBar`, `StatusBarProps`, `StatusBarItem`, `StatusBarColor`
+- [zen-ui-core-status-bar.md](zen-ui-core-status-bar.md) — `statusBarCollapse`, `statusBarSides`, `StatusBarAlign`, `StatusBarLayoutItem`
 - [shift-navigator.md](shift-navigator.md) — `ShiftNavigator`, `ShiftNavigatorProps`
 - [shifts.md](shifts.md) — `addPlantDays`, `nextShift`, `plantDayOf`, `previousShift`, `shiftAt`, `shiftWindow`, `wallClockToInstant`, `ShiftDef`, `ShiftRef`, `ShiftWindow`
 - [planned-vs-actual-planned-vs-actual.md](planned-vs-actual-planned-vs-actual.md) — `PlannedVsActual`, `PlannedVsActualProps`

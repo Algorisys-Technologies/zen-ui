@@ -83,5 +83,12 @@ check(cn("zen-outline-dashed", "zen-outline"), "zen-outline", "outline replaces 
 check(cn("zen-outline-1", "zen-outline-2"), "zen-outline-2", "widths still override each other");
 check(cn("focus-visible:zen-outline-none zen-outline zen-outline-2"), "focus-visible:zen-outline-none zen-outline zen-outline-2", "a variant's outline-none does not eat the base outline");
 
+// The table cell's size is a theme font size (--zen-table-cell-font-size),
+// not a colour: it must sit beside the cell's text colour, and give way to a
+// caller's size (a column's meta.className).
+check(cn("zen-text-zen-cell zen-text-zen-foreground"), "zen-text-zen-cell zen-text-zen-foreground", "the cell size is a size, not a colour");
+check(cn("zen-text-zen-cell zen-text-zen-foreground", "zen-text-base"), "zen-text-zen-foreground zen-text-base", "a caller's size replaces the cell size");
+check(cn("zen-text-zen-cell zen-text-zen-foreground", "zen-text-zen-error"), "zen-text-zen-cell zen-text-zen-error", "a caller's colour replaces the colour only");
+
 console.log(fails ? `\n${fails} FAILED\n` : "\nall passed\n");
 process.exit(fails ? 1 : 0);

@@ -227,6 +227,7 @@ SKILL.md.
 - `pivot.values: string`
 - `pivot.loadingValue: string`
 - `pivot.loadingMore: string`
+- `pivot.total: string`
 - `pivot.dropHere: string`
 - `pivot.move: string`
 - `pivot.removeFromLayout: string`

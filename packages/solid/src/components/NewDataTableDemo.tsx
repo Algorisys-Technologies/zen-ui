@@ -1,4 +1,5 @@
 import { Show, createMemo, createSignal } from "solid-js";
+import { cn } from "../lib/cn";
 import type { ColumnDef } from "@tanstack/solid-table";
 import { DataTable } from "./data-table/data-table";
 import type { ExportFormat, ExportRequest } from "@algorisys/zen-ui-core/export-request";
@@ -265,6 +266,42 @@ const totalColumns: ColumnDef<TotalLine>[] = [
   { accessorKey: "rate", header: "Rate", meta: { aggregate: "avg" }, cell: (c) => <span class="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span> },
   { accessorKey: "amount", header: "Amount", meta: { aggregate: "sum", formatTotal: (v) => `₹${inrTotal.format(v as number)}` }, cell: (c) => <span class="zen-block zen-text-end zen-tabular-nums">{inrTotal.format(c.getValue<number>())}</span> },
   { accessorKey: "due", header: "Latest due", meta: { aggregate: "max" } },
+];
+
+// --- Sections 29–31: styling, frozen rows, right to left ----------------------
+const styledColumns: ColumnDef<Person>[] = [
+  { accessorKey: "name", header: "Name", meta: { className: "zen-font-medium" } },
+  { accessorKey: "department", header: "Department" },
+  {
+    accessorKey: "salary",
+    header: "Salary (₹)",
+    cell: (info) => info.row.original.salary.toLocaleString("en-IN"),
+    meta: {
+      headerClassName: "zen-text-end",
+      // A function of the row: per-cell styling.
+      className: (p: Person) => cn("zen-text-end zen-tabular-nums", p.salary >= 65_000 && "zen-font-semibold zen-text-zen-success"),
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    meta: { className: (p: Person) => p.status === "suspended" && "zen-text-zen-error" },
+  },
+];
+
+const frozenColumns: ColumnDef<TotalLine & { id: string }>[] = [
+  { accessorKey: "item", header: "Item", size: 160 },
+  { accessorKey: "customer", header: "Customer", size: 200 },
+  { accessorKey: "due", header: "Latest due", size: 140, meta: { aggregate: "max" } },
+  { accessorKey: "qty", header: "Qty", size: 110, meta: { aggregate: "sum", className: "zen-text-end zen-tabular-nums", headerClassName: "zen-text-end" } },
+  { accessorKey: "rate", header: "Rate", size: 130, meta: { aggregate: "avg", className: "zen-text-end zen-tabular-nums" }, cell: (c) => inrTotal.format(c.getValue<number>()) },
+  { accessorKey: "amount", header: "Amount", size: 160, meta: { aggregate: "sum", className: "zen-text-end zen-tabular-nums", formatTotal: (v) => `₹${inrTotal.format(v as number)}` }, cell: (c) => inrTotal.format(c.getValue<number>()) },
+];
+const LINES_WITH_IDS = LINES.map((l, i) => ({ ...l, id: `L${i + 1}` }));
+const footerColumns: ColumnDef<TotalLine & { id: string }>[] = [
+  { accessorKey: "item", header: "Item", footer: "60 lines, prices ex-tax" },
+  { accessorKey: "customer", header: "Customer" },
+  { accessorKey: "due", header: "Due" },
 ];
 
 // --- Section 26: export on the server ----------------------------------------
@@ -1356,6 +1393,104 @@ const columns = [
               enablePagination
               enableColumnVisibility
               toolbarPlacement="pagination"
+            />
+          </div>
+        </CodeExample>
+      </section>
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">29. Styling columns and cells</h2>
+        <CodeExample
+          title="meta.className, meta.headerClassName, --zen-table-cell-font-size"
+          description="A column's className styles its cells — a string for all of them, or a function of the row for one cell at a time (salaries from ₹65,000 in green, a suspended status in red). headerClassName styles its header. The body text size and line height are tokens, set here through the table's style prop."
+          code={`const columns: ColumnDef<Person>[] = [
+  { accessorKey: "name", header: "Name", meta: { className: "zen-font-medium" } },
+  { accessorKey: "salary", header: "Salary (₹)",
+    meta: {
+      headerClassName: "zen-text-end",
+      className: (p) => cn("zen-text-end", p.salary >= 65_000 && "zen-text-zen-success"),
+    } },
+  { accessorKey: "status", header: "Status",
+    meta: { className: (p) => p.status === "suspended" && "zen-text-zen-error" } },
+];
+
+<DataTable data={people} columns={columns}
+  style={{ "--zen-table-cell-font-size": "13px", "--zen-table-cell-line-height": "18px" }} />`}
+        >
+          <div data-testid="styled-cells" class="zen-w-full">
+            <DataTable
+              data={SMALL}
+              columns={styledColumns}
+              style={{ "--zen-table-cell-font-size": "13px", "--zen-table-cell-line-height": "18px" }}
+            />
+          </div>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">30. Frozen rows, a sticky footer, pinned totals</h2>
+        <CodeExample
+          title="enableRowPinning + rowPinning={{ top, bottom }}"
+          description="Pinned rows stay in view under the header (top) or above the footer (bottom) while the rest scroll, and stay even when a filter or the page would hide them. A pinned column's total stays with its column when you scroll sideways. stickyFooter does the same for a footer without totals."
+          code={`<DataTable
+  data={lines} columns={columns} getRowId={(l) => l.id}
+  enableRowPinning initialRowPinning={{ top: ["L1"], bottom: ["L60"] }}
+  enableColumnPinning initialColumnPinning={{ left: ["item"], right: ["amount"] }}
+  stickyHeader maxBodyHeight={320}
+/>`}
+        >
+          <div data-testid="frozen-rows" class="zen-w-full" style={{ "max-width": "640px" }}>
+            <DataTable
+              data={LINES_WITH_IDS}
+              columns={frozenColumns}
+              getRowId={(l) => l.id}
+              enableRowPinning
+              initialRowPinning={{ top: ["L1"], bottom: ["L60"] }}
+              enableColumnPinning
+              initialColumnPinning={{ left: ["item"], right: ["amount"] }}
+              enableColumnVisibility
+              enableRowSelection
+              stickyHeader
+              maxBodyHeight={320}
+            />
+          </div>
+        </CodeExample>
+        <CodeExample
+          title="stickyFooter: a footer without totals stays in view too"
+          code={`<DataTable data={lines} columns={columns} stickyHeader stickyFooter maxBodyHeight={240} />
+// columns: { accessorKey: "item", header: "Item", footer: "60 lines, prices ex-tax" }, …`}
+        >
+          <div data-testid="sticky-footer" class="zen-w-full">
+            <DataTable
+              data={LINES_WITH_IDS}
+              columns={footerColumns}
+              getRowId={(l) => l.id}
+              stickyHeader
+              stickyFooter
+              maxBodyHeight={240}
+            />
+          </div>
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">31. Right to left</h2>
+        <CodeExample
+          title='Pinned columns follow the reading direction (dir="rtl")'
+          description="Pinned to the left means pinned to the START: in a right-to-left page the column sticks on the right, where its row begins, and the edge shadow faces the scrolling columns."
+          code={`<div dir="rtl">
+  <DataTable data={lines} columns={columns} enableColumnPinning
+    initialColumnPinning={{ left: ["item"], right: ["amount"] }} stickyHeader />
+</div>`}
+        >
+          <div data-testid="rtl-pinned" dir="rtl" class="zen-w-full" style={{ "max-width": "640px" }}>
+            <DataTable
+              data={LINES_WITH_IDS.slice(0, 12)}
+              columns={frozenColumns}
+              getRowId={(l) => l.id}
+              enableColumnPinning
+              initialColumnPinning={{ left: ["item"], right: ["amount"] }}
+              stickyHeader
+              maxBodyHeight={260}
             />
           </div>
         </CodeExample>

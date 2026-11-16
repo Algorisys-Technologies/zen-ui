@@ -159,3 +159,49 @@ export function columnMinWidth(
   if (column.explicitSize === undefined && !column.resized && !column.pinned) return undefined;
   return Math.round(column.size);
 }
+
+/**
+ * A column's own classes, from `meta`: `className` for its cells (a string, or
+ * a function of the row for per-cell styling — a negative balance in red), and
+ * `headerClassName` for its header cell. A function `className` applies to
+ * body cells only; a footer or header has no row to ask about.
+ */
+export interface ColumnClassMeta<TRow = unknown> {
+  className?: string | ((row: TRow) => string | undefined | false | null);
+  headerClassName?: string;
+}
+
+/** The class for one of the column's cells; `row` is the row's ORIGINAL data, omitted for a footer. */
+export function columnCellClass(meta: unknown, row?: { original: unknown }): string | undefined {
+  const c = (meta as ColumnClassMeta | undefined)?.className;
+  if (typeof c === "function") return row ? c(row.original) || undefined : undefined;
+  return c || undefined;
+}
+
+export function columnHeaderClass(meta: unknown): string | undefined {
+  return (meta as ColumnClassMeta | undefined)?.headerClassName || undefined;
+}
+
+/** DataTable's own columns: row drag, expand, selection. */
+export const UTILITY_COLUMN_IDS = ["__drag__", "__expand__", "__select__"] as const;
+const isUtility = (id: string) => (UTILITY_COLUMN_IDS as readonly string[]).includes(id);
+
+export interface PinState {
+  left?: string[];
+  right?: string[];
+}
+
+/**
+ * The pinning the table renders: when any column is pinned left, the utility
+ * columns in `present` (display order) are pinned left before it — otherwise a
+ * row's checkbox scrolls away from the name pinned beside it.
+ */
+export function withUtilityPins(state: PinState, present: readonly string[]): { left: string[]; right: string[] } {
+  const own = withoutUtilityPins(state);
+  return { left: own.left.length ? [...present.filter(isUtility), ...own.left] : own.left, right: own.right };
+}
+
+/** The pinning an app is told about and persists: its own columns only. */
+export function withoutUtilityPins(state: PinState): { left: string[]; right: string[] } {
+  return { left: (state.left ?? []).filter((id) => !isUtility(id)), right: (state.right ?? []).filter((id) => !isUtility(id)) };
+}

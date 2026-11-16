@@ -130,6 +130,7 @@ import ProductionProgressDemo from "./components/ProductionProgressDemo";
 import MeasurementInputDemo from "./components/MeasurementInputDemo";
 import StepRunnerDemo from "./components/StepRunnerDemo";
 import LiveIndicatorDemo from "./components/LiveIndicatorDemo";
+import StatusBarDemo from "./components/StatusBarDemo";
 import ShiftNavigatorDemo from "./components/ShiftNavigatorDemo";
 import PlannedVsActualDemo from "./components/PlannedVsActualDemo";
 import RateBarsDemo from "./components/RateBarsDemo";
@@ -276,6 +277,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/measurement-input": MeasurementInputDemo,
   "/step-runner": StepRunnerDemo,
   "/live-indicator": LiveIndicatorDemo,
+  "/status-bar": StatusBarDemo,
   "/shift-navigator": ShiftNavigatorDemo,
   "/planned-vs-actual": PlannedVsActualDemo,
   "/rate-bars": RateBarsDemo,

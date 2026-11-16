@@ -16,6 +16,7 @@ import {
   type SortingState,
 } from "@tanstack/solid-table";
 import { arrowStep } from "@algorisys/zen-ui-core";
+import { columnCellClass, columnHeaderClass } from "@algorisys/zen-ui-core/columns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../data-table/table";
 import { Checkbox } from "../form/checkbox/checkbox";
 import { Icon } from "../icon/icon";
@@ -614,6 +615,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                     const sorted = () => header.column.getIsSorted();
                     return (
                       <TableHead
+                        class={columnHeaderClass(header.column.columnDef.meta)}
                         style={header.column.getSize() ? { width: `${header.getSize()}px` } : undefined}
                         aria-sort={
                           sorted() === "asc"
@@ -795,7 +797,7 @@ export function TreeTable<TData, TValue = unknown>(props: TreeTableProps<TData, 
                   >
                     <For each={row.getVisibleCells()}>
                       {(cell) => (
-                        <TableCell>
+                        <TableCell class={columnCellClass(cell.column.columnDef.meta, row)}>
                           <Show
                             when={cell.column.id === hierarchyColumnId()}
                             fallback={flexRender(cell.column.columnDef.cell, cell.getContext())}
