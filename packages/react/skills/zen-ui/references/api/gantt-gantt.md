@@ -40,6 +40,7 @@ SKILL.md.
 - `maxBodyHeight?: string | number | undefined` — The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem.
 - `rowClassName?: ((task: GanttTask, row: GanttRow<GanttTask>) => string | undefined) | undefined` — Classes for a task's row — a tint for a critical or late task.
 - `barClassName?: ((task: GanttTask) => string | undefined | false | null) | undefined` — Classes for a task's bar, applied after its status colours so they win: `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
+- `headerClassName?: string | undefined` — Classes for the header: the row and its frozen pane, applied after their own, so a caller's background and text colour win (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
 - `className?: string | undefined`
 
 ### GanttTask (type)

@@ -58,7 +58,7 @@ const KNOWN: Record<string, string> = {
   // lines go as each binding lands.
   ...Object.fromEntries(
     ["GanttProps.headerClass", "ProductionScheduleProps.headerClass", "PivotGridProps.headerClass", "PivotGridProps.rowHeaderClass", "PivotGridProps.stickyHeader", "PivotGridProps.stickyRowHeaders"].map(
-      (k) => [k, "react vanilla"],
+      (k) => [k, "vanilla"],
     ),
   ),
   // TreeTable's controlled state, never ported to vanilla.

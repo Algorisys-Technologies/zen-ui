@@ -43,6 +43,10 @@ SKILL.md.
 - `className?: string | undefined`
 - `style?: React.CSSProperties | undefined`
 - `height?: string | number | undefined` — The grid's height (px, or any CSS length). Default: fills its parent, as before.
+- `headerClassName?: string | undefined` — Classes for every column-header cell (the corner and the totals header too), after their own.
+- `rowHeaderClassName?: string | undefined` — Classes for every row-label cell, after their own.
+- `stickyHeader?: boolean | undefined` — Keep the column headers at the top while the grid scrolls down. Default true.
+- `stickyRowHeaders?: boolean | undefined` — Keep the row labels at the start edge while the grid scrolls sideways. Default true.
 
 ### PivotDropZone
 
