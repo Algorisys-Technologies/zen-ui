@@ -15,6 +15,49 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.12.0] - 2026-11-16
+
+12.11.0's Solid-first props and fixes, ported to React, vanilla and web
+components. `check:props` has no Solid-first KNOWN lines left.
+
+### Added
+
+- React: DataTable row pinning (BodyTable measures the thead, the tfoot and
+  the pinned rows from the <table>; `rows` is memoised on the row model and
+  the pinning state), stickyFooter, `style`, column meta.className /
+  headerClassName (also in TreeTable and the old div grid); PivotGrid
+  totals, height, className, style; Gantt and ProductionSchedule rowHeight,
+  maxBodyHeight, rowClassName, barClassName; PlanningCalendar laneHeight,
+  SpreadsheetGrid cellClassName, Tree itemClassName.
+- Vanilla: the same props. Row pinning without TanStack uses core's new
+  `pinnedRowOrder` (check:columns has 6 more assertions), and the sticky
+  offsets come from the existing watchPins ResizeObserver. ScheduleGrid
+  applies maxBodyHeight on every render, so update() changes it.
+- Web components: attributes for the primitives (sticky-footer,
+  enable-row-pinning, row-pinning / initial-row-pinning, height, row-height,
+  max-body-height, lane-height), properties for the callbacks, and a
+  zen-row-pinning-change event.
+
+### Fixed
+
+- React and vanilla: pinned columns use logical sides with a mirrored edge
+  shadow in RTL. PivotGrid's labels use logical sides, and its column window
+  follows a negative RTL scrollLeft.
+- React: the Columns menu's pinning is the keyboard-operable submenu
+  (PinButton removed); a pinned column's footer and total cells are pinned;
+  utility columns pin with left pins.
+- React: Gantt's connector memo listed no rowHeight dependency (lint caught
+  it while porting).
+
+### Verification
+
+The same probes on every binding gave identical numbers (Gantt rows 48px
+with bars centred to the pixel, a 300px cap; ProductionSchedule rows 50px;
+calendar blocks 38px). check:table-dom: 34 assertions on each of the four
+bindings, every one first time except the strings check vanilla needed
+(two box-shadow values and a selector marked i18n-ignore).
+check:schedule-dom: 150 on each.
+
 ## [12.11.0] - 2026-11-16
 
 Solid first, by the owner's build order; React, vanilla and web components

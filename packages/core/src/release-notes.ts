@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.12.0",
+    date: "2026-11-16",
+    kind: "new",
+    title: "Frozen rows, pivot totals and styling hooks in React, vanilla and web components",
+    detail: "12.11.0's Solid options, with the same names: DataTable row pinning and stickyFooter, column and cell classes, PivotGrid totals and height, and schedule row height, chart height and row and bar classes.",
+  },
+  {
+    version: "12.12.0",
+    date: "2026-11-16",
+    kind: "fixed",
+    title: "Pinned columns and pivots read right to left everywhere",
+    detail: "React and vanilla now pin to the start edge in RTL and draw a pivot past its first screen there; React's Columns menu pins from the keyboard, and its pinned totals stay with their column.",
+  },
+  {
     version: "12.11.0",
     date: "2026-11-16",
     kind: "new",
