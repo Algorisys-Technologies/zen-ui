@@ -58,12 +58,17 @@ SKILL.md.
 - `onRowActivate?: ((row: Row<TData>, event: React.KeyboardEvent<HTMLTableRowElement>) => void) | undefined` — Enter on a focused row. The event carries its modifiers, so Ctrl+Enter can mean something else.
 - `rowLabel?: ((row: Row<TData>) => string) | undefined` — A row's accessible name, read as focus moves onto it.
 - `stickyHeader?: boolean | undefined` — Pin the header row to the top of a scroll viewport. In virtualized mode the header is already sticky and this prop is ignored. In non-virtualized mode the body is wrapped in a `maxBodyHeight` scroll container so the header has something to stick against.
+- `stickyFooter?: boolean | undefined` — Keep the footer row in view at the bottom while the rows scroll, as a table with totals already does. Needs a scrolling body: `stickyHeader`, `fillHeight` or row virtualization.
 - `fillHeight?: boolean | undefined` — Fill the parent's height: the rows scroll inside the table, under a header that stays put, and the pager stays below. For a list that is the page's main pane. The parent must give it a height (a flex child with min-height 0, or a fixed height). Implies stickyHeader; maxBodyHeight is ignored.
 - `totalsOver?: "filtered" | "page" | undefined` — Which rows a column's `meta.aggregate` totals: every row the filters let through, across pages (default), or the rows on this page.
 - `enableColumnPinning?: boolean | undefined` — Freeze columns to the left or right edge while the body scrolls horizontally. Pinned cells get a 1-px divider and a soft shadow on their inner edge so they read as floating. <DataTable enableColumnPinning initialColumnPinning={{ left: ["name"], right: ["actions"] }} /> Pass `columnPinning` + `onColumnPinningChange` for controlled mode. Works in both regular and virtualized modes; in virtualized mode the pinned columns should have explicit `size` on their column def so the horizontal-scroll offsets are stable.
 - `columnPinning?: ColumnPinningState | undefined`
 - `initialColumnPinning?: ColumnPinningState | undefined`
 - `onColumnPinningChange?: ((state: ColumnPinningState) => void) | undefined`
+- `enableRowPinning?: boolean | undefined` — Pin rows to the top or bottom of the body: `{ top: [rowId], bottom: [rowId] }`. A pinned row stays in view while the others scroll (with `stickyHeader` or `fillHeight`), and stays even when a filter or the page would hide it. The plain body only: ignored with virtualization or row ordering.
+- `rowPinning?: RowPinningState | undefined`
+- `initialRowPinning?: RowPinningState | undefined`
+- `onRowPinningChange?: ((state: RowPinningState) => void) | undefined`
 - `respectColumnSizes?: boolean | undefined` — Keep each column at least its `size` (or the width it was resized to), and scroll the table sideways when they do not fit, instead of letting the browser squeeze them. Unsized columns stay automatic. Default: on with `enableColumnPinning` or `enableColumnResizing`, which both depend on a column really being its size; off otherwise, where `size` is a hint.
 - `headerVariant?: "underline" | "plain" | "branded" | undefined` — Brand intensity of the column-header row. - "plain" (default) — neutral grey chrome, brand color shows up only on selected rows / filter chips / focus rings. Best when the table coexists with other UI on a page. - "underline" — adds a 2-px primary underline under the header row. Light touch; still reads as a data table, not a hero. - "branded" — header band filled with primary-soft + dark-primary label text. For tables that are the focal point of a page (dashboards, single-resource lists).
 - `pageSize?: number | undefined`
@@ -74,6 +79,7 @@ SKILL.md.
 - `emptyMessage?: string | undefined`
 - `loading?: boolean | undefined`
 - `className?: string | undefined`
+- `style?: React.CSSProperties | undefined`
 - `manualPagination?: DataTableManualPagination | undefined`
 - `manualSorting?: boolean | undefined` — Skip the client-side sort row model. The data array is taken as already-sorted by the caller; sort header clicks fire `onSortingChange` (or update the controlled `sorting` state) so the consumer can re-fetch with the new order.
 - `manualFiltering?: boolean | undefined` — Skip the client-side filter row model. The data array is taken as already-filtered. Filter inputs still drive `onColumnFiltersChange` / `onGlobalFilterChange` so the consumer can re-fetch with the new predicate.

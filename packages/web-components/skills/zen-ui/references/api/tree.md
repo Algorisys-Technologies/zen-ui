@@ -20,6 +20,7 @@ SKILL.md.
 - `selected?: string | null | undefined` — Controlled selected id.
 - `defaultSelected?: string | null | undefined`
 - `onSelectedChange?: ((id: string) => void) | undefined`
+- `itemClassName?: ((node: TreeNode) => string | undefined | false | null) | undefined` — Classes for one node's row, after its own (so a caller's padding or colour wins).
 - `aria-label?: string | undefined` — Accessible name — a tree must have one.
 - …plus the underlying element's standard props (278 inherited).
 

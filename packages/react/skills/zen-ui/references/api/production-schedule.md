@@ -45,6 +45,10 @@ SKILL.md.
 - `loading?: boolean | undefined`
 - `loadingRows?: number | undefined`
 - `emptyState?: React.ReactNode`
+- `rowHeight?: number | undefined` — The least height of a row in px. Default 36. Rows are taller when a resource stacks more lanes (see `maxLanes`); every row shares one height, because the row window and the routing arrows place rows at index × height.
+- `maxBodyHeight?: string | number | undefined` — The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem.
+- `rowClassName?: ((resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined) | undefined` — Classes for a resource's row — a tint for a down machine.
+- `barClassName?: ((operation: ProductionOperation) => string | undefined | false | null) | undefined` — Classes for an operation's bar, applied after its status colours so they win.
 - `className?: string | undefined`
 
 ### ProductionResource (type)

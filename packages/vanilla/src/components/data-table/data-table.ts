@@ -3318,13 +3318,13 @@ export function DataTable<TData>(
         cell.style.insetInlineStart = `${left.get(key)}px`;
         cell.style.boxShadow =
           key === lastLeft
-            ? "inset calc(-1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
+            ? "inset calc(-1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)" // i18n-ignore (a CSS value)
             : "";
       } else if (cell.dataset.pin === "right" && right.has(key)) {
         cell.style.insetInlineEnd = `${right.get(key)}px`;
         cell.style.boxShadow =
           key === firstRight
-            ? "inset calc(1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(-4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)"
+            ? "inset calc(1px * var(--zen-pin-dir, 1)) 0 0 var(--zen-color-border), calc(-4px * var(--zen-pin-dir, 1)) 0 6px -4px rgba(0,0,0,0.12)" // i18n-ignore (a CSS value)
             : "";
       }
     }
@@ -3336,7 +3336,7 @@ export function DataTable<TData>(
    * pinned row measured, not assumed. Only when the body scrolls. */
   function applyRowPins(table: HTMLElement): void {
     const stickyActive = !!(current.stickyHeader || current.fillHeight) && !isVirt();
-    const rows = [...table.querySelectorAll<HTMLElement>("tbody tr[data-pinned-row]")];
+    const rows = [...table.querySelectorAll<HTMLElement>("tbody tr[data-pinned-row]")]; // i18n-ignore (a selector)
     if (!stickyActive) return;
     const head = table.querySelector("thead")?.getBoundingClientRect().height ?? 0;
     const tfoot = table.querySelector("tfoot");
