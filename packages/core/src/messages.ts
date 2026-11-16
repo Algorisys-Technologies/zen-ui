@@ -892,6 +892,7 @@ export const DEFAULT_MESSAGES = {
   "live.waiting": "Waiting for data",
   "live.offline": "Offline",
   "live.offlineFor": "Offline, last update {age} ago",
+  "statusBar.label": "Status bar",
   "reasonCodes.label": "Reason",
   "scan.label": "Scan or type a code",
   "productionProgress.goodOfTarget": "{good} of {target} good",

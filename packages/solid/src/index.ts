@@ -792,6 +792,10 @@ export type { RoutingGraphProps, RoutingStep, RoutingStepStatus } from "./compon
 export { canAddLink, effectiveLinks, routingLayout, startableSteps, wouldCreateCycle } from "@algorisys/zen-ui-core/routing";
 export type { LinkRefusal, RoutingLayout, RoutingLink, RoutingStepInput } from "@algorisys/zen-ui-core/routing";
 export type { LiveState } from "@algorisys/zen-ui-core/live";
+export { StatusBar } from "./components/status-bar/status-bar";
+export type { StatusBarProps, StatusBarItem, StatusBarColor } from "./components/status-bar/status-bar";
+export { statusBarCollapse, statusBarSides } from "@algorisys/zen-ui-core/status-bar";
+export type { StatusBarAlign, StatusBarLayoutItem } from "@algorisys/zen-ui-core/status-bar";
 export type { StepBlock, StepDef, StepRecord, StepRecordStatus, StepRunnerState, StepRunStatus } from "@algorisys/zen-ui-core/step-runner";
 export type {
   StateSegment,

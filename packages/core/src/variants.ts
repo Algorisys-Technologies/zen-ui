@@ -230,3 +230,62 @@ export const badgeVariants = cva(
 );
 
 export type BadgeVariantProps = VariantProps<typeof badgeVariants>;
+
+/**
+ * StatusBar — the strip along the bottom of an app or a panel. A styled div,
+ * so it hoists like Badge. The bar's `gap` is read back by the component to
+ * decide what fits, so it lives here once rather than as a number per binding.
+ */
+export const statusBarVariants = cva(
+  "zen-flex zen-w-full zen-min-w-0 zen-items-center zen-overflow-hidden zen-whitespace-nowrap",
+  {
+    variants: {
+      variant: {
+        default: "zen-border-0 zen-border-t zen-border-solid zen-border-zen-border zen-bg-zen-background zen-text-zen-muted-fg",
+        muted: "zen-border-0 zen-border-t zen-border-solid zen-border-zen-border zen-bg-zen-muted zen-text-zen-muted-fg",
+        accent: "zen-bg-zen-primary zen-text-zen-primary-fg",
+      },
+      size: {
+        sm: "zen-h-6 zen-gap-1 zen-px-1 zen-text-xs",
+        md: "zen-h-8 zen-gap-2 zen-px-2 zen-text-sm",
+      },
+    },
+    defaultVariants: { variant: "default", size: "md" },
+  },
+);
+
+export type StatusBarVariantProps = VariantProps<typeof statusBarVariants>;
+
+/**
+ * One item. A coloured item is a soft chip, which reads on every bar variant —
+ * a coloured word on the accent bar would not. An interactive item darkens or
+ * lightens with its own text colour on hover, for the same reason.
+ */
+export const statusBarItemVariants = cva(
+  "zen-inline-flex zen-h-full zen-max-h-6 zen-shrink-0 zen-items-center zen-gap-1 zen-rounded-zen-sm zen-px-1.5",
+  {
+    variants: {
+      color: {
+        none: "",
+        info: "zen-bg-zen-info-soft zen-text-zen-info-soft-fg",
+        success: "zen-bg-zen-success-soft zen-text-zen-success-soft-fg",
+        warning: "zen-bg-zen-warning-soft zen-text-zen-warning-soft-fg",
+        error: "zen-bg-zen-error-soft zen-text-zen-error-soft-fg",
+      },
+      interactive: {
+        true: [
+          "zen-cursor-pointer zen-border-0 zen-font-inherit",
+          "hover:zen-bg-[color-mix(in_srgb,currentColor_14%,transparent)]",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+          "disabled:zen-cursor-not-allowed disabled:zen-opacity-50",
+        ].join(" "),
+        false: "",
+      },
+    },
+    compoundVariants: [{ color: "none", interactive: true, class: "zen-bg-transparent zen-text-inherit" }],
+    defaultVariants: { color: "none", interactive: false },
+  },
+);
+
+/** Drawn before an item with `separatorBefore`. */
+export const statusBarSeparatorClass = "zen-h-3.5 zen-w-px zen-shrink-0 zen-bg-current zen-opacity-30";
