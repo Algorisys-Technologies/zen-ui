@@ -60,6 +60,8 @@ const KNOWN: Record<string, string> = {
       (m) => [`DataTableProps.${m}`, "react vanilla"],
     ),
   ),
+  "PivotGridProps.height": "react vanilla",
+  "PivotGridProps.totals": "react vanilla",
   // TreeTable's controlled state, never ported to vanilla.
   ...Object.fromEntries(
     ["expanded", "globalFilter", "onGlobalFilterChange", "sorting", "onSortingChange", "rowSelection", "rowClass"].map(
