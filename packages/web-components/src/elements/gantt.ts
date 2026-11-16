@@ -115,6 +115,7 @@ defineZenElement<GanttProps>({
     "row-height": "number",
     // px; any CSS length through the `maxBodyHeight` property.
     "max-body-height": "number",
+    "header-class-name": "string",
   },
   /* `showDependencies` is a PROPERTY rather than an attribute, and the rule it
      follows is lib/define.ts's: an ABSENT boolean attribute coerces to `false`,

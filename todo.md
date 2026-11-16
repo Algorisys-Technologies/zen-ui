@@ -40,9 +40,12 @@ issue / PR when its turn comes.
 - [x] **Vanilla footer without totals has no select-column cell** — fixed
       2026-11-17; check:table-dom asserts the footer sits under its column with
       row selection on (fails without the fix: 1 of 35).
-- [ ] **Styling/freezing gaps left from the 12.11 audit**: pinning in vanilla's
-      older div grid (`enableVirtualization`); a header class hook on the
-      schedules and PivotGrid; a way to turn off PivotGrid's frozen headers.
+- [x] **Styling/freezing gaps left from the 12.11 audit** — done 2026-11-17,
+      all four bindings: pinning in vanilla's older div grid (and its header
+      now follows the rows sideways); `headerClassName` on Gantt /
+      ProductionSchedule; PivotGrid `headerClassName`, `rowHeaderClassName`,
+      `stickyHeader`, `stickyRowHeaders` (web components: json attributes for
+      the two switches, which default to true). check:table-dom 41 per binding.
 - [ ] **Opt-in density for schedules/calendar/sheet/tree**: an explicit prop,
       not `data-density` (following it would reflow existing touch apps).
 

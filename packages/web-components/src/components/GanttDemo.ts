@@ -506,10 +506,11 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
       },
       {
         title: "13. Row height, chart height and colours",
-        codeTitle: "row-height, max-body-height, rowClassName, barClassName",
+        codeTitle: "row-height, max-body-height, header-class-name, rowClassName, barClassName",
         codeDescription:
-          "row-height sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). max-body-height replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. The small print (subtitles, percentages) follows --zen-schedule-label-font-size.",
-        code: `<zen-gantt row-height="48" max-body-height="300"></zen-gantt>
+          "row-height sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). max-body-height replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. header-class-name styles the header row and its frozen pane. The small print (subtitles, percentages) follows --zen-schedule-label-font-size.",
+        code: `<zen-gantt row-height="48" max-body-height="300"
+  header-class-name="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"></zen-gantt>
 
 <script>
   chart.rowClassName = (t) => t.children && "zen-bg-zen-muted/40";
@@ -526,6 +527,7 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
           });
           chart.setAttribute("row-height", "48");
           chart.setAttribute("max-body-height", "300");
+          chart.setAttribute("header-class-name", "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg");
           return tagged("gantt-styled", chart, { vars: { "--zen-schedule-label-font-size": "11px" } });
         },
       },

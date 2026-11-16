@@ -580,10 +580,11 @@ chart.addEventListener("zen-place", (e) => place(e.detail));`,
       },
       {
         title: "Row height, chart height and colours",
-        codeTitle: "row-height, max-body-height, rowClassName, barClassName",
+        codeTitle: "row-height, max-body-height, header-class-name, rowClassName, barClassName",
         codeDescription:
-          "row-height is the least height of a row — a resource that stacks more lanes still gets the room it needs, and every row shares the result. max-body-height replaces the 32rem the chart scrolls after. rowClassName tints a resource's row (the furnace, down for maintenance); barClassName colours an operation's bar over its status colours (one work order in teal, so it can be followed across machines).",
-        code: `<zen-production-schedule row-height="48" max-body-height="280"></zen-production-schedule>
+          "row-height is the least height of a row — a resource that stacks more lanes still gets the room it needs, and every row shares the result. max-body-height replaces the 32rem the chart scrolls after. rowClassName tints a resource's row (the furnace, down for maintenance); barClassName colours an operation's bar over its status colours (one work order in teal, so it can be followed across machines). header-class-name styles the header row and its frozen pane.",
+        code: `<zen-production-schedule row-height="48" max-body-height="280"
+  header-class-name="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"></zen-production-schedule>
 
 <script>
   chart.rowClassName = (r) => r.id === "furnace" && "zen-bg-zen-warning-soft";
@@ -601,6 +602,7 @@ chart.addEventListener("zen-place", (e) => place(e.detail));`,
           });
           chart.setAttribute("row-height", "48");
           chart.setAttribute("max-body-height", "280");
+          chart.setAttribute("header-class-name", "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg");
           return tagged("production-styled", chart);
         },
       },
