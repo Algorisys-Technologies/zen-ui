@@ -90,6 +90,7 @@ import NewProductionProgressDemo from "./components/NewProductionProgressDemo";
 import NewMeasurementInputDemo from "./components/NewMeasurementInputDemo";
 import NewStepRunnerDemo from "./components/NewStepRunnerDemo";
 import NewLiveIndicatorDemo from "./components/NewLiveIndicatorDemo";
+import NewStatusBarDemo from "./components/NewStatusBarDemo";
 import NewShiftNavigatorDemo from "./components/NewShiftNavigatorDemo";
 import NewPlannedVsActualDemo from "./components/NewPlannedVsActualDemo";
 import NewRateBarsDemo from "./components/NewRateBarsDemo";
@@ -252,6 +253,7 @@ render(
       <Route path="/measurement-input" component={NewMeasurementInputDemo} />
       <Route path="/step-runner" component={NewStepRunnerDemo} />
       <Route path="/live-indicator" component={NewLiveIndicatorDemo} />
+      <Route path="/status-bar" component={NewStatusBarDemo} />
       <Route path="/shift-navigator" component={NewShiftNavigatorDemo} />
       <Route path="/planned-vs-actual" component={NewPlannedVsActualDemo} />
       <Route path="/rate-bars" component={NewRateBarsDemo} />

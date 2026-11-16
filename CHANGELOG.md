@@ -15,6 +15,45 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.10.0] - 2026-11-16
+
+### Added
+
+- StatusBar (Solid; React, vanilla and web components follow in the next
+  release, which is why `check:parity` is red for this one): the strip along
+  the bottom of an app. Items are data (`items`), on two sides (`align`), as
+  text or buttons (`onSelect`), coloured as soft chips (`color`), with
+  `separatorBefore`, `announce` (a per-item polite live region) and
+  `priority`. Bar `variant` default / muted / accent and `size` sm / md; the
+  class tables are `statusBarVariants` / `statusBarItemVariants` in
+  `core/variants`, so every binding draws the same bar.
+- Status bar layout (`@algorisys/zen-ui-core/status-bar`):
+  `statusBarSides` and `statusBarCollapse` — when the bar is narrow, the
+  lowest priority gives way first, and later-in-the-list among equals.
+  Unmeasured bars (width 0) hide nothing. `check:status-bar` (16 assertions).
+- Message `statusBar.label` ("Status bar").
+
+### Notes
+
+- Collapse measures the rendered items, not a hidden copy like Toolbar's: a
+  `label` may be a live element, and a DOM node cannot be in two places. A
+  collapsed item cannot be measured, so the bar uses the width it measured
+  while the item was showing.
+- Items render through `<Index>`, not `<For>`. A caller who rebuilds the array
+  every update keeps the same DOM, so an `announce` region changes in place.
+  Screen readers ignore a live region that is inserted already holding its
+  text.
+- The bar is one flex row, and the first end item that is still showing gets
+  `margin-inline-start: auto`. Two groups would each take a gap even when
+  empty, and the collapse arithmetic counts exactly one gap between shown
+  neighbours.
+- Found while driving it: the first draft gave a button showing "2" the
+  accessible name "2", because `title` was only a tooltip. `title` is now also
+  in the name ("Problems 2"). Measured in a headless browser: 8 bars, collapse
+  at 1100 → 60px followed priority order with no item past the bar's edge at
+  any width, and everything came back on widening; the live region kept its
+  node; 0 page errors.
+
 ## [12.9.0] - 2026-11-13
 
 ### Added

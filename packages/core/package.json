@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-core",
-  "version": "12.9.0",
+  "version": "12.10.0",
   "license": "PolyForm-Noncommercial-1.0.0",
   "private": true,
   "type": "module",
@@ -34,6 +34,7 @@
     "./measurement": "./src/measurement.ts",
     "./step-runner": "./src/step-runner.ts",
     "./live": "./src/live.ts",
+    "./status-bar": "./src/status-bar.ts",
     "./shifts": "./src/shifts.ts",
     "./planned-vs-actual": "./src/planned-vs-actual.ts",
     "./rate-bars": "./src/rate-bars.ts",

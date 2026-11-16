@@ -794,6 +794,7 @@ SKILL.md.
 - `live.waiting: string`
 - `live.offline: string`
 - `live.offlineFor: string`
+- `statusBar.label: string`
 - `reasonCodes.label: string`
 - `scan.label: string`
 - `productionProgress.goodOfTarget: string`
