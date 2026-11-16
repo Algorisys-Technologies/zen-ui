@@ -89,6 +89,8 @@ export interface PlanningCalendarProps extends BaseProps {
   now?: Date;
   hideToolbar?: boolean;
   emptyMessage?: Child;
+  /** Height of one lane in px (appointments stack in lanes inside a row). Default 30. */
+  laneHeight?: number;
 }
 
 const VIEW_LABEL: Record<PlanningView, MessageKey> = {
@@ -127,6 +129,8 @@ export function PlanningCalendar(
   props: PlanningCalendarProps,
 ): ZenComponent<PlanningCalendarProps> {
   let current: PlanningCalendarProps = { ...props };
+  // Never so short that a block (lane − 6px) has no height.
+  const lanePx = (): number => Math.max(14, current.laneHeight ?? LANE_PX);
   const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;
@@ -315,7 +319,7 @@ export function PlanningCalendar(
         );
         cell.append(el("div", "zen-text-xs zen-font-medium zen-text-zen-foreground", column.label));
         if (column.sublabel) {
-          cell.append(el("div", "zen-text-[10px] zen-text-zen-muted-fg", column.sublabel));
+          cell.append(el("div", "zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg", column.sublabel));
         }
         headCols.append(cell);
       }
@@ -338,7 +342,7 @@ export function PlanningCalendar(
         rowEl.append(label);
 
         const track = el("div", "zen-relative zen-flex-1");
-        track.style.minHeight = `${entry.laneCount * LANE_PX + 8}px`;
+        track.style.minHeight = `${entry.laneCount * lanePx() + 8}px`;
 
         // The column rules as a background layer rather than as parents of the
         // blocks: a block spanning four hours cannot live inside one column.
@@ -383,8 +387,8 @@ export function PlanningCalendar(
           );
           button.style.setProperty("inset-inline-start", `${block.placement.startPct}%`);
           button.style.width = `${block.placement.widthPct}%`;
-          button.style.top = `${block.lane * LANE_PX + 4}px`;
-          button.style.height = `${LANE_PX - 6}px`;
+          button.style.top = `${block.lane * lanePx() + 4}px`;
+          button.style.height = `${lanePx() - 6}px`;
           const time = formatTimeRange(block.appointment.start, block.appointment.end);
           button.title = `${block.appointment.title} · ${time}`;
 

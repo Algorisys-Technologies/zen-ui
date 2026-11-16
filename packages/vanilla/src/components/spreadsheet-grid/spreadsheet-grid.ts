@@ -48,6 +48,11 @@ export interface SpreadsheetGridProps extends BaseProps {
   colWidth?: string;
   /** Fires with the evaluated value whenever a cell is committed. */
   onCellCommit?: (ref: string, raw: CellValue, evaluated: CellValue) => void;
+  /**
+   * Classes for one cell, from its address and evaluated value — a negative
+   * figure in red, an input cell shaded: `(ref, v) => typeof v === "number" && v < 0 && "zen-text-zen-error"`.
+   */
+  cellClassName?: (ref: string, value: CellValue) => string | undefined | false | null;
 }
 
 const HEADER_CELL =
@@ -339,6 +344,7 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps): ZenComponent<Sprea
         /* Numbers right, text left — the alignment IS the type signal in a sheet. */
         typeof value === "number" ? "zen-text-end zen-tabular-nums" : "zen-text-start",
         error && "zen-text-zen-error",
+        current.cellClassName?.(ref, value),
       );
       const raw = cells[ref];
       if (typeof raw === "string" && raw.startsWith("=")) cell.title = raw;

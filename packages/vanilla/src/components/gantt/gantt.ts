@@ -151,12 +151,27 @@ export interface GanttProps extends BaseProps {
   loadingRows?: number;
   /** Replaces the whole no-tasks surface. */
   emptyState?: Child;
+
+  /**
+   * Every row's height in px. Default 36. One value for all rows: the row
+   * window and the dependency arrows place rows at index × height.
+   */
+  rowHeight?: number;
+  /** The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem. */
+  maxBodyHeight?: number | string;
+  /** Classes for a task's row — a tint for a critical or late task. */
+  rowClassName?: (task: GanttTask, row: GanttRow<GanttTask>) => string | undefined;
+  /**
+   * Classes for a task's bar, applied after its status colours so they win:
+   * `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
+   */
+  barClassName?: (task: GanttTask) => string | undefined | false | null;
 }
 
 const BAR_PX = 18;
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
  *  exactly ROW_PX / 2 — the y the connector routes are computed at. */
-const BAR_TOP = (ROW_PX - BAR_PX) / 2;
+const barTop = (rowHeight: number) => (rowHeight - BAR_PX) / 2;
 
 /** The frozen pane's columns. Fixed, because a sticky pane cannot be sized by
  *  its content without moving as you scroll. */
@@ -409,7 +424,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       name.title = task.name;
       text.append(name);
       if (task.subtitle) {
-        text.append(el("span", "zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg", task.subtitle));
+        text.append(el("span", "zen-block zen-truncate zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg", task.subtitle));
       }
       out.push(text);
       return out;
@@ -475,6 +490,9 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
   }
 
   /** The bar on the axis: one per row, broken into pieces where work stops. */
+  // Never shorter than a bar plus a few px, or the bar would overhang its row.
+  const rowHeightOf = (): number => Math.max(BAR_PX + 4, current.rowHeight ?? ROW_PX);
+
   function track(
     row: Row,
     axis: ScheduleAxis,
@@ -542,7 +560,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
         /* Drawn as pieces, the button is only the hit area and the focus ring —
            the skin moves onto each piece, or the gaps would be filled by the
            button's own background. */
-        pieces === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[row.status]),
+        pieces === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[row.status], current.barClassName?.(row.task)),
         /* Square off a cut edge so a bar continuing past the view does not look
            like it ends there. */
         pieces === null && placement.clippedStart && "zen-rounded-s-none zen-border-s-0",
@@ -557,7 +575,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     bar.setAttribute("data-gantt-bar", "");
     bar.style.insetInlineStart = `${placement.startPct}%`;
     bar.style.width = `${placement.widthPct}%`;
-    bar.style.top = `${BAR_TOP}px`;
+    bar.style.top = `${barTop(rowHeightOf())}px`;
     bar.style.height = `${BAR_PX}px`;
     bar.title = `${row.task.name} · ${formatDay(row.span!.start)} – ${formatDay(row.span!.end)}${
       row.progress === null ? "" : ` · ${Math.round(progress)}%`
@@ -586,7 +604,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       for (const piece of pieces) {
         const part = el(
           "span",
-          cn("zen-absolute zen-inset-y-0 zen-overflow-hidden", BAR_CLASS[row.status], "zen-rounded-zen-sm zen-border"),
+          cn("zen-absolute zen-inset-y-0 zen-overflow-hidden", BAR_CLASS[row.status], "zen-rounded-zen-sm zen-border", current.barClassName?.(row.task)),
         );
         part.setAttribute("aria-hidden", "true");
         part.style.insetInlineStart = `${piece.startPct}%`;
@@ -609,7 +627,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       const label = el(
         "span",
         cn(
-          "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-text-[10px] zen-font-medium",
+          "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium",
           labelOnFill ? cn("zen-start-1", FILL_TEXT_CLASS[row.status]) : "zen-end-1 zen-text-zen-foreground",
         ),
         `${Math.round(progress)}%`,
@@ -622,13 +640,13 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     if (row.progress !== null && labelOutside) {
       const outside = el(
         "span",
-        "zen-absolute zen-flex zen-items-center zen-text-[10px] zen-font-medium zen-text-zen-muted-fg",
+        "zen-absolute zen-flex zen-items-center zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg",
         `${Math.round(progress)}%`,
       );
       outside.setAttribute("aria-hidden", "true");
       if (labelBefore) outside.style.insetInlineEnd = `calc(${100 - placement.startPct}% + 4px)`;
       else outside.style.insetInlineStart = `calc(${endPct}% + 4px)`;
-      outside.style.top = `${BAR_TOP}px`;
+      outside.style.top = `${barTop(rowHeightOf())}px`;
       outside.style.height = `${BAR_PX}px`;
       out.push(outside);
     }
@@ -741,7 +759,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       }
       connectors = ganttConnectors(anchors, current.dependencies, {
         axisWidth: axis.axisWidth,
-        rowHeight: ROW_PX,
+        rowHeight: rowHeightOf(),
       });
     }
 
@@ -764,6 +782,9 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       colCount: 5,
       timelineColIndex: COL_INDEX.timeline,
       renderTrack: (row: Row) => track(row, axis, placements.get(row.index) ?? null),
+      rowHeight: rowHeightOf(),
+      rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.task, row) : undefined,
+      maxBodyHeight: current.maxBodyHeight,
       axis,
       view: viewOf(),
       anchor: dateOf(),

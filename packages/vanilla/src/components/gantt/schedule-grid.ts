@@ -263,6 +263,10 @@ export interface ScheduleGridOptions<R extends ScheduleRowShape> {
   renderTrack: (row: R, axisWidth: number) => Array<Node | AnyZenComponent>;
   /** Uniform height for every row. See ROW_PX for why it cannot vary between them. */
   rowHeight?: number;
+  /** Classes for one row (the whole strip: pane and timeline). */
+  rowClass?: (row: R) => string | undefined;
+  /** The scroller's maximum height (px, or any CSS length). Default 32rem. */
+  maxBodyHeight?: number | string;
   /**
    * A strip under the rows, aligned to the axis and stuck to the bottom.
    * Rendered OUTSIDE the `treegrid` element: a div that is not a `row` inside a
@@ -395,7 +399,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     const tabCol = row.index === tabRow ? activeCol() : -1;
     const columns = visibleColumns();
 
-    const node = el("div", "zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0");
+    const node = el("div", cn("zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0", current.rowClass?.(row)));
     node.setAttribute("role", "row");
     /* The row's TRUE position in the plan, +1 for the header. A windowed grid
        that numbers rows from the DOM tells a screen-reader user they are on row
@@ -717,7 +721,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
       cell.style.width = `${current.axis.columnWidths[i]}px`;
       cell.append(el("span", "zen-text-xs zen-font-medium zen-text-zen-foreground", column.label));
       if (column.sublabel) {
-        cell.append(el("span", "zen-text-[10px] zen-text-zen-muted-fg", column.sublabel));
+        cell.append(el("span", "zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg", column.sublabel));
       }
       axis.append(cell);
     });
@@ -783,6 +787,10 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     cleanups = [];
 
     root.className = cn("zen-flex zen-w-full zen-flex-col zen-gap-3", current.class);
+    // maxBodyHeight replaces the 32rem cap only when it is set.
+    const cap = current.maxBodyHeight;
+    scroller.classList.toggle("zen-max-h-[32rem]", cap === undefined);
+    scroller.style.maxHeight = cap === undefined ? "" : typeof cap === "number" ? `${cap}px` : cap;
     toolbarSlot.replaceChildren();
     if (!current.hideToolbar) toolbarSlot.append(buildToolbar());
 

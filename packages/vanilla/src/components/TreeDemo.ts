@@ -286,6 +286,25 @@ Tree({ items, defaultExpanded: ["src"], "aria-label": "Project files" });
             }).el,
           ),
       },
+      {
+        title: "8. Styling rows",
+        codeTitle: "itemClassName",
+        codeDescription:
+          "Classes for one node's row, applied after its own so a caller's padding or colour wins: here roomier rows, and folders in semibold.",
+        code: `Tree({ items, itemClassName: (n) => cn("zen-py-2", n.children && "zen-font-semibold") })`,
+        render: () => {
+          const box = panel(
+            Tree({
+              items: FILES,
+              defaultExpanded: ["src"],
+              "aria-label": "Styled tree",
+              itemClassName: (n) => (n.children ? "zen-py-2 zen-font-semibold" : "zen-py-2"),
+            }).el,
+          );
+          box.setAttribute("data-testid", "tree-styled");
+          return box;
+        },
+      },
     ],
   });
 }

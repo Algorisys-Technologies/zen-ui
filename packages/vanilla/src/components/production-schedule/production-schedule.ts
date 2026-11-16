@@ -186,6 +186,19 @@ export interface ProductionScheduleProps extends BaseProps {
   loading?: boolean;
   loadingRows?: number;
   emptyState?: Child;
+
+  /**
+   * The least height of a row in px. Default 36. Rows are taller when a
+   * resource stacks more lanes (see `maxLanes`); every row shares one height,
+   * because the row window and the routing arrows place rows at index × height.
+   */
+  rowHeight?: number;
+  /** The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem. */
+  maxBodyHeight?: number | string;
+  /** Classes for a resource's row — a tint for a down machine. */
+  rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
+  /** Classes for an operation's bar, applied after its status colours so they win. */
+  barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
 }
 
 type Row = ProductionRowData<ProductionResource, ProductionOperation>;
@@ -427,7 +440,7 @@ export function ProductionSchedule(
       name.title = resource.name;
       text.append(name);
       if (resource.subtitle) {
-        text.append(el("span", "zen-block zen-truncate zen-text-[10px] zen-text-zen-muted-fg", resource.subtitle));
+        text.append(el("span", "zen-block zen-truncate zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg", resource.subtitle));
       }
       out.push(text);
 
@@ -455,7 +468,7 @@ export function ProductionSchedule(
       /* Never silently dropped: a row that hid six jobs is the worst thing this
          component could do. */
       if (row.overflow > 0) {
-        span.append(el("span", "zen-ms-1 zen-text-[10px] zen-text-zen-error", `+${row.overflow}`));
+        span.append(el("span", "zen-ms-1 zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-error", `+${row.overflow}`));
       }
       return [span];
     }
@@ -610,7 +623,7 @@ export function ProductionSchedule(
 
         const piece = el(
           "span",
-          cn("zen-absolute zen-inset-y-0 zen-overflow-hidden zen-rounded-zen-sm zen-border", BAR_CLASS[status]),
+          cn("zen-absolute zen-inset-y-0 zen-overflow-hidden zen-rounded-zen-sm zen-border", BAR_CLASS[status], current.barClassName?.(operation)),
         );
         piece.setAttribute("aria-hidden", "true");
         piece.style.insetInlineStart = `${((start - from) / total) * 100}%`;
@@ -927,7 +940,7 @@ export function ProductionSchedule(
        connector routes (which place an endpoint from rowHeight). */
     const laneCount = Math.max(1, ...flat.rows.map((row) => row.lanes.length));
     const rowHeight = Math.max(
-      ROW_PX,
+      current.rowHeight ?? ROW_PX,
       laneCount * LANE_BAR_PX + (laneCount - 1) * LANE_GAP_PX + LANE_PAD_PX,
     );
     const stackTop = (rowHeight - (laneCount * LANE_BAR_PX + (laneCount - 1) * LANE_GAP_PX)) / 2;
@@ -1095,6 +1108,8 @@ export function ProductionSchedule(
       colCount: 6,
       timelineColIndex: COL_INDEX.timeline,
       rowHeight,
+      rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.resource, row) : undefined,
+      maxBodyHeight: current.maxBodyHeight,
       renderTrack: (row: Row): Array<Node | AnyZenComponent> => {
         const content = trackContent(row);
         return current.onPlace !== undefined && !row.hasChildren ? [dropLayer(row, axis, content)] : content;

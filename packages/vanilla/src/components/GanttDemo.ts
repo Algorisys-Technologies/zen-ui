@@ -2,6 +2,15 @@ import { Gantt, type GanttTask } from "./gantt/gantt";
 import type { GanttCalendar, GanttDependency } from "@algorisys/zen-ui-core";
 import { DemoPage } from "./demo-helpers";
 
+const tagged = (testid: string, child: Node, style: Record<string, string> = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  for (const [k, v] of Object.entries(style)) box.style.setProperty(k, v);
+  box.append(child);
+  return box;
+};
+
 
 /* A fixed reference day, so the demo reads the same on any date and a probe has
    something to assert against. 2026-07-21 is a Tuesday. */
@@ -469,6 +478,34 @@ Gantt({ tasks: plan }).el
 // Ctrl+End      last row of the plan, scrolled in and focused
 // PageDown      one screenful at a time`,
         render: () => Gantt({ tasks: BIG_PLAN, now: NOW, defaultExpanded: ["w0", "w1"] }).el,
+      },
+      {
+        title: "13. Row height, chart height and colours",
+        codeTitle: "rowHeight, maxBodyHeight, rowClassName, barClassName",
+        codeDescription:
+          "rowHeight sets every row (one value: the row window and the arrows place rows at index × height, so they cannot differ). maxBodyHeight replaces the 32rem the chart scrolls after. rowClassName tints a task's row; barClassName colours a bar and wins over its status colours — here Mei's work in purple, and the phases' rows shaded. The small print (subtitles, percentages) follows --zen-schedule-label-font-size.",
+        code: `Gantt({
+  tasks: plan,
+  rowHeight: 48,
+  maxBodyHeight: 300,
+  rowClassName: (t) => t.children && "zen-bg-zen-muted/40",
+  barClassName: (t) => t.assignees?.some((a) => a.id === "u3") && "zen-bg-zen-accent-purple zen-border-zen-accent-purple",
+})`,
+        render: () =>
+          tagged(
+            "gantt-styled",
+            Gantt({
+              tasks: PLAN,
+              dependencies: LINKS,
+              now: NOW,
+              defaultDate: NOW,
+              rowHeight: 48,
+              maxBodyHeight: 300,
+              rowClassName: (t) => (t.children ? "zen-bg-zen-muted/40" : undefined),
+              barClassName: (t) => t.assignees?.some((a) => a.id === MEI.id) && "zen-bg-zen-accent-purple zen-border-zen-accent-purple",
+            }).el,
+            { "--zen-schedule-label-font-size": "11px" },
+          ),
       },
     ],
   });

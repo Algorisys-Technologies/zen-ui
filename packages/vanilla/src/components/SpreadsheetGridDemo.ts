@@ -1,6 +1,15 @@
 import { SpreadsheetGrid, SheetCalculator, type CellMap } from "./spreadsheet-grid/spreadsheet-grid";
 import { DemoPage } from "./demo-helpers";
 
+const tagged = (testid: string, child: Node, style: Record<string, string> = {}): HTMLElement => {
+  const box = document.createElement("div");
+  box.className = "zen-w-full";
+  box.setAttribute("data-testid", testid);
+  for (const [k, v] of Object.entries(style)) box.style.setProperty(k, v);
+  box.append(child);
+  return box;
+};
+
 const INVOICE: CellMap = {
   A1: "Item",
   B1: "Qty",
@@ -130,6 +139,33 @@ export default function SpreadsheetGridDemo(): HTMLElement {
           "Arrows, Tab and selection still work — a read-only sheet is one you are meant to READ, and a grid you cannot move around is not that. Only the edit paths are closed.",
         code: `SpreadsheetGrid({ cells, readOnly: true }).el`,
         render: () => SpreadsheetGrid({ rows: 5, cols: 4, cells: INVOICE, readOnly: true }).el,
+      },
+      {
+        title: "6. Styling cells",
+        codeTitle: "cellClassName",
+        codeDescription:
+          "Classes for one cell, from its address and its evaluated value: here a negative result in red and bold, and the input column shaded so it reads as the place to type.",
+        code: `SpreadsheetGrid({
+  cells,
+  cellClassName: (ref, v) => cn(
+    typeof v === "number" && v < 0 && "zen-text-zen-error zen-font-semibold",
+    ref.startsWith("B") && "zen-bg-zen-primary-soft",
+  ),
+})`,
+        render: () =>
+          tagged(
+            "sheet-styled",
+            SpreadsheetGrid({
+              rows: 4,
+              cols: 3,
+              cells: { A1: "Opening", B1: 120, A2: "Spent", B2: 180, A3: "Balance", B3: "=B1-B2", C3: "=B3*2" },
+              readOnly: true,
+              cellClassName: (ref, v) =>
+                [typeof v === "number" && v < 0 && "zen-text-zen-error zen-font-semibold", ref.startsWith("B") && "zen-bg-zen-primary-soft"]
+                  .filter(Boolean)
+                  .join(" "),
+            }).el,
+          ),
       },
     ],
   });
