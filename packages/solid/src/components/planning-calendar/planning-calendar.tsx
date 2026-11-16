@@ -100,6 +100,13 @@ export interface PlanningCalendarProps {
   emptyMessage?: JSX.Element;
   /** Height of one lane in px (appointments stack in lanes inside a row). Default 30. */
   laneHeight?: number;
+  /**
+   * How much room a lane takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
   class?: string;
 }
 
@@ -110,7 +117,7 @@ const VIEW_LABEL: Record<PlanningView, MessageKey> = {
 };
 
 /** Row height per lane. A block is 28px tall; lanes stack inside the row. */
-const LANE_PX = 30;
+import { calendarLanePx, type Density } from "@algorisys/zen-ui-core/density";
 
 /**
  * Below this width, a block shows no text at all.
@@ -130,7 +137,7 @@ const TEXT_MIN_WIDTH_PCT = 3;
 export const PlanningCalendar = (props: PlanningCalendarProps) => {
   const loc = useLocale();
   // Never so short that a block (lane − 6px) has no height.
-  const lanePx = () => Math.max(14, props.laneHeight ?? LANE_PX);
+  const lanePx = () => Math.max(14, calendarLanePx(props.density, props.laneHeight));
   const [innerView, setInnerView] = createSignal<PlanningView>(props.defaultView ?? "week");
   const [innerDate, setInnerDate] = createSignal<Date>(props.defaultDate ?? new Date());
 

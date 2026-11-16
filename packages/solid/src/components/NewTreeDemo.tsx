@@ -293,6 +293,23 @@ const NewTreeDemo = () => {
           />
         </div>
       </DemoSection>
+
+      <DemoSection
+        title="9. Density"
+        codeTitle='density="compact" | "comfortable" | "touch"'
+        codeDescription="compact: tighter rows for a long hierarchy. touch: 48px rows to tap. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was."
+        code={`<Tree items={items} density="compact" />
+<Tree items={items} density="touch" />`}
+      >
+        <div class="zen-flex zen-flex-wrap zen-gap-6">
+          <div style={panel} data-testid="tree-compact">
+            <Tree items={FILES} defaultExpanded={["src"]} aria-label="Compact tree" density="compact" />
+          </div>
+          <div style={panel} data-testid="tree-touch">
+            <Tree items={FILES} defaultExpanded={["src"]} aria-label="Touch tree" density="touch" />
+          </div>
+        </div>
+      </DemoSection>
     </DemoPage>
   );
 };

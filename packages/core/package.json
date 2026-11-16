@@ -35,6 +35,7 @@
     "./step-runner": "./src/step-runner.ts",
     "./live": "./src/live.ts",
     "./status-bar": "./src/status-bar.ts",
+    "./density": "./src/density.ts",
     "./shifts": "./src/shifts.ts",
     "./planned-vs-actual": "./src/planned-vs-actual.ts",
     "./rate-bars": "./src/rate-bars.ts",

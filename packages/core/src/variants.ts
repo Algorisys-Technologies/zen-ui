@@ -289,3 +289,21 @@ export const statusBarItemVariants = cva(
 
 /** Drawn before an item with `separatorBefore`. */
 export const statusBarSeparatorClass = "zen-h-3.5 zen-w-px zen-shrink-0 zen-bg-current zen-opacity-30";
+
+/**
+ * Density classes for the components that take a `density` prop (density.ts
+ * holds their pixel sizes). Comfortable is the components' own classes, so it
+ * adds nothing: an app that sets nothing gets exactly what it had. Merged
+ * after the base classes through cn(), so they replace its padding / height.
+ */
+export const sheetCellDensityClass: Record<"compact" | "comfortable" | "touch", string> = {
+  compact: "zen-min-h-5 zen-py-0",
+  comfortable: "",
+  // 20px of text and 28px of padding: a 48px target.
+  touch: "zen-min-h-12 zen-py-3.5",
+};
+export const treeRowDensityClass: Record<"compact" | "comfortable" | "touch", string> = {
+  compact: "zen-py-0.5",
+  comfortable: "",
+  touch: "zen-min-h-12",
+};

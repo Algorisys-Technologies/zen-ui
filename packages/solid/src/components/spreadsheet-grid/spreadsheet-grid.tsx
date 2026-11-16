@@ -1,4 +1,6 @@
 import { createMemo, createSignal, Index, Show, type JSX } from "solid-js";
+import type { Density } from "@algorisys/zen-ui-core/density";
+import { sheetCellDensityClass } from "@algorisys/zen-ui-core/variants";
 import {
   parseRef,
   formatRef,
@@ -50,6 +52,13 @@ export interface SpreadsheetGridProps {
    * figure in red, an input cell shaded: `(ref, v) => typeof v === "number" && v < 0 && "zen-text-zen-error"`.
    */
   cellClassName?: (ref: string, value: CellValue) => string | undefined | false | null;
+  /**
+   * How much room a cell takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
   class?: string;
 }
 
@@ -252,6 +261,7 @@ export const SpreadsheetGrid = (props: SpreadsheetGridProps) => {
                                   ? "zen-text-end zen-tabular-nums"
                                   : "zen-text-start",
                                 isCellError(value()) && "zen-text-zen-error",
+                                sheetCellDensityClass[props.density ?? "comfortable"],
                                 props.cellClassName?.(ref(), value()),
                               )}
                               title={

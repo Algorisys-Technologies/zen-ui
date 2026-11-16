@@ -30,7 +30,6 @@ import { Skeleton } from "../skeleton/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip/tooltip";
 import {
   INDENT_PX,
-  ROW_PX,
   ScheduleGrid,
   createScheduleAxis,
   createScrollerMetrics,
@@ -191,14 +190,22 @@ export interface GanttProps {
    * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
    */
   headerClassName?: string;
+  /**
+   * How much room a row and its bar takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
 
   class?: string;
 }
 
-const BAR_PX = 18;
+import { ganttBarPx, scheduleRowPx, type Density } from "@algorisys/zen-ui-core/density";
+
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
  *  exactly ROW_PX / 2 — which is the y the connector routes are computed at. */
-const barTop = (rowHeight: number) => (rowHeight - BAR_PX) / 2;
+const barTop = (rowHeight: number, barPx: number) => (rowHeight - barPx) / 2;
 
 /**
  * The frozen pane's columns. Fixed widths, because a sticky pane cannot be
@@ -325,7 +332,10 @@ type Row = GanttRow<GanttTask>;
 export const Gantt = (props: GanttProps) => {
   const loc = useLocale();
   // Never shorter than a bar plus a few px, or the bar would overhang its row.
-  const rowHeight = () => Math.max(BAR_PX + 4, props.rowHeight ?? ROW_PX);
+  // Density sets the row and bar; an explicit rowHeight wins over it. ROW_PX
+  // stays the comfortable size (core/density agrees: check:density).
+  const barPx = () => ganttBarPx(props.density);
+  const rowHeight = () => Math.max(barPx() + 4, scheduleRowPx(props.density, props.rowHeight));
   /* Fit, not month, and certainly not week. A seven-day window is right for a
      calendar and wrong for a plan; a month is right for a plan that fits in one
      and wrong for the majority that do not. Fit is the only default that is
@@ -532,6 +542,7 @@ export const Gantt = (props: GanttProps) => {
               placement={placements().get(row.index) ?? null}
               onTaskClick={props.onTaskClick}
               rowHeight={rowHeight()}
+              barPx={barPx()}
               barClass={props.barClassName?.(row.task) || undefined}
             />
           )}
@@ -651,6 +662,7 @@ const GanttTrack = (props: {
   placement: PlanningPlacement | null;
   onTaskClick?: (task: GanttTask, row: Row) => void;
   rowHeight: number;
+  barPx: number;
   barClass?: string;
 }) => {
   const loc = useLocale();
@@ -750,8 +762,8 @@ const GanttTrack = (props: {
             style={{
               "inset-inline-start": `${placement().startPct}%`,
               width: `${placement().widthPct}%`,
-              top: `${barTop(props.rowHeight)}px`,
-              height: `${BAR_PX}px`,
+              top: `${barTop(props.rowHeight, props.barPx)}px`,
+              height: `${props.barPx}px`,
             }}
             title={`${task().name} · ${formatDay(props.row.span!.start)} – ${formatDay(props.row.span!.end)}${
               props.row.progress === null ? "" : ` · ${Math.round(progress())}%`
@@ -825,8 +837,8 @@ const GanttTrack = (props: {
                 ...(labelBefore()
                   ? { "inset-inline-end": `calc(${100 - placement().startPct}% + 4px)` }
                   : { "inset-inline-start": `calc(${endPct()}% + 4px)` }),
-                top: `${barTop(props.rowHeight)}px`,
-                height: `${BAR_PX}px`,
+                top: `${barTop(props.rowHeight, props.barPx)}px`,
+                height: `${props.barPx}px`,
               }}
             >
               {Math.round(progress())}%

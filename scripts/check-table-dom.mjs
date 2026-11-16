@@ -319,6 +319,57 @@ const pivot = async (page, origin) => {
   return true;
 };
 
+/**
+ * The opt-in `density` prop, measured: touch reaches 48px targets, compact is
+ * smaller than comfortable. (Comfortable itself is check:schedule-dom's and the
+ * other sections' territory: they assert today's sizes.)
+ */
+const densities = async (page, origin) => {
+  let any = false;
+  const sizes = (id, sel, prop = "height") =>
+    page.$eval(`[data-testid="${id}"]`, (w, [sel, prop]) => [...new Set([...w.querySelectorAll(sel)].map((e) => Math.round(e.getBoundingClientRect()[prop])))].sort((a, b) => a - b), [sel, prop]);
+  const has = async (route, id) => {
+    await page.goto(`${origin}/${route}`);
+    return !!(await page.waitForSelector(`[data-testid="${id}"]`, { timeout: 8000 }).catch(() => null));
+  };
+  const ROWS = '[role="treegrid"] [role="row"]:not([aria-rowindex="1"])';
+  if (await has("gantt", "gantt-touch")) {
+    any = true;
+    await page.waitForSelector('[data-testid="gantt-touch"] [data-gantt-bar]');
+    t("gantt touch: rows 48, bars 32", [await sizes("gantt-touch", ROWS), await sizes("gantt-touch", "[data-gantt-bar]")], [[48], [32]]);
+    t("gantt compact: rows 28, bars 14", [await sizes("gantt-compact", ROWS), await sizes("gantt-compact", "[data-gantt-bar]")], [[28], [14]]);
+  }
+  if (await has("production-schedule", "production-touch")) {
+    any = true;
+    await page.waitForSelector('[data-testid="production-touch"] [data-gantt-bar]');
+    const touchRows = await sizes("production-touch", ROWS);
+    t("production touch: one row height, at least 48", touchRows.length === 1 && touchRows[0] >= 48, true);
+    t("production touch: lane bars 32", await sizes("production-touch", "[data-gantt-bar]"), [32]);
+    t("production compact: lane bars 12", await sizes("production-compact", "[data-gantt-bar]"), [12]);
+  }
+  if (await has("planning-calendar", "lanes-touch")) {
+    any = true;
+    const block = '[style*="top"]:is(button, [role="button"])';
+    t("calendar touch: appointments 48", await sizes("lanes-touch", block), [48]);
+    t("calendar compact: appointments 18", await sizes("lanes-compact", block), [18]);
+  }
+  if (await has("spreadsheet-grid", "sheet-touch")) {
+    any = true;
+    const touch = await sizes("sheet-touch", '[role="gridcell"]');
+    const compact = await sizes("sheet-compact", '[role="gridcell"]');
+    t("sheet touch: cells at least 48", touch.every((h) => h >= 48) && touch.length > 0, true);
+    t("sheet compact: cells under 24", compact.every((h) => h < 24) && compact.length > 0, true);
+  }
+  if (await has("tree", "tree-touch")) {
+    any = true;
+    const touch = await sizes("tree-touch", '[role="treeitem"] > div');
+    const compact = await sizes("tree-compact", '[role="treeitem"] > div');
+    t("tree touch: rows at least 48", touch.every((h) => h >= 48) && touch.length > 0, true);
+    t("tree compact: rows under 28", compact.every((h) => h < 28) && compact.length > 0, true);
+  }
+  return any;
+};
+
 /** headerClassName on the schedules: the header row and its frozen pane take it. */
 const scheduleHeaders = async (page, origin) => {
   let any = false;
@@ -355,7 +406,7 @@ for (const id of wanted) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    for (const [name, run] of [["DataTable", dataTable], ["PivotGrid", pivot], ["schedule headers", scheduleHeaders]]) {
+    for (const [name, run] of [["DataTable", dataTable], ["PivotGrid", pivot], ["schedule headers", scheduleHeaders], ["density", densities]]) {
       if (!(await run(page, origin))) {
         notPorted.push(`${id} ${name}`);
         console.log(`  NOT PORTED ${name}`);
