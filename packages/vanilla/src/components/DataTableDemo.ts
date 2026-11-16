@@ -291,7 +291,19 @@ const endAligned = (text: string): HTMLElement => {
   return span;
 };
 
-/* -------------------- sections 36–38: styling, frozen rows, RTL ------ */
+/* -------------------------- section 24: column footers ------------ */
+const FOOTER_PEOPLE_COLUMNS: DataTableColumn<Person>[] = [
+  { accessorKey: "name", header: "Name", footer: () => "TOTALS" },
+  { accessorKey: "role", header: "Role" },
+  {
+    accessorKey: "salary",
+    header: "Salary",
+    cell: ({ row }) => `$${row.salary.toLocaleString()}`,
+    footer: (rows) => `$${rows.reduce((sum, r) => sum + r.salary, 0).toLocaleString()}`,
+  },
+];
+
+/* -------------------- sections 30–32: styling, frozen rows, RTL ------ */
 const styledColumns: DataTableColumn<Person>[] = [
   { accessorKey: "name", header: "Name", meta: { className: "zen-font-medium" } },
   { accessorKey: "department", header: "Department" },
@@ -627,14 +639,15 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
           DataTable({ data: MEDIUM, columns, enablePagination: true, pageSize: 10 }).el,
       },
       {
-        title: "4. Global filter",
-        codeTitle: "enableColumnFilters shows a search box in the toolbar",
+        title: "4. Global filter + column visibility",
+        codeTitle: "enableColumnFilters (global) + enableColumnVisibility",
         codeDescription:
-          "The toolbar renders a search input; rows whose visible values contain the query are kept. (React additionally ships a Columns visibility menu, which this binding does not.)",
+          "The toolbar shows a search input and a Columns menu: rows whose visible values contain the query are kept, and any column can be hidden.",
         code: `DataTable({
   data: medium,
   columns,
   enableColumnFilters: true,
+  enableColumnVisibility: true,
   enablePagination: true,
   globalFilterPlaceholder: "Search people…",
 });`,
@@ -643,6 +656,7 @@ DataTable({ data: people, columns, headerVariant: "branded" });`,
             data: MEDIUM,
             columns,
             enableColumnFilters: true,
+            enableColumnVisibility: true,
             enablePagination: true,
             globalFilterPlaceholder: "Search people…",
           }).el,
@@ -895,6 +909,53 @@ const table = DataTable({
         },
       },
       {
+        title: "7b. Filtering and sorting on the server",
+        codeTitle: "manualFiltering + manualSorting, enableFilterOperators: false",
+        codeDescription:
+          "The table takes data as already filtered and sorted, and reports each change for you to re-fetch. Operators are off: a server that only does contains / equals must not be offered starts-with. Below: what your endpoint would receive.",
+        code: `const table = DataTable({
+  data: firstPage, columns, enableSorting: true, enablePerColumnFilters: true,
+  enableFilterOperators: false, manualFiltering: true, manualSorting: true,
+  onColumnFiltersChange: (f) => refetch({ filters: f }),
+  onSortingChange: (s) => refetch({ sorting: s }),
+});
+// refetch → table.update({ data: rows })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-2";
+          box.dataset.testid = "server-filters";
+          const said = document.createElement("pre");
+          said.className = "zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs";
+          said.dataset.testid = "server-request";
+          let filters: { id: string; value: unknown }[] = [];
+          let sorting: { id: string; desc: boolean }[] = [];
+          const refetch = () => {
+            said.textContent = JSON.stringify({ filters, sorting });
+            table.update({ data: serverQuery(filters, sorting) });
+          };
+          const table = DataTable({
+            data: serverQuery(filters, sorting),
+            columns: SERVER_COLUMNS,
+            enableSorting: true,
+            enablePerColumnFilters: true,
+            enableFilterOperators: false,
+            manualFiltering: true,
+            manualSorting: true,
+            onColumnFiltersChange: (f) => {
+              filters = f;
+              refetch();
+            },
+            onSortingChange: (s) => {
+              sorting = s;
+              refetch();
+            },
+          });
+          said.textContent = JSON.stringify({ filters, sorting });
+          box.append(table.el, said);
+          return box;
+        },
+      },
+      {
         title: "8. Column separators (Zen theme opt-in)",
         codeTitle: "enableColumnSeparators draws 1-px vertical dividers",
         codeDescription:
@@ -938,7 +999,7 @@ const table = DataTable({
         },
       },
       {
-        title: "9. Multi-sort (Shift-click a second header)",
+        title: "10. Multi-sort (Shift-click a second header)",
         codeTitle: "enableSorting + enableMultiSort",
         codeDescription:
           "Click one header to sort, then Shift-click another to add it as a secondary sort. A small priority badge (1, 2, …) appears next to each sorted header label.",
@@ -959,7 +1020,85 @@ const table = DataTable({
           }).el,
       },
       {
-        title: "10. Sticky header",
+        title: "11. Column resizing (drag the right edge)",
+        codeTitle: "enableColumnResizing",
+        codeDescription:
+          "A resize handle on the right edge of every header. Drag to resize; or focus it and use the arrow keys (16px, Shift for 64px). The body follows while you drag.",
+        code: `DataTable({
+  data: small,
+  columns: columns,
+  enableColumnResizing: true,
+})`,
+        render: () =>
+          DataTable({
+            data: SMALL,
+            columns: columns,
+            enableColumnResizing: true,
+          }).el,
+      },
+      {
+        title: "12. Column ordering (drag headers)",
+        codeTitle: "enableColumnOrdering + optional onColumnOrderChange",
+        codeDescription:
+          "Drag a header sideways to reorder. The callback fires with the new column-id order — persist it if you want it to stick across reloads (or use persistKey).",
+        code: `DataTable({
+  data: small,
+  columns: columns,
+  enableColumnOrdering: true,
+})`,
+        render: () =>
+          DataTable({
+            data: SMALL,
+            columns: columns,
+            enableColumnOrdering: true,
+          }).el,
+      },
+      {
+        title: "13. Per-column filters",
+        codeTitle: "enablePerColumnFilters",
+        codeDescription:
+          "A second header row with a filter under every filterable column. Combine it with the global filter (enableColumnFilters) — both narrow the same rows. Section 18 adds the typed variants and operators.",
+        code: `DataTable({
+  data: medium,
+  columns: columns,
+  enablePerColumnFilters: true,
+  enablePagination: true,
+})`,
+        render: () =>
+          DataTable({
+            data: MEDIUM,
+            columns: columns,
+            enablePerColumnFilters: true,
+            enablePagination: true,
+          }).el,
+      },
+      {
+        title: "14. CSV / JSON export",
+        codeTitle: "enableExport (+ exportFilename, exportOnlySelected)",
+        codeDescription:
+          "Adds an Export menu to the toolbar. Exports the currently filtered rows; set exportOnlySelected to limit it to checked rows. The selection and drag columns are left out.",
+        code: `DataTable({
+  data: medium,
+  columns: columns,
+  enableRowSelection: true,
+  enableColumnFilters: true,
+  enablePagination: true,
+  enableExport: true,
+  exportFilename: "people",
+})`,
+        render: () =>
+          DataTable({
+            data: MEDIUM,
+            columns: columns,
+            enableRowSelection: true,
+            enableColumnFilters: true,
+            enablePagination: true,
+            enableExport: true,
+            exportFilename: "people",
+          }).el,
+      },
+      {
+        title: "15. Sticky header",
         codeTitle: "stickyHeader pins the header while the body scrolls",
         codeDescription:
           "Body is constrained to maxBodyHeight so the sticky header has a real scroll context. In virtualized mode the header is already fixed and the prop is a no-op.",
@@ -980,29 +1119,94 @@ const table = DataTable({
           }).el,
       },
       {
-        title: "11. rowClassName — per-row styling",
-        codeTitle: "Tint rows based on data — e.g. suspended users get a red wash",
+        title: "16. Column pinning",
+        codeTitle: "enableColumnPinning + initialColumnPinning",
         codeDescription:
-          "The hook is called once per rendered body row. The returned string is merged after the built-in classes, so it composes with hover / selected styling instead of replacing it.",
+          "Scroll sideways: Name stays on the left, Salary on the right. Change it from Columns: each column has its own submenu (show it; not pinned, left or right), all of it reachable from the keyboard.",
         code: `DataTable({
-  data: small,
-  columns,
-  rowClassName: (row) =>
-    row.status === "suspended" ? "zen-bg-zen-error-soft/40"
-    : row.status === "invited" ? "zen-bg-zen-info-soft/30"
-    : undefined,
+  data: people, columns: wideColumns, enableColumnVisibility: true,
+  enableColumnPinning: true, initialColumnPinning: { left: ["name"], right: ["salary"] },
+  enableColumnResizing: true,
 });`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "pinned-columns";
+          box.append(
+            DataTable({
+              data: MEDIUM,
+              columns: WIDE_COLUMNS,
+              enableColumnVisibility: true,
+              enableColumnPinning: true,
+              initialColumnPinning: { left: ["name"], right: ["salary"] },
+              enableColumnResizing: true,
+              enableRowSelection: true,
+              maxBodyHeight: 320,
+              stickyHeader: true,
+            }).el,
+          );
+          return box;
+        },
+      },
+      {
+        title: "17. Virtualization + pinning + resize + reorder + filters",
+        codeTitle: "The virtualized grid wires column resize, reorder, and per-column filters",
+        codeDescription:
+          "Drag any header sideways to reorder; drag the right edge to resize. Per-column filters render as a second row under the header. All on 2 000 virtualized rows. (Pinning is not drawn in this binding's older virtualized grid yet — enableRowVirtualization, section 6b, pins; todo.md tracks the rest.)",
+        code: `DataTable({
+  data: large,
+  columns: wideColumns,
+  enableVirtualization: true,
+  enableColumnPinning: true,
+  enableColumnResizing: true,
+  enableColumnOrdering: true,
+  enablePerColumnFilters: true,
+  enableSorting: true,
+  maxBodyHeight: 360,
+})`,
         render: () =>
           DataTable({
-            data: SMALL,
-            columns,
-            rowClassName: (row) =>
-              row.status === "suspended"
-                ? "zen-bg-zen-error-soft/40"
-                : row.status === "invited"
-                  ? "zen-bg-zen-info-soft/30"
-                  : undefined,
+            data: LARGE,
+            columns: WIDE_COLUMNS,
+            enableVirtualization: true,
+            enableColumnPinning: true,
+            initialColumnPinning: { left: ["name"], right: ["salary"] },
+            enableColumnResizing: true,
+            enableColumnOrdering: true,
+            enablePerColumnFilters: true,
+            enableSorting: true,
+            maxBodyHeight: 360,
           }).el,
+      },
+      {
+        title: "18. Per-column filter operators",
+        codeTitle: "enablePerColumnFilters + meta.filterVariant",
+        codeDescription:
+          "A filter row under the header: text with an operator (contains, equals, starts, ends), a select, a number with an operator, a range, and yes / no. Active filters show as chips above the table; remove one, or Clear all.",
+        code: `DataTable({ data: people, enablePerColumnFilters: true, enableSorting: true, enablePagination: true,
+  columns: [
+    { accessorKey: "name", header: "Name" },                                   // text
+    { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions } },
+    { accessorKey: "joinedYear", header: "Joined", meta: { filterVariant: "number" } },
+    { accessorKey: "salary", header: "Salary", meta: { filterVariant: "numberRange" } },
+    { id: "admin", header: "Admin", accessorFn: (p) => p.role === "Admin", meta: { filterVariant: "boolean" } },
+  ] })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "column-filters";
+          box.append(
+            DataTable({
+              data: MEDIUM,
+              columns: FILTER_COLUMNS,
+              enablePerColumnFilters: true,
+              enableColumnFilters: true,
+              enableSorting: true,
+              enablePagination: true,
+            }).el,
+          );
+          return box;
+        },
       },
       {
         title: "19. Inline cell editing",
@@ -1031,6 +1235,188 @@ const table = DataTable({
   },
 });`,
         render: () => InlineEditDemo(),
+      },
+      {
+        title: "20. Bulk actions + select-all-across-pages",
+        codeTitle: "enableExport + exportOnlySelected, renderBulkActions",
+        codeDescription:
+          "Select rows: a bar shows how many, offers to select every matching row when a whole page is selected, and holds your actions. Export downloads the selected rows (all rows when none is selected) as CSV or JSON.",
+        code: `DataTable({ data: people, columns, enableRowSelection: true, enablePagination: true,
+  getRowId: (p) => p.id, enableExport: true, exportOnlySelected: true,
+  renderBulkActions: ({ rows, clear }) => [
+    Button({ size: "sm", variant: "outline", children: "Archive", onClick: () => archive(rows) }),
+  ] })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-2";
+          box.dataset.testid = "bulk";
+          const said = document.createElement("p");
+          said.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
+          said.dataset.testid = "bulk-said";
+          said.textContent = "Nothing done yet.";
+          box.append(
+            DataTable({
+              data: MEDIUM,
+              columns,
+              enableRowSelection: true,
+              enablePagination: true,
+              getRowId: (p) => p.id,
+              enableExport: true,
+              exportOnlySelected: true,
+              exportFilename: "people",
+              renderBulkActions: ({ rows, ids, clear }) => [
+                Button({
+                  size: "sm",
+                  variant: "outline",
+                  children: "Archive",
+                  onClick: () => {
+                    said.textContent = `Archived ${rows.length}: ${ids.join(", ")}`;
+                    clear();
+                  },
+                }).el,
+              ],
+            }).el,
+            said,
+          );
+          return box;
+        },
+      },
+      {
+        title: "21. Expandable rows",
+        codeTitle: "renderSubRow (+ controlled expanded / onExpandedChange)",
+        codeDescription:
+          "A chevron column toggles a detail row under each row. It works in a paged table and inside row virtualization, where an open row and its detail scroll as one.",
+        code: `DataTable({ data: people, columns, enablePagination: true,
+  renderSubRow: ({ row }) => PersonDetail(row) })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full zen-space-y-4";
+          box.dataset.testid = "expandable";
+          const paged = document.createElement("div");
+          paged.dataset.testid = "expandable-paged";
+          paged.append(
+            DataTable({ data: MEDIUM, columns, enablePagination: true, getRowId: (p) => p.id, renderSubRow: ({ row }) => personDetail(row) }).el,
+          );
+          const virt = document.createElement("div");
+          virt.dataset.testid = "expandable-virtual";
+          virt.append(
+            DataTable({
+              data: LARGE,
+              columns,
+              enableRowVirtualization: true,
+              maxBodyHeight: 320,
+              getRowId: (p) => p.id,
+              renderSubRow: ({ row }) => personDetail(row),
+            }).el,
+          );
+          box.append(paged, virt);
+          return box;
+        },
+      },
+      {
+        title: "22. rowClassName — per-row styling",
+        codeTitle: "Tint rows based on data — e.g. suspended users get a red wash",
+        codeDescription:
+          "The hook is called once per rendered body row. The returned string is merged after the built-in classes, so it composes with hover / selected styling instead of replacing it.",
+        code: `DataTable({
+  data: small,
+  columns,
+  rowClassName: (row) =>
+    row.status === "suspended" ? "zen-bg-zen-error-soft/40"
+    : row.status === "invited" ? "zen-bg-zen-info-soft/30"
+    : undefined,
+});`,
+        render: () =>
+          DataTable({
+            data: SMALL,
+            columns,
+            rowClassName: (row) =>
+              row.status === "suspended"
+                ? "zen-bg-zen-error-soft/40"
+                : row.status === "invited"
+                  ? "zen-bg-zen-info-soft/30"
+                  : undefined,
+          }).el,
+      },
+      {
+        title: "23. Row grouping",
+        codeTitle: "enableGrouping + initialGrouping, subtotals from meta.aggregate",
+        codeDescription:
+          'Rows that share the grouped column\'s value nest under a "value (N)" row that expands and collapses. Columns with meta.aggregate show the group\'s subtotal there. The Group by menu adds and removes columns; grouping by two nests them.',
+        code: `DataTable({ data: people, enableGrouping: true, initialGrouping: ["role"],
+  enableSorting: true, enablePagination: true,
+  columns: [
+    { accessorKey: "role", header: "Role" },
+    { accessorKey: "salary", header: "Salary", meta: { aggregate: "sum" } },
+    { accessorKey: "status", header: "Status", meta: { aggregate: "count" } },
+  ] })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.dataset.testid = "grouping";
+          box.append(
+            DataTable({
+              data: MEDIUM,
+              columns: GROUP_COLUMNS,
+              enableGrouping: true,
+              initialGrouping: ["role"],
+              enableSorting: true,
+              enablePagination: true,
+            }).el,
+          );
+          return box;
+        },
+      },
+      {
+        title: "24. Column footers",
+        codeTitle: "`footer` on a column",
+        codeDescription:
+          "Declaring footer on any column gives the table a <tfoot>. Columns without one render an empty cell, so the row stays aligned. footer is handed the rows the filters let through — the place for a column total (section 26 computes them for you).",
+        code: `const columns = [
+  { accessorKey: "name", header: "Name", footer: () => "TOTALS" },
+  { accessorKey: "role", header: "Role" },
+  { accessorKey: "salary", header: "Salary",
+    cell: ({ row }) => money(row.salary),
+    footer: (rows) => money(rows.reduce((sum, r) => sum + r.salary, 0)) },
+];`,
+        render: () =>
+          DataTable({
+            data: SMALL,
+            columns: FOOTER_PEOPLE_COLUMNS,
+          }).el,
+      },
+      {
+        title: "25. Everything together",
+        codeTitle: "All toggles on, virtualization off (uses pagination instead)",
+        code: `DataTable({
+  data: medium,
+  columns: columns,
+  enableSorting: true,
+  enableMultiSort: true,
+  enablePagination: true,
+  enableColumnFilters: true,
+  enablePerColumnFilters: true,
+  enableRowSelection: true,
+  enableColumnVisibility: true,
+  enableColumnOrdering: true,
+  enableColumnResizing: true,
+  enableExport: true,
+})`,
+        render: () =>
+          DataTable({
+            data: MEDIUM,
+            columns: columns,
+            enableSorting: true,
+            enableMultiSort: true,
+            enablePagination: true,
+            enableColumnFilters: true,
+            enablePerColumnFilters: true,
+            enableRowSelection: true,
+            enableColumnVisibility: true,
+            enableColumnOrdering: true,
+            enableColumnResizing: true,
+            enableExport: true,
+          }).el,
       },
       {
         title: "26. Totals",
@@ -1083,33 +1469,7 @@ DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true })
         },
       },
       {
-        title: "28. Toolbar buttons in the pager row",
-        codeTitle: 'toolbarPlacement: "pagination"',
-        codeDescription:
-          "A table whose toolbar would be one button need not spend a row on it: the Export menu moves into the pager row, beside the page buttons. The search box, when there is one, stays above the table. Without a pager it stays on top.",
-        code: `DataTable({ data: people, columns, enableSorting: true, enablePagination: true,
-  onExport: (format, request) => fetch(…), toolbarPlacement: "pagination" })`,
-        render: () => {
-          const box = document.createElement("div");
-          box.className = "zen-w-full";
-          box.dataset.testid = "pager-toolbar";
-          box.append(
-            DataTable({
-              data: MEDIUM,
-              columns,
-              enableSorting: true,
-              enablePagination: true,
-              toolbarPlacement: "pagination",
-              onExport: (_format: ExportFormat, request: ExportRequest) =>
-            // A stand-in for your endpoint: the visible columns, as CSV.
-            Promise.resolve(new Blob([request.columns.map((c) => c.header).join(",") + "\n"], { type: "text/csv" })),
-            }).el,
-          );
-          return box;
-        },
-      },
-      {
-        title: "29. Manage columns from the keyboard",
+        title: "28. Manage columns from the keyboard",
         codeTitle: "enableColumnVisibility, enableColumnOrdering, enableColumnResizing, persistKey",
         codeDescription:
           "Open Columns (Enter works): arrow to a column and press Alt+↑ or Alt+↓ to move it, Space to hide it; Reset columns restores order, widths, visibility and pinning. Drag a header sideways to move it. Tab to a header's right edge and use the arrow keys to resize it (Shift for bigger steps), or drag the edge. The layout is remembered (persistKey) until you reset it.",
@@ -1137,220 +1497,33 @@ DataTable({ data: lines, columns, fillHeight: true, enableColumnFilters: true })
         },
       },
       {
-        title: "30. Pinned columns",
-        codeTitle: "enableColumnPinning + initialColumnPinning",
+        title: "29. Toolbar buttons in the pager row",
+        codeTitle: 'toolbarPlacement: "pagination"',
         codeDescription:
-          "Scroll sideways: Name stays on the left, Salary on the right. Change it from Columns: each column has its own submenu (show it; not pinned, left or right), all of it reachable from the keyboard.",
-        code: `DataTable({
-  data: people, columns: wideColumns, enableColumnVisibility: true,
-  enableColumnPinning: true, initialColumnPinning: { left: ["name"], right: ["salary"] },
-  enableColumnResizing: true,
-});`,
+          "A table whose toolbar would be one button need not spend a row on it: the Export menu moves into the pager row, beside the page buttons. The search box, when there is one, stays above the table. Without a pager it stays on top.",
+        code: `DataTable({ data: people, columns, enableSorting: true, enablePagination: true,
+  onExport: (format, request) => fetch(…), toolbarPlacement: "pagination" })`,
         render: () => {
           const box = document.createElement("div");
           box.className = "zen-w-full";
-          box.dataset.testid = "pinned-columns";
-          box.append(
-            DataTable({
-              data: MEDIUM,
-              columns: WIDE_COLUMNS,
-              enableColumnVisibility: true,
-              enableColumnPinning: true,
-              initialColumnPinning: { left: ["name"], right: ["salary"] },
-              enableColumnResizing: true,
-              enableRowSelection: true,
-              maxBodyHeight: 320,
-              stickyHeader: true,
-            }).el,
-          );
-          return box;
-        },
-      },
-      {
-        title: "31. Per-column filters",
-        codeTitle: "enablePerColumnFilters + meta.filterVariant",
-        codeDescription:
-          "A filter row under the header: text with an operator (contains, equals, starts, ends), a select, a number with an operator, a range, and yes / no. Active filters show as chips above the table; remove one, or Clear all.",
-        code: `DataTable({ data: people, enablePerColumnFilters: true, enableSorting: true, enablePagination: true,
-  columns: [
-    { accessorKey: "name", header: "Name" },                                   // text
-    { accessorKey: "role", header: "Role", meta: { filterVariant: "select", filterOptions } },
-    { accessorKey: "joinedYear", header: "Joined", meta: { filterVariant: "number" } },
-    { accessorKey: "salary", header: "Salary", meta: { filterVariant: "numberRange" } },
-    { id: "admin", header: "Admin", accessorFn: (p) => p.role === "Admin", meta: { filterVariant: "boolean" } },
-  ] })`,
-        render: () => {
-          const box = document.createElement("div");
-          box.className = "zen-w-full";
-          box.dataset.testid = "column-filters";
-          box.append(
-            DataTable({
-              data: MEDIUM,
-              columns: FILTER_COLUMNS,
-              enablePerColumnFilters: true,
-              enableColumnFilters: true,
-              enableSorting: true,
-              enablePagination: true,
-            }).el,
-          );
-          return box;
-        },
-      },
-      {
-        title: "32. Filtering and sorting on the server",
-        codeTitle: "manualFiltering + manualSorting, enableFilterOperators: false",
-        codeDescription:
-          "The table takes data as already filtered and sorted, and reports each change for you to re-fetch. Operators are off: a server that only does contains / equals must not be offered starts-with. Below: what your endpoint would receive.",
-        code: `const table = DataTable({
-  data: firstPage, columns, enableSorting: true, enablePerColumnFilters: true,
-  enableFilterOperators: false, manualFiltering: true, manualSorting: true,
-  onColumnFiltersChange: (f) => refetch({ filters: f }),
-  onSortingChange: (s) => refetch({ sorting: s }),
-});
-// refetch → table.update({ data: rows })`,
-        render: () => {
-          const box = document.createElement("div");
-          box.className = "zen-w-full zen-space-y-2";
-          box.dataset.testid = "server-filters";
-          const said = document.createElement("pre");
-          said.className = "zen-m-0 zen-rounded-zen-md zen-bg-zen-muted zen-px-3 zen-py-2 zen-text-xs";
-          said.dataset.testid = "server-request";
-          let filters: { id: string; value: unknown }[] = [];
-          let sorting: { id: string; desc: boolean }[] = [];
-          const refetch = () => {
-            said.textContent = JSON.stringify({ filters, sorting });
-            table.update({ data: serverQuery(filters, sorting) });
-          };
-          const table = DataTable({
-            data: serverQuery(filters, sorting),
-            columns: SERVER_COLUMNS,
-            enableSorting: true,
-            enablePerColumnFilters: true,
-            enableFilterOperators: false,
-            manualFiltering: true,
-            manualSorting: true,
-            onColumnFiltersChange: (f) => {
-              filters = f;
-              refetch();
-            },
-            onSortingChange: (s) => {
-              sorting = s;
-              refetch();
-            },
-          });
-          said.textContent = JSON.stringify({ filters, sorting });
-          box.append(table.el, said);
-          return box;
-        },
-      },
-      {
-        title: "33. Expandable rows",
-        codeTitle: "renderSubRow (+ controlled expanded / onExpandedChange)",
-        codeDescription:
-          "A chevron column toggles a detail row under each row. It works in a paged table and inside row virtualization, where an open row and its detail scroll as one.",
-        code: `DataTable({ data: people, columns, enablePagination: true,
-  renderSubRow: ({ row }) => PersonDetail(row) })`,
-        render: () => {
-          const box = document.createElement("div");
-          box.className = "zen-w-full zen-space-y-4";
-          box.dataset.testid = "expandable";
-          const paged = document.createElement("div");
-          paged.dataset.testid = "expandable-paged";
-          paged.append(
-            DataTable({ data: MEDIUM, columns, enablePagination: true, getRowId: (p) => p.id, renderSubRow: ({ row }) => personDetail(row) }).el,
-          );
-          const virt = document.createElement("div");
-          virt.dataset.testid = "expandable-virtual";
-          virt.append(
-            DataTable({
-              data: LARGE,
-              columns,
-              enableRowVirtualization: true,
-              maxBodyHeight: 320,
-              getRowId: (p) => p.id,
-              renderSubRow: ({ row }) => personDetail(row),
-            }).el,
-          );
-          box.append(paged, virt);
-          return box;
-        },
-      },
-      {
-        title: "34. Row grouping",
-        codeTitle: "enableGrouping + initialGrouping, subtotals from meta.aggregate",
-        codeDescription:
-          'Rows that share the grouped column\'s value nest under a "value (N)" row that expands and collapses. Columns with meta.aggregate show the group\'s subtotal there. The Group by menu adds and removes columns; grouping by two nests them.',
-        code: `DataTable({ data: people, enableGrouping: true, initialGrouping: ["role"],
-  enableSorting: true, enablePagination: true,
-  columns: [
-    { accessorKey: "role", header: "Role" },
-    { accessorKey: "salary", header: "Salary", meta: { aggregate: "sum" } },
-    { accessorKey: "status", header: "Status", meta: { aggregate: "count" } },
-  ] })`,
-        render: () => {
-          const box = document.createElement("div");
-          box.className = "zen-w-full";
-          box.dataset.testid = "grouping";
-          box.append(
-            DataTable({
-              data: MEDIUM,
-              columns: GROUP_COLUMNS,
-              enableGrouping: true,
-              initialGrouping: ["role"],
-              enableSorting: true,
-              enablePagination: true,
-            }).el,
-          );
-          return box;
-        },
-      },
-      {
-        title: "35. Export and bulk actions",
-        codeTitle: "enableExport + exportOnlySelected, renderBulkActions",
-        codeDescription:
-          "Select rows: a bar shows how many, offers to select every matching row when a whole page is selected, and holds your actions. Export downloads the selected rows (all rows when none is selected) as CSV or JSON.",
-        code: `DataTable({ data: people, columns, enableRowSelection: true, enablePagination: true,
-  getRowId: (p) => p.id, enableExport: true, exportOnlySelected: true,
-  renderBulkActions: ({ rows, clear }) => [
-    Button({ size: "sm", variant: "outline", children: "Archive", onClick: () => archive(rows) }),
-  ] })`,
-        render: () => {
-          const box = document.createElement("div");
-          box.className = "zen-w-full zen-space-y-2";
-          box.dataset.testid = "bulk";
-          const said = document.createElement("p");
-          said.className = "zen-m-0 zen-text-sm zen-text-zen-muted-fg";
-          said.dataset.testid = "bulk-said";
-          said.textContent = "Nothing done yet.";
+          box.dataset.testid = "pager-toolbar";
           box.append(
             DataTable({
               data: MEDIUM,
               columns,
-              enableRowSelection: true,
+              enableSorting: true,
               enablePagination: true,
-              getRowId: (p) => p.id,
-              enableExport: true,
-              exportOnlySelected: true,
-              exportFilename: "people",
-              renderBulkActions: ({ rows, ids, clear }) => [
-                Button({
-                  size: "sm",
-                  variant: "outline",
-                  children: "Archive",
-                  onClick: () => {
-                    said.textContent = `Archived ${rows.length}: ${ids.join(", ")}`;
-                    clear();
-                  },
-                }).el,
-              ],
+              toolbarPlacement: "pagination",
+              onExport: (_format: ExportFormat, request: ExportRequest) =>
+            // A stand-in for your endpoint: the visible columns, as CSV.
+            Promise.resolve(new Blob([request.columns.map((c) => c.header).join(",") + "\n"], { type: "text/csv" })),
             }).el,
-            said,
           );
           return box;
         },
       },
       {
-        title: "36. Styling columns and cells",
+        title: "30. Styling columns and cells",
         codeTitle: "meta.className, meta.headerClassName, --zen-table-cell-font-size",
         codeDescription:
           "A column's className styles its cells — a string for all of them, or a function of the row for one cell at a time (salaries from ₹65,000 in green, a suspended status in red). headerClassName styles its header. The body text size and line height are tokens, set here through the table's style.",
@@ -1375,7 +1548,7 @@ DataTable({ data: people, columns,
         },
       },
       {
-        title: "37. Frozen rows, a sticky footer, pinned totals",
+        title: "31. Frozen rows, a sticky footer, pinned totals",
         codeTitle: "enableRowPinning + rowPinning: { top, bottom }",
         codeDescription:
           "Pinned rows stay in view under the header (top) or above the footer (bottom) while the rest scroll, and stay even when a filter or the page would hide them. A pinned column's total stays with its column when you scroll sideways. stickyFooter does the same for a footer without totals.",
@@ -1418,7 +1591,7 @@ DataTable({ data: lines, columns, stickyHeader: true, stickyFooter: true, maxBod
         },
       },
       {
-        title: "38. Right to left",
+        title: "32. Right to left",
         codeTitle: 'Pinned columns follow the reading direction (dir="rtl")',
         codeDescription:
           "Pinned to the left means pinned to the START: in a right-to-left page the column sticks on the right, where its row begins, and the edge shadow faces the scrolling columns.",

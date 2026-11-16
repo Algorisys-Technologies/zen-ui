@@ -28,15 +28,15 @@ issue / PR when its turn comes.
       the owner freed inotify watches (ENOSPC), and deploy.sh's 300s preview
       timeout was too short (react took 648s) and posed as a browser crash —
       fixed in be81ee4d (900s, gen-previews exits on SIGTERM).
-- [~] **Demo section numbering drifts between bindings** — Solid fixed
-      2026-11-17: its DataTable demo lacked React's "24. Column footers" (now
-      ported; 37 sections, numbered as React) and its Pivot demo lacked "4. The
-      same component" (now 1–5 everywhere). **Still open: vanilla and
-      web-components' DataTable demo is a different list**, not a renumbering —
-      31 sections against React's 33 (no resizing, ordering, CSV export,
-      virtualization+pinning, filter operators, column footers, everything
-      together), some renamed and out of order, two numbered "9.", gaps 11→19→26.
-      Aligning it = rebuilding that page to React's list. Owner's call.
+- [x] **Demo section numbering drifts between bindings** — fixed 2026-11-17.
+      Solid gained React's "24. Column footers" and Pivot's "4. The same
+      component". Vanilla and web-components' DataTable demo was rebuilt to
+      React's list: 0–32 in React's order, with the seven missing sections added
+      (11 resizing, 12 ordering, 13 per-column filters, 14 CSV/JSON export, 17
+      virtualization combo, 24 column footers, 25 everything together) and the
+      rest renamed and reordered. One extra stays, as 7b: vanilla's "filtering
+      and sorting on the server", which React has no section for. Section 17
+      says pinning is not drawn in vanilla's older grid (item below).
 - [x] **Vanilla footer without totals has no select-column cell** — fixed
       2026-11-17; check:table-dom asserts the footer sits under its column with
       row selection on (fails without the fix: 1 of 35).
