@@ -509,6 +509,20 @@ Gantt({ tasks: plan }).el
             { "--zen-schedule-label-font-size": "11px" },
           ),
       },
+      {
+        title: "14. Density",
+        codeTitle: 'density: "compact" | "comfortable" | "touch"',
+        codeDescription:
+          "compact: 28px rows for a long plan read all day. touch: 48px rows and 32px bars, for a tablet on the shop floor. rowHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was.",
+        code: `Gantt({ tasks: plan, density: "compact" })
+Gantt({ tasks: plan, density: "touch" })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.append(tagged("gantt-compact", Gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW, density: "compact" }).el), tagged("gantt-touch", Gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW, density: "touch" }).el));
+          return box;
+        },
+      },
     ],
   });
 }

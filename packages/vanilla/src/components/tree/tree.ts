@@ -1,3 +1,5 @@
+import type { Density } from "@algorisys/zen-ui-core/density";
+import { treeRowDensityClass } from "@algorisys/zen-ui-core/variants";
 import { cn } from "../../lib/cn";
 import { directionOf } from "@algorisys/zen-ui-core";
 import {
@@ -52,6 +54,13 @@ export interface TreeProps extends BaseProps {
   onSelectedChange?: (id: string) => void;
   /** Classes for one node's row, after its own (so a caller's padding or colour wins). */
   itemClassName?: (node: TreeNode) => string | undefined | false | null;
+  /**
+   * How much room a row takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
 }
 
 /** One visible row: the node plus where it sits. */
@@ -232,6 +241,7 @@ export function Tree(props: TreeProps): ZenComponent<TreeProps> {
       "hover:zen-bg-zen-muted",
       isSelected && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-font-medium",
       row.node.disabled && "zen-cursor-not-allowed zen-opacity-50",
+      treeRowDensityClass[current.density ?? "comfortable"],
       current.itemClassName?.(row.node),
     );
 

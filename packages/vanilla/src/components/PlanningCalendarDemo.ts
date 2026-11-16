@@ -162,6 +162,20 @@ cal.update({ view: "day" });   // controlled: push the view back in`,
         code: `PlanningCalendar({ rows: team, laneHeight: 44 })`,
         render: () => tagged("lanes-tall", PlanningCalendar({ rows: TEAM, now: NOW, defaultDate: NOW, laneHeight: 44 }).el),
       },
+      {
+        title: "7. Density",
+        codeTitle: 'density: "compact" | "comfortable" | "touch"',
+        codeDescription:
+          "compact: 24px lanes. touch: 48px appointments. laneHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was.",
+        code: `PlanningCalendar({ rows: team, density: "compact" })
+PlanningCalendar({ rows: team, density: "touch" })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.append(tagged("lanes-compact", PlanningCalendar({ rows: TEAM, now: NOW, defaultDate: NOW, density: "compact" }).el), tagged("lanes-touch", PlanningCalendar({ rows: TEAM, now: NOW, defaultDate: NOW, density: "touch" }).el));
+          return box;
+        },
+      },
     ],
   });
 }

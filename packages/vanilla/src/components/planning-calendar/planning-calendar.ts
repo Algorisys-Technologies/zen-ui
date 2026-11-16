@@ -91,6 +91,13 @@ export interface PlanningCalendarProps extends BaseProps {
   emptyMessage?: Child;
   /** Height of one lane in px (appointments stack in lanes inside a row). Default 30. */
   laneHeight?: number;
+  /**
+   * How much room a lane takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
 }
 
 const VIEW_LABEL: Record<PlanningView, MessageKey> = {
@@ -101,7 +108,7 @@ const VIEW_LABEL: Record<PlanningView, MessageKey> = {
 const ALL_VIEWS: PlanningView[] = ["day", "week", "month"];
 
 /** Row height per lane. A block is 24px tall; lanes stack inside the row. */
-const LANE_PX = 30;
+import { calendarLanePx, type Density } from "@algorisys/zen-ui-core/density";
 
 /**
  * Below this width, a block renders no text at all.
@@ -130,7 +137,7 @@ export function PlanningCalendar(
 ): ZenComponent<PlanningCalendarProps> {
   let current: PlanningCalendarProps = { ...props };
   // Never so short that a block (lane − 6px) has no height.
-  const lanePx = (): number => Math.max(14, current.laneHeight ?? LANE_PX);
+  const lanePx = (): number => Math.max(14, calendarLanePx(current.density, current.laneHeight));
   const loc = useLocale();
   const disposer = new Disposer();
   let removeProps: (() => void) | undefined;

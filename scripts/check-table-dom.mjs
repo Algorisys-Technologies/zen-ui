@@ -127,6 +127,28 @@ const dataTable = async (page, origin) => {
   await page.waitForSelector("table tbody tr");
   if (!(await page.$('[data-testid="frozen-rows"]'))) return false;
   await page.waitForSelector('[data-testid="frozen-rows"] tbody tr');
+  // Pins are applied after layout (vanilla measures them in a ResizeObserver):
+  // wait until they are, or a busy machine measures an unpinned table. This
+  // flaked once, 8 of 52, with nothing changed.
+  for (const id of ["frozen-rows", "rtl-pinned"]) {
+    await page
+      .waitForFunction(
+        (id) => {
+          const ths = [...document.querySelectorAll(`[data-testid="${id}"] thead th`)];
+          return ths.some((t) => t.style.insetInlineStart !== "") && ths.some((t) => t.style.insetInlineEnd !== "");
+        },
+        id,
+        { timeout: 8000 },
+      )
+      .catch(() => {});
+  }
+  await page
+    .waitForFunction(
+      () => [...document.querySelectorAll('[data-testid="frozen-rows"] tr[data-pinned-row]')].every((tr) => tr.style.position === "sticky"),
+      undefined,
+      { timeout: 8000 },
+    )
+    .catch(() => {});
 
   console.log("  -- styling");
   const st = await page.$eval('[data-testid="styled-cells"]', (w) => {
@@ -271,10 +293,17 @@ const pivot = async (page, origin) => {
     const out = [];
     for (const x of [0, -700, -1400, -99999]) {
       sc.scrollLeft = x;
-      await new Promise((r) => setTimeout(r, 250));
-      const b = sc.getBoundingClientRect();
-      const el = document.elementFromPoint(b.left + b.width * 0.4, b.top + b.height * 0.5);
-      out.push(/^\$/.test(el?.textContent?.trim() ?? ""));
+      // Polled, not a fixed wait: a grid that redraws on the next frame can be
+      // late on a busy machine (this flaked once at 250ms). A grid that never
+      // draws the columns — the bug this guards — still fails after 2s.
+      let drawn = false;
+      for (let i = 0; i < 20 && !drawn; i++) {
+        await new Promise((r) => setTimeout(r, 100));
+        const b = sc.getBoundingClientRect();
+        const el = document.elementFromPoint(b.left + b.width * 0.4, b.top + b.height * 0.5);
+        drawn = /^\$/.test(el?.textContent?.trim() ?? "");
+      }
+      out.push(drawn);
     }
     return out;
   });
