@@ -230,6 +230,7 @@ description, then import the name from your binding's package.
 - **PageHeader** — A heading with a back affordance and one action — the light one
 - **SkipToContent** — Keyboard bypass — the first Tab reveals a link that jumps past the app chrome to the content (WCAG 2.4.1)
 - **ShellBar** — Top-level app header — branding, search, actions, profile menu
+- **StatusBar** — The strip along the bottom of an app or editor — text and clickable items on two sides, coloured chips for problems, and the least important items giving way first when it is narrow
 - **FlexibleColumnLayout** — 1–3 column master-detail frame with responsive collapse
 - **DynamicPage** — Title + header that snaps away on scroll; pinnable header
 - **ObjectPageLayout** — Anchored sections with scroll-spy navigation

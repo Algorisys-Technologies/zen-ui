@@ -94,6 +94,7 @@ import "./production-schedule";
 import "./state-pill";
 import "./production-progress";
 import "./live-indicator";
+import "./status-bar";
 import "./line-card";
 import "./oee-gauge";
 import "./state-timeline";

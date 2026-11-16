@@ -15,6 +15,17 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- StatusBar in React, vanilla and web components (`<zen-status-bar>`), ported
+  from Solid with the same props. `check:parity` is green again. Vanilla's
+  `update({ items })` and the element's `el.items = …` keep the bar's DOM, so
+  an `announce` item changes in place. The element takes `items` as JSON for
+  text-only bars (clickable items and element labels need the property) and
+  fires `zen-collapse` with the ids that gave way. Measured against Solid in
+  one browser: identical item widths (to 0.01px) and the same collapse result
+  at every width from 1000px down to 60px in all four bindings.
+
 ## [12.10.0] - 2026-11-16
 
 ### Added
