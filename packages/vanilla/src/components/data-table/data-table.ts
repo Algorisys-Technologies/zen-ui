@@ -3706,15 +3706,16 @@ export function DataTable<TData>(
         footPin(td);
         tr.append(td);
       }
-      if (hasTotals) {
-        tfoot.setAttribute("data-totals", "");
-        // The select column's cell, so the totals sit under their columns.
-        if (current.enableRowSelection) {
-          const td = h("td", totalCellClass(false));
-          markUtilityPin(td, "__select__");
-          footPin(td);
-          tr.append(td);
-        }
+      if (hasTotals) tfoot.setAttribute("data-totals", "");
+      // The select column's cell, so the footer sits under its columns — with
+      // or without totals. A plain footer used to skip it, and every footer
+      // cell sat one column to the left of its column (React and Solid get the
+      // cell from TanStack's footer groups, which cover every column).
+      if (current.enableRowSelection) {
+        const td = h("td", totalCellClass(false));
+        markUtilityPin(td, "__select__");
+        footPin(td);
+        tr.append(td);
       }
       const labelCol = hasTotals
         ? leafColumns().find((c) => !c.meta?.aggregate && !c.footer)

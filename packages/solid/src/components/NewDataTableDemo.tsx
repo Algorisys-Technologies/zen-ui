@@ -1258,7 +1258,47 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="zen-text-base zen-font-semibold zen-mb-2">24. Everything together</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">24. Column footers</h2>
+        <CodeExample
+          title="`footer` on a ColumnDef"
+          description="Declaring footer on any column gives the table a <tfoot>. Columns without one render an empty cell, so the row stays aligned. This is where a column total goes — the thing every financial table needs and TanStack has always carried."
+          code={`const columns = [
+  { accessorKey: "name", header: "Name", footer: "TOTALS" },
+  {
+    accessorKey: "salary",
+    header: "Salary",
+    cell: (i) => money(i.getValue()),
+    footer: ({ table }) =>
+      money(
+        table
+          .getFilteredRowModel()
+          .rows.reduce((sum, r) => sum + r.original.salary, 0),
+      ),
+  },
+]`}
+        >
+          <DataTable
+            data={SMALL}
+            columns={[
+              { accessorKey: "name", header: "Name", footer: () => "TOTALS" },
+              { accessorKey: "role", header: "Role" },
+              {
+                accessorKey: "salary",
+                header: "Salary",
+                cell: (info) => `$${(info.getValue() as number).toLocaleString()}`,
+                footer: ({ table }) =>
+                  `$${table
+                    .getFilteredRowModel()
+                    .rows.reduce((sum, r) => sum + r.original.salary, 0)
+                    .toLocaleString()}`,
+              },
+            ]}
+          />
+        </CodeExample>
+      </section>
+
+      <section>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">25. Everything together</h2>
         <CodeExample
           title="All toggles on, virtualization off (uses pagination instead)"
           code={`<DataTable
@@ -1294,7 +1334,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="zen-text-base zen-font-semibold zen-mb-2">25. Totals</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">26. Totals</h2>
         <CodeExample
           title="meta.aggregate: a total that computes itself, exact in decimal"
           description="Sum, count, avg, min, max or your own function, per column. The footer totals every row the filters let through (across pages; totalsOver=&quot;page&quot; for this page only), stays in view as the rows scroll, and a grouped table shows each group's subtotal from the same declaration. Filter the Customer column and watch the totals follow."
@@ -1324,7 +1364,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="zen-text-base zen-font-semibold zen-mb-2">26. Export on the server</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">27. Export on the server</h2>
         <CodeExample
           title="onExport: the browser describes, the server builds"
           description="For data too large for the browser. Export hands your server an ExportRequest: the visible columns (header, width, format, total), filters, sort, grouping, locale, and all matching rows or the selected ids (even on pages never loaded). Your endpoint queries the full data and returns the file. Try a search, a sort, or selecting rows on two pages, then Export."
@@ -1348,7 +1388,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="zen-text-base zen-font-semibold zen-mb-2">27. Manage columns from the keyboard</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">28. Manage columns from the keyboard</h2>
         <CodeExample
           title="meta.label, Reset columns, keyboard resize and reorder"
           description="Headers here are functions (the salary head is right-aligned), so meta.label names each column for the Columns menu, the sort and resize labels and export. Open Columns (Enter works): arrow to a column and press Alt+↑ or Alt+↓ to move it, Space to hide it; Reset columns restores order, widths, visibility and pinning. Tab to a header's right edge and use the arrow keys to resize it (Shift for bigger steps). The layout is remembered (persistKey) until you reset it."
@@ -1378,7 +1418,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="zen-text-base zen-font-semibold zen-mb-2">28. Toolbar buttons in the pager row</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">29. Toolbar buttons in the pager row</h2>
         <CodeExample
           title='toolbarPlacement="pagination"'
           description="A table whose toolbar would be one button need not spend a row on it: Export, Group by and Columns move into the pager row, beside the page buttons. The search box, when there is one, stays above the table. Without a pager they stay on top."
@@ -1398,7 +1438,7 @@ const columns = [
         </CodeExample>
       </section>
       <section>
-        <h2 class="zen-text-base zen-font-semibold zen-mb-2">29. Styling columns and cells</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">30. Styling columns and cells</h2>
         <CodeExample
           title="meta.className, meta.headerClassName, --zen-table-cell-font-size"
           description="A column's className styles its cells — a string for all of them, or a function of the row for one cell at a time (salaries from ₹65,000 in green, a suspended status in red). headerClassName styles its header. The body text size and line height are tokens, set here through the table's style prop."
@@ -1427,7 +1467,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="zen-text-base zen-font-semibold zen-mb-2">30. Frozen rows, a sticky footer, pinned totals</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">31. Frozen rows, a sticky footer, pinned totals</h2>
         <CodeExample
           title="enableRowPinning + rowPinning={{ top, bottom }}"
           description="Pinned rows stay in view under the header (top) or above the footer (bottom) while the rest scroll, and stay even when a filter or the page would hide them. A pinned column's total stays with its column when you scroll sideways. stickyFooter does the same for a footer without totals."
@@ -1464,6 +1504,7 @@ const columns = [
               data={LINES_WITH_IDS}
               columns={footerColumns}
               getRowId={(l) => l.id}
+              enableRowSelection
               stickyHeader
               stickyFooter
               maxBodyHeight={240}
@@ -1473,7 +1514,7 @@ const columns = [
       </section>
 
       <section>
-        <h2 class="zen-text-base zen-font-semibold zen-mb-2">31. Right to left</h2>
+        <h2 class="zen-text-base zen-font-semibold zen-mb-2">32. Right to left</h2>
         <CodeExample
           title='Pinned columns follow the reading direction (dir="rtl")'
           description="Pinned to the left means pinned to the START: in a right-to-left page the column sticks on the right, where its row begins, and the edge shadow faces the scrolling columns."

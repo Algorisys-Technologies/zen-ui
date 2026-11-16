@@ -1569,6 +1569,7 @@ const columns = [
               data={LINES_WITH_IDS}
               columns={footerColumns}
               getRowId={(l) => l.id}
+              enableRowSelection
               stickyHeader
               stickyFooter
               maxBodyHeight={240}

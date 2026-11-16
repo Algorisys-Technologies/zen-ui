@@ -188,6 +188,15 @@ const dataTable = async (page, origin) => {
   await sleep(200);
   const f2 = await tableGeo(page, "sticky-footer");
   t("…and mid-scroll", near(f2.footBottom, f2.sc.b), true);
+  // With row selection on, a footer without totals must still put a cell under
+  // the checkbox column; vanilla's skipped it, and every footer cell sat one
+  // column to the left of its column.
+  const aligned = await page.$eval('[data-testid="sticky-footer"]', (w) => {
+    const head = [...w.querySelectorAll("thead tr:first-child th")].find((h) => h.textContent.trim().startsWith("Item"));
+    const foot = [...w.querySelectorAll("tfoot td")].find((c) => c.textContent.includes("60 lines"));
+    return head && foot ? Math.abs(head.getBoundingClientRect().left - foot.getBoundingClientRect().left) <= 1 : null;
+  });
+  t("a plain footer sits under its own column (with row selection)", aligned, true);
 
   console.log("  -- the Columns menu, from the keyboard alone");
   const w = page.locator('[data-testid="frozen-rows"]');

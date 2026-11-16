@@ -28,14 +28,18 @@ issue / PR when its turn comes.
       the owner freed inotify watches (ENOSPC), and deploy.sh's 300s preview
       timeout was too short (react took 648s) and posed as a browser crash —
       fixed in be81ee4d (900s, gen-previews exits on SIGTERM).
-- [ ] **Demo section numbering drifts between bindings**: the DataTable demo's
-      new sections are 29–31 in Solid, 30–32 in React, 36–38 in vanilla and web
-      components; Pivot's are 4 in Solid, 5 elsewhere. CLAUDE.md asks for the
-      same sections; route snapshots do not compare numbering.
-- [ ] **Vanilla footer without totals has no select-column cell**: with
-      `enableRowSelection`, its footer cells sit one column to the left of their
-      columns (totals footers add the cell; plain footers do not). Pre-existing;
-      `stickyFooter` makes it more visible.
+- [~] **Demo section numbering drifts between bindings** — Solid fixed
+      2026-11-17: its DataTable demo lacked React's "24. Column footers" (now
+      ported; 37 sections, numbered as React) and its Pivot demo lacked "4. The
+      same component" (now 1–5 everywhere). **Still open: vanilla and
+      web-components' DataTable demo is a different list**, not a renumbering —
+      31 sections against React's 33 (no resizing, ordering, CSV export,
+      virtualization+pinning, filter operators, column footers, everything
+      together), some renamed and out of order, two numbered "9.", gaps 11→19→26.
+      Aligning it = rebuilding that page to React's list. Owner's call.
+- [x] **Vanilla footer without totals has no select-column cell** — fixed
+      2026-11-17; check:table-dom asserts the footer sits under its column with
+      row selection on (fails without the fix: 1 of 35).
 - [ ] **Styling/freezing gaps left from the 12.11 audit**: pinning in vanilla's
       older div grid (`enableVirtualization`); a header class hook on the
       schedules and PivotGrid; a way to turn off PivotGrid's frozen headers.

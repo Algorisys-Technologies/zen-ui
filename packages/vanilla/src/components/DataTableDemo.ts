@@ -1406,6 +1406,7 @@ DataTable({ data: lines, columns, stickyHeader: true, stickyFooter: true, maxBod
             data: LINES_WITH_IDS,
             columns: footerColumns,
             getRowId: (l) => l.id,
+            enableRowSelection: true,
             stickyHeader: true,
             stickyFooter: true,
             maxBodyHeight: 240,

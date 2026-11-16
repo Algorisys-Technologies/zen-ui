@@ -1278,7 +1278,7 @@ table.onExport = (format, request) =>
           const footer = zenTable(
             LINES_WITH_IDS,
             footerColumns,
-            { "sticky-header": "", "sticky-footer": "", "max-body-height": "240" },
+            { "enable-row-selection": "", "sticky-header": "", "sticky-footer": "", "max-body-height": "240" },
             { getRowId: (l: IdLine) => l.id },
           );
           const box = document.createElement("div");
