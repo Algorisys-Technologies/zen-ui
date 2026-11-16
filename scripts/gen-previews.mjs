@@ -113,6 +113,27 @@ async function killGroup(child) {
   }
 }
 
+/* What a SIGTERM has to clean up: the binding in progress. */
+const live = { browser: null, server: null };
+
+/*
+ * SIGTERM — deploy.sh's per-binding `timeout` — STOPS the run. It used to be
+ * caught by Playwright's own handler (handleSIGTERM, on by default), which
+ * closed the browser and let the script carry on: the timeout read as "the
+ * browser died and was relaunched", one route failed with "Target page …
+ * has been closed", the run finished anyway minutes later, and deploy.sh then
+ * failed on the timeout's exit code (124) — a slow run disguised as a crash.
+ * Measured 2026-11-16: react took 648s against a 300s limit. The vite server
+ * is a detached group, so it is killed explicitly or it outlives us holding
+ * its port.
+ */
+process.on("SIGTERM", async () => {
+  console.error("gen-previews: stopped by SIGTERM (deploy.sh's per-binding timeout?)");
+  await live.browser?.close().catch(() => {});
+  if (live.server) await killGroup(live.server);
+  process.exit(143);
+});
+
 const slug = (route) => (route === "/" ? "_welcome" : route.replace(/^\//, "").replace(/\//g, "-"));
 
 for (const binding of which) {
@@ -136,6 +157,7 @@ for (const binding of which) {
     // real vite process outlives the npx wrapper and keeps the port.
     detached: true,
   });
+  live.server = server;
 
   const origin = `http://localhost:${cfg.port}${cfg.base}/`;
   if (!(await waitForServer(origin))) {
@@ -147,20 +169,26 @@ for (const binding of which) {
   // pressure from other work on the machine the whole headless browser went,
   // and the next newPage() threw; this host runs earlyoom, which prefers
   // chrome-headless). A few relaunches, each reported; more is a real failure.
-  let browser = await chromium.launch();
+  // handleSIGTERM off: the handler above owns SIGTERM (see there).
+  const launch = () => chromium.launch({ handleSIGTERM: false });
+  let browser = await launch();
+  live.browser = browser;
   let relaunches = 0;
   const liveBrowser = async () => {
     if (browser.isConnected()) return browser;
     if (++relaunches > 3) throw new Error("the browser died more than 3 times");
-    browser = await chromium.launch();
+    browser = await launch();
+    live.browser = browser;
     return browser;
   };
   const newPage = async () =>
     (await liveBrowser()).newPage({ viewport: { width: VIEWPORT_WIDTH, height: 900 }, deviceScaleFactor: 2 });
   let page = await newPage();
 
-  let written = 0;
-  const unrendered = [];
+  // Sets: a capture abandoned at the ceiling can still finish late, and the
+  // placeholder is written for the same route — counted once, listed once.
+  const written = new Set();
+  const unrendered = new Set();
   const failed = [];
   const fellBack = [];
   // A hard ceiling per route. `networkidle` never settles on a page that keeps
@@ -266,7 +294,7 @@ for (const binding of which) {
       // (/fab,/tag-input,/phone-input, then /toast,/scroll-area,/select-dialog,
       // /value-help, then /toast,/tree), so it is dev-server timing, not
       // markup. Guaranteeing the file removes the whole class.
-      unrendered.push(route);
+      unrendered.add(route);
       await page
         .screenshot({
           path: join(outDir, `${slug(route)}.jpg`),
@@ -275,7 +303,7 @@ for (const binding of which) {
           quality: QUALITY,
         })
         .catch((err) => failed.push(`${route}: ${String(err.message).split("\n")[0]}`));
-      written++;
+      written.add(route);
       return "OK";
     }
     // Take the TOP of the preview at a fixed ratio rather than the whole thing:
@@ -307,7 +335,7 @@ for (const binding of which) {
         type: "jpeg",
         quality: QUALITY,
       });
-      written++;
+      written.add(route);
       if (fallback) fellBack.push(route);
     } catch (err) {
       // One awkward route must not lose the other eighty — but it is reported
@@ -325,7 +353,7 @@ for (const binding of which) {
       return "TIMEOUT";
     });
     if (outcome === "TIMEOUT") {
-      unrendered.push(`${route} (hit the per-route ceiling)`);
+      unrendered.add(`${route} (hit the per-route ceiling)`);
       // The wedged page is not reused: the abandoned capture is still working
       // on it, and would act on the next route's page. A fresh one, now.
       await page.close().catch(() => {});
@@ -342,7 +370,7 @@ for (const binding of which) {
         .screenshot({ path: join(outDir, `${slug(route)}.jpg`), type: "jpeg", quality: QUALITY })
         .catch((err) => failed.push(`${route}: placeholder failed: ${String(err.message).split("\n")[0]}`));
       await spare.close().catch(() => {});
-      written++;
+      written.add(route);
     }
   }
 
@@ -371,17 +399,21 @@ for (const binding of which) {
 
   await browser.close();
   await killGroup(server);
+  live.browser = null;
+  live.server = null;
 
-  console.log(`${binding}: ${written}/${routes.length} previews -> ${outDir}  (+ landing hero)`);
+  console.log(`${binding}: ${written.size}/${routes.length} previews -> ${outDir}  (+ landing hero)`);
   if (fellBack.length) {
     // Named, because a demo with no rendered example is worth knowing about even
     // though it now gets a picture.
     console.log(`  ${fellBack.length} had no rendered example (page used instead): ${fellBack.join(", ")}`);
   }
-  if (unrendered.length) {
+  // A route that rendered late AND hit the ceiling is named once, with the ceiling.
+  for (const r of [...unrendered]) if (unrendered.has(`${r} (hit the per-route ceiling)`)) unrendered.delete(r);
+  if (unrendered.size) {
     // Named, not silently dropped — a route that never rendered still got a
     // file, so this line is the only signal that anything was wrong.
-    console.log(`  ${unrendered.length} did not render in time (viewport used): ${unrendered.join(", ")}`);
+    console.log(`  ${unrendered.size} did not render in time (viewport used): ${[...unrendered].join(", ")}`);
   }
   if (relaunches) console.log(`  the browser died and was relaunched ${relaunches} time(s)`);
   if (failed.length) {
