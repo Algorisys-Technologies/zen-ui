@@ -41,6 +41,7 @@ SKILL.md.
 - `rowClassName?: ((task: GanttTask, row: GanttRow<GanttTask>) => string | undefined) | undefined` — Classes for a task's row — a tint for a critical or late task.
 - `barClassName?: ((task: GanttTask) => string | undefined | false | null) | undefined` — Classes for a task's bar, applied after its status colours so they win: `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
 - `headerClassName?: string | undefined` — Classes for the header: the row and its frozen pane, applied after their own, so a caller's background and text colour win (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+- `density?: Density | undefined` — How much room a row and its bar takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `className?: string | undefined`
 
 ### GanttTask (type)

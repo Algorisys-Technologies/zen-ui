@@ -57,7 +57,7 @@ const KNOWN: Record<string, string> = {
   // Ported to React, vanilla and web components next; these lines go as each
   // binding lands. (Tree's is invisible here: Solid's TreeProps is a type alias.)
   ...Object.fromEntries(
-    ["GanttProps", "PlanningCalendarProps", "ProductionScheduleProps", "SpreadsheetGridProps"].map((i) => [`${i}.density`, "react vanilla"]),
+    ["GanttProps", "PlanningCalendarProps", "ProductionScheduleProps", "SpreadsheetGridProps", "TreeProps"].map((i) => [`${i}.density`, "vanilla"]),
   ),
   // TreeTable's controlled state, never ported to vanilla.
   ...Object.fromEntries(

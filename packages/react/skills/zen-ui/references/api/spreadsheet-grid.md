@@ -22,6 +22,7 @@ SKILL.md.
 - `colWidth?: string | undefined` — Column width. Default `"6rem"`.
 - `onCellCommit?: ((ref: string, raw: CellValue, evaluated: CellValue) => void) | undefined` — Fires with the evaluated value whenever a cell is committed.
 - `cellClassName?: ((ref: string, value: CellValue) => string | undefined | false | null) | undefined` — Classes for one cell, from its address and evaluated value — a negative figure in red, an input cell shaded: `(ref, v) => typeof v === "number" && v < 0 && "zen-text-zen-error"`.
+- `density?: Density | undefined` — How much room a cell takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `className?: string | undefined`
 
 ### SheetCalculator
@@ -36,6 +37,7 @@ SKILL.md.
 - `colWidth?: string | undefined` — Column width. Default `"6rem"`.
 - `onCellCommit?: ((ref: string, raw: CellValue, evaluated: CellValue) => void) | undefined` — Fires with the evaluated value whenever a cell is committed.
 - `cellClassName?: ((ref: string, value: CellValue) => string | undefined | false | null) | undefined` — Classes for one cell, from its address and evaluated value — a negative figure in red, an input cell shaded: `(ref, v) => typeof v === "number" && v < 0 && "zen-text-zen-error"`.
+- `density?: Density | undefined` — How much room a cell takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `className?: string | undefined`
 
 ### Types

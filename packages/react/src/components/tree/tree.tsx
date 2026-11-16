@@ -1,5 +1,7 @@
 import * as React from "react";
 import { arrowStep } from "@algorisys/zen-ui-core";
+import type { Density } from "@algorisys/zen-ui-core/density";
+import { treeRowDensityClass } from "@algorisys/zen-ui-core/variants";
 import { cn } from "../../lib/cn";
 import { Icon, type IconName } from "../icon/icon";
 
@@ -44,6 +46,13 @@ export interface TreeProps extends Omit<React.HTMLAttributes<HTMLUListElement>, 
   onSelectedChange?: (id: string) => void;
   /** Classes for one node's row, after its own (so a caller's padding or colour wins). */
   itemClassName?: (node: TreeNode) => string | undefined | false | null;
+  /**
+   * How much room a row takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
   /** Accessible name — a tree must have one. */
   "aria-label"?: string;
 }
@@ -82,7 +91,7 @@ function flatten(items: TreeNode[], expandedSet: Set<string>, level = 1, parentI
 
 export const Tree = React.forwardRef<HTMLUListElement, TreeProps>(
   (
-    { items, expanded, defaultExpanded = [], onExpandedChange, selected, defaultSelected = null, onSelectedChange, itemClassName, className, ...props },
+    { items, expanded, defaultExpanded = [], onExpandedChange, selected, defaultSelected = null, onSelectedChange, itemClassName, density, className, ...props },
     ref,
   ) => {
     const [internalExpanded, setInternalExpanded] = React.useState<string[]>(defaultExpanded);
@@ -194,6 +203,7 @@ export const Tree = React.forwardRef<HTMLUListElement, TreeProps>(
                   "hover:zen-bg-zen-muted",
                   isSelected && "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg zen-font-medium",
                   row.node.disabled && "zen-cursor-not-allowed zen-opacity-50",
+                  treeRowDensityClass[density ?? "comfortable"],
                   itemClassName?.(row.node),
                 )}
               >

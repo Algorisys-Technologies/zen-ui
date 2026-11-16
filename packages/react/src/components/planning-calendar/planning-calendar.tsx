@@ -95,6 +95,13 @@ export interface PlanningCalendarProps {
   emptyMessage?: React.ReactNode;
   /** Height of one lane in px (appointments stack in lanes inside a row). Default 30. */
   laneHeight?: number;
+  /**
+   * How much room a lane takes: "compact", "comfortable" (the default, and the
+   * size it always was) or "touch" (48px targets, for shop-floor tablets).
+   * Opt-in: it does not follow data-density, so setting that on a page moves
+   * nothing here. An explicit size prop wins over it.
+   */
+  density?: Density;
   className?: string;
 }
 
@@ -107,7 +114,7 @@ const VIEW_LABEL: Record<PlanningView, MessageKey> = {
 const ALL_VIEWS: PlanningView[] = ["day", "week", "month"];
 
 /** Row height per lane. A block is 24px tall; lanes stack inside the row. */
-const LANE_PX = 30;
+import { calendarLanePx, type Density } from "@algorisys/zen-ui-core/density";
 
 /**
  * Below this width, a block renders no text at all.
@@ -138,11 +145,12 @@ export const PlanningCalendar = ({
   hideToolbar,
   emptyMessage,
   laneHeight,
+  density,
   className,
 }: PlanningCalendarProps) => {
   const loc = useLocale();
   // Never so short that a block (lane − 6px) has no height.
-  const lanePx = Math.max(14, laneHeight ?? LANE_PX);
+  const lanePx = Math.max(14, calendarLanePx(density, laneHeight));
   const [innerView, setInnerView] = React.useState<PlanningView>(defaultView ?? "week");
   const [innerDate, setInnerDate] = React.useState<Date>(defaultDate ?? new Date());
 

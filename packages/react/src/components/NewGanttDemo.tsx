@@ -556,6 +556,25 @@ const NewGanttDemo = () => (
         </div>
       </CodeExample>
     </section>
+
+    <section className="demo-section">
+      <h2>14. Density</h2>
+      <CodeExample
+        title='density="compact" | "comfortable" | "touch"'
+        description="compact: 28px rows for a long plan read all day. touch: 48px rows and 32px bars, for a tablet on the shop floor. rowHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was."
+        code={`<Gantt tasks={plan} density="compact" />
+<Gantt tasks={plan} density="touch" />`}
+      >
+        <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <div data-testid="gantt-compact" className="zen-w-full">
+            <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} defaultDate={NOW} density="compact" />
+          </div>
+          <div data-testid="gantt-touch" className="zen-w-full">
+            <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} defaultDate={NOW} density="touch" />
+          </div>
+        </div>
+      </CodeExample>
+    </section>
   </div>
 );
 

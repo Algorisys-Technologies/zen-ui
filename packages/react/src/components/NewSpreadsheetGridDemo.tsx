@@ -174,6 +174,25 @@ const NewSpreadsheetGridDemo: React.FC = () => {
           </div>
         </CodeExample>
       </section>
+
+      <section className="demo-section">
+        <h2>7. Density</h2>
+        <CodeExample
+          title='density="compact" | "comfortable" | "touch"'
+          description="compact: 20px cells, more of the sheet on screen. touch: 48px cells to tap into. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was."
+          code={`<SpreadsheetGrid cells={cells} density="compact" />
+<SpreadsheetGrid cells={cells} density="touch" />`}
+        >
+          <div className="zen-flex zen-flex-wrap zen-gap-6">
+            <div data-testid="sheet-compact">
+              <SpreadsheetGrid rows={3} cols={3} cells={{ A1: "Qty", B1: 4, A2: "Rate", B2: 12.5, A3: "Total", B3: "=B1*B2" }} readOnly density="compact" />
+            </div>
+            <div data-testid="sheet-touch">
+              <SpreadsheetGrid rows={3} cols={3} cells={{ A1: "Qty", B1: 4, A2: "Rate", B2: 12.5, A3: "Total", B3: "=B1*B2" }} readOnly density="touch" />
+            </div>
+          </div>
+        </CodeExample>
+      </section>
     </div>
   );
 };

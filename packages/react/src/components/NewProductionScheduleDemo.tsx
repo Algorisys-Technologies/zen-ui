@@ -557,6 +557,25 @@ const routing = [
         </div>
       </CodeExample>
     </section>
+
+    <section className="demo-section">
+      <h2>Density</h2>
+      <CodeExample
+        title='density="compact" | "comfortable" | "touch"'
+        description="compact: shorter rows and 12px lane bars. touch: 48px rows at least, and 32px bars a finger can hit. rowHeight, when given, wins. Opt-in, per component: it does not follow data-density, so a page that already sets that sees nothing move here. comfortable is the default and is the size it always was."
+        code={`<ProductionSchedule resources={cells} operations={jobs} density="compact" />
+<ProductionSchedule resources={cells} operations={jobs} density="touch" />`}
+      >
+        <div className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <div data-testid="production-compact" className="zen-w-full">
+            <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} density="compact" />
+          </div>
+          <div data-testid="production-touch" className="zen-w-full">
+            <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} density="touch" />
+          </div>
+        </div>
+      </CodeExample>
+    </section>
   </div>
 );
 
