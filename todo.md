@@ -23,9 +23,11 @@ issue / PR when its turn comes.
 
 ## Open after 12.12.0 (2026-11-16)
 
-- [ ] **Publish the site for 12.10–12.12** — owner has it in progress.
-      `./deploy.sh --publish` failed here: the machine's inotify watches are
-      exhausted, so gen-previews' vite dev server dies with ENOSPC.
+- [x] **Publish the site for 12.10–12.12** — done 2026-11-16 (gh-pages
+      e720a4bd, dev@be81ee4d; all five pages verified live). Two blockers:
+      the owner freed inotify watches (ENOSPC), and deploy.sh's 300s preview
+      timeout was too short (react took 648s) and posed as a browser crash —
+      fixed in be81ee4d (900s, gen-previews exits on SIGTERM).
 - [ ] **Demo section numbering drifts between bindings**: the DataTable demo's
       new sections are 29–31 in Solid, 30–32 in React, 36–38 in vanilla and web
       components; Pivot's are 4 in Solid, 5 elsewhere. CLAUDE.md asks for the
