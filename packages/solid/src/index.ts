@@ -827,6 +827,7 @@ export type {
   GanttColumnUnit,
   GanttConnector,
   GanttDependency,
+  GanttDependencyStyle,
   GanttDependencyType,
   GanttFitOptions,
   GanttFlattenOptions,

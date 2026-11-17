@@ -8,6 +8,7 @@ import {
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
+  type GanttDependencyStyle,
   type GanttPaneColumn,
   type GanttRow,
   type GanttTaskNode,
@@ -107,6 +108,13 @@ export interface GanttProps {
   dependencies?: GanttDependency[];
   /** Draw the connector layer. Default true. */
   showDependencies?: boolean;
+  /**
+   * The colour and dash of one dependency's arrow, from the caller's own data —
+   * typically its `kind`: `(d) => d.kind === "sequence" ? { color: "var(--zen-color-info)" } : { dash: "4 3" }`.
+   * Give each kind a dash as well as a colour; red already means late here.
+   * A link the plan breaks is still drawn red.
+   */
+  dependencyStyle?: (dependency: GanttDependency) => GanttDependencyStyle | undefined;
 
   /** Uncontrolled starting view. Default "fit". */
   defaultView?: GanttView;
@@ -184,6 +192,13 @@ export interface GanttProps {
    * `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
    */
   barClassName?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * A CSS colour for a stripe on the bar's leading edge — a second channel
+   * beside the status fill, for a shift, a line or a customer:
+   * `(t) => shiftColour[t.shift]`. A value rather than a class, so the colour
+   * can come from data.
+   */
+  barAccent?: (task: GanttTask) => string | undefined | false | null;
   /**
    * Classes for the header: the row and its frozen pane, applied after their
    * own, so a caller's background and text colour win
@@ -544,6 +559,7 @@ export const Gantt = (props: GanttProps) => {
               rowHeight={rowHeight()}
               barPx={barPx()}
               barClass={props.barClassName?.(row.task) || undefined}
+              accent={props.barAccent?.(row.task) || undefined}
             />
           )}
           rowHeight={rowHeight()}
@@ -554,6 +570,7 @@ export const Gantt = (props: GanttProps) => {
           anchor={anchor()}
           now={now()}
           connectors={connectors()}
+          connectorStyle={props.dependencyStyle ? (c) => props.dependencyStyle!(c.dependency) : undefined}
           views={props.views}
           hideToolbar={props.hideToolbar}
           onViewChange={setView}
@@ -664,6 +681,7 @@ const GanttTrack = (props: {
   rowHeight: number;
   barPx: number;
   barClass?: string;
+  accent?: string;
 }) => {
   const loc = useLocale();
   const task = () => props.row.task;
@@ -826,6 +844,16 @@ const GanttTrack = (props: {
               >
                 {Math.round(progress())}%
               </span>
+            </Show>
+            {/* Last, so it sits over the fill: the stripe is the row's identity
+                and the fill its progress, and both have to stay visible. */}
+            <Show when={props.accent}>
+              <span
+                aria-hidden="true"
+                data-gantt-accent=""
+                class="zen-absolute zen-inset-y-0 zen-start-0 zen-w-1 zen-rounded-s-zen-sm"
+                style={{ "background-color": props.accent }}
+              />
             </Show>
           </button>
 

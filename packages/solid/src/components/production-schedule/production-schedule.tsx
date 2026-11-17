@@ -16,6 +16,7 @@ import {
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
+  type GanttDependencyStyle,
   type GanttTaskStatus,
   type GanttView,
   type PlanningColumn,
@@ -104,6 +105,14 @@ export interface ProductionScheduleProps {
   dependencies?: GanttDependency[];
   /** Draw the routing layer. Default true. */
   showDependencies?: boolean;
+  /**
+   * The colour and dash of one link's arrow, from the caller's own data —
+   * typically its `kind`, to tell a job's next step from a wait on another job:
+   * `(d) => d.kind === "sequence" ? { color: "var(--zen-color-info)" } : { dash: "4 3" }`.
+   * Give each kind a dash as well as a colour; red already means late here.
+   * A link the plan breaks is still drawn red and thick.
+   */
+  dependencyStyle?: (dependency: GanttDependency) => GanttDependencyStyle | undefined;
 
   /**
    * When the plant is open. A resource's own `calendar` overrides it.
@@ -207,6 +216,13 @@ export interface ProductionScheduleProps {
   rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
   /** Classes for an operation's bar, applied after its status colours so they win. */
   barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+  /**
+   * A CSS colour for a stripe on the bar's leading edge — a second channel
+   * beside the status fill, for a shift, a line or a customer:
+   * `(op) => shiftColour[op.shift]`. A value rather than a class, so the colour
+   * can come from data.
+   */
+  barAccent?: (operation: ProductionOperation) => string | undefined | false | null;
   /**
    * Classes for the header: the row and its frozen pane, applied after their
    * own, so a caller's background and text colour win
@@ -680,6 +696,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
           renderTrack={(row) => (
             <ProductionTrack
               barClass={props.barClassName}
+              accent={props.barAccent}
               barPx={laneBar()}
               row={row}
               range={axis.range()}
@@ -704,6 +721,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
           connectorAccent={(connector) =>
             violated()?.has(`${connector.from}->${connector.to}`) ?? false
           }
+          connectorStyle={props.dependencyStyle ? (c) => props.dependencyStyle!(c.dependency) : undefined}
           views={props.views}
           hideToolbar={props.hideToolbar}
           onViewChange={setView}
@@ -876,6 +894,7 @@ const ProductionTrack = (props: {
   isCritical: (id: string) => boolean;
   onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
   barClass?: (operation: ProductionOperation) => string | undefined | false | null;
+  accent?: (operation: ProductionOperation) => string | undefined | false | null;
   barPx: number;
 }) => {
   const loc = useLocale();
@@ -931,6 +950,7 @@ const ProductionTrack = (props: {
               onPropose={props.onPropose}
               critical={props.isCritical(placement().operation.id)}
               barClass={props.barClass?.(placement().operation) || undefined}
+              accent={props.accent?.(placement().operation) || undefined}
               barPx={props.barPx}
             />
           )}
@@ -976,6 +996,7 @@ const ProductionBar = (props: {
   onPropose: (move: ProductionMove) => void;
   critical: boolean;
   barClass?: string;
+  accent?: string;
   barPx: number;
 }) => {
   const loc = useLocale();
@@ -1213,6 +1234,16 @@ const ProductionBar = (props: {
               </span>
             )}
           </Index>
+          {/* The caller's stripe at the START, so it never meets the late cap
+              at the end — the two marks answer different questions. */}
+          <Show when={props.accent}>
+            <span
+              aria-hidden="true"
+              data-production-accent=""
+              class="zen-absolute zen-inset-y-0 zen-start-0 zen-w-1 zen-rounded-s-zen-sm"
+              style={{ "background-color": props.accent }}
+            />
+          </Show>
           {/* Late: a solid end cap in the error colour. Status is the bar's fill,
               so lateness gets its own mark rather than a recolour — and words
               in the tooltip and the accessible name. */}

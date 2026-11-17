@@ -35,6 +35,7 @@ SKILL.md.
 - `from: string`
 - `to: string`
 - `type: GanttDependencyType`
+- `dependency: GanttDependency` — The dependency this arrow was drawn from — the caller's own object. Where several links collapse onto one arrow it is the first of them, in the order they were given.
 - `d: string` — SVG path data, in the axis's own pixel space.
 - `arrow: { x: number; y: number; dir: 1 | -1; }` — The arrowhead's tip, and which way it points: 1 = rightwards, -1 = leftwards.
 
@@ -44,6 +45,7 @@ SKILL.md.
 - `to: string` — Id of the task that waits.
 - `type?: GanttDependencyType | undefined` — Default "finish-to-start".
 - `lagMinutes?: number | undefined` — Enforced delay between the two ends, in WORKING minutes — "start four hours after the previous operation finishes, for cooling". Negative is a LEAD: the successor may begin that much before the link would otherwise allow, which is how overlapping operations are expressed ("start the next op when the first is 80% through"). Working minutes rather than elapsed, for the reason everything else here is: four hours of cooling that begins at 16:00 on a single-shift plant is not done at 20:00. Nothing in this module ENFORCES it. A read-only schedule reports a link it violates and draws the bars where the caller put them — see `productionSequenceConflicts`.
+- `kind?: string | undefined` — The caller's own name for what this link IS — "sequence" for the next step of one job, "dependency" for a wait on another, anything at all. The library never reads it; it travels to the connector so a `dependencyStyle` can tell the arrows apart without a lookup.
 
 ### GanttFitOptions (type)
 

@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, For, type JSX } from "solid-js";
 import {
   ProductionSchedule,
   type ProductionOperation,
@@ -7,6 +7,7 @@ import {
 import type {
   GanttCalendar,
   GanttDependency,
+  GanttDependencyStyle,
   ProductionProposal,
   ProductionSetupMatrix,
 } from "@algorisys/zen-ui-core";
@@ -85,6 +86,53 @@ const ROUTING: GanttDependency[] = [
   { from: "j8", to: "j9" },
   { from: "j4", to: "j5", type: "start-to-start" },
 ];
+
+/* The caller's own data: which shift each operation runs on, and the colour
+   each shift has. Kept beside the operations, not on them — the component
+   never needs to know what a shift is, only what colour to draw. A colour can
+   be a token or a raw value straight out of a database row. */
+const SHIFT_OF: Record<string, string> = {
+  j1: "A", j2: "B", j3: "B", j4: "A", j5: "A", j6: "A", j7: "N", j8: "A", j9: "A", j10: "B",
+};
+const SHIFT_COLOUR: Record<string, string> = {
+  A: "var(--zen-color-accent-orange)",
+  B: "var(--zen-color-accent-purple)",
+  N: "#0f766e",
+};
+
+/* The routing again, now saying what each link IS. "sequence" is the next step
+   of the same works order; "dependency" is a wait on a different order (a
+   shared fixture, a machine handed over). The words are the caller's. */
+const KINDED_ROUTING: GanttDependency[] = [
+  ...ROUTING.map((link) => ({ ...link, kind: "sequence" })),
+  { from: "j2", to: "j3", kind: "dependency" },
+  { from: "j5", to: "j6", kind: "dependency" },
+];
+const LINK_STYLE: Record<string, GanttDependencyStyle> = {
+  sequence: { color: "var(--zen-color-info)" },
+  dependency: { color: "var(--zen-color-accent-magenta)", dash: "4 3" },
+};
+
+const Legend = (props: { items: { label: string; swatch: JSX.Element }[] }) => (
+  <ul class="zen-flex zen-flex-wrap zen-gap-x-4 zen-gap-y-1 zen-text-xs zen-text-zen-muted-fg">
+    <For each={props.items}>
+      {(item) => (
+        <li class="zen-flex zen-items-center zen-gap-1.5">
+          {item.swatch}
+          {item.label}
+        </li>
+      )}
+    </For>
+  </ul>
+);
+const stripe = (colour: string) => (
+  <span aria-hidden="true" class="zen-inline-block zen-h-3 zen-w-1 zen-rounded-zen-sm" style={{ "background-color": colour }} />
+);
+const line = (style: GanttDependencyStyle) => (
+  <svg aria-hidden="true" width="24" height="6">
+    <line x1="0" y1="3" x2="24" y2="3" stroke={style.color} stroke-width="1.5" stroke-dasharray={style.dash} />
+  </svg>
+);
 
 /* The same cell, deliberately over-committed: three jobs on a ONE-operator
    machine at the same moment. */
@@ -537,6 +585,49 @@ const routing = [
         <div data-testid="production-touch" class="zen-w-full">
           <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} density="touch" />
         </div>
+      </div>
+    </DemoSection>
+
+    <DemoSection
+      title="Colour by your own data: shifts and kinds of link"
+      codeTitle="barAccent, dependencyStyle, kind on a dependency"
+      codeDescription="Two more channels, both driven by data the component never interprets. barAccent returns a CSS colour for a stripe on the bar's leading edge, so the status fill (and the late cap at the other end) keep saying what they said: here, the shift an operation runs on. A dependency can carry a kind of your own naming, and dependencyStyle turns it into a colour and a dash: here, the next step of the same order against a wait on another one. Colours are values rather than classes so they can come straight from your records. Give every kind a dash as well as a colour: red already means late on this chart, and a link the plan breaks is still drawn red. The legend is yours to draw, because only you know what the kinds are called."
+      code={`const shiftColour = { A: "var(--zen-color-accent-orange)", B: "var(--zen-color-accent-purple)", N: "#0f766e" };
+const linkStyle = {
+  sequence: { color: "var(--zen-color-info)" },
+  dependency: { color: "var(--zen-color-accent-magenta)", dash: "4 3" },
+};
+
+<ProductionSchedule
+  resources={cells}
+  operations={jobs}
+  dependencies={[
+    { from: "j1", to: "j2", kind: "sequence" },
+    { from: "j2", to: "j3", kind: "dependency" },
+  ]}
+  barAccent={(op) => shiftColour[shiftOf[op.id]]}
+  dependencyStyle={(link) => linkStyle[link.kind]}
+/>`}
+    >
+      <div data-testid="production-data-colours" class="zen-flex zen-w-full zen-flex-col zen-gap-3">
+        <Legend
+          items={[
+            { label: "Shift A", swatch: stripe(SHIFT_COLOUR.A) },
+            { label: "Shift B", swatch: stripe(SHIFT_COLOUR.B) },
+            { label: "Night", swatch: stripe(SHIFT_COLOUR.N) },
+            { label: "Next step, same order", swatch: line(LINK_STYLE.sequence) },
+            { label: "Waits on another order", swatch: line(LINK_STYLE.dependency) },
+          ]}
+        />
+        <ProductionSchedule
+          resources={CELLS}
+          operations={JOBS}
+          dependencies={KINDED_ROUTING}
+          calendar={PLANT}
+          now={NOW}
+          barAccent={(op) => SHIFT_COLOUR[SHIFT_OF[op.id]]}
+          dependencyStyle={(link) => (link.kind ? LINK_STYLE[link.kind] : undefined)}
+        />
       </div>
     </DemoSection>
   </DemoPage>
