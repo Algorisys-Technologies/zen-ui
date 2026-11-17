@@ -7,7 +7,7 @@ const emptyStateVariants = cva(
   {
     variants: {
       size: { sm: "zen-py-6 zen-px-3 zen-gap-1.5", md: "zen-py-10 zen-px-6 zen-gap-3", lg: "zen-py-16 zen-px-8 zen-gap-4" },
-      bordered: { true: "zen-border-2 zen-border-dashed zen-border-zen-border zen-rounded-zen-md zen-bg-zen-muted/40", false: "" },
+      bordered: { true: "zen-border-2 zen-border-dashed zen-border-zen-border zen-rounded-zen-md zen-bg-zen-muted", false: "" },
     },
     defaultVariants: { size: "md", bordered: false },
   },

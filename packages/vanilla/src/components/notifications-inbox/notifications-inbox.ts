@@ -148,7 +148,7 @@ const emptyState = (message: Child): HTMLElement => {
   wrap.className =
     "zen-flex zen-flex-col zen-items-center zen-justify-center zen-px-6 zen-py-10 zen-text-center";
   const bell = document.createElement("span");
-  bell.className = "zen-text-zen-muted-fg/60 zen-mb-2";
+  bell.className = "zen-text-zen-muted-fg zen-mb-2";
   bell.append(bellIcon(28));
   const p = document.createElement("p");
   p.className = "zen-text-sm zen-text-zen-muted-fg zen-m-0";
@@ -220,7 +220,7 @@ const buildRow = (
     "zen-border-l-2",
     n.read
       ? "zen-border-transparent"
-      : "zen-border-zen-primary zen-bg-zen-primary-soft/30",
+      : "zen-border-zen-primary zen-bg-zen-primary-soft",
     interactive &&
       "zen-cursor-pointer hover:zen-bg-zen-muted focus-visible:zen-bg-zen-muted focus-visible:zen-outline-none",
   );

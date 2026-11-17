@@ -98,7 +98,7 @@ export function Tile(props: TileProps): ZenComponent<TileProps> {
       ROOT,
       interactive && INTERACTIVE,
       disabled && "zen-cursor-not-allowed zen-opacity-50",
-      locked && "zen-border-dashed zen-bg-zen-muted/40",
+      locked && "zen-border-dashed zen-bg-zen-muted",
       className,
     );
     el.setAttribute("data-tile", "");

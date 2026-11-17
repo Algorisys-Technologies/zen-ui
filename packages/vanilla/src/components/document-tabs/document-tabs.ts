@@ -231,7 +231,7 @@ export function DocumentTabs(props: DocumentTabsProps): ZenComponent<DocumentTab
       "zen-max-w-[16rem]",
       active
         ? "zen-border-zen-primary zen-text-zen-foreground zen-bg-zen-background"
-        : "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted/50",
+        : "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
     );
 
     button.id = `zen-doc-tab-${t.id}`;

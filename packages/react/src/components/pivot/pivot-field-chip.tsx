@@ -98,7 +98,7 @@ export const PivotFieldChip: React.FC<PivotFieldChipProps> = (props) => {
         className={cn(
           "zen-h-7 zen-max-w-full zen-cursor-grab zen-select-none zen-bg-zen-background zen-shadow-sm active:zen-cursor-grabbing",
           (zone === "rows" || zone === "values") && "zen-w-full",
-          filtered ? "zen-border-zen-primary/30 zen-text-zen-primary" : "zen-text-zen-foreground",
+          filtered ? "zen-border-zen-primary zen-text-zen-primary" : "zen-text-zen-foreground",
           disabled && "zen-cursor-not-allowed zen-opacity-50",
         )}
       >
@@ -139,7 +139,7 @@ export const PivotFieldChip: React.FC<PivotFieldChipProps> = (props) => {
             </DropdownMenu>
           </span>
         ) : (
-          <Icon name="more-vertical" className="zen-h-3 zen-w-3 zen-shrink-0 zen-text-zen-muted-fg/50" />
+          <Icon name="more-vertical" className="zen-h-3 zen-w-3 zen-shrink-0 zen-text-zen-muted-fg" />
         )}
 
         <Icon

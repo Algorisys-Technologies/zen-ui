@@ -44,9 +44,9 @@ export const PivotDropZone: React.FC<PivotDropZoneProps> = ({
     <div
       ref={setNodeRef}
       className={cn(
-        "zen-min-h-5 zen-min-w-5 zen-border zen-border-zen-border zen-bg-zen-muted/30 zen-p-2 zen-align-top zen-transition-colors",
+        "zen-min-h-5 zen-min-w-5 zen-border zen-border-zen-border zen-bg-zen-muted zen-p-2 zen-align-top zen-transition-colors",
         className,
-        isOver && "zen-border zen-border-dashed zen-border-zen-primary/40 zen-bg-zen-muted",
+        isOver && "zen-border zen-border-dashed zen-border-zen-primary zen-bg-zen-muted",
       )}
     >
       {!hideTitle ? (
@@ -66,7 +66,7 @@ export const PivotDropZone: React.FC<PivotDropZoneProps> = ({
       >
         {children}
         {isEmpty ? (
-          <div className="zen-pointer-events-none zen-select-none zen-py-0.5 zen-text-xs zen-italic zen-text-zen-muted-fg/50">
+          <div className="zen-pointer-events-none zen-select-none zen-py-0.5 zen-text-xs zen-italic zen-text-zen-muted-fg">
             {loc.t("pivot.dropHere")}
           </div>
         ) : null}

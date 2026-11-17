@@ -3124,7 +3124,7 @@ function VirtualizedBody<TData>({
                 }}
                 className={cn(
                   "zen-border-b zen-border-zen-border zen-transition-[background-color,box-shadow,outline-color] zen-duration-100",
-                  "hover:zen-bg-zen-muted/50 hover:zen-shadow-zen-sm",
+                  "hover:zen-bg-zen-muted hover:zen-shadow-zen-sm",
                   // selected — bg + sm shadow + 1px primary inside outline (Zen theme spec)
                   row.getIsSelected() &&
                     "zen-bg-zen-primary-soft zen-shadow-zen-sm zen-outline zen-outline-1 -zen-outline-offset-1 zen-outline-zen-primary",

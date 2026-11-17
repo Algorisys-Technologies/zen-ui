@@ -112,9 +112,9 @@ export interface PivotDropZoneProps {
 }
 
 const DROP_ZONE_BASE =
-  "zen-min-h-5 zen-min-w-5 zen-border zen-border-zen-border zen-bg-zen-muted/30 zen-p-2 zen-align-top zen-transition-colors";
+  "zen-min-h-5 zen-min-w-5 zen-border zen-border-zen-border zen-bg-zen-muted zen-p-2 zen-align-top zen-transition-colors";
 const DROP_ZONE_OVER =
-  "zen-border zen-border-dashed zen-border-zen-primary/40 zen-bg-zen-muted";
+  "zen-border zen-border-dashed zen-border-zen-primary zen-bg-zen-muted";
 
 /**
  * PivotDropZone — one of the four bins a field can live in.
@@ -183,7 +183,7 @@ export function PivotDropZone(props: PivotDropZoneProps): ZenComponent<PivotDrop
     if (current.isEmpty) {
       const hint = h(
         "div",
-        "zen-pointer-events-none zen-select-none zen-py-0.5 zen-text-xs zen-italic zen-text-zen-muted-fg/50",
+        "zen-pointer-events-none zen-select-none zen-py-0.5 zen-text-xs zen-italic zen-text-zen-muted-fg",
       );
       hint.textContent = loc.t("pivot.dropHere");
       body.append(hint);
@@ -463,7 +463,7 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
       row.append(
         h(
           "div",
-          "zen-size-4 zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-muted/60 motion-safe:zen-animate-pulse",
+          "zen-size-4 zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-muted motion-safe:zen-animate-pulse",
         ),
         h("div", "zen-h-3 zen-w-3/4 zen-rounded-zen-sm zen-bg-zen-muted motion-safe:zen-animate-pulse"),
       );
@@ -476,7 +476,7 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
     btn.setAttribute("aria-selected", String(selected));
     btn.className = cn(
       "zen-flex zen-h-full zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-px-2 zen-text-start zen-text-sm zen-text-zen-foreground zen-transition-colors",
-      "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
+      "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary",
     );
     btn.addEventListener("click", () => toggle(item));
     const indicator = h(
@@ -771,7 +771,7 @@ export function PivotFieldChip(props: PivotFieldChipProps): ZenComponent<PivotFi
       children.push(menu.el);
     } else {
       children.push(
-        track(Icon({ name: "more-vertical", class: "zen-h-3 zen-w-3 zen-shrink-0 zen-text-zen-muted-fg/50" }))
+        track(Icon({ name: "more-vertical", class: "zen-h-3 zen-w-3 zen-shrink-0 zen-text-zen-muted-fg" }))
           .el,
       );
     }
@@ -875,7 +875,7 @@ export function PivotFieldChip(props: PivotFieldChipProps): ZenComponent<PivotFi
         class: cn(
           "zen-h-7 zen-max-w-full zen-cursor-grab zen-select-none zen-bg-zen-background zen-shadow-sm active:zen-cursor-grabbing",
           (zone === "rows" || zone === "values") && "zen-w-full",
-          filtered ? "zen-border-zen-primary/30 zen-text-zen-primary" : "zen-text-zen-foreground",
+          filtered ? "zen-border-zen-primary zen-text-zen-primary" : "zen-text-zen-foreground",
           disabled && "zen-cursor-not-allowed zen-opacity-50",
         ),
         children,
@@ -970,7 +970,7 @@ export interface PivotTotals {
   label?: string;
 }
 
-const SKELETON_BAR = "zen-rounded-zen-sm zen-bg-zen-muted-fg/25 motion-safe:zen-animate-pulse";
+const SKELETON_BAR = "zen-rounded-zen-sm zen-bg-zen-muted-fg motion-safe:zen-animate-pulse";
 const STICKY_CORNER =
   "zen-sticky zen-z-30 zen-box-border zen-border-e zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
 const STICKY_ROW_LABEL =
@@ -1165,7 +1165,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
         th.setAttribute("scope", "col");
         th.colSpan = span;
         th.className = cn(
-          "zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground",
+          "zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground",
           current.headerClassName,
         );
         th.style.position = "sticky";
@@ -1220,7 +1220,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
 
     for (let rowIndex = rowStart; rowIndex <= rowEnd; rowIndex++) {
       const tr = document.createElement("tr");
-      tr.className = "zen-border-b zen-border-zen-border/60";
+      tr.className = "zen-border-b zen-border-zen-border";
 
       if (rowHeaderDepth > 0) {
         for (let depth = 0; depth < rowHeaderDepth; depth++) {
@@ -1232,7 +1232,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
           th.className = cn(
             STICKY_ROW_LABEL,
             "zen-break-words zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-align-top zen-text-xs zen-font-medium zen-leading-tight zen-text-zen-foreground",
-            rowIndex > 0 ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0",
+            rowIndex > 0 ? "zen-border-t zen-border-zen-border" : "zen-border-t-0",
             current.rowHeaderClassName,
           );
           if (stickRows) th.style.insetInlineStart = `${depth * rowHeaderWidth}px`;
@@ -1261,7 +1261,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
         const cell = getCell(rowIndex, colIndex);
         const td = document.createElement("td");
         td.className = cn(
-          "zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums",
+          "zen-truncate zen-border-b zen-border-r zen-border-zen-border zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums",
           stripe(rowIndex),
         );
         fixWidth(td, colWidth);
@@ -1283,7 +1283,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
         const td = document.createElement("td");
         td.dataset.pivotTotal = "row";
         td.className = cn(
-          "zen-sticky zen-z-20 zen-truncate zen-border-b zen-border-s zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums",
+          "zen-sticky zen-z-20 zen-truncate zen-border-b zen-border-s zen-border-zen-border zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums",
           stripe(rowIndex),
         );
         totalsColStyle(td, i);
@@ -1341,7 +1341,7 @@ export function PivotGrid(props: PivotGridProps): ZenComponent<PivotGridProps> {
       for (const colIndex of cols.items) {
         const td = document.createElement("td");
         td.className =
-          "zen-sticky zen-bottom-0 zen-z-10 zen-truncate zen-border-t zen-border-e zen-border-zen-border/50 zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums";
+          "zen-sticky zen-bottom-0 zen-z-10 zen-truncate zen-border-t zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums";
         bottom(td);
         fixWidth(td, colWidth);
         totalCell(td, totals.column(colIndex));

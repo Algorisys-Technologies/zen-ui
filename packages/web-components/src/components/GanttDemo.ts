@@ -606,7 +606,7 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
   header-class-name="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"></zen-gantt>
 
 <script>
-  chart.rowClassName = (t) => t.children && "zen-bg-zen-muted/40";
+  chart.rowClassName = (t) => t.children && "zen-bg-zen-muted";
   chart.barClassName = (t) => t.assignees?.some((a) => a.id === "u3") && "zen-bg-zen-accent-purple zen-border-zen-accent-purple";
 </script>`,
         render: () => {
@@ -615,7 +615,7 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
             dependencies: LINKS,
             now: NOW,
             defaultDate: NOW,
-            rowClassName: (t: GanttTask) => (t.children ? "zen-bg-zen-muted/40" : undefined),
+            rowClassName: (t: GanttTask) => (t.children ? "zen-bg-zen-muted" : undefined),
             barClassName: (t: GanttTask) => t.assignees?.some((a) => a.id === MEI.id) && "zen-bg-zen-accent-purple zen-border-zen-accent-purple",
           });
           chart.setAttribute("row-height", "48");

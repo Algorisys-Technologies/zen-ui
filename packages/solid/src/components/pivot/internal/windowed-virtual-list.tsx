@@ -68,7 +68,7 @@ export const WindowedVirtualList: Component<WindowedVirtualListProps> = (props) 
                   // rather than "not yet".
                   <div class="zen-flex zen-h-full zen-items-center zen-gap-2 zen-px-2" aria-busy="true" aria-label={loc.t("pivot.loadingValue")}>
                     <span
-                      class="zen-size-4 zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-muted/60 motion-safe:zen-animate-pulse"
+                      class="zen-size-4 zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-muted motion-safe:zen-animate-pulse"
                       aria-hidden="true"
                     />
                     <div

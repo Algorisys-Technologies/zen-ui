@@ -66,7 +66,7 @@ export const TableBody = styled<BaseProps>({
 export const TableFooter = styled<BaseProps>({
   tag: "tfoot",
   className:
-    "zen-border-t zen-border-zen-border zen-bg-zen-muted/50 zen-font-medium",
+    "zen-border-t zen-border-zen-border zen-bg-zen-muted zen-font-medium",
 });
 
 export const TableRow = styled<BaseProps>({

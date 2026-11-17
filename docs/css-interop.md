@@ -191,6 +191,26 @@ simply be misspelled against the theme. Two real ones from the same report —
 consumer's markup, and no preset change would have fixed them. The token list is
 in the [README](../README.md#token-reference).
 
+### An opacity modifier on a zen colour does nothing
+
+`zen-bg-zen-muted/40` generates exactly what `zen-bg-zen-muted` does: a solid
+colour. Every zen theme colour is a bare `var(--zen-color-*)`, and UnoCSS cannot
+apply an alpha to a value it cannot see inside, so it drops the `/40` without a
+warning. This holds for every utility (`bg`, `border`, `text`, `ring`, …) and
+in your own app too, if you generate `zen-` classes with this preset.
+
+For real translucency, mix the token yourself:
+
+```html
+<div class="zen-bg-[color-mix(in_srgb,var(--zen-color-muted)_40%,transparent)]">
+```
+
+zen-ui's own source used to carry about 145 of these, each one reading as
+translucent and rendering solid. They were rewritten to the plain class (what
+they always rendered, so nothing moved), and `bun run check:theme-alpha` fails
+if one comes back. It asks the generator, not a regex: a class fails only when
+its CSS matches the class without the modifier.
+
 ### Two traps worth knowing
 
 **`cn()` cannot use `extendTailwindMerge({ prefix })`.** That option follows Tailwind v4 semantics, where a prefix is a leading variant (`zen:p-4`). UnoCSS emits the v3 form (`zen-p-4`), so the built-in option silently matches nothing and every override breaks. [cn.ts](../packages/core/src/cn.ts) instead strips the prefix from the parsed base class via `experimentalParseClassName`.

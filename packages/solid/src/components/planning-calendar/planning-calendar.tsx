@@ -52,10 +52,10 @@ export type PlanningAppointmentState =
 
 const BLOCK_CLASS: Record<PlanningAppointmentState, string> = {
   default: "zen-bg-zen-muted zen-text-zen-foreground zen-border-zen-border",
-  info: "zen-bg-zen-info-soft zen-text-zen-info zen-border-zen-info/40",
-  success: "zen-bg-zen-success-soft zen-text-zen-success zen-border-zen-success/40",
-  warning: "zen-bg-zen-warning-soft zen-text-zen-warning zen-border-zen-warning/40",
-  error: "zen-bg-zen-error-soft zen-text-zen-error zen-border-zen-error/40",
+  info: "zen-bg-zen-info-soft zen-text-zen-info zen-border-zen-info",
+  success: "zen-bg-zen-success-soft zen-text-zen-success zen-border-zen-success",
+  warning: "zen-bg-zen-warning-soft zen-text-zen-warning zen-border-zen-warning",
+  error: "zen-bg-zen-error-soft zen-text-zen-error zen-border-zen-error",
 };
 
 export interface PlanningAppointment {
@@ -245,7 +245,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
             failure you get from scrolling them as two panes. */}
         <div class="zen-overflow-x-auto zen-rounded-zen-md zen-border zen-border-zen-border">
           <div class="zen-min-w-[45rem]">
-            <div class="zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted/30">
+            <div class="zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted">
               <div class="zen-w-40 zen-shrink-0 zen-border-e zen-border-zen-border zen-px-3 zen-py-2 zen-text-xs zen-font-semibold zen-text-zen-muted-fg">
                 {loc.t("planningCalendar.resource")}
               </div>
@@ -255,7 +255,7 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
                     <div
                       class={cn(
                         "zen-flex-1 zen-border-e zen-border-zen-border zen-px-1 zen-py-2 zen-text-center last:zen-border-e-0",
-                        column.nonWorking && "zen-bg-zen-muted/40",
+                        column.nonWorking && "zen-bg-zen-muted",
                         column.today && "zen-bg-zen-primary-soft",
                       )}
                     >
@@ -298,8 +298,8 @@ export const PlanningCalendar = (props: PlanningCalendarProps) => {
                           <div
                             class={cn(
                               "zen-flex-1 zen-border-e zen-border-zen-border last:zen-border-e-0",
-                              column.nonWorking && "zen-bg-zen-muted/30",
-                              column.today && "zen-bg-zen-primary-soft/40",
+                              column.nonWorking && "zen-bg-zen-muted",
+                              column.today && "zen-bg-zen-primary-soft",
                             )}
                           />
                         )}

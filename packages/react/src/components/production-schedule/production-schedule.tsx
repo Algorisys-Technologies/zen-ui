@@ -332,13 +332,13 @@ const FOOTER_PX = 40;
 
 const BAR_CLASS: Record<GanttTaskStatus, string> = {
   "not-started": "zen-bg-zen-muted zen-border-zen-border",
-  "on-track": "zen-bg-zen-info-soft zen-border-zen-info/40",
-  delayed: "zen-bg-zen-error-soft zen-border-zen-error/40",
-  complete: "zen-bg-zen-success-soft zen-border-zen-success/40",
+  "on-track": "zen-bg-zen-info-soft zen-border-zen-info",
+  delayed: "zen-bg-zen-error-soft zen-border-zen-error",
+  complete: "zen-bg-zen-success-soft zen-border-zen-success",
 };
 
 const FILL_CLASS: Record<GanttTaskStatus, string> = {
-  "not-started": "zen-bg-zen-neutral/30",
+  "not-started": "zen-bg-zen-neutral",
   "on-track": "zen-bg-zen-info",
   delayed: "zen-bg-zen-error",
   complete: "zen-bg-zen-success",
@@ -1458,7 +1458,7 @@ const ProductionLoadStrip = ({
               aria-hidden="true"
               className={cn(
                 "zen-absolute zen-bottom-0 zen-start-0 zen-end-0",
-                bucket?.overloaded ? "zen-bg-zen-error/70" : "zen-bg-zen-info/70",
+                bucket?.overloaded ? "zen-bg-zen-error" : "zen-bg-zen-info",
               )}
               style={{ height: `${height * 100}%` }}
             />

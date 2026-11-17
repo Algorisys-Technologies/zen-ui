@@ -4,7 +4,7 @@ import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
 import { useLocale } from "../locale/locale";
 
-const PIVOT_ROW_CLASS = "zen-border-b zen-border-zen-border/60 zen-bg-transparent even:zen-bg-transparent hover:zen-bg-transparent";
+const PIVOT_ROW_CLASS = "zen-border-b zen-border-zen-border zen-bg-transparent even:zen-bg-transparent hover:zen-bg-transparent";
 const CORNER_HEADER_CLASS = "zen-px-2 zen-py-1 zen-text-start zen-text-sm zen-font-medium zen-text-zen-muted-fg zen-capitalize";
 const ROW_LABEL_CLASS = "zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-normal-case zen-tracking-normal zen-text-zen-foreground zen-break-words zen-leading-tight";
 
@@ -89,7 +89,7 @@ function colPadStyle(width: number): Record<string, string> {
   return { width: `${width}px`, "min-width": `${width}px` };
 }
 
-const SKELETON_BAR = "zen-rounded-sm zen-bg-zen-muted-fg/25 motion-safe:zen-animate-pulse";
+const SKELETON_BAR = "zen-rounded-sm zen-bg-zen-muted-fg motion-safe:zen-animate-pulse";
 
 export function PivotGrid(props: PivotGridProps) {
   const loc = useLocale();
@@ -337,7 +337,7 @@ export function PivotGrid(props: PivotGridProps) {
                           role="columnheader"
                           scope="col"
                           class={cn(
-                            "zen-sticky zen-z-10 zen-bg-zen-background zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground zen-truncate",
+                            "zen-sticky zen-z-10 zen-bg-zen-background zen-border-b zen-border-r zen-border-zen-border zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground zen-truncate",
                             props.headerClassName,
                           )}
                           colSpan={header()?.colSpan || 1}
@@ -433,7 +433,7 @@ export function PivotGrid(props: PivotGridProps) {
                                   STICKY_ROW_LABEL,
                                   ROW_LABEL_CLASS,
                                   "zen-bg-zen-background zen-align-top",
-                                  rowIndex > 0 && header()?.isVisible !== false ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0",
+                                  rowIndex > 0 && header()?.isVisible !== false ? "zen-border-t zen-border-zen-border" : "zen-border-t-0",
                                   props.rowHeaderClassName,
                                 )}
                                 rowSpan={header()?.rowSpan || 1}
@@ -481,7 +481,7 @@ export function PivotGrid(props: PivotGridProps) {
                         return (
                           <td
                             class={cn(
-                              "zen-border-r zen-border-b zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums zen-truncate",
+                              "zen-border-r zen-border-b zen-border-zen-border zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums zen-truncate",
                               rowStripeBg(rowIndex)
                             )}
                             style={{
@@ -515,7 +515,7 @@ export function PivotGrid(props: PivotGridProps) {
                           <td
                             data-pivot-total="row"
                             class={cn(
-                              "zen-sticky zen-z-20 zen-border-b zen-border-s zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums zen-truncate",
+                              "zen-sticky zen-z-20 zen-border-b zen-border-s zen-border-zen-border zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums zen-truncate",
                               rowStripeBg(rowIndex),
                             )}
                             style={totalsColStyle(i)}
@@ -566,7 +566,7 @@ export function PivotGrid(props: PivotGridProps) {
                     const cell = createMemo(() => props.totals?.column?.(virtualCol.index) ?? null);
                     return (
                       <td
-                        class="zen-sticky zen-bottom-0 zen-z-10 zen-border-t zen-border-e zen-border-zen-border/50 zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums zen-truncate"
+                        class="zen-sticky zen-bottom-0 zen-z-10 zen-border-t zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums zen-truncate"
                         style={{
                           width: `${virtualCol.size}px`,
                           "min-width": `${virtualCol.size}px`,

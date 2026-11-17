@@ -61,7 +61,7 @@ export const TableFooter = (props: SectionProps) => {
   return (
     <tfoot
       class={cn(
-        "zen-border-t zen-border-zen-border zen-bg-zen-muted/50 zen-font-medium",
+        "zen-border-t zen-border-zen-border zen-bg-zen-muted zen-font-medium",
         local.class,
       )}
       {...rest}

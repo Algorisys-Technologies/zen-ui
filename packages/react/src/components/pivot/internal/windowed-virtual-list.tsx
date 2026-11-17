@@ -69,7 +69,7 @@ export const WindowedVirtualList: React.FC<WindowedVirtualListProps> = ({
           // A skeleton, not a blank: an empty row reads as "no value" rather
           // than "not yet".
           <div className="zen-flex zen-h-full zen-w-full zen-items-center zen-gap-2 zen-px-2" aria-hidden>
-            <div className="zen-size-4 zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-muted/60 motion-safe:zen-animate-pulse" />
+            <div className="zen-size-4 zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-muted motion-safe:zen-animate-pulse" />
             <div className="zen-h-3 zen-w-3/4 zen-rounded-zen-sm zen-bg-zen-muted motion-safe:zen-animate-pulse" />
           </div>
         ) : (
@@ -80,7 +80,7 @@ export const WindowedVirtualList: React.FC<WindowedVirtualListProps> = ({
             onClick={() => onToggle(item)}
             className={cn(
               "zen-flex zen-h-full zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-px-2 zen-text-start zen-text-sm zen-text-zen-foreground zen-transition-colors",
-              "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary/50",
+              "hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary",
             )}
           >
             <span

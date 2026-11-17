@@ -78,7 +78,7 @@ export const Tile = ({
     ROOT,
     interactive && INTERACTIVE,
     disabled && "zen-cursor-not-allowed zen-opacity-50",
-    locked && "zen-border-dashed zen-bg-zen-muted/40",
+    locked && "zen-border-dashed zen-bg-zen-muted",
     className,
   );
   const busy = loading || undefined;

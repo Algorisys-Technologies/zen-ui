@@ -88,7 +88,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
         class={cn(
           "zen-cursor-grab zen-select-none active:zen-cursor-grabbing zen-bg-zen-background zen-shadow-sm zen-max-w-full zen-h-7",
           (props.zone === "rows" || props.zone === "values") && "zen-w-full",
-          filtered() ? "zen-text-zen-primary zen-border-zen-primary/30" : "zen-text-zen-foreground",
+          filtered() ? "zen-text-zen-primary zen-border-zen-primary" : "zen-text-zen-foreground",
           props.disabled && "zen-opacity-50 zen-cursor-not-allowed"
         )}
       >
@@ -96,7 +96,7 @@ export function PivotFieldChip(props: PivotFieldChipProps) {
             everything dragging can do, reachable from a menu. */}
         <Show
           when={props.onMoveToZone}
-          fallback={<Icon name="more-vertical" class="zen-h-3 zen-w-3 zen-text-zen-muted-fg/50 zen-shrink-0" />}
+          fallback={<Icon name="more-vertical" class="zen-h-3 zen-w-3 zen-text-zen-muted-fg zen-shrink-0" />}
         >
           {/* The stopPropagation lives on this wrapper, NOT on the trigger.
               Kobalte's Trigger opens on pointerdown via its own handler, and

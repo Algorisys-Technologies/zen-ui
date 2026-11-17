@@ -480,7 +480,7 @@ export function FilterBuilder(props: FilterBuilderProps): ZenComponent<FilterBui
       "div",
       cn(
         "zen-flex zen-flex-col zen-gap-2",
-        nested && "zen-rounded-zen-md zen-border zen-border-solid zen-border-zen-border zen-bg-zen-muted/40 zen-p-3",
+        nested && "zen-rounded-zen-md zen-border zen-border-solid zen-border-zen-border zen-bg-zen-muted zen-p-3",
       ),
     );
     el.setAttribute("role", "group");

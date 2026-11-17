@@ -15,6 +15,33 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.15.1] - 2026-11-17
+
+### Fixed
+
+- Theme-colour opacity modifiers (`zen-bg-zen-muted/40` and 24 other distinct
+  classes, 159 occurrences in 58 files across core/variants and all four
+  bindings, demos included) were silent no-ops: the preset maps colours to bare
+  `var()`s and UnoCSS drops the alpha. Each was rewritten to its unmodified
+  class. The new `check:theme-alpha` (in `bun run check`) proved every one
+  generates byte-identical CSS to its base class, and fails if a no-op modifier
+  returns. It asks the generator, so a colour defined as a literal is not
+  flagged.
+- Verified by a computed-style snapshot of every element (background, four
+  border colours, color, outline, box-shadow, opacity, fill, stroke) on every
+  demo route, before and after, all four bindings: 555 routes, about 441k
+  elements. Every difference was measured noise, matched against a second
+  "before" run: skeleton and pulse opacity sampled mid-animation, the chart
+  engine's gradient-id counter, and the code editor's async load. No colour
+  property moved.
+
+### Docs
+
+- css-interop.md: "An opacity modifier on a zen colour does nothing", with the
+  color-mix form. The preset was deliberately NOT changed. Making `/NN` work
+  would turn every one of these translucent at once, here and in apps that
+  generate `zen-` classes with the preset, which is a major.
+
 ## [12.15.0] - 2026-11-17
 
 The ports of 12.14.0's Solid-only work, in order (React, vanilla, web
