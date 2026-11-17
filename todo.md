@@ -21,6 +21,20 @@ issue / PR when its turn comes.
    install cleanly (CLAUDE.md, check:package). When it is live, add it to
    "Ship it" in CLAUDE.md.
 
+## Open after 12.14.0 (2026-11-17)
+
+- [ ] **Port 12.14.0's data colours to React → vanilla → web-components.**
+      Solid is the reference: `barAccent`, `dependencyStyle` (ScheduleGrid
+      `connectorStyle`), translucent body shading on tinted rows only, the two
+      demo sections. Remove the four Solid-first KNOWN lines in check-props.ts,
+      export `GanttDependencyStyle`, and check:parity goes green again.
+- [ ] **UnoCSS drops `/NN` alpha on every theme colour.** The preset maps
+      colours to bare `var(--zen-color-*)`, so `zen-bg-zen-muted/40` emits
+      `background-color: var(--zen-color-muted)`, fully opaque. About 60 uses in 20
+      Solid component files (overlays, borders, rings), same in every binding.
+      A preset fix (color-mix, or rgb channel tokens) changes how all of them
+      look, so it is a MAJOR. Measure each component before and after.
+
 ## Open after 12.12.0 (2026-11-16)
 
 - [x] **Publish the site for 12.10–12.12** — done 2026-11-16 (gh-pages

@@ -126,6 +126,26 @@ export interface GanttDependency {
    * `productionSequenceConflicts`.
    */
   lagMinutes?: number;
+  /**
+   * The caller's own name for what this link IS — "sequence" for the next step
+   * of one job, "dependency" for a wait on another, anything at all. The
+   * library never reads it; it travels to the connector so a `dependencyStyle`
+   * can tell the arrows apart without a lookup.
+   */
+  kind?: string;
+}
+
+/**
+ * How one dependency's arrow is drawn — returned by a `dependencyStyle`.
+ * Values rather than classes because the colour is often DATA (a per-shift or
+ * per-kind colour from the caller's own records), which no stylesheet built
+ * ahead of time can know.
+ */
+export interface GanttDependencyStyle {
+  /** Any CSS colour, a token included: `"var(--zen-color-info)"`, `"#7c3aed"`. */
+  color?: string;
+  /** An SVG `stroke-dasharray`: `"4 3"` for dashed, `"1 3"` for dotted. */
+  dash?: string;
 }
 
 /**
@@ -1345,6 +1365,12 @@ export interface GanttConnector {
   from: string;
   to: string;
   type: GanttDependencyType;
+  /**
+   * The dependency this arrow was drawn from — the caller's own object. Where
+   * several links collapse onto one arrow it is the first of them, in the
+   * order they were given.
+   */
+  dependency: GanttDependency;
   /** SVG path data, in the axis's own pixel space. */
   d: string;
   /** The arrowhead's tip, and which way it points: 1 = rightwards, -1 = leftwards. */
@@ -1463,6 +1489,7 @@ export function ganttConnectors(
       from: dependency.from,
       to: dependency.to,
       type,
+      dependency,
       d,
       arrow: { x: r2(x2), y: r2(y2), dir },
     });

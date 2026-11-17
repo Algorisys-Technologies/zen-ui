@@ -15,6 +15,47 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.14.0] - 2026-11-17
+
+**Solid only, deliberately.** Shipped before the ports so Solid users can try
+it; React, vanilla and web components follow in the next release. Until then
+`check:parity` is RED (GanttDependencyStyle is exported by Solid alone; the
+check has no allowlist), and check:props carries four temporary Solid-first
+KNOWN lines that the ports remove.
+
+### Added
+
+- core: `GanttDependency.kind?: string` (free-form, never read by the
+  library); `GanttDependencyStyle { color?, dash? }`; `GanttConnector.dependency`
+  (the caller's own object; where links collapse onto one arrow, the first in
+  input order). `check:gantt` +3 assertions.
+- Solid Gantt / ProductionSchedule: `barAccent(task | operation)` returns a
+  CSS colour for a 4px leading-edge stripe (`data-gantt-accent` /
+  `data-production-accent`), drawn over the fill so status stays visible; a
+  value, not a class, because data-driven colours cannot be precompiled by
+  UnoCSS. `dependencyStyle(dependency)` → `{ color, dash }`, wired through a new
+  ScheduleGrid `connectorStyle`; an accented (violated) link keeps red + 2.25px
+  and takes the dash. Solid exports `GanttDependencyStyle`.
+- Demo sections: Gantt 15 and ProductionSchedule "Colour by your own data"
+  (shift band + stripe + link kinds, with a caller-drawn legend).
+
+### Fixed
+
+- Solid ScheduleGrid body: `zen-bg-zen-muted/40` and `zen-bg-zen-primary-soft/40`
+  on non-working / today columns were OPAQUE. The theme colours are bare
+  `var()`s, and UnoCSS silently drops an alpha modifier on them, so a
+  rowClassName band was covered on those columns. Tinted rows now use
+  `color-mix(… 40%, transparent)`; untinted rows use the plain opaque class,
+  which is pixel-identical to what shipped. Making it translucent everywhere was
+  tried and rejected: 40% of muted over white nearly erases weekend shading.
+  Measured over 495 cells in three demo charts.
+
+### Known
+
+- The `/NN` alpha drop is preset-wide: about 60 uses across 20 Solid component
+  files, same in every binding. Fixing it in the preset changes many
+  components' looks, so it is tracked in todo.md, not fixed here.
+
 ## [12.13.0] - 2026-11-17
 
 Built Solid first and ported in order (React, vanilla, web components), each

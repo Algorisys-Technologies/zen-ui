@@ -318,6 +318,21 @@ t(
 );
 t(fs[0].id, "a->b:finish-to-start", "the id is the dependency, not the rows, so it survives a collapse");
 t(ganttConnectors(anchors([["a", A], ["b", B]]), [], OPTS).length, 0, "no dependencies, no lines");
+{
+  // The caller styles an arrow by its own data (`kind`), so the connector has to
+  // hand back the dependency it was drawn from — the SAME object, untouched.
+  const link = { from: "a", to: "b", kind: "sequence" };
+  const [drawn] = ganttConnectors(anchors([["a", A], ["b", B]]), [link], OPTS);
+  t(drawn.dependency === link, true, "a connector carries the dependency it was drawn from");
+  t(drawn.dependency.kind, "sequence", "…kind included, which the library never reads");
+  // Collapsed links: the FIRST one wins, which is the order the caller gave.
+  const [first] = ganttConnectors(
+    anchors([["a", A], ["b", A], ["c", B], ["d", B]]),
+    [{ from: "a", to: "c", kind: "sequence" }, { from: "b", to: "d", kind: "dependency" }],
+    OPTS,
+  );
+  t(first.dependency.kind, "sequence", "links that collapse to one arrow are drawn as the first of them");
+}
 
 console.log("\nthe axis: quarter and year, so a multi-month plan can be seen whole");
 // A calendar quarter, from any date inside it — not three months from the anchor.

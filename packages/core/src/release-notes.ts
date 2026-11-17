@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.14.0",
+    date: "2026-11-17",
+    kind: "new",
+    title: "Solid: colour Gantt and ProductionSchedule by your own data",
+    detail: "barAccent draws a stripe in your colour (a shift, a line) without hiding the on-time / delayed fill; a dependency's kind plus dependencyStyle gives each kind of link its own colour and dash. React, vanilla and web components follow next release.",
+  },
+  {
+    version: "12.14.0",
+    date: "2026-11-17",
+    kind: "fixed",
+    title: "Solid: a row tint no longer stops at weekends and today",
+    detail: "The shading of those columns was drawn solid over a rowClassName band. Rows without a tint look exactly as before.",
+  },
+  {
     version: "12.13.0",
     date: "2026-11-17",
     kind: "new",

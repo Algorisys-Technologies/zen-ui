@@ -1,6 +1,6 @@
-import { createSignal } from "solid-js";
+import { createSignal, For, type JSX } from "solid-js";
 import { Gantt, type GanttTask } from "./gantt/gantt";
-import type { GanttCalendar, GanttDependency } from "@algorisys/zen-ui-core";
+import type { GanttCalendar, GanttDependency, GanttDependencyStyle } from "@algorisys/zen-ui-core";
 import { DemoPage, DemoSection } from "./demo-helpers";
 
 
@@ -166,6 +166,86 @@ const SHOP_LINKS: GanttDependency[] = [
   { from: "j1", to: "j2" },
   { from: "j2", to: "j3" },
 ];
+
+/* Two works orders, one row per operation, each operation booked on a shift.
+   The shift is the CALLER's data — kept beside the tasks here, but it could as
+   well be a column in a database row. The component is never told what a shift
+   is; it is only asked what to draw. */
+const op = (id: string, name: string, machine: string, day: number, from: number, to: number) => ({
+  id,
+  name,
+  subtitle: machine,
+  start: shopAt(day, from),
+  end: shopAt(day, to),
+  percentComplete: 0,
+});
+const MES: GanttTask[] = [
+  {
+    id: "wo1",
+    name: "BLD-4908",
+    children: [
+      op("a1", "Op 1 · Laser cut", "Laser 1", 21, 6, 14),
+      op("a2", "Op 2 · Bend", "Press brake", 21, 14, 22),
+      op("a3", "Op 3 · Weld", "Weld cell", 22, 6, 14),
+      op("a4", "Op 4 · Paint", "Booth", 22, 14, 22),
+    ],
+  },
+  {
+    id: "wo2",
+    name: "HB-4917",
+    children: [
+      op("b1", "Op 1 · Rod cut", "Saw 2", 21, 14, 22),
+      op("b2", "Op 2 · Turn", "Lathe 4", 22, 14, 22),
+      op("b3", "Op 3 · Assemble", "Bench 1", 23, 6, 14),
+    ],
+  },
+];
+const MES_SHIFT: Record<string, string> = { a1: "GS", a2: "S2", a3: "GS", a4: "S2", b1: "S2", b2: "S2", b3: "GS" };
+/* Two ways to show a shift, both chosen per call. The band tints the whole
+   timeline row and is a class (it ships with your stylesheet); the stripe is a
+   value, so it can come straight out of your records. */
+const SHIFT_BAND: Record<string, string> = {
+  GS: "zen-bg-[color-mix(in_srgb,var(--zen-color-accent-orange)_12%,transparent)]",
+  S2: "zen-bg-[color-mix(in_srgb,var(--zen-color-accent-purple)_12%,transparent)]",
+};
+const SHIFT_COLOUR: Record<string, string> = {
+  GS: "var(--zen-color-accent-orange)",
+  S2: "var(--zen-color-accent-purple)",
+};
+const MES_LINKS: GanttDependency[] = [
+  { from: "a1", to: "a2", kind: "sequence" },
+  { from: "a2", to: "a3", kind: "sequence" },
+  { from: "a3", to: "a4", kind: "sequence" },
+  { from: "b1", to: "b2", kind: "sequence" },
+  { from: "b2", to: "b3", kind: "sequence" },
+  // HB-4917's assembly needs the welded frame from the other order.
+  { from: "a3", to: "b3", kind: "dependency" },
+];
+const LINK_STYLE: Record<string, GanttDependencyStyle> = {
+  sequence: { color: "var(--zen-color-info)" },
+  dependency: { color: "var(--zen-color-accent-magenta)", dash: "4 3" },
+};
+
+const Legend = (props: { items: { label: string; swatch: JSX.Element }[] }) => (
+  <ul class="zen-flex zen-flex-wrap zen-gap-x-4 zen-gap-y-1 zen-text-xs zen-text-zen-muted-fg">
+    <For each={props.items}>
+      {(item) => (
+        <li class="zen-flex zen-items-center zen-gap-1.5">
+          {item.swatch}
+          {item.label}
+        </li>
+      )}
+    </For>
+  </ul>
+);
+const stripe = (colour: string) => (
+  <span aria-hidden="true" class="zen-inline-block zen-h-3 zen-w-1 zen-rounded-zen-sm" style={{ "background-color": colour }} />
+);
+const line = (style: GanttDependencyStyle) => (
+  <svg aria-hidden="true" width="24" height="6">
+    <line x1="0" y1="3" x2="24" y2="3" stroke={style.color} stroke-width="1.5" stroke-dasharray={style.dash} />
+  </svg>
+);
 
 /** A plan that crosses New Year — the case no calendar year can show whole. */
 const CROSS_YEAR: GanttTask[] = [
@@ -521,6 +601,54 @@ const NewGanttDemo = () => (
         <div data-testid="gantt-touch" class="zen-w-full">
           <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} defaultDate={NOW} density="touch" />
         </div>
+      </div>
+    </DemoSection>
+
+    <DemoSection
+      title="15. Colour by your own data: shifts and kinds of link"
+      codeTitle="rowClassName, barAccent, dependencyStyle, kind on a dependency"
+      codeDescription="Three channels, each driven by data the component never interprets, and each optional — use one, two or all three. rowClassName tints the row's timeline band (here, by the shift the operation runs on). barAccent returns a CSS colour for a stripe on the bar's leading edge, so the status fill keeps saying what it said; it is a value rather than a class so the colour can come from your records. A dependency can carry a kind of your own naming, and dependencyStyle turns it into a colour and a dash: here, the next step of the same order against a wait on another order. Give every kind a dash as well as a colour, because red already means late. The legend is yours to draw: only you know what the kinds are called."
+      code={`// A tint, not the full colour: the band sits behind the bars.
+const band = {
+  GS: "zen-bg-[color-mix(in_srgb,var(--zen-color-accent-orange)_12%,transparent)]",
+  S2: "zen-bg-[color-mix(in_srgb,var(--zen-color-accent-purple)_12%,transparent)]",
+};
+const colour = { GS: "var(--zen-color-accent-orange)", S2: "var(--zen-color-accent-purple)" };
+const linkStyle = {
+  sequence: { color: "var(--zen-color-info)" },
+  dependency: { color: "var(--zen-color-accent-magenta)", dash: "4 3" },
+};
+
+<Gantt
+  tasks={operations}
+  dependencies={[
+    { from: "a1", to: "a2", kind: "sequence" },
+    { from: "a3", to: "b3", kind: "dependency" },
+  ]}
+  rowClassName={(t) => band[shiftOf[t.id]]}
+  barAccent={(t) => colour[shiftOf[t.id]]}
+  dependencyStyle={(link) => linkStyle[link.kind]}
+/>`}
+    >
+      <div data-testid="gantt-data-colours" class="zen-flex zen-w-full zen-flex-col zen-gap-3">
+        <Legend
+          items={[
+            { label: "General shift (GS)", swatch: stripe(SHIFT_COLOUR.GS) },
+            { label: "Second shift (S2)", swatch: stripe(SHIFT_COLOUR.S2) },
+            { label: "Next step, same order", swatch: line(LINK_STYLE.sequence) },
+            { label: "Waits on another order", swatch: line(LINK_STYLE.dependency) },
+          ]}
+        />
+        <Gantt
+          tasks={MES}
+          dependencies={MES_LINKS}
+          now={SHOP_NOW}
+          defaultView="week"
+          defaultDate={shopAt(21, 0)}
+          rowClassName={(t) => SHIFT_BAND[MES_SHIFT[t.id]]}
+          barAccent={(t) => SHIFT_COLOUR[MES_SHIFT[t.id]]}
+          dependencyStyle={(link) => (link.kind ? LINK_STYLE[link.kind] : undefined)}
+        />
       </div>
     </DemoSection>
   </DemoPage>
