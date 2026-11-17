@@ -37,7 +37,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     date: "2026-11-17",
     kind: "fixed",
     title: "Removed opacity classes that never worked; nothing you see changes",
-    detail: "zen-bg-zen-muted/40 and the like rendered solid all along: zen colours are CSS variables, which the generator cannot fade. Use color-mix for real translucency.",
+    detail: "A muted background \"at 40%\" and the like rendered solid all along: zen colours are CSS variables, which the generator cannot fade. Use color-mix for real translucency.",
   },
   {
     version: "12.15.0",

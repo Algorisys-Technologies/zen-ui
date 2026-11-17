@@ -259,7 +259,7 @@ for (const binding of which) {
   // bounded only by the navigation timeout: a server that cannot serve its
   // root is a failure the first route would report anyway.
   await page.goto(`http://localhost:${cfg.port}${cfg.base}/`, { waitUntil: "domcontentloaded", timeout: 60000 }).catch(() => {});
-  await page.waitForSelector(".demo-page", { state: "attached", timeout: 60000 }).catch(() => {});
+  await page.waitForSelector(".demo-page", { timeout: 60000 }).catch(() => {});
 
   const stallOnce = new Set((process.env.GEN_PREVIEWS_STALL_ONCE ?? "").split(",").filter(Boolean));
   for (const route of routes) {
@@ -278,14 +278,9 @@ for (const binding of which) {
     // quiet, not that the route mounted — and a fixed sleep is a race: the set
     // of routes that "had no rendered example" CHANGED between two runs, which
     // is what gave the race away.
-    //
-    // `attached`, not the default `visible`: five Solid demos' .demo-page never
-    // counts as visible to Playwright (measured: 30s, never), so every one of
-    // them burnt the whole window on every run before falling through to its
-    // .example-preview, which is what gets shot anyway.
     const render = async (demoMs, exampleMs) => {
       await page.goto(url, { waitUntil: "domcontentloaded" }).catch(() => {});
-      await page.waitForSelector(".demo-page", { state: "attached", timeout: demoMs }).catch(() => {});
+      await page.waitForSelector(".demo-page", { timeout: demoMs }).catch(() => {});
       await page.waitForSelector(".example-preview", { timeout: exampleMs }).catch(() => {});
       await sleep(250);
       // The same test the shot below applies: an element too small to shoot

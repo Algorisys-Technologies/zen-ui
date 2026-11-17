@@ -28,7 +28,7 @@ issue / PR when its turn comes.
       `connectorStyle`), translucent body shading on tinted rows only, the two
       demo sections. Remove the four Solid-first KNOWN lines in check-props.ts,
       export `GanttDependencyStyle`, and check:parity goes green again.
-- [x] **UnoCSS drops `/NN` alpha on every theme colour.** 12.15.1: the no-op modifiers are rewritten to what they rendered (no visible change, proven by snapshot) and `check:theme-alpha` keeps them out. Still open, only if wanted: real translucency through the preset, a MAJOR. The preset maps
+- [x] **UnoCSS drops `/NN` alpha on every theme colour.** 12.15.1: the no-op modifiers are rewritten to what they rendered (no visible change, proven by snapshot) and `check:theme-alpha` keeps them out. Real translucency through the preset: done on feat/theme-alpha (plain classes byte-identical; `/NN` now fades). Ship as a MAJOR: apps that wrote `/NN` with the preset change. The preset maps
       colours to bare `var(--zen-color-*)`, so `zen-bg-zen-muted/40` emits
       `background-color: var(--zen-color-muted)`, fully opaque. About 60 uses in 20
       Solid component files (overlays, borders, rings), same in every binding.

@@ -283,7 +283,7 @@ const Card = (props: { binding: Binding }) => {
         </a>
       </Show>
 
-      <p class="text-sm text-zen-foreground/85 leading-relaxed mb-4 min-h-[6rem]">
+      <p class="text-sm text-zen-foreground leading-relaxed mb-4 min-h-[6rem]">
         {b().blurb}
       </p>
 
@@ -313,7 +313,7 @@ const Card = (props: { binding: Binding }) => {
           build:lib` for a directory that is not there — a new false instruction in
           the middle of removing one. */}
       <Show when={b().repoHref}>
-        <pre class="m-0 mb-2 px-3 py-2 text-xs bg-zen-muted/60 rounded-zen-sm overflow-x-auto">
+        <pre class="m-0 mb-2 px-3 py-2 text-xs bg-zen-muted rounded-zen-sm overflow-x-auto">
           <code>
             $ cd packages/{b().package.replace("@algorisys/zen-ui-", "")} && bun run build:lib && npm pack{"\n"}
             $ npm install /path/to/{b().package.replace("@algorisys/", "algorisys-")}-&lt;version&gt;.tgz
