@@ -139,8 +139,8 @@ export const FileUpload = (props: FileUploadProps) => {
           "zen-flex zen-flex-col zen-items-center zen-justify-center zen-gap-2",
           isOver()
             ? "zen-border-zen-primary zen-bg-zen-primary-soft"
-            : "zen-border-zen-border zen-bg-zen-muted/30",
-          "hover:zen-bg-zen-muted/60",
+            : "zen-border-zen-border zen-bg-zen-muted",
+          "hover:zen-bg-zen-muted",
           props.disabled && "zen-opacity-50 zen-cursor-not-allowed zen-pointer-events-none",
           "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-offset-2",
         )}

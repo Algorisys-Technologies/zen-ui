@@ -612,7 +612,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
       tr.className = cn(
         "zen-border-b zen-border-zen-border",
         "zen-transition-[background-color,box-shadow] zen-duration-100",
-        "hover:zen-bg-zen-muted/50",
+        "hover:zen-bg-zen-muted",
         "data-[state=selected]:zen-bg-zen-primary-soft",
         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
         current.onRowClick && "zen-cursor-pointer",

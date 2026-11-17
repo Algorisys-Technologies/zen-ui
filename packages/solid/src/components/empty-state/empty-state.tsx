@@ -28,7 +28,7 @@ const emptyStateVariants = cva(
         lg: "zen-py-16 zen-px-8 zen-gap-4",
       },
       bordered: {
-        true: "zen-border-2 zen-border-dashed zen-border-zen-border zen-rounded-zen-md zen-bg-zen-muted/40",
+        true: "zen-border-2 zen-border-dashed zen-border-zen-border zen-rounded-zen-md zen-bg-zen-muted",
         false: "",
       },
     },

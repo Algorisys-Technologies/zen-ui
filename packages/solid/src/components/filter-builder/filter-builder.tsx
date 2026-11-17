@@ -314,7 +314,7 @@ export const FilterBuilder = (props: FilterBuilderProps) => {
         data-filter-group={p.g.id}
         class={cn(
           "zen-flex zen-flex-col zen-gap-2",
-          nested() && "zen-rounded-zen-md zen-border zen-border-solid zen-border-zen-border zen-bg-zen-muted/40 zen-p-3",
+          nested() && "zen-rounded-zen-md zen-border zen-border-solid zen-border-zen-border zen-bg-zen-muted zen-p-3",
         )}
       >
         <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2">

@@ -614,7 +614,7 @@ const NewGanttDemo = () => (
   tasks={plan}
   rowHeight={48}
   maxBodyHeight={300}
-  rowClassName={(t) => t.children && "zen-bg-zen-muted/40"}
+  rowClassName={(t) => t.children && "zen-bg-zen-muted"}
   barClassName={(t) => t.assignees?.some((a) => a.id === "u3") && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"}
   headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
 />`}
@@ -627,7 +627,7 @@ const NewGanttDemo = () => (
             defaultDate={NOW}
             rowHeight={48}
             maxBodyHeight={300}
-            rowClassName={(t) => (t.children ? "zen-bg-zen-muted/40" : undefined)}
+            rowClassName={(t) => (t.children ? "zen-bg-zen-muted" : undefined)}
             barClassName={(t) => t.assignees?.some((a) => a.id === MEI.id) && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"}
             headerClassName="zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"
           />

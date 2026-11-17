@@ -1322,8 +1322,8 @@ const table = DataTable({
   data: small,
   columns,
   rowClassName: (row) =>
-    row.status === "suspended" ? "zen-bg-zen-error-soft/40"
-    : row.status === "invited" ? "zen-bg-zen-info-soft/30"
+    row.status === "suspended" ? "zen-bg-zen-error-soft"
+    : row.status === "invited" ? "zen-bg-zen-info-soft"
     : undefined,
 });`,
         render: () =>
@@ -1332,9 +1332,9 @@ const table = DataTable({
             columns,
             rowClassName: (row) =>
               row.status === "suspended"
-                ? "zen-bg-zen-error-soft/40"
+                ? "zen-bg-zen-error-soft"
                 : row.status === "invited"
-                  ? "zen-bg-zen-info-soft/30"
+                  ? "zen-bg-zen-info-soft"
                   : undefined,
           }).el,
       },

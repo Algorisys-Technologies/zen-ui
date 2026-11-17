@@ -2446,7 +2446,7 @@ export function DataTable<TData>(
       // React's panel: the full width, flush, on a faint muted ground.
       const sub = h("tr", TABLE_ROW_CLASS);
       sub.setAttribute("data-expanded-of", id);
-      const td = h("td", "zen-p-0 zen-bg-zen-muted/30") as HTMLTableCellElement;
+      const td = h("td", "zen-p-0 zen-bg-zen-muted") as HTMLTableCellElement;
       td.colSpan = tr.children.length;
       td.append(...toNodes(current.renderSubRow!({ row: r.row, index: r.index, id })));
       sub.append(td);
@@ -3670,7 +3670,7 @@ export function DataTable<TData>(
     const footerCols = leafColumns().filter((c) => c.footer);
     const hasTotals = leafColumns().some((c) => c.meta?.aggregate);
     if (footerCols.length || hasTotals) {
-      const tfoot = h("tfoot", "zen-border-t zen-bg-zen-muted/50 zen-font-medium");
+      const tfoot = h("tfoot", "zen-border-t zen-bg-zen-muted zen-font-medium");
       const tr = h("tr", "");
       // Totals: right-aligned figures, kept in view at the bottom while the
       // rows scroll under them. A footer without totals renders exactly as it

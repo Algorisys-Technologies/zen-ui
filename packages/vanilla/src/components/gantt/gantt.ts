@@ -243,13 +243,13 @@ const LABEL_OUTSIDE_PX = 30;
 
 const BAR_CLASS: Record<GanttTaskStatus, string> = {
   "not-started": "zen-bg-zen-muted zen-border-zen-border",
-  "on-track": "zen-bg-zen-info-soft zen-border-zen-info/40",
-  delayed: "zen-bg-zen-error-soft zen-border-zen-error/40",
-  complete: "zen-bg-zen-success-soft zen-border-zen-success/40",
+  "on-track": "zen-bg-zen-info-soft zen-border-zen-info",
+  delayed: "zen-bg-zen-error-soft zen-border-zen-error",
+  complete: "zen-bg-zen-success-soft zen-border-zen-success",
 };
 
 const FILL_CLASS: Record<GanttTaskStatus, string> = {
-  "not-started": "zen-bg-zen-neutral/30",
+  "not-started": "zen-bg-zen-neutral",
   "on-track": "zen-bg-zen-info",
   delayed: "zen-bg-zen-error",
   complete: "zen-bg-zen-success",

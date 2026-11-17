@@ -74,7 +74,7 @@ export interface PivotTotals {
   label?: string;
 }
 
-const SKELETON_BAR = "zen-rounded-zen-sm zen-bg-zen-muted-fg/25 motion-safe:zen-animate-pulse";
+const SKELETON_BAR = "zen-rounded-zen-sm zen-bg-zen-muted-fg motion-safe:zen-animate-pulse";
 const STICKY_CORNER =
   "zen-sticky zen-z-30 zen-box-border zen-border-e zen-border-zen-border zen-bg-zen-muted zen-shadow-[1px_0_0_0_var(--zen-border)]";
 const STICKY_ROW_LABEL =
@@ -259,7 +259,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                       scope="col"
                       colSpan={span}
                       className={cn(
-                        "zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground",
+                        "zen-sticky zen-z-10 zen-truncate zen-border-b zen-border-r zen-border-zen-border zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-text-xs zen-font-medium zen-text-zen-foreground",
                         headerClassName,
                       )}
                       style={{
@@ -318,7 +318,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
             {rowVirtualizer.getVirtualItems().map((vRow) => {
               const rowIndex = vRow.index;
               return (
-                <tr key={vRow.key} className="zen-border-b zen-border-zen-border/60">
+                <tr key={vRow.key} className="zen-border-b zen-border-zen-border">
                   {rowHeaderDepth > 0
                     ? Array.from({ length: rowHeaderDepth }, (_, depth) => {
                         const header = getRowHeader(rowIndex, depth);
@@ -333,7 +333,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                             className={cn(
                               STICKY_ROW_LABEL,
                               "zen-break-words zen-bg-zen-background zen-px-2 zen-py-1 zen-text-start zen-align-top zen-text-xs zen-font-medium zen-leading-tight zen-text-zen-foreground",
-                              rowIndex > 0 ? "zen-border-t zen-border-zen-border/50" : "zen-border-t-0",
+                              rowIndex > 0 ? "zen-border-t zen-border-zen-border" : "zen-border-t-0",
                               rowHeaderClassName,
                             )}
                             style={{
@@ -365,7 +365,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                       <td
                         key={colIndex}
                         className={cn(
-                          "zen-truncate zen-border-b zen-border-r zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums",
+                          "zen-truncate zen-border-b zen-border-r zen-border-zen-border zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-tabular-nums",
                           stripe(rowIndex),
                         )}
                         style={{ width: `${colWidth}px`, minWidth: `${colWidth}px`, maxWidth: `${colWidth}px` }}
@@ -389,7 +389,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                       key={`total-${i}`}
                       data-pivot-total="row"
                       className={cn(
-                        "zen-sticky zen-z-20 zen-truncate zen-border-b zen-border-s zen-border-zen-border/50 zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums",
+                        "zen-sticky zen-z-20 zen-truncate zen-border-b zen-border-s zen-border-zen-border zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums",
                         stripe(rowIndex),
                       )}
                       style={totalsColStyle(i)}
@@ -432,7 +432,7 @@ export const PivotGrid: React.FC<PivotGridProps> = ({
                 {cols.items.map((colIndex) => (
                   <td
                     key={colIndex}
-                    className="zen-sticky zen-bottom-0 zen-z-10 zen-truncate zen-border-t zen-border-e zen-border-zen-border/50 zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums"
+                    className="zen-sticky zen-bottom-0 zen-z-10 zen-truncate zen-border-t zen-border-e zen-border-zen-border zen-bg-zen-muted zen-px-2 zen-py-1 zen-text-end zen-text-sm zen-font-semibold zen-tabular-nums"
                     style={{ width: `${colWidth}px`, minWidth: `${colWidth}px`, maxWidth: `${colWidth}px`, ...headerCellStyle }}
                   >
                     {totalCell(totals.column?.(colIndex) ?? null)}

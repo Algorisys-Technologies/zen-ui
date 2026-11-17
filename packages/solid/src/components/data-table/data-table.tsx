@@ -2774,7 +2774,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
       data-row-id={props.menuTargets ? row.id : undefined}
       data-drop={props.rowDrag ? dropEdge(index()) : undefined}
       class={cn(
-        row.getIsGrouped() && "zen-bg-zen-muted/40 zen-font-medium",
+        row.getIsGrouped() && "zen-bg-zen-muted zen-font-medium",
         props.rowDrag && dragId() === row.id && "zen-opacity-50",
         props.keyboard &&
           "focus-visible:zen-outline focus-visible:zen-outline-2 focus-visible:-zen-outline-offset-2 focus-visible:zen-outline-zen-ring",
@@ -2870,7 +2870,7 @@ function BodyTable<TData>(props: BodyTableProps<TData>) {
       data-index={virt?.index}
       aria-rowindex={virt ? headerRowCount() + virt.index + 1 : undefined}
     >
-      <TableCell colSpan={row.getVisibleCells().length} class="zen-p-0 zen-bg-zen-muted/30">
+      <TableCell colSpan={row.getVisibleCells().length} class="zen-p-0 zen-bg-zen-muted">
         {props.renderSubRow!(row)}
       </TableCell>
     </TableRow>
@@ -3831,7 +3831,7 @@ function VirtualizedBody<TData>(props: {
                   }}
                   class={cn(
                     "zen-border-b zen-border-zen-border zen-transition-[background-color,box-shadow,outline-color] zen-duration-100",
-                    "hover:zen-bg-zen-muted/50 hover:zen-shadow-zen-sm",
+                    "hover:zen-bg-zen-muted hover:zen-shadow-zen-sm",
                     row.getIsSelected() &&
                       "zen-bg-zen-primary-soft zen-shadow-zen-sm zen-outline zen-outline-1 -zen-outline-offset-1 zen-outline-zen-primary",
                     props.rowClassName?.(row),

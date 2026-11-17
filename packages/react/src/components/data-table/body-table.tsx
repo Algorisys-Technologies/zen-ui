@@ -949,7 +949,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       data-state={row.getIsSelected() ? "selected" : undefined}
       data-grouped={row.getIsGrouped() ? "true" : undefined}
       className={cn(
-        row.getIsGrouped() && "zen-bg-zen-muted/40 zen-font-medium",
+        row.getIsGrouped() && "zen-bg-zen-muted zen-font-medium",
         rowDrag && dragId === row.id && "zen-opacity-50",
         keyboard &&
           "focus-visible:zen-outline focus-visible:zen-outline-2 focus-visible:-zen-outline-offset-2 focus-visible:zen-outline-zen-ring",
@@ -968,7 +968,7 @@ export function BodyTable<TData>(props: BodyTableProps<TData>) {
       data-index={virt?.index}
       aria-rowindex={virt ? (props.headerRowCount ?? 1) + virt.index + 1 : undefined}
     >
-      <TableCell colSpan={row.getVisibleCells().length} className="zen-p-0 zen-bg-zen-muted/30">
+      <TableCell colSpan={row.getVisibleCells().length} className="zen-p-0 zen-bg-zen-muted">
         {renderSubRow!(row)}
       </TableCell>
     </TableRow>

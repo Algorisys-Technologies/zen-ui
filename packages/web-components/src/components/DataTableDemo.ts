@@ -1163,16 +1163,16 @@ table.addEventListener("zen-cell-edit", (e) => {
         codeDescription:
           "The hook is called once per rendered body row. The returned string is merged after the built-in classes, so it composes with hover / selected styling instead of replacing it.",
         code: `table.rowClassName = (row) =>
-  row.status === "suspended" ? "zen-bg-zen-error-soft/40"
-  : row.status === "invited" ? "zen-bg-zen-info-soft/30"
+  row.status === "suspended" ? "zen-bg-zen-error-soft"
+  : row.status === "invited" ? "zen-bg-zen-info-soft"
   : undefined;`,
         render: () => {
           const dt = table(SMALL);
           (dt as unknown as { rowClassName: (row: Person) => string | undefined }).rowClassName = (row) =>
             row.status === "suspended"
-              ? "zen-bg-zen-error-soft/40"
+              ? "zen-bg-zen-error-soft"
               : row.status === "invited"
-                ? "zen-bg-zen-info-soft/30"
+                ? "zen-bg-zen-info-soft"
                 : undefined;
           return dt;
         },

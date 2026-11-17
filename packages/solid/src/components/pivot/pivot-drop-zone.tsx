@@ -29,9 +29,9 @@ export function PivotDropZone(props: PivotDropZoneProps) {
     <div
       ref={droppable.ref}
       class={cn(
-        "zen-min-h-5 zen-min-w-5 zen-border zen-border-zen-border zen-bg-zen-muted/30 zen-p-2 zen-align-top zen-transition-colors",
+        "zen-min-h-5 zen-min-w-5 zen-border zen-border-zen-border zen-bg-zen-muted zen-p-2 zen-align-top zen-transition-colors",
         props.class,
-        droppable.isActiveDroppable && "zen-border zen-border-zen-primary/40 zen-bg-zen-muted zen-border-dashed"
+        droppable.isActiveDroppable && "zen-border zen-border-zen-primary zen-bg-zen-muted zen-border-dashed"
       )}
     >
       <Show when={!props.hideTitle}>
@@ -51,7 +51,7 @@ export function PivotDropZone(props: PivotDropZoneProps) {
       >
         {props.children}
         <Show when={props.isEmpty}>
-          <div class="zen-text-xs zen-text-zen-muted-fg/50 zen-italic zen-py-0.5 zen-select-none zen-pointer-events-none">
+          <div class="zen-text-xs zen-text-zen-muted-fg zen-italic zen-py-0.5 zen-select-none zen-pointer-events-none">
             {loc.t("pivot.dropHere")}
           </div>
         </Show>

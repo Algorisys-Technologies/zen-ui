@@ -270,7 +270,7 @@ const Row = (props: {
     cn(
       "zen-flex zen-items-start zen-gap-3 zen-px-4 zen-py-2.5 zen-text-start zen-w-full",
       "zen-border-l-2",
-      n().read ? "zen-border-transparent" : "zen-border-zen-primary zen-bg-zen-primary-soft/30",
+      n().read ? "zen-border-transparent" : "zen-border-zen-primary zen-bg-zen-primary-soft",
       interactive() &&
         "zen-cursor-pointer hover:zen-bg-zen-muted focus-visible:zen-bg-zen-muted focus-visible:zen-outline-none",
     );
@@ -312,7 +312,7 @@ const Row = (props: {
 
 const EmptyState = (props: { message: JSX.Element }) => (
   <div class="zen-flex zen-flex-col zen-items-center zen-justify-center zen-px-6 zen-py-10 zen-text-center">
-    <span class="zen-text-zen-muted-fg/60 zen-mb-2">
+    <span class="zen-text-zen-muted-fg zen-mb-2">
       <BellIcon size={28} />
     </span>
     <p class="zen-text-sm zen-text-zen-muted-fg zen-m-0">{props.message}</p>

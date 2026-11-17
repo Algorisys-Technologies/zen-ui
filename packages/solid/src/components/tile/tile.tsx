@@ -87,7 +87,7 @@ export const Tile = (props: TileProps) => {
       ROOT,
       interactive() && INTERACTIVE,
       local.disabled && "zen-cursor-not-allowed zen-opacity-50",
-      local.locked && "zen-border-dashed zen-bg-zen-muted/40",
+      local.locked && "zen-border-dashed zen-bg-zen-muted",
       local.class,
     );
 

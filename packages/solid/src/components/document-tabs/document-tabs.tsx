@@ -194,7 +194,7 @@ export const DocumentTabs = (props: DocumentTabsProps) => {
                   "zen-max-w-[16rem]",
                   active()
                     ? "zen-border-zen-primary zen-text-zen-foreground zen-bg-zen-background"
-                    : "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted/50",
+                    : "zen-text-zen-muted-fg hover:zen-text-zen-foreground hover:zen-bg-zen-muted",
                 )}
                 onAuxClick={(e) => {
                   if (e.button === 1) { e.preventDefault(); close(t); }

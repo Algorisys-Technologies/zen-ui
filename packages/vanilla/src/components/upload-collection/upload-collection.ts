@@ -132,7 +132,7 @@ function row(
   const li = document.createElement("li");
   li.className = cn(
     "zen-flex zen-items-start zen-gap-3 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-background zen-px-3 zen-py-2",
-    status === "error" && "zen-border-zen-error/40",
+    status === "error" && "zen-border-zen-error",
   );
 
   if (item.thumbnail) {
