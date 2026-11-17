@@ -7,6 +7,8 @@ import {
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
+  type GanttDependencyStyle,
+  type GanttConnector,
   type GanttPaneColumn,
   type GanttRow,
   type GanttTaskNode,
@@ -101,6 +103,13 @@ export interface GanttProps extends BaseProps {
   dependencies?: GanttDependency[];
   /** Draw the connector layer. Default true. */
   showDependencies?: boolean;
+  /**
+   * The colour and dash of one dependency's arrow, from the caller's own data —
+   * typically its `kind`: `(d) => d.kind === "sequence" ? { color: "var(--zen-color-info)" } : { dash: "4 3" }`.
+   * Give each kind a dash as well as a colour; red already means late here.
+   * A link the plan breaks is still drawn red.
+   */
+  dependencyStyle?: (dependency: GanttDependency) => GanttDependencyStyle | undefined;
 
   /** Starting view. The factory owns it after that; `update({ view })` controls it. */
   defaultView?: GanttView;
@@ -165,6 +174,13 @@ export interface GanttProps extends BaseProps {
    * `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
    */
   barClassName?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * A CSS colour for a stripe on the bar's leading edge — a second channel
+   * beside the status fill, for a shift, a line or a customer:
+   * `(t) => shiftColour[t.shift]`. A value rather than a class, so the colour
+   * can come from data.
+   */
+  barAccent?: (task: GanttTask) => string | undefined | false | null;
   /**
    * Classes for the header: the row and its frozen pane, applied after their
    * own, so a caller's background and text colour win
@@ -650,6 +666,17 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       bar.append(label);
     }
 
+    /* Last, so it sits over the fill: the stripe is the row's identity and the
+       fill its progress, and both have to stay visible. */
+    const accent = current.barAccent?.(row.task);
+    if (accent) {
+      const stripe = el("span", "zen-absolute zen-inset-y-0 zen-start-0 zen-w-1 zen-rounded-s-zen-sm");
+      stripe.setAttribute("aria-hidden", "true");
+      stripe.setAttribute("data-gantt-accent", "");
+      stripe.style.backgroundColor = accent;
+      bar.append(stripe);
+    }
+
     const out: Array<Node | AnyZenComponent> = [bar];
     if (row.progress !== null && labelOutside) {
       const outside = el(
@@ -805,6 +832,9 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       anchor: dateOf(),
       now,
       connectors,
+      connectorStyle: current.dependencyStyle
+        ? (connector: GanttConnector) => current.dependencyStyle?.(connector.dependency)
+        : undefined,
       views: current.views,
       hideToolbar: current.hideToolbar,
       onViewChange: setView,

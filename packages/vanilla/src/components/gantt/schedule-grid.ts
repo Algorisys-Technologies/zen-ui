@@ -15,6 +15,7 @@ import {
   type GanttCalendar,
   type GanttColumnUnit,
   type GanttConnector,
+  type GanttDependencyStyle,
   type GanttView,
   type PlanningColumn,
   type PlanningRange,
@@ -286,6 +287,8 @@ export interface ScheduleGridOptions<R extends ScheduleRowShape> {
   now: Date;
   connectors?: GanttConnector[];
   connectorAccent?: (connector: GanttConnector) => boolean;
+  /** The caller's colour and dash for one arrow. An accented arrow keeps the dash but not the colour. */
+  connectorStyle?: (connector: GanttConnector) => GanttDependencyStyle | undefined;
 
   views?: GanttView[];
   hideToolbar?: boolean;
@@ -405,7 +408,8 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     const tabCol = row.index === tabRow ? activeCol() : -1;
     const columns = visibleColumns();
 
-    const node = el("div", cn("zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0", current.rowClass?.(row)));
+    const tint = current.rowClass?.(row);
+    const node = el("div", cn("zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0", tint));
     node.setAttribute("role", "row");
     /* The row's TRUE position in the plan, +1 for the header. A windowed grid
        that numbers rows from the DOM tells a screen-reader user they are on row
@@ -455,7 +459,15 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     });
 
     /* The column rules as a background layer rather than as parents of the bar:
-       a bar spanning four days cannot live inside one day's box. */
+       a bar spanning four days cannot live inside one day's box.
+
+       On a row the caller has tinted (a rowClassName band) the shading turns
+       TRANSLUCENT, so the band still shows on a weekend or on today. Only
+       there: an untinted row keeps the shade it always had, because 40% of a
+       pale grey over white all but disappears. color-mix rather than `/40`:
+       the theme colours are bare var()s, and UnoCSS drops an alpha modifier on
+       those without a word — `/40` has always come out fully opaque, which is
+       the look every untinted chart has today. */
     const rules = el("div", "zen-absolute zen-inset-0 zen-flex");
     rules.setAttribute("aria-hidden", "true");
     current.axis.columns.forEach((column, i) => {
@@ -463,8 +475,10 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
         "div",
         cn(
           "zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0",
-          column.nonWorking && "zen-bg-zen-muted/40",
-          column.today && "zen-bg-zen-primary-soft/40",
+          column.nonWorking &&
+            (tint ? "zen-bg-[color-mix(in_srgb,var(--zen-color-muted)_40%,transparent)]" : "zen-bg-zen-muted"),
+          column.today &&
+            (tint ? "zen-bg-[color-mix(in_srgb,var(--zen-color-primary-soft)_40%,transparent)]" : "zen-bg-zen-primary-soft"),
         ),
       );
       rule.style.width = `${current.axis.columnWidths[i]}px`;
@@ -759,14 +773,17 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
 
     for (const connector of links) {
       const accented = current.connectorAccent?.(connector) ?? false;
+      const styled = current.connectorStyle?.(connector);
       /* zen-stroke-* / zen-fill-* generate nothing under this preset — the
-         token has to be named directly. */
-      const tone = accented ? "var(--zen-color-error)" : "var(--zen-color-muted-fg)";
+         token has to be named directly. A broken link stays red whatever its
+         kind; its dash survives, so it still says which kind it was. */
+      const tone = accented ? "var(--zen-color-error)" : (styled?.color ?? "var(--zen-color-muted-fg)");
       const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", connector.d);
       path.setAttribute("fill", "none");
       path.setAttribute("stroke", tone);
+      if (styled?.dash) path.setAttribute("stroke-dasharray", styled.dash);
       /* Thicker as well as red: colour alone is not a signal on a chart that
          already uses red for delay. */
       path.setAttribute("stroke-width", accented ? "2.25" : "1.5");

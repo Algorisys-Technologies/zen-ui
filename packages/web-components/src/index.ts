@@ -159,7 +159,7 @@ export type {
   ViewSettingsDialogProps, ViewSettingsFilterGroup, ViewSettingsItem, ViewSettingsValue,
   VirtualizedItemsDenseProps, VirtualizedItemsProps, VirtualizedItemsSparseProps, ZenComponent,
   GanttAnchoredView, GanttAssignee, GanttBarAnchor, GanttCalendar, GanttCalendarException,
-  GanttColumnUnit, GanttConnector, GanttDependency, GanttDependencyType, GanttFitOptions,
+  GanttColumnUnit, GanttConnector, GanttDependency, GanttDependencyStyle, GanttDependencyType, GanttFitOptions,
   GanttFlattenOptions, GanttPaneColumn, GanttProps, GanttRow, GanttSegmentOptions, GanttSpan,
   GanttTask, GanttTaskNode, GanttTaskStatus, GanttView, GanttWorkingPeriod, ProductionConflict,
   ProductionConflictKind, ProductionCriticalPath, ProductionCriticalPathOptions,

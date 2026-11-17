@@ -16,6 +16,8 @@ import {
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
+  type GanttDependencyStyle,
+  type GanttConnector,
   type GanttTaskStatus,
   type GanttView,
   type PlanningColumn,
@@ -132,6 +134,14 @@ export interface ProductionScheduleProps {
   dependencies?: GanttDependency[];
   /** Draw the routing layer. Default true. */
   showDependencies?: boolean;
+  /**
+   * The colour and dash of one link's arrow, from the caller's own data —
+   * typically its `kind`, to tell a job's next step from a wait on another job:
+   * `(d) => d.kind === "sequence" ? { color: "var(--zen-color-info)" } : { dash: "4 3" }`.
+   * Give each kind a dash as well as a colour; red already means late here.
+   * A link the plan breaks is still drawn red and thick.
+   */
+  dependencyStyle?: (dependency: GanttDependency) => GanttDependencyStyle | undefined;
 
   /**
    * When the plant is open. A resource's own `calendar` overrides it.
@@ -256,6 +266,13 @@ export interface ProductionScheduleProps {
   rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
   /** Classes for an operation's bar, applied after its status colours so they win. */
   barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+  /**
+   * A CSS colour for a stripe on the bar's leading edge — a second channel
+   * beside the status fill, for a shift, a line or a customer:
+   * `(op) => shiftColour[op.shift]`. A value rather than a class, so the colour
+   * can come from data.
+   */
+  barAccent?: (operation: ProductionOperation) => string | undefined | false | null;
   /**
    * Classes for the header: the row and its frozen pane, applied after their
    * own, so a caller's background and text colour win
@@ -385,6 +402,8 @@ export const ProductionSchedule = ({
   density,
   rowClassName,
   barClassName,
+  barAccent,
+  dependencyStyle,
   className,
 }: ProductionScheduleProps) => {
   const loc = useLocale();
@@ -648,6 +667,11 @@ export const ProductionSchedule = ({
     (connector: { from: string; to: string }) => violated?.has(`${connector.from}->${connector.to}`) ?? false,
     [violated],
   );
+  // Memoized so the grid's memoized connector layer is not rebuilt every render.
+  const connectorStyle = React.useMemo(
+    () => (dependencyStyle ? (c: GanttConnector) => dependencyStyle(c.dependency) : undefined),
+    [dependencyStyle],
+  );
 
   /* ------------------------------------------------------------------ *
    * Rescheduling.
@@ -728,11 +752,12 @@ export const ProductionSchedule = ({
         isCritical={isCritical}
         onPlace={onPlace}
         barClass={barClassName}
+        accent={barAccent}
         barPx={laneBar}
       />
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose, isCritical, onPlace, barClassName, laneBar],
+    [range, onOperationClick, rowHeight, laneCount, mayMove, msPerPx, propose, isCritical, onPlace, barClassName, barAccent, laneBar],
   );
 
   const renderFooter = React.useCallback(
@@ -803,6 +828,7 @@ export const ProductionSchedule = ({
         now={now}
         connectors={connectors}
         connectorAccent={connectorAccent}
+        connectorStyle={connectorStyle}
         views={views}
         hideToolbar={hideToolbar}
         onViewChange={setView}
@@ -989,6 +1015,7 @@ const ProductionTrack = ({
   isCritical,
   onPlace,
   barClass,
+  accent,
   barPx,
 }: {
   row: Row;
@@ -1001,6 +1028,7 @@ const ProductionTrack = ({
   isCritical: (id: string) => boolean;
   onPlace?: (at: { operationId: string; resourceId: string; start: Date }) => void;
   barClass?: (operation: ProductionOperation) => string | undefined | false | null;
+  accent?: (operation: ProductionOperation) => string | undefined | false | null;
   barPx: number;
 }) => {
   const loc = useLocale();
@@ -1055,6 +1083,7 @@ const ProductionTrack = ({
           onPropose={onPropose}
           critical={isCritical(placement.operation.id)}
           barClass={barClass?.(placement.operation) || undefined}
+          accent={accent?.(placement.operation) || undefined}
           barPx={barPx}
         />
       )),
@@ -1095,6 +1124,7 @@ const ProductionBar = ({
   onPropose,
   critical,
   barClass,
+  accent,
   barPx,
 }: {
   placement: ProductionPlacement<ProductionOperation>;
@@ -1107,6 +1137,7 @@ const ProductionBar = ({
   onPropose: (move: ProductionMove) => void;
   critical: boolean;
   barClass?: string;
+  accent?: string;
   barPx: number;
 }) => {
   const loc = useLocale();
@@ -1350,6 +1381,16 @@ const ProductionBar = ({
       {/* Late: a solid end cap in the error colour. Status is the bar's fill,
           so lateness gets its own mark rather than a recolour — and words
           in the tooltip and the accessible name. */}
+      {/* The caller's stripe at the START, so it never meets the late cap at
+          the end — the two marks answer different questions. */}
+      {accent && (
+        <span
+          aria-hidden="true"
+          data-production-accent=""
+          className="zen-absolute zen-inset-y-0 zen-start-0 zen-w-1 zen-rounded-s-zen-sm"
+          style={{ backgroundColor: accent }}
+        />
+      )}
       {lateMs > 0 && (
         <span
           aria-hidden="true"

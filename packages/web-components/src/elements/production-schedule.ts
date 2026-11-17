@@ -152,6 +152,9 @@ defineZenElement<ProductionScheduleProps>({
     "maxBodyHeight",
     "rowClassName",
     "barClassName",
+    // Functions, so properties: el.barAccent = (op) => colour; el.dependencyStyle = (d) => ({ color, dash }).
+    "barAccent",
+    "dependencyStyle",
     "emptyState",
   ],
   events: {

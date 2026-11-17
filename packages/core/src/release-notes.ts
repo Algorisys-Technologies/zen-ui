@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "12.15.0",
+    date: "2026-11-17",
+    kind: "new",
+    title: "Colour Gantt and ProductionSchedule by your own data, in every binding",
+    detail: "barAccent and dependencyStyle reach React, vanilla and web components (as element properties there), with the see-through weekend shading on tinted rows. Solid had them in 12.14.0.",
+  },
+  {
     version: "12.14.0",
     date: "2026-11-17",
     kind: "new",
