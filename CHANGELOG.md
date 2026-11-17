@@ -15,6 +15,17 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Deploy tooling: `gen-previews` lost 1-4 catalogue thumbnails per binding on
+  every deploy ("did not render in time", a different set each run) to rare
+  stalls on a busy machine. A route that misses its render window is now
+  loaded once more before falling back, and named ("rendered on the retry").
+  Also: the server is warmed before the crawl; `.demo-page` is awaited
+  `attached` (five Solid demos never count as visible); SIGTERM kills the dev
+  server before closing the browser. `GEN_PREVIEWS_STALL_ONCE=/a,/b` (opt-in)
+  fails named routes' first load, which is how the retry was verified.
+
 ## [12.15.1] - 2026-11-17
 
 ### Fixed
