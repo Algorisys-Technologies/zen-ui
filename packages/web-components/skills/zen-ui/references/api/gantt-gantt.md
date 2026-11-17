@@ -16,6 +16,7 @@ SKILL.md.
 - `tasks: GanttTask[]`
 - `dependencies?: GanttDependency[] | undefined` — Links between tasks. Finish-to-start unless the link says otherwise.
 - `showDependencies?: boolean | undefined` — Draw the connector layer. Default true.
+- `dependencyStyle?: ((dependency: GanttDependency) => GanttDependencyStyle | undefined) | undefined` — The colour and dash of one dependency's arrow, from the caller's own data — typically its `kind`: `(d) => d.kind === "sequence" ? { color: "var(--zen-color-info)" } : { dash: "4 3" }`. Give each kind a dash as well as a colour; red already means late here. A link the plan breaks is still drawn red.
 - `defaultView?: GanttView | undefined` — Uncontrolled starting view. Default "fit" — the axis takes its range from the tasks, so the plan opens whole instead of showing whichever calendar month today happens to fall in.
 - `view?: GanttView | undefined` — Controlled view; pair with `onViewChange`.
 - `onViewChange?: ((view: GanttView) => void) | undefined`
@@ -40,6 +41,7 @@ SKILL.md.
 - `maxBodyHeight?: string | number | undefined` — The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem.
 - `rowClassName?: ((task: GanttTask, row: GanttRow<GanttTask>) => string | undefined) | undefined` — Classes for a task's row — a tint for a critical or late task.
 - `barClassName?: ((task: GanttTask) => string | undefined | false | null) | undefined` — Classes for a task's bar, applied after its status colours so they win: `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
+- `barAccent?: ((task: GanttTask) => string | undefined | false | null) | undefined` — A CSS colour for a stripe on the bar's leading edge — a second channel beside the status fill, for a shift, a line or a customer: `(t) => shiftColour[t.shift]`. A value rather than a class, so the colour can come from data.
 - `headerClassName?: string | undefined` — Classes for the header: the row and its frozen pane, applied after their own, so a caller's background and text colour win (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
 - `density?: Density | undefined` — How much room a row and its bar takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `className?: string | undefined`

@@ -15,6 +15,7 @@ import {
   type GanttAnchoredView,
   type GanttColumnUnit,
   type GanttConnector,
+  type GanttDependencyStyle,
   type GanttCalendar,
   type GanttView,
   type PlanningColumn,
@@ -272,6 +273,8 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
    * so the caller decides and this only draws it.
    */
   connectorAccent?: (connector: GanttConnector) => boolean;
+  /** The caller's colour and dash for one arrow. An accented arrow keeps the dash but not the colour. */
+  connectorStyle?: (connector: GanttConnector) => GanttDependencyStyle | undefined;
 
   /* ---- toolbar ---- */
   views?: GanttView[];
@@ -521,6 +524,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   now,
   connectors,
   connectorAccent,
+  connectorStyle,
   views,
   hideToolbar,
   onViewChange,
@@ -586,19 +590,25 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
         {connectors.map((connector) => {
           /* zen-stroke-* / zen-fill-* generate nothing under this preset — the
              token has to be named directly. */
-          const tone = connectorAccent?.(connector)
+          const accented = connectorAccent?.(connector) ?? false;
+          const styled = connectorStyle?.(connector);
+          /* A broken link stays red whatever its kind: that is the one arrow
+             the reader has to act on. Its dash survives, so it still says
+             which kind it was. */
+          const tone = accented
             ? "var(--zen-color-error)"
-            : "var(--zen-color-muted-fg)";
+            : (styled?.color ?? "var(--zen-color-muted-fg)");
           return (
             <g key={connector.id}>
               <path
                 d={connector.d}
                 fill="none"
                 stroke={tone}
+                strokeDasharray={styled?.dash}
                 /* Thicker as well as red: colour alone is not a signal, and a
                    red line on a chart that already uses red for delay needs a
                    second channel to be read as "this link is broken". */
-                strokeWidth={connectorAccent?.(connector) ? 2.25 : 1.5}
+                strokeWidth={accented ? 2.25 : 1.5}
               />
               <polygon
                 points={[
@@ -613,7 +623,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
         })}
       </svg>
     );
-  }, [connectors, connectorAccent, axisWidth, bodyHeight, paneWidth]);
+  }, [connectors, connectorAccent, connectorStyle, axisWidth, bodyHeight, paneWidth]);
 
   /* ------------------------------------------------------------------ *
    * Keyboard: one tab stop, APG grid navigation inside.
@@ -1112,15 +1122,29 @@ function ScheduleRow<R extends ScheduleRowShape>({
         style={{ width: axisWidth }}
       >
         {/* The column rules as a background layer rather than as parents of the
-            bar: a bar spanning four days cannot live inside one day's box. */}
+            bar: a bar spanning four days cannot live inside one day's box.
+
+            On a row the caller has tinted (a rowClassName band) the shading
+            turns TRANSLUCENT, so the band still shows on a weekend or on today.
+            Only there: an untinted row keeps the shade it always had, because
+            40% of a pale grey over white all but disappears. color-mix rather
+            than `/40`: the theme colours are bare var()s, and UnoCSS drops an
+            alpha modifier on those without a word — `/40` has always come out
+            fully opaque, which is the look every untinted chart has today. */}
         <div aria-hidden="true" className="zen-absolute zen-inset-0 zen-flex">
           {axisColumns.map((column, i) => (
             <div
               key={column.start.getTime()}
               className={cn(
                 "zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0",
-                column.nonWorking && "zen-bg-zen-muted/40",
-                column.today && "zen-bg-zen-primary-soft/40",
+                column.nonWorking &&
+                  (rowClass
+                    ? "zen-bg-[color-mix(in_srgb,var(--zen-color-muted)_40%,transparent)]"
+                    : "zen-bg-zen-muted"),
+                column.today &&
+                  (rowClass
+                    ? "zen-bg-[color-mix(in_srgb,var(--zen-color-primary-soft)_40%,transparent)]"
+                    : "zen-bg-zen-primary-soft"),
               )}
               style={{ width: columnWidths[i] }}
             />

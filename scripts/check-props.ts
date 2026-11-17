@@ -73,13 +73,6 @@ const KNOWN: Record<string, string> = {
   // Vanilla dialogs open through their handle (`.open()`), not a prop: idiom.
   "SelectDialogProps.open": "vanilla",
   "ViewSettingsDialogProps.open": "vanilla",
-  // 12.14.0 shipped Solid-first ON PURPOSE, so users can try data-driven shift
-  // stripes and link styles before the ports land. The React, vanilla and
-  // web-components ports remove these four lines.
-  "GanttProps.barAccent": "react vanilla",
-  "GanttProps.dependencyStyle": "react vanilla",
-  "ProductionScheduleProps.barAccent": "react vanilla",
-  "ProductionScheduleProps.dependencyStyle": "react vanilla",
 };
 
 const files = (dir: string): string[] =>

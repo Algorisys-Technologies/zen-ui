@@ -15,6 +15,37 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [12.15.0] - 2026-11-17
+
+The ports of 12.14.0's Solid-only work, in order (React, vanilla, web
+components), each verified in a browser before the next. `check:parity` is
+green again and the four temporary check:props KNOWN lines are gone.
+
+### Added
+
+- React, vanilla, web components: Gantt / ProductionSchedule `barAccent` and
+  `dependencyStyle`; ScheduleGrid `connectorStyle`; `GanttDependencyStyle`
+  exported from every binding. React memoizes the connector-style adapter so
+  the grid's memoized connector layer is not rebuilt each render. Web
+  components take both as element properties (they are functions).
+- Demo sections in all three: Gantt 15 and ProductionSchedule "Colour by your
+  own data", same data and legend as Solid.
+
+### Fixed
+
+- React, vanilla, web components ScheduleGrid body: the same translucent
+  shading on tinted rows as Solid 12.14.0; untinted rows unchanged.
+
+### Verified
+
+- The same probe over all four bindings returned identical results: 7 Gantt
+  and 10 ProductionSchedule stripes, 6 and 7 arrows with the same dashes, and
+  495 shaded cells split identically between opaque (untinted) and 40%
+  (tinted).
+- Web components resolve `@algorisys/zen-ui-vanilla` through vanilla's BUILT
+  types, so the new type was invisible to them until vanilla's `build:lib`
+  ran. That is the vanilla-before-web-components order CLAUDE.md describes.
+
 ## [12.14.0] - 2026-11-17
 
 **Solid only, deliberately.** Shipped before the ports so Solid users can try

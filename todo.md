@@ -23,7 +23,7 @@ issue / PR when its turn comes.
 
 ## Open after 12.14.0 (2026-11-17)
 
-- [ ] **Port 12.14.0's data colours to React → vanilla → web-components.**
+- [x] **Port 12.14.0's data colours to React → vanilla → web-components.** Done in 12.15.0.
       Solid is the reference: `barAccent`, `dependencyStyle` (ScheduleGrid
       `connectorStyle`), translucent body shading on tinted rows only, the two
       demo sections. Remove the four Solid-first KNOWN lines in check-props.ts,

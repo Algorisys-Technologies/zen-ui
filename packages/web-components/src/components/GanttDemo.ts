@@ -1,4 +1,4 @@
-import type { GanttCalendar, GanttDependency, GanttRow, GanttTask } from "@algorisys/zen-ui-vanilla";
+import type { GanttCalendar, GanttDependency, GanttDependencyStyle, GanttRow, GanttTask } from "@algorisys/zen-ui-vanilla";
 import { DemoPage } from "./demo-helpers";
 
 const tagged = (testid: string, child: Node, opts: { maxWidth?: string; dir?: string; vars?: Record<string, string> } = {}): HTMLElement => {
@@ -192,6 +192,99 @@ const SHOP_LINKS: GanttDependency[] = [
   { from: "j1", to: "j2" },
   { from: "j2", to: "j3" },
 ];
+
+/* Two works orders, one row per operation, each operation booked on a shift.
+   The shift is the CALLER's data — kept beside the tasks here, but it could as
+   well be a column in a database row. The component is never told what a shift
+   is; it is only asked what to draw. */
+const op = (id: string, name: string, machine: string, day: number, from: number, to: number) => ({
+  id,
+  name,
+  subtitle: machine,
+  start: shopAt(day, from),
+  end: shopAt(day, to),
+  percentComplete: 0,
+});
+const MES: GanttTask[] = [
+  {
+    id: "wo1",
+    name: "BLD-4908",
+    children: [
+      op("a1", "Op 1 · Laser cut", "Laser 1", 21, 6, 14),
+      op("a2", "Op 2 · Bend", "Press brake", 21, 14, 22),
+      op("a3", "Op 3 · Weld", "Weld cell", 22, 6, 14),
+      op("a4", "Op 4 · Paint", "Booth", 22, 14, 22),
+    ],
+  },
+  {
+    id: "wo2",
+    name: "HB-4917",
+    children: [
+      op("b1", "Op 1 · Rod cut", "Saw 2", 21, 14, 22),
+      op("b2", "Op 2 · Turn", "Lathe 4", 22, 14, 22),
+      op("b3", "Op 3 · Assemble", "Bench 1", 23, 6, 14),
+    ],
+  },
+];
+const MES_SHIFT: Record<string, string> = { a1: "GS", a2: "S2", a3: "GS", a4: "S2", b1: "S2", b2: "S2", b3: "GS" };
+/* Two ways to show a shift, both chosen per call. The band tints the whole
+   timeline row and is a class (it ships with your stylesheet); the stripe is a
+   value, so it can come straight out of your records. */
+const SHIFT_BAND: Record<string, string> = {
+  GS: "zen-bg-[color-mix(in_srgb,var(--zen-color-accent-orange)_12%,transparent)]",
+  S2: "zen-bg-[color-mix(in_srgb,var(--zen-color-accent-purple)_12%,transparent)]",
+};
+const SHIFT_COLOUR: Record<string, string> = {
+  GS: "var(--zen-color-accent-orange)",
+  S2: "var(--zen-color-accent-purple)",
+};
+const MES_LINKS: GanttDependency[] = [
+  { from: "a1", to: "a2", kind: "sequence" },
+  { from: "a2", to: "a3", kind: "sequence" },
+  { from: "a3", to: "a4", kind: "sequence" },
+  { from: "b1", to: "b2", kind: "sequence" },
+  { from: "b2", to: "b3", kind: "sequence" },
+  // HB-4917's assembly needs the welded frame from the other order.
+  { from: "a3", to: "b3", kind: "dependency" },
+];
+const LINK_STYLE: Record<string, GanttDependencyStyle> = {
+  sequence: { color: "var(--zen-color-info)" },
+  dependency: { color: "var(--zen-color-accent-magenta)", dash: "4 3" },
+};
+
+/* The legend is the caller's to draw — only the caller knows what the kinds
+   are called. A swatch is a stripe for a shift and a line for a kind of link. */
+const legend = (items: { label: string; swatch: Node }[]): HTMLElement => {
+  const list = document.createElement("ul");
+  list.className = "zen-flex zen-flex-wrap zen-gap-x-4 zen-gap-y-1 zen-text-xs zen-text-zen-muted-fg";
+  for (const item of items) {
+    const li = document.createElement("li");
+    li.className = "zen-flex zen-items-center zen-gap-1.5";
+    li.append(item.swatch, item.label);
+    list.append(li);
+  }
+  return list;
+};
+const stripe = (colour: string): Node => {
+  const s = document.createElement("span");
+  s.setAttribute("aria-hidden", "true");
+  s.className = "zen-inline-block zen-h-3 zen-w-1 zen-rounded-zen-sm";
+  s.style.backgroundColor = colour;
+  return s;
+};
+const line = (style: GanttDependencyStyle): Node => {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("width", "24");
+  svg.setAttribute("height", "6");
+  const l = document.createElementNS(NS, "line");
+  for (const [k, v] of Object.entries({ x1: "0", y1: "3", x2: "24", y2: "3", "stroke-width": "1.5" })) l.setAttribute(k, v);
+  if (style.color) l.setAttribute("stroke", style.color);
+  if (style.dash) l.setAttribute("stroke-dasharray", style.dash);
+  svg.append(l);
+  return svg;
+};
 
 /** A plan that crosses New Year — the case no calendar year can show whole. */
 const CROSS_YEAR: GanttTask[] = [
@@ -542,6 +635,58 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
           const box = document.createElement("div");
           box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
           box.append(tagged("gantt-compact", (() => { const c = gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW }); c.setAttribute("density", "compact"); return c; })()), tagged("gantt-touch", (() => { const c = gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW }); c.setAttribute("density", "touch"); return c; })()));
+          return box;
+        },
+      },
+      {
+        title: '15. Colour by your own data: shifts and kinds of link',
+        codeTitle: 'rowClassName, barAccent, dependencyStyle, kind on a dependency',
+        codeDescription:
+          "Three channels, each driven by data the component never interprets, and each optional — use one, two or all three. rowClassName (a property, like every callback here) tints the row's timeline band (here, by the shift the operation runs on). barAccent returns a CSS colour for a stripe on the bar's leading edge, so the status fill keeps saying what it said; it is a value rather than a class so the colour can come from your records. A dependency can carry a kind of your own naming, and dependencyStyle turns it into a colour and a dash: here, the next step of the same order against a wait on another order. Give every kind a dash as well as a colour, because red already means late. The legend is yours to draw: only you know what the kinds are called.",
+        code: `<zen-gantt id="plan" default-view="week"></zen-gantt>
+<script>
+  const band = {
+    GS: "zen-bg-[color-mix(in_srgb,var(--zen-color-accent-orange)_12%,transparent)]",
+    S2: "zen-bg-[color-mix(in_srgb,var(--zen-color-accent-purple)_12%,transparent)]",
+  };
+  const colour = { GS: "var(--zen-color-accent-orange)", S2: "var(--zen-color-accent-purple)" };
+  const linkStyle = {
+    sequence: { color: "var(--zen-color-info)" },
+    dependency: { color: "var(--zen-color-accent-magenta)", dash: "4 3" },
+  };
+  const chart = document.querySelector("#plan");
+  chart.tasks = operations;
+  chart.dependencies = [
+    { from: "a1", to: "a2", kind: "sequence" },
+    { from: "a3", to: "b3", kind: "dependency" },
+  ];
+  chart.rowClassName = (t) => band[shiftOf[t.id]];
+  chart.barAccent = (t) => colour[shiftOf[t.id]];
+  chart.dependencyStyle = (link) => linkStyle[link.kind];
+</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-3";
+          box.setAttribute("data-testid", "gantt-data-colours");
+          const chart = gantt({
+            tasks: MES,
+            dependencies: MES_LINKS,
+            now: SHOP_NOW,
+            defaultDate: shopAt(21, 0),
+            rowClassName: (t: GanttTask) => SHIFT_BAND[MES_SHIFT[t.id]],
+            barAccent: (t: GanttTask) => SHIFT_COLOUR[MES_SHIFT[t.id]],
+            dependencyStyle: (link: GanttDependency) => (link.kind ? LINK_STYLE[link.kind] : undefined),
+          });
+          chart.setAttribute("default-view", "week");
+          box.append(
+            legend([
+              { label: "General shift (GS)", swatch: stripe(SHIFT_COLOUR.GS) },
+              { label: "Second shift (S2)", swatch: stripe(SHIFT_COLOUR.S2) },
+              { label: "Next step, same order", swatch: line(LINK_STYLE.sequence) },
+              { label: "Waits on another order", swatch: line(LINK_STYLE.dependency) },
+            ]),
+            chart,
+          );
           return box;
         },
       },

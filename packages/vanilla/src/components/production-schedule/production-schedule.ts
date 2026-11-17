@@ -15,6 +15,8 @@ import {
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
+  type GanttDependencyStyle,
+  type GanttConnector,
   type GanttTaskStatus,
   type GanttView,
   type PlanningColumn,
@@ -105,6 +107,14 @@ export interface ProductionScheduleProps extends BaseProps {
   dependencies?: GanttDependency[];
   /** Draw the routing layer. Default true. */
   showDependencies?: boolean;
+  /**
+   * The colour and dash of one link's arrow, from the caller's own data —
+   * typically its `kind`, to tell a job's next step from a wait on another job:
+   * `(d) => d.kind === "sequence" ? { color: "var(--zen-color-info)" } : { dash: "4 3" }`.
+   * Give each kind a dash as well as a colour; red already means late here.
+   * A link the plan breaks is still drawn red and thick.
+   */
+  dependencyStyle?: (dependency: GanttDependency) => GanttDependencyStyle | undefined;
 
   /**
    * When the plant is open. A resource's own `calendar` overrides it.
@@ -198,6 +208,13 @@ export interface ProductionScheduleProps extends BaseProps {
   rowClassName?: (resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined;
   /** Classes for an operation's bar, applied after its status colours so they win. */
   barClassName?: (operation: ProductionOperation) => string | undefined | false | null;
+  /**
+   * A CSS colour for a stripe on the bar's leading edge — a second channel
+   * beside the status fill, for a shift, a line or a customer:
+   * `(op) => shiftColour[op.shift]`. A value rather than a class, so the colour
+   * can come from data.
+   */
+  barAccent?: (operation: ProductionOperation) => string | undefined | false | null;
   /**
    * Classes for the header: the row and its frozen pane, applied after their
    * own, so a caller's background and text colour win
@@ -659,6 +676,17 @@ export function ProductionSchedule(
         }
         node.append(piece);
       }
+    }
+
+    /* The caller's stripe at the START, so it never meets the late cap at the
+       end — the two marks answer different questions. */
+    const accent = current.barAccent?.(operation);
+    if (accent) {
+      const stripe = el("span", "zen-absolute zen-inset-y-0 zen-start-0 zen-w-1 zen-rounded-s-zen-sm");
+      stripe.setAttribute("aria-hidden", "true");
+      stripe.setAttribute("data-production-accent", "");
+      stripe.style.backgroundColor = accent;
+      node.append(stripe);
     }
 
     /* Late: a solid end cap in the error colour. Status is the bar's fill, so
@@ -1137,6 +1165,9 @@ export function ProductionSchedule(
       connectors,
       connectorAccent: (connector: { from: string; to: string }) =>
         violated?.has(`${connector.from}->${connector.to}`) ?? false,
+      connectorStyle: current.dependencyStyle
+        ? (connector: GanttConnector) => current.dependencyStyle?.(connector.dependency)
+        : undefined,
       views: current.views,
       hideToolbar: current.hideToolbar,
       onViewChange: setView,

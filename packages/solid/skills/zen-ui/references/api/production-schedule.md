@@ -17,6 +17,7 @@ SKILL.md.
 - `operations: ProductionOperation[]`
 - `dependencies?: GanttDependency[] | undefined` — Routing links between operations — op 10 finishes, op 20 starts. Drawn with the same four link types a Gantt dependency has.
 - `showDependencies?: boolean | undefined` — Draw the routing layer. Default true.
+- `dependencyStyle?: ((dependency: GanttDependency) => GanttDependencyStyle | undefined) | undefined` — The colour and dash of one link's arrow, from the caller's own data — typically its `kind`, to tell a job's next step from a wait on another job: `(d) => d.kind === "sequence" ? { color: "var(--zen-color-info)" } : { dash: "4 3" }`. Give each kind a dash as well as a colour; red already means late here. A link the plan breaks is still drawn red and thick.
 - `calendar?: GanttCalendar | undefined` — When the plant is open. A resource's own `calendar` overrides it. Strongly recommended here, unlike on `Gantt`: without one every duration is wall-clock, so a changeover runs through the night, and load is measured against 24 hours a day the plant does not have.
 - `hourStep?: number | undefined` — Hours per column in the DAY view. Default 1; 0.25 for quarter-hour columns.
 - `setupMatrix?: ProductionSetupMatrix | undefined` — Sequence-dependent changeover, keyed on the pair of `setupFamily` values. With one supplied, an operation that states no `setupMinutes` gets one derived from what ran before it on the same machine. This is the difference between a changeover and a changeover *cost*: white to black is an hour of washing out, black to white is fifteen minutes, and a single per-operation duration cannot say so.
@@ -49,6 +50,7 @@ SKILL.md.
 - `maxBodyHeight?: string | number | undefined` — The chart's maximum height before it scrolls (px, or any CSS length). Default 32rem.
 - `rowClassName?: ((resource: ProductionResource, row: ProductionRowData<ProductionResource, ProductionOperation>) => string | undefined) | undefined` — Classes for a resource's row — a tint for a down machine.
 - `barClassName?: ((operation: ProductionOperation) => string | undefined | false | null) | undefined` — Classes for an operation's bar, applied after its status colours so they win.
+- `barAccent?: ((operation: ProductionOperation) => string | undefined | false | null) | undefined` — A CSS colour for a stripe on the bar's leading edge — a second channel beside the status fill, for a shift, a line or a customer: `(op) => shiftColour[op.shift]`. A value rather than a class, so the colour can come from data.
 - `headerClassName?: string | undefined` — Classes for the header: the row and its frozen pane, applied after their own, so a caller's background and text colour win (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
 - `density?: Density | undefined` — How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `className?: string | undefined`

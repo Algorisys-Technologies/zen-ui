@@ -4,7 +4,7 @@
 
 # zen-ui-core-gantt — API (React, the parity reference)
 
-Exports: `GanttAnchoredView`, `GanttBarAnchor`, `GanttCalendar`, `GanttCalendarException`, `GanttColumnUnit`, `GanttConnector`, `GanttDependency`, `GanttDependencyType`, `GanttFitOptions`, `GanttFlattenOptions`, `GanttPaneColumn`, `GanttRow`, `GanttSegmentOptions`, `GanttSpan`, `GanttTaskNode`, `GanttTaskStatus`, `GanttView`, `GanttWorkingPeriod`, `GANTT_CALENDAR_24_7`, `GANTT_PANE_COLUMNS`, `ganttAddWorkingMs`, `ganttFitRange`, `ganttFitUnit`, `ganttIsWorking`, `ganttSubWorkingMs`, `ganttPaneColumns`, `ganttRangeColumns`, `ganttSpanLabel`, `ganttWorkingMs`, `ganttWorkingPeriodsOn`, `ganttWorkingSegments`
+Exports: `GanttAnchoredView`, `GanttBarAnchor`, `GanttCalendar`, `GanttCalendarException`, `GanttColumnUnit`, `GanttConnector`, `GanttDependency`, `GanttDependencyStyle`, `GanttDependencyType`, `GanttFitOptions`, `GanttFlattenOptions`, `GanttPaneColumn`, `GanttRow`, `GanttSegmentOptions`, `GanttSpan`, `GanttTaskNode`, `GanttTaskStatus`, `GanttView`, `GanttWorkingPeriod`, `GANTT_CALENDAR_24_7`, `GANTT_PANE_COLUMNS`, `ganttAddWorkingMs`, `ganttFitRange`, `ganttFitUnit`, `ganttIsWorking`, `ganttSubWorkingMs`, `ganttPaneColumns`, `ganttRangeColumns`, `ganttSpanLabel`, `ganttWorkingMs`, `ganttWorkingPeriodsOn`, `ganttWorkingSegments`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-zen-ui-core-gantt>`-style
@@ -46,6 +46,11 @@ SKILL.md.
 - `type?: GanttDependencyType | undefined` — Default "finish-to-start".
 - `lagMinutes?: number | undefined` — Enforced delay between the two ends, in WORKING minutes — "start four hours after the previous operation finishes, for cooling". Negative is a LEAD: the successor may begin that much before the link would otherwise allow, which is how overlapping operations are expressed ("start the next op when the first is 80% through"). Working minutes rather than elapsed, for the reason everything else here is: four hours of cooling that begins at 16:00 on a single-shift plant is not done at 20:00. Nothing in this module ENFORCES it. A read-only schedule reports a link it violates and draws the bars where the caller put them — see `productionSequenceConflicts`.
 - `kind?: string | undefined` — The caller's own name for what this link IS — "sequence" for the next step of one job, "dependency" for a wait on another, anything at all. The library never reads it; it travels to the connector so a `dependencyStyle` can tell the arrows apart without a lookup.
+
+### GanttDependencyStyle (type)
+
+- `color?: string | undefined` — Any CSS colour, a token included: `"var(--zen-color-info)"`, `"#7c3aed"`.
+- `dash?: string | undefined` — An SVG `stroke-dasharray`: `"4 3"` for dashed, `"1 3"` for dotted.
 
 ### GanttFitOptions (type)
 

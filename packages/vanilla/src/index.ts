@@ -325,6 +325,7 @@ export type {
   GanttColumnUnit,
   GanttConnector,
   GanttDependency,
+  GanttDependencyStyle,
   GanttDependencyType,
   GanttRow,
   GanttSpan,

@@ -145,6 +145,9 @@ defineZenElement<GanttProps>({
     "maxBodyHeight",
     "rowClassName",
     "barClassName",
+    // Functions, so properties: el.barAccent = (t) => colour; el.dependencyStyle = (d) => ({ color, dash }).
+    "barAccent",
+    "dependencyStyle",
   ],
   events: {
     onTaskClick: "zen-task-click",
