@@ -45,9 +45,43 @@ const ZEN_DENSITY_SPACING = {
   "zen-menu-y": "var(--zen-menu-item-padding-y)",
 } as const;
 
+/**
+ * Opacity modifiers on zen colours — `bg-zen-muted/40` — and why it takes two
+ * halves. (Class names in these comments are written WITHOUT the zen- prefix on
+ * purpose: vanilla's UnoCSS scans every .ts in its build, this file included,
+ * comments and all, and a prefixed name here ships as a real rule.)
+ *
+ * Every zen colour is a bare `var(--zen-color-*)`, and UnoCSS cannot apply an
+ * alpha to a value it cannot see inside, so for releases `/40` was dropped
+ * without a word and the class rendered solid. A colour written with UnoCSS's
+ * `%alpha` placeholder fixes that: `/40` becomes
+ * `color-mix(in srgb, var(--zen-color-muted) calc(0.4 * 100%), transparent)`.
+ *
+ * But the placeholder also rewrites every PLAIN class — `bg-zen-muted` would
+ * emit a color-mix through `var(--un-bg-opacity)` instead of the bare var. That
+ * would make every zen colour in every app depend on color-mix support, and let
+ * `bg-opacity-*` start fading zen colours, which it never did. So the second
+ * half, ALPHA_POSTPROCESS below, folds a no-alpha color-mix straight back to the
+ * value it wraps. Net effect: plain classes emit exactly the bytes they always
+ * did, and only a class that asks for an alpha gets one.
+ *
+ * The two halves only work together, and `zenAnimationsPreset` carries the
+ * second: a config using `zenUnoTheme` must include that preset (every binding,
+ * the landing page and the documented consumer config do).
+ */
+const ZEN_COLOR_VALUES: string[] = [];
+function withAlpha<T extends Record<string, string>>(colors: T): { [K in keyof T]: string } {
+  const out = {} as { [K in keyof T]: string };
+  for (const key of Object.keys(colors) as (keyof T)[]) {
+    ZEN_COLOR_VALUES.push(colors[key]);
+    out[key] = `color-mix(in srgb, ${colors[key]} calc(%alpha * 100%), transparent)`;
+  }
+  return out;
+}
+
 export const zenUnoTheme = {
   colors: {
-    zen: {
+    zen: withAlpha({
       primary: "var(--zen-color-primary)",
       "primary-fg": "var(--zen-color-primary-fg)",
       "primary-soft": "var(--zen-color-primary-soft)",
@@ -112,7 +146,7 @@ export const zenUnoTheme = {
       "accent-magenta": "var(--zen-color-accent-magenta)",
       "accent-cream": "var(--zen-color-accent-cream)",
       "accent-light-blue": "var(--zen-color-accent-light-blue)",
-    },
+    }),
   },
   borderRadius: {
     "zen-sm": "var(--zen-radius-sm)",
@@ -229,9 +263,63 @@ type ZenRule = [RegExp, (match: RegExpMatchArray) => Record<string, string> | un
  * have to spell `zen-` into its own regex and could drift from ZEN_PREFIX.
  * `Preset.prefix` applies to every rule the preset declares.
  */
+/** Structural mirror of UnoCSS's UtilObject — only the part postprocess touches. */
+interface ZenUtil {
+  // Uno's CSSEntry carries an optional third element (a selector override);
+  // the rest spread keeps this assignable from it.
+  entries: [string, string | number | undefined, ...unknown[]][];
+}
+
+/**
+ * The second half of the opacity fix (see withAlpha). A colour with NO alpha
+ * comes out of the placeholder as `color-mix(in srgb, V calc(<1 or an
+ * --un-*-opacity var> * 100%), transparent)`; fold that back to `V`, and drop
+ * the `--un-*-opacity: 1` that only it read. A real alpha (`calc(0.4 * 100%)`)
+ * is left alone. Matched against the exact theme values, not a pattern of
+ * them: `warning-text` nests a var() fallback that a generic regex would cut.
+ */
+const escapeRe = (v: string) => v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const NO_ALPHA = new RegExp(
+  `color-mix\\(in srgb, (${ZEN_COLOR_VALUES.map(escapeRe).join("|")}) calc\\((?:1|var\\(--un-[\\w-]+-opacity\\)) \\* 100%\\), transparent\\)`,
+  "g",
+);
+const ALPHA_POSTPROCESS = (util: ZenUtil) => {
+  let folded = false;
+  for (const entry of util.entries) {
+    if (typeof entry[1] !== "string" || !entry[1].includes("color-mix(")) continue;
+    const next = entry[1].replace(NO_ALPHA, "$1");
+    if (next !== entry[1]) {
+      entry[1] = next;
+      folded = true;
+    }
+  }
+  if (!folded) return;
+  // Drop the opacity vars nothing reads any more — only in a utility we just
+  // folded: `bg-opacity-100` sets `--un-bg-opacity: 1` on its own, and that
+  // one must survive. Repeated until stable, because the side-border utilities
+  // CHAIN them (`--un-border-top-opacity: var(--un-border-opacity)`): removing
+  // the outer one orphans the inner. check:theme-alpha caught exactly that.
+  const isOpacityVar = (k: string) => /^--un-[\w-]+-opacity$/.test(k);
+  for (let changed = true; changed; ) {
+    changed = false;
+    for (const [k] of util.entries) {
+      if (!isOpacityVar(k)) continue;
+      const readElsewhere = util.entries.some(([other, v]) => other !== k && String(v).includes(`var(${k})`));
+      if (!readElsewhere) {
+        util.entries = util.entries.filter(([other]) => other !== k);
+        changed = true;
+        break;
+      }
+    }
+  }
+};
+
 export const zenAnimationsPreset = {
   name: "zen-animations",
   prefix: ZEN_PREFIX,
+  // Not an animation: the opacity fix's second half rides on this preset because
+  // every config that uses zenUnoTheme already includes it. See withAlpha.
+  postprocess: [ALPHA_POSTPROCESS],
   rules: [
     [
       /^anim-(.+)$/,
