@@ -191,25 +191,37 @@ simply be misspelled against the theme. Two real ones from the same report —
 consumer's markup, and no preset change would have fixed them. The token list is
 in the [README](../README.md#token-reference).
 
-### An opacity modifier on a zen colour does nothing
+### Opacity modifiers on zen colours
 
-`zen-bg-zen-muted/40` generates exactly what `zen-bg-zen-muted` does: a solid
-colour. Every zen theme colour is a bare `var(--zen-color-*)`, and UnoCSS cannot
-apply an alpha to a value it cannot see inside, so it drops the `/40` without a
-warning. This holds for every utility (`bg`, `border`, `text`, `ring`, …) and
-in your own app too, if you generate `zen-` classes with this preset.
+`zen-bg-zen-muted/40` gives you the muted colour at 40%:
 
-For real translucency, mix the token yourself:
-
-```html
-<div class="zen-bg-[color-mix(in_srgb,var(--zen-color-muted)_40%,transparent)]">
+```css
+.zen-bg-zen-muted\/40 {
+  background-color: color-mix(in srgb, var(--zen-color-muted) 40%, transparent);
+}
 ```
 
-zen-ui's own source used to carry about 145 of these, each one reading as
-translucent and rendering solid. They were rewritten to the plain class (what
-they always rendered, so nothing moved), and `bun run check:theme-alpha` fails
-if one comes back. It asks the generator, not a regex: a class fails only when
-its CSS matches the class without the modifier.
+It did not always. Every zen colour is a bare `var(--zen-color-*)`, which
+UnoCSS cannot fade, so until this was fixed `/40` was dropped without a warning
+and the class rendered solid. zen-ui's own components carried about 145 of these;
+they were rewritten to the plain class (what they always rendered) in 12.15.1,
+before the modifier started working, so turning it on moved nothing in zen-ui.
+
+**Your config needs `zenAnimationsPreset`** alongside `zenUnoTheme`, as in the
+example above. The fix has two halves: the theme's colours carry UnoCSS's
+`%alpha` placeholder, and that preset folds a colour with no alpha back to the
+bare `var()`. With the theme but not the preset, every plain colour class would
+emit a `color-mix()` instead, and `zen-bg-opacity-*` would start fading zen
+colours. Despite its name, the preset is where this half lives.
+
+A plain colour class is byte-for-byte what it always was, so `color-mix()`
+support only matters where you write a modifier. `bun run check:theme-alpha`
+pins both halves: it compares every plain colour class, for every zen colour
+and colour utility, against the old theme's output, and checks that modifiers
+really fade.
+
+**If you wrote `/NN` on a zen colour before this,** it rendered solid, and it
+will now fade as written. Drop the modifier to keep the solid look.
 
 ### Two traps worth knowing
 

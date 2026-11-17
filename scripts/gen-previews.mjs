@@ -129,8 +129,11 @@ const live = { browser: null, server: null };
  */
 process.on("SIGTERM", async () => {
   console.error("gen-previews: stopped by SIGTERM (deploy.sh's per-binding timeout?)");
-  await live.browser?.close().catch(() => {});
+  // The SERVER first: it is what holds the port, and a stranded one answers the
+  // next run's health check. Closing a browser whose page has wedged can hang,
+  // and the kill used to wait behind it.
   if (live.server) await killGroup(live.server);
+  await live.browser?.close().catch(() => {});
   process.exit(143);
 });
 
@@ -191,6 +194,9 @@ for (const binding of which) {
   const unrendered = new Set();
   const failed = [];
   const fellBack = [];
+  // Routes that missed the first render window and made it on the retry. Named
+  // in the summary, so a route that is slow EVERY run still shows up.
+  const retried = [];
   // A hard ceiling per route. `networkidle` never settles on a page that keeps
   // the network or the event loop busy, and vanilla's /skip-to-content wedged
   // the whole run there — twice, holding the deploy indefinitely rather than
@@ -215,7 +221,9 @@ for (const binding of which) {
   // deploys died this way ("page.$: Target page ... has been closed"), on
   // solid once and react once, under memory pressure that made a route slow.
   // A rejection within the ceiling still throws, as before.
-  const withCeiling = (work, ms = 25000) => {
+  // 40s rather than 25: a route may now spend two render windows (the first
+  // try and the retry) before it is shot. Still a hard ceiling on a wedge.
+  const withCeiling = (work, ms = 40000) => {
     let over = false;
     const guarded = work.then(
       (v) => v,
@@ -244,6 +252,16 @@ for (const binding of which) {
   const RECYCLE_EVERY = 25;
   let sinceRecycle = 0;
 
+  // Warm the dev server before the timed crawl. The first route otherwise pays
+  // the app's whole cold compile inside its render window (measured: the first
+  // crawled route, failed once on purpose, then blew the 40s ceiling on its
+  // retry while every later one recovered in ~2s). Untimed by design, and
+  // bounded only by the navigation timeout: a server that cannot serve its
+  // root is a failure the first route would report anyway.
+  await page.goto(`http://localhost:${cfg.port}${cfg.base}/`, { waitUntil: "domcontentloaded", timeout: 60000 }).catch(() => {});
+  await page.waitForSelector(".demo-page", { timeout: 60000 }).catch(() => {});
+
+  const stallOnce = new Set((process.env.GEN_PREVIEWS_STALL_ONCE ?? "").split(",").filter(Boolean));
   for (const route of routes) {
     if (sinceRecycle >= RECYCLE_EVERY) {
       await page.close().catch(() => {});
@@ -255,16 +273,42 @@ for (const binding of which) {
     sinceRecycle++;
     const outcome = await withCeiling(
       (async () => {
-    await page
-      .goto(`http://localhost:${cfg.port}${cfg.base}${route}`, { waitUntil: "domcontentloaded" })
-      .catch(() => {});
+    const url = `http://localhost:${cfg.port}${cfg.base}${route}`;
     // Wait for the demo to actually render. `networkidle` says the network went
     // quiet, not that the route mounted — and a fixed sleep is a race: the set
     // of routes that "had no rendered example" CHANGED between two runs, which
     // is what gave the race away.
-    await page.waitForSelector(".demo-page", { timeout: 6000 }).catch(() => {});
-    await page.waitForSelector(".example-preview", { timeout: 3000 }).catch(() => {});
-    await sleep(250);
+    const render = async (demoMs, exampleMs) => {
+      await page.goto(url, { waitUntil: "domcontentloaded" }).catch(() => {});
+      await page.waitForSelector(".demo-page", { timeout: demoMs }).catch(() => {});
+      await page.waitForSelector(".example-preview", { timeout: exampleMs }).catch(() => {});
+      await sleep(250);
+      // The same test the shot below applies: an element too small to shoot
+      // is as unrendered as a missing one.
+      const el = (await page.$(".example-preview")) ?? (await page.$(".demo-page"));
+      const box = el ? await el.boundingBox().catch(() => null) : null;
+      return !!box && box.width >= 8 && box.height >= 8;
+    };
+    // ONE retry before falling back to a viewport shot. Measured 2026-11-17:
+    // three deploys in a row each lost 1-4 routes per binding to "did not render
+    // in time", a DIFFERENT set every run (/avatar, /toast, /document-viewer,
+    // /paper, …), while six standalone runs of this script over the same
+    // bindings (824 captures) lost none, and every one of those routes renders
+    // in 1-3s cold on the dev server. A rare transient stall, not a slow route,
+    // so the second load is what fixes it; a route that fails both is real.
+    //
+    // GEN_PREVIEWS_STALL_ONCE=/a,/b fails the FIRST document load of the named
+    // routes, so they miss the window for certain: the only way to exercise
+    // this path on demand. It is how the retry was verified; nothing sets it.
+    // (Aborting, not delaying: a delay can still land inside the window, and
+    // then the test is as racy as the bug.)
+    if (stallOnce.delete(route)) {
+      await page.route("**/*", (r) => (r.request().isNavigationRequest() ? r.abort() : r.continue()), { times: 1 });
+    }
+    if (!(await render(6000, 3000))) {
+      await page.unroute("**/*").catch(() => {});
+      if (await render(12000, 4000)) retried.push(route);
+    }
     // Fall back to the page itself when a demo renders no live example. Leaving
     // the file out instead means the card requests an image that 404s: the <img>
     // hides itself, but the browser still logs a console error, and check-site
@@ -407,6 +451,9 @@ for (const binding of which) {
     // Named, because a demo with no rendered example is worth knowing about even
     // though it now gets a picture.
     console.log(`  ${fellBack.length} had no rendered example (page used instead): ${fellBack.join(", ")}`);
+  }
+  if (retried.length) {
+    console.log(`  ${retried.length} rendered on the retry (first load missed the window): ${retried.join(", ")}`);
   }
   // A route that rendered late AND hit the ceiling is named once, with the ceiling.
   for (const r of [...unrendered]) if (unrendered.has(`${r} (hit the per-route ceiling)`)) unrendered.delete(r);

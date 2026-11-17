@@ -15,6 +15,59 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.0.0] - 2026-11-18
+
+Major: an app that generates `zen-` classes with the preset sees any `/NN` it
+wrote on a zen colour start to fade. zen-ui's own stylesheets are byte-identical
+(vanilla minus one dead selector). Merged from `feat/theme-alpha`.
+
+### Changed
+
+- **Opacity modifiers on zen colours now work.** `zen-bg-zen-muted/40` emits
+  `color-mix(in srgb, var(--zen-color-muted) 40%, transparent)` instead of the
+  solid colour. Theme colours carry UnoCSS's `%alpha` placeholder (`withAlpha`
+  in core/uno-preset.ts), and a postprocess on `zenAnimationsPreset` folds a
+  no-alpha `color-mix` back to the bare `var()`, removing the `--un-*-opacity`
+  vars it orphans. It repeats until stable, because the side-border utilities
+  chain them. Plain classes are byte-identical to before: the four published
+  stylesheets were rebuilt and compared byte for byte. React, Solid and web
+  components are identical; vanilla differs only by a dead selector (below).
+  **Breaking for apps that generate `zen-` classes with the preset:** any `/NN`
+  they wrote on a zen colour rendered solid and will now fade. zen-ui's own
+  components use none (removed in 12.15.1). Apps need `zenAnimationsPreset` in
+  their config; the documented config already has it, and the landing config
+  now does.
+- `check:theme-alpha` is now the contract for both halves. Against an oracle
+  built from the old bare-`var()` theme, all 1026 plain classes (54 colours x 19
+  colour utilities) must be byte-identical. Seven modifiers, including the
+  nested-fallback `warning-text`, must fade. A standalone `zen-bg-opacity-100`
+  must keep its var. 2115 assertions. Its first run caught the chained
+  side-border vars.
+
+### Fixed
+
+- Landing: `text-zen-foreground/85` and `bg-zen-muted/60` rendered solid; pinned
+  to the plain class so the page looks the same now that modifiers work.
+- Vanilla shipped a dead `.zen-bg-zen-muted\/40` selector. Its UnoCSS scans
+  every `.ts` in the build, comments and strings included, and the 12.15.1
+  footer note spelled the class out. Reworded; the new uno-preset.ts comments
+  write class names unprefixed for the same reason.
+
+### Fixed
+
+- Deploy tooling: `gen-previews` lost 1-4 catalogue thumbnails per binding on
+  every deploy ("did not render in time", a different set each run) to rare
+  stalls on a busy machine. A route that misses its render window is now
+  loaded once more before falling back, and named ("rendered on the retry").
+  Also: the server is warmed before the crawl; SIGTERM kills the dev server
+  before closing the browser. (An interim change awaited `.demo-page`
+  `attached`, on a claim that five Solid demos never count as visible. Re-measured,
+  that was wrong: `/` and `/data-table` have no `.demo-page` (own layouts), and
+  `/tabs`, `/routing-graph`, `/view-manager` render visibly in 0.15-0.35s on
+  both servers, crawl order included. The claim was an artifact of a throwaway
+  timing script, so the change was reverted.) `GEN_PREVIEWS_STALL_ONCE=/a,/b` (opt-in)
+  fails named routes' first load, which is how the retry was verified.
+
 ## [12.15.1] - 2026-11-17
 
 ### Fixed

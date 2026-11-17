@@ -33,11 +33,18 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.0.0",
+    date: "2026-11-18",
+    kind: "breaking",
+    title: "An opacity modifier on a zen colour now fades",
+    detail: "A muted background \"at 40%\" is really 40% now; it used to render solid. zen-ui's components look the same. If your app generates zen- classes with the preset and wrote one, drop the modifier to keep the solid look.",
+  },
+  {
     version: "12.15.1",
     date: "2026-11-17",
     kind: "fixed",
     title: "Removed opacity classes that never worked; nothing you see changes",
-    detail: "zen-bg-zen-muted/40 and the like rendered solid all along: zen colours are CSS variables, which the generator cannot fade. Use color-mix for real translucency.",
+    detail: "A muted background \"at 40%\" and the like rendered solid all along: zen colours are CSS variables, which the generator cannot fade. Use color-mix for real translucency.",
   },
   {
     version: "12.15.0",
