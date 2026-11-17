@@ -15,6 +15,12 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.0.0] - 2026-11-18
+
+Major: an app that generates `zen-` classes with the preset sees any `/NN` it
+wrote on a zen colour start to fade. zen-ui's own stylesheets are byte-identical
+(vanilla minus one dead selector). Merged from `feat/theme-alpha`.
+
 ### Changed
 
 - **Opacity modifiers on zen colours now work.** `zen-bg-zen-muted/40` emits
