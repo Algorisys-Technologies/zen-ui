@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-vanilla",
-  "version": "13.2.1",
+  "version": "13.3.0",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "sideEffects": [
@@ -72,6 +72,7 @@
   "peerDependencies": {
     "leaflet": "^1.9.0",
     "jodit": "^4.0.0",
+    "katex": "^0.16.0",
     "@monaco-editor/loader": "^1.7.0",
     "pdfjs-dist": "^5.0.0 || ^6.0.0",
     "echarts": "^6.0.0"
@@ -81,6 +82,9 @@
       "optional": true
     },
     "jodit": {
+      "optional": true
+    },
+    "katex": {
       "optional": true
     },
     "@monaco-editor/loader": {

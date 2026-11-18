@@ -12,12 +12,19 @@ import { defineZenElement } from "../lib/define";
 // <zen-tile-grid>'s aria-label is forwarded): `aria-invalid="true"` marks the
 // field and gives it the error border, as Input's does. Removing the attribute
 // removes it from the input too.
-type InputElementProps = InputProps & { ariaInvalid?: string };
+//
+// `input-id` lands on the inner <input> for the same reason, so `<zen-label
+// for>` can name it (as on <zen-native-select>, <zen-tree-select> and
+// <zen-date-input>); the host's own `id` stays the host's.
+type InputElementProps = Omit<InputProps, "id"> & { ariaInvalid?: string; inputId?: string };
 
 function toProps(p: Partial<InputElementProps>): Partial<InputProps> {
-  const { ariaInvalid, ...rest } = p;
+  const { ariaInvalid, inputId, ...rest } = p;
+  const out: Partial<InputProps> = { ...rest };
   // Sent even when unset, so a removed attribute overwrites the merged value.
-  return "ariaInvalid" in p ? { ...rest, "aria-invalid": ariaInvalid ?? undefined } : rest;
+  if ("ariaInvalid" in p) out["aria-invalid"] = ariaInvalid ?? undefined;
+  if ("inputId" in p) out.id = inputId ?? undefined;
+  return out;
 }
 
 defineZenElement<InputElementProps>({
@@ -31,6 +38,7 @@ defineZenElement<InputElementProps>({
         // vanilla's update() merges, and an undefined prop is skipped rather
         // than removed: clear it here when the attribute goes.
         if ("ariaInvalid" in next && next.ariaInvalid == null) inner.el.removeAttribute("aria-invalid");
+        if ("inputId" in next && next.inputId == null) inner.el.removeAttribute("id");
       },
       destroy: () => inner.destroy(),
     };
@@ -47,6 +55,7 @@ defineZenElement<InputElementProps>({
     "input-mode": "string",
     autocomplete: "string",
     "aria-invalid": "string",
+    "input-id": "string",
   },
   props: ["onKeyDown", "onBlur", "onFocus"],
   events: { onInput: "zen-input", onChange: "zen-change" },

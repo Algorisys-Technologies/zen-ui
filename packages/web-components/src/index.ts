@@ -44,7 +44,7 @@ export {
   ShortcutProvider, ShortcutHelp, Kbd, useShortcut, useShortcuts, keyshortcut, shortcutLabel, detectPlatform,
   PIVOT_AGGREGATIONS, PIVOT_ZONES, Page, PageHeader, Pagination, PasswordInput, PhoneInput,
   PivotDropZone, PivotFieldChip, PivotFilterMenu, PivotGrid, PivotWorkbench, Popover, Progress,
-  QRScanner, RadioGroup, RadioGroupItem, Rating, RichText, SKIP_TO_CONTENT_CLASS, ScrollArea,
+  QRScanner, RadioGroup, RadioGroupItem, Rating, RichText, renderMath, SKIP_TO_CONTENT_CLASS, ScrollArea,
   ScrollBar, Search, SegmentedButton, Select, SelectDialog, SelectableCardGroup, Separator,
   Sheet, ShellBar, Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
   SidebarHeader, SidebarHeaderLabel, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub,

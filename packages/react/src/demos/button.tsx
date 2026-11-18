@@ -253,7 +253,7 @@ const NewButtonDemo: React.FC = () => {
 
 {/* React Router NavLink — same pattern, full client-side routing */}
 <Button asChild color="success">
-  <NavLink to="/tooltip-new">Go to Tooltip demo</NavLink>
+  <NavLink to="/tooltip">Go to Tooltip demo</NavLink>
 </Button>`}
         >
           <Button asChild variant="outline">
@@ -262,7 +262,7 @@ const NewButtonDemo: React.FC = () => {
             </a>
           </Button>
           <Button asChild color="success">
-            <NavLink to="/tooltip-new">Go to Tooltip demo</NavLink>
+            <NavLink to="/tooltip">Go to Tooltip demo</NavLink>
           </Button>
         </CodeExample>
       </section>

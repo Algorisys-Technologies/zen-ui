@@ -28,6 +28,8 @@ defineZenElement<TreeTableProps<Record<string, unknown>>>({
     indent: "number",
     loading: "boolean",
     "default-expanded": "json",
+    // Controlled search text, as on <zen-data-table>: absent means uncontrolled.
+    "global-filter": "string",
     data: "json",
   },
   // `enableExpandAll` and `enableSubRowSelection` default to TRUE, and an
@@ -48,12 +50,23 @@ defineZenElement<TreeTableProps<Record<string, unknown>>>({
     "loadChildren",
     "onLoadChildrenError",
     "pageSizeOptions",
+    // Controlled state, as <zen-data-table> exposes it: present -> the caller
+    // owns it and an interaction only reports (through the matching event) until
+    // the new value is assigned back. `expanded` is ids or `true`, `sorting` a
+    // SortingState (only the first entry is read), `rowSelection` the ids.
+    "expanded",
+    "sorting",
+    "rowSelection",
+    // A function of the row and its depth, so a property.
+    "rowClassName",
   ],
   events: {
     onExpandedChange: "zen-expanded-change",
     onRowSelectionChange: "zen-row-selection-change",
     onRowClick: "zen-row-click",
     onPaginationChange: "zen-pagination-change",
+    onSortingChange: "zen-sorting-change",
+    onGlobalFilterChange: "zen-global-filter-change",
   },
   childrenProp: false,
 });

@@ -326,6 +326,23 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   trigger.addEventListener("click", onTriggerClick);
   trigger.addEventListener("keydown", onTriggerKey);
 
+  /*
+   * The listbox is not portaled, so it lives wherever the trigger does — and
+   * inside a <label> (FilterBar wraps every field in one, as React's does) a
+   * click on an option is ALSO the label's click, which the browser forwards to
+   * the label's control: this trigger. Picking a value closed the list and the
+   * forwarded click reopened it at once (measured: aria-expanded="true" over an
+   * open list after every pick). React's content is portaled out of the label,
+   * so it never sees this; here the click is cancelled instead, which is what
+   * stops a label forwarding it — Combobox's fix. Only inside a label, so
+   * nothing else about the list's clicks changes.
+   */
+  const onListboxClick = (e: MouseEvent) => {
+    if (el.parentElement?.closest("label")) e.preventDefault();
+  };
+  listbox.addEventListener("click", onListboxClick);
+  disposer.add(() => listbox.removeEventListener("click", onListboxClick));
+
   render();
   disposer.add(state.subscribe(paintValue));
   disposer.add(() => trigger.removeEventListener("click", onTriggerClick));

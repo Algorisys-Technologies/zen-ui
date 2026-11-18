@@ -1,6 +1,6 @@
 /* @refresh reload */
 import { render } from "solid-js/web";
-import { Router, Route } from "@solidjs/router";
+import { Navigate, Router, Route } from "@solidjs/router";
 
 import "./index.css";
 // Design tokens (defines --zen-color-* / --zen-radius-* / --zen-shadow-* per
@@ -53,11 +53,13 @@ import NewSelectDemo from "./demos/select";
 import NewScrollAreaDemo from "./demos/scroll-area";
 import NewToastDemo from "./demos/toast";
 import NewInputDemo from "./demos/input";
+import NewTextareaDemo from "./demos/textarea";
+import NewNativeSelectDemo from "./demos/native-select";
 import SearchDemo from "./demos/search";
 import PasswordInputDemo from "./demos/password-input";
 import NewNumberFieldDemo from "./demos/number-field";
 import NewAmountFieldDemo from "./demos/amount-field";
-import NewLocaleDemo from "./demos/locale";
+import NewLocaleDemo from "./demos/localization";
 import NewTagInputDemo from "./demos/tag-input";
 import NewPhoneInputDemo from "./demos/phone-input";
 import NewOTPDemo from "./demos/otp";
@@ -102,6 +104,7 @@ import NewRoutingGraphDemo from "./demos/routing-graph";
 import NewComboboxDemo from "./demos/combobox";
 import NewMultiComboboxDemo from "./demos/multi-combobox";
 import NewLazyOptionsDemo from "./demos/lazy-options";
+import NewVirtualizedItemsDemo from "./demos/virtualized-items";
 import NewFormDemo from "./demos/form";
 import NewBoundFieldsDemo from "./demos/bound-fields";
 import NewDatePickerDemo from "./demos/date-picker";
@@ -128,7 +131,7 @@ import NewButtonFamilyDemo from "./demos/button-family";
 import NewTreeDemo from "./demos/tree";
 import NewToolbarDemo from "./demos/toolbar";
 import NewDocumentTabsDemo from "./demos/document-tabs";
-import NewShellBarDemo from "./demos/shell-bar";
+import NewShellBarDemo from "./demos/shellbar";
 import SkipToContentDemo from "./demos/skip-to-content";
 import NewFlexibleColumnLayoutDemo from "./demos/flexible-column-layout";
 import NewDynamicPageDemo from "./demos/dynamic-page";
@@ -216,6 +219,8 @@ render(
       <Route path="/scroll-area" component={NewScrollAreaDemo} />
       <Route path="/toast" component={NewToastDemo} />
       <Route path="/input" component={NewInputDemo} />
+      <Route path="/textarea" component={NewTextareaDemo} />
+      <Route path="/native-select" component={NewNativeSelectDemo} />
       <Route path="/search" component={SearchDemo} />
       <Route path="/password-input" component={PasswordInputDemo} />
       <Route path="/number-field" component={NewNumberFieldDemo} />
@@ -265,7 +270,10 @@ render(
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />
-      <Route path="/form-new" component={NewFormDemo} />
+      <Route path="/virtualized-items" component={NewVirtualizedItemsDemo} />
+      {/* Old URL, kept as a redirect: it shipped on the public demo site. */}
+      <Route path="/form-new" component={() => <Navigate href="/form" />} />
+      <Route path="/form" component={NewFormDemo} />
       <Route path="/bound-fields" component={NewBoundFieldsDemo} />
       <Route path="/date-picker" component={NewDatePickerDemo} />
       <Route path="/date-input" component={NewDateInputDemo} />

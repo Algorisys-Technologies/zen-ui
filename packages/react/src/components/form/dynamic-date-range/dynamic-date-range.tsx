@@ -79,6 +79,20 @@ export const DynamicDateRange: React.FC<DynamicDateRangeProps> = ({
   const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<DateRangeValue | undefined>(defaultValue);
   const isControlled = value !== undefined;
+  /*
+   * A parent that controlled the value and then hands back `undefined` is
+   * clearing it — that is the only way to say "empty" under this contract. The
+   * component falls back to its own state at that point, so that state must not
+   * still hold whatever was picked while it was briefly uncontrolled: a List
+   * Report's Clear emptied the field once, and after picking "Today" a second
+   * Clear left "Today" showing. Adjusted during render rather than in an
+   * effect, so the stale value is never painted.
+   */
+  const [prevValue, setPrevValue] = React.useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
+    if (value === undefined) setInternal(undefined);
+  }
   const current = isControlled ? value : internal;
 
   // A fresh Date every render would make every memo below a new object each

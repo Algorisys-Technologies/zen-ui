@@ -92,7 +92,7 @@ export const NAV: NavGroup[] = [
       { label: "Badge", path: "/badge", description: "Styled span with variants \u00d7 colours; `as` for clickable badges", source: "packages/solid/src/demos/badge.tsx" },
       { label: "Link", path: "/link", description: "Styled anchor; polymorphic via as, external, disabled", source: "packages/solid/src/demos/link.tsx" },
       { label: "Theme", path: "/theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/solid/src/demos/theme.tsx", updated: "12.9.0" },
-      { label: "Localization", path: "/localization", description: "Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use", source: "packages/solid/src/demos/locale.tsx", since: "12.2.0" },
+      { label: "Localization", path: "/localization", description: "Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use", source: "packages/solid/src/demos/localization.tsx", since: "12.2.0" },
       { label: "DirectionProvider", path: "/direction", description: "Right-to-left support \u2014 tells menus, tabs and sliders which way the page reads", source: "packages/solid/src/demos/direction.tsx" },
       { label: "MessagePopover", path: "/message-popover", description: "Aggregated form validation grouped by severity; click a message to land on the field", source: "packages/solid/src/demos/message-popover.tsx" },
       { label: "Page + Bar", path: "/page", description: "The Page whole-screen container and the three-slot Bar row \u2014 the structural frame pieces", source: "packages/solid/src/demos/page.tsx" },
@@ -172,6 +172,7 @@ export const NAV: NavGroup[] = [
     group: "Layout",
     items: [
       { label: "ScrollArea", path: "/scroll-area", description: "Custom scrollbars on both axes", source: "packages/solid/src/demos/scroll-area.tsx" },
+      { label: "Stack", path: "/stack", description: "Minimal flexbox layout primitive — a thin div laying children out in a row or column with configurable alignment, wrapping, gap and padding.", source: "packages/solid/src/demos/stack.tsx" },
       // These three had a demo AND a route but no nav entry, so they were
       // unreachable from the sidebar and missing from the catalogue — the
       // "add it to nav.ts" rule, violated quietly. It is why this demo
@@ -185,7 +186,9 @@ export const NAV: NavGroup[] = [
     group: "Form (custom)",
     items: [
       { label: "Input", path: "/input", description: "Styled input + textarea; all native attributes pass through", source: "packages/solid/src/demos/input.tsx" , updated: "12.2.0" },
+      { label: "Textarea", path: "/textarea", description: "Plain styled <textarea> primitive, all native attrs", source: "packages/solid/src/demos/textarea.tsx" },
       { label: "Label", path: "/label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/solid/src/demos/label.tsx" },
+      { label: "NativeSelect", path: "/native-select", description: "The platform <select>, styled to match Input — submits with no hidden input, opens as the OS picker on a phone", source: "packages/solid/src/demos/native-select.tsx" },
       { label: "Search", path: "/search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/solid/src/demos/search.tsx" },
       { label: "PasswordInput", path: "/password-input", description: "Password field with a show / hide toggle; every native input attribute passes through", source: "packages/solid/src/demos/password-input.tsx" },
       { label: "NumberField", path: "/number-field", description: "Number input with \u2212/+ stepper, clamping, decimal step", source: "packages/solid/src/demos/number-field.tsx" },
@@ -204,7 +207,7 @@ export const NAV: NavGroup[] = [
       { label: "TreeTable", path: "/tree-table", description: "Hierarchical rows; chevron indents inside the first column, filter keeps ancestors", source: "packages/solid/src/demos/tree-table.tsx", updated: "12.11.0" },
       { label: "Micro charts", path: "/micro-chart", description: "Sparkline-sized trend marks for a table cell or card \u2014 line, bar, bullet, delta, radial", source: "packages/solid/src/demos/micro-chart.tsx" , updated: "12.2.0" },
       { label: "TimerBadge / TestCountdownBar", path: "/countdown", description: "Exam clock from a deadline, not a decrementing number — colour thresholds, auto-expire hook, sticky bar", source: "packages/solid/src/demos/countdown.tsx" },
-      { label: "CodeEditor / IDEWindow", path: "/code-editor", description: "Monaco wrapper — language, theme, read-only, Ctrl+Enter run hook; file list beside it", source: "packages/solid/src/demos/code-editor.tsx" },
+      { label: "CodeEditor / IDEWindow", path: "/code-editor", description: "Monaco wrapper — language, theme, read-only, Ctrl+Enter run hook; file list beside it", source: "packages/solid/src/demos/code-editor.tsx", updated: "13.3.0" },
       { label: "SpreadsheetGrid / SheetCalculator", path: "/spreadsheet-grid", description: "Editable cells with a real formula evaluator; errors render as errors, never a plausible number", source: "packages/solid/src/demos/spreadsheet-grid.tsx", updated: "12.13.0" },
       { label: "ProctorStreamGrid / ProctorFlagOverlay", path: "/proctor", description: "Live candidate tiles with violation flags; displays streams, does not detect anything", source: "packages/solid/src/demos/proctor.tsx" },
       { label: "ChunkUploader", path: "/chunk-uploader", description: "Large file in pieces — bounded retries, exponential backoff, pause and resume", source: "packages/solid/src/demos/chunk-uploader.tsx" },
@@ -236,12 +239,13 @@ export const NAV: NavGroup[] = [
       { label: "ColumnMapper", path: "/column-mapper", description: "Map a spreadsheet\u2019s columns onto your fields \u2014 matched by name, never guessed, with every problem in words and a preview of the first rows marking each cell that will not import", source: "packages/solid/src/demos/column-mapper.tsx", since: "12.9.0" },
       { label: "GenealogyGraph", path: "/genealogy-graph", description: "Trace a lot, order or unit both ways \u2014 what it was made from and what it went into, each step a column, click any item to trace from it, and a trace cut short says so", source: "packages/solid/src/demos/genealogy-graph.tsx", since: "12.9.0" },
       { label: "RoutingGraph", path: "/routing-graph", description: "A process\u2019s steps and which must finish before which \u2014 laid out by longest path, step status for the operator, and editing by keyboard or pointer that refuses any link closing a loop", source: "packages/solid/src/demos/routing-graph.tsx", since: "12.9.0" },
-      { label: "Pivot", path: "/pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/solid/src/demos/pivot.tsx", updated: "12.13.0" },
+      { label: "Pivot", path: "/pivot", description: "Drag-and-drop pivot builder; fields into zones, 2D-windowed grid", source: "packages/solid/src/demos/pivot.tsx", updated: "13.3.0" },
       { label: "Combobox", path: "/combobox", description: "Sync options or async onSearch with debounced loading", source: "packages/solid/src/demos/combobox.tsx" , updated: "12.8.1" },
       { label: "TreeSelect", path: "/tree-select", description: "Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors", source: "packages/solid/src/demos/tree-select.tsx", since: "12.2.0" },
       { label: "LookupField", path: "/lookup-field", description: "Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search", source: "packages/solid/src/demos/lookup-field.tsx", since: "12.2.0" },
       { label: "MultiCombobox", path: "/multi-combobox", description: "Multi-select with chip trigger + overflow collapse", source: "packages/solid/src/demos/multi-combobox.tsx", updated: "12.2.0" },
       { label: "VirtualizedItems", path: "/lazy-options", description: "Drop-in windowing for huge option lists", source: "packages/solid/src/demos/lazy-options.tsx" },
+      { label: "Virtualized items", path: "/virtualized-items", description: "A windowed scrolling viewport that mounts only the visible rows of a huge list — dense array or server-paged sparse mode", source: "packages/solid/src/demos/virtualized-items.tsx" },
     ],
   },
   {
@@ -254,7 +258,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Forms",
     items: [
-      { label: "Form", path: "/form-new", description: "Form primitives with validation wiring", source: "packages/solid/src/demos/form.tsx" },
+      { label: "Form", path: "/form", description: "Form primitives with validation wiring", source: "packages/solid/src/demos/form.tsx" },
       { label: "BoundFields", path: "/bound-fields", description: "Bound* field wrappers \u2014 form-wired, no boilerplate", source: "packages/solid/src/demos/bound-fields.tsx", updated: "12.9.0" },
     ],
   },
@@ -264,7 +268,7 @@ export const NAV: NavGroup[] = [
       { label: "DateInput", path: "/date-input", description: "Type a date the way clerks do (150326, t, +7) in the locale's order, with the calendar as a second way in; impossible dates are kept and flagged, never rolled over", source: "packages/solid/src/demos/date-input.tsx", since: "12.2.0", updated: "12.8.2" },
       { label: "DatePicker", path: "/date-picker", description: "Calendar in a Popover; inline Calendar too", source: "packages/solid/src/demos/date-picker.tsx" },
       { label: "DateRangePicker", path: "/date-range-picker", description: "Two-month side-by-side calendar; range anchoring", source: "packages/solid/src/demos/date-range-picker.tsx" },
-      { label: "DynamicDateRange", path: "/dynamic-date-range", description: "Semantic periods — \"Last 7 days\", \"This quarter\"; stores the question, not the answer", source: "packages/solid/src/demos/dynamic-date-range.tsx" },
+      { label: "DynamicDateRange", path: "/dynamic-date-range", description: "Semantic periods — \"Last 7 days\", \"This quarter\"; stores the question, not the answer", source: "packages/solid/src/demos/dynamic-date-range.tsx", updated: "13.3.0" },
       { label: "TimePicker", path: "/time-picker", description: "Segmented HH:MM(:SS), 12h / 24h, auto-advance + arrow stepping", source: "packages/solid/src/demos/time-picker.tsx" },
       { label: "DateTimePicker", path: "/date-time-picker", description: "Calendar + TimePicker in one Popover", source: "packages/solid/src/demos/date-time-picker.tsx" },
     ],
@@ -282,7 +286,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Chart", path: "/chart", description: "Line / bar / area / pie / donut; dependency-free SVG in the Solid binding", source: "packages/solid/src/demos/chart.tsx" },
       { label: "AnalyticChart", path: "/analytic-chart", description: "Interactive business charts: bar, line, area, combo with two axes, pie, donut, waterfall, funnel, gauge, heatmap, scatter, treemap, and your own types; click to drill down or filter, a table view, PNG and CSV download", source: "packages/solid/src/demos/analytic-chart.tsx", since: "12.4.0", updated: "12.9.0" },
-      { label: "RichText", path: "/rich-text", description: "Lazy-loaded WYSIWYG editor; jodit is an optional peer dep", source: "packages/solid/src/demos/rich-text.tsx" },
+      { label: "RichText", path: "/rich-text", description: "Lazy-loaded WYSIWYG editor; jodit is an optional peer dep", source: "packages/solid/src/demos/rich-text.tsx", updated: "13.3.0" },
       { label: "Map", path: "/map", description: "Lazy-loaded map with markers; leaflet is an optional peer dep", source: "packages/solid/src/demos/map.tsx" },
       { label: "Camera", path: "/camera", description: "Camera capture via getUserMedia; no peer dep", source: "packages/solid/src/demos/camera.tsx" },
     ],
@@ -314,7 +318,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "PageHeader", path: "/page-header", description: "A heading with a back affordance and one action — the light one", source: "packages/solid/src/demos/page-header.tsx" },
       { label: "SkipToContent", path: "/skip-to-content", description: "Keyboard bypass — the first Tab reveals a link that jumps past the app chrome to the content (WCAG 2.4.1)", source: "packages/solid/src/demos/skip-to-content.tsx" },
-      { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/demos/shell-bar.tsx" , updated: "12.2.0" },
+      { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/demos/shellbar.tsx" , updated: "12.2.0" },
       { label: "StatusBar", path: "/status-bar", description: "The strip along the bottom of an app or editor \u2014 text and clickable items on two sides, coloured chips for problems, and the least important items giving way first when it is narrow", source: "packages/solid/src/demos/status-bar.tsx", since: "12.10.0" },
       { label: "FlexibleColumnLayout", path: "/flexible-column-layout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/solid/src/demos/flexible-column-layout.tsx" },
       { label: "DynamicPage", path: "/dynamic-page", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/solid/src/demos/dynamic-page.tsx" },

@@ -223,6 +223,20 @@ export function Combobox(props: ComboboxProps): ZenComponent<ComboboxProps> {
 
   panel.append(inputWrapper, list);
 
+  /*
+   * The panel is not portaled, so it lives wherever the trigger does — and
+   * inside a <label> (FilterBar wraps every field in one, as React's does) a
+   * click on an option is ALSO the label's click, which the browser forwards to
+   * the label's control: this trigger. Picking a value closed the list and the
+   * forwarded click reopened it at once. React's panel is portaled out of the
+   * label, so it never sees this; here the click is cancelled instead, which is
+   * what stops a label forwarding it. Only inside a label, so nothing else
+   * about the panel's clicks changes.
+   */
+  panel.addEventListener("click", (e) => {
+    if (panel.parentElement?.closest("label")) e.preventDefault();
+  });
+
   /* ------------------------------ filtering ------------------------------ */
 
   // Substring match on the label plus every keyword — the same terms cmdk fuzzes.

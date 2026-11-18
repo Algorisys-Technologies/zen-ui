@@ -82,8 +82,10 @@ SKILL.md.
 - `columnKey: string`
 - `label: string`
 - `selection?: PivotFilterSelection | undefined`
+- `sortDirection?: SortDirection | undefined` — The current sort on this field, shown as a check on the matching item and an arrow on the trigger.
 - `formatValue?: ((value: string) => string) | undefined`
 - `onChange: (selection: PivotFilterSelection | null) => void`
+- `onSort?: ((direction: SortDirection | null) => void) | undefined` — Adds the sort items. Called with the picked direction, or `null` when the picked direction is the current one (a second pick clears the sort).
 - `loadOptions?: ((columnKey: string, optionSearch: string, pagination?: { offset: number; limit: number; }) => Promise<PivotFilterOptionsBody>) | undefined`
 - `triggerClassName?: string | undefined`
 - `triggerChildren?: React.ReactNode`

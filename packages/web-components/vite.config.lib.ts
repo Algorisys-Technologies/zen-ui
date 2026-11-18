@@ -9,8 +9,9 @@ import { resolve } from "path";
 // the other bindings bundle core: a consumer installs the package and gets the
 // elements registered, with nothing to wire up.
 //
-// `external` is leaflet + jodit ONLY — the optional peers that Map/RichText
-// lazy-load through vanilla. Never bundled; a consumer installs them only if they
+// `external` is the optional peers ONLY — leaflet, jodit, katex (RichText's
+// `math` / renderMath) and echarts, which Map/RichText/AnalyticChart lazy-load
+// through vanilla. Never bundled; a consumer installs them only if they
 // use those elements. Same list vanilla externalises, for the same reason.
 export default defineConfig({
   plugins: [UnoCSS()],
@@ -25,7 +26,8 @@ export default defineConfig({
     },
     rollupOptions: {
       // echarts: AnalyticChart's renderer, loaded on first chart, every subpath.
-      external: ["leaflet", "leaflet/dist/leaflet.css", "jodit", "echarts", /^echarts\//],
+      // katex: RichText's `math` preview / renderMath, loaded only when used.
+      external: ["leaflet", "leaflet/dist/leaflet.css", "jodit", /^jodit\//, "katex", "echarts", /^echarts\//],
       output: {
         // One file per module + `sideEffects` in package.json is what makes the
         // library tree-shakeable — NEITHER WORKS ALONE. See the React binding's

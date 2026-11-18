@@ -19,6 +19,7 @@ import {
   type PivotMembersRequest,
   type PivotMembersResult,
   type PivotZone,
+  type SortDirection,
 } from "@algorisys/zen-ui-core/pivot";
 import {
   alignWindowStart,
@@ -235,8 +236,15 @@ export interface PivotFilterMenuProps {
   columnKey: string;
   label: string;
   selection?: PivotFilterSelection;
+  /** The field's current sort, shown on the trigger and ticked in the menu. */
+  sortDirection?: SortDirection;
   formatValue?: (value: string) => string;
   onChange: (selection: PivotFilterSelection | null) => void;
+  /**
+   * Present -> the menu leads with Sort ascending / Sort descending. Picking the
+   * direction already in force clears it (`null`), and the menu closes.
+   */
+  onSort?: (direction: SortDirection | null) => void;
   loadOptions?: (
     columnKey: string,
     optionSearch: string,
@@ -429,13 +437,30 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
   const trigger = document.createElement("button");
   trigger.type = "button";
   trigger.dataset.noDrag = "";
-  trigger.setAttribute("aria-label", loc.t("pivot.filterLabel", { label: current.label }));
   const triggerIcon = Icon({ name: "chevron-down", class: "zen-h-3.5 zen-w-3.5" });
   disposer.add(() => triggerIcon.destroy());
+  // The sort direction rides beside the chevron (Solid's arrow-up/-down), so a
+  // sorted field reads as sorted with its menu shut.
+  const sortIcons = {
+    asc: Icon({ name: "arrow-up", class: "zen-size-3" }),
+    desc: Icon({ name: "arrow-down", class: "zen-size-3" }),
+  };
+  disposer.add(() => {
+    sortIcons.asc.destroy();
+    sortIcons.desc.destroy();
+  });
   if (current.triggerChildren) trigger.append(...toNodes(current.triggerChildren));
-  else trigger.append(triggerIcon.el);
+  else trigger.append(triggerIcon.el, sortIcons.asc.el, sortIcons.desc.el);
   const updateTrigger = () => {
-    trigger.className = triggerClassFor(isFilterActive(selection));
+    trigger.className = triggerClassFor(isFilterActive(selection) || Boolean(current.sortDirection));
+    trigger.setAttribute(
+      "aria-label",
+      current.onSort
+        ? loc.t("pivot.sortOrFilter", { label: current.label })
+        : loc.t("pivot.filterLabel", { label: current.label }),
+    );
+    sortIcons.asc.el.style.display = current.sortDirection === "asc" ? "" : "none";
+    sortIcons.desc.el.style.display = current.sortDirection === "desc" ? "" : "none";
   };
   updateTrigger();
 
@@ -452,6 +477,38 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
 
   const bodyEl = h("div");
   const footerEl = h("div");
+  const sortEl = h("div");
+
+  const renderSort = () => {
+    sortEl.replaceChildren();
+    sortEl.className = current.onSort
+      ? "zen-flex zen-flex-col zen-border-b zen-border-zen-border zen-pb-1"
+      : "";
+    if (!current.onSort) return;
+    const option = (direction: SortDirection, icon: IconName, text: string) => {
+      const active = current.sortDirection === direction;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = cn(
+        "zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-px-2 zen-py-1.5 zen-text-start zen-text-sm zen-text-zen-foreground zen-transition-colors hover:zen-bg-zen-muted focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary",
+        active && "zen-font-medium zen-text-zen-primary",
+      );
+      const label = h("span");
+      label.textContent = text;
+      btn.append(Icon({ name: icon, class: "zen-size-3.5" }).el, label);
+      if (active) btn.append(Icon({ name: "check", class: "zen-ms-auto zen-size-3.5" }).el);
+      btn.addEventListener("click", () => {
+        // The direction already in force is a toggle off, as in Solid.
+        current.onSort?.(current.sortDirection === direction ? null : direction);
+        popover.close();
+      });
+      return btn;
+    };
+    sortEl.append(
+      option("asc", "arrow-up", loc.t("pivot.sortAscending")),
+      option("desc", "arrow-down", loc.t("pivot.sortDescending")),
+    );
+  };
 
   let list: ZenComponent<VirtualizedItemsSparseProps<string>> | null = null;
 
@@ -631,7 +688,8 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
     renderFooter();
   };
 
-  panel.append(searchInput.el, bodyEl, footerEl);
+  renderSort();
+  panel.append(sortEl, searchInput.el, bodyEl, footerEl);
 
   const popover = Popover({
     trigger,
@@ -661,6 +719,7 @@ export function PivotFilterMenu(props: PivotFilterMenuProps): ZenComponent<Pivot
       current = { ...current, ...next };
       if (next.selection !== undefined) selection = next.selection;
       updateTrigger();
+      renderSort();
       renderBody();
       renderFooter();
     },

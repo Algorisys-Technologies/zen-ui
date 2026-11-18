@@ -18,7 +18,8 @@ import { useLocale } from "../locale/locale";
  * The React binding reaches for `jodit-pro-react`; Jodit's own package is plain
  * vanilla JS (it IS a framework-agnostic editor), so this binding drives it
  * directly and `config` keeps the same meaning. Public API matches React:
- * `value` / `onChange` / `placeholder` / `config` / `class`.
+ * `value` / `onChange` / `placeholder` / `config` / `onImageUpload` / `math` /
+ * `class`.
  *
  * If Jodit is absent the dynamic import rejects — React catches that in an error
  * boundary and renders an install hint; there is no boundary here and a rejected
@@ -32,8 +33,67 @@ export interface RichTextProps {
   placeholder?: string;
   /** raw Jodit config, merged over the defaults */
   config?: Record<string, any>;
+  /**
+   * Handle an inserted image and return the URL to embed.
+   *
+   * Without it, Jodit inlines the file as a base64 data URI — which works,
+   * and quietly puts a two-megabyte string inside the HTML you then store in a
+   * database and send back on every read. Supply this and the editor embeds a
+   * URL instead; uploading is yours, for the same reason UploadCollection does
+   * not own its transport. Whether uploads go through it is decided at
+   * construction, like `config`; the LATEST function passed through `update()`
+   * is the one called.
+   */
+  onImageUpload?: (file: File) => Promise<string>;
+  /**
+   * Render `$…$` and `$$…$$` as maths, using KaTeX, in a preview beneath the
+   * editor.
+   *
+   * `katex` is an OPTIONAL peer dependency, loaded only when this is on, so an
+   * app with no equations never downloads it. Import its stylesheet once in your
+   * app (`import "katex/dist/katex.min.css"`) — KaTeX's markup is unreadable
+   * without it. Rendering happens on the OUTPUT (see `renderMath`) rather than
+   * inside the editor: the author writes and edits the TeX source, which is the
+   * only form that survives a round trip through storage.
+   */
+  math?: boolean;
   class?: string;
 }
+
+/**
+ * Render `$…$` and `$$…$$` in an HTML string as maths.
+ *
+ * Separate from the editor and exported, because the same string has to render
+ * the same way everywhere it appears — the editor's preview, the page that shows
+ * the content, a printed report. A component that rendered maths only inside
+ * itself would leave the others showing raw TeX.
+ *
+ * Returns the input unchanged if `katex` is not installed — an equation that
+ * shows as `$x^2$` is legible; a thrown error is not.
+ */
+export const renderMath = async (html: string): Promise<string> => {
+  let katex: any;
+  try {
+    katex = await import("katex");
+  } catch {
+    return html;
+  }
+  const render = (tex: string, display: boolean) => {
+    try {
+      return (katex.default ?? katex).renderToString(tex, {
+        displayMode: display,
+        throwOnError: false,
+      });
+    } catch {
+      /* A malformed equation renders as its source rather than taking the
+         surrounding document with it. */
+      return display ? `$$${tex}$$` : `$${tex}$`;
+    }
+  };
+  return html
+    .replace(/\$\$([^$]+)\$\$/g, (_m, tex: string) => render(tex, true))
+    .replace(/\$([^$\n]+)\$/g, (_m, tex: string) => render(tex, false));
+};
 
 const LOADING_CLASS = "zen-text-sm zen-text-zen-muted-fg";
 const FALLBACK_CLASS =
@@ -76,6 +136,51 @@ export function RichText(props: RichTextProps = {}): ZenComponent<RichTextProps>
     // host a jodit config can turn it back on through `config`, since theirs is
     // spread after this.
     loadExternalConfig: false,
+    /*
+     * Jodit's own default is neither base64 nor a working upload (its `url` is
+     * empty), so match React: inline as base64 unless the caller takes the file.
+     * With a handler, the file goes wherever the caller sends it and only the
+     * URL is embedded. `customUploadFunction` is Jodit's hook for replacing the
+     * transport; it answers in Jodit's own response shape, so Jodit's default
+     * success handler does the inserting for every entry point (toolbar, drop,
+     * paste).
+     *
+     * `url` is never requested — the custom function replaces the request — but
+     * it must not be empty: Jodit binds drop and paste on the editor only when
+     * `url` (or base64) is set, so with "" an image dropped into the text went
+     * nowhere and only the toolbar's Upload tab reached the handler (measured).
+     */
+    ...(current.onImageUpload
+      ? {
+          uploader: {
+            insertImageAsBase64URI: false,
+            url: "onImageUpload",
+            customUploadFunction: async (request: unknown) => {
+              const files =
+                request instanceof FormData
+                  ? [...request.values()].filter((v): v is File => v instanceof File)
+                  : [];
+              try {
+                const urls: string[] = [];
+                const isImages: boolean[] = [];
+                for (const file of files) {
+                  const url = await current.onImageUpload?.(file);
+                  if (!url) continue;
+                  urls.push(url);
+                  isImages.push(!file.type || file.type.startsWith("image/"));
+                }
+                return { success: true, time: "", data: { baseurl: "", files: urls, isImages, messages: [] } };
+              } catch (error) {
+                return {
+                  success: false,
+                  time: "",
+                  data: { baseurl: "", files: [], messages: [error instanceof Error ? error.message : String(error)] },
+                };
+              }
+            },
+          },
+        }
+      : { uploader: { insertImageAsBase64URI: true } }),
     ...current.config,
   };
 
@@ -99,6 +204,12 @@ export function RichText(props: RichTextProps = {}): ZenComponent<RichTextProps>
     let mod: any;
     try {
       mod = await import("jodit");
+      /* The bare entry registers only 22 of Jodit's 68 plugins: no paste,
+         clipboard, source, fullsize, justify, indent, search… React's
+         jodit-pro build has all of them, so this loads the rest. Without
+         `paste`, a pasted image never reached onImageUpload and fell through
+         to the browser's own base64 insert. */
+      await import("jodit/esm/plugins/all.js");
     } catch {
       showFallback();
       return;
@@ -109,23 +220,70 @@ export function RichText(props: RichTextProps = {}): ZenComponent<RichTextProps>
       showFallback();
       return;
     }
+    /* The mount goes INTO the document before Jodit.make, not after. Jodit
+       inserts its container beside the element it is given, and a detached
+       element has nowhere to insert it: making the editor first and swapping
+       the mount in afterwards (as this did, and as the previous
+       `status.remove(); el.append(mount)` did) left /rich-text an empty box,
+       with no error for any check to catch. In the placeholder's place, so it
+       stays ahead of the maths preview when there is one. */
+    status.replaceWith(mount);
     try {
       editor = Jodit.make(mount, editorConfig);
     } catch {
+      mount.replaceWith(status);
       showFallback();
       return;
     }
     editor.value = value();
     editor.events.on("blur", () => current.onChange?.(editor.value));
-    // Swap the loading placeholder for the live editor.
-    status.remove();
-    el.append(mount);
   })();
 
   disposer.add(() => {
     editor?.destruct?.();
     editor = null;
   });
+
+  /*
+   * The editor holds TeX SOURCE — `$x^2$` — because that is the only form that
+   * survives a round trip through storage and back into an editor. The rendered
+   * form goes in a preview beneath it, so an author can see what they wrote
+   * without the editor mangling KaTeX's markup on the next keystroke. Built only
+   * while `math` is on, so without it RichText renders exactly what it always did.
+   */
+  let preview: { figure: HTMLElement; body: HTMLElement } | null = null;
+  let mathSeq = 0;
+  const syncMath = () => {
+    if (!current.math) {
+      mathSeq += 1;
+      preview?.figure.remove();
+      preview = null;
+      return;
+    }
+    if (!preview) {
+      const figure = document.createElement("figure");
+      figure.className =
+        "zen-mt-2 zen-m-0 zen-rounded-zen-md zen-border zen-border-zen-border zen-bg-zen-muted zen-p-3";
+      const caption = document.createElement("figcaption");
+      caption.className = "zen-mb-1 zen-text-xs zen-font-medium zen-text-zen-muted-fg";
+      caption.textContent = loc.t("richText.preview");
+      const body = document.createElement("div");
+      body.className = "zen-text-sm zen-text-zen-foreground";
+      figure.append(caption, body);
+      preview = { figure, body };
+      el.append(figure);
+    }
+    const seq = ++mathSeq;
+    const target = preview.body;
+    void renderMath(value()).then((html) => {
+      // Overtaken by a newer value (or math turned off): drop the stale render.
+      if (seq !== mathSeq || destroyed) return;
+      // The HTML is the author's own, already in the editor above; KaTeX output
+      // is markup by definition. Sanitise upstream if the author is not trusted.
+      target.innerHTML = html;
+    });
+  };
+  syncMath();
 
   return {
     el,
@@ -137,6 +295,7 @@ export function RichText(props: RichTextProps = {}): ZenComponent<RichTextProps>
       if ("value" in next && editor && editor.value !== value()) {
         editor.value = value();
       }
+      if ("value" in next || "math" in next) syncMath();
     },
     destroy() {
       destroyed = true;

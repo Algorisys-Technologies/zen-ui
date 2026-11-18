@@ -6,6 +6,7 @@ import { Input, type InputHandle } from "../form/input/input";
 import { Icon } from "../icon/icon";
 import { arrowStep } from "@algorisys/zen-ui-core";
 import { useLocale } from "../locale/locale";
+import type { SortingState } from "../data-table/data-table";
 
 /**
  * TreeTable — a table whose rows form a hierarchy.
@@ -67,6 +68,12 @@ export interface TreeTableProps<TData> extends BaseProps {
   /** Called when `loadChildren` rejects. Without it the error is re-thrown. */
   onLoadChildrenError?: (error: unknown, row: TData) => void;
 
+  /**
+   * Controlled expansion: the ids that are open, or `true` for all. Present ->
+   * the caller owns it; a chevron reports through `onExpandedChange` and
+   * nothing opens until the caller passes the new ids back via `update()`.
+   */
+  expanded?: string[] | true;
   /** Ids open on first render, or `true` for all. */
   defaultExpanded?: string[] | true;
   onExpandedChange?: (ids: string[]) => void;
@@ -85,13 +92,26 @@ export interface TreeTableProps<TData> extends BaseProps {
   pageSizeOptions?: number[];
   onPaginationChange?: (state: { pageIndex: number; pageSize: number }) => void;
 
+  /* sorting — sorts within each parent's children, never across levels */
   enableSorting?: boolean;
+  /**
+   * Controlled sort. The tree sorts by one column, so only the first entry is
+   * read. Present -> the caller owns it and a header click only reports.
+   */
+  sorting?: SortingState;
+  onSortingChange?: (state: SortingState) => void;
+
   enableGlobalFilter?: boolean;
+  /** Controlled search text. Present -> the caller owns it. */
+  globalFilter?: string;
+  onGlobalFilterChange?: (value: string) => void;
   globalFilterPlaceholder?: string;
 
   enableRowSelection?: boolean;
   /** Selecting a parent selects its descendants. Default true. */
   enableSubRowSelection?: boolean;
+  /** Controlled selection: the selected row ids. Present -> the caller owns it. */
+  rowSelection?: string[];
   onRowSelectionChange?: (ids: string[]) => void;
 
   /** Which column carries the chevron. Defaults to the first column. */
@@ -108,6 +128,8 @@ export interface TreeTableProps<TData> extends BaseProps {
   stickyHeader?: boolean;
   headerVariant?: "plain" | "underline" | "branded";
   maxBodyHeight?: number;
+  /** Extra classes for a row's <tr>, merged after the defaults. */
+  rowClassName?: (row: TData, depth: number) => string | undefined;
   onRowClick?: (row: TData) => void;
   emptyMessage?: string;
   loading?: boolean;
@@ -195,6 +217,35 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
   /** Lazy-loaded children, keyed by row id. */
   const loadedKids = new Map<string, TData[]>();
   const loadingIds = new Set<string>();
+
+  /*
+   * Controlled state, the vanilla way (DataTable's pattern): the working state
+   * above is what everything reads, and a prop that is present overwrites it at
+   * the top of every render. An interaction still mutates the working copy and
+   * reports — so an uncontrolled table behaves exactly as before — and the
+   * render that follows puts the caller's value back. The change sticks only
+   * once the caller passes it in through `update()`, which is what "controlled"
+   * means in React too.
+   */
+  const syncControlled = () => {
+    if (current.expanded !== undefined) {
+      expanded.clear();
+      for (const id of current.expanded === true ? allIds() : current.expanded) expanded.add(id);
+    }
+    if (current.rowSelection !== undefined) {
+      selected.clear();
+      for (const id of current.rowSelection) selected.add(id);
+    }
+    if (current.sorting !== undefined) {
+      const first = current.sorting[0];
+      sortColumn = first?.id ?? null;
+      sortDesc = !!first?.desc;
+    }
+    // Only a table with a search applies one — React passes no filtered row
+    // model without enableGlobalFilter, so a stray globalFilter filters nothing.
+    if (!current.enableGlobalFilter) query = "";
+    else if (current.globalFilter !== undefined) query = current.globalFilter;
+  };
 
   /* Every id in the source tree, so expand-all and the subtree maths do not
    * have to re-walk from the caller's data each time. */
@@ -410,6 +461,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
         "aria-label": loc.t("treeTable.search"),
         onInput: (e: Event) => {
           query = (e.target as HTMLInputElement).value;
+          current.onGlobalFilterChange?.(query);
           render({ keepFocus: "search" });
         },
       });
@@ -517,6 +569,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
             const firstValue = rows.length ? readValue(rows[0].data, col) : undefined;
             sortDesc = typeof firstValue === "number";
           }
+          current.onSortingChange?.([{ id, desc: sortDesc }]);
           render();
         });
         th.append(btn);
@@ -616,6 +669,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
         "data-[state=selected]:zen-bg-zen-primary-soft",
         "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring focus-visible:zen-ring-inset",
         current.onRowClick && "zen-cursor-pointer",
+        current.rowClassName?.(row.data, row.depth),
       );
       if (state === "checked") tr.setAttribute("data-state", "selected");
       tr.setAttribute("data-depth", String(row.depth));
@@ -759,6 +813,13 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
     if (open) expanded.add(row.id);
     else expanded.delete(row.id);
     current.onExpandedChange?.([...expanded]);
+
+    // Controlled: what is open is whatever the caller says now — it may have
+    // passed the new ids back already, or declined. A splice would assume.
+    if (current.expanded !== undefined) {
+      render({ keepFocus: row.id });
+      return;
+    }
 
     if (virtualEnabled()) {
       // Splicing is pointless here: the window is ~20 rows, so recomputing it
@@ -932,6 +993,7 @@ export function TreeTable<TData>(props: TreeTableProps<TData>): ZenComponent<Tre
   };
 
   function render(opts?: { keepFocus?: string }) {
+    syncControlled();
     rows = flatten();
     if (virtualEnabled()) table.setAttribute("aria-rowcount", String(rows.length));
     else table.removeAttribute("aria-rowcount");

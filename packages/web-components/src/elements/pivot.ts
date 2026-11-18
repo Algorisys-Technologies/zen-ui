@@ -108,8 +108,12 @@ defineZenElement<PivotFilterMenuProps>({
     label: "string",
     "trigger-class": "string",
     "single-select": "boolean",
+    // "asc" | "desc"; absent = unsorted. Shown on the trigger, ticked in the menu.
+    "sort-direction": "string",
   },
   props: ["selection", "formatValue", "loadOptions", "triggerChildren"],
-  events: { onChange: "zen-change" },
+  // `zen-sort` (detail: "asc" | "desc" | null) — listening for it is what adds
+  // Sort ascending / Sort descending to the menu, as passing onSort does.
+  events: { onChange: "zen-change", onSort: "zen-sort" },
   childrenProp: false,
 });

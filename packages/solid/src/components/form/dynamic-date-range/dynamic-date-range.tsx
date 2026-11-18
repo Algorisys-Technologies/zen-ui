@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, createSignal, untrack } from "solid-js";
+import { For, Show, createComputed, createEffect, createMemo, createSignal, on, untrack } from "solid-js";
 import {
   DATE_RANGE_OPERATORS,
   formatDateRangeValue,
@@ -64,6 +64,24 @@ export const DynamicDateRange = (props: DynamicDateRangeProps) => {
   const [open, setOpen] = createSignal(false);
   const [internal, setInternal] = createSignal<DateRangeValue | undefined>(props.defaultValue);
   const isControlled = () => props.value !== undefined;
+  /*
+   * A parent that controlled the value and then hands back `undefined` is
+   * clearing it — that is the only way to say "empty" under this contract. The
+   * component falls back to its own state at that point, so that state must not
+   * still hold whatever was picked while it was briefly uncontrolled: a List
+   * Report's Clear emptied the field once, and after picking "Today" a second
+   * Clear left "Today" showing. A computed, not an effect, so the reset lands
+   * before anything reads `current()` and the stale value is never painted.
+   */
+  createComputed(
+    on(
+      () => props.value,
+      (value, prev) => {
+        if (value === undefined && prev !== undefined) setInternal(undefined);
+      },
+      { defer: true },
+    ),
+  );
   const current = () => (isControlled() ? props.value : internal());
 
   const weekStartsOn = () => props.weekStartsOn ?? 0;

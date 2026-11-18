@@ -36,7 +36,7 @@ import SkeletonDemo from "./demos/skeleton";
 import AvatarDemo from "./demos/avatar";
 import LinkDemo from "./demos/link";
 import ThemeDemo from "./demos/theme";
-import LocaleDemo from "./demos/locale";
+import LocaleDemo from "./demos/localization";
 import DirectionDemo from "./demos/direction";
 import MessagePopoverDemo from "./demos/message-popover";
 import StackDemo from "./demos/stack";
@@ -67,7 +67,7 @@ import TagInputDemo from "./demos/tag-input";
 import PaginationDemo from "./demos/pagination";
 import AlertDialogDemo from "./demos/alert-dialog";
 import SheetDemo from "./demos/sheet";
-import InputOTPDemo from "./demos/input-otp";
+import InputOTPDemo from "./demos/otp";
 import PopoverDemo from "./demos/popover";
 import TooltipDemo from "./demos/tooltip";
 import ButtonFamilyDemo from "./demos/button-family";
@@ -84,7 +84,7 @@ import ContextMenuDemo from "./demos/context-menu";
 import FileUploadDemo from "./demos/file-upload";
 import ColorPickerDemo from "./demos/color-picker";
 import MultiComboboxDemo from "./demos/multi-combobox";
-import ShellBarDemo from "./demos/shell-bar";
+import ShellBarDemo from "./demos/shellbar";
 import SkipToContentDemo from "./demos/skip-to-content";
 import SidebarDemo from "./demos/sidebar";
 import DatePickerDemo from "./demos/date-picker";
@@ -102,8 +102,13 @@ import ViewSettingsDemo from "./demos/view-settings";
 import FilterBuilderDemo from "./demos/filter-builder";
 import ViewManagerDemo from "./demos/view-manager";
 import SelectableCardDemo from "./demos/selectable-card";
-import ObjectPageLayoutDemo from "./demos/object-page-layout";
+import ObjectPageLayoutDemo from "./demos/object-page";
 import DynamicDateRangeDemo from "./demos/dynamic-date-range";
+import CustomizingDemo from "./demos/customizing";
+import LazyOptionsDemo from "./demos/lazy-options";
+import ListReportDemo from "./demos/list-report";
+import MaskInputDemo from "./demos/mask-input";
+import NativeSelectDemo from "./demos/native-select";
 import ToastDemo from "./demos/toast";
 import RichTextDemo from "./demos/rich-text";
 import CameraDemo from "./demos/camera";
@@ -161,12 +166,14 @@ import DiagramCanvasDemo from "./demos/diagram-canvas";
  */
 const ROUTES: Record<string, () => HTMLElement> = {
   "/": Welcome,
+  "/customizing": CustomizingDemo,
   "/button": ButtonDemo,
   "/badge": BadgeDemo,
   "/icon": IconDemo,
   "/accordion": AccordionDemo,
   "/collapsible": CollapsibleDemo,
   "/label": LabelDemo,
+  "/native-select": NativeSelectDemo,
   "/tabs": TabsDemo,
   "/dialog": DialogDemo,
   "/input": InputDemo,
@@ -213,6 +220,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/alert-dialog": AlertDialogDemo,
   "/sheet": SheetDemo,
   "/otp": InputOTPDemo,
+  "/mask-input": MaskInputDemo,
   "/popover": PopoverDemo,
   "/tooltip": TooltipDemo,
   "/button-family": ButtonFamilyDemo,
@@ -237,6 +245,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/date-picker": DatePickerDemo,
   "/notifications-inbox": NotificationsInboxDemo,
   "/virtualized-items": VirtualizedItemsDemo,
+  "/lazy-options": LazyOptionsDemo,
   "/filter-bar": FilterBarDemo,
   "/flexible-column-layout": FlexibleColumnLayoutDemo,
   "/select-dialog": SelectDialogDemo,
@@ -250,6 +259,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/selectable-card": SelectableCardDemo,
   "/object-page": ObjectPageLayoutDemo,
   "/dynamic-date-range": DynamicDateRangeDemo,
+  "/list-report": ListReportDemo,
   "/toast": ToastDemo,
   "/shortcuts": ShortcutsDemo,
   "/rich-text": RichTextDemo,

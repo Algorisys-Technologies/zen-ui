@@ -25,10 +25,12 @@ export default defineConfig({
         "solid-js/web",
         "solid-js/store",
         "solid-js/h",
-        // Optional peer deps — lazy-loaded by Map/RichText. Never bundled;
-        // consumers install them only if they use those components.
+        // Optional peer deps — lazy-loaded by Map/RichText (katex: RichText's
+        // `math`). Never bundled; consumers install them only if they use
+        // those components.
         "leaflet",
-        "jodit",
+        "jodit", /^jodit\//,
+        "katex",
         // AnalyticChart's renderer: loaded on first chart, every subpath.
         "echarts",
         /^echarts\//,
