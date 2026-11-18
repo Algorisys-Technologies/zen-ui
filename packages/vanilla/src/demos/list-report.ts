@@ -115,10 +115,8 @@ const columns: DataTableColumn<Order>[] = [
   {
     accessorKey: "amount",
     header: "Amount",
-    // header is a string here; the right-alignment React gets from a header
-    // render function is the column meta's headerClassName. NOTE: vanilla's
-    // DataTable declares meta.headerClassName but does not apply it yet, so the
-    // header currently stays start-aligned.
+    // header is a string here; what React does with a header render function
+    // goes on the header cell through the column meta's headerClassName.
     meta: { headerClassName: "zen-text-right" },
     cell: ({ row }) => {
       const s = document.createElement("span");
@@ -191,18 +189,12 @@ export default function ListReportDemo(): HTMLElement {
     onValueChange: (v) => setDraft({ status: v }),
     placeholder: "Any status",
   });
-  // update({ value: undefined }) cannot clear a DynamicDateRange — `undefined`
-  // means "key omitted" to update() — so Clear swaps in a fresh, empty one.
-  const makeDate = (value: DateRangeValue | undefined) =>
-    DynamicDateRange({
-      defaultValue: value,
-      onValueChange: (v) => setDraft({ date: v }),
-      now: AS_OF,
-      placeholder: "Any time",
-    });
-  let date = makeDate(draft.date);
-  const dateHost = document.createElement("div");
-  dateHost.append(date.el);
+  const date = DynamicDateRange({
+    defaultValue: draft.date,
+    onValueChange: (v) => setDraft({ date: v }),
+    now: AS_OF,
+    placeholder: "Any time",
+  });
   const amount = NumberField({
     defaultValue: draft.minAmount ?? 0,
     onValueChange: (n) => setDraft({ minAmount: n || undefined }),
@@ -213,7 +205,7 @@ export default function ListReportDemo(): HTMLElement {
   const fields: FilterBarField[] = [
     { id: "supplier", label: "Supplier", render: () => supplier },
     { id: "status", label: "Status", render: () => status },
-    { id: "date", label: "Ordered", render: () => dateHost },
+    { id: "date", label: "Ordered", render: () => date },
     {
       id: "amount",
       label: "Amount at least",
@@ -252,9 +244,7 @@ export default function ListReportDemo(): HTMLElement {
       draft = { ...EMPTY };
       supplier.update({ value: "" });
       status.update({ value: "" });
-      date.destroy();
-      date = makeDate(undefined);
-      dateHost.replaceChildren(date.el);
+      date.update({ value: undefined });
       amount.update({ value: 0 });
       apply();
     },

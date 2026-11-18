@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { PivotWorkbench, PivotGrid } from "../components/pivot";
-import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
+import { PivotWorkbench, PivotGrid, PivotFilterMenu } from "../components/pivot";
+import type { PivotFilterSelection, PivotLayout, SortDirection } from "@algorisys/zen-ui-core/pivot";
 import { CodeExample } from "./demo-helpers";
 import {
   PIVOT_FIELDS,
@@ -10,6 +10,39 @@ import {
   loadMembers,
   memberCount,
 } from "./pivot-demo-data";
+
+// --- Section 7: sorting from the filter menu ---------------------------------
+// The menu sorts nothing: it reports the direction picked and shows the one it
+// is given. Here the "data" is the department list, ordered by that state.
+const DEPARTMENTS = ["Engineering", "Sales", "Marketing", "HR", "Finance", "Product"];
+const SortingMenu = () => {
+  const [sort, setSort] = useState<SortDirection | undefined>(undefined);
+  const [selection, setSelection] = useState<PivotFilterSelection | undefined>(undefined);
+  const shown = [...DEPARTMENTS];
+  if (sort) shown.sort((a, b) => (sort === "asc" ? a.localeCompare(b) : b.localeCompare(a)));
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 14 }}>
+        <span>Department</span>
+        <PivotFilterMenu
+          columnKey="department"
+          label="Department"
+          selection={selection}
+          onChange={(next) => setSelection(next ?? undefined)}
+          sortDirection={sort}
+          onSort={(next) => setSort(next ?? undefined)}
+          loadOptions={async (columnKey, optionSearch, page) => {
+            const res = await loadMembers({ fieldKey: columnKey, search: optionSearch, ...page });
+            return { ...res, total: res.total ?? res.values.length };
+          }}
+        />
+      </div>
+      <p style={{ margin: 0, fontSize: 12, color: "var(--zen-color-muted-fg)" }}>
+        Sort: <code data-testid="pivot-sort-state">{sort ?? "none"}</code> → {shown.join(", ")}
+      </p>
+    </div>
+  );
+};
 
 // --- Section 5: totals and right to left -------------------------------------
 // A fixed layout, so the totals show without building one first. A cell's
@@ -301,6 +334,27 @@ const next = moveFieldToZone(layout, "country", "rows", { index: 0 });`}
           <div className="zen-w-full">
             <PlainGrid />
           </div>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>7. Sorting from the filter menu</h2>
+        <CodeExample
+          title="sortDirection and onSort on PivotFilterMenu"
+          description="Pass onSort and the menu gains Sort ascending and Sort descending above the search, and the trigger shows an arrow for the current direction. Picking the direction already in force calls onSort(null), so the same item turns the sort off. The menu orders nothing itself — it reports what was picked and shows the sortDirection it is given; the caller owns the order."
+          code={`const [sort, setSort] = useState<SortDirection>();
+
+<PivotFilterMenu
+  columnKey="department"
+  label="Department"
+  selection={selection}
+  onChange={setSelection}
+  sortDirection={sort}
+  onSort={(next) => setSort(next ?? undefined)}
+  loadOptions={loadOptions}
+/>`}
+        >
+          <SortingMenu />
         </CodeExample>
       </section>
     </div>

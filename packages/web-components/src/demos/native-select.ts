@@ -20,22 +20,6 @@ function nativeSelect(
   return s;
 }
 
-/**
- * The id goes on the INNER <select>, not on <zen-native-select>.
- *
- * Every zen element is a `display: contents` wrapper around the real control,
- * and `id` is not one of the attributes zen-native-select forwards inward — an
- * id on the host would point <label for> at a custom element, which is not
- * labelable. Same adaptation as the Label demo: assign it once the element has
- * mounted its control.
- */
-function nameInnerControl(host: HTMLElement, id: string): void {
-  requestAnimationFrame(() => {
-    const control = host.querySelector("select");
-    if (control) control.id = id;
-  });
-}
-
 const box = (className: string, children: Node[]): HTMLElement => {
   const d = document.createElement("div");
   d.className = className;
@@ -55,7 +39,10 @@ export default function NativeSelectDemo(): HTMLElement {
         codeDescription:
           "No hidden input and no zen-change listener needed — the browser puts the value in the FormData, which is the whole point of reaching for this over a listbox.",
         code: `<form>
+  <zen-label for="dept">Department</zen-label>
+  <!-- input-id, not id: it lands on the inner <select>, which <label for> can name -->
   <zen-native-select
+    input-id="dept"
     name="dept_id"
     default-value="eng"
     options='[
@@ -76,9 +63,8 @@ export default function NativeSelectDemo(): HTMLElement {
               { value: "sales", label: "Sales" },
               { value: "ops", label: "Operations" },
             ],
-            { name: "dept_id", "default-value": "eng" },
+            { name: "dept_id", "default-value": "eng", "input-id": "dept" },
           );
-          nameInnerControl(select, "dept");
           return box("zen-w-72 zen-space-y-1.5", [label, select]);
         },
       },

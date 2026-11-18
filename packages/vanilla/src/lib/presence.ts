@@ -46,6 +46,10 @@ export function setPresence(el: HTMLElement, state: PresenceState, done?: () => 
     if (e.target !== el) return;
     el.removeEventListener("animationend", onEnd);
     el.removeEventListener("animationcancel", onEnd);
+    // Re-opened mid-exit: this close is stale. Running `done` now would hide a
+    // surface that is open again — the Combobox in a FilterBar did exactly that,
+    // leaving aria-expanded="true" over a hidden panel until two more clicks.
+    if (el.getAttribute("data-state") !== "closed") return;
     done();
   };
   el.addEventListener("animationend", onEnd);

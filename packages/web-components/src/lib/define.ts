@@ -138,6 +138,44 @@ export function defineZenElement<P>(def: ElementDef<P>): void {
       return this._comp;
     }
 
+    /*
+     * The geometry of a transparent host is the geometry of what it renders.
+     *
+     * A `display: contents` element generates no box, so the native
+     * getBoundingClientRect() answers an all-zero rect at (0, 0). Every vanilla
+     * factory that places something against an element it was handed —
+     * Popover's trigger and anchor, Tooltip, DropdownMenu, the anchored lists —
+     * measures exactly that element, and a zen element passed as one (a
+     * <zen-button> as a popover's `trigger`) is the host, not its <button>.
+     * Measured on the /popover demo: the panel opened at (8, 8), the viewport
+     * corner clamped by the collision padding.
+     *
+     * So a host with no box reports the union of its children's boxes — the
+     * rendered element, recursively through nested hosts. A host that HAS a box
+     * (the author set a display of their own) answers natively, unchanged.
+     */
+    override getBoundingClientRect(): DOMRect {
+      const own = super.getBoundingClientRect();
+      if (!this.isConnected || getComputedStyle(this).display !== "contents") return own;
+      let top = Infinity;
+      let left = Infinity;
+      let bottom = -Infinity;
+      let right = -Infinity;
+      // Walked by sibling rather than through `this.children`: some elements
+      // shadow `children` with a prop accessor (see the guard further down).
+      for (let child = this.firstElementChild; child; child = child.nextElementSibling) {
+        const r = child.getBoundingClientRect();
+        // A child with no box of its own (hidden, or another empty host) says
+        // nothing about where this one is.
+        if (r.width === 0 && r.height === 0 && r.top === 0 && r.left === 0) continue;
+        top = Math.min(top, r.top);
+        left = Math.min(left, r.left);
+        bottom = Math.max(bottom, r.bottom);
+        right = Math.max(right, r.right);
+      }
+      return top === Infinity ? own : new DOMRect(left, top, right - left, bottom - top);
+    }
+
     connectedCallback(): void {
       // Re-parenting fires disconnected then connected; the guard keeps a stray
       // double-connect from building a second component over the first.

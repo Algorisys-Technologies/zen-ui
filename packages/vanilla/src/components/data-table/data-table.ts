@@ -3846,6 +3846,10 @@ export function DataTable<TData>(
           brandedCellClass(),
           sorted &&
             "zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg",
+          // The <table> path always applied it; the virtualized header never
+          // did, so a column's header styling vanished the moment the table
+          // virtualized. React applies it in both.
+          columnHeaderClass(col.meta),
         ),
       );
       if (sorted) {

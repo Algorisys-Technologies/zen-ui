@@ -1,7 +1,12 @@
-import type { PivotLayout } from "@algorisys/zen-ui-core/pivot";
+import type { PivotFilterSelection, PivotLayout, SortDirection } from "@algorisys/zen-ui-core/pivot";
 import type { ZenComponent } from "../lib/component";
 import { DemoPage } from "./demo-helpers";
-import { PivotGrid, PivotWorkbench, type PivotGridProps } from "../components/pivot/pivot";
+import {
+  PivotFilterMenu,
+  PivotGrid,
+  PivotWorkbench,
+  type PivotGridProps,
+} from "../components/pivot/pivot";
 import {
   PIVOT_FIELDS,
   cellSeed,
@@ -16,6 +21,55 @@ import {
  * four sections, the same fake backend (pivot-demo-data), the same split where
  * the workbench holds no data and the caller answers getCell(row, col).
  */
+// --- Section 7: sorting from the filter menu ---------------------------------
+// The menu sorts nothing: it reports the direction picked and shows the one it
+// is given. Here the "data" is the department list, ordered by that state.
+const DEPARTMENTS = ["Engineering", "Sales", "Marketing", "HR", "Finance", "Product"];
+function sortingMenu(): HTMLElement {
+  let sort: SortDirection | undefined;
+  let selection: PivotFilterSelection | undefined;
+  const box = document.createElement("div");
+  box.style.cssText = "display:flex;flex-direction:column;gap:8px";
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;align-items:center;gap:4px;font-size:14px";
+  const name = document.createElement("span");
+  name.textContent = "Department";
+  const out = document.createElement("p");
+  out.style.cssText = "margin:0;font-size:12px;color:var(--zen-color-muted-fg)";
+  const state = document.createElement("code");
+  state.dataset.testid = "pivot-sort-state";
+  const order = document.createElement("span");
+  out.append("Sort: ", state, order);
+  const paint = () => {
+    const shown = [...DEPARTMENTS];
+    if (sort) shown.sort((a, b) => (sort === "asc" ? a.localeCompare(b) : b.localeCompare(a)));
+    state.textContent = sort ?? "none";
+    order.textContent = ` → ${shown.join(", ")}`;
+  };
+  const menu = PivotFilterMenu({
+    columnKey: "department",
+    label: "Department",
+    selection,
+    // The menu keeps its own selection in step; this is the caller's copy.
+    onChange: (next) => {
+      selection = next ?? undefined;
+    },
+    onSort: (next) => {
+      sort = next ?? undefined;
+      menu.update({ sortDirection: sort });
+      paint();
+    },
+    loadOptions: async (columnKey, optionSearch, page) => {
+      const res = await loadMembers({ fieldKey: columnKey, search: optionSearch, ...page });
+      return { ...res, total: res.total ?? res.values.length };
+    },
+  });
+  paint();
+  row.append(name, menu.el);
+  box.append(row, out);
+  return box;
+}
+
 // --- Section 5: totals and right to left -------------------------------------
 // A fixed layout, so the totals show without building one first. A cell's
 // "salary" comes from its seed, as getCell's does; the totals add up exactly
@@ -322,6 +376,27 @@ const next = moveFieldToZone(layout, "country", "rows", { index: 0 });`,
           box.append(plainGrid());
           return box;
         },
+      },
+      {
+        title: "7. Sorting from the filter menu",
+        codeTitle: "sortDirection and onSort on PivotFilterMenu",
+        codeDescription:
+          "Pass onSort and the menu gains Sort ascending and Sort descending above the search, and the trigger shows an arrow for the current direction. Picking the direction already in force calls onSort(null), so the same item turns the sort off. The menu orders nothing itself — it reports what was picked and shows the sortDirection it is given; the caller owns the order.",
+        code: `let sort: SortDirection | undefined;
+
+const menu = PivotFilterMenu({
+  columnKey: "department",
+  label: "Department",
+  selection,
+  onChange: (next) => { selection = next ?? undefined; },
+  sortDirection: sort,
+  onSort: (next) => {
+    sort = next ?? undefined;
+    menu.update({ sortDirection: sort });
+  },
+  loadOptions,
+});`,
+        render: sortingMenu,
       },
     ],
   });

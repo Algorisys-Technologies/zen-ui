@@ -99,15 +99,37 @@ issue / PR when its turn comes.
       text-transform / letter-spacing without the preflight, as DataTable's sort
       label did. Measure with the head tokens set, the way 12.6.0 did.
 
+## Found while making the bindings consistent (13.3.0, 2026-11-18)
+
+- [ ] Web components: Popover's `aria-haspopup` / `aria-expanded` /
+      `aria-controls` land on the trigger HOST (`<zen-button>`), not the inner
+      `<button>` a screen reader focuses.
+- [ ] Web components TreeTable: clicking a row chevron may not fire
+      `zen-expanded-change` (seen in an ad-hoc test, possibly the selector).
+      Removing `global-filter` keeps the last search text; vanilla keeps its
+      working copy on controlled -> uncontrolled.
+- [ ] PivotFilterMenu sort items: the check mark is aria-hidden, so the chosen
+      direction is not announced (React and Solid); use menuitemradio /
+      aria-checked in both.
+- [ ] Pivot grid loading skeleton bars use `zen-ml-auto` (physical) in React
+      and Solid; should be `zen-ms-auto`.
+- [ ] React-only demo routes: none left. `/bound-fields` is React and Solid only
+      by design (react-hook-form / modular-forms adapters).
+- [ ] React RichText is Jodit PRO (`jodit-pro-react`, commercial) with 20 more
+      toolbar buttons than the free `jodit` the other bindings use; React's lib
+      bundles KaTeX while the others take it as an optional peer. Both are
+      packaging choices with licence and breaking-change weight; decide
+      deliberately.
+
 ## Prop divergences found by check:props (2026-11-05)
 
 `scripts/check-props.ts` KNOWN lists them; each closed one is a deleted line.
-- [ ] RichText `math`, `onImageUpload`: React only (Solid, vanilla lack them).
-- [ ] CodeEditor: React `loading` vs Solid `loaderConfig`; reconcile to one API
+- [x] RichText `math`, `onImageUpload`: React only (Solid, vanilla lack them). ✓ 13.3.0.
+- [x] CodeEditor: React `loading` vs Solid `loaderConfig`; reconcile to one API ✓ 13.3.0 (both in every binding)
       (vanilla has both).
-- [ ] PivotFilterMenu `onSort` / `sortDirection`: Solid only.
-- [ ] DirectionProvider `locale`: Solid only.
-- [ ] TreeTable controlled state in vanilla: `expanded`, `globalFilter`,
+- [x] PivotFilterMenu `onSort` / `sortDirection`: Solid only. ✓ 13.3.0.
+- [x] DirectionProvider `locale`: Solid only. Intentional (Kobalte needs a locale); documented in check-props.
+- [x] TreeTable controlled state in vanilla (✓ 13.3.0): `expanded`, `globalFilter`,
       `onGlobalFilterChange`, `sorting`, `onSortingChange`, `rowSelection`,
       `rowClassName`.
 - [x] DataTable in vanilla: docs/vanilla-data-table.md (27 props, phases 1–5). ✓ 2026-11-05: all five phases; check:props 0 DataTable gaps.

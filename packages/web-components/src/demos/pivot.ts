@@ -8,6 +8,55 @@ import {
   memberCount,
 } from "./pivot-demo-data";
 
+// --- Section 7: sorting from the filter menu ---------------------------------
+// The menu sorts nothing: it reports the direction picked (`zen-sort`) and shows
+// the one it is given (`sort-direction`). Here the "data" is the department
+// list, ordered by that state.
+const DEPARTMENTS = ["Engineering", "Sales", "Marketing", "HR", "Finance", "Product"];
+function sortingMenu(): HTMLElement {
+  let sort: "asc" | "desc" | undefined;
+  const box = document.createElement("div");
+  box.style.cssText = "display:flex;flex-direction:column;gap:8px";
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;align-items:center;gap:4px;font-size:14px";
+  const name = document.createElement("span");
+  name.textContent = "Department";
+  const out = document.createElement("p");
+  out.style.cssText = "margin:0;font-size:12px;color:var(--zen-color-muted-fg)";
+  const state = document.createElement("code");
+  state.dataset.testid = "pivot-sort-state";
+  const order = document.createElement("span");
+  out.append("Sort: ", state, order);
+  const paint = () => {
+    const shown = [...DEPARTMENTS];
+    if (sort) shown.sort((a, b) => (sort === "asc" ? a.localeCompare(b) : b.localeCompare(a)));
+    state.textContent = sort ?? "none";
+    order.textContent = ` → ${shown.join(", ")}`;
+  };
+  const menu = document.createElement("zen-pivot-filter-menu");
+  menu.setAttribute("column-key", "department");
+  menu.setAttribute("label", "Department");
+  Object.assign(menu, {
+    loadOptions: async (columnKey: string, optionSearch: string, page: { offset: number; limit: number }) => {
+      const res = await loadMembers({ fieldKey: columnKey, search: optionSearch, ...page });
+      return { ...res, total: res.total ?? res.values.length };
+    },
+  });
+  // The menu keeps its own selection in step; listening is enough.
+  menu.addEventListener("zen-change", () => {});
+  // Listening for zen-sort is what adds Sort ascending / descending to the menu.
+  menu.addEventListener("zen-sort", (e) => {
+    sort = (e as CustomEvent<"asc" | "desc" | null>).detail ?? undefined;
+    if (sort) menu.setAttribute("sort-direction", sort);
+    else menu.removeAttribute("sort-direction");
+    paint();
+  });
+  paint();
+  row.append(name, menu);
+  box.append(row, out);
+  return box;
+}
+
 // --- Section 5: totals and right to left -------------------------------------
 const TOTALS_LAYOUT = {
   rows: ["department", "name"],
@@ -330,6 +379,23 @@ const next = moveFieldToZone(layout, "country", "rows", { index: 0 });`,
           box.append(plainGrid());
           return box;
         },
+      },
+      {
+        title: "7. Sorting from the filter menu",
+        codeTitle: "sort-direction and zen-sort on <zen-pivot-filter-menu>",
+        codeDescription:
+          "Listen for zen-sort and the menu gains Sort ascending and Sort descending above the search, and the trigger shows an arrow for the current direction. Picking the direction already in force reports null, so the same item turns the sort off. The menu orders nothing itself — it reports what was picked and shows the sort-direction it is given; the caller owns the order.",
+        code: `<zen-pivot-filter-menu column-key="department" label="Department"></zen-pivot-filter-menu>
+
+<script>
+  menu.loadOptions = loadOptions;
+  menu.addEventListener("zen-sort", (e) => {
+    // "asc" | "desc", or null when the direction in force was picked again
+    if (e.detail) menu.setAttribute("sort-direction", e.detail);
+    else menu.removeAttribute("sort-direction");
+  });
+</script>`,
+        render: sortingMenu,
       },
     ],
   });
