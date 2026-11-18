@@ -15,6 +15,34 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.4.1] - 2026-11-19
+
+### Fixed
+
+- Gantt milestones now take `barAccent`, in all four bindings. It is drawn as
+  a 2px border (`box-sizing: border-box`) on the rotated square, marked
+  `data-gantt-accent` like a bar's stripe. Inside rather than an outline or
+  ring because anything outside the square extends past the tips the
+  connector anchors (± barPx/2) end on. The `barAccent` doc comment says so.
+
+### Added
+
+- check-schedule-dom: milestone geometry on /gantt, in both directions:
+  - the count drawn;
+  - each marker a true diamond of side barPx/√2 (it catches the flex-squeeze
+    bug that shipped in the first Solid build);
+  - centred on its date column's start edge within 1px;
+  - not tabbable and announced as a milestone;
+  - three status colours;
+  - every arrow into a milestone row ending on its tip (reported as n of m);
+  - accented milestones drawing a border.
+
+  Mutation-tested: removing `shrink-0` and collapsing the anchor to the centre
+  each fail it (0 of 3 tips). 736 assertions over four bindings.
+- The demo's Milestones section has a late milestone ("Customer review") and
+  accents the customer-facing gates. It is still the last section on every
+  binding's /gantt page.
+
 ## [13.4.0] - 2026-11-18
 
 ### Added
