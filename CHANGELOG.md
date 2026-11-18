@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.2.0] - 2026-11-18
+
 ### Added
 
 - `continuous` on Gantt and ProductionSchedule, in every binding (`continuous`

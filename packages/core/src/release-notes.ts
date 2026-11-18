@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.2.0",
+    date: "2026-11-18",
+    kind: "new",
+    title: "One continuous, scrolling timeline for Gantt and ProductionSchedule",
+    detail: "continuous turns the whole plan into one timeline you scroll sideways; Day, Week and Month set the zoom, and no bar is cut off at a week's edge.",
+  },
+  {
     version: "13.1.0",
     date: "2026-11-18",
     kind: "new",
