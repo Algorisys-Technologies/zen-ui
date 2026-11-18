@@ -15,6 +15,8 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.1.0] - 2026-11-18
+
 ### Added
 
 - `headerGroups` on Gantt and ProductionSchedule, in every binding
@@ -36,6 +38,10 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - check:schedule-parity finds all 37 charts identical to React.
 
 ### Fixed
+
+- Deploy tooling: gen-previews' retry window is now 20s, up from 12. React's
+  /object (ObjectPage), the heaviest demo, missed both windows in the 13.0.0
+  deploy: over 15s on a fresh dev server's first load, 1.7s warm.
 
 - Day view on clock-change days. It stepped 24 x 60 minutes from midnight, so
   on a 23-hour day its "23:00" column started at the next day's 00:00 and the

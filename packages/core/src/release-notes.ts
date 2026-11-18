@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.1.0",
+    date: "2026-11-18",
+    kind: "new",
+    title: "A date row above the Gantt and ProductionSchedule timeline",
+    detail: "headerGroups names the date, month or year above the columns and keeps it in view while you scroll sideways, so you can follow an order across weeks.",
+  },
+  {
+    version: "13.1.0",
+    date: "2026-11-18",
+    kind: "fixed",
+    title: "Day view on the days the clocks change",
+    detail: "It showed an hour belonging to the next day and labelled the hours after the change an hour off. It now follows the wall clock: 23 or 25 hours.",
+  },
+  {
     version: "13.0.0",
     date: "2026-11-18",
     kind: "breaking",
