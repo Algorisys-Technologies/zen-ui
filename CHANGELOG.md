@@ -15,7 +15,36 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.2.1] - 2026-11-18
+
 ### Changed
+
+- Demo pages moved from the top level of each binding's `src/components/` to
+  `src/demos/`, renamed to lowercase kebab-case without the `New`/`Demo`
+  affixes (`NewGanttDemo.tsx` -> `demos/gantt.tsx`, `QRScannerDemo.ts` ->
+  `demos/qr-scanner.ts`). 577 files in four bindings, all `git mv`, so history
+  follows. Imports were rewritten by resolving each relative specifier against
+  the old location and re-relativising it to the new locations of both ends.
+  `components/` now holds only component folders; web components had none and
+  lost the empty directory. Every library-to-root import was checked first:
+  there were 0.
+  - Each tsconfig.lib.json excludes `src/demos/**`. The library programs now
+    hold 0 demo files; the app programs hold all of them.
+  - The `importRe` patterns in bindings.mjs read `./demos/`. check-nav now
+    resolves each router import against the router's own folder instead of
+    hardcoding a path; it passes for all four bindings.
+  - The nav.ts `source` paths (555) were rewritten, and the comments in the
+    React ESLint config and check-strings updated.
+  - CLAUDE.md, docs/prompts/component-author.md and docs/handoff-gantt.md, and
+    the vanilla demos' "mirrors packages/react/..." headers, point at the new
+    paths.
+  - Verified by snapshotting every demo route's accessibility tree before and
+    after, in all four bindings (compare-route-snapshots), plus visual-check and
+    the DOM checks.
+- Names were not taken from routes, deliberately. React still serves several
+  pages under legacy `-new` routes (`/button-new`) where Solid uses `/button`,
+  and route-based names would have baked that into the file system. That route
+  inconsistency is left for its own change.
 
 - DataTable's edit cell (Solid, React, vanilla): `zen-m-[-0.5rem]
   zen-p-[0.4rem]` became `-zen-m-2 zen-p-1.6`, removing two raw rem literals
