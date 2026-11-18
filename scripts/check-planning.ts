@@ -87,6 +87,29 @@ t([dayCols[8].nonWorking, dayCols[9].nonWorking, dayCols[18].nonWorking], [true,
 t(dayCols.filter((c) => c.today).length, 1, "exactly ONE column holds now, not the whole day");
 t(dayCols.findIndex((c) => c.today), 10, "10:30 lands in the 10:00 column");
 t(planningColumns("day", at(2026, 7, 21), { hourStep: 2 }).length, 12, "hourStep 2 halves the count");
+// A day view follows the WALL CLOCK across a clock change: it tiles the local
+// day exactly (23 or 25 hours on the change days) and labels each column with
+// the hour it really starts at. Stepping 24 x 60 minutes from midnight used to
+// leave a column labelled "23:00" that started at the NEXT day's 00:00. These
+// hold in any timezone; `check:planning` also runs under Europe/London, where
+// 29 Mar and 25 Oct 2026 are the change days.
+for (const day of [at(2026, 3, 29), at(2026, 10, 25), at(2026, 7, 21)]) {
+  const cols = planningColumns("day", day);
+  const nextMidnight = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1);
+  const hm = (d: Date) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  t(
+    [
+      cols[0].start.getTime() === new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime(),
+      cols.at(-1)!.end.getTime() === nextMidnight.getTime(),
+      cols.every((c, i) => i === 0 || c.start.getTime() === cols[i - 1].end.getTime()),
+      cols.every((c) => c.label === hm(c.start)),
+      cols.every((c) => c.start.getDate() === day.getDate()),
+    ],
+    [true, true, true, true, true],
+    `a day view tiles ${day.toDateString()} on the wall clock (${cols.length} columns)`,
+  );
+}
+t(planningColumns("day", at(2026, 7, 21), { hourStep: 0.5 })[19].label, "09:30", "a half-hour step labels its columns 09:30, not 9.5:00");
 t(
   planningColumns("day", at(2026, 7, 21), { dayStartHour: 8, dayEndHour: 18 }).map((c) => c.label).at(-1),
   "17:00",

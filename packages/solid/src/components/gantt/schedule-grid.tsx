@@ -4,12 +4,14 @@ import {
   ganttColumnWidths,
   ganttFitHourStep,
   ganttFitUnit,
+  ganttHeaderGroups,
   ganttPaneColumns,
   ganttRange,
   ganttRangeColumns,
   ganttRangeLabel,
   ganttRowWindow,
   ganttSpanLabel,
+  ganttViewUnit,
   nowPct,
   shiftGanttAnchor,
   type GanttAnchoredView,
@@ -17,6 +19,7 @@ import {
   type GanttColumnUnit,
   type GanttConnector,
   type GanttDependencyStyle,
+  type GanttHeaderGroup,
   type GanttView,
   type PlanningColumn,
   type PlanningRange,
@@ -63,6 +66,8 @@ import { useLocale, type MessageKey } from "../locale/locale";
 /** Pixel height of a row. Fixed, and the connector routes depend on it. */
 export const ROW_PX = 36;
 export const HEADER_PX = 44;
+/** The optional group row above the column labels (`headerGroups`). */
+export const GROUP_PX = 22;
 /** Indent per level of hierarchy, applied by the caller inside its first column. */
 export const INDENT_PX = 14;
 
@@ -171,6 +176,8 @@ export interface ScheduleAxisInput {
   paneColumns: readonly { key: string; width: number }[];
   /** The scroller's measured `clientWidth`, or 0 before it has been measured. */
   available: number;
+  /** The header draws a group row, so columns drop the context it carries. */
+  grouped?: boolean;
 }
 
 export interface ScheduleAxis {
@@ -182,6 +189,8 @@ export interface ScheduleAxis {
   paneKeys: () => string[];
   isFit: () => boolean;
   anchoredView: () => GanttAnchoredView;
+  /** What one column is: hour, day, week or month. What the header groups by. */
+  unit: () => GanttColumnUnit;
   /** Milliseconds worth roughly one pixel — what a split-bar gap is judged against. */
   minGapMs: () => number;
 }
@@ -228,7 +237,7 @@ export function createScheduleAxis(input: () => ScheduleAxisInput): ScheduleAxis
   const columns = createMemo(() => {
     const fit = input().fitRange;
     const unit = fitUnit();
-    const options = { now: input().now, calendar: input().calendar, hourStep: effectiveHourStep() };
+    const options = { now: input().now, calendar: input().calendar, hourStep: effectiveHourStep(), grouped: input().grouped };
     return fit && unit
       ? ganttRangeColumns(fit, unit, options)
       : ganttColumns(anchoredView(), input().anchor, options);
@@ -283,7 +292,9 @@ export function createScheduleAxis(input: () => ScheduleAxisInput): ScheduleAxis
     return width > 0 ? (range().end.getTime() - range().start.getTime()) / width : 0;
   });
 
-  return { range, columns, columnWidths, axisWidth, paneWidth, paneKeys, isFit, anchoredView, minGapMs };
+  const unit = (): GanttColumnUnit => fitUnit() ?? ganttViewUnit(anchoredView());
+
+  return { range, columns, columnWidths, axisWidth, paneWidth, paneKeys, isFit, anchoredView, unit, minGapMs };
 }
 
 /**
@@ -364,6 +375,13 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
    */
   headerClassName?: string;
   /**
+   * A second header row above the column labels giving their date context: the
+   * date above hours, the month above days or weeks, the year above months.
+   * Each group's label stays in view while the axis scrolls sideways. Off by
+   * default — the header is then exactly the single row it always was.
+   */
+  headerGroups?: boolean;
+  /**
    * A strip under the rows, aligned to the axis and stuck to the bottom.
    * Rendered OUTSIDE the `treegrid` element: a div that is not a `row` inside a
    * grid is invalid ARIA, and a fake row would be counted by `aria-rowcount`.
@@ -405,6 +423,42 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
 
 export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProps<R>) {
   const loc = useLocale();
+  /* The header's height, read by everything that has to clear it: the sticky
+     row itself, scrolling a row into view, and the keyboard's page size. */
+  const headerPx = () => HEADER_PX + (props.headerGroups ? GROUP_PX : 0);
+  const groups = createMemo(() =>
+    props.headerGroups ? ganttHeaderGroups(props.axis.columns(), props.axis.unit()) : [],
+  );
+  /** A group's width: the sum of its columns', so it lines up to the pixel. */
+  const groupWidth = (firstColumn: number, columnCount: number) =>
+    props.axis.columnWidths().slice(firstColumn, firstColumn + columnCount).reduce((a, b) => a + b, 0);
+  /* "July 2026" where it fits, "Jul" where it does not: two narrow days of June
+     at the start of a week truncated "June 2026" to "Ju…", which names no month
+     at all. Estimated (about 7px a character at text-xs, plus the padding)
+     rather than measured, so the choice is stable and costs no layout read;
+     the truncation stays as the last resort. */
+  const groupLabel = (group: GanttHeaderGroup) =>
+    groupWidth(group.firstColumn, group.columnCount) >= group.label.length * 7 + 16 ? group.label : group.shortLabel;
+  /** The per-column header cells: label, and the sublabel when there is one. */
+  const axisCells = () => (
+    <For each={props.axis.columns()}>
+      {(column, i) => (
+        <div
+          class={cn(
+            "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-overflow-hidden zen-border-e zen-border-zen-border last:zen-border-e-0",
+            column.nonWorking && "zen-bg-zen-muted",
+            column.today && "zen-bg-zen-primary-soft",
+          )}
+          style={{ width: `${props.axis.columnWidths()[i()]}px` }}
+        >
+          <span class="zen-text-xs zen-font-medium zen-text-zen-foreground">{column.label}</span>
+          <Show when={column.sublabel}>
+            <span class="zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">{column.sublabel}</span>
+          </Show>
+        </div>
+      )}
+    </For>
+  );
   const rowHeight = () => props.rowHeight ?? ROW_PX;
   const marker = createMemo(() => nowPct(props.axis.range(), props.now));
   const bodyHeight = () => props.rows.length * rowHeight();
@@ -471,10 +525,10 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
   const scrollRowIntoView = (rowIndex: number) => {
     const el = props.scroller();
     if (!el) return;
-    /* The header is sticky and covers the top HEADER_PX of the viewport, so a
+    /* The header is sticky and covers the top headerPx() of the viewport, so a
        row scrolled flush to the top is a row hidden behind the column titles. */
-    const rowTop = HEADER_PX + rowIndex * rowHeight();
-    const upper = rowTop - HEADER_PX;
+    const rowTop = headerPx() + rowIndex * rowHeight();
+    const upper = rowTop - headerPx();
     const lower = rowTop + rowHeight() - el.clientHeight;
     const next = Math.max(0, Math.min(Math.max(el.scrollTop, lower), upper));
     if (next === el.scrollTop) return;
@@ -543,7 +597,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
     const rtl = el ? getComputedStyle(el).direction === "rtl" : false;
     const forward = rtl ? "ArrowLeft" : "ArrowRight";
     const backward = rtl ? "ArrowRight" : "ArrowLeft";
-    const page = Math.max(1, Math.floor((props.metrics().height - HEADER_PX) / rowHeight()));
+    const page = Math.max(1, Math.floor((props.metrics().height - headerPx()) / rowHeight()));
     const last = props.rows.length - 1;
     const row = props.rows[activeRow()];
 
@@ -733,7 +787,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
             role="row"
             aria-rowindex={1}
             class={cn("zen-sticky zen-top-0 zen-z-30 zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted", props.headerClassName)}
-            style={{ height: `${HEADER_PX}px`, "box-sizing": "border-box" }}
+            style={{ height: `${headerPx()}px`, "box-sizing": "border-box" }}
           >
             <div
               class={cn(
@@ -760,26 +814,48 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
               role="columnheader"
               aria-colindex={props.timelineColIndex}
               aria-label={loc.t("scheduleGrid.timeline")}
-              class="zen-flex"
+              class={props.headerGroups ? "zen-flex zen-flex-col" : "zen-flex"}
               style={{ width: `${props.axis.axisWidth()}px` }}
             >
-              <For each={props.axis.columns()}>
-                {(column, i) => (
-                  <div
-                    class={cn(
-                      "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-overflow-hidden zen-border-e zen-border-zen-border last:zen-border-e-0",
-                      column.nonWorking && "zen-bg-zen-muted",
-                      column.today && "zen-bg-zen-primary-soft",
+              {/* Without groups the cells are the header's direct children,
+                  exactly as before; with them, the group row sits above and the
+                  cells move into a marked row of their own. */}
+              <Show when={props.headerGroups} fallback={axisCells()}>
+                {/* The group row. aria-hidden: the column labels and the toolbar's
+                    range title already say the date to a screen reader, and a
+                    second set of header text would be read twice. */}
+                <div
+                  aria-hidden="true"
+                  data-schedule-groups=""
+                  class="zen-flex zen-shrink-0 zen-border-b zen-border-zen-border"
+                  style={{ height: `${GROUP_PX}px`, "box-sizing": "border-box" }}
+                >
+                  <For each={groups()}>
+                    {(group) => (
+                      /* No overflow clipping here: a clipping ancestor becomes
+                         the label's scroll container and `sticky` stops
+                         working. The label truncates itself instead. */
+                      <div
+                        data-schedule-group=""
+                        class="zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0"
+                        style={{ width: `${groupWidth(group.firstColumn, group.columnCount)}px` }}
+                      >
+                        {/* Sticky just past the frozen pane, so the month or the
+                            date stays on screen while its columns scroll by. */}
+                        <span
+                          class="zen-sticky zen-inline-block zen-max-w-full zen-truncate zen-px-2 zen-align-top zen-text-xs zen-font-semibold zen-text-zen-foreground"
+                          style={{ "inset-inline-start": `${props.axis.paneWidth()}px`, "line-height": `${GROUP_PX - 1}px` }}
+                        >
+                          {groupLabel(group)}
+                        </span>
+                      </div>
                     )}
-                    style={{ width: `${props.axis.columnWidths()[i()]}px` }}
-                  >
-                    <span class="zen-text-xs zen-font-medium zen-text-zen-foreground">{column.label}</span>
-                    <Show when={column.sublabel}>
-                      <span class="zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">{column.sublabel}</span>
-                    </Show>
-                  </div>
-                )}
-              </For>
+                  </For>
+                </div>
+                <div data-schedule-axis-row="" class="zen-flex zen-min-h-0 zen-flex-1">
+                  {axisCells()}
+                </div>
+              </Show>
             </div>
           </div>
 

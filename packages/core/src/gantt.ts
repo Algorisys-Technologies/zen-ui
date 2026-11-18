@@ -611,6 +611,14 @@ export interface GanttColumnOptions extends PlanningColumnOptions {
    * is given, and nothing changes where one is not.
    */
   calendar?: GanttCalendar;
+  /**
+   * The header draws a group row above the columns (see `ganttHeaderGroups`),
+   * so a column's `sublabel` drops the context that row now carries: the date
+   * at an hour axis's first hour, the month where a week axis changes month,
+   * the year at a month axis's January. A day axis keeps its weekday initial,
+   * which is not context but the column's own name. Off by default.
+   */
+  grouped?: boolean;
 }
 
 /** Rewrites `nonWorking` from the calendar. A column counts as non-working when
@@ -933,7 +941,7 @@ export function ganttRangeColumns(
       label = `${pad2(cursor.getHours())}:${pad2(cursor.getMinutes())}`;
       // The date, once per day. An hour axis spanning two days is otherwise two
       // identical runs of 00:00–23:00 with nothing to tell them apart.
-      if (cursor.getDate() !== previousDay) sublabel = `${cursor.getDate()} ${shortMonth(cursor)}`;
+      if (cursor.getDate() !== previousDay && !options.grouped) sublabel = `${cursor.getDate()} ${shortMonth(cursor)}`;
       previousDay = cursor.getDate();
       const hour = cursor.getHours() + cursor.getMinutes() / 60;
       nonWorking = hour < workFrom || hour >= workTo;
@@ -947,13 +955,13 @@ export function ganttRangeColumns(
          they cost is the difference between an axis that fits its container
          and one the reader has to drag sideways. */
       label = String(cursor.getDate());
-      if (cursor.getMonth() !== previousMonth) sublabel = shortMonth(cursor);
+      if (cursor.getMonth() !== previousMonth && !options.grouped) sublabel = shortMonth(cursor);
       previousMonth = cursor.getMonth();
       // A week or a month is neither working nor non-working — the weekend is
       // inside every one of them, so shading any of them says nothing.
     } else {
       label = shortMonth(cursor);
-      if (crossesYear && (cursor.getMonth() === 0 || columns.length === 0)) {
+      if (crossesYear && !options.grouped && (cursor.getMonth() === 0 || columns.length === 0)) {
         sublabel = String(cursor.getFullYear());
       }
     }
@@ -970,6 +978,85 @@ export function ganttRangeColumns(
   }
 
   return calendar ? applyCalendar(columns, calendar) : columns;
+}
+
+/** One cell of the header's group row: a run of columns sharing a parent period. */
+export interface GanttHeaderGroup {
+  /** Inclusive start of the first column in the group. */
+  start: Date;
+  /** Exclusive end of the last. */
+  end: Date;
+  /** "Tue 21 Jul 2026" over hours, "July 2026" over days or weeks, "2026" over months. */
+  label: string;
+  /** "21 Jul", "Jul", "2026": for a group too narrow for `label`. */
+  shortLabel: string;
+  /** Index of the group's first column in the column list. */
+  firstColumn: number;
+  /** How many columns it spans. Never 0. */
+  columnCount: number;
+}
+
+/** The column unit each anchored view draws, so its header can be grouped. */
+export function ganttViewUnit(view: GanttAnchoredView): GanttColumnUnit {
+  if (view === "day") return "hour";
+  if (view === "quarter") return "week";
+  if (view === "year") return "month";
+  return "day";
+}
+
+const longMonth = (d: Date): string => d.toLocaleString(undefined, { month: "long" });
+const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/**
+ * The header's group row: the date above hours, the month above days or weeks,
+ * the year above months. A planner reading a Week view of 29 Jun - 5 Jul, or
+ * scrolling an hourly axis past midnight, otherwise has to look up at the
+ * toolbar to know which month or day a column is in.
+ *
+ * Groups are RUNS of consecutive columns sharing the parent period, so they tile
+ * the columns exactly: the renderer sizes each group as the sum of its columns'
+ * widths, and a gap or overlap would misalign the header. A week column belongs
+ * to the month it STARTS in, the same rule the week axis's sublabel used.
+ *
+ * Labels use the same locale source as the rest of the axis (`toLocaleString`
+ * with the runtime default for month names, English weekday names), so a group
+ * row never disagrees with the columns under it.
+ */
+export function ganttHeaderGroups(columns: PlanningColumn[], unit: GanttColumnUnit): GanttHeaderGroup[] {
+  const keyOf = (d: Date): string =>
+    unit === "hour"
+      ? `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+      : unit === "month"
+        ? String(d.getFullYear())
+        : `${d.getFullYear()}-${d.getMonth()}`;
+  const labelOf = (d: Date): string =>
+    unit === "hour"
+      ? `${WEEKDAY_SHORT[d.getDay()]} ${d.getDate()} ${shortMonth(d)} ${d.getFullYear()}`
+      : unit === "month"
+        ? String(d.getFullYear())
+        : `${longMonth(d)} ${d.getFullYear()}`;
+
+  const shortLabelOf = (d: Date): string =>
+    unit === "hour" ? `${d.getDate()} ${shortMonth(d)}` : unit === "month" ? String(d.getFullYear()) : shortMonth(d);
+
+  const groups: GanttHeaderGroup[] = [];
+  columns.forEach((column, i) => {
+    const last = groups.at(-1);
+    if (last && keyOf(columns[last.firstColumn].start) === keyOf(column.start)) {
+      last.columnCount++;
+      last.end = column.end;
+      return;
+    }
+    groups.push({
+      start: column.start,
+      end: column.end,
+      label: labelOf(column.start),
+      shortLabel: shortLabelOf(column.start),
+      firstColumn: i,
+      columnCount: 1,
+    });
+  });
+  return groups;
 }
 
 /**

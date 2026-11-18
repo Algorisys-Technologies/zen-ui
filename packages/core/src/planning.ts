@@ -164,14 +164,23 @@ export function planningColumns(
     const from = options.dayStartHour ?? 0;
     const to = options.dayEndHour ?? 24;
     const [workFrom, workTo] = options.workingHours ?? [9, 18];
-    const base = startOfDay(anchor);
-    for (let hour = from; hour < to; hour += step) {
-      const start = new Date(base.getTime() + hour * MS_HOUR);
-      const end = new Date(Math.min(base.getTime() + (hour + step) * MS_HOUR, base.getTime() + to * MS_HOUR));
+    /* The WALL CLOCK bounds the day, and each label is read from the instant the
+       column really starts. Stepping `hour * 60 minutes` from midnight instead
+       left a column labelled "23:00" that began at the next day's 00:00 on a
+       23-hour clock-change day, and mislabelled every hour after the jump. The
+       bounds come from the local Date constructor (hour 24 normalises to the
+       next midnight); the steps are real elapsed time, so a 23-hour day has 23
+       columns and a 25-hour day says 01:00 twice, as the clock on the wall did. */
+    const dayStart = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate(), from, 0, 0, 0);
+    const dayEnd = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate(), to, 0, 0, 0).getTime();
+    for (let at = dayStart.getTime(); at < dayEnd; at += step * MS_HOUR) {
+      const start = new Date(at);
+      const end = new Date(Math.min(at + step * MS_HOUR, dayEnd));
+      const hour = start.getHours() + start.getMinutes() / 60;
       columns.push({
         start,
         end,
-        label: `${pad2(hour)}:00`,
+        label: `${pad2(start.getHours())}:${pad2(start.getMinutes())}`,
         sublabel: "",
         nonWorking: hour < workFrom || hour >= workTo,
         // Every column of a day view is "today" or none of them is, so the flag

@@ -183,18 +183,22 @@ export const zenUnoTheme = {
   spacing: ZEN_DENSITY_SPACING,
   height: ZEN_DENSITY_SIZES,
   minHeight: ZEN_DENSITY_SIZES,
+  // `as [string, string]`: the theme ends in `as const`, which would make these
+  // tuples readonly, and UnoCSS's Theme types them mutable, so a config typed
+  // `defineConfig<Theme>` rejected the whole theme. Core stays free of unocss
+  // types; the plain tuple is all that compatibility needs.
   fontSize: {
-    xs: ["var(--zen-font-size-xs)", "var(--zen-line-height-xs)"],
-    sm: ["var(--zen-font-size-sm)", "var(--zen-line-height-sm)"],
-    base: ["var(--zen-font-size-base)", "var(--zen-line-height-base)"],
-    lg: ["var(--zen-font-size-lg)", "var(--zen-line-height-lg)"],
-    xl: ["var(--zen-font-size-xl)", "var(--zen-line-height-xl)"],
-    "2xl": ["var(--zen-font-size-2xl)", "var(--zen-line-height-2xl)"],
-    "3xl": ["var(--zen-font-size-3xl)", "var(--zen-line-height-3xl)"],
-    "4xl": ["var(--zen-font-size-4xl)", "var(--zen-line-height-4xl)"],
-    "5xl": ["var(--zen-font-size-5xl)", "var(--zen-line-height-5xl)"],
+    xs: ["var(--zen-font-size-xs)", "var(--zen-line-height-xs)"] as [string, string],
+    sm: ["var(--zen-font-size-sm)", "var(--zen-line-height-sm)"] as [string, string],
+    base: ["var(--zen-font-size-base)", "var(--zen-line-height-base)"] as [string, string],
+    lg: ["var(--zen-font-size-lg)", "var(--zen-line-height-lg)"] as [string, string],
+    xl: ["var(--zen-font-size-xl)", "var(--zen-line-height-xl)"] as [string, string],
+    "2xl": ["var(--zen-font-size-2xl)", "var(--zen-line-height-2xl)"] as [string, string],
+    "3xl": ["var(--zen-font-size-3xl)", "var(--zen-line-height-3xl)"] as [string, string],
+    "4xl": ["var(--zen-font-size-4xl)", "var(--zen-line-height-4xl)"] as [string, string],
+    "5xl": ["var(--zen-font-size-5xl)", "var(--zen-line-height-5xl)"] as [string, string],
     // A table body cell (tokens.css: defaults to the sm pair).
-    "zen-cell": ["var(--zen-table-cell-font-size)", "var(--zen-table-cell-line-height)"],
+    "zen-cell": ["var(--zen-table-cell-font-size)", "var(--zen-table-cell-line-height)"] as [string, string],
   },
   fontWeight: {
     light: "var(--zen-font-weight-light)",

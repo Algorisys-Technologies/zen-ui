@@ -729,6 +729,26 @@ chart.addEventListener("zen-place", (e) => place(e.detail));`,
           return box;
         },
       },
+      {
+        title: "Date context above the columns",
+        codeTitle: "header-groups",
+        codeDescription:
+          "A second header row says which date or month the columns belong to: the date above hours in a Day view, the month above days in Fit. Each label stays on screen, just past the frozen pane, while its columns scroll sideways. Off by default, so an existing chart's header does not change.",
+        code: `<zen-production-schedule header-groups></zen-production-schedule>
+<zen-production-schedule header-groups default-view="day"></zen-production-schedule>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.setAttribute("data-testid", "production-header-groups");
+          const fit = schedule({ resources: CELLS, operations: JOBS, dependencies: ROUTING, calendar: PLANT, now: NOW });
+          fit.setAttribute("header-groups", "");
+          const day = schedule({ resources: CELLS, operations: JOBS, dependencies: ROUTING, calendar: PLANT, now: NOW, defaultDate: NOW });
+          day.setAttribute("default-view", "day");
+          day.setAttribute("header-groups", "");
+          box.append(fit, day);
+          return box;
+        },
+      },
     ],
   });
 }

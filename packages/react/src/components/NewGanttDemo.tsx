@@ -703,6 +703,21 @@ const linkStyle = {
         </div>
       </CodeExample>
     </section>
+
+    <section className="demo-section">
+      <h2>16. Date context above the columns</h2>
+      <CodeExample
+        title="headerGroups"
+        description="A second header row says which date, month or year the columns belong to: the date above hours, the month above days or weeks, the year above months. Each label is sticky just past the frozen pane, so it stays on screen while its columns scroll sideways, and a planner following an order across weeks never has to look up to the toolbar. The first chart is a Week view of 29 June to 5 July, a week split across two months. The second is Fit over the whole plan. With groups on, the per-column hint that used to repeat the month or year at each boundary is dropped; the group row says it once. Off by default, so an existing chart's header does not change."
+        code={`<Gantt tasks={plan} headerGroups defaultView="week" defaultDate={new Date(2026, 6, 1)} />
+<Gantt tasks={plan} headerGroups />`}
+      >
+        <div data-testid="gantt-header-groups" className="zen-flex zen-w-full zen-flex-col zen-gap-4">
+          <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} headerGroups defaultView="week" defaultDate={at(1)} />
+          <Gantt tasks={PLAN} dependencies={LINKS} now={NOW} headerGroups />
+        </div>
+      </CodeExample>
+    </section>
   </div>
 );
 
