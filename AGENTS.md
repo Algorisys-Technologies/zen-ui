@@ -91,6 +91,7 @@ description, then import the name from your binding's package.
 - **Theme** — Scopes a theme to a subtree — a dark panel inside a light page; nests, no JS
 - **Localization** — Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use
 - **DirectionProvider** — Right-to-left support — tells menus, tabs and sliders which way the page reads
+- **Stack** — Minimal flexbox layout primitive — a thin div laying children out in a row or column with configurable alignment, wrapping, gap and padding.
 - **MessagePopover** — Aggregated form validation grouped by severity; click a message to land on the field
 - **Page + Bar** — The Page whole-screen container and the three-slot Bar row — the structural frame pieces
 - **ColorPicker** — Swatch palette + the platform picker; hex in, hex out
@@ -110,6 +111,7 @@ description, then import the name from your binding's package.
 - **Slider** — Radix Slider — single + range, vertical, keyboard control
 - **ScrollArea** — Radix ScrollArea — custom scrollbars, both axes
 - **Input + Textarea** — Plain styled <input> / <textarea>, all native attrs
+- **Textarea** — Plain styled <textarea> primitive, all native attrs
 - **Search** — Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times
 - **PasswordInput** — Password field with a show / hide toggle; every native input attribute passes through
 - **NumberField** — Number input with −/+ stepper, clamp, decimal step
@@ -161,6 +163,7 @@ description, then import the name from your binding's package.
 - **MediaTimeline** — Filmstrip trim track — draggable ranges over thumbnails, playhead, hover scrub, zoom; the app owns the state
 - **Waveform** — Audio peaks lane with a draggable, trimmable clip window; shares a zoom with MediaTimeline so lanes align
 - **Lazy options** — VirtualizedItems — drop-in windowing for huge option lists inside Combobox / Select
+- **Virtualized items** — A windowed scrolling viewport that mounts only the visible rows of a huge list — dense array or server-paged sparse mode
 - **Combobox + Async** — cmdk-backed; sync `options` or async `onSearch` with debounced loading
 - **TreeSelect** — Pick one node from a hierarchy (accounts, item groups): type to search, matches shown under their ancestors
 - **LookupField** — Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search

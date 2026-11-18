@@ -104,6 +104,11 @@ import ViewManagerDemo from "./demos/view-manager";
 import SelectableCardDemo from "./demos/selectable-card";
 import ObjectPageLayoutDemo from "./demos/object-page";
 import DynamicDateRangeDemo from "./demos/dynamic-date-range";
+import CustomizingDemo from "./demos/customizing";
+import LazyOptionsDemo from "./demos/lazy-options";
+import ListReportDemo from "./demos/list-report";
+import MaskInputDemo from "./demos/mask-input";
+import NativeSelectDemo from "./demos/native-select";
 import ToastDemo from "./demos/toast";
 import RichTextDemo from "./demos/rich-text";
 import CameraDemo from "./demos/camera";
@@ -161,12 +166,14 @@ import DiagramCanvasDemo from "./demos/diagram-canvas";
  */
 const ROUTES: Record<string, () => HTMLElement> = {
   "/": Welcome,
+  "/customizing": CustomizingDemo,
   "/button": ButtonDemo,
   "/badge": BadgeDemo,
   "/icon": IconDemo,
   "/accordion": AccordionDemo,
   "/collapsible": CollapsibleDemo,
   "/label": LabelDemo,
+  "/native-select": NativeSelectDemo,
   "/tabs": TabsDemo,
   "/dialog": DialogDemo,
   "/input": InputDemo,
@@ -213,6 +220,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/alert-dialog": AlertDialogDemo,
   "/sheet": SheetDemo,
   "/otp": InputOTPDemo,
+  "/mask-input": MaskInputDemo,
   "/popover": PopoverDemo,
   "/tooltip": TooltipDemo,
   "/button-family": ButtonFamilyDemo,
@@ -237,6 +245,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/date-picker": DatePickerDemo,
   "/notifications-inbox": NotificationsInboxDemo,
   "/virtualized-items": VirtualizedItemsDemo,
+  "/lazy-options": LazyOptionsDemo,
   "/filter-bar": FilterBarDemo,
   "/flexible-column-layout": FlexibleColumnLayoutDemo,
   "/select-dialog": SelectDialogDemo,
@@ -250,6 +259,7 @@ const ROUTES: Record<string, () => HTMLElement> = {
   "/selectable-card": SelectableCardDemo,
   "/object-page": ObjectPageLayoutDemo,
   "/dynamic-date-range": DynamicDateRangeDemo,
+  "/list-report": ListReportDemo,
   "/toast": ToastDemo,
   "/shortcuts": ShortcutsDemo,
   "/rich-text": RichTextDemo,

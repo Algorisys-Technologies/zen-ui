@@ -87,6 +87,7 @@ import NewSelectDemo from "./demos/select";
 import NewSliderDemo from "./demos/slider";
 import NewScrollAreaDemo from "./demos/scroll-area";
 import NewInputDemo from "./demos/input";
+import NewTextareaDemo from "./demos/textarea";
 import SearchDemo from "./demos/search";
 import PasswordInputDemo from "./demos/password-input";
 import NewNumberFieldDemo from "./demos/number-field";
@@ -135,6 +136,7 @@ import NewColumnMapperDemo from "./demos/column-mapper";
 import NewGenealogyGraphDemo from "./demos/genealogy-graph";
 import NewRoutingGraphDemo from "./demos/routing-graph";
 import NewLazyOptionsDemo from "./demos/lazy-options";
+import NewVirtualizedItemsDemo from "./demos/virtualized-items";
 import NewComboboxDemo from "./demos/combobox";
 import NewTreeSelectDemo from "./demos/tree-select";
 import NewLookupFieldDemo from "./demos/lookup-field";
@@ -193,6 +195,7 @@ import NewFilterBarDemo from "./demos/filter-bar";
 import NewFilterBuilderDemo from "./demos/filter-builder";
 import NewPageHeaderDemo from "./demos/page-header";
 import NewStatCardDemo from "./demos/stat-card";
+import NewStackDemo from "./demos/stack";
 import NewTileDemo from "./demos/tile";
 import NewCustomizingDemo from "./demos/customizing";
 import NewMaskInputDemo from "./demos/mask-input";
@@ -380,6 +383,7 @@ const App: React.FC = () => {
             <Route path="/slider" element={<NewSliderDemo />} />
             <Route path="/scroll-area" element={<NewScrollAreaDemo />} />
             <Route path="/input" element={<NewInputDemo />} />
+            <Route path="/textarea" element={<NewTextareaDemo />} />
             <Route path="/search" element={<SearchDemo />} />
             <Route path="/password-input" element={<PasswordInputDemo />} />
             <Route path="/number-field" element={<NewNumberFieldDemo />} />
@@ -451,6 +455,7 @@ const App: React.FC = () => {
             <Route path="/genealogy-graph" element={<NewGenealogyGraphDemo />} />
             <Route path="/routing-graph" element={<NewRoutingGraphDemo />} />
             <Route path="/lazy-options" element={<NewLazyOptionsDemo />} />
+            <Route path="/virtualized-items" element={<NewVirtualizedItemsDemo />} />
             <Route path="/combobox" element={<NewComboboxDemo />} />
             <Route path="/tree-select" element={<NewTreeSelectDemo />} />
             <Route path="/lookup-field" element={<NewLookupFieldDemo />} />
@@ -512,6 +517,7 @@ const App: React.FC = () => {
             <Route path="/filter-bar" element={<NewFilterBarDemo />} />
             <Route path="/page-header" element={<NewPageHeaderDemo />} />
             <Route path="/stat-card" element={<NewStatCardDemo />} />
+            <Route path="/stack" element={<NewStackDemo />} />
             <Route path="/tile" element={<NewTileDemo />} />
             <Route path="/customizing" element={<NewCustomizingDemo />} />
             <Route path="/mask-input" element={<NewMaskInputDemo />} />
