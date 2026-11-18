@@ -15,6 +15,26 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Every `uno.config.ts` (four bindings and landing) failed strict typechecking,
+  unseen for releases, because vite loads a config without checking it.
+  `defineConfig` inferred its generic from the literal `zenUnoTheme`, which
+  presetUno's rules (typed for UnoCSS's `Theme`) cannot satisfy. The configs now
+  say `defineConfig<Theme>`, and core types the `fontSize` tuples
+  `[string, string]`, since the theme's `as const` made them readonly. Core still
+  imports nothing from unocss. `check:types` now also runs `tsc -p
+  tsconfig.uno.json` over all five; a negative control (one `<Theme>` removed)
+  fails it. The built stylesheets are byte-identical to 13.0.0.
+
+### Changed
+
+- Landing: the card copy (`text-zen-foreground/85`) and code blocks
+  (`bg-zen-muted/60`) are translucent again, as originally written, now that
+  modifiers work. Contrast measured on every theme (default, dark, paper, blue,
+  zen-theme), worst instance of each: card text >= 7.78:1, code-block text
+  >= 11.69:1.
+
 ## [13.0.0] - 2026-11-18
 
 Major: an app that generates `zen-` classes with the preset sees any `/NN` it

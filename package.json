@@ -15,7 +15,7 @@
     "check:agent-guide": "bun run scripts/gen-agent-guide.ts --check",
     "gen:skill-api": "bun run scripts/gen-skill-api.ts",
     "check:skill-api": "bun run scripts/gen-skill-api.ts --check",
-    "check:types": "tsc --project scripts/tsconfig.json",
+    "check:types": "tsc --project scripts/tsconfig.json && tsc --project tsconfig.uno.json",
     "check:cn": "bun run scripts/check-cn.ts",
     "check:theme-alpha": "bun run scripts/check-theme-alpha.ts",
     "check:direction": "bun run scripts/check-direction.ts",

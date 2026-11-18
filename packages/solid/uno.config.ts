@@ -1,11 +1,14 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig, presetUno } from "unocss";
+import type { Theme } from "unocss/preset-uno";
 import { ZEN_PREFIX, zenAnimationsPreset, zenUnoTheme } from "@algorisys/zen-ui-core/uno-preset";
 
 // Mirror of packages/react/uno.config.ts — see the rationale for `prefix`
 // there. Both bindings must emit the same `.zen-*` namespace so an app can
 // load either (or both) alongside its own CSS without collisions.
-export default defineConfig({
+// <Theme>: inferred from `theme:` instead, the generic becomes zen's literal theme
+// type, and presetUno's rules (typed for UnoCSS's Theme) no longer fit it.
+export default defineConfig<Theme>({
   presets: [presetUno({ prefix: ZEN_PREFIX }), zenAnimationsPreset],
   theme: zenUnoTheme,
   // Uno only scans files that pass through the build pipeline, and

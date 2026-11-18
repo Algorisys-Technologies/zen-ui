@@ -1,4 +1,5 @@
 import { defineConfig, presetUno } from "unocss";
+import type { Theme } from "unocss/preset-uno";
 import { zenAnimationsPreset, zenUnoTheme } from "@algorisys/zen-ui-core/uno-preset";
 
 // Shares the zen theme with both component bindings so the landing page reads
@@ -11,7 +12,9 @@ import { zenAnimationsPreset, zenUnoTheme } from "@algorisys/zen-ui-core/uno-pre
 // zenAnimationsPreset is required wherever zenUnoTheme is used, even here with no
 // zen- animations: it carries the half of the opacity fix that keeps a plain
 // colour class emitting a bare var() (see withAlpha in core's uno-preset.ts).
-export default defineConfig({
+// <Theme>: inferred from `theme:` instead, the generic becomes zen's literal theme
+// type, and presetUno's rules (typed for UnoCSS's Theme) no longer fit it.
+export default defineConfig<Theme>({
   presets: [presetUno(), zenAnimationsPreset],
   theme: zenUnoTheme,
 });
