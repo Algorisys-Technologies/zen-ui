@@ -282,6 +282,50 @@ for (const id of wanted) {
       t("no timeline cell is announced as blank", charts.reduce((n, c) => n + c.unnamedTimelineCells, 0), 0);
       t("charts with rows have a pane column", charts.every((c) => c.rowCount === 0 || c.pane.length > 0), true);
 
+      /* Continuous axes (`continuous`): one scrolling timeline over the whole
+         plan. Found by the windowed header, so a binding that has not ported it
+         reports 0 here and the assertions below are skipped, not passed. */
+      const continuous = await page.evaluate(() =>
+        [...document.querySelectorAll('[role="treegrid"]')]
+          .map((g, index) => ({ g, index }))
+          .filter(({ g }) => g.querySelector("[data-schedule-windowed]"))
+          .map(({ g, index }) => {
+            const sc = g.parentElement;
+            const head = g.querySelector("[data-schedule-windowed]");
+            const rows = [...g.querySelectorAll('[role="row"][aria-rowindex]')].slice(1);
+            const perRow = rows.map((r) => r.querySelector('[role="gridcell"] > div[aria-hidden]')?.children.length ?? 0);
+            return {
+              index,
+              scrolls: sc.scrollWidth > sc.clientWidth,
+              headerCells: head.children.length,
+              maxRowCells: Math.max(0, ...perRow),
+              cutBars: g.querySelectorAll("[data-gantt-bar].zen-rounded-s-none, [data-gantt-bar].zen-rounded-e-none").length,
+            };
+          }),
+      );
+      if (continuous.length > 0) {
+        t(`continuous charts scroll sideways inside their own scroller (${continuous.length})`, continuous.every((c) => c.scrolls), true);
+        /* The point of windowing: a thousand-column axis must not mean a thousand
+           nodes per row. 80 is generous for any viewport this suite uses. */
+        t("…and draw only the header cells near the viewport", Math.max(...continuous.map((c) => c.headerCells)) <= 80, true);
+        t("…and only the row columns near it", Math.max(...continuous.map((c) => c.maxRowCells)) <= 80, true);
+        t("…and never cut a bar at a period edge", continuous.reduce((n, c) => n + c.cutBars, 0), 0);
+        // Next must SCROLL the same axis, not swap it for the next period's.
+        const stepped = await page.evaluate(async (index) => {
+          const g = document.querySelectorAll('[role="treegrid"]')[index];
+          const sc = g.parentElement;
+          const toolbar = sc.parentElement.querySelector('button[aria-label="Next"]') ?? sc.previousElementSibling?.querySelector?.('button[aria-label="Next"]');
+          const width = () => g.querySelector('[role="columnheader"][aria-label="Timeline"]').getBoundingClientRect().width;
+          const before = { left: Math.abs(sc.scrollLeft), width: width() };
+          toolbar?.click();
+          await new Promise((ok) => setTimeout(ok, 400));
+          return { found: !!toolbar, moved: Math.abs(sc.scrollLeft) - before.left, sameAxis: Math.round(width()) === Math.round(before.width) };
+        }, continuous[0].index);
+        t("Next scrolls a continuous axis forward, not to another range", [stepped.found, stepped.moved > 0, stepped.sameAxis], [true, true, true]);
+      } else {
+        console.log("  (no continuous charts on this route — NOT PORTED for continuous)");
+      }
+
       if (route === "gantt") {
         const windowed = charts.filter((c) => c.rowCount > c.mounted);
         t(`at least one chart is windowed (${windowed.length} of ${charts.length})`, windowed.length > 0, true);

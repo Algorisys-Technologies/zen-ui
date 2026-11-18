@@ -643,6 +643,17 @@ const linkStyle = {
         <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} headerGroups defaultView="day" defaultDate={NOW} />
       </div>
     </DemoSection>
+
+    <DemoSection
+      title="One continuous timeline: the view is the zoom"
+      codeTitle="continuous"
+      codeDescription="With continuous on, the whole schedule is one timeline you scroll sideways, and the view buttons set the zoom. Here it is the Day zoom: every hour of the week's operations on one axis, so a job that runs overnight is one unbroken bar instead of two halves on two pages. Previous and Next scroll by a day from what is on screen, and the date row above the hours keeps the day in view. Only the columns near the screen are drawn."
+      code={`<ProductionSchedule resources={cells} operations={jobs} continuous defaultView="day" />`}
+    >
+      <div data-testid="production-continuous" class="zen-w-full">
+        <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} continuous defaultView="day" defaultDate={NOW} />
+      </div>
+    </DemoSection>
   </DemoPage>
 );
 

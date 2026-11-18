@@ -238,6 +238,15 @@ export interface ProductionScheduleProps {
    */
   headerGroups?: boolean;
   /**
+   * One continuous timeline over the whole plan, scrolled sideways: Day, Week,
+   * Month, Quarter and Year set the ZOOM instead of a one-period window, so a
+   * bar is never cut at a period edge and an order can be followed across
+   * weeks. Previous / Next / Today scroll; the title names the period in the
+   * middle of the screen. Turns `headerGroups` on unless it is set to false.
+   * Fit is continuous already and is unaffected. Off by default.
+   */
+  continuous?: boolean;
+  /**
    * How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the
    * size it always was) or "touch" (48px targets, for shop-floor tablets).
    * Opt-in: it does not follow data-density, so setting that on a page moves
@@ -368,8 +377,10 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
   /* Fit takes its range from the OPERATIONS, not the resources — a machine has
      no dates of its own, so the plan's span is the span of the work booked on
      it. Setup claims the machine too, so it belongs inside the range. */
-  const fitRange = createMemo(() => {
-    if (view() !== "fit") return null;
+  /* The plan's padded span: what Fit shows, and what a continuous axis spans.
+     Computed only when one of them needs it. */
+  const planSpan = createMemo(() => {
+    if (view() !== "fit" && !props.continuous) return null;
     return ganttFitRange(
       (props.operations ?? []).map((operation) => ({
         id: operation.id,
@@ -383,6 +394,10 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
       { calendar: props.calendar },
     );
   });
+  const fitRange = () => (view() === "fit" ? planSpan() : null);
+  // Continuous turns the date row on, because a scrolled axis needs it; an
+  // explicit `headerGroups={false}` still wins.
+  const headerGroups = () => props.headerGroups ?? !!props.continuous;
 
   const requestedPane = () => props.columns ?? DEFAULT_PANE;
   const paneSpec = createMemo(() => requestedPane().map((key) => ({ key, width: PANE_PX[key] })));
@@ -397,7 +412,9 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
     columnWidth: props.columnWidth,
     paneColumns: paneSpec(),
     available: scroller.metrics().width,
-    grouped: props.headerGroups,
+    grouped: headerGroups(),
+    continuous: props.continuous,
+    plan: planSpan(),
   }));
 
   const flat = createMemo(() => {
@@ -702,7 +719,7 @@ export const ProductionSchedule = (props: ProductionScheduleProps) => {
           rowClass={props.rowClassName ? (row) => props.rowClassName?.(row.resource, row) : undefined}
           maxBodyHeight={props.maxBodyHeight}
           headerClassName={props.headerClassName}
-          headerGroups={props.headerGroups}
+          headerGroups={headerGroups()}
           renderTrack={(row) => (
             <ProductionTrack
               barClass={props.barClassName}
