@@ -1,0 +1,21 @@
+{
+  // The five uno.config.ts files. Nothing else type-checks them: vite loads a
+  // config without checking it, so they failed strict tsc for releases unseen.
+  // Each resolves `unocss` from its own package's node_modules.
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "files": [
+    "packages/react/uno.config.ts",
+    "packages/solid/uno.config.ts",
+    "packages/vanilla/uno.config.ts",
+    "packages/web-components/uno.config.ts",
+    "apps/landing/uno.config.ts"
+  ]
+}
