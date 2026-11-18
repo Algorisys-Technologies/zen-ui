@@ -94,7 +94,7 @@ export const BINDINGS = [
     routeRe: /<Route\s+path="([^"]+)"\s+element=\{<(\w+)\s*\/>\}/g,
     navKey: "to",
     navRe: /\{[^{}\n]*to:\s*"([^"]+)"[^{}\n]*\}/g,
-    importRe: /import\s+(\w+)\s+from\s+"\.\/components\/([^"]+)"/g,
+    importRe: /import\s+(\w+)\s+from\s+"(\.\/demos\/[^"]+)"/g,
     /** The demo title, asserted by check-site against the built tree. */
     title: "Zen UI Component Library",
   },
@@ -108,7 +108,7 @@ export const BINDINGS = [
     routeRe: /<Route\s+path="([^"]+)"\s+component=\{(\w+)\}/g,
     navKey: "path",
     navRe: /\{[^{}\n]*path:\s*"([^"]+)"[^{}\n]*\}/g,
-    importRe: /import\s+(\w+)\s+from\s+"\.\/components\/([^"]+)"/g,
+    importRe: /import\s+(\w+)\s+from\s+"(\.\/demos\/[^"]+)"/g,
     title: "Zen UI · Solid",
   },
   {
@@ -127,7 +127,7 @@ export const BINDINGS = [
     routeRe: /"([^"]+)":\s*(\w+),/g,
     navKey: "to",
     navRe: /\{[^{}\n]*to:\s*"([^"]+)"[^{}\n]*\}/g,
-    importRe: /import\s+(\w+)\s+from\s+"\.\/components\/([^"]+)"/g,
+    importRe: /import\s+(\w+)\s+from\s+"(\.\/demos\/[^"]+)"/g,
     title: "Zen UI · Vanilla",
     /**
      * vanilla's OWN divergences from React, unioned with check-parity's global
@@ -166,7 +166,7 @@ export const BINDINGS = [
     routeRe: /"([^"]+)":\s*(\w+),/g,
     navKey: "to",
     navRe: /\{[^{}\n]*to:\s*"([^"]+)"[^{}\n]*\}/g,
-    importRe: /import\s+(\w+)\s+from\s+"\.\/components\/([^"]+)"/g,
+    importRe: /import\s+(\w+)\s+from\s+"(\.\/demos\/[^"]+)"/g,
     title: "Zen UI · Web Components",
     // vanilla's divergences, plus the two public types unique to this binding's
     // custom-element layer (the descriptor shape a consumer uses to define their

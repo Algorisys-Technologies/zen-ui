@@ -153,9 +153,10 @@ and clobber each other — rebuild the lib before inspecting `dist/style.css`.
 
 ### Verification traps — all three have produced false passes here
 
-- **`tsconfig.lib.json` cannot see demos.** It excludes `src/**/*Demo.tsx`, so
-  `tsc --project tsconfig.lib.json --noEmit` reports clean on a demo containing a
-  hard type error. For demo files use `--project tsconfig.app.json`, which `npm
+- **`tsconfig.lib.json` cannot see demos.** Demos live in `src/demos/` (one
+  kebab-case file per page, outside the library's `src/components/`), and the lib
+  config excludes that folder, so `tsc --project tsconfig.lib.json --noEmit`
+  reports clean on a demo containing a hard type error. For demo files use `--project tsconfig.app.json`, which `npm
   run build` (`tsc -b`) also covers.
 - **A solution-style `tsconfig.json` type-checks NOTHING.** `packages/vanilla`
   and `packages/web-components` have `{"files": [], "references": [...]}` at
