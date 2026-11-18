@@ -15,6 +15,35 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.4.0] - 2026-11-18
+
+### Added
+
+- Gantt milestones, in all four bindings: `milestone?: boolean` on
+  `GanttTaskNode` (core). `explicitSpan` returns a zero-length span at
+  `start ?? end` and ignores any `end` / `workingMinutes` given alongside;
+  with no date it is null. Without the flag nothing changes, and a start-only
+  task is still not a span. Status, parent rollup and fit range take it as
+  before; check-gantt pins all of it.
+- Rendering: the placement is `nowPct(range, date)` with zero width, instead of
+  `placeAppointment`, which would give a minimum-width sliver. The task is drawn
+  as a `button[data-gantt-bar][data-gantt-milestone]` (tabindex -1, the same
+  click), barPx square and centred on the date. It holds a `rotate-45` square,
+  side `barPx/√2`, filled with the status FILL class plus `barClassName`. The
+  square needs `shrink-0`: without it the flex button squeezed it to 6px, which
+  drew a slanted sliver.
+- Connector anchors for a milestone span the diamond's width (± barPx/2), so an
+  arrow ends on a tip rather than under the centre.
+- Message `gantt.milestone` ("Milestone, {date}, {status}").
+- Demo section "18. Milestones" (`data-testid="gantt-milestones"`), last on
+  every binding's /gantt page, so check-schedule-parity's by-index comparison
+  is unaffected. nav.ts marks Gantt `updated: "13.4.0"`.
+
+Verified in a browser in all four bindings, LTR and RTL: diamonds centred on
+their date within 0.3px, arrow tips on diamond tips, status colours, the
+screen-reader text, no milestones leaking onto the other charts, and 0 page
+errors.
+
 ## [13.3.0] - 2026-11-18
 
 ### Added

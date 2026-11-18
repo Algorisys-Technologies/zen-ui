@@ -4,6 +4,7 @@ import {
   formatGanttVariance,
   ganttConnectors,
   ganttFitRange,
+  nowPct,
   placeAppointment,
   type GanttBarAnchor,
   type GanttCalendar,
@@ -557,6 +558,13 @@ export const Gantt = ({
     const map = new Map<number, PlanningPlacement>();
     for (const row of rows) {
       if (!row.span) continue;
+      // A milestone is a POINT: where its date falls on the axis, or nowhere.
+      // placeAppointment would give it a minimum-width sliver of a bar.
+      if (row.task.milestone) {
+        const at = nowPct(range, row.span.start);
+        if (at !== null) map.set(row.index, { startPct: at, widthPct: 0, clippedStart: false, clippedEnd: false });
+        continue;
+      }
       const placement = placeAppointment(row.span, range);
       if (placement) map.set(row.index, placement);
     }
@@ -566,14 +574,20 @@ export const Gantt = ({
   const connectors = React.useMemo(() => {
     if (!showDependencies || !dependencies || dependencies.length === 0) return [];
     const anchors = new Map<string, GanttBarAnchor>();
+    /* A milestone's anchor spans the diamond, so an arrow meets its left or
+       right tip instead of disappearing under it at the centre. */
+    const halfPct = axisWidth > 0 ? (barPx / 2 / axisWidth) * 100 : 0;
     for (const [id, index] of rowIndexById) {
       const placement = placements.get(index);
-      if (placement) {
+      if (!placement) continue;
+      if (rows[index]?.task.milestone) {
+        anchors.set(id, { rowIndex: index, startPct: placement.startPct - halfPct, widthPct: 2 * halfPct });
+      } else {
         anchors.set(id, { rowIndex: index, startPct: placement.startPct, widthPct: placement.widthPct });
       }
     }
     return ganttConnectors(anchors, dependencies, { axisWidth, rowHeight });
-  }, [showDependencies, dependencies, rowIndexById, placements, axisWidth, rowHeight]);
+  }, [showDependencies, dependencies, rowIndexById, placements, rows, axisWidth, rowHeight, barPx]);
 
   const setView = (next: GanttView) => {
     /* Leaving fit re-anchors, when the anchor is nowhere near the plan.
@@ -873,6 +887,48 @@ const GanttTrack = ({
         {row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}
       </span>
     );
+
+  /* A milestone: one date, drawn as a diamond centred on it. The same hooks as
+     a bar — data-gantt-bar, not tabbable, the same click — so the keyboard
+     model, the focus effect and the DOM checks treat it as one. The diamond is
+     a square turned 45 degrees, sized so its diagonal is the bar height; its
+     colour is the status FILL (solid), so a point stands out among soft bars.
+     shrink-0 because the flex button would otherwise squeeze it to a sliver. */
+  if (task.milestone) {
+    const side = barPx / Math.SQRT2;
+    return (
+      <button
+        type="button"
+        onClick={() => onTaskClick?.(task, row)}
+        tabIndex={-1}
+        data-gantt-bar=""
+        data-gantt-milestone=""
+        className={cn(
+          "zen-absolute zen-flex zen-items-center zen-justify-center zen-rounded-zen-sm",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+        )}
+        style={{
+          insetInlineStart: `calc(${placement.startPct}% - ${barPx / 2}px)`,
+          top: barTop(rowHeight, barPx),
+          width: barPx,
+          height: barPx,
+        }}
+        title={`${task.name} · ${formatDay(row.span!.start)}`}
+      >
+        <span className="zen-sr-only">
+          {loc.t("gantt.milestone", {
+            date: formatDay(row.span!.start),
+            status: loc.t(STATUS_LABEL[row.status]),
+          })}
+        </span>
+        <span
+          aria-hidden="true"
+          className={cn("zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[2px]", FILL_CLASS[row.status], barClass)}
+          style={{ width: side, height: side }}
+        />
+      </button>
+    );
+  }
 
   return (
     <>

@@ -636,6 +636,7 @@ SKILL.md.
 - `gantt.status.delayed: string`
 - `gantt.status.complete: string`
 - `gantt.barSpan: string`
+- `gantt.milestone: string`
 - `gantt.barSpanProgress: string`
 - `gantt.notInRange: string`
 - `gantt.noDates: string`

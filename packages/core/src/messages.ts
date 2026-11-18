@@ -734,6 +734,7 @@ export const DEFAULT_MESSAGES = {
   "gantt.status.delayed": "Delayed",
   "gantt.status.complete": "Complete",
   "gantt.barSpan": "{start} to {end}, {status}",
+  "gantt.milestone": "Milestone, {date}, {status}",
   "gantt.barSpanProgress": "{start} to {end}, {status}, {percent} percent complete",
   "gantt.notInRange": "Not scheduled in this range",
   "gantt.noDates": "No dates",
