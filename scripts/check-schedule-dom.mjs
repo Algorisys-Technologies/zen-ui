@@ -335,6 +335,76 @@ for (const id of wanted) {
         t(`at least one chart is windowed (${windowed.length} of ${charts.length})`, windowed.length > 0, true);
         t("…and a windowed chart mounts far fewer rows than it reports", windowed.every((c) => c.mounted < c.rowCount / 2), true);
         t("a calendar-driven chart shades its non-working columns", charts.some((c) => c.shadedColumns > 0), true);
+
+        /* Milestones: geometry is the whole feature, and every failure so far
+           was invisible to a build — a flex parent squeezed the diamond to a
+           6px sliver, and an anchor at the centre would hide the arrowheads
+           under it. Measured on the demo's Month-view chart, where each day is
+           one column and a milestone at 00:00 sits on its column's START edge. */
+        const ms = await page.evaluate(() => {
+          const root = document.querySelector('[data-testid="gantt-milestones"]');
+          if (!root) return null;
+          const grid = root.querySelector('[role="treegrid"]');
+          const rtl = getComputedStyle(grid).direction === "rtl";
+          const cells = [...grid.querySelector('[role="columnheader"][aria-label="Timeline"]').children];
+          const edgeOf = (day) => {
+            const c = cells.find((x) => x.querySelector("span")?.textContent === String(day));
+            if (!c) return null;
+            const r = c.getBoundingClientRect();
+            return rtl ? r.right : r.left;
+          };
+          const markers = [...grid.querySelectorAll("[data-gantt-milestone]")].map((b) => {
+            const r = b.getBoundingClientRect();
+            const d = b.querySelector("[aria-hidden]");
+            const cs = getComputedStyle(d);
+            const day = Number(/· (\d+) /.exec(b.title)?.[1]);
+            const edge = edgeOf(day);
+            return {
+              off: edge === null ? null : Math.abs((r.left + r.right) / 2 - edge),
+              square: Math.abs(parseFloat(cs.width) - parseFloat(cs.height)) < 0.5,
+              side: parseFloat(cs.width),
+              expected: r.width / Math.SQRT2,
+              tabbable: b.tabIndex >= 0,
+              named: (b.querySelector(".zen-sr-only")?.textContent ?? "").startsWith("Milestone,"),
+              // the point the arrows aim at: its start-side tip, and its row's centre
+              tipX: rtl ? r.right : r.left,
+              midY: (r.top + r.bottom) / 2,
+              accent: d.hasAttribute("data-gantt-accent") ? cs.borderTopColor : null,
+              accentWidth: parseFloat(cs.borderTopWidth),
+              fill: cs.backgroundColor,
+            };
+          });
+          // An arrowhead's first polygon point is its tip, in the svg's own space.
+          const svg = [...grid.querySelectorAll("svg")].sort((x, y) => y.getBoundingClientRect().width - x.getBoundingClientRect().width)[0];
+          const box = svg.getBoundingClientRect();
+          const tips = [...svg.querySelectorAll("polygon")].map((p) => {
+            const [x, y] = p.getAttribute("points").split(" ")[0].split(",").map(Number);
+            return { x: rtl ? box.right - x : box.left + x, y: box.top + y };
+          });
+          const intoMilestones = tips
+            .map((tip) => ({ tip, m: markers.find((m) => Math.abs(m.midY - tip.y) < 2) }))
+            .filter((x) => x.m);
+          return {
+            markers,
+            arrows: intoMilestones.length,
+            arrowsOnTip: intoMilestones.filter(({ tip, m }) => Math.abs(tip.x - m.tipX) < 1.5).length,
+            statuses: new Set(markers.map((m) => m.fill)).size,
+          };
+        });
+        if (ms === null) {
+          console.log("  (no milestone chart on this route — NOT PORTED for milestones)");
+        } else {
+          const n = ms.markers.length;
+          t(`milestones are drawn (${n})`, n >= 5, true);
+          t("…each a true diamond, not squeezed by its button", ms.markers.every((m) => m.square && Math.abs(m.side - m.expected) < 1), true);
+          t("…centred on its date within 1px", ms.markers.every((m) => m.off !== null && m.off < 1), true);
+          t("…none tabbable, each announced as a milestone", ms.markers.every((m) => !m.tabbable && m.named), true);
+          t("…in three status colours (complete, late, ahead)", ms.statuses, 3);
+          t(`arrows into milestones end on a tip (${ms.arrowsOnTip} of ${ms.arrows})`, ms.arrows > 0 && ms.arrowsOnTip === ms.arrows, true);
+          const accented = ms.markers.filter((m) => m.accent !== null);
+          t(`an accented milestone draws its border (${accented.length})`,
+            accented.length > 0 && accented.every((m) => m.accentWidth >= 1 && m.accent !== m.fill && !/rgba\(.*, 0\)/.test(m.accent)), true);
+        }
       } else {
         t("a row draws more than one lane", Math.max(...charts.map((c) => c.lanes)), 3);
         t("a changeover is drawn as its own block", charts.some((c) => c.setupHatch > 0), true);
