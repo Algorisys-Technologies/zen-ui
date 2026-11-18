@@ -55,12 +55,6 @@ function viewport(items: Option[], estimateSize: number, render: (args: RowArgs)
 }
 
 function popover(trigger: HTMLElement, panelClass: string, children: Node[]): HTMLElement {
-  // The popover measures its trigger to place the panel, and a zen element's
-  // host is `display: contents` — no box, so getBoundingClientRect() is all
-  // zeros and the panel lands in the viewport's top-left corner. Giving the host
-  // a box of its own (it is set before connect, so the element keeps it) puts
-  // the panel under the button, where the vanilla page draws it.
-  trigger.style.display = "inline-flex";
   const pop = document.createElement("zen-popover");
   pop.setAttribute("align", "start");
   pop.setAttribute("class", panelClass);

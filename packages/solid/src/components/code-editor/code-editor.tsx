@@ -91,10 +91,16 @@ export interface CodeEditorProps {
    * to load a self-hosted copy instead of the default CDN.
    */
   loaderConfig?: Record<string, any>;
+  /**
+   * Shown while Monaco loads, in place of the default "Loading editor…" line.
+   * Rendered as given — the default is sized to `height`; yours brings its own.
+   */
+  loading?: JSX.Element;
   class?: string;
 }
 
 export const CodeEditor = (props: CodeEditorProps) => {
+  const loc = useLocale();
   const [status, setStatus] = createSignal<"loading" | "ready" | "missing">("loading");
   let host: HTMLDivElement | undefined;
   let editor: any = null;
@@ -129,6 +135,10 @@ export const CodeEditor = (props: CodeEditorProps) => {
       return;
     }
     monaco = mod;
+    /* Reveal the host BEFORE creating into it: Monaco measures its container at
+       creation, and a hidden one measures zero. Signal writes here are outside a
+       batch, so the DOM is updated synchronously before `create` runs. */
+    setStatus("ready");
 
     editor = mod.editor.create(host, {
       value: props.value ?? "",
@@ -163,7 +173,6 @@ export const CodeEditor = (props: CodeEditorProps) => {
       });
     }
 
-    setStatus("ready");
     props.onMount?.(editor, mod);
     onCleanup(() => editor?.dispose());
   });
@@ -215,7 +224,19 @@ export const CodeEditor = (props: CodeEditorProps) => {
           </div>
         }
       >
-        <div ref={host} style={{ height: height() }} />
+        <Show when={status() === "loading"}>
+          {props.loading ?? (
+            <div
+              style={{ height: height() }}
+              class="zen-flex zen-items-center zen-justify-center zen-text-sm zen-text-zen-muted-fg"
+            >
+              {loc.t("codeEditor.loadingEditor")}
+            </div>
+          )}
+        </Show>
+        {/* Mounted while loading but hidden: Monaco is created into this node
+            once it arrives, so it has to exist already. */}
+        <div ref={host} style={{ height: height(), display: status() === "ready" ? undefined : "none" }} />
       </Show>
     </div>
   );

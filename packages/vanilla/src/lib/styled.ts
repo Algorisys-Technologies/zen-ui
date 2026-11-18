@@ -36,9 +36,10 @@ export interface StyledConfig<P> {
    */
   className?: string | ((props: P) => string | undefined);
   /**
-   * Prop keys this component INTERPRETS rather than forwards. `class`, `children`
-   * and `style` are always interpreted; list the variant props and any others here
-   * so they do not leak onto the element as stray attributes.
+   * Prop keys this component INTERPRETS rather than forwards. `class` and
+   * `children` are always interpreted (and `style` is applied by `styled` itself);
+   * list the variant props and any others here so they do not leak onto the
+   * element as stray attributes.
    */
   own?: readonly (keyof P)[];
   /**
@@ -61,6 +62,30 @@ export function styled<P extends BaseProps = BaseProps>(
     const el = document.createElement(config.tag);
     const disposer = new Disposer();
     let removeProps: (() => void) | undefined;
+    /** The inline properties the last render set, so an update can retract them. */
+    let styleKeys: string[] = [];
+
+    /*
+     * `style` used to sit in the interpreted set with nothing interpreting it, so
+     * `Card({ style: { maxWidth: "20rem" } })` was dropped without a word — where
+     * React and Solid forward it. Applied here rather than through applyProps so
+     * an update can remove what the previous style set, without touching inline
+     * properties someone else put on the element.
+     */
+    const applyStyle = () => {
+      for (const key of styleKeys) el.style.removeProperty(key);
+      styleKeys = [];
+      const style = current.style;
+      if (!style || typeof style !== "object") return;
+      for (const [prop, v] of Object.entries(style as Record<string, unknown>)) {
+        if (v === undefined || v === null) continue;
+        // A custom property must go through setProperty; assigning it to .style
+        // does nothing and says nothing.
+        const key = prop.startsWith("--") ? prop : prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+        el.style.setProperty(key, String(v));
+        styleKeys.push(key);
+      }
+    };
 
     const render = () => {
       const cls = typeof config.className === "function" ? config.className(current) : config.className;
@@ -82,6 +107,7 @@ export function styled<P extends BaseProps = BaseProps>(
 
       removeProps?.();
       removeProps = applyProps(el, rest);
+      applyStyle();
     };
 
     render();

@@ -137,9 +137,8 @@ const columns: DataTableColumn<Order>[] = [
   {
     accessorKey: "amount",
     header: "Amount",
-    // As in vanilla: the right-alignment React gets from a header render
-    // function is the column meta's headerClassName, which vanilla's DataTable
-    // declares but does not apply yet, so the header stays start-aligned.
+    // header is a string here; what React does with a header render function
+    // goes on the header cell through the column meta's headerClassName.
     meta: { headerClassName: "zen-text-right" },
     cell: ({ row }) => {
       const s = document.createElement("span");
@@ -210,18 +209,10 @@ export default function ListReportDemo(): HTMLElement {
   const status = combobox(STATUS_OPTIONS, "Any status", draft.status);
   status.addEventListener("zen-value-change", (e) => setDraft({ status: firstArg<string>(e) }));
 
-  // Setting `value = undefined` cannot clear a DynamicDateRange — undefined is
-  // "unset", not "empty", to the factory's update() — so Clear swaps in a fresh,
-  // empty element, exactly as the vanilla page swaps in a fresh factory.
-  const makeDate = (value: DateRangeValue | undefined) => {
-    const d = el("zen-dynamic-date-range", { placeholder: "Any time" });
-    setProp(d, "defaultValue", value);
-    setProp(d, "now", AS_OF);
-    d.addEventListener("zen-value-change", (e) => setDraft({ date: firstArg<DateRangeValue | undefined>(e) }));
-    return d;
-  };
-  const dateHost = document.createElement("div");
-  dateHost.append(makeDate(draft.date));
+  const date = el("zen-dynamic-date-range", { placeholder: "Any time" });
+  setProp(date, "defaultValue", draft.date);
+  setProp(date, "now", AS_OF);
+  date.addEventListener("zen-value-change", (e) => setDraft({ date: firstArg<DateRangeValue | undefined>(e) }));
 
   const amount = el("zen-number-field", {
     "default-value": String(draft.minAmount ?? 0),
@@ -262,7 +253,7 @@ export default function ListReportDemo(): HTMLElement {
   setProp(bar, "fields", [
     { id: "supplier", label: "Supplier", render: () => supplier },
     { id: "status", label: "Status", render: () => status },
-    { id: "date", label: "Ordered", render: () => dateHost },
+    { id: "date", label: "Ordered", render: () => date },
     {
       id: "amount",
       label: "Amount at least",
@@ -278,7 +269,7 @@ export default function ListReportDemo(): HTMLElement {
     draft = { ...EMPTY };
     reset(supplier, "");
     reset(status, "");
-    dateHost.replaceChildren(makeDate(undefined));
+    setProp(date, "value", undefined);
     reset(amount, "0");
     apply();
   });

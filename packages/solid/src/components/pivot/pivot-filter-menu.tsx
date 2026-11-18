@@ -346,7 +346,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                   <Icon name="arrow-up" class="zen-size-3.5" aria-hidden="true" />
                   <span>{loc.t("pivot.sortAscending")}</span>
                   <Show when={props.sortDirection === "asc"}>
-                    <Icon name="check" class="zen-ml-auto zen-size-3.5" aria-hidden="true" />
+                    <Icon name="check" class="zen-ms-auto zen-size-3.5" aria-hidden="true" />
                   </Show>
                 </button>
                 <button
@@ -363,7 +363,7 @@ export const PivotFilterMenu: Component<PivotFilterMenuProps> = (props) => {
                   <Icon name="arrow-down" class="zen-size-3.5" aria-hidden="true" />
                   <span>{loc.t("pivot.sortDescending")}</span>
                   <Show when={props.sortDirection === "desc"}>
-                    <Icon name="check" class="zen-ml-auto zen-size-3.5" aria-hidden="true" />
+                    <Icon name="check" class="zen-ms-auto zen-size-3.5" aria-hidden="true" />
                   </Show>
                 </button>
               </div>

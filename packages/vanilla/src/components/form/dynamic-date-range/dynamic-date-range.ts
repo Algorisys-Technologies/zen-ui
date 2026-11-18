@@ -16,7 +16,6 @@ import {
 } from "@algorisys/zen-ui-core/date-range";
 import { cn } from "../../../lib/cn";
 import { Disposer, type ZenComponent } from "../../../lib/component";
-import { controllable } from "../../../lib/state";
 import { Button } from "../../button/button";
 import { Icon } from "../../icon/icon";
 import { Input } from "../input/input";
@@ -89,12 +88,21 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
   const fmt = (d: Date): string =>
     (current.formatDate ?? ((x: Date) => x.toLocaleDateString()))(d);
 
-  // The value the trigger reports. Controlled when `value` is present; the
+  // The value the trigger reports. Controlled when built with `value`; the
   // popover edits a DRAFT and only commits to this on Apply.
-  const state = controllable<DateRangeValue | undefined>({
-    value: current.value,
-    defaultValue: current.defaultValue,
-  });
+  //
+  // `update({ value: undefined })` — the key present, the value undefined —
+  // CLEARS the field and hands it back to its own state, as React does when a
+  // controlled parent passes `value={undefined}` (that is how React's List
+  // Report clears it). It used to be ignored, because a controllable's `sync`
+  // reads undefined as "no change", so the field could not be cleared at all.
+  // An update that omits `value` still changes nothing, and `value: X` on a
+  // field built uncontrolled still writes X, as before.
+  let controlled = current.value !== undefined;
+  let internal: DateRangeValue | undefined = current.defaultValue;
+  const state = {
+    get: (): DateRangeValue | undefined => (controlled ? current.value : internal),
+  };
 
   // A fresh Date every open would make yesterday's preview outlive the day. Pinned
   // per open instead, so a tab left open overnight re-pins when reopened. Seeded
@@ -372,8 +380,9 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
     // The popover edits a draft and commits on Apply, matching DateRangePicker's
     // Cancel/Done contract. `now` (not the pinned clock) resolves the committed
     // value, so a caller querying immediately gets the live answer.
-    state.set(next);
+    if (!controlled) internal = next;
     current.onValueChange?.(next, resolveDateRange(next, current.now ?? new Date(), { weekStartsOn: weekStartsOn() }));
+    paintTrigger();
     popover.close();
   };
 
@@ -397,7 +406,6 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
   });
 
   const disposer = new Disposer();
-  disposer.add(state.subscribe(paintTrigger));
   disposer.add(() => paneDisposer.dispose());
   disposer.add(() => popover.destroy());
   disposer.add(() => triggerBtn.destroy());
@@ -411,7 +419,14 @@ export function DynamicDateRange(props: DynamicDateRangeProps): ZenComponent<Dyn
     el: popover.el,
     update(next) {
       current = { ...current, ...next };
-      if (next.value !== undefined) state.sync(next.value);
+      if ("value" in next) {
+        if (next.value === undefined) {
+          controlled = false;
+          internal = undefined;
+        } else if (!controlled) {
+          internal = next.value;
+        }
+      }
       if (next.operators !== undefined) {
         buildListbox();
         paintListboxSelection();

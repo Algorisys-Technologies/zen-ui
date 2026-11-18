@@ -53,24 +53,22 @@ const ALWAYS = new Set(["class", "id", "style", "children", "ref", "asChild"]);
  * is debt with a home: closing it means deleting the line.
  */
 const KNOWN: Record<string, string> = {
-  // TreeTable's controlled state, never ported to vanilla.
-  ...Object.fromEntries(
-    ["expanded", "globalFilter", "onGlobalFilterChange", "sorting", "onSortingChange", "rowSelection", "rowClass"].map(
-      (m) => [`TreeTableProps.${m}`, "vanilla"],
-    ),
-  ),
-  // Divergences between React and Solid, found by this check's first run.
-  "RichTextProps.math": "solid vanilla",
-  "RichTextProps.onImageUpload": "solid vanilla",
-  "CodeEditorProps.loading": "solid",
-  "CodeEditorProps.loaderConfig": "react",
-  "PivotFilterMenuProps.onSort": "react vanilla",
-  "PivotFilterMenuProps.sortDirection": "react vanilla",
-  "PivotFieldChipProps.dragHandleProps": "solid",
+  /* No open GAPS: every prop declared in two or more bindings exists in all of
+     them, apart from the deliberate differences below. 13.3.0 closed the last
+     ones: TreeTable's controlled state (vanilla), RichText math/onImageUpload
+     (Solid, vanilla), CodeEditor loading/loaderConfig (Solid, React), and
+     PivotFilterMenu sorting (React, vanilla). A new gap still fails this check;
+     port it, or add it here with the reason. */
+
+  /* INTENTIONAL — idiom, not omission. Each would be a prop that does nothing,
+     or the wrong shape, in the bindings that lack it. */
+  // Kobalte derives reading direction FROM a locale, so Solid needs one; Radix
+  // (React) and vanilla take `dir` directly, where a locale prop would be inert.
   "DirectionProviderProps.locale": "react vanilla",
-  // MES batch, built Solid-first (one binding at a time): the React and vanilla
-  // ports remove this line. Drops from ScheduleBacklog onto ProductionSchedule.
-  // Vanilla dialogs open through their handle (`.open()`), not a prop: idiom.
+  // React's way of spreading dnd-kit's drag listeners onto a handle; Solid's
+  // chip wires its drag handle internally and has nothing to spread.
+  "PivotFieldChipProps.dragHandleProps": "solid",
+  // Vanilla dialogs open through their handle (`.open()`), not a prop.
   "SelectDialogProps.open": "vanilla",
   "ViewSettingsDialogProps.open": "vanilla",
 };

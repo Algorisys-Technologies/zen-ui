@@ -8,6 +8,7 @@ import {
   isValueSelected,
   type PivotFilterOptionsBody,
   type PivotFilterSelection,
+  type SortDirection,
 } from "@algorisys/zen-ui-core/pivot";
 import { cn } from "../../lib/cn";
 import { Icon } from "../icon/icon";
@@ -28,14 +29,26 @@ import { useLocale } from "../locale/locale";
  * Built on this binding's Popover rather than a hand-positioned panel: it brings
  * placement, collision flipping, Escape, click-outside and focus return with it,
  * all of which the panel would otherwise reimplement.
+ *
+ * Sorting is opt-in: pass `onSort` and the panel gains "Sort ascending" /
+ * "Sort descending" above the search. Picking the direction already in
+ * `sortDirection` clears it — `onSort(null)` — so the same item toggles the
+ * sort off. The menu does not sort anything itself; the caller owns the order.
  */
 
 export interface PivotFilterMenuProps {
   columnKey: string;
   label: string;
   selection?: PivotFilterSelection;
+  /** The current sort on this field, shown as a check on the matching item and an arrow on the trigger. */
+  sortDirection?: SortDirection;
   formatValue?: (value: string) => string;
   onChange: (selection: PivotFilterSelection | null) => void;
+  /**
+   * Adds the sort items. Called with the picked direction, or `null` when the
+   * picked direction is the current one (a second pick clears the sort).
+   */
+  onSort?: (direction: SortDirection | null) => void;
   loadOptions?: (
     columnKey: string,
     optionSearch: string,
@@ -50,8 +63,10 @@ export const PivotFilterMenu: React.FC<PivotFilterMenuProps> = ({
   columnKey,
   label,
   selection,
+  sortDirection,
   formatValue,
   onChange,
+  onSort,
   loadOptions,
   triggerClassName,
   triggerChildren,
@@ -77,6 +92,17 @@ export const PivotFilterMenu: React.FC<PivotFilterMenuProps> = ({
     search,
     loadPage,
   });
+
+  const applySort = (direction: SortDirection) => {
+    onSort?.(sortDirection === direction ? null : direction);
+    setOpen(false);
+  };
+
+  const sortItemClass = (direction: SortDirection) =>
+    cn(
+      "zen-flex zen-w-full zen-cursor-pointer zen-items-center zen-gap-2 zen-rounded-md zen-border-0 zen-bg-transparent zen-px-2 zen-py-1.5 zen-text-start zen-text-sm zen-text-zen-foreground zen-transition-colors hover:zen-bg-zen-muted hover:zen-text-zen-foreground focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-primary",
+      sortDirection === direction && "zen-font-medium zen-text-zen-primary",
+    );
 
   const toggle = (value: string) => {
     if (singleSelect) {
@@ -112,22 +138,46 @@ export const PivotFilterMenu: React.FC<PivotFilterMenuProps> = ({
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={loc.t("pivot.filterLabel", { label })}
+          aria-label={loc.t(onSort ? "pivot.sortOrFilter" : "pivot.filterLabel", { label })}
           onPointerDown={(e) => e.stopPropagation()}
           className={cn(
             "zen-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-justify-center zen-rounded-zen-sm zen-border-0 zen-bg-transparent zen-p-1 zen-transition-colors",
-            active
+            active || sortDirection
               ? "zen-text-zen-primary hover:zen-bg-zen-muted"
               : "zen-text-zen-muted-fg hover:zen-bg-zen-muted hover:zen-text-zen-foreground",
             triggerClassName,
           )}
         >
-          {triggerChildren ?? <Icon name="chevron-down" className="zen-h-3.5 zen-w-3.5" />}
+          {triggerChildren ?? (
+            <>
+              <Icon name="chevron-down" className="zen-h-3.5 zen-w-3.5" />
+              {sortDirection === "asc" ? <Icon name="arrow-up" className="zen-h-3 zen-w-3" /> : null}
+              {sortDirection === "desc" ? <Icon name="arrow-down" className="zen-h-3 zen-w-3" /> : null}
+            </>
+          )}
         </button>
       </PopoverTrigger>
 
       <PopoverContent className="zen-w-72 zen-p-2" align="start">
         <div className="zen-flex zen-flex-col zen-gap-2">
+          {onSort ? (
+            <div className="zen-flex zen-flex-col zen-border-b zen-border-zen-border zen-pb-1">
+              {(["asc", "desc"] as const).map((direction) => (
+                <button
+                  key={direction}
+                  type="button"
+                  className={sortItemClass(direction)}
+                  onClick={() => applySort(direction)}
+                >
+                  <Icon name={direction === "asc" ? "arrow-up" : "arrow-down"} className="zen-h-3.5 zen-w-3.5" />
+                  <span>{loc.t(direction === "asc" ? "pivot.sortAscending" : "pivot.sortDescending")}</span>
+                  {sortDirection === direction ? (
+                    <Icon name="check" className="zen-ms-auto zen-h-3.5 zen-w-3.5" />
+                  ) : null}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}

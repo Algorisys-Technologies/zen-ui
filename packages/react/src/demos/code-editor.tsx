@@ -129,6 +129,55 @@ const NewCodeEditorDemo: React.FC = () => {
           </p>
         </CodeExample>
       </section>
+
+      <section className="demo-section">
+        <h2>6. Hosting Monaco yourself</h2>
+        <CodeExample
+          title="`loaderConfig`, passed to the Monaco loader"
+          description="By default Monaco is fetched from a CDN. loaderConfig is handed to the loader's config() before the editor loads, so it can point at a copy you host — the answer for an exam that must not depend on someone else's uptime. The loader is global and fetches Monaco once per page, so give every editor the same value; one set after the first editor has loaded changes nothing."
+          code={`<CodeEditor
+  language="python"
+  value={code}
+  onChange={setCode}
+  loaderConfig={{ paths: { vs: "/vendor/monaco/vs" } }}
+/>`}
+        >
+          <p style={{ margin: 0, fontSize: 14, color: "var(--zen-color-muted-fg)" }}>
+            The editors on this page take the CDN default. Copy{" "}
+            <code>monaco-editor/min/vs</code> to your static folder and point{" "}
+            <code>paths.vs</code> at it.
+          </p>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>7. While it loads</h2>
+        <CodeExample
+          title="`loading`, in place of the default line"
+          description="Monaco arrives over the network on first use, so there is a moment with no editor. By default that moment says “Loading editor…” at the editor's height; loading replaces it with whatever you pass — a skeleton the shape of your layout, or a line naming what is coming. It is rendered as given, so size it yourself if the page should not jump."
+          code={`<CodeEditor
+  language="python"
+  value={code}
+  onChange={setCode}
+  loading={<div style={{ height: "10rem" }}>Fetching the Python editor…</div>}
+/>`}
+        >
+          <CodeEditor
+            language="python"
+            value={code}
+            onChange={setCode}
+            height="10rem"
+            loading={
+              <div
+                data-testid="code-editor-custom-loading"
+                className="zen-flex zen-h-40 zen-items-center zen-justify-center zen-bg-zen-muted zen-text-sm zen-text-zen-muted-fg"
+              >
+                Fetching the Python editor…
+              </div>
+            }
+          />
+        </CodeExample>
+      </section>
     </div>
   );
 };

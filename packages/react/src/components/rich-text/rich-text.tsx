@@ -77,6 +77,18 @@ export const renderMath = async (html: string): Promise<string> => {
     .replace(/\$([^$\n]+)\$/g, (_m, tex: string) => render(tex, false));
 };
 
+/** Jodit's upload-response shape, which its own success handler consumes. */
+const uploadAnswer = (urls: string[], error?: string) => ({
+  success: !error,
+  time: "",
+  data: {
+    files: urls,
+    isImages: urls.map(() => true),
+    baseurl: "",
+    messages: error ? [error] : [],
+  },
+});
+
 const JoditEditor = React.lazy(() => import("jodit-pro-react"));
 
 /**
@@ -124,6 +136,11 @@ export const RichText = ({
   const loc = useLocale();
   const uploadRef = React.useRef(onImageUpload);
   uploadRef.current = onImageUpload;
+  /* Only WHETHER there is a handler shapes the config; which one is read
+     through the ref at upload time. Keying the memo on the function itself
+     rebuilt the config — and so the editor — on every parent render that
+     passed an inline handler. */
+  const hasUpload = !!onImageUpload;
 
   const editorConfig = React.useMemo(
     () => ({
@@ -133,23 +150,44 @@ export const RichText = ({
          does not enable by default. */
       controls: {},
       /*
-       * Jodit inlines a dropped image as base64 unless told otherwise. That
-       * silently multiplies the stored HTML by the size of every image, and the
-       * bill arrives later as a slow list page. With a handler, the file goes
-       * wherever the caller sends it and only the URL is embedded.
+       * Jodit inlines a dropped or pasted image as base64 unless told
+       * otherwise. That silently multiplies the stored HTML by the size of
+       * every image, and the bill arrives later as a slow list page. With a
+       * handler, the file goes wherever the caller sends it and only the URL is
+       * embedded.
+       *
+       * `customUploadFunction` is Jodit's hook for replacing the transport: it
+       * is handed the FormData Jodit built and answers in Jodit's
+       * upload-response shape, so Jodit's own success handler inserts the
+       * `<img>`. `url` must be non-empty or Jodit never binds drop/paste to the
+       * uploader; it is never requested, because the custom function replaces
+       * the request. (This used to pass `customUploader` and `url: ""` — an
+       * option Jodit does not have, and a url that left drop and paste unbound,
+       * so the handler was never called.) Same as the Solid binding.
        */
-      ...(onImageUpload
+      ...(hasUpload
         ? {
             uploader: {
               insertImageAsBase64URI: false,
-              url: "",
-              process: undefined,
-              defaultHandlerSuccess: undefined,
-              customUploader: async (files: FileList, insert: (url: string) => void) => {
-                for (const file of Array.from(files)) {
-                  const url = await uploadRef.current?.(file);
-                  if (url) insert(url);
+              url: "onImageUpload",
+              customUploadFunction: async (request: FormData) => {
+                const files = Array.from(request.values()).filter(
+                  (v): v is File => typeof File !== "undefined" && v instanceof File,
+                );
+                const urls: string[] = [];
+                try {
+                  for (const file of files) {
+                    // Read at call time, so a replaced handler is the one used.
+                    const url = await uploadRef.current?.(file);
+                    if (url) urls.push(url);
+                  }
+                } catch (e) {
+                  /* Jodit shows `messages` through its own error toast; a
+                     rejected promise here would surface as an unhandled
+                     rejection instead. */
+                  return uploadAnswer([], e instanceof Error ? e.message : String(e));
                 }
+                return uploadAnswer(urls);
               },
             },
           }
@@ -164,7 +202,7 @@ export const RichText = ({
     loadExternalConfig: false,
       ...config,
     }),
-    [placeholder, config, onImageUpload],
+    [placeholder, config, hasUpload],
   );
 
   /*

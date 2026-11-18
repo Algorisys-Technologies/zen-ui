@@ -24,6 +24,12 @@ import { useLocale } from "../locale/locale";
  * It does NOT run code. Execution is a server concern — a sandbox, a container,
  * a rate limit and an auth boundary — and a component that owned it would be
  * wrong for every consumer. `onRun` is a callback: yours to implement.
+ *
+ * By default `@monaco-editor/react` fetches Monaco from a CDN. `loaderConfig`
+ * points it at a copy you host — the answer for an exam that must not depend on
+ * someone else's uptime:
+ *
+ *   <CodeEditor loaderConfig={{ paths: { vs: "/vendor/monaco/vs" } }} />
  */
 
 /** The languages zen-ui names. Monaco accepts many more; this is just the typed set. */
@@ -74,13 +80,43 @@ export interface CodeEditorProps {
   options?: Record<string, any>;
   /** Monaco's own `onMount`, for a caller that needs the editor instance. */
   onMount?: (editor: any, monaco: any) => void;
+  /**
+   * Passed to the Monaco loader's `config()` before the editor loads. Use
+   * `{ paths: { vs: "/vendor/monaco/vs" } }` to load a self-hosted copy instead
+   * of the default CDN. The loader is global and fetches Monaco once per page,
+   * so this only takes effect if it is set before the first editor loads —
+   * give every editor on a page the same value.
+   */
+  loaderConfig?: Record<string, any>;
   /** Shown while Monaco loads. */
   loading?: React.ReactNode;
   className?: string;
 }
 
+/**
+ * The lazy editor, wrapped so `loaderConfig` reaches the loader BEFORE the
+ * editor's own mount effect calls `loader.init()`. A parent `useEffect` would be
+ * too late — child effects run first — so it is applied while rendering, once
+ * per mount. `loader.config()` merges into global state and is idempotent, so a
+ * repeat (StrictMode, a second editor) is harmless. Same order as the Solid
+ * binding: config, then init.
+ */
 const MonacoEditor = React.lazy(() =>
-  import("@monaco-editor/react").then((m) => ({ default: m.default })),
+  import("@monaco-editor/react").then((m) => {
+    const Editor = m.default;
+    type EditorProps = React.ComponentProps<typeof Editor>;
+    const Configured = ({
+      loaderConfig,
+      ...rest
+    }: EditorProps & { loaderConfig?: Record<string, any> }) => {
+      React.useState(() => {
+        if (loaderConfig) m.loader.config(loaderConfig);
+        return null;
+      });
+      return <Editor {...rest} />;
+    };
+    return { default: Configured };
+  }),
 );
 
 /**
@@ -132,6 +168,7 @@ export const CodeEditor = ({
   onRun,
   options,
   onMount,
+  loaderConfig,
   loading,
   className,
 }: CodeEditorProps) => {
@@ -198,6 +235,13 @@ export const CodeEditor = ({
             value={value}
             onChange={(next) => onChange?.(next ?? "")}
             onMount={handleMount}
+            loaderConfig={loaderConfig}
+            /* The lazy chunk is only half the wait: Monaco itself then loads
+               from the CDN (or `loaderConfig`'s copy), behind the wrapper's own
+               placeholder. A caller's `loading` covers both halves, as in the
+               Solid binding; without one the wrapper's default is left as it
+               was. */
+            {...(loading !== undefined ? { loading } : {})}
             options={{
               fontSize,
               readOnly,

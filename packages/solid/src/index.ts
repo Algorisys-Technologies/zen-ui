@@ -1180,7 +1180,7 @@ export { Chart } from "./components/chart/chart";
 export type { ChartProps, ChartSeries } from "./components/chart/chart";
 export type { Slice } from "@algorisys/zen-ui-core/chart";
 export { CHART_PALETTE } from "@algorisys/zen-ui-core/chart";
-export { RichText } from "./components/rich-text/rich-text";
+export { RichText, renderMath } from "./components/rich-text/rich-text";
 export { Map } from "./components/map/map";
 export { Camera } from "./components/camera/camera";
 // Prop types are part of the API: a component whose props cannot be named is

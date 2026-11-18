@@ -10,24 +10,14 @@ import { DemoPage } from "./demo-helpers";
  */
 
 /**
- * The id goes on the INNER <input>, not on <zen-input>.
+ * The id goes on the INNER control, through `input-id` — not on the host.
  *
- * Every zen element is a `display: contents` wrapper around the real control, and
- * `id` is not one of the attributes zen-input forwards inward. Setting it on the
- * host therefore leaves the id on a custom element, which is not a labelable
- * element — `<label for>` resolves to it and clicking the label focuses nothing.
- * Measured: getElementById returned ZEN-INPUT and the click was a no-op.
- *
- * So the id is assigned after the element upgrades and mounts, which happens in
- * connectedCallback — hence the rAF rather than doing it inline here.
+ * Every zen element is a `display: contents` wrapper around the real control,
+ * so an `id` on <zen-input> is an id on a custom element, which is not a
+ * labelable element: `<label for>` resolves to it and clicking the label
+ * focuses nothing. `input-id` is the attribute <zen-input>, <zen-checkbox> and
+ * <zen-native-select> forward inward for exactly this.
  */
-function nameInnerControl(host: HTMLElement, id: string): void {
-  requestAnimationFrame(() => {
-    const control = host.querySelector("input, textarea, select, button");
-    if (control) control.id = id;
-  });
-}
-
 function field(opts: {
   id: string;
   label: string;
@@ -50,7 +40,7 @@ function field(opts: {
   if (opts.placeholder) input.setAttribute("placeholder", opts.placeholder);
   if (opts.value) input.setAttribute("value", opts.value);
   if (opts.disabled) input.setAttribute("disabled", "");
-  nameInnerControl(input, opts.id);
+  input.setAttribute("input-id", opts.id);
 
   wrap.append(label, input);
   return wrap;
@@ -68,12 +58,11 @@ export default function LabelDemo(): HTMLElement {
         codeDescription:
           "Clicking the label focuses the input it names — the whole reason to use a <label> rather than a <span>.",
         code: `<zen-label for="email">Email</zen-label>
-<zen-input placeholder="you@example.com"></zen-input>
+<zen-input input-id="email" placeholder="you@example.com"></zen-input>
 
-// The id belongs on the inner control: <zen-input> is a display:contents
-// wrapper and does not forward id, so an id on the host is an id on a
-// custom element — which <label for> cannot focus.
-zenInput.querySelector("input").id = "email";`,
+<!-- input-id, not id: <zen-input> is a display:contents wrapper, so an id
+     on the host is an id on a custom element, which <label for> cannot
+     focus. input-id lands on the inner <input>. -->`,
         render: () => field({ id: "email", label: "Email", placeholder: "you@example.com" }),
       },
       {
@@ -119,7 +108,7 @@ zenInput.querySelector("input").id = "email";`,
         codeTitle: "peer-disabled",
         codeDescription:
           "Checkbox is a real disableable element carrying zen-peer, so a sibling label dims with no prop. That does NOT hold in the Solid binding, where Kobalte nests its control — pass `disabled` when you need it to be portable.",
-        code: `<zen-checkbox id="terms" disabled></zen-checkbox>
+        code: `<zen-checkbox input-id="terms" disabled></zen-checkbox>
 <zen-label for="terms">Accept the terms</zen-label>`,
         render: () => {
           const wrap = document.createElement("div");
@@ -131,7 +120,7 @@ zenInput.querySelector("input").id = "email";`,
 
             const cb = document.createElement("zen-checkbox");
             if (disabled) cb.setAttribute("disabled", "");
-            nameInnerControl(cb, id);
+            cb.setAttribute("input-id", id);
 
             const l = document.createElement("zen-label");
             l.setAttribute("for", id);

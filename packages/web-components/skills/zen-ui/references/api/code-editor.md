@@ -25,6 +25,7 @@ SKILL.md.
 - `onRun?: ((value: string) => void) | undefined` — Wired to Ctrl/Cmd+Enter as well as any button you render.
 - `options?: Record<string, any> | undefined` — Raw Monaco options, merged over the defaults. Everything not named above lives here rather than being re-exported one prop at a time.
 - `onMount?: ((editor: any, monaco: any) => void) | undefined` — Monaco's own `onMount`, for a caller that needs the editor instance.
+- `loaderConfig?: Record<string, any> | undefined` — Passed to the Monaco loader's `config()` before the editor loads. Use `{ paths: { vs: "/vendor/monaco/vs" } }` to load a self-hosted copy instead of the default CDN. The loader is global and fetches Monaco once per page, so this only takes effect if it is set before the first editor loads — give every editor on a page the same value.
 - `loading?: React.ReactNode` — Shown while Monaco loads.
 - `className?: string | undefined`
 
@@ -46,6 +47,7 @@ SKILL.md.
 - `lineNumbers?: boolean | undefined`
 - `onRun?: ((value: string) => void) | undefined` — Wired to Ctrl/Cmd+Enter as well as any button you render.
 - `onMount?: ((editor: any, monaco: any) => void) | undefined` — Monaco's own `onMount`, for a caller that needs the editor instance.
+- `loaderConfig?: Record<string, any> | undefined` — Passed to the Monaco loader's `config()` before the editor loads. Use `{ paths: { vs: "/vendor/monaco/vs" } }` to load a self-hosted copy instead of the default CDN. The loader is global and fetches Monaco once per page, so this only takes effect if it is set before the first editor loads — give every editor on a page the same value.
 
 ### CodeFile (type)
 
