@@ -59,7 +59,7 @@ export interface CellEditor {
 }
 
 const EDITOR_WRAP_CLASS =
-  "zen-flex zen-items-center zen-w-full zen-h-full zen-m-[-0.5rem] zen-p-[0.4rem] zen-bg-zen-background zen-ring-2 zen-ring-zen-ring zen-rounded-zen-sm";
+  "zen-flex zen-items-center zen-w-full zen-h-full -zen-m-2 zen-p-1.6 zen-bg-zen-background zen-ring-2 zen-ring-zen-ring zen-rounded-zen-sm";
 const EDITOR_INPUT_CLASS = "zen-h-7 zen-text-sm zen-border-0 zen-ring-0 focus-visible:zen-ring-0 zen-px-1";
 
 /**

@@ -68,7 +68,8 @@ issue / PR when its turn comes.
 
 ## Found during 12.4–12.6 (2026-11-05)
 
-- [ ] **Report the Kobalte freeze upstream.** `@kobalte/utils` 0.9.2 (latest)
+- [ ] **Report the Kobalte freeze upstream.** (Owner, 2026-11-18: skip for now;
+      keep the patch.) `@kobalte/utils` 0.9.2 (latest)
       `scrollIntoViewport` loops forever on a scrollable ancestor under a
       modal scroll lock; zen-ui carries `patches/@kobalte%2Futils@0.9.2.patch`
       (CHANGELOG 12.5.0). Drop the patch once upstream ships a fix, and check
@@ -83,6 +84,9 @@ issue / PR when its turn comes.
       Alt+↑/↓ reorder did).
 - [ ] **React closes the Columns menu on Space** (Radix CheckboxItem's default);
       Solid keeps it open to toggle several. Parity: decide which, then match.
+      **Decided (owner, 2026-11-18): stay open.** Toggling several columns at
+      once is why the menu is opened. React changes to match Solid and vanilla
+      (prevent the CheckboxItem's close on select); nothing else moves.
 - [x] **CLAUDE.md "Ship it" says `git merge --ff-only dev`**, which cannot work:
       `main` has carried "Merge dev into main" commits since ~12.1.0. Releases
       12.4–12.6 used `--no-ff`. Update the procedure. Also: SSH pushes failed
@@ -151,8 +155,12 @@ minified), so a bundler keeps all of it.
       budgets back (measured before: 56 / 60 / 66).
 ## Raw rem literals in DataTable's edit-cell (found 2026-11-05)
 
-- [ ] `edit-cell` in Solid, React and vanilla uses `zen-m-[-0.5rem]
-      zen-p-[0.4rem]`, against CLAUDE.md's "no raw rem literals". Replace with
+- [x] `edit-cell` in Solid, React and vanilla uses `zen-m-[-0.5rem]
+      zen-p-[0.4rem]`, against CLAUDE.md's "no raw rem literals". ✓ 2026-11-18:
+      `-zen-m-2 zen-p-1.6`, the spacing-scale utilities of the same size: the
+      generator emits the identical declarations (margin:-0.5rem,
+      padding:0.4rem), and all three built stylesheets carry the new rules and
+      none of the old. Replace with
       utilities or tokens of the SAME computed size (0.4rem is 6.4px: no
       standard step), measured identical, in all three at once.
 
@@ -201,6 +209,9 @@ minified), so a bundler keeps all of it.
       server owns the predicate, and its chip showed "[object Object]"); Solid
       keeps them and writes `id:op:value` to the URL, with no such bug. React is
       the reference, but switching Solid off removes a working control: decide.
+      **Decided (owner, 2026-11-18): keep the operators.** Port Solid's working
+      `id:op:value` URL form to React (and fix its chip), rather than remove a
+      working control from Solid. Additive, so a minor.
 - [ ] **Keyboard reordering of rows** (both bodies): the drag handle has no (2026-11-05: partly — React unvirtualized rows reorder by keyboard (dnd-kit); virtualized and Solid do not.)
       keyboard path yet.
 
