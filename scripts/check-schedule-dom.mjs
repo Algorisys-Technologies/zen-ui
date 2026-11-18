@@ -315,7 +315,11 @@ for (const id of wanted) {
           const g = document.querySelectorAll('[role="treegrid"]')[index];
           const sc = g.parentElement;
           const toolbar = sc.parentElement.querySelector('button[aria-label="Next"]') ?? sc.previousElementSibling?.querySelector?.('button[aria-label="Next"]');
-          const width = () => g.querySelector('[role="columnheader"][aria-label="Timeline"]').getBoundingClientRect().width;
+          // Re-found after the click, not held: a binding may legitimately
+          // replace the grid element on render (vanilla does), and a held
+          // reference would measure a detached node at 0px.
+          const width = () =>
+            sc.querySelector('[role="treegrid"] [role="columnheader"][aria-label="Timeline"]').getBoundingClientRect().width;
           const before = { left: Math.abs(sc.scrollLeft), width: width() };
           toolbar?.click();
           await new Promise((ok) => setTimeout(ok, 400));
