@@ -980,6 +980,89 @@ export function ganttRangeColumns(
   return calendar ? applyCalendar(columns, calendar) : columns;
 }
 
+/** The most columns a continuous axis draws over a plan before it windows the range. */
+export const GANTT_CONTINUOUS_MAX_COLUMNS = 1500;
+
+const UNIT_MS: Record<GanttColumnUnit, number> = {
+  hour: 3_600_000,
+  day: 86_400_000,
+  week: 7 * 86_400_000,
+  month: 30.44 * 86_400_000,
+};
+
+/**
+ * The range of a CONTINUOUS axis: the whole plan, snapped outward to whole
+ * periods of the view, so the view buttons choose a zoom rather than a window
+ * and a bar is never cut at a period edge. The anchor's period is always
+ * inside it, so "today" and a default date stay reachable even when they fall
+ * outside the plan. With no plan, it is the anchor's own period.
+ *
+ * Capped: an hourly zoom over a year is 8760 columns, and a renderer has to
+ * stop somewhere. Past `GANTT_CONTINUOUS_MAX_COLUMNS` the range becomes a window
+ * of about 90% of the cap centred on the anchor (kept inside the plan where it
+ * can be), still snapped to whole periods, and `clamped` says so.
+ */
+export function ganttContinuousRange(
+  view: GanttAnchoredView,
+  plan: PlanningRange | null,
+  anchor: Date,
+): { range: PlanningRange; clamped: boolean } {
+  const anchorPeriod = ganttRange(view, anchor);
+  if (!plan) return { range: anchorPeriod, clamped: false };
+  const lastInstant = new Date(Math.max(plan.start.getTime(), plan.end.getTime() - 1));
+  const full: PlanningRange = {
+    start: new Date(Math.min(ganttRange(view, plan.start).start.getTime(), anchorPeriod.start.getTime())),
+    end: new Date(Math.max(ganttRange(view, lastInstant).end.getTime(), anchorPeriod.end.getTime())),
+  };
+  const unitMs = UNIT_MS[ganttViewUnit(view)];
+  const span = full.end.getTime() - full.start.getTime();
+  if (span / unitMs <= GANTT_CONTINUOUS_MAX_COLUMNS) return { range: full, clamped: false };
+
+  // 0.45 a side leaves room for snapping both ends out to whole periods.
+  const half = 0.45 * GANTT_CONTINUOUS_MAX_COLUMNS * unitMs;
+  let start = Math.max(full.start.getTime(), anchor.getTime() - half);
+  const end = Math.min(full.end.getTime(), start + 2 * half);
+  start = Math.max(full.start.getTime(), end - 2 * half);
+  return {
+    range: {
+      start: ganttRange(view, new Date(start)).start,
+      end: ganttRange(view, new Date(end - 1)).end,
+    },
+    clamped: true,
+  };
+}
+
+/**
+ * Which columns intersect a horizontal viewport, and where each starts. A
+ * continuous axis can be a thousand columns wide; every row drawing all of them
+ * is tens of thousands of nodes, so only the ones near the viewport are drawn,
+ * absolutely positioned at these offsets. `start` and `size` are in axis
+ * pixels (logical: from the axis's inline start), `overscan` on each side.
+ */
+export function ganttColumnWindow(
+  widths: number[],
+  start: number,
+  size: number,
+  overscan: number,
+): { first: number; last: number; offsets: number[] } {
+  const from = start - overscan;
+  const to = start + size + overscan;
+  let first = -1;
+  let last = -1;
+  const offsets: number[] = [];
+  let at = 0;
+  for (let i = 0; i < widths.length; i++) {
+    const end = at + widths[i];
+    if (end > from && at < to) {
+      if (first === -1) first = i;
+      last = i;
+      offsets.push(at);
+    } else if (at >= to) break;
+    at = end;
+  }
+  return first === -1 ? { first: 0, last: -1, offsets: [] } : { first, last, offsets };
+}
+
 /** One cell of the header's group row: a run of columns sharing a parent period. */
 export interface GanttHeaderGroup {
   /** Inclusive start of the first column in the group. */

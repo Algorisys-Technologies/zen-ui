@@ -230,6 +230,15 @@ export interface ProductionScheduleProps extends BaseProps {
    */
   headerGroups?: boolean;
   /**
+   * One continuous timeline over the whole plan, scrolled sideways: Day, Week,
+   * Month, Quarter and Year set the ZOOM instead of a one-period window, so a
+   * bar is never cut at a period edge and an order can be followed across
+   * weeks. Previous / Next / Today scroll; the title names the period in the
+   * middle of the screen. Turns `headerGroups` on unless it is set to false.
+   * Fit is continuous already and is unaffected. Off by default.
+   */
+  continuous?: boolean;
+  /**
    * How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the
    * size it always was) or "touch" (48px targets, for shop-floor tablets).
    * Opt-in: it does not follow data-density, so setting that on a page moves
@@ -390,8 +399,8 @@ export function ProductionSchedule(
 
   /* Fit takes its range from the OPERATIONS, not the resources — a machine has
      no dates of its own. Setup claims the machine too, so it belongs inside. */
-  const fitRangeOf = () =>
-    viewOf() === "fit"
+  const planSpanOf = () =>
+    viewOf() === "fit" || current.continuous
       ? ganttFitRange(
           (current.operations ?? []).map((operation) => ({
             id: operation.id,
@@ -405,6 +414,10 @@ export function ProductionSchedule(
           { calendar: current.calendar },
         )
       : null;
+  const fitRangeOf = () => (viewOf() === "fit" ? planSpanOf() : null);
+  // Continuous turns the date row on, because a scrolled axis needs it; an
+  // explicit `headerGroups: false` still wins.
+  const headerGroupsOf = () => current.headerGroups ?? !!current.continuous;
 
   const calendarFor = (resourceId: string): GanttCalendar | undefined => {
     const find = (list: ProductionResource[]): GanttCalendar | undefined => {
@@ -913,7 +926,9 @@ export function ProductionSchedule(
       columnWidth: current.columnWidth,
       paneColumns: spec,
       available: grid?.metrics().width ?? 0,
-      grouped: current.headerGroups,
+      grouped: headerGroupsOf(),
+      continuous: current.continuous,
+      plan: planSpanOf(),
     });
 
     const expandedSet = expandedOf() === null ? null : new Set(expandedOf()!);
@@ -1162,7 +1177,7 @@ export function ProductionSchedule(
       rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.resource, row) : undefined,
       maxBodyHeight: current.maxBodyHeight,
       headerClassName: current.headerClassName,
-      headerGroups: current.headerGroups,
+      headerGroups: headerGroupsOf(),
       renderTrack: (row: Row): Array<Node | AnyZenComponent> => {
         const content = trackContent(row);
         return current.onPlace !== undefined && !row.hasChildren ? [dropLayer(row, axis, content)] : content;

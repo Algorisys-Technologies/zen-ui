@@ -196,6 +196,15 @@ export interface GanttProps extends BaseProps {
    */
   headerGroups?: boolean;
   /**
+   * One continuous timeline over the whole plan, scrolled sideways: Day, Week,
+   * Month, Quarter and Year set the ZOOM instead of a one-period window, so a
+   * bar is never cut at a period edge and an order can be followed across
+   * weeks. Previous / Next / Today scroll; the title names the period in the
+   * middle of the screen. Turns `headerGroups` on unless it is set to false.
+   * Fit is continuous already and is unaffected. Off by default.
+   */
+  continuous?: boolean;
+  /**
    * How much room a row and its bar takes: "compact", "comfortable" (the default, and the
    * size it always was) or "touch" (48px targets, for shop-floor tablets).
    * Opt-in: it does not follow data-density, so setting that on a page moves
@@ -389,8 +398,14 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     render();
   };
 
-  const fitRangeOf = (): PlanningRange | null =>
-    viewOf() === "fit" ? ganttFitRange(current.tasks ?? [], { calendar: current.calendar }) : null;
+  /* The plan's padded span: what Fit shows, and what a continuous axis spans.
+     Computed only when one of them needs it. */
+  const planSpanOf = (): PlanningRange | null =>
+    viewOf() === "fit" || current.continuous ? ganttFitRange(current.tasks ?? [], { calendar: current.calendar }) : null;
+  const fitRangeOf = (): PlanningRange | null => (viewOf() === "fit" ? planSpanOf() : null);
+  // Continuous turns the date row on, because a scrolled axis needs it; an
+  // explicit `headerGroups: false` still wins.
+  const headerGroupsOf = () => current.headerGroups ?? !!current.continuous;
 
   /** The four pane columns, as DATA — which is what lets the grid know nothing about tasks. */
   const paneColumns = (): ScheduleColumn<Row>[] =>
@@ -727,7 +742,9 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       columnWidth: current.columnWidth,
       paneColumns: spec,
       available: grid?.metrics().width ?? 0,
-      grouped: current.headerGroups,
+      grouped: headerGroupsOf(),
+      continuous: current.continuous,
+      plan: planSpanOf(),
     });
 
     const expandedSet = expandedOf() === null ? null : new Set(expandedOf()!);
@@ -836,7 +853,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.task, row) : undefined,
       maxBodyHeight: current.maxBodyHeight,
       headerClassName: current.headerClassName,
-      headerGroups: current.headerGroups,
+      headerGroups: headerGroupsOf(),
       axis,
       view: viewOf(),
       anchor: dateOf(),

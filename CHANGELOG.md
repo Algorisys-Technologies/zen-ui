@@ -15,6 +15,44 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `continuous` on Gantt and ProductionSchedule, in every binding (`continuous`
+  attribute in web components). One timeline over the whole plan, scrolled:
+  - Day / Week / Month / Quarter / Year set the zoom instead of the window, so a
+    bar is never cut at a period edge.
+  - Core: `ganttContinuousRange` snaps the plan outward to whole view periods
+    and always includes the anchor's period. Past
+    `GANTT_CONTINUOUS_MAX_COLUMNS` (1500) it is windowed round the anchor, and
+    `clamped` says so. `ganttColumnWindow` gives the columns near a viewport,
+    with their offsets.
+  - Previous / Next still fire `onDateChange`, so a controlled `date` works, but
+    they step from the middle of the screen; the grid scrolls to the anchor
+    instead of swapping the range. The title names the period under the
+    viewport's centre. A zoom change re-anchors to that centre first.
+  - Header cells and every row's rule layer are windowed (one viewport of
+    overscan), positioned rather than flowed. Week zoom draws 10 header cells
+    over a 4480px axis. Scroll metrics gain a logical `left`.
+  - `headerGroups` defaults on with `continuous`; an explicit false wins. In web
+    components an absent `header-groups` now means unset rather than false,
+    which is the only way the attribute could express that default.
+  - Verified in every binding: no cut bars, no page overflow; Next moves
+    scrollLeft with the axis unchanged; zoom keeps the place; RTL opens on the
+    anchor; the 22 non-continuous Gantt charts are not windowed.
+    check:schedule-parity: all 40 charts identical to React.
+- check:schedule-dom asserts continuous charts: they scroll inside their own
+  scroller, draw at most 80 header and row cells, cut no bar, and Next scrolls
+  the same axis. A binding without them reports NOT PORTED for continuous.
+  170 assertions per binding. The Next assertion re-finds the grid after the
+  click, because vanilla legitimately replaces it on render.
+
+### Fixed
+
+- Solid: the timeline header cells and row rules froze their widths after a
+  resize. They were reworked into helper functions during this change, which
+  read their width argument once; solid/reactivity flagged it. They are
+  components now, and the default path is reactive again. Never released.
+
 ## [13.1.0] - 2026-11-18
 
 ### Added

@@ -288,6 +288,15 @@ export interface ProductionScheduleProps {
    */
   headerGroups?: boolean;
   /**
+   * One continuous timeline over the whole plan, scrolled sideways: Day, Week,
+   * Month, Quarter and Year set the ZOOM instead of a one-period window, so a
+   * bar is never cut at a period edge and an order can be followed across
+   * weeks. Previous / Next / Today scroll; the title names the period in the
+   * middle of the screen. Turns `headerGroups` on unless it is set to false.
+   * Fit is continuous already and is unaffected. Off by default.
+   */
+  continuous?: boolean;
+  /**
    * How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the
    * size it always was) or "touch" (48px targets, for shop-floor tablets).
    * Opt-in: it does not follow data-density, so setting that on a page moves
@@ -407,7 +416,8 @@ export const ProductionSchedule = ({
   rowHeight: rowHeightProp,
   maxBodyHeight,
   headerClassName,
-  headerGroups,
+  headerGroups: headerGroupsProp,
+  continuous,
   density,
   rowClassName,
   barClassName,
@@ -453,8 +463,10 @@ export const ProductionSchedule = ({
   /* Fit takes its range from the OPERATIONS, not the resources — a machine has
      no dates of its own, so the plan's span is the span of the work booked on
      it. Shaped as tasks for `ganttFitRange`, which asks only for start/end. */
-  const fitRange = React.useMemo(() => {
-    if (view !== "fit") return null;
+  /* The plan's padded span: what Fit shows, and what a continuous axis spans.
+     Computed only when one of them needs it. */
+  const planSpan = React.useMemo(() => {
+    if (view !== "fit" && !continuous) return null;
     return ganttFitRange(
       operations.map((operation) => ({
         id: operation.id,
@@ -470,7 +482,11 @@ export const ProductionSchedule = ({
       })),
       { calendar },
     );
-  }, [view, operations, calendar]);
+  }, [view, continuous, operations, calendar]);
+  const fitRange = view === "fit" ? planSpan : null;
+  // Continuous turns the date row on, because a scrolled axis needs it; an
+  // explicit `headerGroups={false}` still wins.
+  const headerGroups = headerGroupsProp ?? !!continuous;
 
   const requestedPane = paneColumnsProp ?? DEFAULT_PANE;
 
@@ -493,6 +509,8 @@ export const ProductionSchedule = ({
     paneColumns: paneSpec,
     available: metrics.width,
     grouped: headerGroups,
+    continuous,
+    plan: planSpan,
   });
   const { range, columns, axisWidth, minGapMs } = axis;
 
