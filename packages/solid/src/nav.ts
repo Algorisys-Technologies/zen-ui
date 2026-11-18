@@ -92,7 +92,7 @@ export const NAV: NavGroup[] = [
       { label: "Badge", path: "/badge", description: "Styled span with variants \u00d7 colours; `as` for clickable badges", source: "packages/solid/src/demos/badge.tsx" },
       { label: "Link", path: "/link", description: "Styled anchor; polymorphic via as, external, disabled", source: "packages/solid/src/demos/link.tsx" },
       { label: "Theme", path: "/theme", description: "Scopes a theme to a subtree \u2014 a dark panel inside a light page; nests, no JS", source: "packages/solid/src/demos/theme.tsx", updated: "12.9.0" },
-      { label: "Localization", path: "/localization", description: "Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use", source: "packages/solid/src/demos/locale.tsx", since: "12.2.0" },
+      { label: "Localization", path: "/localization", description: "Translate every built-in string through LocaleProvider (any subset; the rest stays English), with plural rules per language; set the locale and currency numbers and dates use", source: "packages/solid/src/demos/localization.tsx", since: "12.2.0" },
       { label: "DirectionProvider", path: "/direction", description: "Right-to-left support \u2014 tells menus, tabs and sliders which way the page reads", source: "packages/solid/src/demos/direction.tsx" },
       { label: "MessagePopover", path: "/message-popover", description: "Aggregated form validation grouped by severity; click a message to land on the field", source: "packages/solid/src/demos/message-popover.tsx" },
       { label: "Page + Bar", path: "/page", description: "The Page whole-screen container and the three-slot Bar row \u2014 the structural frame pieces", source: "packages/solid/src/demos/page.tsx" },
@@ -254,7 +254,7 @@ export const NAV: NavGroup[] = [
   {
     group: "Forms",
     items: [
-      { label: "Form", path: "/form-new", description: "Form primitives with validation wiring", source: "packages/solid/src/demos/form.tsx" },
+      { label: "Form", path: "/form", description: "Form primitives with validation wiring", source: "packages/solid/src/demos/form.tsx" },
       { label: "BoundFields", path: "/bound-fields", description: "Bound* field wrappers \u2014 form-wired, no boilerplate", source: "packages/solid/src/demos/bound-fields.tsx", updated: "12.9.0" },
     ],
   },
@@ -314,7 +314,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "PageHeader", path: "/page-header", description: "A heading with a back affordance and one action — the light one", source: "packages/solid/src/demos/page-header.tsx" },
       { label: "SkipToContent", path: "/skip-to-content", description: "Keyboard bypass — the first Tab reveals a link that jumps past the app chrome to the content (WCAG 2.4.1)", source: "packages/solid/src/demos/skip-to-content.tsx" },
-      { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/demos/shell-bar.tsx" , updated: "12.2.0" },
+      { label: "ShellBar", path: "/shellbar", description: "Top-level app header — branding, search, actions, profile menu", source: "packages/solid/src/demos/shellbar.tsx" , updated: "12.2.0" },
       { label: "StatusBar", path: "/status-bar", description: "The strip along the bottom of an app or editor \u2014 text and clickable items on two sides, coloured chips for problems, and the least important items giving way first when it is narrow", source: "packages/solid/src/demos/status-bar.tsx", since: "12.10.0" },
       { label: "FlexibleColumnLayout", path: "/flexible-column-layout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/solid/src/demos/flexible-column-layout.tsx" },
       { label: "DynamicPage", path: "/dynamic-page", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/solid/src/demos/dynamic-page.tsx" },
