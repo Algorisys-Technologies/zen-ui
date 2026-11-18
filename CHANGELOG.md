@@ -15,7 +15,31 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.3.0] - 2026-11-18
+
 ### Added
+
+- Library props that existed in some bindings and not others, ported with
+  matching types, defaults and behaviour. check:props now has no open gaps.
+  The four remaining KNOWN lines are documented idiom differences:
+  DirectionProvider.locale (Kobalte derives direction from a locale),
+  PivotFieldChip.dragHandleProps (React's dnd-kit spread), and the vanilla
+  dialogs' `open` (opened through their handle).
+  - Solid: CodeEditor `loading`; RichText `math`, `onImageUpload` and
+    `renderMath`.
+  - React: CodeEditor `loaderConfig`; PivotFilterMenu `onSort` and
+    `sortDirection`.
+  - Vanilla: PivotFilterMenu sorting; RichText `math`, `onImageUpload` and
+    `renderMath`; TreeTable's controlled `expanded`, `sorting`,
+    `onSortingChange`, `globalFilter`, `onGlobalFilterChange`, `rowSelection`
+    and `rowClassName`.
+  - Web components: the same options on `zen-rich-text`, `zen-tree-table` and
+    `zen-pivot-filter-menu`; `input-id` on zen-native-select, zen-input and
+    zen-checkbox so `<label for>` can name the real control; `renderMath`
+    re-exported.
+  - `katex` is an optional peer and external in Solid, vanilla and web
+    components. React's library still bundles it, as a lazy chunk; changing
+    that would break React apps that use `math` without installing katex.
 
 - 18 demo pages that existed in some bindings and not others, written for the
   ones that lacked them. Each is ported section for section, with the same
@@ -36,6 +60,46 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     /chunk-uploader, whose simulated upload was caught at a different moment;
     that file is untouched. visual-check passes on every route of all four, and
     each page was driven live.
+
+### Fixed
+
+- React RichText `onImageUpload` never fired. It passed Jodit a nonexistent
+  `customUploader` option and `url: ""`, and Jodit binds drop/paste only when
+  `url` is set. It now uses `customUploadFunction` with a never-requested
+  sentinel url, as Solid and vanilla do. Proved by drop and paste in Chromium.
+- Solid and vanilla RichText loaded Jodit's slim entry, which registers 22 of
+  its 68 plugins. Paste, clipboard, source/HTML view, fullsize, justify, indent,
+  search and others were missing, and a pasted image bypassed `onImageUpload`
+  (base64 instead). They now also load `jodit/esm/plugins/all.js`; every lib
+  config externalises `^jodit/` so the plugins are not bundled. A real
+  clipboard paste reaches the handler in all four bindings. React keeps 20 more
+  toolbar buttons, which are Jodit PRO plugins (it uses `jodit-pro-react`).
+- Vanilla RichText rendered an empty box: `Jodit.make` ran on a detached
+  mount. The mount is now placed first. Solid made the editor while its wrapper
+  was `display:none`, so Jodit built its 14-button narrow toolbar and never
+  rebuilt it; the wrapper is now revealed first. Solid, vanilla and web
+  components all draw the same 43-button toolbar at 930px.
+- DynamicDateRange could be cleared only once (React and Solid): after a Clear
+  it was uncontrolled, the next pick went into internal state, and the next
+  Clear fell back to it. Internal state now resets when `value` goes from
+  defined to undefined. Vanilla could not be cleared at all
+  (`update({ value: undefined })` was ignored); it now clears.
+- Vanilla `styled()` dropped the `style` option on every component built with
+  it (Card and others).
+- Vanilla DataTable ignored `meta.headerClassName` on the virtualized header.
+- Vanilla Combobox and Select inside a `<label>` (e.g. a FilterBar) reopened
+  after a pick and then could not be reopened. The label forwarded the option
+  click to the trigger, and a close-animation race hid the reopened panel.
+- Web components: `<zen-popover>` (and anything anchored) opened at the
+  top-left when its trigger was a zen element, because a `display: contents`
+  host measures 0x0. Zen hosts now report their rendered children's box.
+- Solid PivotFilterMenu's sort check mark used `zen-ml-auto` (wrong under
+  RTL); it is now `zen-ms-auto`, matching React.
+- React CodeEditor `loading` covered only the wrapper's chunk download; during
+  Monaco's own load the wrapper's "Loading..." replaced it. A caller's
+  `loading` now stays until the editor is ready (the default is unchanged).
+- Solid CodeEditor showed an empty box while Monaco loaded; it now shows
+  "Loading editor…", as React does.
 
 ### Changed
 

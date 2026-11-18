@@ -33,6 +33,27 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.3.0",
+    date: "2026-11-18",
+    kind: "new",
+    title: "The four bindings behave alike",
+    detail: "Every option one binding lacked was added: CodeEditor loading/loaderConfig, RichText math/onImageUpload, PivotFilterMenu sorting, TreeTable controlled state. Every binding's demo has the same pages at the same addresses.",
+  },
+  {
+    version: "13.3.0",
+    date: "2026-11-18",
+    kind: "fixed",
+    title: "Rich text: React image uploads, and Solid and vanilla's full editor",
+    detail: "React's onImageUpload never ran. Solid and vanilla editors lacked most of the toolbar, and vanilla's showed an empty box.",
+  },
+  {
+    version: "13.3.0",
+    date: "2026-11-18",
+    kind: "fixed",
+    title: "Date-range Clear, filter-bar dropdowns, web-component popovers",
+    detail: "Date ranges clear every time; a Combobox or Select in a filter bar reopens; a popover on a zen trigger opens under it, not in the corner; vanilla's style option applies.",
+  },
+  {
     version: "13.2.1",
     date: "2026-11-18",
     kind: "improved",

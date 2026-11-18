@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-solid",
-  "version": "13.2.1",
+  "version": "13.3.0",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "sideEffects": [
@@ -54,7 +54,8 @@
     "solid-js": "^1.9.0",
     "pdfjs-dist": "^5.0.0 || ^6.0.0",
     "@monaco-editor/loader": "^1.7.0",
-    "echarts": "^6.0.0"
+    "echarts": "^6.0.0",
+    "katex": "^0.16.0"
   },
   "dependencies": {
     "@kobalte/core": "^0.13.7",
@@ -73,6 +74,7 @@
   "devDependencies": {
     "@algorisys/zen-ui-core": "workspace:*",
     "@eslint/js": "^9.36.0",
+    "@types/katex": "^0.16.8",
     "@types/node": "^24.6.0",
     "@unocss/preset-uno": "^66.5.4",
     "echarts": "^6.1.0",
@@ -80,6 +82,7 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-solid": "^0.14.4",
     "globals": "^16.4.0",
+    "katex": "^0.16.11",
     "leaflet": "^1.9.4",
     "monaco-editor": "^0.56.0",
     "pdfjs-dist": "^6.2.108",
@@ -98,6 +101,9 @@
       "optional": true
     },
     "echarts": {
+      "optional": true
+    },
+    "katex": {
       "optional": true
     }
   }
