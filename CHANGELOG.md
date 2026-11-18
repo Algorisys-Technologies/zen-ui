@@ -15,6 +15,13 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- DataTable's edit cell (Solid, React, vanilla): `zen-m-[-0.5rem]
+  zen-p-[0.4rem]` became `-zen-m-2 zen-p-1.6`, removing two raw rem literals
+  (CLAUDE.md). The generator emits identical declarations, and all three built
+  stylesheets carry the new rules and none of the old. No visible change.
+
 ## [13.2.0] - 2026-11-18
 
 ### Added
