@@ -15,6 +15,35 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `headerGroups` on Gantt and ProductionSchedule, in every binding
+  (`header-groups` attribute in web components). It adds a second header row of
+  date context: the date above hours, the month above days or weeks, the year
+  above months. Each group's label is `position: sticky` just past the frozen
+  pane, so it stays on screen while its columns scroll sideways. A group too
+  narrow for its label uses a short form ("Jun", "21 Jul") rather than
+  truncating. Off by default, with the header DOM unchanged. Core:
+  `ganttHeaderGroups` (runs of columns sharing a parent period, tiling them
+  exactly), `ganttViewUnit`, and a `grouped` column option that drops the
+  boundary sublabels the group row now carries. The axis exposes `unit`, and
+  grids read `headerPx()` wherever they used `HEADER_PX`. Verified in every
+  binding:
+  - groups tile the axis to the pixel;
+  - the last label stays visible after a sideways scroll, in LTR and RTL;
+  - 20 non-opted charts keep a 44px header with cells as direct children;
+  - check:schedule-dom gives 150/150 per binding;
+  - check:schedule-parity finds all 37 charts identical to React.
+
+### Fixed
+
+- Day view on clock-change days. It stepped 24 x 60 minutes from midnight, so
+  on a 23-hour day its "23:00" column started at the next day's 00:00 and the
+  labels after the jump were an hour off. It now follows the wall clock: 23 or
+  25 columns, each labelled from its real start, and a half-hour step reads
+  "09:30" rather than "9.5:00". check:planning also runs under Europe/London
+  now.
+
 ### Fixed
 
 - Every `uno.config.ts` (four bindings and landing) failed strict typechecking,

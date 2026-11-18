@@ -188,6 +188,14 @@ export interface GanttProps extends BaseProps {
    */
   headerClassName?: string;
   /**
+   * A second header row giving the columns their date context: the date above
+   * hours, the month above days or weeks, the year above months. Each label
+   * stays in view while the axis scrolls sideways, so a planner following an
+   * order across weeks never has to look up to the toolbar for the month. Off
+   * by default: the header is then the single row it always was.
+   */
+  headerGroups?: boolean;
+  /**
    * How much room a row and its bar takes: "compact", "comfortable" (the default, and the
    * size it always was) or "touch" (48px targets, for shop-floor tablets).
    * Opt-in: it does not follow data-density, so setting that on a page moves
@@ -719,6 +727,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       columnWidth: current.columnWidth,
       paneColumns: spec,
       available: grid?.metrics().width ?? 0,
+      grouped: current.headerGroups,
     });
 
     const expandedSet = expandedOf() === null ? null : new Set(expandedOf()!);
@@ -827,6 +836,7 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       rowClass: current.rowClassName ? (row: Row) => current.rowClassName?.(row.task, row) : undefined,
       maxBodyHeight: current.maxBodyHeight,
       headerClassName: current.headerClassName,
+      headerGroups: current.headerGroups,
       axis,
       view: viewOf(),
       anchor: dateOf(),

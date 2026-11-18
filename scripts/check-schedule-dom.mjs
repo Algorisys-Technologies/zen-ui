@@ -120,7 +120,10 @@ const survey = (page) =>
     const charts = [...document.querySelectorAll('[role="treegrid"]')].map((grid) => {
       const scroller = grid.parentElement;
       const rows = [...grid.querySelectorAll('[role="row"][aria-rowindex]')].slice(1);
-      const axisHeads = [...grid.querySelectorAll('[role="columnheader"][aria-label="Timeline"] > div')];
+      // With `headerGroups` the cells sit in a marked row under the group row;
+      // without, they are the header's direct children, as they always were.
+      const timeline = grid.querySelector('[role="columnheader"][aria-label="Timeline"]');
+      const axisHeads = [...(timeline?.querySelector("[data-schedule-axis-row]") ?? timeline)?.children ?? []];
       return {
         pane: [...grid.querySelectorAll('[role="columnheader"]')].slice(0, -1).map((h) => h.textContent.trim()),
         colCount: Number(grid.getAttribute("aria-colcount")),

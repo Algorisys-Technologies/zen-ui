@@ -4,6 +4,8 @@ import {
   ganttColumnWidths,
   ganttFitHourStep,
   ganttFitUnit,
+  ganttHeaderGroups,
+  ganttViewUnit,
   ganttPaneColumns,
   ganttRange,
   ganttRangeColumns,
@@ -16,6 +18,7 @@ import {
   type GanttColumnUnit,
   type GanttConnector,
   type GanttDependencyStyle,
+  type GanttHeaderGroup,
   type GanttCalendar,
   type GanttView,
   type PlanningColumn,
@@ -72,6 +75,8 @@ import { useLocale, type MessageKey } from "../locale/locale";
  */
 export const ROW_PX = 36;
 export const HEADER_PX = 44;
+/** The optional group row above the column labels (`headerGroups`). */
+export const GROUP_PX = 22;
 /** Indent per level of hierarchy, applied by the caller inside its first column. */
 export const INDENT_PX = 14;
 
@@ -240,6 +245,13 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
    */
   headerClassName?: string;
   /**
+   * A second header row above the column labels giving their date context: the
+   * date above hours, the month above days or weeks, the year above months.
+   * Each group's label stays in view while the axis scrolls sideways. Off by
+   * default — the header is then exactly the single row it always was.
+   */
+  headerGroups?: boolean;
+  /**
    * A strip under the rows, aligned to the axis and stuck to the bottom of the
    * scroller — a load histogram, a capacity trace, a shift band.
    *
@@ -304,6 +316,8 @@ export interface ScheduleAxis {
   axisWidth: number;
   paneWidth: number;
   isFit: boolean;
+  /** What one column is: hour, day, week or month. What the header groups by. */
+  unit: GanttColumnUnit;
   /** Milliseconds worth roughly one pixel — what a split-bar gap is judged against. */
   minGapMs: number;
 }
@@ -331,8 +345,10 @@ export function useScheduleAxis(options: {
   paneColumns: readonly { key: string; width: number }[];
   /** The scroller's measured `clientWidth`, or 0 before it has been measured. */
   available: number;
+  /** The header draws a group row, so columns drop the context it carries. */
+  grouped?: boolean;
 }): ScheduleAxis & { paneKeys: string[] } {
-  const { view, anchor, fitRange, now, calendar, hourStep, columnWidth, paneColumns, available } = options;
+  const { view, anchor, fitRange, now, calendar, hourStep, columnWidth, paneColumns, available, grouped } = options;
 
   const isFit = view === "fit";
   /* The one place the two view worlds meet. Every anchored function refuses
@@ -362,10 +378,10 @@ export function useScheduleAxis(options: {
   const columns = React.useMemo(
     () =>
       fitRange && fitUnit
-        ? ganttRangeColumns(fitRange, fitUnit, { now, calendar, hourStep: effectiveHourStep })
-        : ganttColumns(anchoredView, anchor, { now, calendar, hourStep }),
+        ? ganttRangeColumns(fitRange, fitUnit, { now, calendar, hourStep: effectiveHourStep, grouped })
+        : ganttColumns(anchoredView, anchor, { now, calendar, hourStep, grouped }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, effectiveHourStep],
+    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, effectiveHourStep, grouped],
   );
 
   /* Two numbers, not one, and the pane negotiates against the SMALLER.
@@ -444,7 +460,9 @@ export function useScheduleAxis(options: {
     [range, axisWidth],
   );
 
-  return { range, columns, columnWidths, axisWidth, paneWidth, isFit, minGapMs, paneKeys };
+  const unit: GanttColumnUnit = fitUnit ?? ganttViewUnit(anchoredView);
+
+  return { range, columns, columnWidths, axisWidth, paneWidth, isFit, unit, minGapMs, paneKeys };
 }
 
 /**
@@ -518,6 +536,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   rowClass,
   maxBodyHeight,
   headerClassName,
+  headerGroups,
   renderFooter,
   view,
   anchor,
@@ -546,6 +565,41 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
 }) {
   const loc = useLocale();
   const { range, columns, columnWidths, axisWidth, paneWidth, isFit, paneKeys } = axis;
+  /* The header's height, read by everything that has to clear it: the sticky
+     row itself, scrolling a row into view, and the keyboard's page size. */
+  const headerPx = HEADER_PX + (headerGroups ? GROUP_PX : 0);
+  const groups = React.useMemo(
+    () => (headerGroups ? ganttHeaderGroups(columns, axis.unit) : []),
+    [headerGroups, columns, axis.unit],
+  );
+  /** A group's width: the sum of its columns', so it lines up to the pixel. */
+  const groupWidth = (g: GanttHeaderGroup) =>
+    columnWidths.slice(g.firstColumn, g.firstColumn + g.columnCount).reduce((a, b) => a + b, 0);
+  /* "July 2026" where it fits, "Jul" where it does not: two narrow days of June
+     at the start of a week truncated "June 2026" to "Ju…", which names no month
+     at all. Estimated (about 7px a character at text-xs, plus the padding)
+     rather than measured, so the choice is stable and costs no layout read;
+     the truncation stays as the last resort. */
+  const groupLabel = (g: GanttHeaderGroup) => (groupWidth(g) >= g.label.length * 7 + 16 ? g.label : g.shortLabel);
+  /** The per-column header cells: label, and the sublabel when there is one. */
+  const axisCells = columns.map((column, i) => (
+    <div
+      key={column.start.getTime()}
+      className={cn(
+        "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-overflow-hidden zen-border-e zen-border-zen-border last:zen-border-e-0",
+        column.nonWorking && "zen-bg-zen-muted",
+        column.today && "zen-bg-zen-primary-soft",
+      )}
+      style={{ width: columnWidths[i] }}
+    >
+      <span className="zen-text-xs zen-font-medium zen-text-zen-foreground">
+        {column.label}
+      </span>
+      {column.sublabel && (
+        <span className="zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">{column.sublabel}</span>
+      )}
+    </div>
+  ));
   /* Narrowed from `view` rather than from `axis.isFit`, so the compiler can see
      that "fit" cannot reach an anchored function. That refusal is the whole
      point of the two view types. */
@@ -662,10 +716,10 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   const scrollRowIntoView = (rowIndex: number) => {
     const el = scrollerRef.current;
     if (!el) return;
-    /* The header is sticky and covers the top HEADER_PX of the viewport, so a
+    /* The header is sticky and covers the top headerPx of the viewport, so a
        row scrolled flush to the top is a row hidden behind the column titles. */
-    const rowTop = HEADER_PX + rowIndex * rowHeight;
-    const upper = rowTop - HEADER_PX;
+    const rowTop = headerPx + rowIndex * rowHeight;
+    const upper = rowTop - headerPx;
     const lower = rowTop + rowHeight - el.clientHeight;
     const next = Math.max(0, Math.min(Math.max(el.scrollTop, lower), upper));
     if (next === el.scrollTop) return;
@@ -723,7 +777,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
     const backward = rtl ? "ArrowRight" : "ArrowLeft";
     /* A screenful of rows, minus the header the sticky row covers. At least
        one, so a chart shorter than its own header still moves. */
-    const page = Math.max(1, Math.floor((metrics.height - HEADER_PX) / rowHeight));
+    const page = Math.max(1, Math.floor((metrics.height - headerPx) / rowHeight));
     const last = rows.length - 1;
     const row = rows[activeRow];
 
@@ -914,7 +968,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
             role="row"
             aria-rowindex={1}
             className={cn("zen-sticky zen-top-0 zen-z-30 zen-flex zen-border-b zen-border-zen-border zen-bg-zen-muted", headerClassName)}
-            style={{ height: HEADER_PX, boxSizing: "border-box" }}
+            style={{ height: headerPx, boxSizing: "border-box" }}
           >
             <div
               className={cn(
@@ -940,27 +994,49 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
               role="columnheader"
               aria-colindex={timelineColIndex}
               aria-label={loc.t("scheduleGrid.timeline")}
-              className="zen-flex"
+              className={headerGroups ? "zen-flex zen-flex-col" : "zen-flex"}
               style={{ width: axisWidth }}
             >
-              {columns.map((column, i) => (
-                <div
-                  key={column.start.getTime()}
-                  className={cn(
-                    "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-overflow-hidden zen-border-e zen-border-zen-border last:zen-border-e-0",
-                    column.nonWorking && "zen-bg-zen-muted",
-                    column.today && "zen-bg-zen-primary-soft",
-                  )}
-                  style={{ width: columnWidths[i] }}
-                >
-                  <span className="zen-text-xs zen-font-medium zen-text-zen-foreground">
-                    {column.label}
-                  </span>
-                  {column.sublabel && (
-                    <span className="zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">{column.sublabel}</span>
-                  )}
-                </div>
-              ))}
+              {/* Without groups the cells are the header's direct children,
+                  exactly as before; with them, the group row sits above and the
+                  cells move into a marked row of their own. */}
+              {headerGroups ? (
+                <>
+                  {/* aria-hidden: the column labels and the toolbar's range title
+                      already say the date to a screen reader. */}
+                  <div
+                    aria-hidden="true"
+                    data-schedule-groups=""
+                    className="zen-flex zen-shrink-0 zen-border-b zen-border-zen-border"
+                    style={{ height: GROUP_PX, boxSizing: "border-box" }}
+                  >
+                    {groups.map((g) => (
+                      /* No overflow clipping here: a clipping ancestor becomes the
+                         label's scroll container and `sticky` stops working. */
+                      <div
+                        key={g.start.getTime()}
+                        data-schedule-group=""
+                        className="zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0"
+                        style={{ width: groupWidth(g) }}
+                      >
+                        {/* Sticky just past the frozen pane, so the month or the
+                            date stays on screen while its columns scroll by. */}
+                        <span
+                          className="zen-sticky zen-inline-block zen-max-w-full zen-truncate zen-px-2 zen-align-top zen-text-xs zen-font-semibold zen-text-zen-foreground"
+                          style={{ insetInlineStart: paneWidth, lineHeight: `${GROUP_PX - 1}px` }}
+                        >
+                          {groupLabel(g)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div data-schedule-axis-row="" className="zen-flex zen-min-h-0 zen-flex-1">
+                    {axisCells}
+                  </div>
+                </>
+              ) : (
+                axisCells
+              )}
             </div>
           </div>
 

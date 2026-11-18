@@ -116,6 +116,9 @@ defineZenElement<GanttProps>({
     // px; any CSS length through the `maxBodyHeight` property.
     "max-body-height": "number",
     "header-class-name": "string",
+    // The date / month / year row above the columns. Off by default, which is
+    // also what an absent boolean attribute coerces to (lib/define.ts).
+    "header-groups": "boolean",
     // compact | comfortable | touch (opt-in; does not follow data-density)
     density: "string",
   },

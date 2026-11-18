@@ -52,6 +52,7 @@ SKILL.md.
 - `barClassName?: ((operation: ProductionOperation) => string | undefined | false | null) | undefined` — Classes for an operation's bar, applied after its status colours so they win.
 - `barAccent?: ((operation: ProductionOperation) => string | undefined | false | null) | undefined` — A CSS colour for a stripe on the bar's leading edge — a second channel beside the status fill, for a shift, a line or a customer: `(op) => shiftColour[op.shift]`. A value rather than a class, so the colour can come from data.
 - `headerClassName?: string | undefined` — Classes for the header: the row and its frozen pane, applied after their own, so a caller's background and text colour win (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
+- `headerGroups?: boolean | undefined` — A second header row giving the columns their date context: the date above hours, the month above days or weeks, the year above months. Each label stays in view while the axis scrolls sideways, so a planner following an order across weeks never has to look up to the toolbar for the month. Off by default: the header is then the single row it always was.
 - `density?: Density | undefined` — How much room a row and its lane bars takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
 - `className?: string | undefined`
 
