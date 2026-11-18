@@ -75,6 +75,7 @@ export const NAV: NavGroup[] = [
     components: false,
     items: [
       { to: "/", label: "Welcome", description: "", source: "packages/web-components/src/demos/welcome.ts" },
+      { to: "/customizing", label: "Customizing", description: "", source: "packages/web-components/src/demos/customizing.ts" },
     ],
   },
   {
@@ -86,6 +87,7 @@ export const NAV: NavGroup[] = [
       { to: "/accordion", label: "Accordion", description: "Collapsible sections; single + multiple, keyboard nav, real height animation", source: "packages/web-components/src/demos/accordion.ts" },
       { to: "/tabs", label: "Tabs", description: "Roving focus, underline + pills, controlled and uncontrolled", source: "packages/web-components/src/demos/tabs.ts", updated: "12.3.0" },
       { to: "/label", label: "Label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/web-components/src/demos/label.ts" },
+      { to: "/native-select", label: "NativeSelect", description: "The platform <select>, styled to match Input — submits with no hidden input, opens as the OS picker on a phone", source: "packages/web-components/src/demos/native-select.ts" },
       { to: "/input", label: "Input + MaskInput", description: "MaskInput drives core's mask engine — the same applyMask() React and Solid call", source: "packages/web-components/src/demos/input.ts", updated: "12.3.0" },
       { to: "/search", label: "Search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/web-components/src/demos/search.ts" },
       { to: "/password-input", label: "PasswordInput", description: "Password field with a show / hide toggle; every native input prop passes through", source: "packages/web-components/src/demos/password-input.ts" },
@@ -129,6 +131,7 @@ export const NAV: NavGroup[] = [
       { to: "/pagination", label: "Pagination", description: "Page navigation with truncated ranges; paginationRange() helper", source: "packages/web-components/src/demos/pagination.ts" },
       { to: "/sheet", label: "Sheet / Drawer", description: "Slide-in side panel on hand-written portal/focus-trap/scroll-lock; right / left / top / bottom", source: "packages/web-components/src/demos/sheet.ts" },
       { to: "/otp", label: "InputOTP", description: "one input per digit, zero-dep; paste / autocomplete / a11y", source: "packages/web-components/src/demos/otp.ts" },
+      { to: "/mask-input", label: "MaskInput", description: "Fixed-template input — 99-9999, aa-99; the mask decides what may be typed", source: "packages/web-components/src/demos/mask-input.ts" },
       { to: "/popover", label: "Popover", description: "Anchored panel; trigger + separate anchor, side/align with collision flip", source: "packages/web-components/src/demos/popover.ts" },
       { to: "/tooltip", label: "Tooltip", description: "Hover/focus bubble on a trigger; hand-written portal, collision positioning, delay, and dismissal", source: "packages/web-components/src/demos/tooltip.ts" },
       { to: "/nps", label: "NPS", description: "Net Promoter Score 0-10 strip with detractor / passive / promoter color buckets", source: "packages/web-components/src/demos/nps.ts" },
@@ -147,8 +150,10 @@ export const NAV: NavGroup[] = [
       { to: "/date-picker", label: "DatePicker", description: "Trigger-anchored date picker plus a from-scratch inline Calendar (single/multiple/range)", source: "packages/web-components/src/demos/date-picker.ts" },
       { to: "/notifications-inbox", label: "NotificationsInbox", description: "Bell icon + popover panel; day-grouped feed with unread badge + per-row actions", source: "packages/web-components/src/demos/notifications-inbox.ts" },
       { to: "/virtualized-items", label: "Virtualized items", description: "A windowed scrolling viewport that mounts only the visible rows of a huge list — dense array or server-paged sparse mode", source: "packages/web-components/src/demos/virtualized-items.ts" },
+      { to: "/lazy-options", label: "Lazy options", description: "VirtualizedItems \u2014 drop-in windowing for huge option lists inside Combobox / Select", source: "packages/web-components/src/demos/lazy-options.ts" },
       { to: "/date-time-picker", label: "DateTimePicker", description: "Calendar + TimePicker in one Popover; preserves time-of-day on day changes", source: "packages/web-components/src/demos/date-time-picker.ts" },
       { to: "/date-range-picker", label: "DateRangePicker", description: "Two-month side-by-side calendar in a Popover; range anchoring, controlled / uncontrolled", source: "packages/web-components/src/demos/date-range-picker.ts" },
+      { to: "/dynamic-date-range", label: "DynamicDateRange", description: "Semantic periods — \"Last 7 days\", \"This quarter\"; stores the question, not the answer", source: "packages/web-components/src/demos/dynamic-date-range.ts" },
       { to: "/toast", label: "Toast", description: "Radix-parity toasts — imperative toast() plus a Toaster() viewport; variants, actions, plus hand-written timer, hover-pause, swipe-to-dismiss and ARIA live region", source: "packages/web-components/src/demos/toast.ts" },
       { to: "/barcode", label: "QRCode and Barcode", description: "Draw codes as SVG for screens and print: QR (the e-invoice's signed QR, gate passes; error correction L to H), Code 128, EAN-13 and Code 39, dark on light in every theme", source: "packages/web-components/src/demos/barcode.ts", since: "12.3.0" },
       { to: "/qr-scanner", label: "QRScanner", description: "Camera-based QR / barcode scanner; native BarcodeDetector + custom-decoder escape hatch", source: "packages/web-components/src/demos/qr-scanner.ts" },
@@ -236,6 +241,15 @@ export const NAV: NavGroup[] = [
       { to: "/flexible-column-layout", label: "FlexibleColumnLayout", description: "1–3 column master-detail frame with responsive collapse", source: "packages/web-components/src/demos/flexible-column-layout.ts" },
       { to: "/dynamic-page", label: "DynamicPage", description: "Title + header that snaps away on scroll; pinnable header", source: "packages/web-components/src/demos/dynamic-page.ts" },
       { to: "/object-page", label: "ObjectPageLayout", description: "Anchored sections with scroll-spy navigation", source: "packages/web-components/src/demos/object-page.ts", updated: "12.3.1" },
+    ],
+  },
+  {
+    // Screens, not components — assembled from what is already in the sidebar
+    // above, so they do not count toward the component tally.
+    title: "Patterns",
+    components: false,
+    items: [
+      { to: "/list-report", label: "List Report", description: "FilterBar + DataTable — filter a set, read the result, act on a row", source: "packages/web-components/src/demos/list-report.ts" },
     ],
   },
 ];

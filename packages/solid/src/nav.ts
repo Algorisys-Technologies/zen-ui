@@ -172,6 +172,7 @@ export const NAV: NavGroup[] = [
     group: "Layout",
     items: [
       { label: "ScrollArea", path: "/scroll-area", description: "Custom scrollbars on both axes", source: "packages/solid/src/demos/scroll-area.tsx" },
+      { label: "Stack", path: "/stack", description: "Minimal flexbox layout primitive — a thin div laying children out in a row or column with configurable alignment, wrapping, gap and padding.", source: "packages/solid/src/demos/stack.tsx" },
       // These three had a demo AND a route but no nav entry, so they were
       // unreachable from the sidebar and missing from the catalogue — the
       // "add it to nav.ts" rule, violated quietly. It is why this demo
@@ -185,7 +186,9 @@ export const NAV: NavGroup[] = [
     group: "Form (custom)",
     items: [
       { label: "Input", path: "/input", description: "Styled input + textarea; all native attributes pass through", source: "packages/solid/src/demos/input.tsx" , updated: "12.2.0" },
+      { label: "Textarea", path: "/textarea", description: "Plain styled <textarea> primitive, all native attrs", source: "packages/solid/src/demos/textarea.tsx" },
       { label: "Label", path: "/label", description: "The <label> for a control outside a Form; required marker, sizes, peer-disabled dimming", source: "packages/solid/src/demos/label.tsx" },
+      { label: "NativeSelect", path: "/native-select", description: "The platform <select>, styled to match Input — submits with no hidden input, opens as the OS picker on a phone", source: "packages/solid/src/demos/native-select.tsx" },
       { label: "Search", path: "/search", description: "Search field — magnifier, clear button, sm / md / lg; the affordance zen-ui inlined seven times", source: "packages/solid/src/demos/search.tsx" },
       { label: "PasswordInput", path: "/password-input", description: "Password field with a show / hide toggle; every native input attribute passes through", source: "packages/solid/src/demos/password-input.tsx" },
       { label: "NumberField", path: "/number-field", description: "Number input with \u2212/+ stepper, clamping, decimal step", source: "packages/solid/src/demos/number-field.tsx" },
@@ -242,6 +245,7 @@ export const NAV: NavGroup[] = [
       { label: "LookupField", path: "/lookup-field", description: "Pick a row from a table of choices (items, customers): column headers, search across the columns in any order, server results, the chosen row returned whole; F4 opens the full search", source: "packages/solid/src/demos/lookup-field.tsx", since: "12.2.0" },
       { label: "MultiCombobox", path: "/multi-combobox", description: "Multi-select with chip trigger + overflow collapse", source: "packages/solid/src/demos/multi-combobox.tsx", updated: "12.2.0" },
       { label: "VirtualizedItems", path: "/lazy-options", description: "Drop-in windowing for huge option lists", source: "packages/solid/src/demos/lazy-options.tsx" },
+      { label: "Virtualized items", path: "/virtualized-items", description: "A windowed scrolling viewport that mounts only the visible rows of a huge list — dense array or server-paged sparse mode", source: "packages/solid/src/demos/virtualized-items.tsx" },
     ],
   },
   {

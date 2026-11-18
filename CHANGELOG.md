@@ -15,6 +15,28 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- 18 demo pages that existed in some bindings and not others, written for the
+  ones that lacked them. Each is ported section for section, with the same
+  titles, descriptions and code examples translated into the binding's idiom,
+  and each adaptation is noted in the page:
+  - React: /stack, /textarea, /virtualized-items.
+  - Solid: /native-select, /textarea, /virtualized-items.
+  - Vanilla and web components: /customizing, /lazy-options, /list-report,
+    /mask-input, /native-select.
+  Three pages already existed and were routed but missing from the sidebar:
+  Solid /stack, and vanilla and web components /dynamic-date-range. They are
+  listed now. React and Solid share all 144 routes (was 140 after the route
+  fixes, 121 before). Vanilla and web components have 143: /bound-fields
+  demonstrates the react-hook-form and modular-forms adapters, which have no
+  vanilla counterpart, so it is an intentional divergence, not a gap.
+  - Verified: compare-route-snapshots shows every existing page identical in
+    every binding. The only exceptions are the welcome page (its new cards) and
+    /chunk-uploader, whose simulated upload was caught at a different moment;
+    that file is untouched. visual-check passes on every route of all four, and
+    each page was driven live.
+
 ### Changed
 
 - Demo routes are canonical and identical across bindings. React's 18 `-new`

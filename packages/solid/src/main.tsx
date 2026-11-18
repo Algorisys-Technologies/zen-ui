@@ -53,6 +53,8 @@ import NewSelectDemo from "./demos/select";
 import NewScrollAreaDemo from "./demos/scroll-area";
 import NewToastDemo from "./demos/toast";
 import NewInputDemo from "./demos/input";
+import NewTextareaDemo from "./demos/textarea";
+import NewNativeSelectDemo from "./demos/native-select";
 import SearchDemo from "./demos/search";
 import PasswordInputDemo from "./demos/password-input";
 import NewNumberFieldDemo from "./demos/number-field";
@@ -102,6 +104,7 @@ import NewRoutingGraphDemo from "./demos/routing-graph";
 import NewComboboxDemo from "./demos/combobox";
 import NewMultiComboboxDemo from "./demos/multi-combobox";
 import NewLazyOptionsDemo from "./demos/lazy-options";
+import NewVirtualizedItemsDemo from "./demos/virtualized-items";
 import NewFormDemo from "./demos/form";
 import NewBoundFieldsDemo from "./demos/bound-fields";
 import NewDatePickerDemo from "./demos/date-picker";
@@ -216,6 +219,8 @@ render(
       <Route path="/scroll-area" component={NewScrollAreaDemo} />
       <Route path="/toast" component={NewToastDemo} />
       <Route path="/input" component={NewInputDemo} />
+      <Route path="/textarea" component={NewTextareaDemo} />
+      <Route path="/native-select" component={NewNativeSelectDemo} />
       <Route path="/search" component={SearchDemo} />
       <Route path="/password-input" component={PasswordInputDemo} />
       <Route path="/number-field" component={NewNumberFieldDemo} />
@@ -265,6 +270,7 @@ render(
       <Route path="/combobox" component={NewComboboxDemo} />
       <Route path="/multi-combobox" component={NewMultiComboboxDemo} />
       <Route path="/lazy-options" component={NewLazyOptionsDemo} />
+      <Route path="/virtualized-items" component={NewVirtualizedItemsDemo} />
       {/* Old URL, kept as a redirect: it shipped on the public demo site. */}
       <Route path="/form-new" component={() => <Navigate href="/form" />} />
       <Route path="/form" component={NewFormDemo} />
