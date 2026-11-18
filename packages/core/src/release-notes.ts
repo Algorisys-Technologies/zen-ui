@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.2.1",
+    date: "2026-11-18",
+    kind: "improved",
+    title: "Demo pages reorganised; nothing changes for your app",
+    detail: "Each binding's demo pages moved to src/demos/, one lowercase file per component. The published packages never contained them.",
+  },
+  {
     version: "13.2.0",
     date: "2026-11-18",
     kind: "new",

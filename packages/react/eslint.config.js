@@ -38,10 +38,9 @@ export default tseslint.config(
     // hooks live elsewhere — churn against a public API surface, for an HMR
     // heuristic, with no runtime effect.
     //
-    // Scoped to library source only. The demo app is a real Vite app and its
-    // files sit DIRECTLY in src/components (NewButtonDemo.tsx and friends), so
-    // the pattern below — at least one directory deep — leaves the rule on
-    // exactly where Fast Refresh matters.
+    // Scoped to library source only: one folder per component under
+    // src/components. The demo app lives in src/demos, outside this pattern, so
+    // the rule stays on exactly where Fast Refresh matters.
     files: ['src/components/*/**/*.{ts,tsx}'],
     rules: { 'react-refresh/only-export-components': 'off' }
   }

@@ -33,12 +33,13 @@ implementing something else.
 src/
 ├── index.ts                  # Library entry — every public component is exported here
 ├── App.tsx                   # Demo app — sidebar nav + routes
-├── components/
-│   ├── Welcome.tsx           # Landing page card grid
-│   ├── New<Name>Demo.tsx     # One file per component's demo page
-│   ├── demo-helpers.tsx      # <CodeExample> wrapper used in every demo
+├── components/               # The LIBRARY: one folder per component, nothing at the top level
 │   ├── <category>/<name>.tsx # The component itself
 │   └── form/<name>/<name>.tsx  # Form inputs live under form/
+├── demos/                    # The DEMO SITE: never shipped, excluded from the library build
+│   ├── welcome.tsx           # Landing page card grid
+│   ├── <name>.tsx            # One file per component's demo page, kebab-case
+│   └── demo-helpers.tsx      # <CodeExample> wrapper used in every demo
 ├── lib/cn.ts                 # twMerge + clsx helper — use for class composition
 └── styles/
     ├── tokens.css            # All --zen-* CSS variables (default / zen-theme / dark)
@@ -49,10 +50,10 @@ uno.config.ts                 # Tailwind-like theme keys (bg-zen-primary etc.)
 **Files to update when adding a component** (in this order):
 
 1. `src/components/<category>/<name>.tsx` — the component
-2. `src/components/New<Name>Demo.tsx` — demo page with `<CodeExample>` sections
+2. `src/demos/<name>.tsx` — demo page with `<CodeExample>` sections
 3. `src/index.ts` — `export { … } from "./components/<…>"` + `export type { … }`
 4. `src/App.tsx` — three edits: import the demo, add a nav entry, add a `<Route>`
-5. `src/components/Welcome.tsx` — push a card into the `COMPONENTS` array
+5. `src/demos/welcome.tsx` — push a card into the `COMPONENTS` array
 6. `todo.md` — tick the bullet under the relevant tier; add a one-line
    `_Shipped:_` summary
 
@@ -280,7 +281,7 @@ shape rather than inventing one:
 | An n-point segmented input           | `src/components/survey/likert.tsx`            |
 | A hand-rolled headless behaviour     | `src/components/form/time-picker/`            |
 | A data-display primitive             | `src/components/data-table/`                  |
-| A demo page with `<CodeExample>`     | `src/components/NewTimePickerDemo.tsx`        |
+| A demo page with `<CodeExample>`     | `src/demos/time-picker.tsx`        |
 
 ---
 
@@ -314,6 +315,6 @@ say so explicitly and wait for confirmation.
 - [ ] At least one keyboard interaction tested
 - [ ] `index.ts` exports both runtime + types
 - [ ] `App.tsx` has import / nav entry / route
-- [ ] `Welcome.tsx` has a card
+- [ ] `demos/welcome.tsx` has a card
 - [ ] `todo.md` updated
 - [ ] One focused commit pushed to `main`

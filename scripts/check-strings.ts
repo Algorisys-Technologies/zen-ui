@@ -148,8 +148,8 @@ const walk = (dir: string) => {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
     if (statSync(p).isDirectory()) walk(p);
-    // Library components live in a folder each (components/<name>/…); the files at the top of
-    // components/ are the demo site's pages (New*Demo, Welcome, ReleaseNotes…), not shipped.
+    // Library components live in a folder each (components/<name>/…). The demo site's pages
+    // live in src/demos/, outside this walk; the "/" test still skips any stray top-level file.
     else if (p.endsWith(jsx ? ".tsx" : ".ts") && relative(ROOT, p).includes("/") && !/\.demo\./.test(p)) files.push(p);
   }
 };
