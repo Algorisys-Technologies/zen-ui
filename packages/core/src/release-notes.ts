@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.4.1",
+    date: "2026-11-19",
+    kind: "fixed",
+    title: "barAccent marks Gantt milestones",
+    detail: "A milestone now shows your accent colour as a border inside its diamond, as a bar shows it as a stripe.",
+  },
+  {
     version: "13.4.0",
     date: "2026-11-18",
     kind: "new",
