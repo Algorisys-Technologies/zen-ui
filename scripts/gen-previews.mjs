@@ -307,7 +307,11 @@ for (const binding of which) {
     }
     if (!(await render(6000, 3000))) {
       await page.unroute("**/*").catch(() => {});
-      if (await render(12000, 4000)) retried.push(route);
+      // 20s, not 12: React's /object (an ObjectPage, the heaviest demo) missed
+      // both windows in the 13.0.0 deploy. Measured on a fresh dev server: >15s
+      // on its first load (the cold compile), 4.8s on the second, 1.7s on the
+      // third. 6 + 3 + 20 + 4 = 33s still fits the 40s ceiling.
+      if (await render(20000, 4000)) retried.push(route);
     }
     // Fall back to the page itself when a demo renders no live example. Leaving
     // the file out instead means the card requests an image that 404s: the <img>
