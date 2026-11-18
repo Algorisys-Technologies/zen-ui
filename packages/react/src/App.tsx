@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import { NavLink, Routes, Route, useLocation } from "react-router-dom";
+import { NavLink, Navigate, Routes, Route, useLocation } from "react-router-dom";
 import { NAV } from "./nav";
 import { NavTag } from "./demos/nav-tag";
 
@@ -180,7 +180,7 @@ import NewButtonFamilyDemo from "./demos/button-family";
 import NewTreeDemo from "./demos/tree";
 import NewToolbarDemo from "./demos/toolbar";
 import NewDocumentTabsDemo from "./demos/document-tabs";
-import NewShellBarDemo from "./demos/shell-bar";
+import NewShellBarDemo from "./demos/shellbar";
 import SkipToContentDemo from "./demos/skip-to-content";
 import NewFlexibleColumnLayoutDemo from "./demos/flexible-column-layout";
 import NewDynamicPageDemo from "./demos/dynamic-page";
@@ -200,7 +200,7 @@ import NewPopoverDemo from "./demos/popover";
 import NewLinkDemo from "./demos/link";
 import NewThemeDemo from "./demos/theme";
 import NewDirectionDemo from "./demos/direction";
-import NewLocaleDemo from "./demos/locale";
+import NewLocaleDemo from "./demos/localization";
 import NewPageDemo from "./demos/page";
 import NewMessagePopoverDemo from "./demos/message-popover";
 import NewColorPickerDemo from "./demos/color-picker";
@@ -363,33 +363,56 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Welcome />} />
 
-            <Route path="/button-new" element={<NewButtonDemo />} />
-            <Route path="/tooltip-new" element={<NewTooltipDemo />} />
+            <Route path="/button" element={<NewButtonDemo />} />
+            <Route path="/tooltip" element={<NewTooltipDemo />} />
             <Route path="/dropdown-menu" element={<NewDropdownMenuDemo />} />
             <Route path="/context-menu" element={<NewContextMenuDemo />} />
             <Route path="/separator" element={<NewSeparatorDemo />} />
-            <Route path="/switch-new" element={<NewSwitchDemo />} />
-            <Route path="/checkbox-new" element={<NewCheckboxDemo />} />
+            <Route path="/switch" element={<NewSwitchDemo />} />
+            <Route path="/checkbox" element={<NewCheckboxDemo />} />
             <Route path="/radio-group" element={<NewRadioGroupDemo />} />
-            <Route path="/progress-new" element={<NewProgressDemo />} />
-            <Route path="/avatar-new" element={<NewAvatarDemo />} />
-            <Route path="/badge-new" element={<NewBadgeDemo />} />
-            <Route path="/skeleton-new" element={<NewSkeletonDemo />} />
-            <Route path="/loading-new" element={<NewLoadingDemo />} />
-            <Route path="/select-new" element={<NewSelectDemo />} />
-            <Route path="/slider-new" element={<NewSliderDemo />} />
-            <Route path="/scroll-area-new" element={<NewScrollAreaDemo />} />
-            <Route path="/input-new" element={<NewInputDemo />} />
+            <Route path="/progress" element={<NewProgressDemo />} />
+            <Route path="/avatar" element={<NewAvatarDemo />} />
+            <Route path="/badge" element={<NewBadgeDemo />} />
+            <Route path="/skeleton" element={<NewSkeletonDemo />} />
+            <Route path="/loading" element={<NewLoadingDemo />} />
+            <Route path="/select" element={<NewSelectDemo />} />
+            <Route path="/slider" element={<NewSliderDemo />} />
+            <Route path="/scroll-area" element={<NewScrollAreaDemo />} />
+            <Route path="/input" element={<NewInputDemo />} />
             <Route path="/search" element={<SearchDemo />} />
             <Route path="/password-input" element={<PasswordInputDemo />} />
-            <Route path="/number-field-new" element={<NewNumberFieldDemo />} />
+            <Route path="/number-field" element={<NewNumberFieldDemo />} />
             <Route path="/amount-field" element={<NewAmountFieldDemo />} />
             <Route path="/date-input" element={<NewDateInputDemo />} />
-            <Route path="/date-picker-new" element={<NewDatePickerDemo />} />
-            <Route path="/otp-new" element={<NewOTPDemo />} />
-            <Route path="/phone-input-new" element={<NewPhoneInputDemo />} />
-            <Route path="/fab-new" element={<NewFABDemo />} />
-            <Route path="/form-new" element={<NewFormDemo />} />
+            <Route path="/date-picker" element={<NewDatePickerDemo />} />
+            <Route path="/otp" element={<NewOTPDemo />} />
+            <Route path="/phone-input" element={<NewPhoneInputDemo />} />
+            <Route path="/fab" element={<NewFABDemo />} />
+            {/* Old URLs, kept as redirects: they shipped on the public demo site and may
+                be bookmarked. Every page now has one canonical route, the same in every
+                binding. */}
+            <Route path="/avatar-new" element={<Navigate to="/avatar" replace />} />
+            <Route path="/badge-new" element={<Navigate to="/badge" replace />} />
+            <Route path="/button-new" element={<Navigate to="/button" replace />} />
+            <Route path="/checkbox-new" element={<Navigate to="/checkbox" replace />} />
+            <Route path="/date-picker-new" element={<Navigate to="/date-picker" replace />} />
+            <Route path="/fab-new" element={<Navigate to="/fab" replace />} />
+            <Route path="/input-new" element={<Navigate to="/input" replace />} />
+            <Route path="/loading-new" element={<Navigate to="/loading" replace />} />
+            <Route path="/number-field-new" element={<Navigate to="/number-field" replace />} />
+            <Route path="/otp-new" element={<Navigate to="/otp" replace />} />
+            <Route path="/phone-input-new" element={<Navigate to="/phone-input" replace />} />
+            <Route path="/progress-new" element={<Navigate to="/progress" replace />} />
+            <Route path="/scroll-area-new" element={<Navigate to="/scroll-area" replace />} />
+            <Route path="/select-new" element={<Navigate to="/select" replace />} />
+            <Route path="/skeleton-new" element={<Navigate to="/skeleton" replace />} />
+            <Route path="/slider-new" element={<Navigate to="/slider" replace />} />
+            <Route path="/switch-new" element={<Navigate to="/switch" replace />} />
+            <Route path="/tooltip-new" element={<Navigate to="/tooltip" replace />} />
+            <Route path="/form-new" element={<Navigate to="/form" replace />} />
+            <Route path="/form-bound" element={<Navigate to="/bound-fields" replace />} />
+            <Route path="/form" element={<NewFormDemo />} />
             <Route path="/data-table" element={<NewDataTableDemo />} />
             <Route path="/tree-table" element={<NewTreeTableDemo />} />
             <Route path="/micro-chart" element={<NewMicroChartDemo />} />
@@ -436,7 +459,7 @@ const App: React.FC = () => {
             <Route path="/toast" element={<NewToastDemo />} />
             <Route path="/shortcuts" element={<NewShortcutsDemo />} />
             <Route path="/file-upload" element={<NewFileUploadDemo />} />
-            <Route path="/form-bound" element={<NewBoundFieldsDemo />} />
+            <Route path="/bound-fields" element={<NewBoundFieldsDemo />} />
             <Route path="/stepper" element={<NewStepperDemo />} />
             <Route path="/banner" element={<NewBannerDemo />} />
             <Route path="/empty-state" element={<NewEmptyStateDemo />} />

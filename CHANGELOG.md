@@ -15,6 +15,25 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Demo routes are canonical and identical across bindings. React's 18 `-new`
+  routes (`/button-new`, …) became `/button` and the like, `/form-new` became
+  `/form` (React and Solid), and `/form-bound` became `/bound-fields` (React).
+  Every old URL is kept as a redirect (`<Navigate replace>` in React, Solid
+  Router's `<Navigate>`), because they shipped on the public demo site and may
+  be bookmarked. All 21 were tested in a browser: each lands on its canonical
+  route and renders the page. React and Solid now share 140 routes (was 121).
+- Demo file names match their routes in every binding: `locale` became
+  `localization`, `shell-bar` became `shellbar`, and in vanilla and web
+  components `input-otp` became `otp` and `object-page-layout` became
+  `object-page`. All `git mv`, imports and nav source paths rewritten;
+  check-nav passes.
+- Verified with compare-route-snapshots, old routes mapped to new. Vanilla and
+  web components are identical. The only changes are the intended ones: React's
+  welcome card links and the Button demo's Tooltip link (and its code sample),
+  and Solid's welcome link to /form.
+
 ## [13.2.1] - 2026-11-18
 
 ### Changed
