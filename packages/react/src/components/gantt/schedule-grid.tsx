@@ -2,6 +2,8 @@ import * as React from "react";
 import {
   ganttColumns,
   ganttColumnWidths,
+  ganttColumnWindow,
+  ganttContinuousRange,
   ganttFitHourStep,
   ganttFitUnit,
   ganttHeaderGroups,
@@ -318,6 +320,10 @@ export interface ScheduleAxis {
   isFit: boolean;
   /** What one column is: hour, day, week or month. What the header groups by. */
   unit: GanttColumnUnit;
+  /** A continuous axis: the whole plan at the view's zoom, scrolled, not paged. */
+  continuous: boolean;
+  /** A continuous range that hit the column cap and was windowed round the anchor. */
+  clamped: boolean;
   /** Milliseconds worth roughly one pixel — what a split-bar gap is judged against. */
   minGapMs: number;
 }
@@ -347,8 +353,13 @@ export function useScheduleAxis(options: {
   available: number;
   /** The header draws a group row, so columns drop the context it carries. */
   grouped?: boolean;
+  /** One scrolling timeline over the whole plan: the view sets the ZOOM. Fit ignores it. */
+  continuous?: boolean;
+  /** The plan's span, for a continuous axis; null when nothing has dates. */
+  plan?: PlanningRange | null;
 }): ScheduleAxis & { paneKeys: string[] } {
-  const { view, anchor, fitRange, now, calendar, hourStep, columnWidth, paneColumns, available, grouped } = options;
+  const { view, anchor, fitRange, now, calendar, hourStep, columnWidth, paneColumns, available, grouped, plan } = options;
+  const continuous = !!options.continuous && view !== "fit";
 
   const isFit = view === "fit";
   /* The one place the two view worlds meet. Every anchored function refuses
@@ -373,15 +384,27 @@ export function useScheduleAxis(options: {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const anchoredRange = React.useMemo(() => ganttRange(anchoredView, anchor), [anchoredView, anchorTime]);
-  const range = fitRange ?? anchoredRange;
+  /* Continuous: the whole plan at this zoom. It only CHANGES when the anchor
+     leaves the plan or the range is capped: Previous / Next / Today otherwise
+     scroll, they do not swap the window. */
+  const planStart = plan?.start.getTime();
+  const planEnd = plan?.end.getTime();
+  const continuousRange = React.useMemo(
+    () => (continuous ? ganttContinuousRange(anchoredView, plan ?? null, anchor) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [continuous, anchoredView, planStart, planEnd, anchorTime],
+  );
+  const range = fitRange ?? continuousRange?.range ?? anchoredRange;
 
   const columns = React.useMemo(
     () =>
       fitRange && fitUnit
         ? ganttRangeColumns(fitRange, fitUnit, { now, calendar, hourStep: effectiveHourStep, grouped })
-        : ganttColumns(anchoredView, anchor, { now, calendar, hourStep, grouped }),
+        : continuousRange
+          ? ganttRangeColumns(continuousRange.range, ganttViewUnit(anchoredView), { now, calendar, hourStep, grouped })
+          : ganttColumns(anchoredView, anchor, { now, calendar, hourStep, grouped }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, effectiveHourStep, grouped],
+    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, effectiveHourStep, grouped, continuousRange],
   );
 
   /* Two numbers, not one, and the pane negotiates against the SMALLER.
@@ -397,8 +420,11 @@ export function useScheduleAxis(options: {
      lets a year axis at 1292px keep all four columns at 71px per month instead
      of losing two to buy 80px per month. Order matters: shrink first, shed only
      when even the floor will not fit. */
-  const floorAxis =
-    columnWidth !== undefined
+  // A continuous axis scrolls, so the pane negotiates only against a usable
+  // viewport, not against the whole plan's width.
+  const floorAxis = continuous
+    ? MIN_AXIS_PX
+    : columnWidth !== undefined
       ? columns.length * columnWidth
       : fitUnit
         ? columns.length * FIT_MIN_COLUMN_PX[fitUnit]
@@ -437,8 +463,13 @@ export function useScheduleAxis(options: {
      anchored view takes its comfortable width — exactly what it did before any
      of this existed — and a fit view takes its floor. `useLayoutEffect` measures
      before paint, so this only decides what a DOM-less render produces. */
-  const axisWidth =
-    available > 0
+  // Continuous: each column at the zoom's width; a short plan still fills the viewport.
+  const naturalContinuous = columns.length * (columnWidth ?? COLUMN_PX[anchoredView]);
+  const axisWidth = continuous
+    ? available > 0
+      ? Math.max(naturalContinuous, available - paneWidth)
+      : naturalContinuous
+    : available > 0
       ? Math.min(ceilingAxis, Math.max(floorAxis, available - paneWidth))
       : Number.isFinite(ceilingAxis)
         ? ceilingAxis
@@ -462,7 +493,9 @@ export function useScheduleAxis(options: {
 
   const unit: GanttColumnUnit = fitUnit ?? ganttViewUnit(anchoredView);
 
-  return { range, columns, columnWidths, axisWidth, paneWidth, isFit, unit, minGapMs, paneKeys };
+  const clamped = continuousRange?.clamped ?? false;
+
+  return { range, columns, columnWidths, axisWidth, paneWidth, isFit, unit, continuous, clamped, minGapMs, paneKeys };
 }
 
 /**
@@ -477,15 +510,17 @@ export function useScrollerMetrics(ref: React.RefObject<HTMLDivElement | null>) 
      the first paint mounts only the overscan and then visibly fills in a frame
      later. `width` is seeded at 0, meaning UNMEASURED — which the pane reads as
      "keep every column" rather than as a zero-width container. */
-  const [metrics, setMetrics] = React.useState({ top: 0, height: SCROLLER_MAX_PX, width: 0 });
+  // `left`: horizontal scroll, LOGICAL (Chrome's RTL scrollLeft is negative).
+  const [metrics, setMetrics] = React.useState({ top: 0, height: SCROLLER_MAX_PX, width: 0, left: 0 });
 
   const measure = React.useCallback(() => {
     const el = ref.current;
     if (!el) return;
+    const left = Math.abs(el.scrollLeft);
     setMetrics((prev) =>
-      prev.top === el.scrollTop && prev.height === el.clientHeight && prev.width === el.clientWidth
+      prev.top === el.scrollTop && prev.height === el.clientHeight && prev.width === el.clientWidth && prev.left === left
         ? prev
-        : { top: el.scrollTop, height: el.clientHeight, width: el.clientWidth },
+        : { top: el.scrollTop, height: el.clientHeight, width: el.clientWidth, left },
     );
   }, [ref]);
 
@@ -560,8 +595,8 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   /** Owned by the caller, because the caller measures it to resolve the axis. */
   scrollerRef: React.RefObject<HTMLDivElement | null>;
   axis: ScheduleAxis & { paneKeys: string[] };
-  metrics: { top: number; height: number; width: number };
-  setMetrics: React.Dispatch<React.SetStateAction<{ top: number; height: number; width: number }>>;
+  metrics: { top: number; height: number; width: number; left: number };
+  setMetrics: React.Dispatch<React.SetStateAction<{ top: number; height: number; width: number; left: number }>>;
 }) {
   const loc = useLocale();
   const { range, columns, columnWidths, axisWidth, paneWidth, isFit, paneKeys } = axis;
@@ -582,15 +617,25 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
      the truncation stays as the last resort. */
   const groupLabel = (g: GanttHeaderGroup) => (groupWidth(g) >= g.label.length * 7 + 16 ? g.label : g.shortLabel);
   /** The per-column header cells: label, and the sublabel when there is one. */
-  const axisCells = columns.map((column, i) => (
+  /* Only the columns near the viewport are drawn on a continuous axis: an hourly
+     zoom over six weeks is about a thousand columns, and every mounted row
+     drawing all of them is tens of thousands of nodes. One viewport of overscan
+     each side keeps a fast scroll from showing bare rows. */
+  const viewportPx = Math.max(0, metrics.width - paneWidth);
+  const columnWindow = React.useMemo(
+    () => (axis.continuous ? ganttColumnWindow(columnWidths, metrics.left, viewportPx, Math.max(viewportPx, 400)) : null),
+    [axis.continuous, columnWidths, metrics.left, viewportPx],
+  );
+  const headerCell = (column: PlanningColumn, width: number, offset?: number) => (
     <div
       key={column.start.getTime()}
       className={cn(
         "zen-flex zen-shrink-0 zen-flex-col zen-items-center zen-justify-center zen-overflow-hidden zen-border-e zen-border-zen-border last:zen-border-e-0",
+        offset !== undefined && "zen-absolute zen-inset-y-0",
         column.nonWorking && "zen-bg-zen-muted",
         column.today && "zen-bg-zen-primary-soft",
       )}
-      style={{ width: columnWidths[i] }}
+      style={offset !== undefined ? { width, insetInlineStart: offset } : { width }}
     >
       <span className="zen-text-xs zen-font-medium zen-text-zen-foreground">
         {column.label}
@@ -599,11 +644,50 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
         <span className="zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">{column.sublabel}</span>
       )}
     </div>
-  ));
+  );
+  const axisCells = columnWindow ? (
+    // Windowed: positioned cells in a full-width box, so the header still spans
+    // the whole axis and lines up with the rows below it.
+    <div data-schedule-windowed="" className="zen-relative zen-h-full zen-w-full">
+      {columnWindow.offsets.map((offset, k) => {
+        const i = columnWindow.first + k;
+        return headerCell(columns[i], columnWidths[i], offset);
+      })}
+    </div>
+  ) : (
+    columns.map((column, i) => headerCell(column, columnWidths[i]))
+  );
   /* Narrowed from `view` rather than from `axis.isFit`, so the compiler can see
      that "fit" cannot reach an anchored function. That refusal is the whole
      point of the two view types. */
   const anchoredView: GanttAnchoredView = view === "fit" ? "month" : view;
+
+  /* ---- continuous axis: scrolled, not paged --------------------------------- */
+  const offsetOf = (t: Date) => (axis.minGapMs > 0 ? (t.getTime() - range.start.getTime()) / axis.minGapMs : 0);
+  /** The instant under the middle of the visible axis. What the title names. */
+  const centreTime = new Date(range.start.getTime() + (metrics.left + viewportPx / 2) * axis.minGapMs);
+  /** Where Previous / Next step from: the middle of the screen when continuous. */
+  const stepFrom = axis.continuous ? centreTime : anchor;
+  /* Bring the anchor's period to the inline start whenever the ANCHOR, the view
+     or the range changes: that is what Previous / Next / Today and a zoom
+     change all come down to. Keyed, so the user's own scrolling (which changes
+     none of them) is never fought. Waits for the first measurement. */
+  const scrolledFor = React.useRef("");
+  const scrollKey = `${view}|${anchor.getTime()}|${range.start.getTime()}|${range.end.getTime()}`;
+  React.useEffect(() => {
+    if (!axis.continuous || metrics.width === 0 || scrolledFor.current === scrollKey) return;
+    scrolledFor.current = scrollKey;
+    const target = offsetOf(ganttRange(anchoredView, anchor).start);
+    const frame = requestAnimationFrame(() => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      const x = Math.max(0, target);
+      el.scrollLeft = getComputedStyle(el).direction === "rtl" ? -x : x;
+    });
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [axis.continuous, metrics.width > 0, scrollKey]);
+
   const marker = nowPct(range, now);
   const bodyHeight = rows.length * rowHeight;
 
@@ -881,7 +965,9 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
                 variant="outline"
                 size="sm"
                 aria-label={loc.t("scheduleGrid.previous")}
-                onClick={() => onDateChange(shiftGanttAnchor(anchoredView, anchor, -1))}
+                /* Continuous: a period back from what is ON SCREEN, not from an
+                   anchor the user may have scrolled a month away from. */
+                onClick={() => onDateChange(shiftGanttAnchor(anchoredView, stepFrom, -1))}
               >
                 {/* Logical, not physical: under RTL the axis runs the other way. */}
                 <Icon name="chevron-left" size={14} className="rtl:zen-rotate-180" />
@@ -893,7 +979,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
                 variant="outline"
                 size="sm"
                 aria-label={loc.t("scheduleGrid.next")}
-                onClick={() => onDateChange(shiftGanttAnchor(anchoredView, anchor, 1))}
+                onClick={() => onDateChange(shiftGanttAnchor(anchoredView, stepFrom, 1))}
               >
                 <Icon name="chevron-right" size={14} className="rtl:zen-rotate-180" />
               </Button>
@@ -910,7 +996,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
             dir="auto"
             className="zen-mx-1 zen-text-sm zen-font-medium zen-text-zen-foreground"
           >
-            {isFit ? ganttSpanLabel(range) : ganttRangeLabel(anchoredView, anchor)}
+            {isFit ? ganttSpanLabel(range) : ganttRangeLabel(anchoredView, axis.continuous ? centreTime : anchor)}
           </span>
 
           <div className="zen-ms-auto zen-flex zen-gap-1" role="group" aria-label={loc.t("scheduleGrid.view")}>
@@ -920,7 +1006,12 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
                 variant={view === v ? "solid" : "outline"}
                 size="sm"
                 aria-pressed={view === v}
-                onClick={() => onViewChange(v)}
+                onClick={() => {
+                  /* A continuous zoom change re-anchors to the middle of what is
+                     on screen first, so zooming keeps the reader's place. */
+                  if (axis.continuous && v !== "fit") onDateChange(centreTime);
+                  onViewChange(v);
+                }}
               >
                 {loc.t(VIEW_LABEL[v])}
               </Button>
@@ -1057,6 +1148,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
                 columns={visibleColumns}
                 axisColumns={columns}
                 columnWidths={columnWidths}
+                columnWindow={columnWindow}
                 axisWidth={axisWidth}
                 paneWidth={paneWidth}
                 timelineColIndex={timelineColIndex}
@@ -1106,6 +1198,8 @@ interface ScheduleRowProps<R extends ScheduleRowShape> {
   columns: ScheduleColumn<R>[];
   axisColumns: PlanningColumn[];
   columnWidths: number[];
+  /** A continuous axis draws only these columns, positioned; null draws all. */
+  columnWindow: { first: number; last: number; offsets: number[] } | null;
   axisWidth: number;
   paneWidth: number;
   timelineColIndex: number;
@@ -1140,6 +1234,7 @@ function ScheduleRow<R extends ScheduleRowShape>({
   row,
   columns,
   axisColumns,
+  columnWindow,
   columnWidths,
   axisWidth,
   paneWidth,
@@ -1208,23 +1303,28 @@ function ScheduleRow<R extends ScheduleRowShape>({
             alpha modifier on those without a word — `/40` has always come out
             fully opaque, which is the look every untinted chart has today. */}
         <div aria-hidden="true" className="zen-absolute zen-inset-0 zen-flex">
-          {axisColumns.map((column, i) => (
-            <div
-              key={column.start.getTime()}
-              className={cn(
-                "zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0",
-                column.nonWorking &&
-                  (rowClass
-                    ? "zen-bg-[color-mix(in_srgb,var(--zen-color-muted)_40%,transparent)]"
-                    : "zen-bg-zen-muted"),
-                column.today &&
-                  (rowClass
-                    ? "zen-bg-[color-mix(in_srgb,var(--zen-color-primary-soft)_40%,transparent)]"
-                    : "zen-bg-zen-primary-soft"),
-              )}
-              style={{ width: columnWidths[i] }}
-            />
-          ))}
+          {(columnWindow ? columnWindow.offsets.map((_, k) => columnWindow.first + k) : axisColumns.map((_, i) => i)).map((i) => {
+            const column = axisColumns[i];
+            const offset = columnWindow ? columnWindow.offsets[i - columnWindow.first] : undefined;
+            return (
+              <div
+                key={column.start.getTime()}
+                className={cn(
+                  "zen-shrink-0 zen-border-e zen-border-zen-border last:zen-border-e-0",
+                  offset !== undefined && "zen-absolute zen-inset-y-0",
+                  column.nonWorking &&
+                    (rowClass
+                      ? "zen-bg-[color-mix(in_srgb,var(--zen-color-muted)_40%,transparent)]"
+                      : "zen-bg-zen-muted"),
+                  column.today &&
+                    (rowClass
+                      ? "zen-bg-[color-mix(in_srgb,var(--zen-color-primary-soft)_40%,transparent)]"
+                      : "zen-bg-zen-primary-soft"),
+                )}
+                style={offset !== undefined ? { width: columnWidths[i], insetInlineStart: offset } : { width: columnWidths[i] }}
+              />
+            );
+          })}
         </div>
 
         {renderTrack(row, axisWidth)}
