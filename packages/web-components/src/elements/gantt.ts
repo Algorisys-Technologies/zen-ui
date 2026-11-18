@@ -82,6 +82,11 @@ const revive = (props: Partial<GanttProps>, all: boolean): Partial<GanttProps> =
   for (const k of ["date", "defaultDate", "now"]) {
     if (has(k)) out[k] = asDate(p[k] as string | Date | undefined);
   }
+  /* An absent `header-groups` reaches here as false (define.ts coerces every
+     absent boolean attribute), but for this one absence must mean UNSET: the
+     default is off, and ON with `continuous`, as in every other binding. A
+     boolean attribute cannot say an explicit "false" anyway, only "absent". */
+  if (has("headerGroups") && p.headerGroups === false) out.headerGroups = undefined;
   return out as Partial<GanttProps>;
 };
 
@@ -119,6 +124,9 @@ defineZenElement<GanttProps>({
     // The date / month / year row above the columns. Off by default, which is
     // also what an absent boolean attribute coerces to (lib/define.ts).
     "header-groups": "boolean",
+    // One scrolling timeline, the view as the zoom. Off by default, which is
+    // also what an absent boolean attribute coerces to (lib/define.ts).
+    continuous: "boolean",
     // compact | comfortable | touch (opt-in; does not follow data-density)
     density: "string",
   },

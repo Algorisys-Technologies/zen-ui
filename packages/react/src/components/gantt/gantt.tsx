@@ -237,6 +237,15 @@ export interface GanttProps {
    */
   headerGroups?: boolean;
   /**
+   * One continuous timeline over the whole plan, scrolled sideways: Day, Week,
+   * Month, Quarter and Year set the ZOOM instead of a one-period window, so a
+   * bar is never cut at a period edge and an order can be followed across
+   * weeks. Previous / Next / Today scroll; the title names the period in the
+   * middle of the screen. Turns `headerGroups` on unless it is set to false.
+   * Fit is continuous already and is unaffected. Off by default.
+   */
+  continuous?: boolean;
+  /**
    * How much room a row and its bar takes: "compact", "comfortable" (the default, and the
    * size it always was) or "touch" (48px targets, for shop-floor tablets).
    * Opt-in: it does not follow data-density, so setting that on a page moves
@@ -411,7 +420,8 @@ export const Gantt = ({
   rowHeight: rowHeightProp,
   maxBodyHeight,
   headerClassName,
-  headerGroups,
+  headerGroups: headerGroupsProp,
+  continuous,
   density,
   rowClassName,
   barClassName,
@@ -473,10 +483,16 @@ export const Gantt = ({
   /* Null when not fitting, and ALSO null when fitting a plan in which nothing
      has dates yet. Both fall through to the anchored month, so the axis and the
      toolbar still make sense while the dates are being filled in. */
-  const fitRange = React.useMemo(
-    () => (view === "fit" ? ganttFitRange(tasks ?? [], { calendar }) : null),
-    [view, tasks, calendar],
+  /* The plan's padded span: what Fit shows, and what a continuous axis spans.
+     Computed only when one of them needs it. */
+  const planSpan = React.useMemo(
+    () => (view === "fit" || continuous ? ganttFitRange(tasks ?? [], { calendar }) : null),
+    [view, continuous, tasks, calendar],
   );
+  const fitRange = view === "fit" ? planSpan : null;
+  // Continuous turns the date row on, because a scrolled axis needs it; an
+  // explicit `headerGroups={false}` still wins.
+  const headerGroups = headerGroupsProp ?? !!continuous;
 
   /* The pane's columns are DATA, which is what lets the grid underneath know
      nothing about tasks — and what a second schedule component will hand it a
@@ -517,6 +533,8 @@ export const Gantt = ({
     paneColumns,
     available: metrics.width,
     grouped: headerGroups,
+    continuous,
+    plan: planSpan,
   });
   const { range, axisWidth, minGapMs } = axis;
 

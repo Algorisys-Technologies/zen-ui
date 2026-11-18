@@ -22,6 +22,8 @@ import {
   ganttFitHourStep,
   ganttFitRange,
   ganttFitUnit,
+  ganttColumnWindow,
+  ganttContinuousRange,
   ganttHeaderGroups,
   ganttViewUnit,
   ganttPaneColumns,
@@ -688,6 +690,57 @@ console.log("\nheader groups: the spanning row of date context above the columns
   t(groupedDays.map((c) => c.sublabel), ["M", "T", "W"], "days: the weekday initial stays, it is not context");
   // Off by default: nothing changes for a caller who has not asked.
   t(ganttRangeColumns(LONG_FIT, "month", { now: at(2026, 7, 6) }).filter((c) => c.sublabel !== "").length, 2, "without `grouped`, sublabels are exactly as before");
+}
+
+console.log("\ncontinuous: the zoom is the view, the range is the whole plan");
+{
+  const plan = { start: at(2026, 7, 8, 10), end: at(2026, 8, 19, 15) }; // Wed 8 Jul .. Wed 19 Aug
+  // Week zoom: whole Monday-to-Monday weeks around the plan.
+  const wk = ganttContinuousRange("week", plan, at(2026, 7, 21));
+  t([iso(wk.range.start), iso(wk.range.end), wk.clamped], ["2026-07-06 00:00", "2026-08-24 00:00", false], "week zoom snaps the plan out to whole weeks");
+  // Month zoom: whole months.
+  const mo = ganttContinuousRange("month", plan, at(2026, 7, 21));
+  t([iso(mo.range.start), iso(mo.range.end)], ["2026-07-01 00:00", "2026-09-01 00:00"], "month zoom snaps to whole months");
+  // Day zoom: whole days, every hour of them.
+  const dy = ganttContinuousRange("day", plan, at(2026, 7, 21));
+  t([iso(dy.range.start), iso(dy.range.end), dy.clamped], ["2026-07-08 00:00", "2026-08-20 00:00", false], "day zoom snaps to whole days");
+  // The anchor's period is always in range, so Today and a default date are reachable.
+  const outside = ganttContinuousRange("week", plan, at(2026, 9, 2));
+  t(iso(outside.range.end), "2026-09-07 00:00", "an anchor past the plan extends the range to its period");
+  const before = ganttContinuousRange("week", plan, at(2026, 6, 24));
+  t(iso(before.range.start), "2026-06-22 00:00", "…and so does one before it");
+  // No plan (no dated tasks): the anchor's own period, like the anchored view.
+  const none = ganttContinuousRange("week", null, at(2026, 7, 21));
+  t([iso(none.range.start), iso(none.range.end)], ["2026-07-20 00:00", "2026-07-27 00:00"], "no plan: the anchor's week");
+  // A zoom that would draw too many columns is capped AROUND the anchor, not
+  // at the plan's start: a year of hourly columns is 8760 of them.
+  const year = { start: at(2026, 1, 1), end: at(2027, 1, 1) };
+  const capped = ganttContinuousRange("day", year, at(2026, 7, 21));
+  const hours = (capped.range.end.getTime() - capped.range.start.getTime()) / HOUR;
+  t(capped.clamped, true, "an hourly zoom over a year is capped");
+  t(hours <= 1500, true, `…to at most 1500 columns (${hours})`);
+  t(capped.range.start.getTime() <= at(2026, 7, 21).getTime() && capped.range.end.getTime() > at(2026, 7, 21).getTime(), true, "…and the window holds the anchor");
+  t([capped.range.start.getHours(), capped.range.end.getHours()], [0, 0], "…snapped to whole days");
+  // Year zoom over a year: 12 month columns, nowhere near the cap.
+  t(ganttContinuousRange("year", year, at(2026, 7, 21)).clamped, false, "a year at month zoom is not capped");
+}
+
+console.log("\ncolumn window: only what is near the viewport is drawn");
+{
+  const widths = Array.from({ length: 1000 }, () => 50); // 50 000px axis
+  const w = ganttColumnWindow(widths, 10_000, 1_000, 200);
+  // Visible 10 000..11 000, overscan 200 each side: 9 800..11 200 -> columns 196..223.
+  t([w.first, w.last], [196, 223], "the columns intersecting the viewport, with overscan");
+  t(w.offsets.slice(0, 2), [9800, 9850], "…with each column's offset from the axis start");
+  t(w.offsets.length, w.last - w.first + 1, "…one offset per drawn column");
+  const atStart = ganttColumnWindow(widths, 0, 1_000, 200);
+  t(atStart.first, 0, "clamped at the start");
+  const atEnd = ganttColumnWindow(widths, 49_500, 1_000, 200);
+  t(atEnd.last, 999, "clamped at the end");
+  // Unequal widths: the offsets are cumulative, so a long month moves the rest.
+  const months = [31, 28, 31].map((d) => d * 10);
+  t(ganttColumnWindow(months, 0, 10_000, 0).offsets, [0, 310, 590], "unequal widths accumulate");
+  t(ganttColumnWindow([], 0, 1000, 100), { first: 0, last: -1, offsets: [] }, "no columns, nothing drawn");
 }
 
 console.log("\nthe label for a range nobody anchored");

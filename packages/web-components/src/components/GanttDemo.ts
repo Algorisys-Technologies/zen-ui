@@ -710,6 +710,28 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
           return box;
         },
       },
+      {
+        title: "17. One continuous timeline: the view is the zoom",
+        codeTitle: "continuous",
+        codeDescription:
+          "With continuous on, the whole plan is one timeline you scroll sideways, and Day, Week, Month, Quarter and Year set how far you are zoomed in rather than which single period is shown. A bar is never cut off at the edge of a week, so an order can be followed from start to finish. Previous and Next scroll by one period from what is on screen, Today scrolls to now, and the title names the period in the middle of the screen. The date row above the columns is on by default here, because a scrolled timeline needs it. Only the columns near the screen are drawn, so even an hourly zoom over weeks stays light. The first chart is the July plan at Week zoom, the second a plan spanning months at Month zoom.",
+        code: `<zen-gantt tasks='[…]' continuous default-view="week"></zen-gantt>
+<zen-gantt tasks='[…]' continuous default-view="month"></zen-gantt>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.setAttribute("data-testid", "gantt-continuous");
+          // No header-groups attribute on purpose: continuous turns the row on.
+          const week = gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, defaultDate: NOW, maxBodyHeight: 320 });
+          week.setAttribute("continuous", "");
+          week.setAttribute("default-view", "week");
+          const month = gantt({ tasks: LONG_PLAN, dependencies: LONG_LINKS, now: NOW, defaultDate: NOW, maxBodyHeight: 320 });
+          month.setAttribute("continuous", "");
+          month.setAttribute("default-view", "month");
+          box.append(week, month);
+          return box;
+        },
+      },
     ],
   });
 }
