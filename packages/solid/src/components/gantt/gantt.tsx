@@ -197,7 +197,8 @@ export interface GanttProps {
    * A CSS colour for a stripe on the bar's leading edge — a second channel
    * beside the status fill, for a shift, a line or a customer:
    * `(t) => shiftColour[t.shift]`. A value rather than a class, so the colour
-   * can come from data.
+   * can come from data. On a milestone it is a border inside the diamond, so
+   * the arrows still meet its points.
    */
   barAccent?: (task: GanttTask) => string | undefined | false | null;
   /**
@@ -788,7 +789,9 @@ const GanttTrack = (props: {
      a bar — data-gantt-bar, not tabbable, the same click — so the keyboard
      model, the focus effect and the DOM checks treat it as one. The diamond is
      a square turned 45 degrees, sized so its diagonal is the bar height; its
-     colour is the status FILL (solid), so a point stands out among soft bars. */
+     colour is the status FILL (solid), so a point stands out among soft bars.
+     An accent is a border INSIDE the diamond: a ring outside it would push
+     past the tips the dependency arrows end on. */
   const diamondSide = () => props.barPx / Math.SQRT2;
   const milestone = () => (
     <Show
@@ -824,8 +827,15 @@ const GanttTrack = (props: {
           </span>
           <span
             aria-hidden="true"
+            data-gantt-accent={props.accent ? "" : undefined}
             class={cn("zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[2px]", FILL_CLASS[props.row.status], props.barClass)}
-            style={{ width: `${diamondSide()}px`, height: `${diamondSide()}px` }}
+            style={{
+              width: `${diamondSide()}px`,
+              height: `${diamondSide()}px`,
+              ...(props.accent
+                ? { "box-sizing": "border-box", "border-width": "2px", "border-style": "solid", "border-color": props.accent }
+                : {}),
+            }}
           />
         </button>
       )}

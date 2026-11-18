@@ -287,8 +287,9 @@ const line = (style: GanttDependencyStyle): Node => {
 };
 
 /* Milestones: points in time with work leading to and from them. Dated around
-   NOW (Tue 21 Jul) so they show both colours a plan needs: two passed and
-   signed off (complete), two still ahead. */
+   NOW (Tue 21 Jul) so every status shows: passed and signed off (complete),
+   passed and not signed off (late), and still ahead. The customer-facing gates
+   carry an accent, through the same barAccent a bar uses. */
 const MILESTONE_PLAN: GanttTask[] = [
   {
     id: "rel",
@@ -298,12 +299,14 @@ const MILESTONE_PLAN: GanttTask[] = [
       { id: "ms-design", name: "Design", start: at(6), end: at(10), percentComplete: 100 },
       { id: "ms-signoff", name: "Design sign-off", milestone: true, start: at(10), percentComplete: 100 },
       { id: "ms-build", name: "Build", start: at(13), end: at(24), percentComplete: 60 },
+      { id: "ms-review", name: "Customer review", milestone: true, start: at(17) },
       { id: "ms-freeze", name: "Code freeze", milestone: true, start: at(24) },
       { id: "ms-qa", name: "QA", start: at(27), end: at(31) },
       { id: "ms-live", name: "Go live", milestone: true, start: at(31) },
     ],
   },
 ];
+const CUSTOMER_GATES = new Set(["ms-review", "ms-live"]);
 const MILESTONE_LINKS: GanttDependency[] = [
   { from: "ms-design", to: "ms-signoff" },
   { from: "ms-signoff", to: "ms-build" },
@@ -762,22 +765,28 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
         title: "18. Milestones",
         codeTitle: "\"milestone\": true on a task",
         codeDescription:
-          "A milestone is a point in time, not a span: a sign-off, a code freeze, a go-live. Mark a task milestone: true and it is drawn as a diamond on its date (its start, or its end if that is all it has), coloured by status like a bar: done, late if the date has passed and it is not done, otherwise ahead. Dependencies attach to its tips, so a finish-to-start arrow runs from the work into the milestone and out of it into the next stage. A screen reader hears it as a milestone with its date. Without the flag nothing changes: a task with only a start is still treated as unfinished data, not as a milestone.",
+          "A milestone is a point in time, not a span: a sign-off, a code freeze, a go-live. Mark a task milestone: true and it is drawn as a diamond on its date (its start, or its end if that is all it has), coloured by status like a bar: done, late if the date has passed and it is not done, otherwise ahead. Dependencies attach to its tips, so a finish-to-start arrow runs from the work into the milestone and out of it into the next stage. barAccent marks a milestone with a border in your colour, here the customer-facing gates. A screen reader hears it as a milestone with its date. Without the flag nothing changes: a task with only a start is still treated as unfinished data, not as a milestone.",
         code: `<zen-gantt
   tasks='[
     { "id": "design", "name": "Design", "start": "2026-07-06", "end": "2026-07-10", "percentComplete": 100 },
     { "id": "signoff", "name": "Design sign-off", "milestone": true, "start": "2026-07-10", "percentComplete": 100 },
     { "id": "build", "name": "Build", "start": "2026-07-13", "end": "2026-07-24" },
+    { "id": "review", "name": "Customer review", "milestone": true, "start": "2026-07-17" },
     { "id": "freeze", "name": "Code freeze", "milestone": true, "start": "2026-07-24" }
   ]'
   dependencies='[{ "from": "design", "to": "signoff" }, { "from": "signoff", "to": "build" }, { "from": "build", "to": "freeze" }]'
-></zen-gantt>`,
+></zen-gantt>
+<script>
+  // A function, so a property rather than an attribute.
+  document.querySelector("zen-gantt").barAccent = (t) => t.id === "review" && "var(--zen-color-accent-purple)";
+</script>`,
         render: () => {
           const box = document.createElement("div");
           box.className = "zen-w-full";
           box.setAttribute("data-testid", "gantt-milestones");
           const chart = gantt({ tasks: MILESTONE_PLAN, dependencies: MILESTONE_LINKS, now: NOW, defaultDate: NOW });
           chart.setAttribute("default-view", "month");
+          chart.barAccent = (t: GanttTask) => CUSTOMER_GATES.has(t.id) && "var(--zen-color-accent-purple)";
           box.append(chart);
           return box;
         },

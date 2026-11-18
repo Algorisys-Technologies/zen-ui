@@ -179,7 +179,8 @@ export interface GanttProps extends BaseProps {
    * A CSS colour for a stripe on the bar's leading edge — a second channel
    * beside the status fill, for a shift, a line or a customer:
    * `(t) => shiftColour[t.shift]`. A value rather than a class, so the colour
-   * can come from data.
+   * can come from data. On a milestone it is a border inside the diamond, so
+   * the arrows still meet its points.
    */
   barAccent?: (task: GanttTask) => string | undefined | false | null;
   /**
@@ -565,7 +566,9 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
        model, the focus effect and the DOM checks treat it as one. The diamond
        is a square turned 45 degrees, sized so its diagonal is the bar height;
        its colour is the status FILL (solid), so a point stands out among soft
-       bars. shrink-0 because the flex button would otherwise squeeze it. */
+       bars. shrink-0 because the flex button would otherwise squeeze it.
+       An accent is a border INSIDE the diamond: a ring outside it would push
+       past the tips the dependency arrows end on. */
     if (row.task.milestone) {
       const barPx = barPxOf();
       const side = barPx / Math.SQRT2;
@@ -593,6 +596,14 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       diamond.setAttribute("aria-hidden", "true");
       diamond.style.width = `${side}px`;
       diamond.style.height = `${side}px`;
+      const accent = current.barAccent?.(row.task);
+      if (accent) {
+        diamond.setAttribute("data-gantt-accent", "");
+        diamond.style.boxSizing = "border-box";
+        diamond.style.borderWidth = "2px";
+        diamond.style.borderStyle = "solid";
+        diamond.style.borderColor = accent;
+      }
       marker.append(
         el(
           "span",

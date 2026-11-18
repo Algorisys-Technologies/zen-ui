@@ -220,7 +220,8 @@ export interface GanttProps {
    * A CSS colour for a stripe on the bar's leading edge — a second channel
    * beside the status fill, for a shift, a line or a customer:
    * `(t) => shiftColour[t.shift]`. A value rather than a class, so the colour
-   * can come from data.
+   * can come from data. On a milestone it is a border inside the diamond, so
+   * the arrows still meet its points.
    */
   barAccent?: (task: GanttTask) => string | undefined | false | null;
   /**
@@ -893,7 +894,9 @@ const GanttTrack = ({
      model, the focus effect and the DOM checks treat it as one. The diamond is
      a square turned 45 degrees, sized so its diagonal is the bar height; its
      colour is the status FILL (solid), so a point stands out among soft bars.
-     shrink-0 because the flex button would otherwise squeeze it to a sliver. */
+     shrink-0 because the flex button would otherwise squeeze it to a sliver.
+     An accent is a border INSIDE the diamond: a ring outside it would push
+     past the tips the dependency arrows end on. */
   if (task.milestone) {
     const side = barPx / Math.SQRT2;
     return (
@@ -923,8 +926,13 @@ const GanttTrack = ({
         </span>
         <span
           aria-hidden="true"
+          data-gantt-accent={accent ? "" : undefined}
           className={cn("zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[2px]", FILL_CLASS[row.status], barClass)}
-          style={{ width: side, height: side }}
+          style={{
+            width: side,
+            height: side,
+            ...(accent ? { boxSizing: "border-box", borderWidth: 2, borderStyle: "solid", borderColor: accent } : {}),
+          }}
         />
       </button>
     );
