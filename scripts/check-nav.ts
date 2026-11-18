@@ -16,6 +16,7 @@
  * is how a third binding could exist and be checked by nothing.
  */
 import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import ts from "typescript";
 import { BINDINGS } from "./bindings.mjs";
 
@@ -43,7 +44,10 @@ for (const b of BINDINGS) {
   const truth = new Map<string, string>();
   for (const m of router.matchAll(b.routeRe)) {
     const file = imports.get(m[2]);
-    if (file) truth.set(m[1], `${b.dir}/src/components/${file}.tsx`);
+    // Resolved against the ROUTER's own folder, so this follows wherever the
+    // router imports demos from (src/demos/ since the demos moved out of
+    // src/components/) instead of hardcoding a folder.
+    if (file) truth.set(m[1], join(dirname(b.router), `${file}.tsx`));
   }
   // The vanilla binding has no JSX, so its demos are .ts. Resolve whichever exists
   // rather than assuming the extension — guessing wrong would report every route

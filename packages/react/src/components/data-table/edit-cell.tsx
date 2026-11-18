@@ -84,7 +84,7 @@ interface EditorProps {
 }
 
 const editorWrapClass =
-  "zen-flex zen-items-center zen-w-full zen-h-full zen-m-[-0.5rem] zen-p-[0.4rem] zen-bg-zen-background zen-ring-2 zen-ring-zen-ring zen-rounded-zen-sm";
+  "zen-flex zen-items-center zen-w-full zen-h-full -zen-m-2 zen-p-1.6 zen-bg-zen-background zen-ring-2 zen-ring-zen-ring zen-rounded-zen-sm";
 
 /**
  * An editor ends once: whichever of commit and cancel comes first wins, and

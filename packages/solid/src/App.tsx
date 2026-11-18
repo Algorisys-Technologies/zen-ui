@@ -2,8 +2,8 @@ import { type Component, type ParentProps, ErrorBoundary, For, Show, createSigna
 import { A, useLocation } from "@solidjs/router";
 import { useTheme } from "./lib/theme";
 import { NAV } from "./nav";
-import { NavTag } from "./components/NavTag";
-import ReleaseNotes from "./components/ReleaseNotes";
+import { NavTag } from "./demos/nav-tag";
+import ReleaseNotes from "./demos/release-notes";
 import { Search } from "./components/form/search/search";
 
 /**

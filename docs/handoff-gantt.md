@@ -61,7 +61,7 @@ plus their maths in `packages/core/src/{gantt,production}.ts`.
 | Check script | `scripts/check-gantt.ts` — **479 assertions** (236 per run, twice), wired into `bun run check` |
 | Shared renderer | `packages/react/src/components/gantt/schedule-grid.tsx` — internal, **not** exported from the index |
 | React component | `packages/react/src/components/gantt/gantt.tsx` |
-| React demo | `packages/react/src/components/NewGanttDemo.tsx`, route `/gantt` |
+| React demo | `packages/react/src/demos/gantt.tsx`, route `/gantt` |
 | Solid, vanilla | same shape under `packages/solid` / `packages/vanilla` — **stale, see drift** |
 | Design doc | `docs/production-scheduling-gap-analysis.md` |
 | Consumer tarball | `dist-pkg/zen-ui-react.tgz` + `scripts/pack-dist-pkg.sh` |
@@ -244,7 +244,7 @@ and is now carrying two.
 | Core maths | `packages/core/src/production.ts` (+ `/production` subpath) |
 | Check script | `scripts/check-production.ts` — 122 assertions, two timezones, wired into `bun run check` |
 | React component | `packages/react/src/components/production-schedule/production-schedule.tsx` |
-| Demo | `packages/react/src/components/NewProductionScheduleDemo.tsx`, route `/production-schedule` |
+| Demo | `packages/react/src/demos/production-schedule.tsx`, route `/production-schedule` |
 
 What the second component needed that the first did not, and what it cost:
 
