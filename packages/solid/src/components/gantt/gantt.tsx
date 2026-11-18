@@ -206,6 +206,14 @@ export interface GanttProps {
    */
   headerClassName?: string;
   /**
+   * A second header row giving the columns their date context: the date above
+   * hours, the month above days or weeks, the year above months. Each label
+   * stays in view while the axis scrolls sideways, so a planner following an
+   * order across weeks never has to look up to the toolbar for the month. Off
+   * by default: the header is then the single row it always was.
+   */
+  headerGroups?: boolean;
+  /**
    * How much room a row and its bar takes: "compact", "comfortable" (the default, and the
    * size it always was) or "touch" (48px targets, for shop-floor tablets).
    * Opt-in: it does not follow data-density, so setting that on a page moves
@@ -413,6 +421,7 @@ export const Gantt = (props: GanttProps) => {
     columnWidth: props.columnWidth,
     paneColumns: paneSpec(),
     available: scroller.metrics().width,
+    grouped: props.headerGroups,
   }));
 
   const flat = createMemo(() => {
@@ -566,6 +575,7 @@ export const Gantt = (props: GanttProps) => {
           rowClass={props.rowClassName ? (row) => props.rowClassName?.(row.task, row) : undefined}
           maxBodyHeight={props.maxBodyHeight}
           headerClassName={props.headerClassName}
+          headerGroups={props.headerGroups}
           view={view()}
           anchor={anchor()}
           now={now()}

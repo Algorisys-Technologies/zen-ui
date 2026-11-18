@@ -77,7 +77,7 @@
     "check:media": "bun run scripts/check-media.ts",
     "check:pivot": "bun run scripts/check-pivot.ts",
     "check:virtual-window": "bun run scripts/check-virtual-window.ts",
-    "check:planning": "bun run scripts/check-planning.ts",
+    "check:planning": "bun run scripts/check-planning.ts && TZ=Europe/London bun run scripts/check-planning.ts",
     "check:gantt": "bun run scripts/check-gantt.ts && TZ=Europe/London bun run scripts/check-gantt.ts",
     "check:production": "bun run scripts/check-production.ts && TZ=Europe/London bun run scripts/check-production.ts",
     "check:reschedule": "bun run scripts/check-reschedule.ts && TZ=Europe/London bun run scripts/check-reschedule.ts",

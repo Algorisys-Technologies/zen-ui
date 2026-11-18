@@ -22,6 +22,8 @@ import {
   ganttFitHourStep,
   ganttFitRange,
   ganttFitUnit,
+  ganttHeaderGroups,
+  ganttViewUnit,
   ganttPaneColumns,
   ganttProgress,
   ganttRange,
@@ -621,6 +623,72 @@ t(fitWidths[7] > fitWidths[8], true, "a 31-day January is drawn WIDER than a 28-
 // The year is said once at each January and once at the start, and nowhere else
 // — twelve columns each carrying "2027" is noise, and none at all is a lie.
 t(longCols.filter((c) => c.sublabel !== "").map((c) => `${c.label} ${c.sublabel}`), ["Jun 2026", "Jan 2027"], "the year appears at the start and at each January");
+
+console.log("\nheader groups: the spanning row of date context above the columns");
+{
+  // Groups must TILE the columns: every column in exactly one group, in order,
+  // with no empty group — the renderer sums column widths per group, so a gap
+  // or an overlap is a misaligned header.
+  const tilesGroups = (cols: ReturnType<typeof ganttRangeColumns>, unit: "hour" | "day" | "week" | "month", name: string) => {
+    const groups = ganttHeaderGroups(cols, unit);
+    let next = 0;
+    const ok = groups.every((g) => {
+      const fine = g.firstColumn === next && g.columnCount > 0;
+      next += g.columnCount;
+      return fine;
+    });
+    t([ok && next === cols.length, groups.length > 0], [true, true], `${name} (${groups.length} groups over ${cols.length} columns)`);
+    return groups;
+  };
+  // Week view straddling a month: 29 Jun - 5 Jul 2026 is two months.
+  const week = ganttColumns("week", at(2026, 7, 1), { now: at(2026, 7, 1) });
+  const wg = tilesGroups(week, ganttViewUnit("week"), "week view tiles");
+  t(wg.map((g) => [g.label, g.columnCount]), [["June 2026", 2], ["July 2026", 5]], "a week straddling a month gives the month above each run of days");
+  // Day view: one day of hours, one group naming the date.
+  const day = ganttColumns("day", at(2026, 7, 21), { now: at(2026, 7, 21) });
+  const dg = tilesGroups(day, ganttViewUnit("day"), "day view tiles");
+  t(dg.map((g) => g.label), ["Tue 21 Jul 2026"], "the date above the hours");
+  // Year view: one group, the year above the months.
+  const year = ganttColumns("year", at(2026, 7, 21), { now: at(2026, 7, 21) });
+  t(tilesGroups(year, ganttViewUnit("year"), "year view tiles").map((g) => g.label), ["2026"], "the year above the months");
+  // Quarter view: week columns grouped by the month each week STARTS in.
+  const quarter = ganttColumns("quarter", at(2026, 7, 21), { now: at(2026, 7, 21) });
+  t(
+    tilesGroups(quarter, ganttViewUnit("quarter"), "quarter view tiles").map((g) => g.label),
+    ["July 2026", "August 2026", "September 2026"],
+    "the months above a quarter's weeks",
+  );
+  // Fit, hourly over two days: two date groups.
+  const hours = ganttRangeColumns({ start: at(2026, 7, 6, 18), end: at(2026, 7, 7, 6) }, "hour", { now: at(2026, 7, 6) });
+  t(tilesGroups(hours, "hour", "hourly fit tiles").map((g) => g.label), ["Mon 6 Jul 2026", "Tue 7 Jul 2026"], "an hourly axis over midnight names both dates");
+  // Fit, monthly across a year boundary.
+  const months = ganttRangeColumns(LONG_FIT, "month", { now: at(2026, 7, 6) });
+  t(tilesGroups(months, "month", "monthly fit tiles").map((g) => g.label), ["2026", "2027"], "the year above each run of months");
+  // The groups carry their own span, for a renderer that wants it.
+  t([iso(wg[0].start), iso(wg[0].end), iso(wg[1].start), iso(wg[1].end)], ["2026-06-29 00:00", "2026-07-01 00:00", "2026-07-01 00:00", "2026-07-06 00:00"], "each group spans exactly its columns");
+  t(ganttHeaderGroups([], "day"), [], "no columns, no groups");
+  // A narrow group (two day columns of June) cannot fit "June 2026"; the short
+  // form keeps it legible rather than truncating it to "Ju…".
+  t(wg.map((g) => g.shortLabel), ["Jun", "Jul"], "month groups have a short form: the month alone");
+  t(dg.map((g) => g.shortLabel), ["21 Jul"], "date groups' short form is the day and month");
+  t(ganttHeaderGroups(year, "month").map((g) => g.shortLabel), ["2026"], "a year is already short");
+  // A clock change inside the day: 29 Mar 2026 in Europe/London (the TZ the
+  // second run uses) is 23 hours long, and still one date.
+  const dst = ganttColumns("day", at(2026, 3, 29), { now: at(2026, 3, 29) });
+  t(ganttHeaderGroups(dst, "hour").map((g) => g.label), ["Sun 29 Mar 2026"], "a day with a clock change is still one date");
+
+  console.log("\n…and with groups on, the sublabels stop repeating them");
+  // The group row now says the year / the month / the date, so the per-column
+  // sublabel that said it at each boundary goes; the weekday initial stays.
+  const groupedMonths = ganttRangeColumns(LONG_FIT, "month", { now: at(2026, 7, 6), grouped: true });
+  t(groupedMonths.filter((c) => c.sublabel !== "").length, 0, "months: no year sublabel");
+  const groupedHours = ganttRangeColumns({ start: at(2026, 7, 6, 18), end: at(2026, 7, 7, 6) }, "hour", { now: at(2026, 7, 6), grouped: true });
+  t(groupedHours.filter((c) => c.sublabel !== "").length, 0, "hours: no date sublabel");
+  const groupedDays = ganttRangeColumns({ start: at(2026, 7, 6), end: at(2026, 7, 9) }, "day", { now: at(2026, 7, 6), grouped: true });
+  t(groupedDays.map((c) => c.sublabel), ["M", "T", "W"], "days: the weekday initial stays, it is not context");
+  // Off by default: nothing changes for a caller who has not asked.
+  t(ganttRangeColumns(LONG_FIT, "month", { now: at(2026, 7, 6) }).filter((c) => c.sublabel !== "").length, 2, "without `grouped`, sublabels are exactly as before");
+}
 
 console.log("\nthe label for a range nobody anchored");
 t(ganttSpanLabel({ start: at(2026, 7, 6), end: at(2026, 7, 25) }), "6 – 24 Jul 2026", "days, inside one month — and the END is exclusive");

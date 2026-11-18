@@ -630,6 +630,19 @@ const linkStyle = {
         />
       </div>
     </DemoSection>
+
+    <DemoSection
+      title="Date context above the columns"
+      codeTitle="headerGroups"
+      codeDescription="A second header row says which date or month the columns belong to: the date above hours in a Day view, the month above days in Fit. Each label stays on screen, just past the frozen pane, while its columns scroll sideways. Off by default, so an existing chart's header does not change."
+      code={`<ProductionSchedule resources={cells} operations={jobs} headerGroups />
+<ProductionSchedule resources={cells} operations={jobs} headerGroups defaultView="day" />`}
+    >
+      <div data-testid="production-header-groups" class="zen-flex zen-w-full zen-flex-col zen-gap-4">
+        <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} headerGroups />
+        <ProductionSchedule resources={CELLS} operations={JOBS} dependencies={ROUTING} calendar={PLANT} now={NOW} headerGroups defaultView="day" defaultDate={NOW} />
+      </div>
+    </DemoSection>
   </DemoPage>
 );
 
