@@ -58,6 +58,7 @@ SKILL.md.
 - `id: string`
 - `start?: Date | undefined` — Omit both dates on a summary row to have them rolled up from the children.
 - `end?: Date | undefined`
+- `milestone?: boolean | undefined` — A point in time rather than a span — a sign-off, a delivery, a gate. Its date is `start`, or `end` when that is the only one given; any duration is ignored. Drawn as a diamond on its date instead of a bar. Without this a task is never a milestone: a start-only task is half-entered data, and a start equal to its end stays a (very short) bar, exactly as before.
 - `percentComplete?: number | undefined` — 0–100. Omit on a parent to have it averaged from the children.
 - `workingMinutes?: number | undefined` — Duration in WORKING minutes. With a `start` and no `end`, the end is computed from the calendar — which is how a 6-hour job starting Friday 16:00 correctly finishes on Monday. Ignored when `end` is given, since an explicit end is a statement and a duration is a derivation. With no calendar in play this is elapsed minutes, because no calendar means a 24/7 one and the two are then the same number.
 - `baselineEnd?: Date | undefined` — What the plan originally promised. Slip is measured against this.

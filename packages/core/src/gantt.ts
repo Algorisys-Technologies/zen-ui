@@ -157,6 +157,14 @@ export interface GanttTaskNode {
   /** Omit both dates on a summary row to have them rolled up from the children. */
   start?: Date;
   end?: Date;
+  /**
+   * A point in time rather than a span — a sign-off, a delivery, a gate. Its
+   * date is `start`, or `end` when that is the only one given; any duration is
+   * ignored. Drawn as a diamond on its date instead of a bar. Without this a
+   * task is never a milestone: a start-only task is half-entered data, and a
+   * start equal to its end stays a (very short) bar, exactly as before.
+   */
+  milestone?: boolean;
   /** 0–100. Omit on a parent to have it averaged from the children. */
   percentComplete?: number;
   /**
@@ -797,6 +805,12 @@ export interface GanttFitOptions {
 
 /** A task's OWN span — dates, or a start plus a working duration. No rollup. */
 const explicitSpan = (task: GanttTaskNode, calendar?: GanttCalendar): GanttSpan | null => {
+  // A milestone is ONE instant: its start, else its end. Checked first, so an
+  // end or a duration it was also given cannot stretch it into a span.
+  if (task.milestone) {
+    const point = task.start ?? task.end;
+    return point ? { start: new Date(point.getTime()), end: new Date(point.getTime()) } : null;
+  }
   if (task.start && task.end) {
     const a = task.start.getTime();
     const b = task.end.getTime();
