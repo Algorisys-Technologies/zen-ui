@@ -3,6 +3,7 @@ import {
   formatGanttVariance,
   ganttConnectors,
   ganttFitRange,
+  nowPct,
   placeAppointment,
   type GanttBarAnchor,
   type GanttCalendar,
@@ -559,6 +560,53 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
       return [el("span", "zen-sr-only", loc.t(row.span ? "gantt.notInRange" : "gantt.noDates"))];
     }
 
+    /* A milestone: one date, drawn as a diamond centred on it. The same hooks
+       as a bar — data-gantt-bar, not tabbable, the same click — so the keyboard
+       model, the focus effect and the DOM checks treat it as one. The diamond
+       is a square turned 45 degrees, sized so its diagonal is the bar height;
+       its colour is the status FILL (solid), so a point stands out among soft
+       bars. shrink-0 because the flex button would otherwise squeeze it. */
+    if (row.task.milestone) {
+      const barPx = barPxOf();
+      const side = barPx / Math.SQRT2;
+      const marker = el(
+        "button",
+        cn(
+          "zen-absolute zen-flex zen-items-center zen-justify-center zen-rounded-zen-sm",
+          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+        ),
+      );
+      marker.type = "button";
+      marker.tabIndex = -1;
+      marker.setAttribute("data-gantt-bar", "");
+      marker.setAttribute("data-gantt-milestone", "");
+      marker.style.insetInlineStart = `calc(${placement.startPct}% - ${barPx / 2}px)`;
+      marker.style.top = `${barTop(rowHeightOf(), barPx)}px`;
+      marker.style.width = `${barPx}px`;
+      marker.style.height = `${barPx}px`;
+      marker.title = `${row.task.name} · ${formatDay(row.span!.start)}`;
+      marker.addEventListener("click", () => current.onTaskClick?.(row.task, row));
+      const diamond = el(
+        "span",
+        cn("zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[2px]", FILL_CLASS[row.status], current.barClassName?.(row.task)),
+      );
+      diamond.setAttribute("aria-hidden", "true");
+      diamond.style.width = `${side}px`;
+      diamond.style.height = `${side}px`;
+      marker.append(
+        el(
+          "span",
+          "zen-sr-only",
+          loc.t("gantt.milestone", {
+            date: formatDay(row.span!.start),
+            status: loc.t(STATUS_LABEL[row.status]),
+          }),
+        ),
+        diamond,
+      );
+      return [marker];
+    }
+
     const progress = row.progress ?? 0;
     const widthPx = (placement.widthPct / 100) * axis.axisWidth;
     const labelOutside = widthPx < LABEL_MIN_PX;
@@ -811,6 +859,13 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     const placements = new Map<number, PlanningPlacement>();
     for (const row of flat.rows) {
       if (!row.span) continue;
+      // A milestone is a POINT: where its date falls on the axis, or nowhere.
+      // placeAppointment would give it a minimum-width sliver of a bar.
+      if (row.task.milestone) {
+        const at = nowPct(axis.range, row.span.start);
+        if (at !== null) placements.set(row.index, { startPct: at, widthPct: 0, clippedStart: false, clippedEnd: false });
+        continue;
+      }
       const placement = placeAppointment(row.span, axis.range);
       if (placement) placements.set(row.index, placement);
     }
@@ -818,9 +873,15 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     let connectors = [] as ReturnType<typeof ganttConnectors>;
     if (current.showDependencies !== false && current.dependencies && current.dependencies.length > 0) {
       const anchors = new Map<string, GanttBarAnchor>();
+      /* A milestone's anchor spans the diamond, so an arrow meets its left or
+         right tip instead of disappearing under it at the centre. */
+      const halfPct = axis.axisWidth > 0 ? (barPxOf() / 2 / axis.axisWidth) * 100 : 0;
       for (const [id, index] of flat.rowIndexById) {
         const placement = placements.get(index);
-        if (placement) {
+        if (!placement) continue;
+        if (flat.rows[index]?.task.milestone) {
+          anchors.set(id, { rowIndex: index, startPct: placement.startPct - halfPct, widthPct: 2 * halfPct });
+        } else {
           anchors.set(id, { rowIndex: index, startPct: placement.startPct, widthPct: placement.widthPct });
         }
       }

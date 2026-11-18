@@ -268,6 +268,32 @@ const line = (style: GanttDependencyStyle): Node => {
   return svg;
 };
 
+/* Milestones: points in time with work leading to and from them. Dated around
+   NOW (Tue 21 Jul) so they show both colours a plan needs: two passed and
+   signed off (complete), two still ahead. */
+const MILESTONE_PLAN: GanttTask[] = [
+  {
+    id: "rel",
+    name: "Release 2.0",
+    children: [
+      { id: "ms-kick", name: "Kick-off approved", milestone: true, start: at(6), percentComplete: 100 },
+      { id: "ms-design", name: "Design", start: at(6), end: at(10), percentComplete: 100 },
+      { id: "ms-signoff", name: "Design sign-off", milestone: true, start: at(10), percentComplete: 100 },
+      { id: "ms-build", name: "Build", start: at(13), end: at(24), percentComplete: 60 },
+      { id: "ms-freeze", name: "Code freeze", milestone: true, start: at(24) },
+      { id: "ms-qa", name: "QA", start: at(27), end: at(31) },
+      { id: "ms-live", name: "Go live", milestone: true, start: at(31) },
+    ],
+  },
+];
+const MILESTONE_LINKS: GanttDependency[] = [
+  { from: "ms-design", to: "ms-signoff" },
+  { from: "ms-signoff", to: "ms-build" },
+  { from: "ms-build", to: "ms-freeze" },
+  { from: "ms-freeze", to: "ms-qa" },
+  { from: "ms-qa", to: "ms-live" },
+];
+
 /** A plan that crosses New Year — the case no calendar year can show whole. */
 const CROSS_YEAR: GanttTask[] = [
   {
@@ -698,6 +724,33 @@ Gantt({ tasks: longPlan, continuous: true, defaultView: "month" })`,
           box.append(
             Gantt({ tasks: PLAN, dependencies: LINKS, now: NOW, continuous: true, defaultView: "week", defaultDate: NOW, maxBodyHeight: 320 }).el,
             Gantt({ tasks: LONG_PLAN, dependencies: LONG_LINKS, now: NOW, continuous: true, defaultView: "month", defaultDate: NOW, maxBodyHeight: 320 }).el,
+          );
+          return box;
+        },
+      },
+      {
+        title: "18. Milestones",
+        codeTitle: "milestone: true on a task",
+        codeDescription:
+          "A milestone is a point in time, not a span: a sign-off, a code freeze, a go-live. Mark a task milestone: true and it is drawn as a diamond on its date (its start, or its end if that is all it has), coloured by status like a bar: done, late if the date has passed and it is not done, otherwise ahead. Dependencies attach to its tips, so a finish-to-start arrow runs from the work into the milestone and out of it into the next stage. A screen reader hears it as a milestone with its date. Without the flag nothing changes: a task with only a start is still treated as unfinished data, not as a milestone.",
+        code: `const plan = [
+  { id: "design", name: "Design", start: jul6, end: jul10, percentComplete: 100 },
+  { id: "signoff", name: "Design sign-off", milestone: true, start: jul10, percentComplete: 100 },
+  { id: "build", name: "Build", start: jul13, end: jul24 },
+  { id: "freeze", name: "Code freeze", milestone: true, start: jul24 },
+];
+
+Gantt({ tasks: plan, dependencies: [
+  { from: "design", to: "signoff" },
+  { from: "signoff", to: "build" },
+  { from: "build", to: "freeze" },
+] })`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.setAttribute("data-testid", "gantt-milestones");
+          box.append(
+            Gantt({ tasks: MILESTONE_PLAN, dependencies: MILESTONE_LINKS, now: NOW, defaultView: "month", defaultDate: NOW }).el,
           );
           return box;
         },

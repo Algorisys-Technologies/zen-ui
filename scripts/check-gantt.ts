@@ -743,6 +743,36 @@ console.log("\ncolumn window: only what is near the viewport is drawn");
   t(ganttColumnWindow([], 0, 1000, 100), { first: 0, last: -1, offsets: [] }, "no columns, nothing drawn");
 }
 
+console.log("\nmilestones: a task that is one date, not a span");
+{
+  const day = at(2026, 7, 21, 12);
+  // `milestone: true` collapses the span to a single instant: its start…
+  t(ganttSpan({ id: "m", milestone: true, start: day })?.start.getTime(), day.getTime(), "a milestone is its start date");
+  t(ganttSpan({ id: "m", milestone: true, start: day })?.end.getTime(), day.getTime(), "…and ends where it starts");
+  // …or its end, when that is the only date it was given.
+  t(ganttSpan({ id: "m", milestone: true, end: day })?.start.getTime(), day.getTime(), "a milestone with only an end is that end");
+  // A start AND an end: the milestone flag wins, at the start.
+  const both = ganttSpan({ id: "m", milestone: true, start: day, end: at(2026, 7, 25) });
+  t([both?.start.getTime(), both?.end.getTime()], [day.getTime(), day.getTime()], "a milestone ignores an end it was also given");
+  // A duration means nothing for a point in time.
+  const dur = ganttSpan({ id: "m", milestone: true, start: day, workingMinutes: 600 });
+  t(dur?.end.getTime(), day.getTime(), "a milestone ignores workingMinutes");
+  t(ganttSpan({ id: "m", milestone: true }), null, "a milestone with no date has no span");
+  // Without the flag, nothing changes: a start-only task is still half-entered data.
+  t(ganttSpan({ id: "a", start: day }), null, "without milestone, a start alone is still not a span");
+  // A parent's rollup reaches the milestone's date.
+  const parent = ganttSpan({ id: "p", children: [{ id: "a", start: at(2026, 7, 6), end: at(2026, 7, 10) }, { id: "m", milestone: true, start: at(2026, 7, 31) }] });
+  t(parent?.end.getTime(), at(2026, 7, 31).getTime(), "a parent's span reaches a milestone after its tasks");
+  // Status, from the same rules as any task: past and not done is late.
+  const span = ganttSpan({ id: "m", milestone: true, start: day })!;
+  t(ganttTaskStatus({ id: "m", milestone: true, start: day }, span, null, at(2026, 7, 22)), "delayed", "a passed milestone that is not done is delayed");
+  t(ganttTaskStatus({ id: "m", milestone: true, start: day }, span, null, at(2026, 7, 20)), "not-started", "a future milestone has not started");
+  t(ganttTaskStatus({ id: "m", milestone: true, start: day, percentComplete: 100 }, span, 100, at(2026, 7, 22)), "complete", "a milestone marked done is complete");
+  // A fit range over a lone milestone is a real axis (zero width would divide by zero).
+  const fit = ganttFitRange([{ id: "m", milestone: true, start: day }])!;
+  t(fit.end.getTime() > fit.start.getTime() && fit.start.getTime() <= day.getTime() && fit.end.getTime() > day.getTime(), true, "a lone milestone gets a real axis around its date");
+}
+
 console.log("\nthe label for a range nobody anchored");
 t(ganttSpanLabel({ start: at(2026, 7, 6), end: at(2026, 7, 25) }), "6 – 24 Jul 2026", "days, inside one month — and the END is exclusive");
 t(ganttSpanLabel({ start: at(2026, 6, 28), end: at(2026, 7, 6) }), "28 Jun – 5 Jul 2026", "days across a month");
