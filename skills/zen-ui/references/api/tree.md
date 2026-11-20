@@ -1,0 +1,38 @@
+<!-- GENERATED FILE — do not edit by hand.
+     Source: packages/react/src types (via scripts/gen-skill-api.ts)
+     Regenerate: bun run gen:skill-api  (checked by `bun run check`) -->
+
+# tree — API (React, the parity reference)
+
+Exports: `Tree`, `TreeProps`, `TreeNode`
+
+Solid mirrors these props. Vanilla takes the same props as a factory argument
+(handle out, `.el` is the node); web-components as `<zen-tree>`-style
+attributes/properties. Divergences (Select, Toast, data-driven families) are in
+SKILL.md.
+
+### Tree
+
+- `items: TreeNode[]`
+- `expanded?: string[] | undefined` — Controlled expanded ids.
+- `defaultExpanded?: string[] | undefined`
+- `onExpandedChange?: ((ids: string[]) => void) | undefined`
+- `selected?: string | null | undefined` — Controlled selected id.
+- `defaultSelected?: string | null | undefined`
+- `onSelectedChange?: ((id: string) => void) | undefined`
+- `itemClassName?: ((node: TreeNode) => string | undefined | false | null) | undefined` — Classes for one node's row, after its own (so a caller's padding or colour wins).
+- `density?: Density | undefined` — How much room a row takes: "compact", "comfortable" (the default, and the size it always was) or "touch" (48px targets, for shop-floor tablets). Opt-in: it does not follow data-density, so setting that on a page moves nothing here. An explicit size prop wins over it.
+- `aria-label?: string | undefined` — Accessible name — a tree must have one.
+- …plus the underlying element's standard props (278 inherited).
+
+### TreeNode (type)
+
+- `id: string`
+- `label: React.ReactNode`
+- `icon?: "file" | "search" | "filter" | "chevron-down" | "chevron-up" | "chevron-right" | "chevron-left" | "chevrons-up-down" | "arrow-right" | "arrow-left" | "arrow-up" | "arrow-down" | "external-link" | "menu" | "more" | "more-vertical" | "home" | "check" | "check-circle" | "x" | "x-circle" | "info" | "warn" | "error" | "dash" | "dot" | "pin" | "plus" | "minus" | "bell" | "calendar" | "clock" | "inbox" |…`
+- `children?: TreeNode[] | undefined`
+- `disabled?: boolean | undefined`
+
+### Types
+
+- `TreeProps` — type (see the component above)
