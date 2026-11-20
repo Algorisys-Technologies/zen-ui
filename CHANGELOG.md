@@ -15,6 +15,54 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.5.0] - 2026-11-20
+
+### Changed
+
+- ScheduleGrid (Gantt and ProductionSchedule), all four bindings: the
+  horizontal scrollbar is confined to the axis. The chart is still ONE
+  scroller, so the native bar still runs its full width; a second scrollbar
+  (`[data-schedule-scrollbar]`, `aria-hidden`, `tabindex="-1"`) is positioned
+  exactly over it — blank under the frozen pane, a real `overflow-x: scroll`
+  track under the axis whose content is `axisWidth` wide. Both have the range
+  `paneWidth + axisWidth - clientWidth`, so `scrollLeft` is copied across
+  unscaled in either direction and keeps the browser's sign under RTL; the
+  write is skipped when the two already agree, which is what stops a loop.
+  Thickness and the vertical bar's corner are measured from the scroller
+  (`offsetHeight - clientHeight - 2 * clientTop`), so nothing is drawn where
+  scrollbars take no room (macOS overlay, touch) or when the chart does not
+  scroll sideways. It is a sibling of the scroller, not a wrapper: the
+  scroller is still the treegrid's parent and the toolbar's next sibling. The
+  root gains `position: relative` to pin it.
+
+### Fixed
+
+- ScheduleGrid, all four bindings: the frozen pane cell did not cover its
+  row's 1px bottom border (it is the row's child, so its box ends at the
+  row's content box). The connector overlay and the today marker, both
+  `z-10` over the axis, showed through that strip once scrolled under the
+  pane — a connector segment routed along a row boundary drew a line across
+  the whole pane (measured: up to 202px in the continuous demo). The pane now
+  redraws the rule as `box-shadow: 0 1px 0 0 var(--zen-color-border)` at its
+  own `z-20`, on every row but the last.
+
+### Added
+
+- check-schedule-dom: every frozen pane cell carries the rule (counted), and
+  the axis scrollbar's geometry — starts at the pane's edge, sits exactly on
+  the native bar, same range, follows and drives the scroller, not a tab
+  stop — in both directions. Run in a second Chromium launched without
+  `--hide-scrollbars`: headless hides them, the bar is then correctly absent,
+  and the assertions would pass over nothing.
+
+### Changed (tooling)
+
+- check-bundle-size: the React "both schedules" budget is 90 kB, was 85. It
+  was already at 85.04 kB at 13.4.1 (87,076 bytes, passing on rounding); the
+  axis scrollbar adds 862 bytes gzip to `schedule-grid.tsx` and to nothing
+  else, so no import chain grew. The two single-schedule budgets are
+  unchanged at 80.
+
 ## [13.4.1] - 2026-11-19
 
 ### Fixed
