@@ -75,7 +75,16 @@ createRoot(document.getElementById("root")).render(<Card><Button>a</Button><Inpu
    * (722 messages, 9.3 kB gzip minified), so a bundler cannot keep only the
    * keys a page uses. Measured 2026-11-05: 66 / 70 / 76. Splitting the
    * catalogue per namespace would give it back (todo.md); a duplicated
-   * renderer still lands near 118 kB, well over these. */
+   * renderer still lands near 118 kB, well over these.
+   *
+   * The PAIR raised 85 -> 90 for 13.5.0, the same way. It had no headroom left
+   * to trip honestly with: measured at 13.4.1 it was 87,076 bytes, 85.04 kB,
+   * passing a ceiling of 85 only because the figure is rounded. The axis
+   * scrollbar then added 862 bytes to schedule-grid.tsx and to nothing else
+   * (Gantt 75,151 -> 76,055, ProductionSchedule 79,482 -> 80,332, the pair
+   * 87,076 -> 87,938): no import chain grew, the shared renderer got longer.
+   * Measured 2026-11-20: 74 / 78 / 86. The two singles keep their 80; watch
+   * ProductionSchedule, which is the next one out of room. */
   {
     binding: "react",
     name: "Gantt",
@@ -95,7 +104,7 @@ createRoot(document.body).render(<ProductionSchedule resources={[]} operations={
   {
     binding: "react",
     name: "both schedules (shared renderer)",
-    budgetKB: 85,
+    budgetKB: 90,
     code: `import { Gantt, ProductionSchedule } from "@algorisys/zen-ui-react";
 import { createRoot } from "react-dom/client";
 createRoot(document.body).render(<><Gantt tasks={[]} /><ProductionSchedule resources={[]} operations={[]} /></>);`,

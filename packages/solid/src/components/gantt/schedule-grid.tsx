@@ -484,6 +484,66 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
   /** The instant under the middle of the visible axis. What the title names. */
   const centreTime = () =>
     new Date(props.axis.range().start.getTime() + (props.metrics().left + viewportPx() / 2) * props.axis.minGapMs());
+  /* ---- the sideways scrollbar, kept to the axis ------------------------------ */
+  /* One scroller means one native scrollbar, and it runs the scroller's whole
+     width — under the frozen pane too, where it promises a pane that scrolls
+     and then does not move it. The thumb's travel also reads against a track
+     longer than the thing it scrolls.
+
+     So a second scrollbar is laid exactly OVER the native one: blank under the
+     pane, and a real scrollbar under the axis whose content is the axis' width.
+     Both have the same scroll range (pane + axis - viewport on one side, axis -
+     (viewport - pane) on the other), so `scrollLeft` copies across unscaled and
+     under RTL keeps whatever sign the browser gives it.
+
+     Over, not instead of: nothing is hidden or clipped, so the layout is the
+     one it always was. Where scrollbars take no room (macOS, touch) the
+     measured thickness is 0, nothing is drawn, and the native overlay bar is
+     left alone. */
+  const [bars, setBars] = createSignal(
+    { x: 0, y: 0, edge: 0 },
+    { equals: (a, b) => a.x === b.x && a.y === b.y && a.edge === b.edge },
+  );
+  createEffect(() => {
+    /* A scrollbar appearing or going changes the client box, which is what the
+       metrics follow; the widths decide whether there is one at all. */
+    props.metrics();
+    props.axis.axisWidth();
+    props.axis.paneWidth();
+    const el = props.scroller();
+    if (!el) return;
+    const edge = el.clientTop;
+    setBars({
+      x: Math.max(0, el.offsetHeight - el.clientHeight - edge * 2),
+      y: Math.max(0, el.offsetWidth - el.clientWidth - edge * 2),
+      edge,
+    });
+  });
+  const axisBar = () => bars().x > 0 && props.axis.paneWidth() > 0 && viewportPx() > 0;
+  let axisBarEl: HTMLDivElement | undefined;
+  /* Compared before it is written: an equal write fires no scroll event, and
+     that is the whole of what stops the two from answering each other. */
+  const copyScroll = (from: HTMLElement | undefined, to: HTMLElement | undefined) => {
+    if (from && to && Math.abs(to.scrollLeft - from.scrollLeft) >= 1) to.scrollLeft = from.scrollLeft;
+  };
+  const axisBarRef = (el: HTMLDivElement) => {
+    axisBarEl = el;
+    const scroller = props.scroller();
+    const follow = () => copyScroll(scroller, el);
+    scroller?.addEventListener("scroll", follow, { passive: true });
+    onCleanup(() => {
+      scroller?.removeEventListener("scroll", follow);
+      axisBarEl = undefined;
+    });
+  };
+  /* The bar mounts, or its range changes, with the chart already scrolled. */
+  createEffect(() => {
+    if (!axisBar()) return;
+    props.axis.axisWidth();
+    props.metrics();
+    copyScroll(props.scroller(), axisBarEl);
+  });
+
   const scrollToOffset = (offset: number) => {
     const el = props.scroller();
     if (!el) return;
@@ -770,7 +830,11 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
   );
 
   return (
-    <div class={cn("zen-flex zen-w-full zen-flex-col zen-gap-3", props.class)}>
+    /* Positioned only so the axis scrollbar can be pinned to the foot of the
+       scroller, which is always the last thing in here. A sibling of the
+       scroller rather than a wrapper around it: the scroller stays the grid's
+       parent and the toolbar's next sibling, which is how callers find it. */
+    <div class={cn("zen-relative zen-flex zen-w-full zen-flex-col zen-gap-3", props.class)}>
       <Show when={!props.hideToolbar}>
         <div class="zen-flex zen-flex-wrap zen-items-center zen-gap-2">
           {/* GONE under fit, not disabled and not left live. A fit axis has no
@@ -1080,6 +1144,38 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
           </div>
         </Show>
       </div>
+
+      <Show when={axisBar()}>
+        <div
+          /* Decoration over a scrollbar the keyboard and a screen reader
+             already have: the scroller itself is what they scroll. */
+          aria-hidden="true"
+          data-schedule-scrollbar=""
+          class="zen-absolute zen-z-40 zen-flex zen-bg-zen-background"
+          style={{
+            bottom: `${bars().edge}px`,
+            "inset-inline-start": `${bars().edge}px`,
+            /* Short of the corner the vertical scrollbar ends in. */
+            "inset-inline-end": `${bars().edge + bars().y}px`,
+            height: `${bars().x}px`,
+          }}
+        >
+          <div
+            class="zen-shrink-0 zen-border-e zen-border-zen-border"
+            style={{ width: `${props.axis.paneWidth()}px`, "box-sizing": "border-box" }}
+          />
+          <div
+            ref={(el) => axisBarRef(el)}
+            /* A scroller with nothing focusable in it is a tab stop of its own
+               in Chrome, and the chart is exactly one. */
+            tabindex={-1}
+            onScroll={() => copyScroll(axisBarEl, props.scroller())}
+            class="zen-min-w-0 zen-flex-1 zen-overflow-x-scroll zen-overflow-y-hidden"
+          >
+            <div style={{ width: `${props.axis.axisWidth()}px`, height: "1px" }} />
+          </div>
+        </div>
+      </Show>
     </div>
   );
 }
@@ -1171,7 +1267,18 @@ function ScheduleRow<R extends ScheduleRowShape>(props: ScheduleRowProps<R>) {
          reader: the indent is a padding nobody can hear. */
       aria-level={props.row.depth + 1}
       aria-expanded={props.row.hasChildren ? props.row.expanded : undefined}
-      class={cn("zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0", props.rowClass)}
+      class={cn(
+        "zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0",
+        /* The frozen pane is the row's CHILD, so it covers the row's content
+           box and stops one pixel short of its bottom border. Whatever is drawn
+           over the axis at that height then shows through the pane as it
+           scrolls under: a dependency line routed along a row boundary crossed
+           the whole pane, and the today marker left a dot on every rule. The
+           pane redraws the rule itself, one pixel below its own box and at its
+           own stacking level. Not on the last row, which has no rule to cover. */
+        "[&:not(:last-child)>div:first-child]:zen-shadow-[0_1px_0_0_var(--zen-color-border)]",
+        props.rowClass,
+      )}
       style={{ height: `${props.rowHeight}px`, "box-sizing": "border-box" }}
     >
       <div

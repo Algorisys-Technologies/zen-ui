@@ -688,6 +688,54 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [axis.continuous, metrics.width > 0, scrollKey]);
 
+  /* ---- the sideways scrollbar, kept to the axis ------------------------------ */
+  /* One scroller means one native scrollbar, and it runs the scroller's whole
+     width — under the frozen pane too, where it promises a pane that scrolls
+     and then does not move it. The thumb's travel also reads against a track
+     longer than the thing it scrolls.
+
+     So a second scrollbar is laid exactly OVER the native one: blank under the
+     pane, and a real scrollbar under the axis whose content is the axis' width.
+     Both have the same scroll range (pane + axis - viewport on one side, axis -
+     (viewport - pane) on the other), so `scrollLeft` copies across unscaled and
+     under RTL keeps whatever sign the browser gives it.
+
+     Over, not instead of: nothing is hidden or clipped, so the layout is the
+     one it always was. Where scrollbars take no room (macOS, touch) the
+     measured thickness is 0, nothing is drawn, and the native overlay bar is
+     left alone. */
+  const [bars, setBars] = React.useState({ x: 0, y: 0, edge: 0 });
+  /* Every commit, like `measure`: a scrollbar appears and goes with the rows
+     and the axis, not with anything a dependency list could name. Bails when
+     nothing changed, so it cannot loop — which is the chain the rule warns of. */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const edge = el.clientTop;
+    const x = Math.max(0, el.offsetHeight - el.clientHeight - edge * 2);
+    const y = Math.max(0, el.offsetWidth - el.clientWidth - edge * 2);
+    setBars((prev) => (prev.x === x && prev.y === y && prev.edge === edge ? prev : { x, y, edge }));
+  });
+  const axisBar = bars.x > 0 && paneWidth > 0 && viewportPx > 0;
+  const axisBarRef = React.useRef<HTMLDivElement | null>(null);
+  /* Compared before it is written: an equal write fires no scroll event, and
+     that is the whole of what stops the two from answering each other. */
+  const copyScroll = (from: HTMLElement | null, to: HTMLElement | null) => {
+    if (from && to && Math.abs(to.scrollLeft - from.scrollLeft) >= 1) to.scrollLeft = from.scrollLeft;
+  };
+  React.useEffect(() => {
+    const el = scrollerRef.current;
+    if (!axisBar || !el) return;
+    const follow = () => copyScroll(el, axisBarRef.current);
+    el.addEventListener("scroll", follow, { passive: true });
+    return () => el.removeEventListener("scroll", follow);
+  }, [axisBar, scrollerRef]);
+  /* The bar mounts, or its range changes, with the chart already scrolled. */
+  React.useLayoutEffect(() => {
+    if (axisBar) copyScroll(scrollerRef.current, axisBarRef.current);
+  }, [axisBar, axisWidth, metrics.width, scrollerRef]);
+
   const marker = nowPct(range, now);
   const bodyHeight = rows.length * rowHeight;
 
@@ -950,7 +998,11 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   }, [rowWindow.startIndex, rowWindow.endIndex, scrollerRef]);
 
   return (
-    <div className={cn("zen-flex zen-w-full zen-flex-col zen-gap-3", className)}>
+    /* Positioned only so the axis scrollbar can be pinned to the foot of the
+       scroller, which is always the last thing in here. A sibling of the
+       scroller rather than a wrapper around it: the scroller stays the grid's
+       parent and the toolbar's next sibling, which is how callers find it. */
+    <div className={cn("zen-relative zen-flex zen-w-full zen-flex-col zen-gap-3", className)}>
       {!hideToolbar && (
         <div className="zen-flex zen-flex-wrap zen-items-center zen-gap-2">
           {/* GONE under fit, not disabled and not left live. A fit axis has no
@@ -1189,6 +1241,38 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
           </div>
         )}
       </div>
+
+      {axisBar && (
+        <div
+          /* Decoration over a scrollbar the keyboard and a screen reader
+             already have: the scroller itself is what they scroll. */
+          aria-hidden="true"
+          data-schedule-scrollbar=""
+          className="zen-absolute zen-z-40 zen-flex zen-bg-zen-background"
+          style={{
+            bottom: bars.edge,
+            insetInlineStart: bars.edge,
+            /* Short of the corner the vertical scrollbar ends in. */
+            insetInlineEnd: bars.edge + bars.y,
+            height: bars.x,
+          }}
+        >
+          <div
+            className="zen-shrink-0 zen-border-e zen-border-zen-border"
+            style={{ width: paneWidth, boxSizing: "border-box" }}
+          />
+          <div
+            ref={axisBarRef}
+            /* A scroller with nothing focusable in it is a tab stop of its own
+               in Chrome, and the chart is exactly one. */
+            tabIndex={-1}
+            onScroll={() => copyScroll(axisBarRef.current, scrollerRef.current)}
+            className="zen-min-w-0 zen-flex-1 zen-overflow-x-scroll zen-overflow-y-hidden"
+          >
+            <div style={{ width: axisWidth, height: 1 }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1257,7 +1341,18 @@ function ScheduleRow<R extends ScheduleRowShape>({
          reader: the indent is a paddingInlineStart nobody can hear. */
       aria-level={row.depth + 1}
       aria-expanded={row.hasChildren ? row.expanded : undefined}
-      className={cn("zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0", rowClass)}
+      className={cn(
+        "zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0",
+        /* The frozen pane is the row's CHILD, so it covers the row's content
+           box and stops one pixel short of its bottom border. Whatever is drawn
+           over the axis at that height then shows through the pane as it
+           scrolls under: a dependency line routed along a row boundary crossed
+           the whole pane, and the today marker left a dot on every rule. The
+           pane redraws the rule itself, one pixel below its own box and at its
+           own stacking level. Not on the last row, which has no rule to cover. */
+        "[&:not(:last-child)>div:first-child]:zen-shadow-[0_1px_0_0_var(--zen-color-border)]",
+        rowClass,
+      )}
       style={{ height: rowHeight, boxSizing: "border-box" }}
     >
       <div
