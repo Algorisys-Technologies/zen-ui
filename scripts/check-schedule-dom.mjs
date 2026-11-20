@@ -113,6 +113,10 @@ const serve = async (binding) => {
 };
 
 const browser = await chromium.launch();
+/* The same browser with scrollbars that take room. Playwright hides them in
+   headless mode, which is right for every geometric assertion above and makes
+   the axis scrollbar unmeasurable — see where it is used. */
+const barBrowser = await chromium.launch({ ignoreDefaultArgs: ["--hide-scrollbars"] });
 
 /** Everything measurable about every chart on the current page. */
 const survey = (page) =>
@@ -200,6 +204,7 @@ for (const id of wanted) {
   if (!origin) {
     console.error(`\n${id}: preview server never came up on ${PORTS[id]}`);
     await browser.close();
+    await barBrowser.close();
     process.exit(1);
   }
 
@@ -565,6 +570,89 @@ for (const id of wanted) {
         }
       }
 
+      /* The frozen pane has to cover its row's bottom rule. It is the row's
+         child, so its box stops a pixel short of that border, and anything
+         drawn over the axis at that height showed through as it scrolled under
+         the pane: a dependency line routed along a row boundary crossed the
+         whole pane. Counted, because every row passing with none examined is
+         not a pass. */
+      const rules = await page.evaluate(() => {
+        const panes = [...document.querySelectorAll('[role="treegrid"] [role="row"]:not([aria-rowindex="1"]):not(:last-child) > div:first-child')];
+        return { examined: panes.length, bare: panes.filter((p) => getComputedStyle(p).boxShadow === "none").length };
+      });
+      t(`every frozen pane cell covers its row's rule (${rules.examined} examined)`, [rules.examined > 0, rules.bare], [true, 0]);
+
+      /* The sideways scrollbar belongs to the axis, not to the frozen pane.
+         Needs a browser whose scrollbars take room: headless Chromium hides
+         them, the bar is then (correctly) not drawn, and every assertion here
+         would pass over nothing. */
+      {
+        const barPage = await barBrowser.newPage({ viewport: { width: 1440, height: 1000 } });
+        await barPage.goto(`${origin}${route}`, { waitUntil: "networkidle" });
+        if (direction === "rtl") {
+          await barPage.evaluate(() => {
+            document.documentElement.dir = "rtl";
+          });
+        }
+        await sleep(800);
+        const bars = await barPage.evaluate(async () => {
+          const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok)));
+          const out = [];
+          for (const g of document.querySelectorAll('[role="treegrid"]')) {
+            const sc = g.parentElement;
+            const native = sc.offsetHeight - sc.clientHeight - 2 * sc.clientTop;
+            const node = sc.parentElement.querySelector(":scope > [data-schedule-scrollbar]");
+            const bar = node && getComputedStyle(node).display !== "none" ? node : null;
+            if (!bar) {
+              out.push({ native, drawn: false });
+              continue;
+            }
+            const track = bar.lastElementChild;
+            const pane = g.querySelector('[role="row"]:not([aria-rowindex="1"]) > div').getBoundingClientRect();
+            const box = sc.getBoundingClientRect();
+            const br = bar.getBoundingClientRect();
+            const tr = track.getBoundingClientRect();
+            const rtl = getComputedStyle(sc).direction === "rtl";
+            const max = sc.scrollWidth - sc.clientWidth;
+            const sign = rtl ? -1 : 1;
+            sc.scrollLeft = sign * Math.round(max / 3);
+            await frames();
+            const follows = Math.round(track.scrollLeft - sc.scrollLeft);
+            track.scrollLeft = sign * Math.round(max * 0.8);
+            await frames();
+            const drives = Math.round(track.scrollLeft - sc.scrollLeft);
+            out.push({
+              native,
+              drawn: true,
+              // Starts where the pane ends…
+              fromPane: Math.round(rtl ? pane.left - tr.right : tr.left - pane.right),
+              // …sits exactly on the native bar…
+              onNative: [Math.round(box.bottom - sc.clientTop - br.bottom), Math.round(br.height) - native, Math.round(br.width - sc.clientWidth)],
+              // …scrolls the same distance, both ways…
+              range: track.scrollWidth - track.clientWidth - max,
+              follows,
+              drives,
+              // …and is not a second tab stop.
+              tabIndex: track.tabIndex,
+            });
+          }
+          return out;
+        });
+        await barPage.close();
+        const wanted = bars.filter((b) => b.native > 0);
+        const drawn = bars.filter((b) => b.drawn);
+        if (wanted.length === 0) {
+          console.log("  (no chart scrolls sideways on this route — axis scrollbar not examined)");
+        } else {
+          t(`a chart that scrolls sideways draws its scrollbar under the axis only (${wanted.length} of ${bars.length})`, [drawn.length, bars.filter((b) => b.drawn && b.native === 0).length], [wanted.length, 0]);
+          t("…starting where the frozen pane ends", drawn.map((b) => b.fromPane).filter((v) => v !== 0), []);
+          t("…exactly over the native scrollbar", drawn.filter((b) => b.onNative.some((v) => v !== 0)).map((b) => b.onNative), []);
+          t("…with the scroller's own range", drawn.map((b) => b.range).filter((v) => v !== 0), []);
+          t("…following the scroller, and driving it", drawn.filter((b) => b.follows !== 0 || b.drives !== 0).map((b) => [b.follows, b.drives]), []);
+          t("…without becoming a tab stop", drawn.map((b) => b.tabIndex).filter((v) => v !== -1), []);
+        }
+      }
+
       t("no runtime errors", errors, []);
       await page.close();
     }
@@ -574,6 +662,7 @@ for (const id of wanted) {
 }
 
 await browser.close();
+await barBrowser.close();
 if (skipped.length > 0) {
   console.log(`\nNOT PORTED (${notPorted}): ${skipped.join(", ")}`);
 }

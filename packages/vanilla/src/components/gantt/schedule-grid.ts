@@ -408,7 +408,73 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     "zen-relative zen-max-h-[32rem] zen-overflow-auto zen-rounded-zen-md zen-border zen-border-zen-border focus-visible:zen-outline-none",
   );
   scroller.tabIndex = -1;
-  root.append(toolbarSlot, scroller);
+
+  /* ---- the sideways scrollbar, kept to the axis ------------------------------ */
+  /* One scroller means one native scrollbar, and it runs the scroller's whole
+     width — under the frozen pane too, where it promises a pane that scrolls
+     and then does not move it. The thumb's travel also reads against a track
+     longer than the thing it scrolls.
+
+     So a second scrollbar is laid exactly OVER the native one: blank under the
+     pane, and a real scrollbar under the axis whose content is the axis' width.
+     Both have the same scroll range (pane + axis - viewport on one side, axis -
+     (viewport - pane) on the other), so `scrollLeft` copies across unscaled and
+     under RTL keeps whatever sign the browser gives it.
+
+     Over, not instead of: nothing is hidden or clipped, so the layout is the
+     one it always was. Where scrollbars take no room (macOS, touch) the
+     measured thickness is 0, nothing is shown, and the native overlay bar is
+     left alone.
+
+     Built once, like the scroller it sits on, and a SIBLING of it rather than
+     a wrapper: the scroller stays the grid's parent and the toolbar's next
+     sibling, which is how callers find it. */
+  const axisBar = el("div", "zen-absolute zen-z-40 zen-flex zen-bg-zen-background");
+  /* Decoration over a scrollbar the keyboard and a screen reader already
+     have: the scroller itself is what they scroll. */
+  axisBar.setAttribute("aria-hidden", "true");
+  axisBar.setAttribute("data-schedule-scrollbar", "");
+  axisBar.style.display = "none";
+  const axisBarPane = el("div", "zen-shrink-0 zen-border-e zen-border-zen-border");
+  axisBarPane.style.boxSizing = "border-box";
+  const axisBarTrack = el("div", "zen-min-w-0 zen-flex-1 zen-overflow-x-scroll zen-overflow-y-hidden");
+  /* A scroller with nothing focusable in it is a tab stop of its own in
+     Chrome, and the chart is exactly one. */
+  axisBarTrack.tabIndex = -1;
+  const axisBarFill = el("div");
+  axisBarFill.style.height = "1px";
+  axisBarTrack.append(axisBarFill);
+  axisBar.append(axisBarPane, axisBarTrack);
+  /* Compared before it is written: an equal write fires no scroll event, and
+     that is the whole of what stops the two from answering each other. */
+  const copyScroll = (from: HTMLElement, to: HTMLElement) => {
+    if (Math.abs(to.scrollLeft - from.scrollLeft) >= 1) to.scrollLeft = from.scrollLeft;
+  };
+  const followScroller = () => copyScroll(scroller, axisBarTrack);
+  scroller.addEventListener("scroll", followScroller, { passive: true });
+  axisBarTrack.addEventListener("scroll", () => copyScroll(axisBarTrack, scroller));
+  /** Size the bar from the scrollbars the scroller actually has, or hide it. */
+  const layoutAxisBar = () => {
+    const edge = scroller.clientTop;
+    const x = Math.max(0, scroller.offsetHeight - scroller.clientHeight - edge * 2);
+    const y = Math.max(0, scroller.offsetWidth - scroller.clientWidth - edge * 2);
+    const pane = current.axis.paneWidth;
+    if (x === 0 || pane <= 0 || scroller.clientWidth - pane <= 0) {
+      axisBar.style.display = "none";
+      return;
+    }
+    axisBar.style.display = "";
+    axisBar.style.bottom = `${edge}px`;
+    axisBar.style.insetInlineStart = `${edge}px`;
+    // Short of the corner the vertical scrollbar ends in.
+    axisBar.style.insetInlineEnd = `${edge + y}px`;
+    axisBar.style.height = `${x}px`;
+    axisBarPane.style.width = `${pane}px`;
+    axisBarFill.style.width = `${current.axis.axisWidth}px`;
+    followScroller();
+  };
+
+  root.append(toolbarSlot, scroller, axisBar);
 
   let metrics: ScheduleMetrics = { top: 0, height: SCROLLER_MAX_PX, width: 0, left: 0 };
 
@@ -502,7 +568,21 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     const columns = visibleColumns();
 
     const tint = current.rowClass?.(row);
-    const node = el("div", cn("zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0", tint));
+    const node = el(
+      "div",
+      cn(
+        "zen-flex zen-border-b zen-border-zen-border last:zen-border-b-0",
+        /* The frozen pane is the row's CHILD, so it covers the row's content
+           box and stops one pixel short of its bottom border. Whatever is drawn
+           over the axis at that height then shows through the pane as it
+           scrolls under: a dependency line routed along a row boundary crossed
+           the whole pane, and the today marker left a dot on every rule. The
+           pane redraws the rule itself, one pixel below its own box and at its
+           own stacking level. Not on the last row, which has no rule to cover. */
+        "[&:not(:last-child)>div:first-child]:zen-shadow-[0_1px_0_0_var(--zen-color-border)]",
+        tint,
+      ),
+    );
     node.setAttribute("role", "row");
     /* The row's TRUE position in the plan, +1 for the header. A windowed grid
        that numbers rows from the DOM tells a screen-reader user they are on row
@@ -961,7 +1041,9 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     rowOwned = [];
     cleanups = [];
 
-    root.className = cn("zen-flex zen-w-full zen-flex-col zen-gap-3", current.class);
+    /* Positioned only so the axis scrollbar can be pinned to the foot of the
+       scroller, which is always the last thing above it in here. */
+    root.className = cn("zen-relative zen-flex zen-w-full zen-flex-col zen-gap-3", current.class);
     // maxBodyHeight replaces the 32rem cap only when it is set.
     const cap = current.maxBodyHeight;
     scroller.classList.toggle("zen-max-h-[32rem]", cap === undefined);
@@ -1064,10 +1146,15 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
          the chart, still where they left it, and Tab continues from there. */
       (cell ?? scroller).focus({ preventScroll: true });
     }
+
+    layoutAxisBar();
   }
 
   /* ---- measurement, and the loop it closes with the caller ---- */
   const measure = () => {
+    /* Before the bail below: a scrollbar can come and go with the rows while
+       every number this function compares stays the same. */
+    layoutAxisBar();
     const next = {
       top: scroller.scrollTop,
       height: scroller.clientHeight,
@@ -1140,6 +1227,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
       cleanups = [];
       if (frame !== 0) cancelAnimationFrame(frame);
       scroller.removeEventListener("scroll", onScroll);
+      scroller.removeEventListener("scroll", followScroller);
       observer.disconnect();
       root.remove();
     },

@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.5.0",
+    date: "2026-11-20",
+    kind: "improved",
+    title: "The schedules' sideways scrollbar stays under the timeline",
+    detail: "On Gantt and ProductionSchedule the horizontal scrollbar now starts where the frozen columns end, instead of running under them.",
+  },
+  {
+    version: "13.5.0",
+    date: "2026-11-20",
+    kind: "fixed",
+    title: "Dependency lines no longer cross the frozen columns",
+    detail: "Scrolled sideways, a Gantt arrow running along a row boundary showed through the task columns. It now stays under them.",
+  },
+  {
     version: "13.4.1",
     date: "2026-11-19",
     kind: "fixed",
