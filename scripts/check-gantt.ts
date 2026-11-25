@@ -1299,6 +1299,13 @@ console.log("\nplanned vs actual — where the two bars sit in a row");
     );
   }
   t(examined, cases.length, `examined ${examined} row sizes`);
+  // "primary" swaps the roles, not the places: the main bar keeps the row's
+  // middle, where every arrow is routed.
+  t(
+    cases.every(([, row, bar]) => JSON.stringify(ganttActualLayout(row, bar, "primary")) === JSON.stringify(ganttActualLayout(row, bar, "strip"))),
+    true,
+    "primary uses the strip's places — main bar centred, slim bar beneath",
+  );
   // A taller row (for a label on each bar) gets two FULL bars, not two thin ones.
   t(ganttActualLayout(64, 18, "split").barHeight, 18, "a 64px row splits into two full 18px bars");
 }
