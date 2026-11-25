@@ -15,6 +15,18 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.5.1] - 2026-11-25
+
+### Fixed
+
+- Solid Select, Combobox and MultiCombobox: the Kobalte `Listbox` renders a
+  `<ul>`, and with no preflight it kept the UA's `padding-inline-start: 40px`
+  and `1em` block margin — the options sat ~45px inside the panel with ~16px
+  gaps above and below. It now carries `zen-m-0 zen-p-0 zen-list-none`.
+  React was never affected (Radix's viewport is a `<div>`); vanilla's only
+  `<ul>` (SelectDialog) already reset itself. Measured in the built demo:
+  first option inset 5px left and top on both Select and Combobox.
+
 ## [13.5.0] - 2026-11-20
 
 ### Changed
