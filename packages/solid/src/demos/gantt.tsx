@@ -276,6 +276,26 @@ const MILESTONE_LINKS: GanttDependency[] = [
   { from: "ms-qa", to: "ms-live" },
 ];
 
+/** Planned vs actual: start/end are the plan, actualStart/actualEnd what happened. NOW is 21 Jul. */
+const ACTUAL_PLAN: GanttTask[] = [
+  {
+    id: "web",
+    name: "Website relaunch",
+    children: [
+      { id: "pa-disc", name: "Discovery", start: at(1), end: at(5), actualStart: at(1), actualEnd: at(4), assignees: [RHEA] },
+      { id: "pa-design", name: "Design", start: at(6), end: at(12), actualStart: at(7), actualEnd: at(15), assignees: [MEI] },
+      { id: "pa-content", name: "Content", start: at(8), end: at(17), actualStart: at(9), assignees: [OLU] },
+      { id: "pa-build", name: "Build", start: at(13), end: at(28), actualStart: at(16), assignees: [ARUN, SVEN] },
+      { id: "pa-qa", name: "QA", start: at(27), end: at(31), assignees: [RHEA] },
+    ],
+  },
+];
+const ACTUAL_LINKS: GanttDependency[] = [
+  { from: "pa-disc", to: "pa-design" },
+  { from: "pa-design", to: "pa-build" },
+  { from: "pa-build", to: "pa-qa" },
+];
+
 /** A plan that crosses New Year — the case no calendar year can show whole. */
 const CROSS_YEAR: GanttTask[] = [
   {
@@ -737,6 +757,51 @@ const linkStyle = {
           defaultView="month"
           defaultDate={NOW}
           barAccent={(t) => CUSTOMER_GATES.has(t.id) && "var(--zen-color-accent-purple)"}
+        />
+      </div>
+    </DemoSection>
+
+    <DemoSection
+      title="19. Planned vs actual"
+      codeTitle="actualStart and actualEnd on a task"
+      codeDescription="A task's start and end are the plan. Give it actualStart when the work really begins and actualEnd when it really finishes, and a second bar shows the actual period under the planned one. Work still running has an actual bar that ends at now, with a square end because it has not finished yet. A task that has not started has no actual bar, so a plan that slipped past without anyone starting it is easy to spot. By default the actual dates also set the status and the slip: a finished task with no percentage given is complete, a running one is on track until its planned end passes, and the variance column shows how many days the actual finish (or today, for late running work) is past the planned end. An explicit status, percentComplete or baselineEnd still wins, and deriveFromActuals={false} turns this off and only draws the bar. actualLayout split gives the two bars equal weight instead, and actualBarColor or actualBarClassName restyle the actual bar. Tasks without actual dates look exactly as before."
+      code={`const plan = [
+  // Finished early, and finished late
+  { id: "discovery", name: "Discovery", start: jul1, end: jul5, actualStart: jul1, actualEnd: jul4 },
+  { id: "design", name: "Design", start: jul6, end: jul12, actualStart: jul7, actualEnd: jul15 },
+  // Running: one inside its plan, one past it
+  { id: "build", name: "Build", start: jul13, end: jul28, actualStart: jul16 },
+  { id: "content", name: "Content", start: jul8, end: jul17, actualStart: jul9 },
+  // Not started: the plan only
+  { id: "qa", name: "QA", start: jul27, end: jul31 },
+];
+
+<Gantt tasks={plan} columns={["name", "status", "variance"]} />
+
+// Two equal bars, the actual one in a colour of your choosing
+<Gantt
+  tasks={plan}
+  actualLayout="split"
+  actualBarColor={() => "var(--zen-color-accent-purple)"}
+/>`}
+    >
+      <div data-testid="gantt-actuals" class="zen-flex zen-w-full zen-flex-col zen-gap-4">
+        <Gantt
+          tasks={ACTUAL_PLAN}
+          dependencies={ACTUAL_LINKS}
+          now={NOW}
+          defaultView="month"
+          defaultDate={NOW}
+          columns={["name", "status", "variance"]}
+        />
+        <Gantt
+          tasks={ACTUAL_PLAN}
+          dependencies={ACTUAL_LINKS}
+          now={NOW}
+          defaultView="month"
+          defaultDate={NOW}
+          actualLayout="split"
+          actualBarColor={() => "var(--zen-color-accent-purple)"}
         />
       </div>
     </DemoSection>

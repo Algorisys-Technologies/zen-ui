@@ -640,6 +640,8 @@ SKILL.md.
 - `gantt.barSpanProgress: string`
 - `gantt.notInRange: string`
 - `gantt.noDates: string`
+- `gantt.actualSpan: string`
+- `gantt.actualRunning: string`
 - `gantt.projectSchedule: string`
 - `scheduleGrid.views.fit: string`
 - `scheduleGrid.views.day: string`

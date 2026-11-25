@@ -2,10 +2,12 @@ import { type JSX, createMemo, createSignal, For, Show } from "solid-js";
 import {
   flattenGanttTasks,
   formatGanttVariance,
+  ganttActualLayout,
   ganttConnectors,
   ganttFitRange,
   nowPct,
   placeAppointment,
+  type GanttActualLayout,
   type GanttBarAnchor,
   type GanttCalendar,
   type GanttDependency,
@@ -201,6 +203,31 @@ export interface GanttProps {
    * the arrows still meet its points.
    */
   barAccent?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * Planned vs actual. A task with `actualStart` (and, once done,
+   * `actualEnd`) gets a second bar showing when the work really ran; its
+   * `start`/`end` stay the plan. Running work's bar ends at now. Nothing
+   * changes for a task without them.
+   *
+   * "strip" (default) keeps the planned bar where it always was and draws the
+   * actual one slim beneath it. "split" draws two equal bars, plan above.
+   */
+  actualLayout?: GanttActualLayout;
+  /**
+   * Let the actual dates drive status and slip. Default true: an actual end
+   * with no % stated is Complete, a running task is On track (or Delayed past
+   * its plan), and with no `baselineEnd` the variance is the actual finish
+   * against the planned end. An explicit `status`, `percentComplete` or
+   * `baselineEnd` still wins. False draws the actual bar and changes nothing else.
+   */
+  deriveFromActuals?: boolean;
+  /** Classes for a task's actual bar, applied after its own: `(t) => "zen-opacity-60"`. */
+  actualBarClassName?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * A CSS colour for a task's actual bar. Default: the row's status colour.
+   * A value rather than a class, so the colour can come from data.
+   */
+  actualBarColor?: (task: GanttTask) => string | undefined | false | null;
   /**
    * Classes for the header: the row and its frozen pane, applied after their
    * own, so a caller's background and text colour win
@@ -416,7 +443,7 @@ export const Gantt = (props: GanttProps) => {
   /* The plan's padded span: what Fit shows, and what a continuous axis spans.
      Computed only when one of them needs it. */
   const planSpan = createMemo(() =>
-    view() === "fit" || props.continuous ? ganttFitRange(props.tasks ?? [], { calendar: props.calendar }) : null,
+    view() === "fit" || props.continuous ? ganttFitRange(props.tasks ?? [], { calendar: props.calendar, now: now() }) : null,
   );
   const fitRange = () => (view() === "fit" ? planSpan() : null);
   // Continuous turns the date row on, because a scrolled axis needs it; an
@@ -449,7 +476,7 @@ export const Gantt = (props: GanttProps) => {
       props.tasks ?? [],
       (task) => (set === null ? true : set.has(task.id)),
       now(),
-      { calendar: props.calendar, minGapMs: axis.minGapMs() },
+      { calendar: props.calendar, minGapMs: axis.minGapMs(), deriveFromActuals: props.deriveFromActuals },
     );
   });
   const rows = () => flat().rows;
@@ -601,6 +628,9 @@ export const Gantt = (props: GanttProps) => {
               barPx={barPx()}
               barClass={props.barClassName?.(row.task) || undefined}
               accent={props.barAccent?.(row.task) || undefined}
+              actualLayout={props.actualLayout ?? "strip"}
+              actualClass={props.actualBarClassName?.(row.task) || undefined}
+              actualColor={props.actualBarColor?.(row.task) || undefined}
             />
           )}
           rowHeight={rowHeight()}
@@ -724,9 +754,25 @@ const GanttTrack = (props: {
   barPx: number;
   barClass?: string;
   accent?: string;
+  actualLayout: GanttActualLayout;
+  actualClass?: string;
+  actualColor?: string;
 }) => {
   const loc = useLocale();
   const task = () => props.row.task;
+  /* Where the planned and actual bars sit. In "strip" the planned bar is
+     exactly where it always was; only "split" moves it, and only then. */
+  const geo = () => ganttActualLayout(props.rowHeight, props.barPx, props.actualLayout);
+  const actualPlacement = () =>
+    props.row.actual && !task().milestone ? placeAppointment(props.row.actual, props.range) : null;
+  /** Said with the planned bar, so a row stays one name: the actual bar is drawn, not announced twice. */
+  const actualText = () => {
+    const a = props.row.actual;
+    if (!a || task().milestone) return "";
+    return a.open
+      ? loc.t("gantt.actualRunning", { start: formatDay(a.start) })
+      : loc.t("gantt.actualSpan", { start: formatDay(a.start), end: formatDay(a.end) });
+  };
   const progress = () => props.row.progress ?? 0;
   const widthPx = () => (props.placement ? (props.placement.widthPct / 100) * props.axisWidth : 0);
   const labelOutside = () => widthPx() < LABEL_MIN_PX;
@@ -851,7 +897,10 @@ const GanttTrack = (props: {
            with no data and wrong for THIS one: the reader arrowed to the
            timeline expecting a bar, and "blank" does not distinguish "no dates"
            from "starts after the range you are looking at". */
-        <span class="zen-sr-only">{props.row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}</span>
+        <span class="zen-sr-only">
+          {props.row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}
+          {actualText() ? `, ${actualText()}` : ""}
+        </span>
       }
     >
       {(placement) => (
@@ -880,12 +929,12 @@ const GanttTrack = (props: {
             style={{
               "inset-inline-start": `${placement().startPct}%`,
               width: `${placement().widthPct}%`,
-              top: `${barTop(props.rowHeight, props.barPx)}px`,
-              height: `${props.barPx}px`,
+              top: `${geo().barTop}px`,
+              height: `${geo().barHeight}px`,
             }}
             title={`${task().name} · ${formatDay(props.row.span!.start)} – ${formatDay(props.row.span!.end)}${
               props.row.progress === null ? "" : ` · ${Math.round(progress())}%`
-            }`}
+            }${actualText() ? ` · ${actualText()}` : ""}`}
           >
             <span class="zen-sr-only">
               {loc.t(props.row.progress === null ? "gantt.barSpan" : "gantt.barSpanProgress", {
@@ -894,6 +943,7 @@ const GanttTrack = (props: {
                 status: loc.t(STATUS_LABEL[props.row.status]),
                 percent: Math.round(progress()),
               })}
+              {actualText() ? `, ${actualText()}` : ""}
             </span>
             {/* The bar broken at the gaps where no work happens. The pieces sit
                 INSIDE one button rather than being buttons themselves: the job
@@ -965,14 +1015,44 @@ const GanttTrack = (props: {
                 ...(labelBefore()
                   ? { "inset-inline-end": `calc(${100 - placement().startPct}% + 4px)` }
                   : { "inset-inline-start": `calc(${endPct()}% + 4px)` }),
-                top: `${barTop(props.rowHeight, props.barPx)}px`,
-                height: `${props.barPx}px`,
+                top: `${geo().barTop}px`,
+                height: `${geo().barHeight}px`,
               }}
             >
               {Math.round(progress())}%
             </span>
           </Show>
         </>
+      )}
+    </Show>
+    {/* The actual bar: when the work really ran. A sibling of the planned bar,
+        not inside it, because the two have different extents — it can start
+        before the plan and run past it, or exist when the plan is off-screen.
+        Hidden from assistive tech: its dates are already in the planned bar's
+        name. The status FILL by default, so it reads as the solid, settled
+        fact under the soft plan. An open (still running) end is squared off,
+        like a bar cut by the range: it has not ended, it has reached now. */}
+    <Show when={actualPlacement()}>
+      {(ap) => (
+        <span
+          aria-hidden="true"
+          data-gantt-actual=""
+          data-gantt-actual-open={props.row.actual?.open ? "" : undefined}
+          class={cn(
+            "zen-pointer-events-none zen-absolute zen-rounded-zen-sm",
+            !props.actualColor && FILL_CLASS[props.row.status],
+            (ap().clippedStart) && "zen-rounded-s-none",
+            (ap().clippedEnd || props.row.actual?.open) && "zen-rounded-e-none",
+            props.actualClass,
+          )}
+          style={{
+            "inset-inline-start": `${ap().startPct}%`,
+            width: `${ap().widthPct}%`,
+            top: `${geo().actualTop}px`,
+            height: `${geo().actualHeight}px`,
+            ...(props.actualColor ? { "background-color": props.actualColor } : {}),
+          }}
+        />
       )}
     </Show>
     </Show>

@@ -62,6 +62,8 @@ SKILL.md.
 - `percentComplete?: number | undefined` — 0–100. Omit on a parent to have it averaged from the children.
 - `workingMinutes?: number | undefined` — Duration in WORKING minutes. With a `start` and no `end`, the end is computed from the calendar — which is how a 6-hour job starting Friday 16:00 correctly finishes on Monday. Ignored when `end` is given, since an explicit end is a statement and a duration is a derivation. With no calendar in play this is elapsed minutes, because no calendar means a 24/7 one and the two are then the same number.
 - `baselineEnd?: Date | undefined` — What the plan originally promised. Slip is measured against this.
+- `actualStart?: Date | undefined` — When work really began. `start`/`end` stay the PLAN; these are what happened, and are drawn as a second bar under the planned one. Opt-in by data: a chart where no task sets them draws exactly as it always did. A start with no `actualEnd` is work in progress — its actual bar runs to now. An `actualEnd` with no `actualStart` is half-entered and ignored.
+- `actualEnd?: Date | undefined` — When work really finished. See `actualStart`.
 - `status?: GanttTaskStatus | undefined` — Overrides the derived status.
 
 ### GanttAssignee (type)

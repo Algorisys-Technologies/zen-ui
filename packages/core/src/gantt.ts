@@ -179,9 +179,29 @@ export interface GanttTaskNode {
   workingMinutes?: number;
   /** What the plan originally promised. Slip is measured against this. */
   baselineEnd?: Date;
+  /**
+   * When work really began. `start`/`end` stay the PLAN; these are what
+   * happened, and are drawn as a second bar under the planned one. Opt-in by
+   * data: a chart where no task sets them draws exactly as it always did.
+   *
+   * A start with no `actualEnd` is work in progress — its actual bar runs to
+   * now. An `actualEnd` with no `actualStart` is half-entered and ignored.
+   */
+  actualStart?: Date;
+  /** When work really finished. See `actualStart`. */
+  actualEnd?: Date;
   /** Overrides the derived status. */
   status?: GanttTaskStatus;
   children?: GanttTaskNode[];
+}
+
+/** What really happened, as opposed to the plan. */
+export interface GanttActual {
+  start: Date;
+  /** `actualEnd`, or NOW while the work is still running. */
+  end: Date;
+  /** Started and not finished: `end` is now, not a date anyone entered. */
+  open: boolean;
 }
 
 export interface GanttSpan {
@@ -515,8 +535,14 @@ export interface GanttRow<T extends GanttTaskNode = GanttTaskNode> {
   /** Its own percentComplete, or the descendants' weighted average. Null when unknown. */
   progress: number | null;
   status: GanttTaskStatus;
-  /** Whole calendar days late (positive) or early (negative). Null with no baseline. */
+  /**
+   * Whole calendar days late (positive) or early (negative). Null with no
+   * baseline — or, with `deriveFromActuals`, measured from the actual finish
+   * (or from now, for work still running past its plan) to the planned end.
+   */
   variance: number | null;
+  /** The actual period, own or rolled up. Null when nothing under it has started. */
+  actual: GanttActual | null;
 }
 
 export interface GanttFlatten<T extends GanttTaskNode = GanttTaskNode> {
@@ -790,6 +816,11 @@ export interface GanttFitOptions {
    */
   padFraction?: number;
   /**
+   * Where a running actual bar ends. Default the current time. Only read when
+   * a task has an `actualStart` and no `actualEnd`.
+   */
+  now?: Date;
+  /**
    * A floor on that padding, so a zero-width plan still gets a real axis.
    * Default one HOUR.
    *
@@ -828,6 +859,18 @@ const explicitSpan = (task: GanttTaskNode, calendar?: GanttCalendar): GanttSpan 
   return null;
 };
 
+/** A task's OWN actual dates, ignoring its children. */
+const ownActual = (task: GanttTaskNode, now: Date): GanttActual | null => {
+  if (!task.actualStart) return null;
+  const a = task.actualStart.getTime();
+  if (task.actualEnd) {
+    const b = task.actualEnd.getTime();
+    return { start: new Date(Math.min(a, b)), end: new Date(Math.max(a, b)), open: false };
+  }
+  // Running. A start after now has not run yet: zero width, never backwards.
+  return { start: new Date(a), end: new Date(Math.max(a, now.getTime())), open: true };
+};
+
 /** Snap outward to whole units, so the first and last columns are not slivers. */
 const floorToUnit = (d: Date, unit: GanttColumnUnit): Date => {
   if (unit === "hour") return startOfHour(d);
@@ -863,7 +906,7 @@ export function ganttFitRange(
   tasks: GanttTaskNode[],
   options: GanttFitOptions = {},
 ): PlanningRange | null {
-  const { calendar, padFraction = 0.04, minPadMs = MS_HOUR } = options;
+  const { calendar, padFraction = 0.04, minPadMs = MS_HOUR, now = new Date() } = options;
 
   let from = Number.POSITIVE_INFINITY;
   let to = Number.NEGATIVE_INFINITY;
@@ -872,6 +915,14 @@ export function ganttFitRange(
     if (own) {
       from = Math.min(from, own.start.getTime());
       to = Math.max(to, own.end.getTime());
+    }
+    /* The actual bar too, or a late finish — the bar the reader came to see —
+       is clipped off the end of the axis. Own dates only: a parent's rollup is
+       made of its children's, which this walk visits anyway. */
+    const actual = ownActual(node, now);
+    if (actual) {
+      from = Math.min(from, actual.start.getTime());
+      to = Math.max(to, actual.end.getTime());
     }
     for (const child of node.children ?? []) visit(child);
   };
@@ -1315,6 +1366,38 @@ export function ganttSpan(task: GanttTaskNode, calendar?: GanttCalendar): GanttS
 }
 
 /**
+ * What really happened: its own `actualStart`/`actualEnd`, or the rollup of its
+ * descendants'. Null when nothing under it has started.
+ *
+ * A parent runs from its first child's start to its last child's finish, and
+ * stays OPEN — running to now — while any child that has work is unfinished or
+ * not yet started. A phase with one task left to do is not done, however long
+ * ago its other tasks finished.
+ */
+export function ganttActual(task: GanttTaskNode, now: Date = new Date()): GanttActual | null {
+  const own = ownActual(task, now);
+  if (own) return own;
+
+  let from = Number.POSITIVE_INFINITY;
+  let to = Number.NEGATIVE_INFINITY;
+  let open = false;
+  for (const child of task.children ?? []) {
+    const actual = ganttActual(child, now);
+    if (!actual) {
+      // Planned work that has not begun keeps the parent running.
+      if (ganttSpan(child)) open = true;
+      continue;
+    }
+    from = Math.min(from, actual.start.getTime());
+    to = Math.max(to, actual.end.getTime());
+    if (actual.open) open = true;
+  }
+  if (from === Number.POSITIVE_INFINITY) return null;
+  if (open) to = Math.max(to, now.getTime());
+  return { start: new Date(from), end: new Date(to), open };
+}
+
+/**
  * Percent complete, rolled up when the task does not state its own.
  *
  * Weighted by duration, because an unweighted mean lets a one-day task cancel
@@ -1416,15 +1499,23 @@ export function ganttTaskStatus(
   span: GanttSpan | null,
   progress: number | null,
   now: Date = new Date(),
+  /**
+   * Pass the row's actual to let it speak when nothing more explicit does: a
+   * finished actual with no % stated is complete, and a running one is under
+   * way rather than "not started". Omit it and the actual dates change nothing.
+   */
+  actual: GanttActual | null = null,
 ): GanttTaskStatus {
   if (task.status) return task.status;
   if (progress !== null && progress >= 100) return "complete";
+  if (actual && !actual.open && progress === null) return "complete";
 
   const overBaseline =
     task.baselineEnd && span ? ganttVarianceDays(span.end, task.baselineEnd) > 0 : false;
   const overdue = span ? span.end.getTime() < now.getTime() : false;
   if (overBaseline || overdue) return "delayed";
 
+  if (actual) return "on-track";
   if (progress === null || progress <= 0) return "not-started";
   return "on-track";
 }
@@ -1442,6 +1533,12 @@ export interface GanttFlattenOptions extends GanttSegmentOptions {
    * exactly today's behaviour — the working-time path is not entered at all.
    */
   calendar?: GanttCalendar;
+  /**
+   * Let `actualStart`/`actualEnd` drive status and slip. Default true. False
+   * still puts the actual on each row to draw, but status and variance come
+   * from the plan, % and baseline exactly as they would without it.
+   */
+  deriveFromActuals?: boolean;
 }
 
 export function flattenGanttTasks<T extends GanttTaskNode>(
@@ -1450,7 +1547,17 @@ export function flattenGanttTasks<T extends GanttTaskNode>(
   now: Date = new Date(),
   options: GanttFlattenOptions = {},
 ): GanttFlatten<T> {
-  const { calendar, ...segmentOptions } = options;
+  const { calendar, deriveFromActuals = true, ...segmentOptions } = options;
+
+  /** Slip: the baseline when there is one, else (deriving) the actual finish against the plan. */
+  const varianceOf = (task: GanttTaskNode, span: GanttSpan | null, actual: GanttActual | null): number | null => {
+    if (!span) return null;
+    if (task.baselineEnd) return ganttVarianceDays(span.end, task.baselineEnd);
+    if (!deriveFromActuals || !actual) return null;
+    if (!actual.open) return ganttVarianceDays(actual.end, span.end);
+    // Still running: there is slip to report only once the plan has passed.
+    return now.getTime() > span.end.getTime() ? ganttVarianceDays(now, span.end) : null;
+  };
 
   /**
    * The span as drawn, plus its pieces.
@@ -1488,6 +1595,7 @@ export function flattenGanttTasks<T extends GanttTaskNode>(
     const expanded = hasChildren ? isExpanded(task) : false;
     const { span, segments } = resolve(ganttSpan(task, calendar));
     const progress = ganttProgress(task, calendar);
+    const actual = ganttActual(task, now);
     const index = rows.length;
 
     rows.push({
@@ -1500,8 +1608,9 @@ export function flattenGanttTasks<T extends GanttTaskNode>(
       span,
       segments,
       progress,
-      status: ganttTaskStatus(task, span, progress, now),
-      variance: task.baselineEnd && span ? ganttVarianceDays(span.end, task.baselineEnd) : null,
+      status: ganttTaskStatus(task, span, progress, now, deriveFromActuals ? actual : null),
+      variance: varianceOf(task, span, actual),
+      actual,
     });
     rowIndexById.set(task.id, index);
 
@@ -1515,6 +1624,48 @@ export function flattenGanttTasks<T extends GanttTaskNode>(
 
   for (const task of tasks) walk(task, 0, null);
   return { rows, rowIndexById };
+}
+
+/**
+ * How a row with an actual bar is laid out. "strip" (the default) keeps the
+ * planned bar exactly where it always was and adds a slim actual bar in the
+ * space below it; "split" gives the two bars equal weight, one above the other.
+ */
+export type GanttActualLayout = "strip" | "split";
+
+export interface GanttActualGeometry {
+  barTop: number;
+  barHeight: number;
+  actualTop: number;
+  actualHeight: number;
+}
+
+/**
+ * Where the planned and actual bars sit in a row, in px from the row's top.
+ *
+ * "strip" never moves the planned bar: dependency arrows are routed at the
+ * row's middle, which is the planned bar's centre, so the actual bar goes in
+ * the slack beneath it. At the tightest row Gantt allows (bar + 4px) that slack
+ * is 2px, and the strip is 2px — thin, but there.
+ *
+ * "split" puts two equal bars either side of the middle with a 2px gap, so an
+ * arrow lands between the pair rather than on either.
+ */
+export function ganttActualLayout(
+  rowHeight: number,
+  barPx: number,
+  layout: GanttActualLayout = "strip",
+): GanttActualGeometry {
+  const barTop = (rowHeight - barPx) / 2;
+  if (layout === "split") {
+    const mid = rowHeight / 2;
+    const room = Math.max(2, Math.floor(Math.min(barPx * 0.7, mid - 2)));
+    return { barTop: mid - 1 - room, barHeight: room, actualTop: mid + 1, actualHeight: room };
+  }
+  const slack = barTop; // the same below the bar as above it
+  const gap = slack >= 6 ? 2 : slack >= 3 ? 1 : 0;
+  const actualHeight = Math.max(2, Math.min(6, Math.floor(slack - gap - 1)));
+  return { barTop, barHeight: barPx, actualTop: barTop + barPx + gap, actualHeight };
 }
 
 /** Where a bar sits: its row, and its placement on the shared axis. */

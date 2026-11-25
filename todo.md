@@ -204,6 +204,31 @@ minified), so a bundler keeps all of it.
       every label's height, which is a breaking visual change. Decide for the
       next major; the same trap bit StatCard in 12.2.0 (fixed, see CHANGELOG).
 
+## Parity: Gantt planned vs actual (Solid only, 2026-11-25)
+
+Core is shared and done: `actualStart`/`actualEnd` on `GanttTaskNode`,
+`ganttActual` (own or rolled up; open = running to now), `GanttRow.actual`,
+`ganttTaskStatus(…, actual)`, `flattenGanttTasks({ deriveFromActuals })`,
+`ganttFitRange({ now })`, `ganttActualLayout(rowHeight, barPx, layout)` and the
+`gantt.actualSpan` / `gantt.actualRunning` messages. Pinned in check-gantt.ts.
+
+- [ ] **Port to React, then vanilla, then web-components**, from Solid's
+      `GanttTrack`: props `actualLayout` ("strip" | "split"), `deriveFromActuals`,
+      `actualBarClassName`, `actualBarColor`; pass `now` to `ganttFitRange` and
+      `deriveFromActuals` to `flattenGanttTasks`; the planned bar's top/height
+      from `ganttActualLayout` (strip leaves it where it was — arrows route at the
+      row middle); the actual bar a SIBLING of the planned one (`data-gantt-actual`,
+      `data-gantt-actual-open`, aria-hidden, status FILL unless a colour is given,
+      end squared while open), its dates appended to the planned bar's sr-only
+      name and title, and to the no-dates fallback. Milestones draw no actual bar.
+      Demo section "19. Planned vs actual" (two charts: strip with the variance
+      column, split with a colour). Then drop the four KNOWN lines in
+      check-props.ts.
+- [ ] **check:schedule-dom**: assert the actual bar stays inside its row and
+      below the planned one, in every binding, once ported.
+- [ ] Later, if asked: an actual marker for milestones; a "primary" layout
+      (actual as the main bar, plan as a ghost) — that one moves the arrows.
+
 ## Parity: DataTable `enableRowVirtualization` (Solid only, 2026-11-04)
 
 - [x] **Port to React, then vanilla, then web-components**, from the Solid

@@ -60,6 +60,15 @@ const KNOWN: Record<string, string> = {
      PivotFilterMenu sorting (React, vanilla). A new gap still fails this check;
      port it, or add it here with the reason. */
 
+  /* OPEN — Solid first, port pending (todo.md "Parity: Gantt planned vs
+     actual"). Gantt's actual bar: built and verified in Solid, React and
+     vanilla to follow once the owner settles the Solid side. Remove each line
+     as its port lands; web-components inherits vanilla's. */
+  "GanttProps.actualLayout": "react vanilla",
+  "GanttProps.deriveFromActuals": "react vanilla",
+  "GanttProps.actualBarClass": "react vanilla",
+  "GanttProps.actualBarColor": "react vanilla",
+
   /* INTENTIONAL — idiom, not omission. Each would be a prop that does nothing,
      or the wrong shape, in the bindings that lack it. */
   // Kobalte derives reading direction FROM a locale, so Solid needs one; Radix
