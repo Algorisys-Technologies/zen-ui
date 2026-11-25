@@ -623,10 +623,13 @@ export {
 } from "./components/toast/toast";
 export type { ToastProps } from "./components/toast/toast";
 export { Toaster } from "./components/toast/toaster";
+export type { ToasterProps, ToasterPosition } from "./components/toast/toaster";
 export { useToast, toast } from "./components/toast/use-toast";
 export type {
   ToastDescriptor,
   ToastInput,
+  ToastOptions,
+  ToastPromiseMessages,
 } from "./components/toast/use-toast";
 
 // UI Components - Sheet / Drawer (Radix Dialog with slide-from-edge animation)

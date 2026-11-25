@@ -190,6 +190,57 @@ upload.on("done", () => t.update({ variant: "success", title: "Uploaded" }));`}
         </Button>
       </CodeExample>
     </section>
+
+    <section className="demo-section">
+      <h2>6. The Solid binding's calls</h2>
+      <CodeExample
+        title='toast("Saved") · toast.success · toast.error · toast.loading · toast.promise'
+        description="The same calls the Solid binding takes, so code moves between the two unchanged. toast with a message, rather than an object, shows it as the title and returns the toast's id. success and error pick the variant. loading shows a spinner and stays until you replace it: pass its id to success or error and that toast changes in place. promise does that for you when a promise settles. dismiss closes one toast, or all of them with no id. The object form above still works."
+        code={`toast("Saved");
+toast.success("Profile updated");
+toast.error("Couldn't save");
+
+const id = toast.loading("Uploading…");
+// later, the same toast becomes the result:
+toast.success("Uploaded", { id });
+
+toast.promise(save(), {
+  loading: "Saving…",
+  success: "Saved",
+  error: (err) => \`Couldn't save: \${err.message}\`,
+});
+
+<Toaster position="bottom-right" />`}
+      >
+        <div className="zen-flex zen-flex-wrap zen-gap-2" data-testid="toast-solid-calls">
+          <Button onClick={() => toast("Saved")}>Default</Button>
+          <Button color="success" onClick={() => toast.success("Profile updated")}>Success</Button>
+          <Button color="error" onClick={() => toast.error("Couldn't save")}>Error</Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const id = toast.loading("Uploading…");
+              setTimeout(() => toast.success("Uploaded", { id }), 1500);
+            }}
+          >
+            Loading, then done
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() =>
+              toast.promise(new Promise((resolve) => setTimeout(resolve, 1500)), {
+                loading: "Saving…",
+                success: "Saved",
+                error: "Couldn't save",
+              })
+            }
+          >
+            Promise
+          </Button>
+          <Button variant="ghost" onClick={() => toast.dismiss()}>Dismiss all</Button>
+        </div>
+      </CodeExample>
+    </section>
   </div>
 );
 
