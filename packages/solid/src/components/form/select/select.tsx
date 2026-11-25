@@ -155,7 +155,8 @@ export const Select = (props: SelectProps) => {
             "zen-rounded-zen-md zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md",
           )}
         >
-          <KSelect.Listbox class="zen-overflow-y-auto zen-max-h-72" />
+          {/* The Listbox is a <ul>: without preflight it keeps the browser's 40px inline padding and 1em block margin. */}
+          <KSelect.Listbox class="zen-m-0 zen-p-0 zen-list-none zen-overflow-y-auto zen-max-h-72" />
         </KSelect.Content>
       </KSelect.Portal>
     </KSelect>
