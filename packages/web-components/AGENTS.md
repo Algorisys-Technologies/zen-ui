@@ -220,11 +220,17 @@ missing export:
   each family as ONE factory (or one `<zen-*>` element) that takes data — there
   is nothing to name the parts. Do not import `DialogContent` from
   `@algorisys/zen-ui-vanilla`; it does not exist by design.
-- **Select.** React exports the Radix compound parts
-  (`SelectTrigger`, `SelectContent`, `SelectItem`, …). Solid, vanilla and
-  web-components export a single `Select` that takes an `options` array.
-- **Toast.** React wraps Radix Toast primitives; Solid uses solid-toast. Both
-  expose an imperative `toast()` plus a viewport, but the primitive API differs.
+- **Select.** Every binding takes the data-driven form —
+  `<Select options={…} label placeholder onChange />`, where `onChange` gets the
+  value string or null. Write that; it runs anywhere. React ALSO exports the
+  Radix compound parts (`SelectTrigger`, `SelectContent`, `SelectItem`, …),
+  which exist only there.
+- **Toast.** Every binding takes the Solid binding's calls: `toast("Saved")`,
+  `toast.success`, `toast.error`, `toast.loading` (pass its id to
+  `toast.success(msg, { id })` to replace it), `toast.promise`,
+  `toast.dismiss(id)`, plus a `<Toaster position>`. Write those. React and
+  vanilla also take `toast({ title, description, variant })`, which Solid
+  does not.
 
 ## Styling your own markup — do not write `zen-` classes by default
 
