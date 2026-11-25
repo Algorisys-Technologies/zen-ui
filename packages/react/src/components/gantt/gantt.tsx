@@ -1431,6 +1431,20 @@ const PrimaryTrack = ({
   const labelInside = !!mainLabel && (actualLabel ? ganttLabelFits(mainLabel, mainWidthPx) : mainWidthPx >= LABEL_MIN_PX);
   const sideOf = (startPct: number, widthPct: number, text: string) =>
     ((100 - startPct - widthPct) / 100) * axisWidth < ganttLabelPx(text) ? "before" : "after";
+  /** The tooltip: the task, what actually happened, then the plan — every part already translated. */
+  const title = [
+    task.name,
+    actualText,
+    row.span
+      ? loc.t("gantt.barSpan", {
+          start: formatDay(row.span.start),
+          end: formatDay(row.span.end),
+          status: loc.t(STATUS_LABEL[row.status]),
+        })
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   const besideStyle = (startPct: number, widthPct: number, text: string): React.CSSProperties =>
     sideOf(startPct, widthPct, text) === "before"
       ? { insetInlineEnd: `calc(${100 - startPct}% + 4px)` }
@@ -1499,15 +1513,7 @@ const PrimaryTrack = ({
               height: geo.barHeight,
               ...(color ? softSkin(color) : {}),
             }}
-            title={`${task.name} · ${actualText}${
-              row.span
-                ? ` · ${loc.t("gantt.barSpan", {
-                    start: formatDay(row.span.start),
-                    end: formatDay(row.span.end),
-                    status: loc.t(STATUS_LABEL[row.status]),
-                  })}`
-                : ""
-            }`}
+            title={title}
           >
             <span className="zen-sr-only">
               {row.span

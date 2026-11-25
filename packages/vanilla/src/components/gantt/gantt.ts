@@ -1091,15 +1091,20 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     bar.style.top = `${geo.barTop}px`;
     bar.style.height = `${geo.barHeight}px`;
     if (color) softSkin(bar, color);
-    bar.title = `${task.name} · ${actualText}${
+    // The tooltip: the task, what actually happened, then the plan — every part already translated.
+    bar.title = [
+      task.name,
+      actualText,
       row.span
-        ? ` · ${loc.t("gantt.barSpan", {
+        ? loc.t("gantt.barSpan", {
             start: formatDay(row.span.start),
             end: formatDay(row.span.end),
             status: loc.t(STATUS_LABEL[row.status]),
-          })}`
-        : ""
-    }`;
+          })
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
     bar.addEventListener("click", () => current.onTaskClick?.(task, row));
     bar.append(
       el(

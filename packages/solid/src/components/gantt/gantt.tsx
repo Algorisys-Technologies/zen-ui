@@ -1325,6 +1325,21 @@ const PrimaryTrack = (props: {
   };
   const sideOf = (startPct: number, widthPct: number, text: string) =>
     ((100 - startPct - widthPct) / 100) * props.axisWidth < ganttLabelPx(text) ? "before" : "after";
+  /** The tooltip: the task, what actually happened, then the plan — every part already translated. */
+  const title = () =>
+    [
+      task().name,
+      props.actualText,
+      props.row.span
+        ? loc.t("gantt.barSpan", {
+            start: formatDay(props.row.span.start),
+            end: formatDay(props.row.span.end),
+            status: loc.t(STATUS_LABEL[props.row.status]),
+          })
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
 
   return (
     <>
@@ -1401,11 +1416,7 @@ const PrimaryTrack = (props: {
                 height: `${geo().barHeight}px`,
                 ...(color() ? softSkin(color()!) : {}),
               }}
-              title={`${task().name} · ${props.actualText}${props.row.span ? ` · ${loc.t("gantt.barSpan", {
-                start: formatDay(props.row.span.start),
-                end: formatDay(props.row.span.end),
-                status: loc.t(STATUS_LABEL[props.row.status]),
-              })}` : ""}`}
+              title={title()}
             >
               <span class="zen-sr-only">
                 {props.row.span
