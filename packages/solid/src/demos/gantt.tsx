@@ -284,16 +284,21 @@ const ACTUAL_PLAN: GanttTask[] = [
     children: [
       { id: "pa-disc", name: "Discovery", start: at(1), end: at(5), actualStart: at(1), actualEnd: at(4), assignees: [RHEA] },
       { id: "pa-design", name: "Design", start: at(6), end: at(12), actualStart: at(7), actualEnd: at(15), assignees: [MEI] },
+      // A milestone hit three days late: its actual date gets a diamond of its own.
+      { id: "pa-signoff", name: "Design sign-off", milestone: true, start: at(12), actualEnd: at(15) },
       { id: "pa-content", name: "Content", start: at(8), end: at(17), actualStart: at(9), assignees: [OLU] },
       { id: "pa-build", name: "Build", start: at(13), end: at(28), actualStart: at(16), assignees: [ARUN, SVEN] },
       { id: "pa-qa", name: "QA", start: at(27), end: at(31), assignees: [RHEA] },
+      { id: "pa-launch", name: "Launch", milestone: true, start: at(31) },
     ],
   },
 ];
 const ACTUAL_LINKS: GanttDependency[] = [
   { from: "pa-disc", to: "pa-design" },
-  { from: "pa-design", to: "pa-build" },
+  { from: "pa-design", to: "pa-signoff" },
+  { from: "pa-signoff", to: "pa-build" },
   { from: "pa-build", to: "pa-qa" },
+  { from: "pa-qa", to: "pa-launch" },
 ];
 
 /* A project board's style, from the same props: two full bars per row with
@@ -808,7 +813,7 @@ const linkStyle = {
     <DemoSection
       title="19. Planned vs actual"
       codeTitle="actualStart and actualEnd on a task"
-      codeDescription="A task's start and end are the plan. Give it actualStart when the work really begins and actualEnd when it really finishes, and a second bar shows the actual period under the planned one. Work still running has an actual bar that ends at now, with a square end because it has not finished yet. A task that has not started has no actual bar, so a plan that slipped past without anyone starting it is easy to spot. By default the actual dates also set the status and the slip: a finished task with no percentage given is complete, a running one is on track until its planned end passes, and the variance column shows how many days the actual finish (or today, for late running work) is past the planned end. An explicit status, percentComplete or baselineEnd still wins, and deriveFromActuals={false} turns this off and only draws the bar. actualLayout split gives the two bars equal weight instead, and actualLayout primary makes the actual bar the main one, with the status colour, the percentage, the click and the dependency arrows, and shows the plan as a dashed outline beneath it, as Microsoft Project's baseline view does. actualBarColor or actualBarClassName restyle the actual bar. Tasks without actual dates look exactly as before."
+      codeDescription="A task's start and end are the plan. Give it actualStart when the work really begins and actualEnd when it really finishes, and a second bar shows the actual period under the planned one. Work still running has an actual bar that ends at now, with a square end because it has not finished yet. A task that has not started has no actual bar, so a plan that slipped past without anyone starting it is easy to spot. By default the actual dates also set the status and the slip: a finished task with no percentage given is complete, a running one is on track until its planned end passes, and the variance column shows how many days the actual finish (or today, for late running work) is past the planned end. An explicit status, percentComplete or baselineEnd still wins, and deriveFromActuals={false} turns this off and only draws the bar. actualLayout split gives the two bars equal weight instead, and actualLayout primary makes the actual bar the main one, with the status colour, the percentage, the click and the dependency arrows, and shows the plan as a dashed outline beneath it, as Microsoft Project's baseline view does. actualBarColor or actualBarClassName restyle the actual bar. A milestone takes an actual date too, actualEnd (or actualStart): a smaller diamond marks the day it was really hit beneath the planned one, the milestone counts as complete, and the variance column shows how late it was. In the primary layout the achieved diamond is the main one and the plan a hollow one beneath. Tasks without actual dates look exactly as before."
       code={`const plan = [
   // Finished early, and finished late
   { id: "discovery", name: "Discovery", start: jul1, end: jul5, actualStart: jul1, actualEnd: jul4 },
@@ -818,6 +823,9 @@ const linkStyle = {
   { id: "content", name: "Content", start: jul8, end: jul17, actualStart: jul9 },
   // Not started: the plan only
   { id: "qa", name: "QA", start: jul27, end: jul31 },
+  // A milestone hit three days late, and one still ahead
+  { id: "signoff", name: "Design sign-off", milestone: true, start: jul12, actualEnd: jul15 },
+  { id: "launch", name: "Launch", milestone: true, start: jul31 },
 ];
 
 <Gantt tasks={plan} columns={["name", "status", "variance"]} />
