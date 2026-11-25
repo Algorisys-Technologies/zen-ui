@@ -19,9 +19,71 @@ import { cn } from "../../../lib/cn";
  * (Arrow keys, typeahead, Home/End), focus trap, dismissal, ARIA, and
  * form submission via name + value.
  *
+ * Or data-driven, the shape the Solid and vanilla bindings take — pass
+ * `options` and the trigger, list, label and error message are drawn for you:
+ *
+ *   <Select
+ *     label="Country"
+ *     placeholder="Choose a country"
+ *     options={[{ value: "us", label: "United States" }, { value: "ca", label: "Canada" }]}
+ *     value={country}
+ *     onChange={setCountry}   // the value string, or null
+ *   />
+ *
+ * Without `options` it is exactly the Radix root it always was, so the compound
+ * form above keeps working.
+ *
  * Note: Radix Select is **single-select**. For multi-select use a Combobox
  * primitive (deferred — see todo.md).
  */
+
+/** One choice. `label` may be any node; a string is what typeahead matches. */
+export interface SelectOption {
+  value: string;
+  label: React.ReactNode;
+  disabled?: boolean;
+}
+
+/** The data-driven form: the same props as the Solid and vanilla `Select`. */
+export interface SelectProps {
+  options: SelectOption[];
+  value?: string;
+  defaultValue?: string;
+  /** The chosen value string, or null when cleared. */
+  onChange?: (value: string | null) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  required?: boolean;
+  name?: string;
+  className?: string;
+  /** A label above the trigger, associated with it. */
+  label?: string;
+  /** An error under the trigger; marks it invalid and describes it. */
+  errorMessage?: string;
+  /** Marked invalid without a message (the form shows its own): aria-invalid and the error border. */
+  invalid?: boolean;
+  /** Open the list when the select mounts, as an inline editor does. */
+  defaultOpen?: boolean;
+  /** The list opened or closed. */
+  onOpenChange?: (open: boolean) => void;
+  /** Lands on the trigger, so `<label htmlFor={id}>` names the control. */
+  id?: string;
+  /** Names the control when no visible `label` does. Lands on the trigger. */
+  "aria-label"?: string;
+}
+
+type SelectRootProps = React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> & {
+  /** Marked invalid without a message (the form shows its own): the trigger's aria-invalid and the error border. */
+  invalid?: boolean;
+  options?: undefined;
+};
+
+/* Radix refuses an item whose value is "" (it is the "nothing chosen" value),
+   so an "All" or "None" option would throw. It is keyed by a private sentinel
+   instead; callers still see "" — the same trick the Solid binding uses. */
+const EMPTY_OPTION_KEY = "\u0000zen-empty";
+const toKey = (value: string) => (value === "" ? EMPTY_OPTION_KEY : value);
+const fromKey = (key: string) => (key === EMPTY_OPTION_KEY ? "" : key);
 
 /** `invalid` on the root reaches the trigger, the control that has focus. */
 const SelectInvalidContext = React.createContext(false);
@@ -30,17 +92,89 @@ const SelectInvalidContext = React.createContext(false);
  * Radix's Root, plus `invalid`: marked invalid without a message (the form
  * shows its own), so the trigger carries aria-invalid and the error border.
  */
-const Select = ({
-  invalid = false,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> & {
-  /** Marked invalid without a message (the form shows its own): the trigger's aria-invalid and the error border. */
-  invalid?: boolean;
-}) => (
+const SelectRoot = ({ invalid = false, ...props }: SelectRootProps) => (
   <SelectInvalidContext.Provider value={invalid}>
     <SelectPrimitive.Root {...props} />
   </SelectInvalidContext.Provider>
 );
+
+/** The data-driven Select: everything drawn from `options`. */
+const OptionsSelect = (props: SelectProps) => {
+  const {
+  options,
+  value,
+  defaultValue,
+  onChange,
+  placeholder,
+  disabled,
+  required,
+  name,
+  className,
+  label,
+  errorMessage,
+  invalid,
+  defaultOpen,
+  onOpenChange,
+  id,
+  "aria-label": ariaLabel,
+  } = props;
+  const autoId = React.useId();
+  const triggerId = id ?? `${autoId}-trigger`;
+  const errorId = `${autoId}-error`;
+  const known = (v: string | undefined) => v !== undefined && options.some((o) => o.value === v);
+  /* Controlled when the `value` KEY is passed, even as undefined. The Solid
+     call — `value={v ?? undefined}` with nothing chosen yet — passes
+     undefined first and a string later, which React would otherwise read as a
+     switch from uncontrolled to controlled (and warn). A value no option has
+     shows the placeholder — Radix's "" — rather than a blank trigger. */
+  const isControlled = "value" in props && defaultValue === undefined;
+  const controlled = isControlled ? (known(value) ? toKey(value!) : "") : undefined;
+  const isInvalid = !!errorMessage || !!invalid;
+  return (
+    <div className={className}>
+      {label && (
+        <label htmlFor={triggerId} className="zen-text-sm zen-font-medium zen-text-zen-foreground zen-block zen-mb-1">
+          {label}
+        </label>
+      )}
+      <SelectRoot
+        value={controlled}
+        defaultValue={defaultValue !== undefined && known(defaultValue) ? toKey(defaultValue) : undefined}
+        onValueChange={(key) => onChange?.(key ? fromKey(key) : null)}
+        disabled={disabled}
+        required={required}
+        name={name}
+        defaultOpen={defaultOpen}
+        onOpenChange={onOpenChange}
+        invalid={isInvalid}
+      >
+        <SelectTrigger id={triggerId} aria-label={ariaLabel} aria-describedby={errorMessage ? errorId : undefined}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={toKey(option.value)} disabled={option.disabled}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </SelectRoot>
+      {errorMessage && (
+        <p id={errorId} className="zen-text-xs zen-text-zen-error zen-mt-1">
+          {errorMessage}
+        </p>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Radix's Root, plus `invalid`: marked invalid without a message (the form
+ * shows its own), so the trigger carries aria-invalid and the error border.
+ * Given `options`, the whole control instead — see OptionsSelect.
+ */
+const Select = (props: SelectRootProps | SelectProps) =>
+  props.options ? <OptionsSelect {...props} /> : <SelectRoot {...(props as SelectRootProps)} />;
 Select.displayName = "Select";
 const SelectGroup = SelectPrimitive.Group;
 const SelectValue = SelectPrimitive.Value;
