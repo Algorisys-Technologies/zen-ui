@@ -19,8 +19,12 @@ defineZenElement<SelectProps>({
     "error-message": "string",
     invalid: "boolean",
     options: "json",
+    required: "boolean",
+    "default-open": "boolean",
   },
   props: ["options"],
-  events: { onValueChange: "zen-value-change" },
+  /* onChange is the Solid binding's name for the same change; as an element it
+     is the one `zen-value-change` event, so the two are not doubled up. */
+  events: { onValueChange: "zen-value-change", onOpenChange: "zen-open-change" },
   childrenProp: false,
 });

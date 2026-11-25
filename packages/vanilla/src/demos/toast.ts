@@ -180,6 +180,34 @@ upload.on("done", () => t.update({ variant: "success", title: "Uploaded" }));`,
             },
           }).el,
       },
+      {
+        title: "6. The Solid binding's calls",
+        codeTitle: 'toast("Saved") · toast.success · toast.error · toast.loading · toast.promise',
+        codeDescription:
+          "The same calls the Solid binding takes, so code moves between the bindings unchanged. toast with a message, rather than an object, shows it as the title and returns the toast's id. success and error pick the variant. loading shows a spinner and stays until you replace it: pass its id to success or error and that toast changes in place. promise does that for you when a promise settles. dismiss closes one toast, or all of them with no id. The object form above still works.",
+        code: "toast(\"Saved\");\ntoast.success(\"Profile updated\");\ntoast.error(\"Couldn't save\");\n\nconst id = toast.loading(\"Uploading\u2026\");\n// later, the same toast becomes the result:\ntoast.success(\"Uploaded\", { id });\n\ntoast.promise(save(), {\n  loading: \"Saving\u2026\",\n  success: \"Saved\",\n  error: (err) => `Couldn't save: ${err.message}`,\n});",
+        render: () => {
+          const box = row(
+            Button({ children: "Default", onClick: () => toast("Saved") }).el,
+            Button({ color: "success", children: "Success", onClick: () => toast.success("Profile updated") }).el,
+            Button({ color: "error", children: "Error", onClick: () => toast.error("Couldn't save") }).el,
+            Button({ variant: "outline", children: "Loading, then done", onClick: () => {
+              const id = toast.loading("Uploading…");
+              setTimeout(() => toast.success("Uploaded", { id }), 1500);
+            } }).el,
+            Button({ variant: "outline", children: "Promise", onClick: () => {
+              void toast.promise(new Promise((resolve) => setTimeout(resolve, 1500)), {
+                loading: "Saving…",
+                success: "Saved",
+                error: "Couldn't save",
+              });
+            } }).el,
+            Button({ variant: "ghost", children: "Dismiss all", onClick: () => toast.dismiss() }).el,
+          );
+          box.setAttribute("data-testid", "toast-solid-calls");
+          return box;
+        },
+      },
     ],
   });
 }

@@ -235,7 +235,7 @@ export type {
 export { Switch } from "./components/form/switch/switch";
 export type { SwitchProps, SwitchSize } from "./components/form/switch/switch";
 
-// Form Components - Select (Radix-backed compound API)
+// Form Components - Select (Radix-backed compound API, or data-driven with `options`)
 export {
   Select,
   SelectGroup,
@@ -248,6 +248,8 @@ export {
   SelectScrollUpButton,
   SelectScrollDownButton,
 } from "./components/form/select/select";
+// …and the data-driven form the Solid and vanilla bindings take: <Select options={…} />.
+export type { SelectProps } from "./components/form/select/select";
 
 // Form Components - PhoneInput (shadcn-style; composes Select + Input)
 export { PhoneInput } from "./components/form/phone-input/phone-input";
@@ -621,10 +623,13 @@ export {
 } from "./components/toast/toast";
 export type { ToastProps } from "./components/toast/toast";
 export { Toaster } from "./components/toast/toaster";
+export type { ToasterProps, ToasterPosition } from "./components/toast/toaster";
 export { useToast, toast } from "./components/toast/use-toast";
 export type {
   ToastDescriptor,
   ToastInput,
+  ToastOptions,
+  ToastPromiseMessages,
 } from "./components/toast/use-toast";
 
 // UI Components - Sheet / Drawer (Radix Dialog with slide-from-edge animation)

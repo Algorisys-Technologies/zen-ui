@@ -15,6 +15,57 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.7.0] - 2026-11-25
+
+### Added
+
+- Select converged on Solid's data-driven form (the owner's decision: Solid
+  is the binding in production). React's `Select` renders the whole control
+  when given `options` — label, placeholder, errorMessage, invalid, required,
+  name, defaultOpen, onOpenChange, onChange(value | null), id on the trigger —
+  and is the unchanged Radix root without it. "" is keyed by a sentinel (Radix
+  refuses it). Controlled whenever the `value` KEY is passed, because Solid's
+  `value={v ?? undefined}` passes undefined first and React warned about the
+  uncontrolled → controlled switch. `SelectOption` is one type, shared with
+  BoundSelect. Vanilla gains onChange (beside onValueChange), required (the
+  hidden native select + aria-required), defaultOpen (opened once attached)
+  and onOpenChange; `<zen-select>` takes required / default-open and emits
+  zen-open-change. check:props found the vanilla gap as soon as React
+  declared a SelectProps interface to compare against.
+- Toast converged on Solid's calls. React and vanilla `toast()` take a
+  message (→ id) as well as a descriptor (→ { id, update, dismiss }), plus
+  `.success`, `.error`, `.loading` (spinner, sticky), `.dismiss`, `.remove`,
+  `.promise` and `{ id, duration }`. Reusing an id REPLACES the toast rather
+  than merging (a "Saved" that kept "Saving…"'s spinner or Infinity duration
+  never closed); reusing the id of one dismissed a moment ago removes it and
+  adds it afresh, since a closing vanilla item cannot reopen — React's store
+  does the same so the two cannot drift. `Toaster` takes Solid's `position`
+  (and `<zen-toaster position>`). Solid exports `ToastOptions`,
+  `ToastPromiseMessages` and `ToasterPosition`, typed from solid-toast, so
+  every binding has the three names.
+- Gantt `actualLayout="primary"`, every binding: on a row with actual dates
+  the ACTUAL bar is the button (status skin, % fill, click, the one
+  accessible name with both sets of dates, data-gantt-bar + data-gantt-actual)
+  on the row's middle, and the plan a dashed outline beneath
+  (data-gantt-plan). Connectors anchor to the actual placement. Its own track
+  component in each binding — in React chosen in renderTrack, so GanttTrack's
+  hooks never change order. `ganttActualLayout("primary")` is the strip's
+  geometry, pinned in check-gantt; check:schedule-dom asserts it in every
+  binding, both directions (936 assertions).
+
+### Changed
+
+- gen-agent-guide's divergences section and CLAUDE.md describe Select and
+  Toast as converged.
+
+### Fixed
+
+- Solid Gantt's legend memo raised a solid/reactivity warning (a false
+  positive: the describe callback runs synchronously inside the memo). It
+  shipped in 13.6.0 because lint was read by exit code, which ESLint keeps at
+  0 for warnings. Disabled at the site with the reason; all four bindings are
+  back to 0 problems.
+
 ## [13.6.0] - 2026-11-25
 
 ### Added

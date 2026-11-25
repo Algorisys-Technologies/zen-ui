@@ -44,7 +44,7 @@ real props; guessing prop names is how agents invent APIs.
 - [checkbox.md](checkbox.md) — `Checkbox`, `CheckboxProps`, `CheckboxSize`
 - [radio-group.md](radio-group.md) — `RadioGroup`, `RadioGroupItem`, `RadioGroupProps`, `RadioGroupItemProps`, `RadioSize`
 - [switch.md](switch.md) — `Switch`, `SwitchProps`, `SwitchSize`
-- [select.md](select.md) — `Select`, `SelectGroup`, `SelectValue`, `SelectTrigger`, `SelectContent`, `SelectLabel`, `SelectItem`, `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`
+- [select.md](select.md) — `Select`, `SelectGroup`, `SelectValue`, `SelectTrigger`, `SelectContent`, `SelectLabel`, `SelectItem`, `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`, `SelectProps`
 - [phone-input.md](phone-input.md) — `PhoneInput`, `PhoneInputProps`, `PhoneValue`
 - [phone-input.constants.md](phone-input.constants.md) — `COUNTRY_CODES`, `COUNTRY_NAMES`
 - [slider.md](slider.md) — `Slider`, `SliderProps`, `SliderMark`
@@ -89,8 +89,8 @@ real props; guessing prop names is how agents invent APIs.
 - [alert-dialog.md](alert-dialog.md) — `AlertDialog`, `AlertDialogTrigger`, `AlertDialogPortal`, `AlertDialogOverlay`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogFooter`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogAction`, `AlertDialogCancel`
 - [file-upload.md](file-upload.md) — `FileUpload`, `FileUploadProps`, `FileRejection`
 - [toast.md](toast.md) — `Toast`, `ToastProvider`, `ToastViewport`, `ToastTitle`, `ToastDescription`, `ToastAction`, `ToastClose`, `toastVariants`, `ToastProps`
-- [toaster.md](toaster.md) — `Toaster`
-- [use-toast.md](use-toast.md) — `useToast`, `toast`, `ToastDescriptor`, `ToastInput`
+- [toaster.md](toaster.md) — `Toaster`, `ToasterProps`, `ToasterPosition`
+- [use-toast.md](use-toast.md) — `useToast`, `toast`, `ToastDescriptor`, `ToastInput`, `ToastOptions`, `ToastPromiseMessages`
 - [sheet.md](sheet.md) — `Sheet`, `SheetTrigger`, `SheetClose`, `SheetPortal`, `SheetOverlay`, `SheetContent`, `SheetHeader`, `SheetFooter`, `SheetTitle`, `SheetDescription`, `sheetContentVariants`, `SheetContentProps`
 - [stack.md](stack.md) — `Stack`, `StackProps`
 - [theme-theme.md](theme-theme.md) — `Theme`, `ThemeProps`

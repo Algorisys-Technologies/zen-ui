@@ -158,6 +158,26 @@ export interface ToastInput {
   duration?: number;
   /** Extra class on the toast surface. */
   class?: string;
+  /** Work in progress — `toast.loading()`: a spinner beside the title. */
+  loading?: boolean;
+}
+
+/**
+ * Per-call options for the Solid-style calls — the parts of solid-toast's
+ * options that carry across. Reusing an `id` replaces that toast, which is
+ * how a "Saving…" toast becomes "Saved" in place.
+ */
+export interface ToastOptions {
+  id?: string;
+  /** ms. Default 5000; `toast.loading` defaults to sticky. */
+  duration?: number;
+}
+
+/** What `toast.promise` shows for each stage; a function gets the value or error. */
+export interface ToastPromiseMessages<T> {
+  loading: string | Node;
+  success: string | Node | ((value: T) => string | Node);
+  error: string | Node | ((error: unknown) => string | Node);
 }
 
 /** A toast as it lives in the store — the input plus its lifecycle fields. */
@@ -241,19 +261,29 @@ const nextId = () => {
   return String(counter);
 };
 
-/**
- * Fire a toast. Returns a handle to update or dismiss it — identical to React's
- * `toast()`.
- *
- *   const t = toast({ title: "Uploading…", duration: Infinity });
- *   t.update({ description: "50%" });
- *   t.update({ variant: "success", title: "Uploaded", duration: 4000 });
- */
-export function toast(input: ToastInput) {
-  const id = nextId();
+/** Add a toast, or — with an id that is already showing — replace it in place. */
+function show(input: ToastInput, id: string = nextId()) {
   const update = (next: ToastInput) => reducer({ type: "UPDATE", toast: { ...next, id } });
   const dismiss = () => reducer({ type: "DISMISS", id });
+  const existing = state.toasts.find((t) => t.id === id);
 
+  if (existing?.open) {
+    // Replaced, not merged: a "Saved" that inherited the "Saving…" spinner or
+    // its sticky duration would never go away.
+    reducer({
+      type: "UPDATE",
+      toast: { title: undefined, description: undefined, action: undefined, variant: undefined, duration: undefined, loading: undefined, class: undefined, ...input, id },
+    });
+    return { id, update, dismiss };
+  }
+  if (existing) {
+    // Dismissed a moment ago and still on its way out: drop it, and its pending
+    // removal, and show the new one fresh — a closing item does not reopen.
+    const pending = removeTimeouts.get(id);
+    if (pending) clearTimeout(pending);
+    removeTimeouts.delete(id);
+    reducer({ type: "REMOVE", id });
+  }
   reducer({
     type: "ADD",
     toast: {
@@ -265,9 +295,66 @@ export function toast(input: ToastInput) {
       },
     },
   });
-
   return { id, update, dismiss };
 }
+
+/** A message rather than a descriptor — the Solid call, `toast("Saved")`. */
+const isMessage = (input: unknown): input is string | Node =>
+  typeof input === "string" || (typeof Node !== "undefined" && input instanceof Node);
+
+function message(text: string | Node, extra: ToastInput, options: ToastOptions = {}): string {
+  return show({ title: text, duration: options.duration, ...extra }, options.id).id;
+}
+
+/**
+ * Fire a toast. Two call shapes, one store:
+ *
+ *   const t = toast({ title: "Uploading…", duration: Infinity });   // → { id, update, dismiss }
+ *   t.update({ variant: "success", title: "Uploaded", duration: 4000 });
+ *
+ *   toast("Saved");                                                  // → id, as in the Solid binding
+ *   toast.success("Profile updated");  toast.error("Couldn't save");
+ *   const id = toast.loading("Saving…");  …  toast.success("Saved", { id });
+ *   toast.promise(save(), { loading: "Saving…", success: "Saved", error: "Couldn't save" });
+ *
+ * The second shape is the Solid binding's (solid-toast's), so a call written
+ * for one binding works in the other.
+ */
+function toastFn(input: ToastInput): ReturnType<typeof show>;
+function toastFn(text: string | Node, options?: ToastOptions): string;
+function toastFn(input: ToastInput | string | Node, options?: ToastOptions) {
+  if (isMessage(input)) return message(input, {}, options);
+  return show(input);
+}
+
+export const toast = Object.assign(toastFn, {
+  success: (text: string | Node, options?: ToastOptions) => message(text, { variant: "success" }, options),
+  error: (text: string | Node, options?: ToastOptions) => message(text, { variant: "destructive" }, options),
+  /** Sticky until replaced (pass its id to success/error) or dismissed — solid-toast's default. */
+  loading: (text: string | Node, options?: ToastOptions) =>
+    message(text, { loading: true, duration: options?.duration ?? Infinity }, options),
+  /** Close one toast, or every toast with no id. */
+  dismiss: (id?: string) => reducer({ type: "DISMISS", id }),
+  /** Remove at once, with no exit animation. */
+  remove: (id?: string) => reducer({ type: "REMOVE", id }),
+  /** A loading toast that becomes success or error when the promise settles. Returns the promise. */
+  promise: <T>(promise: Promise<T>, messages: ToastPromiseMessages<T>, options?: ToastOptions): Promise<T> => {
+    const id = toast.loading(messages.loading, options);
+    promise.then(
+      (value) =>
+        toast.success(typeof messages.success === "function" ? messages.success(value) : messages.success, {
+          id,
+          duration: options?.duration,
+        }),
+      (error) =>
+        toast.error(typeof messages.error === "function" ? messages.error(error) : messages.error, {
+          id,
+          duration: options?.duration,
+        }),
+    );
+    return promise;
+  },
+});
 
 /** Dismiss one toast, or all of them when called with no id. */
 export function dismiss(id?: string) {
@@ -332,6 +419,19 @@ function createToastItem(initial: ToastDescriptor, loc: LocaleContextValue): Toa
   );
   close.innerHTML = CLOSE_ICON; // our own trusted markup — never a caller's string
   close.addEventListener("click", () => desc.onOpenChange(false));
+
+  // `toast.loading()`'s spinner. Decorative: the title says what is happening.
+  const spinner = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  spinner.setAttribute("aria-hidden", "true");
+  spinner.setAttribute("viewBox", "0 0 24 24");
+  spinner.setAttribute("fill", "none");
+  spinner.setAttribute("stroke", "currentColor");
+  spinner.setAttribute("stroke-width", "2");
+  spinner.setAttribute("stroke-linecap", "round");
+  spinner.setAttribute("class", "zen-mt-0.5 zen-h-4 zen-w-4 zen-shrink-0 zen-animate-spin");
+  const arc = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  arc.setAttribute("d", "M21 12a9 9 0 1 1-6.219-8.56");
+  spinner.append(arc);
 
   root.append(body, actionWrap, close);
 
@@ -445,6 +545,12 @@ function createToastItem(initial: ToastDescriptor, loc: LocaleContextValue): Toa
     }
 
     actionWrap.replaceChildren(...toNodes(desc.action));
+
+    if (desc.loading) {
+      if (!spinner.parentNode) root.prepend(spinner);
+    } else {
+      spinner.remove();
+    }
   };
 
   render();
@@ -484,8 +590,22 @@ function createToastItem(initial: ToastDescriptor, loc: LocaleContextValue): Toa
 /* Toaster — the viewport, mounted once near the root                         */
 /* -------------------------------------------------------------------------- */
 
+export type ToasterPosition = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+
+/** Where the stack sits — the Solid binding's `position` values. */
+const POSITION_CLASS: Record<ToasterPosition, string> = {
+  "top-left": "zen-top-0 zen-left-0",
+  "top-center": "zen-top-0 zen-left-1/2 -zen-translate-x-1/2",
+  "top-right": "zen-top-0 zen-right-0",
+  "bottom-left": "zen-bottom-0 zen-left-0",
+  "bottom-center": "zen-bottom-0 zen-left-1/2 -zen-translate-x-1/2",
+  "bottom-right": "zen-bottom-0 zen-right-0",
+};
+
 export interface ToasterProps extends BaseProps {
   class?: string;
+  /** Where the toasts stack. Default "top-right", as it always was. */
+  position?: ToasterPosition;
 }
 
 /**
@@ -504,7 +624,8 @@ export function Toaster(props: ToasterProps = {}): ZenComponent<ToasterProps> {
 
   const applyClass = () => {
     viewport.className = cn(
-      "zen-fixed zen-top-0 zen-right-0 zen-z-[100] zen-flex zen-max-h-screen zen-w-full zen-flex-col zen-p-4",
+      "zen-fixed zen-z-[100] zen-flex zen-max-h-screen zen-w-full zen-flex-col zen-p-4",
+      POSITION_CLASS[current.position ?? "top-right"],
       "md:zen-max-w-sm",
       current.class,
     );

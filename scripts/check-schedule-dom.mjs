@@ -457,7 +457,43 @@ for (const id of wanted) {
               ).length,
             };
           }
-          return { strip: charts[0] ?? [], split: charts[1] ?? [], labels };
+          /* "primary": the ACTUAL bar is the main one — the button, centred
+             where the arrows route — and the plan a dashed outline beneath. */
+          let primary = null;
+          const third = root.querySelectorAll('[role="treegrid"]')[2];
+          if (third) {
+            const rowsP = [...third.querySelectorAll('[role="row"]')].filter((r) => r.querySelector("[data-gantt-bar]"));
+            const bars = rowsP.map((r) => {
+              const row = r.getBoundingClientRect();
+              const main = r.querySelector("[data-gantt-bar]");
+              const m = main.getBoundingClientRect();
+              const plan = r.querySelector("[data-gantt-plan]")?.getBoundingClientRect() ?? null;
+              return {
+                actual: main.hasAttribute("data-gantt-actual"),
+                centred: Math.abs((m.top + m.bottom) / 2 - (row.top + row.bottom) / 2) < 1,
+                planBelow: plan === null ? null : plan.top >= m.bottom - 0.5 && plan.bottom <= row.bottom + 0.5,
+                start: getComputedStyle(third).direction === "rtl" ? m.right : m.left,
+                midY: (m.top + m.bottom) / 2,
+              };
+            });
+            const rtl = getComputedStyle(third).direction === "rtl";
+            const svg = [...third.querySelectorAll("svg")].sort((x, y) => y.getBoundingClientRect().width - x.getBoundingClientRect().width)[0];
+            const box = svg.getBoundingClientRect();
+            const tips = [...svg.querySelectorAll("polygon")].map((poly) => {
+              const [x, y] = poly.getAttribute("points").split(" ")[0].split(",").map(Number);
+              return { x: rtl ? box.right - x : box.left + x, y: box.top + y };
+            });
+            const landed = tips.map((tip) => bars.find((b) => Math.abs(b.midY - tip.y) < 2 && Math.abs(b.start - tip.x) < 1.5));
+            primary = {
+              actualMain: bars.filter((b) => b.actual).length,
+              planOnly: bars.filter((b) => !b.actual).length,
+              centred: bars.every((b) => b.centred),
+              planBelow: bars.filter((b) => b.actual).every((b) => b.planBelow === true),
+              arrows: tips.length,
+              arrowsOnBar: landed.filter(Boolean).length,
+            };
+          }
+          return { strip: charts[0] ?? [], split: charts[1] ?? [], labels, primary };
         });
         if (pva === null) {
           console.log("  (no planned-vs-actual chart on this route — NOT PORTED for actuals)");
@@ -468,6 +504,14 @@ for (const id of wanted) {
           t("every actual bar sits below its planned bar, inside the row", all.every((b) => b.below && b.inside), true);
           t("…hidden from assistive tech, its dates in the planned bar's name", all.every((b) => b.hidden && b.named), true);
           t(`running work is marked open (${all.filter((b) => b.open).length})`, all.some((b) => b.open) && all.some((b) => !b.open), true);
+          if (pva.primary === null) {
+            console.log("  (no primary-layout chart on this route — NOT PORTED for actualLayout=primary)");
+          } else {
+            const p = pva.primary;
+            t(`primary: the actual bar is the main one (${p.actualMain} rows; ${p.planOnly} plan-only)`, p.actualMain >= 4 && p.planOnly >= 1, true);
+            t("primary: every main bar centred, its plan outlined beneath", p.centred && p.planBelow, true);
+            t(`primary: arrows end on the main bar (${p.arrowsOnBar} of ${p.arrows})`, p.arrows > 0 && p.arrowsOnBar === p.arrows, true);
+          }
           if (pva.labels === null) {
             console.log("  (no project-board chart on this route — NOT PORTED for bar labels)");
           } else {

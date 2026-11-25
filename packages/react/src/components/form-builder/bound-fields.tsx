@@ -229,11 +229,10 @@ export function BoundTextarea<TFields extends FieldValues = FieldValues>({
 
 /* ----------------------------- BoundSelect --------------------------- */
 
-export interface SelectOption {
-  value: string;
-  label: React.ReactNode;
-  disabled?: boolean;
-}
+/* One type for both: BoundSelect's options are Select's options, and the
+   public `SelectOption` has always been this shape. */
+import type { SelectOption } from "../form/select/select";
+export type { SelectOption };
 
 export interface BoundSelectProps<TFields extends FieldValues = FieldValues> {
   name: Path<TFields>;

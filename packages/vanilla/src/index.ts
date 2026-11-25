@@ -236,7 +236,7 @@ export type { ObjectPageLayoutProps, ObjectPageSection, ObjectPageSubSection } f
 export { DynamicDateRange } from "./components/form/dynamic-date-range/dynamic-date-range";
 export type { DynamicDateRangeProps } from "./components/form/dynamic-date-range/dynamic-date-range";
 export { Toaster, toast, dismiss, ToastAction, toastVariants } from "./components/toast/toaster";
-export type { ToastInput, ToastDescriptor, ToasterProps, ToastActionProps, ToastVariant } from "./components/toast/toaster";
+export type { ToastInput, ToastDescriptor, ToasterProps, ToasterPosition, ToastOptions, ToastPromiseMessages, ToastActionProps, ToastVariant } from "./components/toast/toaster";
 
 export { RichText, renderMath } from "./components/rich-text/rich-text";
 export type { RichTextProps } from "./components/rich-text/rich-text";

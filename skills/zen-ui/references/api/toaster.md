@@ -4,7 +4,7 @@
 
 # toaster — API (React, the parity reference)
 
-Exports: `Toaster`
+Exports: `Toaster`, `ToasterProps`, `ToasterPosition`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-toaster>`-style
@@ -13,4 +13,12 @@ SKILL.md.
 
 ### Toaster
 
-- No zen-specific props; forwards the underlying element/primitive props.
+- `position?: ToasterPosition | undefined` — Where the toasts stack. Default "top-right", as it always was.
+
+### Other exports
+
+- `ToasterPosition` = `"bottom-right" | "bottom-left" | "top-right" | "top-left" | "top-center" | "bottom-center"`
+
+### Types
+
+- `ToasterProps` — type (see the component above)

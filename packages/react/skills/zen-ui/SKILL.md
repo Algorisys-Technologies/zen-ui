@@ -91,11 +91,17 @@ missing export:
   each family as ONE factory (or one `<zen-*>` element) that takes data — there
   is nothing to name the parts. Do not import `DialogContent` from
   `@algorisys/zen-ui-vanilla`; it does not exist by design.
-- **Select.** React exports the Radix compound parts
-  (`SelectTrigger`, `SelectContent`, `SelectItem`, …). Solid, vanilla and
-  web-components export a single `Select` that takes an `options` array.
-- **Toast.** React wraps Radix Toast primitives; Solid uses solid-toast. Both
-  expose an imperative `toast()` plus a viewport, but the primitive API differs.
+- **Select.** Every binding takes the data-driven form —
+  `<Select options={…} label placeholder onChange />`, where `onChange` gets the
+  value string or null. Write that; it runs anywhere. React ALSO exports the
+  Radix compound parts (`SelectTrigger`, `SelectContent`, `SelectItem`, …),
+  which exist only there.
+- **Toast.** Every binding takes the Solid binding's calls: `toast("Saved")`,
+  `toast.success`, `toast.error`, `toast.loading` (pass its id to
+  `toast.success(msg, { id })` to replace it), `toast.promise`,
+  `toast.dismiss(id)`, plus a `<Toaster position>`. Write those. React and
+  vanilla also take `toast({ title, description, variant })`, which Solid
+  does not.
 
 Same component, all four idioms:
 
@@ -142,7 +148,8 @@ document.body.append(btn.el);
 | Import error: `DialogContent` not exported (vanilla/wc) | Compound parts are React/Solid-only — use the family's single factory/element |
 | Chart / RichText / Map / Camera renders nothing | Optional peer dep not installed |
 | A `zen-*` class you wrote has no effect | Consumer builds don't generate prefixed utilities — use tokens or your own classes |
-| Select code from a React example fails in Solid | API divergence — Solid's `Select` takes `options` |
+| Select code from a React example fails in Solid | It used React-only compound parts — use `<Select options={…} />`, which every binding takes |
+| `toast({ title })` does nothing in Solid | The object form is React/vanilla-only — use `toast("…")` / `toast.success("…")` |
 
 ## References
 

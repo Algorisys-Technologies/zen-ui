@@ -13,6 +13,8 @@ import { CodeExample } from "./demo-helpers";
 
 const NewSelectDemo: React.FC = () => {
   const [fruit, setFruit] = useState("");
+  const [country, setCountry] = useState<string | null>(null);
+  const [scope, setScope] = useState<string | null>("");
   return (
     <div className="demo-page">
       <h1>Select (new — Radix-backed)</h1>
@@ -241,6 +243,63 @@ const NewSelectDemo: React.FC = () => {
                 <SelectItem value="net60">Net 60</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </CodeExample>
+      </section>
+
+      <section className="demo-section">
+        <h2>8. Data-driven: an options list</h2>
+        <CodeExample
+          title="options, label, onChange — the same call as the Solid and vanilla bindings"
+          description="Pass options and the trigger, list, label and error message are drawn for you, so a form written for the Solid or vanilla binding reads the same here. onChange hands back the chosen value string, or null. An option whose value is the empty string, such as All, works and can be chosen again. errorMessage marks the trigger invalid and is read with it: choose Mine to see it. Without options, Select is the compound Radix root shown above."
+          code={`const [country, setCountry] = useState<string | null>(null);
+
+<Select
+  label="Country"
+  placeholder="Choose a country"
+  options={[
+    { value: "us", label: "United States" },
+    { value: "ca", label: "Canada" },
+    { value: "uk", label: "United Kingdom" },
+    { value: "au", label: "Australia" },
+  ]}
+  value={country ?? undefined}
+  onChange={setCountry}
+/>
+
+<Select
+  label="Scope"
+  options={[{ value: "", label: "All" }, { value: "mine", label: "Mine" }]}
+  value={scope ?? undefined}
+  onChange={setScope}
+  errorMessage={scope === "mine" ? "Only a manager can narrow the scope" : undefined}
+/>`}
+        >
+          <div className="zen-flex zen-flex-wrap zen-gap-6" data-testid="select-options">
+            <Select
+              className="zen-w-64"
+              label="Country"
+              placeholder="Choose a country"
+              options={[
+                { value: "us", label: "United States" },
+                { value: "ca", label: "Canada" },
+                { value: "uk", label: "United Kingdom" },
+                { value: "au", label: "Australia" },
+              ]}
+              value={country ?? undefined}
+              onChange={setCountry}
+            />
+            <Select
+              className="zen-w-64"
+              label="Scope"
+              options={[
+                { value: "", label: "All" },
+                { value: "mine", label: "Mine" },
+              ]}
+              value={scope ?? undefined}
+              onChange={setScope}
+              errorMessage={scope === "mine" ? "Only a manager can narrow the scope" : undefined}
+            />
           </div>
         </CodeExample>
       </section>

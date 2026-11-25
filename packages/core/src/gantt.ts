@@ -1660,9 +1660,12 @@ export function flattenGanttTasks<T extends GanttTaskNode>(
 /**
  * How a row with an actual bar is laid out. "strip" (the default) keeps the
  * planned bar exactly where it always was and adds a slim actual bar in the
- * space below it; "split" gives the two bars equal weight, one above the other.
+ * space below it; "split" gives the two bars equal weight, one above the other;
+ * "primary" makes the ACTUAL bar the main one — full size, on the row's middle,
+ * where the arrows meet it — with the plan a slim outline beneath (the
+ * baseline view of Microsoft Project and its kin).
  */
-export type GanttActualLayout = "strip" | "split";
+export type GanttActualLayout = "strip" | "split" | "primary";
 
 export interface GanttActualGeometry {
   barTop: number;
@@ -1695,6 +1698,9 @@ export function ganttActualLayout(
     const room = Math.max(2, Math.floor(Math.min(barPx, mid - 3)));
     return { barTop: mid - 1 - room, barHeight: room, actualTop: mid + 1, actualHeight: room };
   }
+  // "primary" is the strip with the roles swapped: the MAIN bar (there, the
+  // actual one) is drawn at barTop, the slim one (the plan) beneath. The same
+  // numbers, so the arrows meet the main bar on the row's middle either way.
   const slack = barTop; // the same below the bar as above it
   const gap = slack >= 6 ? 2 : slack >= 3 ? 1 : 0;
   const actualHeight = Math.max(2, Math.min(6, Math.floor(slack - gap - 1)));

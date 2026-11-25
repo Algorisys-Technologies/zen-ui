@@ -198,6 +198,9 @@ export interface GanttProps extends BaseProps {
    *
    * "strip" (default) keeps the planned bar where it always was and draws the
    * actual one slim beneath it. "split" draws two equal bars, plan above.
+   * "primary" makes the actual bar the main one — status colour, % fill, the
+   * click and the arrows — with the plan a slim dashed outline beneath; a task
+   * with no actual dates is drawn as usual.
    */
   actualLayout?: GanttActualLayout;
   /**
@@ -649,6 +652,9 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     placement: PlanningPlacement | null,
   ): Array<Node | AnyZenComponent> {
     const task = row.task;
+    /* "primary": the actual bar IS the bar — its own builder, so the default
+       path below stays exactly as it was. Only rows with actual dates take it. */
+    if (current.actualLayout === "primary" && row.actual && !task.milestone) return primaryTrack(row, axis, placement);
     /* Where the planned and actual bars sit. In "strip" the planned bar is
        exactly where it always was; only "split" moves it, and only then. */
     const geo = ganttActualLayout(rowHeightOf(), barPxOf(), current.actualLayout ?? "strip");
@@ -991,6 +997,170 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
     return out;
   }
 
+  /**
+   * A row in the "primary" layout: the ACTUAL bar is the main one — the button,
+   * full size on the row's middle where the arrows meet it, in the status colour
+   * with the % fill — and the plan is a slim dashed outline beneath, a reference
+   * rather than a second bar to read. The same hooks as any bar (data-gantt-bar,
+   * not tabbable, the same click, one accessible name with both sets of dates).
+   */
+  function primaryTrack(
+    row: Row,
+    axis: ScheduleAxis,
+    placement: PlanningPlacement | null,
+  ): Array<Node | AnyZenComponent> {
+    const task = row.task;
+    const actual = row.actual!;
+    // The strip's places: the main bar at barTop, the slim one beneath.
+    const geo = ganttActualLayout(rowHeightOf(), barPxOf(), "primary");
+    const main = placeAppointment(actual, axis.range);
+    const actualText = actual.open
+      ? loc.t("gantt.actualRunning", { start: formatDay(actual.start) })
+      : loc.t("gantt.actualSpan", { start: formatDay(actual.start), end: formatDay(actual.end) });
+    const tone = current.statusColor?.(task, row) || undefined;
+    const color = current.actualBarColor?.(task) || tone;
+    const plannedLabel = current.barLabel?.(task, row) || undefined;
+    const actualLabel = current.actualBarLabel?.(task, row) || undefined;
+    const progress = row.progress ?? 0;
+    const mainLabel = actualLabel ?? (row.progress !== null ? `${Math.round(progress)}%` : null);
+    const beside = (node: HTMLElement, startPct: number, widthPct: number, text: string) => {
+      if (((100 - startPct - widthPct) / 100) * axis.axisWidth < ganttLabelPx(text)) {
+        node.style.insetInlineEnd = `calc(${100 - startPct}% + 4px)`;
+      } else {
+        node.style.insetInlineStart = `calc(${startPct + widthPct}% + 4px)`;
+      }
+    };
+    const out: Array<Node | AnyZenComponent> = [];
+
+    // The plan, as an outline: where the work was meant to sit.
+    if (placement) {
+      const plan = el(
+        "span",
+        cn(
+          "zen-pointer-events-none zen-absolute zen-rounded-zen-sm zen-border zen-border-dashed zen-border-zen-muted-fg",
+          placement.clippedStart && "zen-rounded-s-none",
+          placement.clippedEnd && "zen-rounded-e-none",
+          current.barClassName?.(task),
+        ),
+      );
+      plan.setAttribute("aria-hidden", "true");
+      plan.setAttribute("data-gantt-plan", "");
+      plan.style.insetInlineStart = `${placement.startPct}%`;
+      plan.style.width = `${placement.widthPct}%`;
+      plan.style.top = `${geo.actualTop}px`;
+      plan.style.height = `${geo.actualHeight}px`;
+      out.push(plan);
+      if (plannedLabel) {
+        const label = el(
+          "span",
+          "zen-pointer-events-none zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg",
+          plannedLabel,
+        );
+        label.setAttribute("aria-hidden", "true");
+        beside(label, placement.startPct, placement.widthPct, plannedLabel);
+        label.style.top = `${geo.actualTop}px`;
+        label.style.height = `${geo.actualHeight}px`;
+        out.push(label);
+      }
+    }
+
+    if (!main) {
+      out.push(el("span", "zen-sr-only", `${loc.t(row.span ? "gantt.notInRange" : "gantt.noDates")}, ${actualText}`));
+      return out;
+    }
+
+    const bar = el(
+      "button",
+      cn(
+        "zen-absolute zen-overflow-hidden zen-rounded-zen-sm zen-border",
+        "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+        !color && BAR_CLASS[row.status],
+        main.clippedStart && "zen-rounded-s-none zen-border-s-0",
+        (main.clippedEnd || actual.open) && "zen-rounded-e-none",
+        current.onTaskClick && "hover:zen-brightness-95",
+        current.actualBarClassName?.(task),
+      ),
+    );
+    bar.type = "button";
+    bar.tabIndex = -1;
+    bar.setAttribute("data-gantt-bar", "");
+    bar.setAttribute("data-gantt-actual", "");
+    if (actual.open) bar.setAttribute("data-gantt-actual-open", "");
+    bar.style.insetInlineStart = `${main.startPct}%`;
+    bar.style.width = `${main.widthPct}%`;
+    bar.style.top = `${geo.barTop}px`;
+    bar.style.height = `${geo.barHeight}px`;
+    if (color) softSkin(bar, color);
+    // The tooltip: the task, what actually happened, then the plan — every part already translated.
+    bar.title = [
+      task.name,
+      actualText,
+      row.span
+        ? loc.t("gantt.barSpan", {
+            start: formatDay(row.span.start),
+            end: formatDay(row.span.end),
+            status: loc.t(STATUS_LABEL[row.status]),
+          })
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    bar.addEventListener("click", () => current.onTaskClick?.(task, row));
+    bar.append(
+      el(
+        "span",
+        "zen-sr-only",
+        `${
+          row.span
+            ? loc.t(row.progress === null ? "gantt.barSpan" : "gantt.barSpanProgress", {
+                start: formatDay(row.span.start),
+                end: formatDay(row.span.end),
+                status: loc.t(STATUS_LABEL[row.status]),
+                percent: Math.round(progress),
+              })
+            : loc.t("gantt.noDates")
+        }, ${actualText}`,
+      ),
+    );
+    if (row.progress !== null) {
+      const fill = el("span", cn("zen-absolute zen-inset-y-0 zen-start-0", !color && FILL_CLASS[row.status]));
+      fill.setAttribute("aria-hidden", "true");
+      fill.style.width = `${progress}%`;
+      if (color) fill.style.backgroundColor = color;
+      bar.append(fill);
+    }
+    const mainWidthPx = (main.widthPct / 100) * axis.axisWidth;
+    const labelInside =
+      !!mainLabel && (actualLabel ? ganttLabelFits(mainLabel, mainWidthPx) : mainWidthPx >= LABEL_MIN_PX);
+    if (mainLabel && labelInside) {
+      const label = pill(mainLabel);
+      label.setAttribute("aria-hidden", "true");
+      bar.append(label);
+    }
+    const accent = current.barAccent?.(task);
+    if (accent) {
+      const stripe = el("span", "zen-absolute zen-inset-y-0 zen-start-0 zen-w-1 zen-rounded-s-zen-sm");
+      stripe.setAttribute("aria-hidden", "true");
+      stripe.setAttribute("data-gantt-accent", "");
+      stripe.style.backgroundColor = accent;
+      bar.append(stripe);
+    }
+    out.push(bar);
+    if (mainLabel && !labelInside) {
+      const label = el(
+        "span",
+        "zen-pointer-events-none zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg",
+        mainLabel,
+      );
+      label.setAttribute("aria-hidden", "true");
+      beside(label, main.startPct, main.widthPct, mainLabel);
+      label.style.top = `${geo.barTop}px`;
+      label.style.height = `${geo.barHeight}px`;
+      out.push(label);
+    }
+    return out;
+  }
+
   /* The key. Built from the rows when asked for with `true`: the label each
      row's chip shows and the colour it is drawn in, once each. A list, so it
      is read as one. */
@@ -1131,7 +1301,14 @@ export function Gantt(props: GanttProps): ZenComponent<GanttProps> {
          right tip instead of disappearing under it at the centre. */
       const halfPct = axis.axisWidth > 0 ? (barPxOf() / 2 / axis.axisWidth) * 100 : 0;
       for (const [id, index] of flat.rowIndexById) {
-        const placement = placements.get(index);
+        /* In the "primary" layout the arrows meet the ACTUAL bar — it is the
+           main one, on the row's middle. A row with no actual (or one
+           off-screen) keeps its planned bar, as everywhere else. */
+        const row = flat.rows[index];
+        const placement =
+          (current.actualLayout === "primary" && row?.actual && !row.task.milestone
+            ? placeAppointment(row.actual, axis.range)
+            : null) ?? placements.get(index);
         if (!placement) continue;
         if (flat.rows[index]?.task.milestone) {
           anchors.set(id, { rowIndex: index, startPct: placement.startPct - halfPct, widthPct: 2 * halfPct });

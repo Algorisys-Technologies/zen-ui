@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.7.0",
+    date: "2026-11-25",
+    kind: "new",
+    title: "Select and Toast are written the same way in every binding",
+    detail: "<Select options> and toast(\"Saved\"), toast.success, toast.loading and toast.promise now work in React, vanilla and web components as they do in Solid. The old forms keep working.",
+  },
+  {
+    version: "13.7.0",
+    date: "2026-11-25",
+    kind: "new",
+    title: "Gantt can make the actual bar the main one",
+    detail: "actualLayout=\"primary\" draws when the work really ran as the main bar, with the status and the arrows, and the plan as a dashed outline beneath.",
+  },
+  {
     version: "13.6.0",
     date: "2026-11-25",
     kind: "new",

@@ -239,6 +239,9 @@ export interface GanttProps {
    *
    * "strip" (default) keeps the planned bar where it always was and draws the
    * actual one slim beneath it. "split" draws two equal bars, plan above.
+   * "primary" makes the actual bar the main one — status colour, % fill, the
+   * click and the arrows — with the plan a slim dashed outline beneath; a task
+   * with no actual dates is drawn as usual.
    */
   actualLayout?: GanttActualLayout;
   /**
@@ -704,7 +707,13 @@ export const Gantt = ({
        right tip instead of disappearing under it at the centre. */
     const halfPct = axisWidth > 0 ? (barPx / 2 / axisWidth) * 100 : 0;
     for (const [id, index] of rowIndexById) {
-      const placement = placements.get(index);
+      /* In the "primary" layout the arrows meet the ACTUAL bar — it is the main
+         one, on the row's middle. A row with no actual (or one off-screen)
+         keeps its planned bar, as everywhere else. */
+      const row = rows[index];
+      const placement =
+        (actualLayout === "primary" && row?.actual && !row.task.milestone ? placeAppointment(row.actual, range) : null) ??
+        placements.get(index);
       if (!placement) continue;
       if (rows[index]?.task.milestone) {
         anchors.set(id, { rowIndex: index, startPct: placement.startPct - halfPct, widthPct: 2 * halfPct });
@@ -713,7 +722,7 @@ export const Gantt = ({
       }
     }
     return ganttConnectors(anchors, dependencies, { axisWidth, rowHeight });
-  }, [showDependencies, dependencies, rowIndexById, placements, rows, axisWidth, rowHeight, barPx]);
+  }, [showDependencies, dependencies, rowIndexById, placements, rows, axisWidth, rowHeight, barPx, actualLayout, range]);
 
   const setView = (next: GanttView) => {
     /* Leaving fit re-anchors, when the anchor is nowhere near the plan.
@@ -733,7 +742,28 @@ export const Gantt = ({
   };
 
   const renderTrack = React.useCallback(
-    (row: Row, width: number) => (
+    (row: Row, width: number) =>
+      /* "primary": the actual bar IS the bar — its own component (not a branch
+         inside GanttTrack, whose hooks must run in the same order whether or
+         not a row has actual dates yet). Only rows with actual dates take it. */
+      actualLayout === "primary" && row.actual && !row.task.milestone ? (
+        <PrimaryTrack
+          row={row}
+          range={range}
+          axisWidth={width}
+          placement={placements.get(row.index) ?? null}
+          onTaskClick={onTaskClick}
+          rowHeight={rowHeight}
+          barPx={barPx}
+          barClass={barClassName?.(row.task) || undefined}
+          accent={barAccent?.(row.task) || undefined}
+          tone={statusColor?.(row.task, row) || undefined}
+          plannedLabel={barLabel?.(row.task, row) || undefined}
+          actualLabel={actualBarLabel?.(row.task, row) || undefined}
+          actualClass={actualBarClassName?.(row.task) || undefined}
+          actualColor={actualBarColor?.(row.task) || undefined}
+        />
+      ) : (
       <GanttTrack
         row={row}
         range={range}
@@ -752,7 +782,7 @@ export const Gantt = ({
         actualClass={actualBarClassName?.(row.task) || undefined}
         actualColor={actualBarColor?.(row.task) || undefined}
       />
-    ),
+      ),
     [
       range,
       placements,
@@ -1341,6 +1371,200 @@ const GanttTrack = ({
         </span>
       )}
       {actualBar}
+    </>
+  );
+};
+
+/**
+ * A row in the "primary" layout: the ACTUAL bar is the main one — the button,
+ * full size on the row's middle where the arrows meet it, in the status colour
+ * with the % fill — and the plan is a slim dashed outline beneath, a reference
+ * rather than a second bar to read. The same hooks as any bar (data-gantt-bar,
+ * not tabbable, the same click, one accessible name with both sets of dates),
+ * so the keyboard model and the DOM checks treat it as one.
+ */
+const PrimaryTrack = ({
+  row,
+  range,
+  axisWidth,
+  placement,
+  onTaskClick,
+  rowHeight,
+  barPx,
+  barClass,
+  accent,
+  tone,
+  plannedLabel,
+  actualLabel,
+  actualClass,
+  actualColor,
+}: {
+  row: Row;
+  range: PlanningRange;
+  axisWidth: number;
+  placement: PlanningPlacement | null;
+  onTaskClick?: (task: GanttTask, row: Row) => void;
+  rowHeight: number;
+  barPx: number;
+  barClass?: string;
+  accent?: string;
+  tone?: string;
+  plannedLabel?: string;
+  actualLabel?: string;
+  actualClass?: string;
+  actualColor?: string;
+}) => {
+  const loc = useLocale();
+  const { task } = row;
+  const actual = row.actual!;
+  // The strip's places: the main bar at barTop, the slim one beneath.
+  const geo = ganttActualLayout(rowHeight, barPx, "primary");
+  const main = placeAppointment(actual, range);
+  const actualText = actual.open
+    ? loc.t("gantt.actualRunning", { start: formatDay(actual.start) })
+    : loc.t("gantt.actualSpan", { start: formatDay(actual.start), end: formatDay(actual.end) });
+  const progress = row.progress ?? 0;
+  const pct = `${Math.round(progress)}%`;
+  const color = actualColor ?? tone;
+  const mainLabel = actualLabel ?? (row.progress !== null ? pct : null);
+  const mainWidthPx = main ? (main.widthPct / 100) * axisWidth : 0;
+  const labelInside = !!mainLabel && (actualLabel ? ganttLabelFits(mainLabel, mainWidthPx) : mainWidthPx >= LABEL_MIN_PX);
+  const sideOf = (startPct: number, widthPct: number, text: string) =>
+    ((100 - startPct - widthPct) / 100) * axisWidth < ganttLabelPx(text) ? "before" : "after";
+  /** The tooltip: the task, what actually happened, then the plan — every part already translated. */
+  const title = [
+    task.name,
+    actualText,
+    row.span
+      ? loc.t("gantt.barSpan", {
+          start: formatDay(row.span.start),
+          end: formatDay(row.span.end),
+          status: loc.t(STATUS_LABEL[row.status]),
+        })
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const besideStyle = (startPct: number, widthPct: number, text: string): React.CSSProperties =>
+    sideOf(startPct, widthPct, text) === "before"
+      ? { insetInlineEnd: `calc(${100 - startPct}% + 4px)` }
+      : { insetInlineStart: `calc(${startPct + widthPct}% + 4px)` };
+
+  return (
+    <>
+      {/* The plan, as an outline: where the work was meant to sit. */}
+      {placement && (
+        <>
+          <span
+            aria-hidden="true"
+            data-gantt-plan=""
+            className={cn(
+              "zen-pointer-events-none zen-absolute zen-rounded-zen-sm zen-border zen-border-dashed zen-border-zen-muted-fg",
+              placement.clippedStart && "zen-rounded-s-none",
+              placement.clippedEnd && "zen-rounded-e-none",
+              barClass,
+            )}
+            style={{
+              insetInlineStart: `${placement.startPct}%`,
+              width: `${placement.widthPct}%`,
+              top: geo.actualTop,
+              height: geo.actualHeight,
+            }}
+          />
+          {plannedLabel && (
+            <span
+              aria-hidden="true"
+              className="zen-pointer-events-none zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg"
+              style={{ ...besideStyle(placement.startPct, placement.widthPct, plannedLabel), top: geo.actualTop, height: geo.actualHeight }}
+            >
+              {plannedLabel}
+            </span>
+          )}
+        </>
+      )}
+
+      {!main ? (
+        <span className="zen-sr-only">
+          {row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}
+          {`, ${actualText}`}
+        </span>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => onTaskClick?.(task, row)}
+            tabIndex={-1}
+            data-gantt-bar=""
+            data-gantt-actual=""
+            data-gantt-actual-open={actual.open ? "" : undefined}
+            className={cn(
+              "zen-absolute zen-overflow-hidden zen-rounded-zen-sm zen-border",
+              "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+              !color && BAR_CLASS[row.status],
+              main.clippedStart && "zen-rounded-s-none zen-border-s-0",
+              (main.clippedEnd || actual.open) && "zen-rounded-e-none",
+              onTaskClick && "hover:zen-brightness-95",
+              actualClass,
+            )}
+            style={{
+              insetInlineStart: `${main.startPct}%`,
+              width: `${main.widthPct}%`,
+              top: geo.barTop,
+              height: geo.barHeight,
+              ...(color ? softSkin(color) : {}),
+            }}
+            title={title}
+          >
+            <span className="zen-sr-only">
+              {row.span
+                ? loc.t(row.progress === null ? "gantt.barSpan" : "gantt.barSpanProgress", {
+                    start: formatDay(row.span.start),
+                    end: formatDay(row.span.end),
+                    status: loc.t(STATUS_LABEL[row.status]),
+                    percent: Math.round(progress),
+                  })
+                : loc.t("gantt.noDates")}
+              {`, ${actualText}`}
+            </span>
+            {row.progress !== null && (
+              <span
+                aria-hidden="true"
+                className={cn("zen-absolute zen-inset-y-0 zen-start-0", !color && FILL_CLASS[row.status])}
+                style={{ width: `${progress}%`, ...(color ? { backgroundColor: color } : {}) }}
+              />
+            )}
+            {labelInside && (
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium",
+                  LABEL_PILL_CLASS,
+                )}
+                style={LABEL_PILL_STYLE}
+              >
+                {mainLabel}
+              </span>
+            )}
+            {accent && (
+              <span
+                aria-hidden="true"
+                data-gantt-accent=""
+                className="zen-absolute zen-inset-y-0 zen-start-0 zen-w-1 zen-rounded-s-zen-sm"
+                style={{ backgroundColor: accent }}
+              />
+            )}
+          </button>
+          {mainLabel && !labelInside && (
+            <span
+              aria-hidden="true"
+              className="zen-pointer-events-none zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg"
+              style={{ ...besideStyle(main.startPct, main.widthPct, mainLabel), top: geo.barTop, height: geo.barHeight }}
+            >
+              {mainLabel}
+            </span>
+          )}
+        </>
+      )}
     </>
   );
 };

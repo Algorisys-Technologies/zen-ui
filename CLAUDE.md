@@ -350,12 +350,16 @@ its demos):
   2026-07-21 by `check:parity`, which prints all four — read them from there
   rather than from this line). Every binding ships the same components. The real
   deltas:
-  - **Toast** — a genuine API divergence, not a missing port: React wraps Radix
-    Toast primitives, Solid uses solid-toast. Decide whether to converge the API
-    before "porting" it.
-  - **Select** — React exports the Radix compound parts (`SelectTrigger`,
-    `SelectContent`, …); Solid exports a single `Select` with `options`. Also a
-    divergence rather than a gap.
+  - **Toast** — converged on Solid's calls (13.7.0; the owner's decision, since
+    Solid is the binding in production). Every binding takes `toast("…")`,
+    `toast.success/.error/.loading/.promise/.dismiss/.remove` with `{ id,
+    duration }`, and `<Toaster position>`. React and vanilla also keep the
+    object form `toast({ title, description, variant })` returning `{ id,
+    update, dismiss }`; Solid (solid-toast) does not have it.
+  - **Select** — converged on Solid's data-driven form (13.7.0): every binding
+    takes `<Select options label placeholder onChange errorMessage invalid
+    required defaultOpen onOpenChange />`. React also keeps the Radix compound
+    parts (`SelectTrigger`, …), which exist only there.
   - **Prop types** — closed. The gap read as ~33 names, but only **6** were
     real (a type that existed and was simply not exported: `TableProps` in
     React; `CameraProps`, `MapProps`, `PaginationProps`, `RichTextProps`,

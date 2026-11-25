@@ -4,7 +4,7 @@
 
 # select — API (React, the parity reference)
 
-Exports: `Select`, `SelectGroup`, `SelectValue`, `SelectTrigger`, `SelectContent`, `SelectLabel`, `SelectItem`, `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`
+Exports: `Select`, `SelectGroup`, `SelectValue`, `SelectTrigger`, `SelectContent`, `SelectLabel`, `SelectItem`, `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`, `SelectProps`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-select>`-style
@@ -13,8 +13,9 @@ SKILL.md.
 
 ### Select
 
-- `invalid?: boolean | undefined` — Marked invalid without a message (the form shows its own): the trigger's aria-invalid and the error border.
-- from `@radix-ui/react-select`: `children?`, `open?`, `defaultOpen?`, `onOpenChange?`, `dir?`, `name?`, `autoComplete?`, `disabled?`, `required?`, `form?`, `value?`, `defaultValue?`, `onValueChange?`
+- `invalid?: boolean | undefined` — Marked invalid without a message (the form shows its own): the trigger's aria-invalid and the error border. Marked invalid without a message (the form shows its own): aria-invalid and the error border.
+- `options?: SelectOption[] | undefined`
+- from `@radix-ui/react-select`: `defaultOpen?`, `onOpenChange?`, `name?`, `disabled?`, `required?`, `value?`, `defaultValue?`
 
 ### SelectGroup
 
@@ -65,3 +66,7 @@ SKILL.md.
 
 - from `@radix-ui/react-primitive`: `asChild?`
 - …plus the underlying element's standard props (280 inherited).
+
+### Types
+
+- `SelectProps` — type (see the component above)
