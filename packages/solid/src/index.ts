@@ -495,6 +495,7 @@ export { ScrollArea, ScrollBar } from "./components/scroll-area/scroll-area";
 export type { ScrollAreaProps } from "./components/scroll-area/scroll-area";
 
 export { Toaster, toast } from "./components/toast/toaster";
+export type { ToasterPosition, ToastOptions, ToastPromiseMessages } from "./components/toast/toaster";
 
 // ---------------------------------------------------------------------------
 // Tier 3 — special-lib + custom components

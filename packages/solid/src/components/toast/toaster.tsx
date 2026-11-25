@@ -1,3 +1,4 @@
+import type { JSX } from "solid-js";
 import { Toaster as SolidToaster, toast as solidToast } from "solid-toast";
 
 /**
@@ -16,7 +17,20 @@ import { Toaster as SolidToaster, toast as solidToast } from "solid-toast";
  * through toastOptions.style.
  */
 
-export const Toaster = (props: { position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right" }) => (
+/** Where the toasts stack — the same six values every binding's Toaster takes. */
+export type ToasterPosition = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
+
+/** Per-call options: `toast.success("Saved", { id, duration })`. solid-toast's own type. */
+export type ToastOptions = NonNullable<Parameters<typeof solidToast>[1]>;
+
+/** What `toast.promise` shows for each stage; a function gets the value or error. */
+export interface ToastPromiseMessages<T> {
+  loading: JSX.Element | string;
+  success: JSX.Element | string | ((value: T) => JSX.Element | string);
+  error: JSX.Element | string | ((error: unknown) => JSX.Element | string);
+}
+
+export const Toaster = (props: { position?: ToasterPosition }) => (
   <SolidToaster
     position={props.position ?? "top-right"}
     toastOptions={{

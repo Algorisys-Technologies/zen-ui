@@ -4,7 +4,7 @@
 
 # use-toast — API (React, the parity reference)
 
-Exports: `useToast`, `toast`, `ToastDescriptor`, `ToastInput`
+Exports: `useToast`, `toast`, `ToastDescriptor`, `ToastInput`, `ToastOptions`, `ToastPromiseMessages`
 
 Solid mirrors these props. Vanilla takes the same props as a factory argument
 (handle out, `.el` is the node); web-components as `<zen-use-toast>`-style
@@ -19,6 +19,7 @@ SKILL.md.
 - `action?: React.ReactNode`
 - `variant?: "info" | "default" | "success" | "warning" | "destructive" | null | undefined`
 - `duration?: number | undefined` — Time before auto-dismiss, ms. Default 5_000. Pass `Infinity` for sticky.
+- `loading?: boolean | undefined` — Work in progress — `toast.loading()`: a spinner beside the title.
 - `open: boolean`
 - `onOpenChange: (open: boolean) => void`
 
@@ -29,8 +30,15 @@ SKILL.md.
 - `action?: React.ReactNode`
 - `variant?: "info" | "default" | "success" | "warning" | "destructive" | null | undefined`
 - `duration?: number | undefined`
+- `loading?: boolean | undefined` — Work in progress: a spinner beside the title.
+
+### ToastOptions (type)
+
+- `id?: string | undefined`
+- `duration?: number | undefined` — ms. Default 5_000; `toast.loading` defaults to sticky.
 
 ### Other exports
 
-- `useToast(): { toasts: ToastDescriptor[]; toast: (input: ToastInput) => { id: string; update: (next: ToastInput) => void; dismiss: () => void; }; dismiss: (id?: string) => void; }`
-- `toast(input: ToastInput): { id: string; update: (next: ToastInput) => void; dismiss: () => void; }`
+- `useToast(…)`
+- `toast(input: ToastInput): ReturnType<typeof show>`
+- `ToastPromiseMessages` = `ToastPromiseMessages<T>`

@@ -52,8 +52,19 @@ export interface SelectProps {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
+  /**
+   * The chosen value — the Solid binding's name for the same event, so a form
+   * written for Solid reads the same here. Called alongside `onValueChange`.
+   */
+  onChange?: (value: string | null) => void;
   placeholder?: string;
   disabled?: boolean;
+  /** The hidden native select is required, so a form will not submit without a value. */
+  required?: boolean;
+  /** Open the list when the select mounts, as an inline editor does. */
+  defaultOpen?: boolean;
+  /** The list opened or closed. */
+  onOpenChange?: (open: boolean) => void;
   name?: string;
   id?: string;
   /** Rendered above the trigger and wired with `for`. */
@@ -92,7 +103,10 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
   const state = controllable<string>({
     value: current.value,
     defaultValue: current.defaultValue ?? "",
-    onChange: (v) => current.onValueChange?.(v),
+    onChange: (v) => {
+      current.onValueChange?.(v);
+      current.onChange?.(v);
+    },
   });
 
   const trigger = document.createElement("button");
@@ -127,6 +141,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     if (!open) return;
     open = false;
     trigger.setAttribute("aria-expanded", "false");
+    current.onOpenChange?.(false);
     setPresence(listbox, "closed", () => {
       // Reopened mid-exit: the exit animation is cancelled, which lands here
       // too, after the list is open again. Hiding it then left an open, empty select.
@@ -141,6 +156,7 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
     if (open || current.disabled) return;
     open = true;
     trigger.setAttribute("aria-expanded", "true");
+    current.onOpenChange?.(true);
     listbox.hidden = false;
     setPresence(listbox, "open");
 
@@ -176,6 +192,10 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
       // Read through `current` where they are used; not attributes for the wrapper.
       value: _v,
       onValueChange: _ovc,
+      onChange: _oc,
+      onOpenChange: _ooc,
+      defaultOpen: _do,
+      required,
       "aria-label": ariaLabel,
       "aria-labelledby": ariaLabelledBy,
       "aria-describedby": ariaDescribedBy,
@@ -300,6 +320,10 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
       items.push(item);
     }
 
+    hidden.required = !!required;
+    if (required) trigger.setAttribute("aria-required", "true");
+    else trigger.removeAttribute("aria-required");
+
     el.append(trigger, hidden, listbox);
 
     if (errorMessage) {
@@ -345,6 +369,14 @@ export function Select(props: SelectProps): ZenComponent<SelectProps> {
 
   render();
   disposer.add(state.subscribe(paintValue));
+  /* Opened once the caller has placed it: a list opened while the select is
+     still detached could not take focus, and focus is what makes it usable. */
+  if (current.defaultOpen) {
+    const frame = requestAnimationFrame(() => {
+      if (el.isConnected) openList();
+    });
+    disposer.add(() => cancelAnimationFrame(frame));
+  }
   disposer.add(() => trigger.removeEventListener("click", onTriggerClick));
   disposer.add(() => trigger.removeEventListener("keydown", onTriggerKey));
   disposer.add(() => openScope.dispose());

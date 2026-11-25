@@ -146,33 +146,35 @@ function show(input: ToastInput, id: string = nextId()) {
     reducer({ type: "UPDATE", toast: { ...next, id } });
   const dismiss = () => reducer({ type: "DISMISS", id });
 
-  if (state.toasts.some((t) => t.id === id)) {
-    // A toast dismissed a moment ago is still waiting to be removed; reusing
-    // its id brings it back, so the pending removal must not take it.
-    const pending = removeTimeouts.get(id);
-    if (pending) {
-      clearTimeout(pending);
-      removeTimeouts.delete(id);
-    }
+  const existing = state.toasts.find((t) => t.id === id);
+  if (existing?.open) {
     // Replaced, not merged: a "Saved" that inherited the "Saving…" spinner or
     // its sticky duration would never go away.
     reducer({
       type: "UPDATE",
-      toast: { title: undefined, description: undefined, action: undefined, variant: undefined, duration: undefined, loading: undefined, ...input, id, open: true },
+      toast: { title: undefined, description: undefined, action: undefined, variant: undefined, duration: undefined, loading: undefined, ...input, id },
     });
-  } else {
-    reducer({
-      type: "ADD",
-      toast: {
-        ...input,
-        id,
-        open: true,
-        onOpenChange: (open) => {
-          if (!open) dismiss();
-        },
-      },
-    });
+    return { id, update, dismiss };
   }
+  if (existing) {
+    // Dismissed a moment ago and still on its way out: drop it, and its pending
+    // removal, and show the new one fresh.
+    const pending = removeTimeouts.get(id);
+    if (pending) clearTimeout(pending);
+    removeTimeouts.delete(id);
+    reducer({ type: "REMOVE", id });
+  }
+  reducer({
+    type: "ADD",
+    toast: {
+      ...input,
+      id,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dismiss();
+      },
+    },
+  });
   return { id, update, dismiss };
 }
 

@@ -142,7 +142,7 @@ export type {
   ThemeProps, Direction, DirectionProviderProps, Message, MessageType, MessagePopoverProps,
   LocaleProviderProps, LocaleSettings, LocaleContextValue, MessageKey, ZenMessages,
   ThemeName, TimePickerHandle, TimePickerProps, ToastActionProps, ToastDescriptor, ToastInput,
-  ToastVariant, ToasterProps, ToggleButtonProps, ToolbarAction, ToolbarProps, TooltipHandle,
+  ToastOptions, ToastPromiseMessages, ToastVariant, ToasterPosition, ToasterProps, ToggleButtonProps, ToolbarAction, ToolbarProps, TooltipHandle,
   DocumentTab, DocumentTabsProps,
   FilterBuilderProps, FilterField, FilterGroup, FilterNode, FilterCondition, FilterOperator,
   TooltipProps, TooltipSide, TreeNode, TreeProps, TreeTableCellContext, TreeTableColumn, TreeTableProps,
