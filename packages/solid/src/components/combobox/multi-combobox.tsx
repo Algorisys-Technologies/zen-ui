@@ -213,7 +213,8 @@ export const MultiCombobox = (rawProps: MultiComboboxProps) => {
             "zen-z-50 zen-min-w-44 zen-overflow-hidden zen-rounded-zen-md zen-border zen-bg-zen-background zen-p-1 zen-text-zen-foreground zen-shadow-md",
           )}
         >
-          <KCombobox.Listbox class="zen-max-h-72 zen-overflow-y-auto" />
+          {/* The Listbox is a <ul>: without preflight it keeps the browser's 40px inline padding and 1em block margin. */}
+          <KCombobox.Listbox class="zen-m-0 zen-p-0 zen-list-none zen-max-h-72 zen-overflow-y-auto" />
           <Show when={(props.options ?? []).length === 0}>
             <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">
               {props.emptyMessage ?? loc.t("combobox.noResults")}

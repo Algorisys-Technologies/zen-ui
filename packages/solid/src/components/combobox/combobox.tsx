@@ -306,7 +306,8 @@ export const Combobox = (rawProps: ComboboxProps) => {
           <Show when={asyncLoading()}>
             <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">{loc.t("combobox.searching")}</div>
           </Show>
-          <KCombobox.Listbox class="zen-max-h-72 zen-overflow-y-auto" />
+          {/* The Listbox is a <ul>: without preflight it keeps the browser's 40px inline padding and 1em block margin. */}
+          <KCombobox.Listbox class="zen-m-0 zen-p-0 zen-list-none zen-max-h-72 zen-overflow-y-auto" />
           <Show when={effectiveOptions().length === 0 && !asyncLoading()}>
             <div class="zen-py-1.5 zen-px-2 zen-text-sm zen-text-zen-muted-fg">
               {props.emptyMessage ?? loc.t("combobox.noResults")}

@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.5.1",
+    date: "2026-11-25",
+    kind: "fixed",
+    title: "Solid dropdown lists sit flush with their panel",
+    detail: "Select, Combobox and MultiCombobox lists in Solid were pushed about 40px in from the left, with empty space above and below. That space is gone.",
+  },
+  {
     version: "13.5.0",
     date: "2026-11-20",
     kind: "improved",
