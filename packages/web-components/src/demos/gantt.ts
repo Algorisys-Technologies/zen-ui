@@ -859,7 +859,7 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
         title: "19. Planned vs actual",
         codeTitle: "\"actualStart\" and \"actualEnd\" on a task",
         codeDescription:
-          "A task's start and end are the plan. Give it actualStart when the work really begins and actualEnd when it really finishes, and a second bar shows the actual period under the planned one. Work still running has an actual bar that ends at now, with a square end because it has not finished yet. A task that has not started has no actual bar, so a plan that slipped past without anyone starting it is easy to spot. By default the actual dates also set the status and the slip: a finished task with no percentage given is complete, a running one is on track until its planned end passes, and the variance column shows how many days the actual finish (or today, for late running work) is past the planned end. An explicit status, percentComplete or baselineEnd still wins, and deriveFromActuals={false} turns this off and only draws the bar. actualLayout split gives the two bars equal weight instead, and actualBarColor or actualBarClassName restyle the actual bar. Tasks without actual dates look exactly as before.",
+          "A task's start and end are the plan. Give it actualStart when the work really begins and actualEnd when it really finishes, and a second bar shows the actual period under the planned one. Work still running has an actual bar that ends at now, with a square end because it has not finished yet. A task that has not started has no actual bar, so a plan that slipped past without anyone starting it is easy to spot. By default the actual dates also set the status and the slip: a finished task with no percentage given is complete, a running one is on track until its planned end passes, and the variance column shows how many days the actual finish (or today, for late running work) is past the planned end. An explicit status, percentComplete or baselineEnd still wins, and deriveFromActuals={false} turns this off and only draws the bar. actualLayout split gives the two bars equal weight instead, and actualLayout primary makes the actual bar the main one, with the status colour, the percentage, the click and the dependency arrows, and shows the plan as a dashed outline beneath it, as Microsoft Project's baseline view does. actualBarColor or actualBarClassName restyle the actual bar. Tasks without actual dates look exactly as before.",
         code: `<zen-gantt
   columns='["name", "status", "variance"]'
   tasks='[
@@ -876,7 +876,10 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
 <script>
   // A function, so a property rather than an attribute.
   document.querySelectorAll("zen-gantt")[1].actualBarColor = () => "var(--zen-color-accent-purple)";
-</script>`,
+</script>
+
+<!-- The actual bar as the main one, the plan an outline beneath -->
+<zen-gantt actual-layout="primary" tasks='…'></zen-gantt>`,
         render: () => {
           const box = document.createElement("div");
           box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
@@ -897,7 +900,10 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
           });
           split.setAttribute("default-view", "month");
           split.setAttribute("actual-layout", "split");
-          box.append(strip, split);
+          const primary = gantt({ tasks: ACTUAL_PLAN, dependencies: ACTUAL_LINKS, now: NOW, defaultDate: NOW });
+          primary.setAttribute("default-view", "month");
+          primary.setAttribute("actual-layout", "primary");
+          box.append(strip, split, primary);
           return box;
         },
       },
