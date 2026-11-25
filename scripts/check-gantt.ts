@@ -43,6 +43,8 @@ import {
   ganttTaskStatus,
   ganttActual,
   ganttActualLayout,
+  ganttLabelFits,
+  ganttLegendItems,
   ganttVarianceDays,
   shiftGanttAnchor,
   type GanttAnchoredView,
@@ -1297,6 +1299,50 @@ console.log("\nplanned vs actual — where the two bars sit in a row");
     );
   }
   t(examined, cases.length, `examined ${examined} row sizes`);
+  // A taller row (for a label on each bar) gets two FULL bars, not two thin ones.
+  t(ganttActualLayout(64, 18, "split").barHeight, 18, "a 64px row splits into two full 18px bars");
+}
+
+console.log("\nmonth view in weeks — opt-in");
+{
+  const day = ganttColumns("month", at(2026, 11, 15), { now: at(2026, 11, 20) });
+  t(day.length, 30, "the default month is still one column per day");
+  const weeks = ganttColumns("month", at(2026, 11, 15), { now: at(2026, 11, 20), monthUnit: "week" });
+  // November 2026 starts on a Sunday: a one-day stub, then Monday weeks.
+  t(weeks.map((c) => c.label), ["1", "2–8", "9–15", "16–22", "23–29", "30"], "calendar weeks clipped to the month");
+  t(iso(weeks[0].start), "2026-11-01 00:00", "the first column starts on the 1st");
+  t(iso(weeks[weeks.length - 1].end), "2026-12-01 00:00", "the last ends where the month does");
+  t(
+    weeks.every((c, i) => i === 0 || c.start.getTime() === weeks[i - 1].end.getTime()),
+    true,
+    "the columns tile the month — no gap, no overlap",
+  );
+  t(weeks.filter((c) => c.today).map((c) => c.label), ["16–22"], "today's week is marked");
+  t(weeks[1].sublabel, "Nov", "each week names its month");
+  t(ganttColumns("week", at(2026, 11, 15), { monthUnit: "week" }).length, 7, "other views ignore it");
+}
+
+console.log("\nbar labels and the legend");
+{
+  t(ganttLabelFits("50%", 44), true, "a short label fits a normal bar");
+  t(ganttLabelFits("Planned (16–20 Nov) – 100%", 80), false, "a long one does not fit a short bar — it goes beside it");
+  t(ganttLabelFits("", 8), true, "an empty label fits anything with room for padding");
+  const rows = [
+    { label: "In progress", color: "orange" },
+    { label: "Complete", color: "green" },
+    { label: "In progress", color: "orange" },
+    { label: "In progress", color: "red" },
+  ];
+  t(
+    ganttLegendItems(rows, (r) => r),
+    [
+      { label: "In progress", color: "orange" },
+      { label: "Complete", color: "green" },
+      { label: "In progress", color: "red" },
+    ],
+    "one entry per label AND colour, first appearance first",
+  );
+  t(ganttLegendItems([], (r: { label: string; color: string }) => r), [], "no rows, no legend entries");
 }
 
 console.log(f === 0 ? "\nall passed\n" : `\n${f} FAILED\n`);

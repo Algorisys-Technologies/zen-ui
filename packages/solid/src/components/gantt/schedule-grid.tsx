@@ -104,6 +104,10 @@ const FIT_MIN_COLUMN_PX: Record<GanttColumnUnit, number> = {
  * that bar" a question about the browser, while shrinking it is simply the
  * alternative to dragging the chart sideways to see Thursday.
  */
+/** A week column of a month drawn in weeks (`monthUnit: "week"`): wide enough
+ *  for a label on a bar, which is why anyone asks for it. Floor, then ceiling. */
+const MONTH_WEEK_PX = { min: 64, max: 180 };
+
 const MIN_COLUMN_PX: Record<GanttAnchoredView, number> = {
   day: 34,
   week: 44,
@@ -189,6 +193,11 @@ export interface ScheduleAxisInput {
   continuous?: boolean;
   /** The plan's span, for a continuous axis; null when nothing has dates. */
   plan?: PlanningRange | null;
+  /**
+   * The month view's columns: "day" (default) or "week". Anchored month only —
+   * a continuous axis zooms by its own unit and Fit chooses its own.
+   */
+  monthUnit?: "day" | "week";
 }
 
 export interface ScheduleAxis {
@@ -254,12 +263,21 @@ export function createScheduleAxis(input: () => ScheduleAxisInput): ScheduleAxis
     continuous() ? ganttContinuousRange(anchoredView(), input().plan ?? null, input().anchor) : null,
   );
   const anchoredRange = createMemo(() => ganttRange(anchoredView(), input().anchor));
+  /** The anchored month, drawn in weeks. Sized as weeks, grouped as weeks. */
+  const monthWeeks = () =>
+    input().monthUnit === "week" && !isFit() && !continuous() && anchoredView() === "month";
   const range = createMemo(() => input().fitRange ?? continuousRange()?.range ?? anchoredRange());
 
   const columns = createMemo(() => {
     const fit = input().fitRange;
     const unit = fitUnit();
-    const options = { now: input().now, calendar: input().calendar, hourStep: effectiveHourStep(), grouped: input().grouped };
+    const options = {
+      now: input().now,
+      calendar: input().calendar,
+      hourStep: effectiveHourStep(),
+      grouped: input().grouped,
+      monthUnit: monthWeeks() ? ("week" as const) : undefined,
+    };
     const whole = continuousRange();
     if (whole) return ganttRangeColumns(whole.range, ganttViewUnit(anchoredView()), options);
     return fit && unit
@@ -277,6 +295,7 @@ export function createScheduleAxis(input: () => ScheduleAxisInput): ScheduleAxis
     const width = input().columnWidth;
     if (width !== undefined) return columns().length * width;
     const unit = fitUnit();
+    if (monthWeeks()) return columns().length * MONTH_WEEK_PX.min;
     return unit
       ? columns().length * FIT_MIN_COLUMN_PX[unit]
       : columns().length * MIN_COLUMN_PX[anchoredView()];
@@ -284,6 +303,7 @@ export function createScheduleAxis(input: () => ScheduleAxisInput): ScheduleAxis
   const ceilingAxis = createMemo(() => {
     const width = input().columnWidth;
     if (width !== undefined) return columns().length * width;
+    if (monthWeeks()) return columns().length * MONTH_WEEK_PX.max;
     return fitUnit() ? Number.POSITIVE_INFINITY : columns().length * COLUMN_PX[anchoredView()];
   });
 
@@ -324,7 +344,7 @@ export function createScheduleAxis(input: () => ScheduleAxisInput): ScheduleAxis
     return width > 0 ? (range().end.getTime() - range().start.getTime()) / width : 0;
   });
 
-  const unit = (): GanttColumnUnit => fitUnit() ?? ganttViewUnit(anchoredView());
+  const unit = (): GanttColumnUnit => fitUnit() ?? (monthWeeks() ? "week" : ganttViewUnit(anchoredView()));
 
   const clamped = () => continuousRange()?.clamped ?? false;
 
@@ -440,6 +460,8 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
 
   views?: GanttView[];
   hideToolbar?: boolean;
+  /** A row of its own under the toolbar — the legend. Drawn even with the toolbar hidden. */
+  legend?: JSX.Element;
   onViewChange: (view: GanttView) => void;
   onDateChange: (date: Date) => void;
 
@@ -903,6 +925,11 @@ export function ScheduleGrid<R extends ScheduleRowShape>(props: ScheduleGridProp
           </div>
         </div>
       </Show>
+
+      {/* Its own row, not squeezed into the toolbar: a key of five or six
+          entries beside the view switcher wrapped the switcher onto a line of
+          its own at ordinary widths. */}
+      <Show when={props.legend}>{props.legend}</Show>
 
       {/* ONE scroller. The frozen pane is sticky at the inline start and the
           header sticky at the top, so vertical scroll moves both panes and

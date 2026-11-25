@@ -653,6 +653,14 @@ export interface GanttColumnOptions extends PlanningColumnOptions {
    * which is not context but the column's own name. Off by default.
    */
   grouped?: boolean;
+  /**
+   * What one column of the MONTH view is. "day" (the default, and what it
+   * always was) or "week": the month in calendar weeks, clipped to the month
+   * so the first and last can be short, labelled with their dates — "1–7",
+   * "8–14" — and the month beneath. Room for a label on every bar, at the cost
+   * of day-level precision. Other views ignore it.
+   */
+  monthUnit?: "day" | "week";
 }
 
 /** Rewrites `nonWorking` from the calendar. A column counts as non-working when
@@ -670,6 +678,29 @@ export function ganttColumns(
   options: GanttColumnOptions = {},
 ): PlanningColumn[] {
   const { calendar } = options;
+  if (view === "month" && options.monthUnit === "week") {
+    const now = options.now ?? new Date();
+    const { start, end } = ganttRange(view, anchor);
+    const columns: PlanningColumn[] = [];
+    for (let d = start; d.getTime() < end.getTime(); ) {
+      const nextMonday = addDays(startOfWeek(d), 7);
+      const next = nextMonday.getTime() < end.getTime() ? nextMonday : end;
+      const last = addDays(next, -1);
+      columns.push({
+        start: d,
+        end: next,
+        // "1–7": a range, because a week column is a span the reader measures
+        // a bar against, not a point. One-day stubs (a month ending on a Monday)
+        // say just their date.
+        label: last.getDate() === d.getDate() ? String(d.getDate()) : `${d.getDate()}–${last.getDate()}`,
+        sublabel: options.grouped ? "" : shortMonth(d),
+        nonWorking: false,
+        today: now.getTime() >= d.getTime() && now.getTime() < next.getTime(),
+      });
+      d = next;
+    }
+    return calendar ? applyCalendar(columns, calendar) : columns;
+  }
   if (view !== "quarter" && view !== "year") {
     const columns = planningColumns(view, anchor, options);
     return calendar ? applyCalendar(columns, calendar) : columns;
@@ -1659,13 +1690,71 @@ export function ganttActualLayout(
   const barTop = (rowHeight - barPx) / 2;
   if (layout === "split") {
     const mid = rowHeight / 2;
-    const room = Math.max(2, Math.floor(Math.min(barPx * 0.7, mid - 2)));
+    // Each bar is a full bar when the row has room (a taller rowHeight, for a
+    // label on each), and shrinks to keep a 2px margin when it does not.
+    const room = Math.max(2, Math.floor(Math.min(barPx, mid - 3)));
     return { barTop: mid - 1 - room, barHeight: room, actualTop: mid + 1, actualHeight: room };
   }
   const slack = barTop; // the same below the bar as above it
   const gap = slack >= 6 ? 2 : slack >= 3 ? 1 : 0;
   const actualHeight = Math.max(2, Math.min(6, Math.floor(slack - gap - 1)));
   return { barTop, barHeight: barPx, actualTop: barTop + barPx + gap, actualHeight };
+}
+
+/**
+ * The status colours as CSS values — what a legend swatch or a caller's own
+ * key draws, so it matches the bars without naming a utility class.
+ */
+export const GANTT_STATUS_COLOR: Record<GanttTaskStatus, string> = {
+  "not-started": "var(--zen-color-neutral)",
+  "on-track": "var(--zen-color-info)",
+  delayed: "var(--zen-color-error)",
+  complete: "var(--zen-color-success)",
+};
+
+/**
+ * Whether a label fits INSIDE a bar `widthPx` wide, with 4px either side.
+ *
+ * An estimate, deliberately: ~6px a character at the schedule's 11–12px label
+ * size. Measuring the DOM would need a layout pass per bar per scroll frame,
+ * and the cost of guessing short is only that a label sits beside its bar
+ * instead of on it — which is exactly where a label that does not fit goes.
+ */
+export function ganttLabelFits(text: string, widthPx: number): boolean {
+  return ganttLabelPx(text) <= widthPx;
+}
+
+/** The estimated width of a label — `ganttLabelFits`' measure, for deciding
+ *  which side of a bar an outside label has room on. */
+export function ganttLabelPx(text: string): number {
+  return text.length * 6 + 8;
+}
+
+export interface GanttLegendItem {
+  label: string;
+  /** Any CSS colour. */
+  color: string;
+}
+
+/**
+ * A legend built from the chart: one entry per distinct label-and-colour among
+ * the rows, in the order they first appear. Only what is ON the chart — a key
+ * listing four statuses for a plan that shows two is noise to decode.
+ */
+export function ganttLegendItems<R>(
+  rows: readonly R[],
+  describe: (row: R) => GanttLegendItem,
+): GanttLegendItem[] {
+  const seen = new Set<string>();
+  const out: GanttLegendItem[] = [];
+  for (const row of rows) {
+    const item = describe(row);
+    const key = `${item.label}\u0000${item.color}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
 }
 
 /** Where a bar sits: its row, and its placement on the shared axis. */
