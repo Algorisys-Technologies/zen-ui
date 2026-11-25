@@ -493,7 +493,26 @@ for (const id of wanted) {
               arrowsOnBar: landed.filter(Boolean).length,
             };
           }
-          return { strip: charts[0] ?? [], split: charts[1] ?? [], labels, primary };
+          /* Milestones with an actual date: a second, smaller diamond beneath
+             the main one — the date hit (strip, split) or the plan (primary) —
+             inside the row; and none on a milestone that has not been hit. */
+          const milestoneMarks = [...root.querySelectorAll('[role="treegrid"]')].map((g) =>
+            [...g.querySelectorAll('[role="row"]')]
+              .filter((r) => r.querySelector("[data-gantt-milestone]"))
+              .map((r) => {
+                const row = r.getBoundingClientRect();
+                const main = r.querySelector("[data-gantt-milestone]");
+                const m = main.getBoundingClientRect();
+                const mark = r.querySelector("[data-gantt-actual]:not([data-gantt-milestone]), [data-gantt-plan]");
+                const k = mark?.getBoundingClientRect();
+                return {
+                  hit: /actual/.test(main.querySelector(".zen-sr-only")?.textContent ?? ""),
+                  kind: mark ? (mark.hasAttribute("data-gantt-plan") ? "plan" : "actual") : null,
+                  placed: k ? k.top >= m.bottom - 0.5 && k.bottom <= row.bottom + 0.5 && k.height >= 2 : null,
+                };
+              }),
+          );
+          return { strip: charts[0] ?? [], split: charts[1] ?? [], labels, primary, milestoneMarks };
         });
         if (pva === null) {
           console.log("  (no planned-vs-actual chart on this route — NOT PORTED for actuals)");
@@ -504,6 +523,15 @@ for (const id of wanted) {
           t("every actual bar sits below its planned bar, inside the row", all.every((b) => b.below && b.inside), true);
           t("…hidden from assistive tech, its dates in the planned bar's name", all.every((b) => b.hidden && b.named), true);
           t(`running work is marked open (${all.filter((b) => b.open).length})`, all.some((b) => b.open) && all.some((b) => !b.open), true);
+          const marks = pva.milestoneMarks ?? [];
+          const hitCount = marks.flat().filter((m) => m.hit).length;
+          if (hitCount === 0) {
+            console.log("  (no hit milestone on this route — NOT PORTED for milestone actual markers)");
+          } else {
+            const expect = (chart, kind) => (chart ?? []).every((m) => (m.hit ? m.kind === kind && m.placed : m.kind === null));
+            t(`a hit milestone is marked beneath, strip and split (${hitCount} hit)`, expect(marks[0], "actual") && expect(marks[1], "actual"), true);
+            t("…and in primary the plan is the marker beneath", expect(marks[2], "plan"), true);
+          }
           if (pva.primary === null) {
             console.log("  (no primary-layout chart on this route — NOT PORTED for actualLayout=primary)");
           } else {

@@ -740,6 +740,7 @@ export const DEFAULT_MESSAGES = {
   "gantt.noDates": "No dates",
   "gantt.actualSpan": "actual {start} to {end}",
   "gantt.actualRunning": "actual from {start}, in progress",
+  "gantt.actualOn": "actual {date}",
   "gantt.legend": "Legend",
   "gantt.projectSchedule": "Project schedule",
   "scheduleGrid.views.fit": "Fit",

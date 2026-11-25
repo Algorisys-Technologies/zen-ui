@@ -33,6 +33,13 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.8.0",
+    date: "2026-11-25",
+    kind: "new",
+    title: "Gantt milestones show when they were actually reached",
+    detail: "Give a milestone actualEnd and a small diamond marks the date it was reached beneath the planned one. It counts as complete, and the variance shows how late it was.",
+  },
+  {
     version: "13.7.0",
     date: "2026-11-25",
     kind: "new",

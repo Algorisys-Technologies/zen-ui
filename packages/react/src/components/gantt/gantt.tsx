@@ -7,6 +7,7 @@ import {
   ganttLabelFits,
   ganttLabelPx,
   ganttLegendItems,
+  ganttMilestoneLayout,
   ganttConnectors,
   ganttFitRange,
   nowPct,
@@ -329,7 +330,9 @@ export interface GanttProps {
 import { ganttBarPx, scheduleRowPx, type Density } from "@algorisys/zen-ui-core/density";
 /** Bars sit at a fixed offset rather than flex-centred, so a bar's centre is
  *  exactly ROW_PX / 2 — which is the y the connector routes are computed at. */
-const barTop = (rowHeight: number, barPx: number) => (rowHeight - barPx) / 2;
+/* Bars and diamonds sit at a fixed offset rather than flex-centred, so their
+   centre is exactly the row's middle — the y the connector routes are computed
+   at. The offsets come from core's ganttActualLayout / ganttMilestoneLayout. */
 
 /**
  * The frozen pane's columns. Fixed widths, because a sticky pane cannot be
@@ -700,6 +703,18 @@ export const Gantt = ({
     return map;
   }, [rows, range]);
 
+  /** In "primary", where a row with actual dates is drawn: its actual bar, or
+   *  for a milestone the diamond on the date it was hit. */
+  const primaryAnchor = React.useCallback(
+    (row: Row): PlanningPlacement | null => {
+      if (!row.actual) return null;
+      if (!row.task.milestone) return placeAppointment(row.actual, range);
+      const at = nowPct(range, row.actual.start);
+      return at === null ? null : { startPct: at, widthPct: 0, clippedStart: false, clippedEnd: false };
+    },
+    [range],
+  );
+
   const connectors = React.useMemo(() => {
     if (!showDependencies || !dependencies || dependencies.length === 0) return [];
     const anchors = new Map<string, GanttBarAnchor>();
@@ -712,7 +727,7 @@ export const Gantt = ({
          keeps its planned bar, as everywhere else. */
       const row = rows[index];
       const placement =
-        (actualLayout === "primary" && row?.actual && !row.task.milestone ? placeAppointment(row.actual, range) : null) ??
+        (actualLayout === "primary" && row?.actual ? primaryAnchor(row) : null) ??
         placements.get(index);
       if (!placement) continue;
       if (rows[index]?.task.milestone) {
@@ -722,7 +737,7 @@ export const Gantt = ({
       }
     }
     return ganttConnectors(anchors, dependencies, { axisWidth, rowHeight });
-  }, [showDependencies, dependencies, rowIndexById, placements, rows, axisWidth, rowHeight, barPx, actualLayout, range]);
+  }, [showDependencies, dependencies, rowIndexById, placements, rows, axisWidth, rowHeight, barPx, actualLayout, primaryAnchor]);
 
   const setView = (next: GanttView) => {
     /* Leaving fit re-anchors, when the anchor is nowhere near the plan.
@@ -1187,6 +1202,112 @@ const GanttTrack = ({
     </>
   );
 
+  /* A milestone: one date, drawn as a diamond centred on it. The same hooks as
+     a bar — data-gantt-bar, not tabbable, the same click — so the keyboard
+     model, the focus effect and the DOM checks treat it as one. The diamond is
+     a square turned 45 degrees, sized so its diagonal is the bar height; its
+     colour is the status FILL (solid), so a point stands out among soft bars.
+     shrink-0 because the flex button would otherwise squeeze it to a sliver.
+     An accent is a border INSIDE the diamond: a ring outside it would push
+     past the tips the dependency arrows end on. */
+  if (task.milestone) {
+    /* Where the diamonds sit: the main one on the row's middle, the second — the
+       date it was actually hit, or in "primary" the plan — smaller, beneath. */
+    const mgeo = ganttMilestoneLayout(rowHeight, barPx, actualLayout);
+    const primaryMilestone = actualLayout === "primary" && !!row.actual;
+    const actualPct = row.actual ? nowPct(range, row.actual.start) : null;
+    const plannedPct = placement?.startPct ?? null;
+    const mainPct = primaryMilestone ? actualPct : plannedPct;
+    const markPct = primaryMilestone ? plannedPct : actualPct;
+    const actualOn = row.actual ? loc.t("gantt.actualOn", { date: formatDay(row.actual.start) }) : null;
+    const markColor = actualColor ?? tone;
+    return (
+      <>
+        {row.span && mainPct !== null ? (
+          <button
+            type="button"
+            onClick={() => onTaskClick?.(task, row)}
+            tabIndex={-1}
+            data-gantt-bar=""
+            data-gantt-milestone=""
+            data-gantt-actual={primaryMilestone ? "" : undefined}
+            className={cn(
+              "zen-absolute zen-flex zen-items-center zen-justify-center zen-rounded-zen-sm",
+              "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
+            )}
+            style={{
+              insetInlineStart: `calc(${mainPct}% - ${mgeo.mainSize / 2}px)`,
+              top: mgeo.mainTop,
+              width: mgeo.mainSize,
+              height: mgeo.mainSize,
+            }}
+            // The tooltip as it always read — the name and the date — plus the actual date.
+            title={[task.name, formatDay(row.span.start), actualOn].filter(Boolean).join(" · ")}
+          >
+            <span className="zen-sr-only">
+              {[
+                loc.t("gantt.milestone", {
+                  date: formatDay(row.span.start),
+                  status: loc.t(STATUS_LABEL[row.status]),
+                }),
+                actualOn,
+              ]
+                .filter(Boolean)
+                .join(", ")}
+            </span>
+            <span
+              aria-hidden="true"
+              data-gantt-accent={accent ? "" : undefined}
+              className={cn("zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[2px]", fillClass, barClass)}
+              style={{
+                width: mgeo.mainSize / Math.SQRT2,
+                height: mgeo.mainSize / Math.SQRT2,
+                ...fillStyle,
+                ...(primaryMilestone && actualColor ? { backgroundColor: actualColor } : {}),
+                ...(accent ? { boxSizing: "border-box", borderWidth: 2, borderStyle: "solid", borderColor: accent } : {}),
+              }}
+            />
+          </button>
+        ) : (
+          <span className="zen-sr-only">
+            {row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}
+            {actualOn ? `, ${actualOn}` : ""}
+          </span>
+        )}
+        {/* The second diamond. Beside the plan it is the date the milestone was
+            actually hit — solid, in the status colour, as the actual bar is.
+            In "primary" it is the plan instead — hollow, as the plan's outline
+            is. Decorative: both dates are in the main diamond's name. */}
+        {markPct !== null && (primaryMilestone || !!row.actual) && (
+          <span
+            aria-hidden="true"
+            data-gantt-actual={primaryMilestone ? undefined : ""}
+            data-gantt-plan={primaryMilestone ? "" : undefined}
+            className="zen-pointer-events-none zen-absolute zen-flex zen-items-center zen-justify-center"
+            style={{
+              insetInlineStart: `calc(${markPct}% - ${mgeo.markSize / 2}px)`,
+              top: mgeo.markTop,
+              width: mgeo.markSize,
+              height: mgeo.markSize,
+            }}
+          >
+            <span
+              className={cn(
+                "zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[1px]",
+                primaryMilestone ? "zen-border zen-border-zen-muted-fg" : cn(!markColor && FILL_CLASS[row.status], actualClass),
+              )}
+              style={{
+                width: mgeo.markSize / Math.SQRT2,
+                height: mgeo.markSize / Math.SQRT2,
+                ...(!primaryMilestone && markColor ? { backgroundColor: markColor } : {}),
+              }}
+            />
+          </span>
+        )}
+      </>
+    );
+  }
+
   /* An empty gridcell is announced as "blank", which is correct for a cell with
      no data and wrong for THIS one: the reader arrowed to the timeline
      expecting a bar, and "blank" does not distinguish "no dates" from "starts
@@ -1201,56 +1322,6 @@ const GanttTrack = ({
         {actualBar}
       </>
     );
-
-  /* A milestone: one date, drawn as a diamond centred on it. The same hooks as
-     a bar — data-gantt-bar, not tabbable, the same click — so the keyboard
-     model, the focus effect and the DOM checks treat it as one. The diamond is
-     a square turned 45 degrees, sized so its diagonal is the bar height; its
-     colour is the status FILL (solid), so a point stands out among soft bars.
-     shrink-0 because the flex button would otherwise squeeze it to a sliver.
-     An accent is a border INSIDE the diamond: a ring outside it would push
-     past the tips the dependency arrows end on. */
-  if (task.milestone) {
-    const side = barPx / Math.SQRT2;
-    return (
-      <button
-        type="button"
-        onClick={() => onTaskClick?.(task, row)}
-        tabIndex={-1}
-        data-gantt-bar=""
-        data-gantt-milestone=""
-        className={cn(
-          "zen-absolute zen-flex zen-items-center zen-justify-center zen-rounded-zen-sm",
-          "focus-visible:zen-outline-none focus-visible:zen-ring-2 focus-visible:zen-ring-zen-ring",
-        )}
-        style={{
-          insetInlineStart: `calc(${placement.startPct}% - ${barPx / 2}px)`,
-          top: barTop(rowHeight, barPx),
-          width: barPx,
-          height: barPx,
-        }}
-        title={`${task.name} · ${formatDay(row.span!.start)}`}
-      >
-        <span className="zen-sr-only">
-          {loc.t("gantt.milestone", {
-            date: formatDay(row.span!.start),
-            status: loc.t(STATUS_LABEL[row.status]),
-          })}
-        </span>
-        <span
-          aria-hidden="true"
-          data-gantt-accent={accent ? "" : undefined}
-          className={cn("zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[2px]", fillClass, barClass)}
-          style={{
-            width: side,
-            height: side,
-            ...fillStyle,
-            ...(accent ? { boxSizing: "border-box", borderWidth: 2, borderStyle: "solid", borderColor: accent } : {}),
-          }}
-        />
-      </button>
-    );
-  }
 
   return (
     <>

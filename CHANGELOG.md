@@ -15,6 +15,32 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.8.0] - 2026-11-25
+
+### Added
+
+- Gantt milestone actual date, all four bindings. Core `ganttActual` treats a
+  milestone as an instant before the span rules — `actualEnd ?? actualStart`,
+  never open — so a lone `actualStart` is not read as work in progress. Status
+  (complete), variance (against the planned date) and the fit range follow
+  through the existing paths. `ganttMilestoneLayout(rowHeight, barPx, layout)`
+  places the main diamond on the row's middle in every layout (an off-centre
+  diamond would leave the arrows ending on nothing) and a second one
+  (2–10px, inside the row) beneath: the date reached in strip/split
+  (data-gantt-actual), the plan in "primary" (data-gantt-plan, hollow), where
+  the reached diamond is the main one and connectors anchor to it. Message
+  `gantt.actualOn`. The tooltip keeps its "name · date" form.
+- check-gantt: milestone actuals, status, slip, and the geometry at every
+  density × layout. check:schedule-dom: the marker in each layout, every
+  binding, both directions (952 assertions).
+
+### Changed
+
+- React and vanilla draw a milestone before the "no planned placement"
+  early return, so in "primary" a milestone whose plan is off-screen still
+  draws its reached diamond. The now-unused `barTop` helper is gone from all
+  three bindings; the offsets come from core.
+
 ## [13.7.0] - 2026-11-25
 
 ### Added

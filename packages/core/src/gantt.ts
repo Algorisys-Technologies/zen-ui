@@ -892,6 +892,14 @@ const explicitSpan = (task: GanttTaskNode, calendar?: GanttCalendar): GanttSpan 
 
 /** A task's OWN actual dates, ignoring its children. */
 const ownActual = (task: GanttTaskNode, now: Date): GanttActual | null => {
+  /* A milestone is a moment, so its actual is the moment it was hit — the end
+     when given, else the start — and it is never "running": a sign-off that
+     happened is done. Read before the span rules below, which would treat a
+     lone actualStart as work in progress. */
+  if (task.milestone) {
+    const hit = task.actualEnd ?? task.actualStart;
+    return hit ? { start: new Date(hit.getTime()), end: new Date(hit.getTime()), open: false } : null;
+  }
   if (!task.actualStart) return null;
   const a = task.actualStart.getTime();
   if (task.actualEnd) {
@@ -1761,6 +1769,38 @@ export function ganttLegendItems<R>(
     out.push(item);
   }
   return out;
+}
+
+export interface GanttMilestoneGeometry {
+  /** The main diamond's box (a square; the diamond's diagonal is its side). */
+  mainTop: number;
+  mainSize: number;
+  /** The second diamond — the actual date, or the plan in "primary" — beneath it. */
+  markTop: number;
+  markSize: number;
+}
+
+/**
+ * Where a milestone's two diamonds sit, in px from the row's top.
+ *
+ * Every layout: the main diamond keeps the row's middle, where the arrows meet
+ * its tips, and the second is a smaller one in the slack beneath — the actual
+ * date, or in "primary" the plan. Not split in two as "split" splits a bar: a
+ * diamond moved off the middle would leave the arrows ending on nothing.
+ */
+export function ganttMilestoneLayout(
+  rowHeight: number,
+  barPx: number,
+  // Accepted so every caller passes what it has; all three place the same way.
+  _layout: GanttActualLayout = "strip",
+): GanttMilestoneGeometry {
+  const mainTop = (rowHeight - barPx) / 2;
+  const slack = mainTop;
+  // As big as the slack allows with 1px to spare, never past 10px — a marker,
+  // not a second milestone — and never under 2px, so it is always there.
+  const markSize = Math.max(2, Math.min(10, slack - 1));
+  const markTop = Math.min(mainTop + barPx + Math.max(0, (slack - markSize) / 2), rowHeight - markSize);
+  return { mainTop, mainSize: barPx, markTop, markSize };
 }
 
 /** Where a bar sits: its row, and its placement on the shared axis. */

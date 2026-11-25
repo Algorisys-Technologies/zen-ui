@@ -642,6 +642,7 @@ SKILL.md.
 - `gantt.noDates: string`
 - `gantt.actualSpan: string`
 - `gantt.actualRunning: string`
+- `gantt.actualOn: string`
 - `gantt.legend: string`
 - `gantt.projectSchedule: string`
 - `scheduleGrid.views.fit: string`

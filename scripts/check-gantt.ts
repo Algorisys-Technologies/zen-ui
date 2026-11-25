@@ -43,6 +43,7 @@ import {
   ganttTaskStatus,
   ganttActual,
   ganttActualLayout,
+  ganttMilestoneLayout,
   ganttLabelFits,
   ganttLegendItems,
   ganttVarianceDays,
@@ -1350,6 +1351,60 @@ console.log("\nbar labels and the legend");
     "one entry per label AND colour, first appearance first",
   );
   t(ganttLegendItems([], (r: { label: string; color: string }) => r), [], "no rows, no legend entries");
+}
+
+console.log("\nmilestones: the date it was actually hit");
+{
+  const actual = (task: GanttTaskNode) => {
+    const a = ganttActual(task, NOW);
+    return a ? [iso(a.start), iso(a.end), a.open] : null;
+  };
+  // A milestone is a moment, so its actual is one too — and never "running".
+  t(
+    actual({ id: "m", milestone: true, start: at(2026, 7, 10), actualEnd: at(2026, 7, 12) }),
+    ["2026-07-12 00:00", "2026-07-12 00:00", false],
+    "a milestone's actual is the instant it was hit",
+  );
+  t(
+    actual({ id: "m", milestone: true, start: at(2026, 7, 10), actualStart: at(2026, 7, 9) }),
+    ["2026-07-09 00:00", "2026-07-09 00:00", false],
+    "…an actualStart alone is that instant too, not work in progress",
+  );
+  t(
+    actual({ id: "m", milestone: true, start: at(2026, 7, 10), actualStart: at(2026, 7, 9), actualEnd: at(2026, 7, 11) }),
+    ["2026-07-11 00:00", "2026-07-11 00:00", false],
+    "…and with both, the end is when it was reached",
+  );
+  t(actual({ id: "m", milestone: true, start: at(2026, 7, 10) }), null, "a milestone not yet hit has no actual");
+
+  const hit = { id: "m", milestone: true, start: at(2026, 7, 10), actualEnd: at(2026, 7, 13) };
+  const row = flattenGanttTasks([hit], () => true, NOW).rows[0];
+  t(row.status, "complete", "a milestone that was hit is complete");
+  t(row.variance, 3, "…and its slip is the actual date against the planned one");
+  t(
+    flattenGanttTasks([{ id: "m", milestone: true, start: at(2026, 7, 10) }], () => true, NOW).rows[0].status,
+    "delayed",
+    "a passed milestone with no actual date is still delayed",
+  );
+
+  // Where the two diamonds sit. Every density, plus the tightest row.
+  const cases: Array<[string, number, number]> = [
+    ["compact", 28, 14],
+    ["comfortable", 36, 18],
+    ["touch", 48, 32],
+    ["tightest", 22, 18],
+  ];
+  for (const [name, rowH, bar] of cases) {
+    for (const layout of ["strip", "split", "primary"] as const) {
+      const g = ganttMilestoneLayout(rowH, bar, layout);
+      const inRow = (top: number, size: number) => top >= 0 && top + size <= rowH;
+      t(inRow(g.mainTop, g.mainSize) && inRow(g.markTop, g.markSize), true, `${name} ${layout}: both diamonds inside the row`);
+      t(g.markTop >= g.mainTop + g.mainSize - 0.001, true, `${name} ${layout}: the second diamond sits below the main one`);
+      t(g.markSize >= 2, true, `${name} ${layout}: the second diamond is at least 2px`);
+      // The arrows meet the main diamond's tips on the row's middle — in every layout.
+      t(Math.abs(g.mainTop + g.mainSize / 2 - rowH / 2) < 0.001, true, `${name} ${layout}: the main diamond stays centred`);
+    }
+  }
 }
 
 console.log(f === 0 ? "\nall passed\n" : `\n${f} FAILED\n`);
