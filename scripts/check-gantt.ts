@@ -41,6 +41,10 @@ import {
   GANTT_CALENDAR_24_7,
   GANTT_PANE_COLUMNS,
   ganttTaskStatus,
+  ganttActual,
+  ganttActualLayout,
+  ganttLabelFits,
+  ganttLegendItems,
   ganttVarianceDays,
   shiftGanttAnchor,
   type GanttAnchoredView,
@@ -1122,6 +1126,223 @@ console.log("\ndaylight saving — a working day is 23 or 25 hours long");
       );
     }
   }
+}
+
+console.log("\nplanned vs actual — opt-in, by data");
+{
+  // NOW is 2026-07-21 12:00. start/end are the PLAN; actualStart/actualEnd are
+  // what happened. A task with neither must come out exactly as before.
+  const actual = (task: GanttTaskNode) => {
+    const a = ganttActual(task, NOW);
+    return a ? [iso(a.start), iso(a.end), a.open] : null;
+  };
+  t(actual({ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10) }), null, "no actual dates, no actual bar");
+  t(
+    actual({ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10), actualStart: at(2026, 7, 3), actualEnd: at(2026, 7, 12) }),
+    ["2026-07-03 00:00", "2026-07-12 00:00", false],
+    "started and finished: the two actual dates, closed",
+  );
+  t(
+    actual({ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 30), actualStart: at(2026, 7, 3) }),
+    ["2026-07-03 00:00", "2026-07-21 12:00", true],
+    "started, not finished: runs to now and is open",
+  );
+  t(
+    actual({ id: "a", actualStart: at(2026, 7, 12), actualEnd: at(2026, 7, 3) }),
+    ["2026-07-03 00:00", "2026-07-12 00:00", false],
+    "inverted actual dates are normalised, not believed",
+  );
+  t(actual({ id: "a", actualEnd: at(2026, 7, 3) }), null, "an end with no start is half-entered: no bar");
+  t(
+    actual({ id: "a", actualStart: at(2026, 8, 3) }),
+    ["2026-08-03 00:00", "2026-08-03 00:00", true],
+    "a start after now has not run yet: zero width, never a backwards bar",
+  );
+
+  // Rollup: a parent's actual runs from its first start to its last finish,
+  // and stays open while any child is unfinished OR not yet started.
+  const parent = (kids: GanttTaskNode[]) => actual({ id: "p", children: kids });
+  t(
+    parent([
+      { id: "c1", start: at(2026, 7, 1), end: at(2026, 7, 5), actualStart: at(2026, 7, 2), actualEnd: at(2026, 7, 6) },
+      { id: "c2", start: at(2026, 7, 6), end: at(2026, 7, 9), actualStart: at(2026, 7, 7), actualEnd: at(2026, 7, 11) },
+    ]),
+    ["2026-07-02 00:00", "2026-07-11 00:00", false],
+    "a parent rolls up its children's actuals; all done is closed",
+  );
+  t(
+    parent([
+      { id: "c1", start: at(2026, 7, 1), end: at(2026, 7, 5), actualStart: at(2026, 7, 2), actualEnd: at(2026, 7, 6) },
+      { id: "c2", start: at(2026, 7, 26), end: at(2026, 7, 29) },
+    ]),
+    ["2026-07-02 00:00", "2026-07-21 12:00", true],
+    "a child not started yet keeps the parent open, running to now",
+  );
+  t(parent([{ id: "c1", start: at(2026, 7, 1), end: at(2026, 7, 5) }]), null, "no child has started: no parent actual");
+  t(
+    actual({
+      id: "p",
+      actualStart: at(2026, 7, 1),
+      actualEnd: at(2026, 7, 2),
+      children: [{ id: "c", actualStart: at(2026, 6, 1) }],
+    }),
+    ["2026-07-01 00:00", "2026-07-02 00:00", false],
+    "a parent's own actual dates win over the rollup, as its own plan does",
+  );
+
+  const st = (task: GanttTaskNode, derive = true) =>
+    ganttTaskStatus(task, ganttSpan(task), ganttProgress(task), NOW, derive ? ganttActual(task, NOW) : null);
+  t(
+    st({ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10), actualStart: at(2026, 7, 1), actualEnd: at(2026, 7, 12) }),
+    "complete",
+    "an actual end with no % stated is complete — even though the plan has passed",
+  );
+  t(
+    st({ id: "a", start: at(2026, 7, 15), end: at(2026, 7, 30), actualStart: at(2026, 7, 16) }),
+    "on-track",
+    "started and inside the plan is on track, not 'not started'",
+  );
+  t(
+    st({ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10), actualStart: at(2026, 7, 2) }),
+    "delayed",
+    "started but past the planned end is delayed",
+  );
+  t(
+    st({ id: "a", start: at(2026, 7, 15), end: at(2026, 7, 30), actualStart: at(2026, 7, 16), percentComplete: 40, status: "delayed" }),
+    "delayed",
+    "an explicit status still wins",
+  );
+  t(
+    st({ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10), actualStart: at(2026, 7, 1), actualEnd: at(2026, 7, 9), percentComplete: 60 }),
+    "delayed",
+    "a stated % still wins over an actual end (60% and past the plan)",
+  );
+  t(
+    st({ id: "a", start: at(2026, 7, 15), end: at(2026, 7, 30), actualStart: at(2026, 7, 16) }, false),
+    "not-started",
+    "deriveFromActuals off: status ignores the actual dates entirely",
+  );
+
+  // The flattened row carries the actual, and the slip falls back to it when
+  // there is no baseline: a finish two days after the plan is "+2d".
+  const rowsOf = (tasks: GanttTaskNode[], derive?: boolean) =>
+    flattenGanttTasks(tasks, () => true, NOW, derive === undefined ? {} : { deriveFromActuals: derive }).rows;
+  const late = { id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10), actualStart: at(2026, 7, 1), actualEnd: at(2026, 7, 12) };
+  t(rowsOf([late])[0].variance, 2, "no baseline: slip is the actual end against the planned end");
+  t(
+    rowsOf([{ ...late, baselineEnd: at(2026, 7, 9) }])[0].variance,
+    1,
+    "a baseline still wins: it is what slip has always meant",
+  );
+  t(
+    rowsOf([{ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 18), actualStart: at(2026, 7, 1) }])[0].variance,
+    3,
+    "running past the plan: slip is measured to now",
+  );
+  t(
+    rowsOf([{ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 30), actualStart: at(2026, 7, 1) }])[0].variance,
+    null,
+    "running and still inside the plan: no slip to report yet",
+  );
+  t(rowsOf([late], false)[0].variance, null, "deriveFromActuals off: no slip from actuals");
+  t(span(rowsOf([late], false)[0].actual), ["2026-07-01 00:00", "2026-07-12 00:00"], "…but the actual is still on the row to draw");
+  t(rowsOf([{ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10) }])[0].actual, null, "a plan-only row has no actual");
+
+  // A fit axis must reach the actual bar, or a late finish is clipped off the
+  // end of the chart — exactly the bar the reader came to see.
+  const fit = ganttFitRange([late], { padFraction: 0, minPadMs: 0, now: NOW });
+  t(fit && fit.end.getTime() >= at(2026, 7, 12).getTime(), true, "fit reaches a finish past the plan");
+  const running = ganttFitRange([{ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10), actualStart: at(2026, 7, 2) }], {
+    padFraction: 0,
+    minPadMs: 0,
+    now: NOW,
+  });
+  t(running && running.end.getTime() >= NOW.getTime(), true, "fit reaches now for running work");
+  t(
+    span(ganttFitRange([{ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10) }], { padFraction: 0, minPadMs: 0, now: NOW })),
+    span(ganttFitRange([{ id: "a", start: at(2026, 7, 1), end: at(2026, 7, 10) }], { padFraction: 0, minPadMs: 0 })),
+    "a plan-only chart's fit range does not move",
+  );
+}
+
+console.log("\nplanned vs actual — where the two bars sit in a row");
+{
+  // Every density, plus the tightest row Gantt allows (bar + 4px).
+  const cases: Array<[string, number, number]> = [
+    ["compact", 28, 14],
+    ["comfortable", 36, 18],
+    ["touch", 48, 32],
+    ["tightest", 22, 18],
+  ];
+  let examined = 0;
+  for (const [name, row, bar] of cases) {
+    const strip = ganttActualLayout(row, bar, "strip");
+    examined++;
+    // The arrows are routed at the row's middle, so in the default layout the
+    // planned bar must not move: an actual bar is ADDED, nothing shifts.
+    t(strip.barTop, (row - bar) / 2, `${name} strip: the planned bar stays centred, where the arrows meet it`);
+    t(strip.barHeight, bar, `${name} strip: the planned bar keeps its height`);
+    t(strip.actualHeight >= 2, true, `${name} strip: the actual bar is at least 2px — visible`);
+    t(strip.actualTop >= strip.barTop + strip.barHeight, true, `${name} strip: the actual bar sits below the planned one, no overlap`);
+    t(strip.actualTop + strip.actualHeight <= row, true, `${name} strip: and inside the row`);
+
+    const split = ganttActualLayout(row, bar, "split");
+    t(split.barHeight, split.actualHeight, `${name} split: the two bars are the same height`);
+    t(split.barTop >= 0, true, `${name} split: the planned bar is inside the row`);
+    t(split.actualTop >= split.barTop + split.barHeight, true, `${name} split: no overlap`);
+    t(split.actualTop + split.actualHeight <= row, true, `${name} split: the actual bar is inside the row`);
+    // The arrows still land at the middle: it must fall on or between the bars.
+    t(
+      split.barTop <= row / 2 && row / 2 <= split.actualTop + split.actualHeight,
+      true,
+      `${name} split: the row's middle, where arrows end, is on the pair`,
+    );
+  }
+  t(examined, cases.length, `examined ${examined} row sizes`);
+  // A taller row (for a label on each bar) gets two FULL bars, not two thin ones.
+  t(ganttActualLayout(64, 18, "split").barHeight, 18, "a 64px row splits into two full 18px bars");
+}
+
+console.log("\nmonth view in weeks — opt-in");
+{
+  const day = ganttColumns("month", at(2026, 11, 15), { now: at(2026, 11, 20) });
+  t(day.length, 30, "the default month is still one column per day");
+  const weeks = ganttColumns("month", at(2026, 11, 15), { now: at(2026, 11, 20), monthUnit: "week" });
+  // November 2026 starts on a Sunday: a one-day stub, then Monday weeks.
+  t(weeks.map((c) => c.label), ["1", "2–8", "9–15", "16–22", "23–29", "30"], "calendar weeks clipped to the month");
+  t(iso(weeks[0].start), "2026-11-01 00:00", "the first column starts on the 1st");
+  t(iso(weeks[weeks.length - 1].end), "2026-12-01 00:00", "the last ends where the month does");
+  t(
+    weeks.every((c, i) => i === 0 || c.start.getTime() === weeks[i - 1].end.getTime()),
+    true,
+    "the columns tile the month — no gap, no overlap",
+  );
+  t(weeks.filter((c) => c.today).map((c) => c.label), ["16–22"], "today's week is marked");
+  t(weeks[1].sublabel, "Nov", "each week names its month");
+  t(ganttColumns("week", at(2026, 11, 15), { monthUnit: "week" }).length, 7, "other views ignore it");
+}
+
+console.log("\nbar labels and the legend");
+{
+  t(ganttLabelFits("50%", 44), true, "a short label fits a normal bar");
+  t(ganttLabelFits("Planned (16–20 Nov) – 100%", 80), false, "a long one does not fit a short bar — it goes beside it");
+  t(ganttLabelFits("", 8), true, "an empty label fits anything with room for padding");
+  const rows = [
+    { label: "In progress", color: "orange" },
+    { label: "Complete", color: "green" },
+    { label: "In progress", color: "orange" },
+    { label: "In progress", color: "red" },
+  ];
+  t(
+    ganttLegendItems(rows, (r) => r),
+    [
+      { label: "In progress", color: "orange" },
+      { label: "Complete", color: "green" },
+      { label: "In progress", color: "red" },
+    ],
+    "one entry per label AND colour, first appearance first",
+  );
+  t(ganttLegendItems([], (r: { label: string; color: string }) => r), [], "no rows, no legend entries");
 }
 
 console.log(f === 0 ? "\nall passed\n" : `\n${f} FAILED\n`);

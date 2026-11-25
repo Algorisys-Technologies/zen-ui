@@ -2,11 +2,18 @@ import * as React from "react";
 import {
   flattenGanttTasks,
   formatGanttVariance,
+  GANTT_STATUS_COLOR,
+  ganttActualLayout,
+  ganttLabelFits,
+  ganttLabelPx,
+  ganttLegendItems,
   ganttConnectors,
   ganttFitRange,
   nowPct,
   placeAppointment,
+  type GanttActualLayout,
   type GanttBarAnchor,
+  type GanttLegendItem,
   type GanttCalendar,
   type GanttDependency,
   type GanttDependencyStyle,
@@ -101,7 +108,7 @@ export interface GanttAssignee {
 export interface GanttTask extends GanttTaskNode {
   name: string;
   /** Second line under the name. */
-  subtitle?: string;
+  subtitle?: string | string[];
   assignees?: GanttAssignee[];
   /** Overrides the status chip's words. The colour still follows `status`. */
   statusLabel?: string;
@@ -225,6 +232,64 @@ export interface GanttProps {
    */
   barAccent?: (task: GanttTask) => string | undefined | false | null;
   /**
+   * Planned vs actual. A task with `actualStart` (and, once done,
+   * `actualEnd`) gets a second bar showing when the work really ran; its
+   * `start`/`end` stay the plan. Running work's bar ends at now. Nothing
+   * changes for a task without them.
+   *
+   * "strip" (default) keeps the planned bar where it always was and draws the
+   * actual one slim beneath it. "split" draws two equal bars, plan above.
+   */
+  actualLayout?: GanttActualLayout;
+  /**
+   * Let the actual dates drive status and slip. Default true: an actual end
+   * with no % stated is Complete, a running task is On track (or Delayed past
+   * its plan), and with no `baselineEnd` the variance is the actual finish
+   * against the planned end. An explicit `status`, `percentComplete` or
+   * `baselineEnd` still wins. False draws the actual bar and changes nothing else.
+   */
+  deriveFromActuals?: boolean;
+  /** Classes for a task's actual bar, applied after its own: `(t) => "zen-opacity-60"`. */
+  actualBarClassName?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * A CSS colour for a task's actual bar. Default: the row's status colour.
+   * A value rather than a class, so the colour can come from data.
+   */
+  actualBarColor?: (task: GanttTask) => string | undefined | false | null;
+  /**
+   * Text ON the planned bar, replacing its "60%": `(t, row) => \`Planned (6–12 Jul)\``.
+   * Drawn inside when it fits, beside the bar when it does not. Hidden from
+   * assistive tech — the bar's name already says its dates and progress.
+   */
+  barLabel?: (task: GanttTask, row: GanttRow<GanttTask>) => string | undefined | false | null;
+  /** Text on the actual bar, as `barLabel`. A slim "strip" bar always puts it beside. */
+  actualBarLabel?: (task: GanttTask, row: GanttRow<GanttTask>) => string | undefined | false | null;
+  /**
+   * Which bar carries the % fill — and with it the status colour. "planned"
+   * (default) is how it has always been. "actual" fills the actual bar and
+   * makes the plan a neutral reference; a task with no actual dates keeps its
+   * fill on the planned bar, since there is nowhere else to put it.
+   */
+  progressOn?: "planned" | "actual";
+  /**
+   * A CSS colour for a row's status, replacing the four-colour palette on its
+   * chip and bars — for statuses of your own ("On hold"), named with
+   * `statusLabel`: `(t) => t.onHold && "var(--zen-color-accent-purple)"`.
+   */
+  statusColor?: (task: GanttTask, row: GanttRow<GanttTask>) => string | undefined | false | null;
+  /**
+   * A key in the toolbar. `true` builds it from the chart — one entry per
+   * status label and colour on screen; an array draws exactly those entries
+   * (add "Planned" and "Actual" yourself if you restyle the bars).
+   */
+  legend?: boolean | GanttLegendItem[];
+  /**
+   * What one column of the Month view is: "day" (default) or "week" — the
+   * month in calendar weeks, room for a label on every bar. The other views,
+   * Fit and a continuous axis are unaffected.
+   */
+  monthColumns?: "day" | "week";
+  /**
    * Classes for the header: the row and its frozen pane, applied after their
    * own, so a caller's background and text colour win
    * (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
@@ -316,6 +381,41 @@ const AVATAR_MAX = 3;
  * colour. Putting it outside in that case is what the first version did, and
  * it landed exactly where a finish-to-start connector leaves the bar.
  */
+/** A caller's colour mixed into the background — the soft version of it, as the
+ *  palette's `-soft` tokens are of theirs. */
+const tint = (color: string, pct: number) => `color-mix(in srgb, ${color} ${pct}%, var(--zen-color-background))`;
+/** The planned bar's look in a caller's colour: soft fill, the colour as its border. */
+const softSkin = (color: string): React.CSSProperties => ({ backgroundColor: tint(color, 18), borderColor: color });
+
+/* A caller's label on a bar sits on a pill of the page background. The bar
+   under it can be any colour — a caller's, a fill that stops halfway along the
+   text — so no single text colour is readable on all of it; the pill makes the
+   text sit on the one surface whose contrast the theme already guarantees. */
+const LABEL_PILL_CLASS = "zen-inset-y-0.5 zen-start-1 zen-rounded-zen-sm zen-px-1 zen-text-zen-foreground";
+const LABEL_PILL_STYLE: React.CSSProperties = {
+  backgroundColor: "color-mix(in srgb, var(--zen-color-background) 80%, transparent)",
+};
+
+/** The chart's key: a swatch and a name per entry. A list, so it is read as one. */
+const GanttLegend = ({ items }: { items: GanttLegendItem[] }) => {
+  const loc = useLocale();
+  return (
+    <ul aria-label={loc.t("gantt.legend")} className="zen-m-0 zen-flex zen-list-none zen-flex-wrap zen-items-center zen-gap-x-3 zen-gap-y-1 zen-p-0">
+      {items.map((item) => (
+        <li key={`${item.label}\u0000${item.color}`} className="zen-flex zen-items-center zen-gap-1.5 zen-text-xs zen-text-zen-muted-fg">
+          {/* Bordered, so a light colour — the plan's grey — still reads as a swatch. */}
+          <span
+            aria-hidden="true"
+            className="zen-inline-block zen-h-2.5 zen-w-2.5 zen-shrink-0 zen-rounded-full zen-border zen-border-zen-border"
+            style={{ backgroundColor: item.color }}
+          />
+          {item.label}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
 const LABEL_MIN_PX = 44;
 const LABEL_MAX_PCT = 85;
 /**
@@ -428,6 +528,16 @@ export const Gantt = ({
   rowClassName,
   barClassName,
   barAccent,
+  actualLayout = "strip",
+  deriveFromActuals,
+  actualBarClassName,
+  actualBarColor,
+  barLabel,
+  actualBarLabel,
+  progressOn = "planned",
+  statusColor,
+  legend,
+  monthColumns,
   dependencyStyle,
   className,
 }: GanttProps) => {
@@ -488,8 +598,9 @@ export const Gantt = ({
   /* The plan's padded span: what Fit shows, and what a continuous axis spans.
      Computed only when one of them needs it. */
   const planSpan = React.useMemo(
-    () => (view === "fit" || continuous ? ganttFitRange(tasks ?? [], { calendar }) : null),
-    [view, continuous, tasks, calendar],
+    () => (view === "fit" || continuous ? ganttFitRange(tasks ?? [], { calendar, now }) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- nowTime is `now`, by value
+    [view, continuous, tasks, calendar, nowTime],
   );
   const fitRange = view === "fit" ? planSpan : null;
   // Continuous turns the date row on, because a scrolled axis needs it; an
@@ -518,10 +629,12 @@ export const Gantt = ({
                   ? row.task.assignees.map((a) => a.name).join(", ")
                   : undefined
             : undefined,
-        render: (row: Row) => <GanttPaneCell column={key} row={row} onToggle={toggle} />,
+        render: (row: Row) => (
+          <GanttPaneCell column={key} row={row} onToggle={toggle} tone={statusColor?.(row.task, row) || undefined} />
+        ),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [requestedPane.join(","), expandedIds, tasks, loc],
+    [requestedPane.join(","), expandedIds, tasks, loc, statusColor],
   );
 
   const axis = useScheduleAxis({
@@ -537,6 +650,7 @@ export const Gantt = ({
     grouped: headerGroups,
     continuous,
     plan: planSpan,
+    monthUnit: monthColumns,
   });
   const { range, axisWidth, minGapMs } = axis;
 
@@ -546,11 +660,22 @@ export const Gantt = ({
         tasks ?? [],
         (task) => (expandedSet === null ? true : expandedSet.has(task.id)),
         now,
-        { calendar, minGapMs },
+        { calendar, minGapMs, deriveFromActuals },
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tasks, expandedSet, nowTime, calendar, minGapMs],
+    [tasks, expandedSet, nowTime, calendar, minGapMs, deriveFromActuals],
   );
+
+  /* The key. Built from the rows when asked for with `true`: the label each
+     row's chip shows and the colour it is drawn in, once each. */
+  const legendItems = React.useMemo((): GanttLegendItem[] => {
+    if (!legend) return [];
+    if (Array.isArray(legend)) return legend;
+    return ganttLegendItems(rows, (row) => ({
+      label: row.task.statusLabel ?? loc.t(STATUS_LABEL[row.status]),
+      color: statusColor?.(row.task, row) || GANTT_STATUS_COLOR[row.status],
+    }));
+  }, [legend, rows, statusColor, loc]);
 
   /** One placement per row, and the same placements keyed by every task id —
    *  including ids folded into a collapsed parent, which is what keeps their
@@ -619,9 +744,31 @@ export const Gantt = ({
         barPx={barPx}
         barClass={barClassName?.(row.task) || undefined}
         accent={barAccent?.(row.task) || undefined}
+        tone={statusColor?.(row.task, row) || undefined}
+        plannedLabel={barLabel?.(row.task, row) || undefined}
+        actualLabel={actualBarLabel?.(row.task, row) || undefined}
+        progressOn={progressOn}
+        actualLayout={actualLayout}
+        actualClass={actualBarClassName?.(row.task) || undefined}
+        actualColor={actualBarColor?.(row.task) || undefined}
       />
     ),
-    [range, placements, onTaskClick, rowHeight, barPx, barClassName, barAccent],
+    [
+      range,
+      placements,
+      onTaskClick,
+      rowHeight,
+      barPx,
+      barClassName,
+      barAccent,
+      actualLayout,
+      actualBarClassName,
+      actualBarColor,
+      statusColor,
+      barLabel,
+      actualBarLabel,
+      progressOn,
+    ],
   );
 
   // Memoized so the grid's memoized connector layer is not rebuilt every render.
@@ -695,6 +842,7 @@ export const Gantt = ({
         connectorStyle={connectorStyle}
         views={views}
         hideToolbar={hideToolbar}
+        legend={legendItems.length > 0 ? <GanttLegend items={legendItems} /> : undefined}
         onViewChange={setView}
         onDateChange={setDate}
         onToggle={(row) => toggle(row.task.id)}
@@ -715,10 +863,12 @@ const GanttPaneCell = ({
   column,
   row,
   onToggle,
+  tone,
 }: {
   column: GanttPaneColumn;
   row: Row;
   onToggle: (id: string) => void;
+  tone?: string;
 }) => {
   const loc = useLocale();
   const { task } = row;
@@ -758,11 +908,13 @@ const GanttPaneCell = ({
           >
             {task.name}
           </span>
-          {task.subtitle && (
-            <span className="zen-block zen-truncate zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">
-              {task.subtitle}
+          {/* One line per entry: "Planned: 1–5 Jul" and "Actual: 1–4 Jul" under
+              the name. Give the rows the height (`rowHeight`) for the lines. */}
+          {(task.subtitle === undefined ? [] : ([] as string[]).concat(task.subtitle)).map((line, i) => (
+            <span key={i} className="zen-block zen-truncate zen-[font-size:var(--zen-schedule-label-font-size)] zen-text-zen-muted-fg">
+              {line}
             </span>
-          )}
+          ))}
         </span>
       </>
     );
@@ -772,7 +924,14 @@ const GanttPaneCell = ({
 
   if (column === "status") {
     return (
-      <Badge variant="soft" color={STATUS_COLOR[row.status]} className="zen-truncate">
+      <Badge
+        variant="soft"
+        color={tone ? "neutral" : STATUS_COLOR[row.status]}
+        className="zen-truncate"
+        /* A caller's colour: a tint of it behind the foreground, so the text
+           keeps its contrast whatever colour the caller picked. */
+        style={tone ? { backgroundColor: tint(tone, 22), color: "var(--zen-color-foreground)" } : undefined}
+      >
         {task.statusLabel ?? loc.t(STATUS_LABEL[row.status])}
       </Badge>
     );
@@ -804,6 +963,13 @@ const GanttTrack = ({
   barPx,
   barClass,
   accent,
+  actualLayout,
+  actualClass,
+  actualColor,
+  tone,
+  plannedLabel,
+  actualLabel,
+  progressOn,
 }: {
   row: Row;
   range: PlanningRange;
@@ -814,36 +980,71 @@ const GanttTrack = ({
   barPx: number;
   barClass?: string;
   accent?: string;
+  actualLayout: GanttActualLayout;
+  actualClass?: string;
+  actualColor?: string;
+  /** A caller's colour for this row's status (`statusColor`), replacing the status palette. */
+  tone?: string;
+  /** Text on the planned bar (`barLabel`), replacing its "60%". */
+  plannedLabel?: string;
+  /** Text on the actual bar (`actualBarLabel`). */
+  actualLabel?: string;
+  progressOn: "planned" | "actual";
 }) => {
   const loc = useLocale();
   const { task } = row;
+  /* Where the planned and actual bars sit. In "strip" the planned bar is
+     exactly where it always was; only "split" moves it, and only then. */
+  const geo = ganttActualLayout(rowHeight, barPx, actualLayout);
+  const actualPlacement = row.actual && !task.milestone ? placeAppointment(row.actual, range) : null;
+  /** Said with the planned bar, so a row stays one name: the actual bar is drawn, not announced twice. */
+  const actualText =
+    !row.actual || task.milestone
+      ? ""
+      : row.actual.open
+        ? loc.t("gantt.actualRunning", { start: formatDay(row.actual.start) })
+        : loc.t("gantt.actualSpan", { start: formatDay(row.actual.start), end: formatDay(row.actual.end) });
   const progress = row.progress ?? 0;
+  const pct = `${Math.round(progress)}%`;
+
+  /* Which bar carries the progress — and with it the status colour. Moved to
+     the actual bar, the plan becomes a neutral reference: two bars both
+     shouting the status is one too many. */
+  const progressOnActual = progressOn === "actual" && !!row.actual && !task.milestone;
+  const plannedFill = row.progress !== null && !progressOnActual;
+  /** The planned bar's skin: the status palette, a caller's colour, or — when the
+   *  actual bar carries the progress — the neutral plan. */
+  const plannedSkinClass = progressOnActual ? BAR_CLASS["not-started"] : tone ? "" : BAR_CLASS[row.status];
+  const plannedSkinStyle: React.CSSProperties = !progressOnActual && tone ? softSkin(tone) : {};
+  const fillClass = tone ? "" : FILL_CLASS[row.status];
+  const fillStyle: React.CSSProperties = tone ? { backgroundColor: tone } : {};
+
+  /* The planned bar's label: the caller's text, else the "60%" it always had. */
+  const plannedText = plannedLabel ?? (plannedFill ? pct : null);
   const widthPx = placement ? (placement.widthPct / 100) * axisWidth : 0;
-  const labelOutside = widthPx < LABEL_MIN_PX;
-  const labelOnFill = !labelOutside && progress >= LABEL_MAX_PCT;
+  const labelOutside = plannedLabel ? !ganttLabelFits(plannedLabel, widthPx) : widthPx < LABEL_MIN_PX;
+  const labelOnFill = plannedFill && !labelOutside && progress >= LABEL_MAX_PCT;
   /* Which SIDE the outside label goes. After the bar normally; before it when
      the bar ends against the edge of the axis and there is nowhere after. */
   const endPct = placement ? placement.startPct + placement.widthPct : 0;
-  const labelBefore = ((100 - endPct) / 100) * axisWidth < LABEL_OUTSIDE_PX;
+  const labelBefore =
+    ((100 - endPct) / 100) * axisWidth < (plannedLabel ? ganttLabelPx(plannedLabel) : LABEL_OUTSIDE_PX);
 
   /**
    * The bar's working stretches, as percentages OF THE BAR, with the progress
    * fill handed out along them.
    *
    * The fill is distributed by working duration rather than given to each piece
-   * equally or drawn as one overlay: 40% complete on a job that runs an hour on
-   * Friday and seven on Monday means the Friday piece is full and the Monday one
-   * has barely started, not that both are 40% shaded. Percentages of the bar,
-   * not of the axis, so the pieces move with the bar and need no second
-   * placement pass.
+   * equally: 40% complete on a job that runs an hour on Friday and seven on
+   * Monday means the Friday piece is full and the Monday one has barely
+   * started, not that both are 40% shaded.
    */
   const pieces = React.useMemo(() => {
     if (!row.segments || !row.span) return null;
     /* Percentages of the VISIBLE bar, not of the whole span. `placeAppointment`
        clips a bar to the range, so the button is only the part in view — and
-       measuring the pieces against the full span would squash and shift every
-       one of them the moment a job started before the range. That is invisible
-       until you look at a bar that spans the left edge. */
+       measuring against the full span would squash and shift every piece the
+       moment a job started before the range. */
     const from = Math.max(row.span.start.getTime(), range.start.getTime());
     const to = Math.min(row.span.end.getTime(), range.end.getTime());
     const total = to - from;
@@ -878,15 +1079,97 @@ const GanttTrack = ({
     return out.length > 0 ? out : null;
   }, [row.segments, row.span, progress, range]);
 
+  /* The actual bar. Two skins. By default it is SOLID — the settled fact under
+     the soft plan. When it carries the progress (`progressOn="actual"`) it
+     takes the planned bar's look instead: soft, bordered, filled to its %. */
+  const actualTone = actualColor ?? tone;
+  const actualWidthPx = actualPlacement ? (actualPlacement.widthPct / 100) * axisWidth : 0;
+  const actualFill = progressOnActual && row.progress !== null;
+  const actualLabelText = actualLabel ?? (actualFill ? pct : null);
+  /* Inside only when it fits AND the bar is tall enough to hold a line of
+     text — a 6px strip never is. */
+  const actualLabelInside = !!actualLabelText && geo.actualHeight >= 12 && ganttLabelFits(actualLabelText, actualWidthPx);
+  const actualEndPct = actualPlacement ? actualPlacement.startPct + actualPlacement.widthPct : 0;
+  const actualLabelBefore = ((100 - actualEndPct) / 100) * axisWidth < ganttLabelPx(actualLabelText ?? "");
+
+  /* The actual bar: when the work really ran. A sibling of the planned bar,
+     not inside it, because the two have different extents — it can start
+     before the plan and run past it, or exist when the plan is off-screen.
+     Hidden from assistive tech: its dates are already in the planned bar's
+     name. An open (still running) end is squared off, like a bar cut by the
+     range: it has not ended, it has reached now. */
+  const actualBar = actualPlacement && (
+    <>
+      <span
+        aria-hidden="true"
+        data-gantt-actual=""
+        data-gantt-actual-open={row.actual?.open ? "" : undefined}
+        className={cn(
+          "zen-pointer-events-none zen-absolute zen-overflow-hidden zen-rounded-zen-sm",
+          progressOnActual
+            ? cn("zen-border", !actualTone && BAR_CLASS[row.status])
+            : !actualTone && FILL_CLASS[row.status],
+          actualPlacement.clippedStart && "zen-rounded-s-none",
+          (actualPlacement.clippedEnd || row.actual?.open) && "zen-rounded-e-none",
+          actualClass,
+        )}
+        style={{
+          insetInlineStart: `${actualPlacement.startPct}%`,
+          width: `${actualPlacement.widthPct}%`,
+          top: geo.actualTop,
+          height: geo.actualHeight,
+          ...(actualTone ? (progressOnActual ? softSkin(actualTone) : { backgroundColor: actualTone }) : {}),
+        }}
+      >
+        {actualFill && (
+          <span
+            className={cn("zen-absolute zen-inset-y-0 zen-start-0", !actualTone && FILL_CLASS[row.status])}
+            style={{ width: `${progress}%`, ...(actualTone ? { backgroundColor: actualTone } : {}) }}
+          />
+        )}
+        {actualLabelInside && (
+          <span
+            className={cn(
+              "zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium",
+              LABEL_PILL_CLASS,
+            )}
+            style={LABEL_PILL_STYLE}
+          >
+            {actualLabelText}
+          </span>
+        )}
+      </span>
+      {actualLabelText && !actualLabelInside && (
+        <span
+          aria-hidden="true"
+          className="zen-pointer-events-none zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg"
+          style={{
+            ...(actualLabelBefore
+              ? { insetInlineEnd: `calc(${100 - actualPlacement.startPct}% + 4px)` }
+              : { insetInlineStart: `calc(${actualEndPct}% + 4px)` }),
+            top: geo.actualTop,
+            height: geo.actualHeight,
+          }}
+        >
+          {actualLabelText}
+        </span>
+      )}
+    </>
+  );
+
   /* An empty gridcell is announced as "blank", which is correct for a cell with
      no data and wrong for THIS one: the reader arrowed to the timeline
      expecting a bar, and "blank" does not distinguish "no dates" from "starts
      after the range you are looking at". */
   if (!placement)
     return (
-      <span className="zen-sr-only">
-        {row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}
-      </span>
+      <>
+        <span className="zen-sr-only">
+          {row.span ? loc.t("gantt.notInRange") : loc.t("gantt.noDates")}
+          {actualText ? `, ${actualText}` : ""}
+        </span>
+        {actualBar}
+      </>
     );
 
   /* A milestone: one date, drawn as a diamond centred on it. The same hooks as
@@ -927,10 +1210,11 @@ const GanttTrack = ({
         <span
           aria-hidden="true"
           data-gantt-accent={accent ? "" : undefined}
-          className={cn("zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[2px]", FILL_CLASS[row.status], barClass)}
+          className={cn("zen-block zen-shrink-0 zen-rotate-45 zen-rounded-[2px]", fillClass, barClass)}
           style={{
             width: side,
             height: side,
+            ...fillStyle,
             ...(accent ? { boxSizing: "border-box", borderWidth: 2, borderStyle: "solid", borderColor: accent } : {}),
           }}
         />
@@ -956,7 +1240,7 @@ const GanttTrack = ({
           /* Drawn as pieces, the button is only the hit area and the focus
              ring — the skin moves onto each piece, or the gaps would be
              filled by the button's own background. */
-          pieces === null && cn("zen-overflow-hidden zen-border", BAR_CLASS[row.status], barClass),
+          pieces === null && cn("zen-overflow-hidden zen-border", plannedSkinClass, barClass),
           /* Square off a cut edge so a bar continuing past the view does
              not look like it ends there. */
           pieces === null && placement.clippedStart && "zen-rounded-s-none zen-border-s-0",
@@ -966,12 +1250,13 @@ const GanttTrack = ({
         style={{
           insetInlineStart: `${placement.startPct}%`,
           width: `${placement.widthPct}%`,
-          top: barTop(rowHeight, barPx),
-          height: barPx,
+          top: geo.barTop,
+          height: geo.barHeight,
+          ...(pieces === null ? plannedSkinStyle : {}),
         }}
         title={`${task.name} · ${formatDay(row.span!.start)} – ${formatDay(row.span!.end)}${
-          row.progress === null ? "" : ` · ${Math.round(progress)}%`
-        }`}
+          row.progress === null ? "" : ` · ${pct}`
+        }${actualText ? ` · ${actualText}` : ""}`}
       >
         <span className="zen-sr-only">
           {loc.t(row.progress === null ? "gantt.barSpan" : "gantt.barSpanProgress", {
@@ -980,6 +1265,7 @@ const GanttTrack = ({
             status: loc.t(STATUS_LABEL[row.status]),
             percent: Math.round(progress),
           })}
+          {actualText ? `, ${actualText}` : ""}
         </span>
         {/* The bar broken at the gaps where no work happens. The pieces sit
             INSIDE one button rather than being buttons themselves: the job
@@ -993,35 +1279,38 @@ const GanttTrack = ({
             <span
               key={piece.key}
               aria-hidden="true"
-              className={cn("zen-absolute zen-inset-y-0 zen-overflow-hidden", BAR_CLASS[row.status], "zen-rounded-zen-sm zen-border", barClass)}
-              style={{ insetInlineStart: `${piece.startPct}%`, width: `${piece.widthPct}%` }}
+              className={cn("zen-absolute zen-inset-y-0 zen-overflow-hidden", plannedSkinClass, "zen-rounded-zen-sm zen-border", barClass)}
+              style={{ insetInlineStart: `${piece.startPct}%`, width: `${piece.widthPct}%`, ...plannedSkinStyle }}
             >
-              {row.progress !== null && piece.fillPct > 0 && (
+              {plannedFill && piece.fillPct > 0 && (
                 <span
-                  className={cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[row.status])}
-                  style={{ width: `${piece.fillPct}%` }}
+                  className={cn("zen-absolute zen-inset-y-0 zen-start-0", fillClass)}
+                  style={{ width: `${piece.fillPct}%`, ...fillStyle }}
                 />
               )}
             </span>
           ))}
-        {pieces === null && row.progress !== null && (
+        {pieces === null && plannedFill && (
           <span
             aria-hidden="true"
-            className={cn("zen-absolute zen-inset-y-0 zen-start-0", FILL_CLASS[row.status])}
-            style={{ width: `${progress}%` }}
+            className={cn("zen-absolute zen-inset-y-0 zen-start-0", fillClass)}
+            style={{ width: `${progress}%`, ...fillStyle }}
           />
         )}
-        {row.progress !== null && !labelOutside && (
+        {plannedText && !labelOutside && (
           <span
             aria-hidden="true"
             className={cn(
-              "zen-absolute zen-inset-y-0 zen-flex zen-items-center zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium",
-              labelOnFill
-                ? cn("zen-start-1", FILL_TEXT_CLASS[row.status])
-                : "zen-end-1 zen-text-zen-foreground",
+              "zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium",
+              plannedLabel
+                ? LABEL_PILL_CLASS
+                : labelOnFill
+                  ? cn("zen-inset-y-0 zen-start-1", tone ? "zen-text-zen-foreground" : FILL_TEXT_CLASS[row.status])
+                  : "zen-inset-y-0 zen-end-1 zen-text-zen-foreground",
             )}
+            style={plannedLabel ? LABEL_PILL_STYLE : undefined}
           >
-            {Math.round(progress)}%
+            {plannedText}
           </span>
         )}
         {/* Last, so it sits over the fill: the stripe is the row's identity
@@ -1036,21 +1325,22 @@ const GanttTrack = ({
         )}
       </button>
 
-      {row.progress !== null && labelOutside && (
+      {plannedText && labelOutside && (
         <span
           aria-hidden="true"
-          className="zen-absolute zen-flex zen-items-center zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg"
+          className="zen-absolute zen-flex zen-items-center zen-whitespace-nowrap zen-[font-size:var(--zen-schedule-label-font-size)] zen-font-medium zen-text-zen-muted-fg"
           style={{
             ...(labelBefore
               ? { insetInlineEnd: `calc(${100 - placement.startPct}% + 4px)` }
               : { insetInlineStart: `calc(${endPct}% + 4px)` }),
-            top: barTop(rowHeight, barPx),
-            height: barPx,
+            top: geo.barTop,
+            height: geo.barHeight,
           }}
         >
-          {Math.round(progress)}%
+          {plannedText}
         </span>
       )}
+      {actualBar}
     </>
   );
 };

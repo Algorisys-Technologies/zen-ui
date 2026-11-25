@@ -315,6 +315,70 @@ const MILESTONE_LINKS: GanttDependency[] = [
   { from: "ms-qa", to: "ms-live" },
 ];
 
+/** Planned vs actual: start/end are the plan, actualStart/actualEnd what happened. NOW is 21 Jul. */
+const ACTUAL_PLAN: GanttTask[] = [
+  {
+    id: "web",
+    name: "Website relaunch",
+    children: [
+      { id: "pa-disc", name: "Discovery", start: at(1), end: at(5), actualStart: at(1), actualEnd: at(4), assignees: [RHEA] },
+      { id: "pa-design", name: "Design", start: at(6), end: at(12), actualStart: at(7), actualEnd: at(15), assignees: [MEI] },
+      { id: "pa-content", name: "Content", start: at(8), end: at(17), actualStart: at(9), assignees: [OLU] },
+      { id: "pa-build", name: "Build", start: at(13), end: at(28), actualStart: at(16), assignees: [ARUN, SVEN] },
+      { id: "pa-qa", name: "QA", start: at(27), end: at(31), assignees: [RHEA] },
+    ],
+  },
+];
+const ACTUAL_LINKS: GanttDependency[] = [
+  { from: "pa-disc", to: "pa-design" },
+  { from: "pa-design", to: "pa-build" },
+  { from: "pa-build", to: "pa-qa" },
+];
+
+/* A project board's style, from the same props: two full bars per row with
+   their dates on them, the % on the actual bar, statuses of its own (On hold,
+   Overdue) in their own colours, a key, and the month in weeks. NOW is 27 Nov. */
+const BOARD_NOW = new Date(2026, 10, 27, 10, 0, 0, 0);
+const nov = (day: number) => new Date(2026, 10, day, 0, 0, 0, 0);
+const dmy = (d: Date) => `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
+const dm = (a: Date, b: Date) => `${a.getDate()}–${b.getDate()} ${a.toLocaleString("en", { month: "short" })}`;
+type BoardState = "progress" | "done" | "todo" | "hold" | "overdue";
+const BOARD_STATE: Record<string, BoardState> = { b1: "progress", b2: "done", b3: "todo", b4: "hold", b5: "overdue" };
+const BOARD_LOOK: Record<BoardState, { label: string; color: string }> = {
+  progress: { label: "In progress", color: "var(--zen-color-warning)" },
+  done: { label: "Completed", color: "var(--zen-color-success)" },
+  todo: { label: "Todo", color: "var(--zen-color-info)" },
+  hold: { label: "On hold", color: "var(--zen-color-accent-purple)" },
+  overdue: { label: "Overdue, in progress", color: "var(--zen-color-error)" },
+};
+const boardTask = (id: string, name: string, plan: [number, number], actual?: [number, number?], percentComplete?: number): GanttTask => {
+  const look = BOARD_LOOK[BOARD_STATE[id]];
+  const lines = [`Planned: ${dmy(nov(plan[0]))} → ${dmy(nov(plan[1]))}`];
+  if (actual) lines.push(`Actual: ${dmy(nov(actual[0]))} → ${actual[1] ? dmy(nov(actual[1])) : "…"}`);
+  return {
+    id,
+    name,
+    subtitle: lines,
+    statusLabel: look.label,
+    start: nov(plan[0]),
+    end: nov(plan[1]),
+    actualStart: actual ? nov(actual[0]) : undefined,
+    actualEnd: actual?.[1] ? nov(actual[1]) : undefined,
+    percentComplete,
+  };
+};
+const BOARD: GanttTask[] = [
+  boardTask("b1", "Project 1", [16, 20], [24], 50),
+  boardTask("b2", "Project 2", [23, 25], [23, 25], 100),
+  boardTask("b3", "Project 3", [24, 26]),
+  boardTask("b4", "Project 4", [25, 27], [25], 20),
+  boardTask("b5", "Project 5", [1, 7], [10], 60),
+];
+const BOARD_LEGEND = [
+  { label: "Planned", color: "var(--zen-color-muted)" },
+  ...(["done", "todo", "progress", "hold", "overdue"] as BoardState[]).map((s) => BOARD_LOOK[s]),
+];
+
 /** A plan that crosses New Year — the case no calendar year can show whole. */
 const CROSS_YEAR: GanttTask[] = [
   {
@@ -787,6 +851,99 @@ chart.addEventListener("zen-task-click", (e) => open(e.detail[0]));
           const chart = gantt({ tasks: MILESTONE_PLAN, dependencies: MILESTONE_LINKS, now: NOW, defaultDate: NOW });
           chart.setAttribute("default-view", "month");
           chart.barAccent = (t: GanttTask) => CUSTOMER_GATES.has(t.id) && "var(--zen-color-accent-purple)";
+          box.append(chart);
+          return box;
+        },
+      },
+      {
+        title: "19. Planned vs actual",
+        codeTitle: "\"actualStart\" and \"actualEnd\" on a task",
+        codeDescription:
+          "A task's start and end are the plan. Give it actualStart when the work really begins and actualEnd when it really finishes, and a second bar shows the actual period under the planned one. Work still running has an actual bar that ends at now, with a square end because it has not finished yet. A task that has not started has no actual bar, so a plan that slipped past without anyone starting it is easy to spot. By default the actual dates also set the status and the slip: a finished task with no percentage given is complete, a running one is on track until its planned end passes, and the variance column shows how many days the actual finish (or today, for late running work) is past the planned end. An explicit status, percentComplete or baselineEnd still wins, and deriveFromActuals={false} turns this off and only draws the bar. actualLayout split gives the two bars equal weight instead, and actualBarColor or actualBarClassName restyle the actual bar. Tasks without actual dates look exactly as before.",
+        code: `<zen-gantt
+  columns='["name", "status", "variance"]'
+  tasks='[
+    { "id": "discovery", "name": "Discovery", "start": "2026-07-01", "end": "2026-07-05", "actualStart": "2026-07-01", "actualEnd": "2026-07-04" },
+    { "id": "design", "name": "Design", "start": "2026-07-06", "end": "2026-07-12", "actualStart": "2026-07-07", "actualEnd": "2026-07-15" },
+    { "id": "build", "name": "Build", "start": "2026-07-13", "end": "2026-07-28", "actualStart": "2026-07-16" },
+    { "id": "content", "name": "Content", "start": "2026-07-08", "end": "2026-07-17", "actualStart": "2026-07-09" },
+    { "id": "qa", "name": "QA", "start": "2026-07-27", "end": "2026-07-31" }
+  ]'
+></zen-gantt>
+
+<!-- Two equal bars, the actual one in a colour of your choosing -->
+<zen-gantt actual-layout="split" tasks='…'></zen-gantt>
+<script>
+  // A function, so a property rather than an attribute.
+  document.querySelectorAll("zen-gantt")[1].actualBarColor = () => "var(--zen-color-accent-purple)";
+</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-flex zen-w-full zen-flex-col zen-gap-4";
+          box.setAttribute("data-testid", "gantt-actuals");
+          /* The first chart takes its tasks through the json ATTRIBUTE, ISO
+             strings and all — the path whose dates the element must revive,
+             actual ones included. */
+          const strip = gantt({ dependencies: ACTUAL_LINKS, now: NOW, defaultDate: NOW });
+          strip.setAttribute("tasks", JSON.stringify(ACTUAL_PLAN));
+          strip.setAttribute("default-view", "month");
+          strip.setAttribute("columns", JSON.stringify(["name", "status", "variance"]));
+          const split = gantt({
+            tasks: ACTUAL_PLAN,
+            dependencies: ACTUAL_LINKS,
+            now: NOW,
+            defaultDate: NOW,
+            actualBarColor: () => "var(--zen-color-accent-purple)",
+          });
+          split.setAttribute("default-view", "month");
+          split.setAttribute("actual-layout", "split");
+          box.append(strip, split);
+          return box;
+        },
+      },
+      {
+        title: "20. A project board: labels, your own statuses, a key",
+        codeTitle: "bar-label, progress-on, status-color, legend, month-columns",
+        codeDescription:
+          "The same chart styled as a project board. actualLayout split with a taller rowHeight gives two full bars per row, and barLabel and actualBarLabel put their dates on them; a label that does not fit goes beside its bar. progressOn actual moves the percentage onto the actual bar and turns the plan into a neutral grey reference. statusLabel and statusColor give statuses of your own, like On hold, their own colour on the chip and the bars. legend draws the key, from the chart with legend set to true or from your own list as here. monthColumns week shows the month in calendar weeks, which leaves room for a label on every bar. subtitle takes a list, one line each. Every one of these is optional, and without them the chart is unchanged.",
+        code: `<zen-gantt
+  tasks='…'
+  views='["week", "month", "quarter"]'
+  default-view="month"
+  month-columns="week"
+  actual-layout="split"
+  row-height="64"
+  progress-on="actual"
+  legend='[{ "label": "Planned", "color": "var(--zen-color-muted)" }, { "label": "On hold", "color": "var(--zen-color-accent-purple)" }]'
+></zen-gantt>
+<script>
+  // Functions, so properties rather than attributes.
+  const chart = document.querySelector("zen-gantt");
+  chart.barLabel = (t) => \`Planned (\${range(t.start, t.end)})\`;
+  chart.actualBarLabel = (t, row) => \`Actual (\${range(row.actual.start, row.actual.end)}) – \${row.progress ?? 0}%\`;
+  chart.statusColor = (t) => look[stateOf(t)].color;
+</script>`,
+        render: () => {
+          const box = document.createElement("div");
+          box.className = "zen-w-full";
+          box.setAttribute("data-testid", "gantt-board");
+          const chart = gantt({
+            tasks: BOARD,
+            now: BOARD_NOW,
+            defaultDate: BOARD_NOW,
+            columns: ["name", "status"],
+            barLabel: (t: GanttTask) => `Planned (${dm(t.start!, t.end!)})`,
+            actualBarLabel: (_t: GanttTask, row: GanttRow<GanttTask>) =>
+              row.actual ? `Actual (${dm(row.actual.start, row.actual.end)}) – ${Math.round(row.progress ?? 0)}%` : null,
+            statusColor: (t: GanttTask) => BOARD_LOOK[BOARD_STATE[t.id]]?.color,
+          });
+          chart.setAttribute("views", JSON.stringify(["week", "month", "quarter"]));
+          chart.setAttribute("default-view", "month");
+          chart.setAttribute("month-columns", "week");
+          chart.setAttribute("actual-layout", "split");
+          chart.setAttribute("row-height", "64");
+          chart.setAttribute("progress-on", "actual");
+          chart.setAttribute("legend", JSON.stringify(BOARD_LEGEND));
           box.append(chart);
           return box;
         },

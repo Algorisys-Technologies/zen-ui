@@ -42,6 +42,16 @@ SKILL.md.
 - `rowClassName?: ((task: GanttTask, row: GanttRow<GanttTask>) => string | undefined) | undefined` — Classes for a task's row — a tint for a critical or late task.
 - `barClassName?: ((task: GanttTask) => string | undefined | false | null) | undefined` — Classes for a task's bar, applied after its status colours so they win: `(t) => t.team === "Design" && "zen-bg-zen-accent-purple zen-border-zen-accent-purple"`.
 - `barAccent?: ((task: GanttTask) => string | undefined | false | null) | undefined` — A CSS colour for a stripe on the bar's leading edge — a second channel beside the status fill, for a shift, a line or a customer: `(t) => shiftColour[t.shift]`. A value rather than a class, so the colour can come from data. On a milestone it is a border inside the diamond, so the arrows still meet its points.
+- `actualLayout?: GanttActualLayout | undefined` — Planned vs actual. A task with `actualStart` (and, once done, `actualEnd`) gets a second bar showing when the work really ran; its `start`/`end` stay the plan. Running work's bar ends at now. Nothing changes for a task without them. "strip" (default) keeps the planned bar where it always was and draws the actual one slim beneath it. "split" draws two equal bars, plan above.
+- `deriveFromActuals?: boolean | undefined` — Let the actual dates drive status and slip. Default true: an actual end with no % stated is Complete, a running task is On track (or Delayed past its plan), and with no `baselineEnd` the variance is the actual finish against the planned end. An explicit `status`, `percentComplete` or `baselineEnd` still wins. False draws the actual bar and changes nothing else.
+- `actualBarClassName?: ((task: GanttTask) => string | undefined | false | null) | undefined` — Classes for a task's actual bar, applied after its own: `(t) => "zen-opacity-60"`.
+- `actualBarColor?: ((task: GanttTask) => string | undefined | false | null) | undefined` — A CSS colour for a task's actual bar. Default: the row's status colour. A value rather than a class, so the colour can come from data.
+- `barLabel?: ((task: GanttTask, row: GanttRow<GanttTask>) => string | undefined | false | null) | undefined` — Text ON the planned bar, replacing its "60%": `(t, row) => \`Planned (6–12 Jul)\``. Drawn inside when it fits, beside the bar when it does not. Hidden from assistive tech — the bar's name already says its dates and progress.
+- `actualBarLabel?: ((task: GanttTask, row: GanttRow<GanttTask>) => string | undefined | false | null) | undefined` — Text on the actual bar, as `barLabel`. A slim "strip" bar always puts it beside.
+- `progressOn?: "planned" | "actual" | undefined` — Which bar carries the % fill — and with it the status colour. "planned" (default) is how it has always been. "actual" fills the actual bar and makes the plan a neutral reference; a task with no actual dates keeps its fill on the planned bar, since there is nowhere else to put it.
+- `statusColor?: ((task: GanttTask, row: GanttRow<GanttTask>) => string | undefined | false | null) | undefined` — A CSS colour for a row's status, replacing the four-colour palette on its chip and bars — for statuses of your own ("On hold"), named with `statusLabel`: `(t) => t.onHold && "var(--zen-color-accent-purple)"`.
+- `legend?: boolean | GanttLegendItem[] | undefined` — A key in the toolbar. `true` builds it from the chart — one entry per status label and colour on screen; an array draws exactly those entries (add "Planned" and "Actual" yourself if you restyle the bars).
+- `monthColumns?: "week" | "day" | undefined` — What one column of the Month view is: "day" (default) or "week" — the month in calendar weeks, room for a label on every bar. The other views, Fit and a continuous axis are unaffected.
 - `headerClassName?: string | undefined` — Classes for the header: the row and its frozen pane, applied after their own, so a caller's background and text colour win (`"zen-bg-zen-primary-soft zen-text-zen-primary-soft-fg"`).
 - `headerGroups?: boolean | undefined` — A second header row giving the columns their date context: the date above hours, the month above days or weeks, the year above months. Each label stays in view while the axis scrolls sideways, so a planner following an order across weeks never has to look up to the toolbar for the month. Off by default: the header is then the single row it always was.
 - `continuous?: boolean | undefined` — One continuous timeline over the whole plan, scrolled sideways: Day, Week, Month, Quarter and Year set the ZOOM instead of a one-period window, so a bar is never cut at a period edge and an order can be followed across weeks. Previous / Next / Today scroll; the title names the period in the middle of the screen. Turns `headerGroups` on unless it is set to false. Fit is continuous already and is unaffected. Off by default.
@@ -51,7 +61,7 @@ SKILL.md.
 ### GanttTask (type)
 
 - `name: string`
-- `subtitle?: string | undefined` — Second line under the name.
+- `subtitle?: string | string[] | undefined` — Second line under the name.
 - `assignees?: GanttAssignee[] | undefined`
 - `statusLabel?: string | undefined` — Overrides the status chip's words. The colour still follows `status`.
 - `children?: GanttTask[] | undefined`
@@ -62,6 +72,8 @@ SKILL.md.
 - `percentComplete?: number | undefined` — 0–100. Omit on a parent to have it averaged from the children.
 - `workingMinutes?: number | undefined` — Duration in WORKING minutes. With a `start` and no `end`, the end is computed from the calendar — which is how a 6-hour job starting Friday 16:00 correctly finishes on Monday. Ignored when `end` is given, since an explicit end is a statement and a duration is a derivation. With no calendar in play this is elapsed minutes, because no calendar means a 24/7 one and the two are then the same number.
 - `baselineEnd?: Date | undefined` — What the plan originally promised. Slip is measured against this.
+- `actualStart?: Date | undefined` — When work really began. `start`/`end` stay the PLAN; these are what happened, and are drawn as a second bar under the planned one. Opt-in by data: a chart where no task sets them draws exactly as it always did. A start with no `actualEnd` is work in progress — its actual bar runs to now. An `actualEnd` with no `actualStart` is half-entered and ignored.
+- `actualEnd?: Date | undefined` — When work really finished. See `actualStart`.
 - `status?: GanttTaskStatus | undefined` — Overrides the derived status.
 
 ### GanttAssignee (type)

@@ -91,6 +91,10 @@ const FIT_MIN_COLUMN_PX: Record<GanttColumnUnit, number> = {
  * view to the window would make "how long is that bar" a question about the
  * browser, while shrinking it is simply the alternative to dragging sideways.
  */
+/** A week column of a month drawn in weeks (`monthUnit: "week"`): wide enough
+ *  for a label on a bar, which is why anyone asks for it. Floor, then ceiling. */
+const MONTH_WEEK_PX = { min: 64, max: 180 };
+
 const MIN_COLUMN_PX: Record<GanttAnchoredView, number> = {
   day: 34,
   week: 44,
@@ -171,6 +175,11 @@ export interface ScheduleAxisInput {
   continuous?: boolean;
   /** The plan's span, for a continuous axis; null when nothing has dates. */
   plan?: PlanningRange | null;
+  /**
+   * The month view's columns: "day" (default) or "week". Anchored month only —
+   * a continuous axis zooms by its own unit and Fit chooses its own.
+   */
+  monthUnit?: "day" | "week";
 }
 
 export interface ScheduleAxis {
@@ -231,7 +240,15 @@ export function resolveScheduleAxis(input: ScheduleAxisInput): ScheduleAxis {
   const continuous = !!input.continuous && !isFit;
   const whole = continuous ? ganttContinuousRange(anchoredView, input.plan ?? null, input.anchor) : null;
   const range = input.fitRange ?? whole?.range ?? ganttRange(anchoredView, input.anchor);
-  const options = { now: input.now, calendar: input.calendar, hourStep, grouped: input.grouped };
+  /** The anchored month, drawn in weeks. Sized as weeks, grouped as weeks. */
+  const monthWeeks = input.monthUnit === "week" && !isFit && !continuous && anchoredView === "month";
+  const options = {
+    now: input.now,
+    calendar: input.calendar,
+    hourStep,
+    grouped: input.grouped,
+    monthUnit: monthWeeks ? ("week" as const) : undefined,
+  };
   const columns = whole
     ? ganttRangeColumns(whole.range, ganttViewUnit(anchoredView), options)
     : input.fitRange && fitUnit
@@ -247,13 +264,17 @@ export function resolveScheduleAxis(input: ScheduleAxisInput): ScheduleAxis {
       ? columns.length * input.columnWidth
       : fitUnit
         ? columns.length * FIT_MIN_COLUMN_PX[fitUnit]
-        : columns.length * MIN_COLUMN_PX[anchoredView];
+        : monthWeeks
+          ? columns.length * MONTH_WEEK_PX.min
+          : columns.length * MIN_COLUMN_PX[anchoredView];
   const ceilingAxis =
     input.columnWidth !== undefined
       ? columns.length * input.columnWidth
       : fitUnit
         ? Number.POSITIVE_INFINITY
-        : columns.length * COLUMN_PX[anchoredView];
+        : monthWeeks
+          ? columns.length * MONTH_WEEK_PX.max
+          : columns.length * COLUMN_PX[anchoredView];
 
   const widths: Record<string, number> = {};
   for (const column of input.paneColumns) widths[column.key] = column.width;
@@ -285,7 +306,7 @@ export function resolveScheduleAxis(input: ScheduleAxisInput): ScheduleAxis {
   const columnWidths = ganttColumnWidths(columns, range, axisWidth);
   const minGapMs = axisWidth > 0 ? (range.end.getTime() - range.start.getTime()) / axisWidth : 0;
 
-  const unit: GanttColumnUnit = fitUnit ?? ganttViewUnit(anchoredView);
+  const unit: GanttColumnUnit = fitUnit ?? (monthWeeks ? "week" : ganttViewUnit(anchoredView));
 
   return {
     range,
@@ -348,6 +369,8 @@ export interface ScheduleGridOptions<R extends ScheduleRowShape> {
 
   views?: GanttView[];
   hideToolbar?: boolean;
+  /** A row of its own under the toolbar — the legend. Drawn even with the toolbar hidden. */
+  legend?: Node | null;
   onViewChange: (view: GanttView) => void;
   onDateChange: (date: Date) => void;
   onToggle: (row: R) => void;
@@ -400,6 +423,11 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
 
   const root = el("div");
   const toolbarSlot = el("div");
+  /* Its own row, not squeezed into the toolbar: a key of five or six entries
+     beside the view switcher wrapped the switcher onto a line of its own at
+     ordinary widths. Hidden when empty, or the column's gap would draw a
+     blank band. */
+  const legendSlot = el("div");
   /* Built ONCE and never replaced. Everything else is torn down and rebuilt on
      update, but this node holds the scroll position, and replacing it would
      throw away the thing most updates are a reaction to. */
@@ -474,7 +502,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     followScroller();
   };
 
-  root.append(toolbarSlot, scroller, axisBar);
+  root.append(toolbarSlot, legendSlot, scroller, axisBar);
 
   let metrics: ScheduleMetrics = { top: 0, height: SCROLLER_MAX_PX, width: 0, left: 0 };
 
@@ -1050,6 +1078,9 @@ export function ScheduleGrid<R extends ScheduleRowShape>(
     scroller.style.maxHeight = cap === undefined ? "" : typeof cap === "number" ? `${cap}px` : cap;
     toolbarSlot.replaceChildren();
     if (!current.hideToolbar) toolbarSlot.append(buildToolbar());
+    legendSlot.replaceChildren();
+    legendSlot.hidden = !current.legend;
+    if (current.legend) legendSlot.append(current.legend);
 
     /* Saved and restored around the swap: the content is briefly shorter while
        the grid is empty, and a browser clamps scrollTop the moment it is. */

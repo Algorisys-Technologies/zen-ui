@@ -15,6 +15,47 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.6.0] - 2026-11-25
+
+### Added
+
+- Gantt planned vs actual, all four bindings. `GanttTaskNode.actualStart` /
+  `actualEnd`; core `ganttActual` (own, or rolled up — a parent stays open
+  while any child with work is running or unstarted, and its end is then now),
+  `GanttRow.actual`, `ganttTaskStatus(…, actual)` (an actual end with no % is
+  complete; a running task is on-track rather than not-started),
+  `flattenGanttTasks({ deriveFromActuals })` (variance falls back to the
+  actual finish — or now, for running work past its plan — against the planned
+  end; `baselineEnd` still wins), `ganttFitRange({ now })` so a late finish is
+  not clipped. Props `actualLayout` ("strip" | "split"), `deriveFromActuals`,
+  `actualBarClassName`, `actualBarColor`. `ganttActualLayout` places the two
+  bars: "strip" never moves the planned bar, because the dependency arrows
+  route at the row middle; "split" takes full bars when the row has room.
+- Gantt styling: `barLabel` / `actualBarLabel` (inside when `ganttLabelFits`,
+  on a background pill for contrast over any colour; beside on whichever side
+  `ganttLabelPx` says has room), `progressOn` ("planned" | "actual" — the
+  actual bar then carries the fill and status colour and the plan goes
+  neutral), `statusColor` (CSS colour per row on chip, bars and fill),
+  `legend` (true → `ganttLegendItems` over the rows; or explicit entries;
+  `GANTT_STATUS_COLOR` for the built-ins), `monthColumns` ("day" | "week" —
+  `ganttColumns(month, { monthUnit: "week" })`, calendar weeks clipped to the
+  month), `GanttTask.subtitle` accepts a string list.
+- ScheduleGrid (all bindings): a `legend` row under the toolbar (beside the
+  view switcher it wrapped the switcher onto its own line), and the axis takes
+  `monthUnit`, sized at 64–180px a week column.
+- `<zen-gantt>`: revives `actualStart` / `actualEnd` from the json attribute;
+  `actual-layout`, `progress-on`, `month-columns` and `legend` attributes;
+  `deriveFromActuals` is a property (it defaults to true, and an absent boolean
+  attribute would coerce it to false); the label and colour functions are
+  properties.
+- Messages `gantt.actualSpan`, `gantt.actualRunning`, `gantt.legend`.
+- check-gantt: actuals, rollup, status, slip, fit, the layout geometry at
+  every density, month-in-weeks tiling, label fit and legend dedupe.
+  check-schedule-dom: actual bars below the planned one and inside the row,
+  the strip's planned bar still centred, aria-hidden with the dates in the
+  bar's name, open bars marked, board labels unclipped, legend and week
+  headers — every binding, both directions.
+
 ## [13.5.1] - 2026-11-25
 
 ### Fixed

@@ -33,6 +33,20 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.6.0",
+    date: "2026-11-25",
+    kind: "new",
+    title: "Gantt shows the plan and what actually happened",
+    detail: "Give a task actualStart and actualEnd and a second bar shows when the work really ran. Late starts, overruns and work that never started are visible at a glance.",
+  },
+  {
+    version: "13.6.0",
+    date: "2026-11-25",
+    kind: "new",
+    title: "Gantt bar labels, your own statuses and a legend",
+    detail: "Put text on the bars, show progress on the actual bar, colour statuses like On hold your own way, add a key, and show the month in weeks.",
+  },
+  {
     version: "13.5.1",
     date: "2026-11-25",
     kind: "fixed",

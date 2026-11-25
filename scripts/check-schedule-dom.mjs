@@ -410,6 +410,73 @@ for (const id of wanted) {
           t(`an accented milestone draws its border (${accented.length})`,
             accented.length > 0 && accented.every((m) => m.accentWidth >= 1 && m.accent !== m.fill && !/rgba\(.*, 0\)/.test(m.accent)), true);
         }
+
+        /* Planned vs actual: the actual bar is ADDED. In the default strip
+           layout the planned bar must not move — the arrows route at the row's
+           middle — and the actual bar must sit below it, inside the row, and
+           stay out of the accessibility tree (its dates are in the planned
+           bar's name). Counted, so a section that drew nothing cannot pass. */
+        const pva = await page.evaluate(() => {
+          const root = document.querySelector('[data-testid="gantt-actuals"]');
+          if (!root) return null;
+          const charts = [...root.querySelectorAll('[role="treegrid"]')].map((grid) =>
+            [...grid.querySelectorAll('[role="row"]')]
+              .filter((r) => r.querySelector("[data-gantt-actual]"))
+              .map((r) => {
+                const row = r.getBoundingClientRect();
+                const planned = r.querySelector("[data-gantt-bar]").getBoundingClientRect();
+                const actual = r.querySelector("[data-gantt-actual]");
+                const a = actual.getBoundingClientRect();
+                return {
+                  centred: Math.abs((planned.top + planned.bottom) / 2 - (row.top + row.bottom) / 2) < 1,
+                  below: a.top >= planned.bottom - 0.5,
+                  inside: a.top >= row.top - 0.5 && a.bottom <= row.bottom + 0.5,
+                  hidden: actual.getAttribute("aria-hidden") === "true",
+                  named: /actual/.test(r.querySelector("[data-gantt-bar] .zen-sr-only")?.textContent ?? ""),
+                  open: actual.hasAttribute("data-gantt-actual-open"),
+                };
+              }),
+          );
+          const board = document.querySelector('[data-testid="gantt-board"]');
+          let labels = null;
+          if (board) {
+            const scroller = board.querySelector('[role="treegrid"]').parentElement;
+            const box = scroller.getBoundingClientRect();
+            const spans = [...board.querySelectorAll("span")].filter(
+              (x) => x.children.length === 0 && /^(Planned|Actual) \(/.test(x.textContent),
+            );
+            labels = {
+              examined: spans.length,
+              clipped: spans.filter((x) => {
+                const r = x.getBoundingClientRect();
+                return r.left < box.left - 0.5 || r.right > box.right + 0.5;
+              }).length,
+              legend: board.querySelectorAll("ul[aria-label] li").length,
+              weekColumns: [...board.querySelectorAll('[role="columnheader"][aria-label="Timeline"] > *')].filter((c) =>
+                /\d–\d/.test(c.textContent),
+              ).length,
+            };
+          }
+          return { strip: charts[0] ?? [], split: charts[1] ?? [], labels };
+        });
+        if (pva === null) {
+          console.log("  (no planned-vs-actual chart on this route — NOT PORTED for actuals)");
+        } else {
+          const all = [...pva.strip, ...pva.split];
+          t(`actual bars are drawn (${pva.strip.length} strip, ${pva.split.length} split)`, pva.strip.length >= 4 && pva.split.length >= 4, true);
+          t("strip: the planned bar stays centred in its row", pva.strip.every((b) => b.centred), true);
+          t("every actual bar sits below its planned bar, inside the row", all.every((b) => b.below && b.inside), true);
+          t("…hidden from assistive tech, its dates in the planned bar's name", all.every((b) => b.hidden && b.named), true);
+          t(`running work is marked open (${all.filter((b) => b.open).length})`, all.some((b) => b.open) && all.some((b) => !b.open), true);
+          if (pva.labels === null) {
+            console.log("  (no project-board chart on this route — NOT PORTED for bar labels)");
+          } else {
+            t(`bar labels stay inside the chart (${pva.labels.clipped} of ${pva.labels.examined} clipped)`,
+              pva.labels.examined >= 8 && pva.labels.clipped === 0, true);
+            t(`the legend draws its entries (${pva.labels.legend})`, pva.labels.legend, 6);
+            t(`month-in-weeks headers read as ranges (${pva.labels.weekColumns})`, pva.labels.weekColumns >= 3, true);
+          }
+        }
       } else {
         t("a row draws more than one lane", Math.max(...charts.map((c) => c.lanes)), 3);
         t("a changeover is drawn as its own block", charts.some((c) => c.setupHatch > 0), true);

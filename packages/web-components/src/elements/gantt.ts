@@ -28,9 +28,11 @@ import { defineZenElement } from "../lib/define";
  * No slot: the plan comes from `tasks`.
  */
 
-type RawTask = Omit<GanttTask, "start" | "end" | "baselineStart" | "baselineEnd" | "children"> & {
+type RawTask = Omit<GanttTask, "start" | "end" | "baselineStart" | "baselineEnd" | "actualStart" | "actualEnd" | "children"> & {
   start?: string | Date;
   end?: string | Date;
+  actualStart?: string | Date;
+  actualEnd?: string | Date;
   baselineStart?: string | Date;
   baselineEnd?: string | Date;
   children?: RawTask[];
@@ -54,6 +56,10 @@ const reviveTasks = (tasks: RawTask[] | undefined): GanttTask[] =>
     end: asDate(task.end),
     baselineStart: asDate(task.baselineStart),
     baselineEnd: asDate(task.baselineEnd),
+    // The actual dates too, or every actual bar lands at Invalid Date — and a
+    // running task's "Started" reads as never.
+    actualStart: asDate(task.actualStart),
+    actualEnd: asDate(task.actualEnd),
     // Depth-first, because a shallow pass would leave every leaf at Invalid Date.
     children: task.children ? reviveTasks(task.children) : undefined,
   })) as GanttTask[];
@@ -129,6 +135,12 @@ defineZenElement<GanttProps>({
     continuous: "boolean",
     // compact | comfortable | touch (opt-in; does not follow data-density)
     density: "string",
+    // Planned vs actual: strip | split; planned | actual; day | week.
+    "actual-layout": "string",
+    "progress-on": "string",
+    "month-columns": "string",
+    // legend='true' builds the key from the chart; a json array draws those entries.
+    legend: "json",
   },
   /* `showDependencies` is a PROPERTY rather than an attribute, and the rule it
      follows is lib/define.ts's: an ABSENT boolean attribute coerces to `false`,
@@ -159,6 +171,16 @@ defineZenElement<GanttProps>({
     // Functions, so properties: el.barAccent = (t) => colour; el.dependencyStyle = (d) => ({ color, dash }).
     "barAccent",
     "dependencyStyle",
+    /* Defaults to TRUE, so a property for the reason `showDependencies` is
+       (above): as an attribute, its absence would coerce to false and switch
+       status-from-actuals off on every element that did not opt back in. */
+    "deriveFromActuals",
+    // Functions, so properties: el.barLabel = (t, row) => "Planned (6–12 Jul)"; el.statusColor = (t) => colour.
+    "barLabel",
+    "actualBarLabel",
+    "actualBarClassName",
+    "actualBarColor",
+    "statusColor",
   ],
   events: {
     onTaskClick: "zen-task-click",

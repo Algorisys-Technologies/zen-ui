@@ -137,6 +137,10 @@ const FIT_MIN_COLUMN_PX: Record<GanttColumnUnit, number> = {
  * bar" a question about the browser, while shrinking it is simply the
  * alternative to dragging the chart sideways to see Thursday.
  */
+/** A week column of a month drawn in weeks (`monthUnit: "week"`): wide enough
+ *  for a label on a bar, which is why anyone asks for it. Floor, then ceiling. */
+const MONTH_WEEK_PX = { min: 64, max: 180 };
+
 const MIN_COLUMN_PX: Record<GanttAnchoredView, number> = {
   day: 34,
   week: 44,
@@ -293,6 +297,8 @@ export interface ScheduleGridProps<R extends ScheduleRowShape> {
   /* ---- toolbar ---- */
   views?: GanttView[];
   hideToolbar?: boolean;
+  /** A row of its own under the toolbar — the legend. Drawn even with the toolbar hidden. */
+  legend?: React.ReactNode;
   onViewChange: (view: GanttView) => void;
   onDateChange: (date: Date) => void;
 
@@ -357,9 +363,17 @@ export function useScheduleAxis(options: {
   continuous?: boolean;
   /** The plan's span, for a continuous axis; null when nothing has dates. */
   plan?: PlanningRange | null;
+  /**
+   * The month view's columns: "day" (default) or "week". Anchored month only —
+   * a continuous axis zooms by its own unit and Fit chooses its own.
+   */
+  monthUnit?: "day" | "week";
 }): ScheduleAxis & { paneKeys: string[] } {
   const { view, anchor, fitRange, now, calendar, hourStep, columnWidth, paneColumns, available, grouped, plan } = options;
   const continuous = !!options.continuous && view !== "fit";
+  /** The anchored month, drawn in weeks. Sized as weeks, grouped as weeks. */
+  const monthWeeks = options.monthUnit === "week" && view === "month" && !continuous;
+  const monthUnit = monthWeeks ? ("week" as const) : undefined;
 
   const isFit = view === "fit";
   /* The one place the two view worlds meet. Every anchored function refuses
@@ -402,9 +416,9 @@ export function useScheduleAxis(options: {
         ? ganttRangeColumns(fitRange, fitUnit, { now, calendar, hourStep: effectiveHourStep, grouped })
         : continuousRange
           ? ganttRangeColumns(continuousRange.range, ganttViewUnit(anchoredView), { now, calendar, hourStep, grouped })
-          : ganttColumns(anchoredView, anchor, { now, calendar, hourStep, grouped }),
+          : ganttColumns(anchoredView, anchor, { now, calendar, hourStep, grouped, monthUnit }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, effectiveHourStep, grouped, continuousRange],
+    [fitRange, fitUnit, anchoredView, anchorTime, nowTime, calendar, effectiveHourStep, grouped, continuousRange, monthUnit],
   );
 
   /* Two numbers, not one, and the pane negotiates against the SMALLER.
@@ -428,13 +442,17 @@ export function useScheduleAxis(options: {
       ? columns.length * columnWidth
       : fitUnit
         ? columns.length * FIT_MIN_COLUMN_PX[fitUnit]
-        : columns.length * MIN_COLUMN_PX[anchoredView];
+        : monthWeeks
+          ? columns.length * MONTH_WEEK_PX.min
+          : columns.length * MIN_COLUMN_PX[anchoredView];
   const ceilingAxis =
     columnWidth !== undefined
       ? columns.length * columnWidth
       : fitUnit
         ? Number.POSITIVE_INFINITY
-        : columns.length * COLUMN_PX[anchoredView];
+        : monthWeeks
+          ? columns.length * MONTH_WEEK_PX.max
+          : columns.length * COLUMN_PX[anchoredView];
 
   const widths = React.useMemo(() => {
     const map: Record<string, number> = {};
@@ -491,7 +509,7 @@ export function useScheduleAxis(options: {
     [range, axisWidth],
   );
 
-  const unit: GanttColumnUnit = fitUnit ?? ganttViewUnit(anchoredView);
+  const unit: GanttColumnUnit = fitUnit ?? (monthWeeks ? "week" : ganttViewUnit(anchoredView));
 
   const clamped = continuousRange?.clamped ?? false;
 
@@ -581,6 +599,7 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
   connectorStyle,
   views,
   hideToolbar,
+  legend,
   onViewChange,
   onDateChange,
   onToggle,
@@ -1071,6 +1090,11 @@ export function ScheduleGrid<R extends ScheduleRowShape>({
           </div>
         </div>
       )}
+
+      {/* Its own row, not squeezed into the toolbar: a key of five or six
+          entries beside the view switcher wrapped the switcher onto a line of
+          its own at ordinary widths. */}
+      {legend}
 
       {/* ONE scroller. The frozen pane is sticky at the inline start and the
           header sticky at the top, so vertical scroll moves both panes and
