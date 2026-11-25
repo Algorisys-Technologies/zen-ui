@@ -105,7 +105,7 @@ description, then import the name from your binding's package.
 - **Timeline** — Ordered list of events with a rail, markers, timestamps and date groups
 - **UploadCollection** — The list of uploaded files — progress, rename, delete, retry; the result FileUpload has no view for
 - **PlanningCalendar** — Resource-by-time grid — rows of people or rooms, appointments as blocks, day / week / month views
-- **Gantt** — Project schedule — a collapsing task tree beside bars on a shared clock, with percent-complete fills, slip chips, dependency arrows and milestone diamonds; opens on a fit axis taken from the data, one tab stop with arrow-key grid navigation
+- **Gantt** — Project schedule — a collapsing task tree beside bars on a shared clock, with percent-complete fills, slip chips, dependency arrows, milestone diamonds and planned-vs-actual bars; opens on a fit axis taken from the data, one tab stop with arrow-key grid navigation
 - **ProductionSchedule** — Shop-floor schedule — work centres as rows holding many operations in lanes, changeovers drawn as time the machine is busy making nothing, finite capacity with overload, and a load histogram of booked over available WORKING hours
 - **StatePill** — A machine’s state as a labelled pill — running, stopped, setup, planned stops and no data, from one shared vocabulary that also says how OEE counts the time
 - **OeeGauge** — OEE as a half-circle gauge with Availability, Performance and Quality underneath — computed from counts and times, banded against a plant’s own targets, and honest about what it cannot compute

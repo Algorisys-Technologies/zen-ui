@@ -21,4 +21,4 @@ SKILL.md.
 - `machineStateTone(state: MachineState): MachineStateTone`
 - `MachineState` = `"running" | "idle" | "stopped" | "fault" | "waiting" | "setup" | "cleaning" | "maintenance" | "unknown"`
 - `MachineStateCategory` = `"productive" | "unplanned-loss" | "changeover" | "planned-stop" | "no-demand" | "no-data"`
-- `MachineStateTone` = `"down" | "running" | "idle" | "setup" | "unknown" | "planned"`
+- `MachineStateTone` = `"down" | "planned" | "running" | "idle" | "setup" | "unknown"`
