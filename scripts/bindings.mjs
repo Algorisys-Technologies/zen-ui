@@ -88,6 +88,8 @@ export const BINDINGS = [
     base: "/builder",
     /** The reference implementation of the API. Exactly one binding may say true. */
     reference: true,
+    /** Published to npm (see `npm` on the solid entry). */
+    npm: true,
     /** Where the router lives, and how its routes are spelled. check-nav re-derives
      *  route -> component -> file from this rather than trusting nav.ts. */
     router: "packages/react/src/App.tsx",
@@ -112,6 +114,13 @@ export const BINDINGS = [
      * decides what an API should BE. Exactly one binding may say true.
      */
     lead: true,
+    /**
+     * Published to the public npm registry as `pkg`, by scripts/publish-npm.sh,
+     * which refuses any binding without this flag. React and Solid since
+     * 2026-11-26; vanilla and web-components are tarball-only (dist-pkg/) until
+     * the owner turns them on. A version on npm can never be republished.
+     */
+    npm: true,
     router: "packages/solid/src/main.tsx",
     routeRe: /<Route\s+path="([^"]+)"\s+component=\{(\w+)\}/g,
     navKey: "path",

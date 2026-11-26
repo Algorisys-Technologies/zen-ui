@@ -86,6 +86,7 @@
     "check:parity": "bun run scripts/check-parity.ts",
     "check:release": "bun run scripts/check-release.ts",
     "ship:check": "node scripts/ship-check.mjs",
+    "publish:npm": "bash scripts/publish-npm.sh",
     "check:package": "node scripts/check-package-artifacts.mjs",
     "check:size": "node scripts/check-bundle-size.mjs",
     "check:schedule-dom": "node scripts/check-schedule-dom.mjs",

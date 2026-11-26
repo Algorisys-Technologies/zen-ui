@@ -33,9 +33,6 @@
     "url": "https://github.com/Algorisys-Technologies/zen-ui.git"
   },
   "homepage": "https://github.com/Algorisys-Technologies/zen-ui",
-  "publishConfig": {
-    "@algorisys:registry": "https://npm.pkg.github.com/"
-  },
   "scripts": {
     "dev": "vite --config vite.config.demo.ts",
     "build": "tsc -b && vite build --config vite.config.demo.ts",
