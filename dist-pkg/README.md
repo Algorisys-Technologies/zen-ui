@@ -1,7 +1,10 @@
 # dist-pkg — the installable tarballs
 
 One tarball per binding, committed on purpose so a project on any stack can
-install zen-ui without a registry:
+install zen-ui without a registry. **Solid and React are on npm** — prefer
+`npm i @algorisys/zen-ui-solid` / `@algorisys/zen-ui-react`; their tarballs here
+are the exact files `scripts/publish-npm.sh` uploads, kept as a fallback.
+Vanilla and Web Components are tarball-only for now:
 
 | Stack | Install |
 |---|---|
@@ -45,6 +48,9 @@ Re-pack whenever a consumer needs a change. `*.tgz` is gitignored repo-wide;
 
 ## When this goes away
 
-This exists because the packages are unpublished. Publishing to a registry makes
-it unnecessary, and that is the better end state: real semver, no build output in
-git, no multi-MB blob per rebuild in the history. Treat this as a bridge.
+This exists because not every binding is on npm yet. Once vanilla and Web
+Components are published too, the tarballs become a fallback only, and dropping
+them is the better end state: no build output in git, no multi-MB blob per
+rebuild in the history. Until then, the Solid and React tarballs double as the
+publish artifact — `publish-npm.sh` uploads the committed tarball, never a fresh
+build, so npm and this folder cannot disagree.

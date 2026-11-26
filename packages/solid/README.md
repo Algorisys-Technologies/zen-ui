@@ -16,14 +16,13 @@ one design core and one API.
 
 ## Install
 
-Not on a public registry yet. Install the prebuilt tarball:
-
 ```bash
-npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-solid.tgz solid-js
+npm i @algorisys/zen-ui-solid solid-js
 ```
 
-`refs/heads/dev` follows the latest build; replace it with a commit hash to stay
-on one release.
+Pin an exact version while zen-ui is in beta. The same build is also available
+as a tarball, if you cannot reach the npm registry:
+`npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-solid.tgz`
 
 ## Use
 

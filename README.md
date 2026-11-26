@@ -26,10 +26,10 @@ language, one API shape; pick the binding that fits your stack.
 > component in the Solid release notes may not be in your binding yet — check the
 > version you installed.
 
-> **None of these is on a public registry**, so there is no `npm i
-> @algorisys/zen-ui-…` that works — that command 404s. Get it via a
-> [tarball, GitHub Packages, or a bundler alias](#distribution--sharing-this-library-with-other-projects);
-> the tarball route is two commands and needs no registry at all.
+> **Solid and React are on npm**: `npm i @algorisys/zen-ui-solid` or
+> `npm i @algorisys/zen-ui-react`. **Vanilla and Web Components are not yet** —
+> install those from a [prebuilt tarball](#distribution--sharing-this-library-with-other-projects),
+> which needs no registry at all.
 
 > **Source-available, free for noncommercial use.** zen-ui is licensed under
 > the [PolyForm Noncommercial License 1.0.0](LICENSE) — free for personal
@@ -401,37 +401,44 @@ an `items` array instead of compound children).
 
 ## Distribution — sharing this library with other projects
 
-**The quickest route: a prebuilt tarball.** Every binding is packed and committed
-on `dev` under [`dist-pkg/`](dist-pkg/), so a project installs the one that matches
-its stack straight from GitHub — no registry, no auth, no build:
+**Solid or React: npm.** Both are on the public npm registry under `@algorisys`,
+no auth needed:
 
 ```bash
-npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-solid.tgz
-npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-react.tgz
+npm i @algorisys/zen-ui-solid       # + solid-js
+npm i @algorisys/zen-ui-react       # + react react-dom
+```
+
+**Vanilla or Web Components: a prebuilt tarball.** Every binding is packed and
+committed on `dev` under [`dist-pkg/`](dist-pkg/), so a project installs it
+straight from GitHub — no registry, no auth, no build. The Solid and React
+tarballs are the very files published to npm, so they work as a fallback too:
+
+```bash
 npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-vanilla.tgz
 npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-web-components.tgz
 ```
 
 `refs/heads/dev` follows the latest pack. To stay on one release, replace it with
-the commit hash that packed that release. The four can be on different versions —
-see [Status](#status).
+the commit hash that packed that release. The bindings can be on different
+versions — see [Status](#status).
 
 For anything else, pick the channel that matches the stage of adoption:
 
 | You want to…                                  | Use                                |
 | --------------------------------------------- | ---------------------------------- |
+| Install Solid or React in any project         | [npm](#3-public-npm)               |
 | Hand a tarball to one team for a quick spike  | [`npm pack`](#1-tarball)           |
-| Internal distribution across Algorisys teams  | [GitHub Packages](#2-github-packages) (already configured) |
-| Public, world-readable installs               | [Public npm](#3-public-npm)        |
 | Two repos open side-by-side, live reload      | [`npm link`](#4-local-dev-cross-project) |
 | A submodule or sibling checkout, no install   | [bundler alias](#5-bundler-alias--submodule-or-sibling-checkout) |
 
 Every binding publishes the same way. The steps below use the React
 package as the example — for the others, swap in the package you want
 (`packages/solid`, `packages/vanilla`, `packages/web-components`) and its
-`build:lib:*` script. Each binding is already configured to publish to
-the GitHub Packages registry under the `@algorisys` scope
-(`packages/<binding>/package.json` → `publishConfig`). `files` is
+`build:lib:*` script. Solid and React publish to public npm under the
+`@algorisys` scope (`packages/<binding>/package.json` → `publishConfig`, and
+`npm: true` in `scripts/bindings.mjs`); vanilla and web-components are not
+published anywhere yet. `files` is
 `["LICENSE", "COMMERCIAL.md", "dist", "AGENTS.md", "skills"]` — the built
 output plus the licence and the agent guide, never source.
 
@@ -491,75 +498,43 @@ import "@algorisys/zen-ui-react/styles";
 ```
 
 Trade-off: no auto-updates — every new version is a fresh tarball.
-Best for short-lived spikes; move to GitHub Packages once a team
-commits to the library.
+Best for short-lived spikes; for Solid or React, use npm once a team commits
+to the library.
 
-### 2. GitHub Packages
+### 2. GitHub Packages (retired)
 
-The default channel for this library, suited to internal use across
-Algorisys teams and partners with GitHub access.
-
-**Publishing (maintainer side):**
-
-```bash
-# One-time: log into the GitHub Packages registry under the @algorisys scope.
-# Use a GitHub Personal Access Token with `write:packages` + `read:packages`.
-npm login --scope=@algorisys --auth-type=legacy --registry=https://npm.pkg.github.com
-
-# Each release (from packages/react/):
-cd packages/react
-npm version patch         # bumps version + creates a git tag (2.1.1 → 2.1.2)
-npm run publish:lib       # builds the library and publishes
-git push --follow-tags
-```
-
-**Consuming (each downstream project, one-time setup):**
-
-Add an `.npmrc` to the consuming project (or to `~/.npmrc` for
-user-wide):
-
-```ini
-@algorisys:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
-```
-
-`GITHUB_PACKAGES_TOKEN` is a GitHub PAT with `read:packages`. In CI,
-inject it as a secret. Then:
-
-```bash
-npm install @algorisys/zen-ui-react
-```
-
-Pin a version in `package.json`:
-
-```json
-{
-  "dependencies": {
-    "@algorisys/zen-ui-react": "^2.1.1"
-  }
-}
-```
+Every binding used to be configured for the GitHub Packages registry, which
+needed a personal access token on every consuming machine and in CI. That
+configuration is gone: Solid and React are on public npm (below), which needs no
+auth, and vanilla and web-components use the tarball route until they join them.
 
 ### 3. Public npm
 
-Reach: anyone with `npm install`. Caveat: once a version is published
-to public npm it's there forever (you can `unpublish` within 72 h,
-but treat it as permanent).
+`@algorisys/zen-ui-solid` and `@algorisys/zen-ui-react` are on the public
+registry. Anyone can install them with no auth:
 
 ```bash
-# package.json: remove or override `publishConfig` so it doesn't
-# point at npm.pkg.github.com.
-npm login                       # against npmjs.org
-npm publish --access public
+npm i @algorisys/zen-ui-solid
+npm i @algorisys/zen-ui-react
 ```
 
-Consumers then `npm install @algorisys/zen-ui-react` with no auth. **Nothing
-has been published this way** — all five packages 404 on `registry.npmjs.org`
-today, so treat this section as the procedure if you ever choose to, not as a
-description of how the library is currently distributed. Note also that
-`packages/core` is `private: true`, which is deliberate and does not block any
-route above: core is inlined into each binding at build time, so a consumer
-never needs it.
+Pin an exact version while the library is in beta (see the notice at the top) —
+the bindings are versioned independently and Solid usually leads.
+
+**Publishing (maintainer side)** — never `npm publish` from a package directory;
+a `prepublishOnly` guard refuses it. Publish the checked tarball instead:
+
+```bash
+./scripts/pack-dist-pkg.sh solid           # build, pack and assert the tarball
+git add dist-pkg && git commit             # the script refuses a dirty tree
+./scripts/publish-npm.sh solid             # dry run: every check, no upload
+./scripts/publish-npm.sh solid --publish   # the real thing (npm may ask for an OTP)
+```
+
+A version on npm can never be published again (`unpublish` works only within
+72 hours), so the script refuses one that is already there — bump first.
+`packages/core` stays `private: true`: it is inlined into each binding at build
+time, so a consumer never needs it.
 
 ### 4. Local dev — cross-project
 

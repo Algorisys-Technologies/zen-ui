@@ -97,6 +97,9 @@ ok "npm account: $WHO"
 
 if git rev-parse -q --verify "refs/tags/$BINDING@$WANT_VERSION" >/dev/null; then
   ok "git tag $BINDING@$WANT_VERSION exists"
+elif git rev-parse -q --verify "refs/tags/v$WANT_VERSION" >/dev/null; then
+  # Releases up to 13.8.0 were cut for every binding at once and tagged v<version>.
+  ok "git tag v$WANT_VERSION exists (a shared, pre-split release)"
 else
   warn "no git tag $BINDING@$WANT_VERSION — the release procedure tags before publishing"
 fi

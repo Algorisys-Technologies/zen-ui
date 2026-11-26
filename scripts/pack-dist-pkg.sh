@@ -9,7 +9,8 @@
 #
 # WHY THIS EXISTS
 # ---------------
-# These packages are not on any registry, and npm cannot install a subdirectory
+# Solid and React are on npm (scripts/publish-npm.sh uploads THESE tarballs);
+# vanilla and web-components are not on any registry. And npm cannot install a subdirectory
 # of a git repo: `npm i github:owner/zen-ui#dev` reads the REPO ROOT, which is
 # this bun monorepo, and dies on `workspace:*`. A committed tarball is the one
 # form that works with plain npm, no registry and no auth:

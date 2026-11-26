@@ -17,7 +17,7 @@ one design core and one API.
 
 ## Install
 
-Not on a public registry yet. Install the prebuilt tarball:
+Not on npm yet (Solid and React are). Install the prebuilt tarball:
 
 ```bash
 npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-web-components.tgz

@@ -17,14 +17,13 @@ one design core and one API.
 
 ## Install
 
-Not on a public registry yet. Install the prebuilt tarball:
-
 ```bash
-npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-react.tgz react react-dom
+npm i @algorisys/zen-ui-react react react-dom
 ```
 
-`refs/heads/dev` follows the latest build; replace it with a commit hash to stay
-on one release.
+Pin an exact version while zen-ui is in beta. The same build is also available
+as a tarball, if you cannot reach the npm registry:
+`npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-react.tgz`
 
 ## Use
 

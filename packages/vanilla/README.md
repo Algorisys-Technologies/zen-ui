@@ -11,9 +11,10 @@
 > few releases behind Solid's, so a component in the Solid release notes may not be
 > here yet — check the version you installed.
 >
-> Install: `npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-vanilla.tgz`
+> Not on npm yet (Solid and React are). Install the prebuilt tarball:
+> `npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-vanilla.tgz`
 
-An experimental, unpublished zen-ui binding with no framework and no primitive
+An experimental zen-ui binding, not yet on npm, with no framework and no primitive
 library. Props in, a DOM node out:
 
 ```js
