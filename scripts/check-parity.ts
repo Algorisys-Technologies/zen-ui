@@ -24,6 +24,7 @@
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { BINDINGS, REFERENCE } from "./bindings.mjs";
+import { QUEUED_COMPONENTS } from "./port-queue.mjs";
 
 let f = 0;
 const t = (ok: boolean, name: string, detail = "") => {
@@ -141,10 +142,36 @@ for (const b of BINDINGS) {
   // same way. See PORTING.md.
   const divergent = new Set([...DIVERGENT, ...((b as { divergent?: string[] }).divergent ?? [])]);
   const mine = componentish(surfaces.get(b.id)!);
+  // A gap is QUEUED (allowed, printed) when port-queue.mjs says the binding that
+  // lacks the name is waiting for a port. onlyRef: `b` lacks it. onlyMine: the
+  // reference lacks it — the shape of a lead-binding (Solid) first release.
+  const queued = (name: string, lacking: string) => QUEUED_COMPONENTS[name]?.lacking.includes(lacking) ?? false;
   const onlyRef = [...ref].filter((n) => !mine.has(n) && !divergent.has(n)).sort();
   const onlyMine = [...mine].filter((n) => !ref.has(n) && !divergent.has(n)).sort();
-  t(onlyRef.length === 0, `no component exists only in ${REFERENCE.label}`, onlyRef.join(", "));
-  t(onlyMine.length === 0, `no component exists only in ${b.label}`, onlyMine.join(", "));
+  const refFails = onlyRef.filter((n) => !queued(n, b.id));
+  const mineFails = onlyMine.filter((n) => !queued(n, REFERENCE.id));
+  t(refFails.length === 0, `no component exists only in ${REFERENCE.label}`, `${refFails.join(", ")} (port it, or queue it in port-queue.mjs)`);
+  t(mineFails.length === 0, `no component exists only in ${b.label}`, `${mineFails.join(", ")} (port it, or queue it in port-queue.mjs)`);
+}
+
+console.log("\nthe port queue is the truth");
+// Measured directly against each surface, not against the gaps above: those are
+// computed against the REFERENCE only, so a Solid-first component is never a
+// vanilla-vs-React gap (React lacks it too) and would read as stale. An entry is
+// live iff some binding has the name and every binding it lists still lacks it.
+{
+  const has = (id: string, n: string) => componentish(surfaces.get(id)!).has(n);
+  const entries = Object.entries(QUEUED_COMPONENTS);
+  const problems: string[] = [];
+  for (const [n, q] of entries) {
+    if (!BINDINGS.some((b) => has(b.id, n))) problems.push(`${n}: no binding exports it`);
+    const ported = q.lacking.filter((l) => has(l, n));
+    if (ported.length) problems.push(`${n}: ${ported.join(", ")} has it now — drop from lacking`);
+    const unlisted = BINDINGS.filter((b) => !has(b.id, n) && !q.lacking.includes(b.id)).map((b) => b.id);
+    if (unlisted.length && BINDINGS.some((b) => has(b.id, n))) problems.push(`${n}: also missing in ${unlisted.join(", ")} — list it`);
+    console.log(`       QUEUED ${n.padEnd(40)} ${q.lacking.join(", ").padEnd(32)} since ${q.from}`);
+  }
+  t(problems.length === 0, `${entries.length} queued port(s), all still open`, problems.join("; "));
 }
 
 console.log("\nthe demos match too");

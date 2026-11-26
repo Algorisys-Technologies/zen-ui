@@ -15,6 +15,33 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- **Each binding is versioned on its own.** Solid (the production binding,
+  `lead: true` in `scripts/bindings.mjs`) can release without the others; React,
+  vanilla and web-components stay at 13.8.0 until they catch up. `core` is frozen
+  at 13.8.0. Tags become `<binding>@<version>`. Monorepo unchanged — the
+  Headless UI / Floating UI model, chosen over one repo per binding.
+- `check-release.ts` checks each binding against its own version (`bun run
+  check:release [binding]`); notes go in `release-notes/<binding>/<v>.md` and
+  CHANGELOG sections `[<binding> <v>]`, with the flat pre-split notes still
+  counting for every binding.
+- `ReleaseNote.bindings` scopes a footer note; `notesFor` / `latestVersionFor`
+  in core, and each demo's footer and New/Updated marks read only their own
+  binding's notes (marks verified identical before and after on 573 nav entries).
+- The landing footer shows the lead binding's version instead of core's.
+- `scripts/port-queue.mjs`: gaps the lead binding opens are listed there and
+  printed as `QUEUED` by `check:parity` / `check:props` instead of failing; an
+  unlisted gap, a closed one still listed, or a wrong binding list all fail.
+
+### Added
+
+- `bun run ship:check <binding>` — every gate for a one-binding release, with
+  `tsc -b` for all four bindings since core is shared.
+- `./deploy.sh --only <binding>` — rebuild one demo and the landing page and
+  merge them into the live `gh-pages` tree; the other demos ship byte-identical.
+- `check-package-artifacts.mjs` and `check-bundle-size.mjs` take a binding id.
+
 ## [13.8.0] - 2026-11-25
 
 ### Added

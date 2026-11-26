@@ -32,6 +32,9 @@ import { gzipSync } from "node:zlib";
 import { join, resolve } from "node:path";
 
 const REPORT = process.argv.includes("--report");
+// `node scripts/check-bundle-size.mjs solid` weighs one binding's cases only — a
+// binding-only release ("ship solid") rebuilt just that dist. No argument: all.
+const ONLY = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const ROOT = resolve(import.meta.dirname, "..");
 
 // Drive vite through the runtime already running this script + the locally
@@ -162,7 +165,13 @@ const PLUGIN = {
 // Every binding under test must have a built dist, named from the CASES rather
 // than hardcoded — a case for a binding nobody built reports a bundling error
 // instead of the truth.
-for (const b of [...new Set(CASES.map((c) => c.binding))]) {
+const RUN = ONLY.length ? CASES.filter((c) => ONLY.includes(c.binding)) : CASES;
+if (RUN.length === 0) {
+  // A filter that matches nothing is a zero-denominator pass — refuse it.
+  console.error(`no size cases for: ${ONLY.join(", ")}`);
+  process.exit(2);
+}
+for (const b of [...new Set(RUN.map((c) => c.binding))]) {
   if (!existsSync(join(ROOT, `packages/${b}/dist/index.js`))) {
     console.error(`\n  packages/${b}/dist is missing — run: bun run build:lib for ${b}\n`);
     process.exit(1);
@@ -177,7 +186,7 @@ let f = 0;
 const dir = mkdtempSync(join(ROOT, ".zen-size-"));
 console.log("");
 
-for (const [i, c] of CASES.entries()) {
+for (const [i, c] of RUN.entries()) {
   // .jsx for the JSX bindings; the vanilla case is plain JS and esbuild would
   // still parse .jsx fine, but naming it honestly keeps the failure legible.
   const entry = join(dir, `e${i}.${c.binding === "vanilla" ? "js" : "jsx"}`);

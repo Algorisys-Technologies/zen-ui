@@ -6,7 +6,7 @@
  * Adding a component: add it here, add its <Route> in main.tsx. Nothing else.
  */
 
-import { RELEASE_NOTES } from "./release-notes";
+import { latestVersionFor } from "./release-notes";
 
 export type NavItem = {
   path: string;
@@ -48,9 +48,10 @@ const minorOf = (version: string) => {
   return major * 1000 + minor;
 };
 
-const currentMinor = () => minorOf(RELEASE_NOTES[0]?.version ?? "0.0.0");
+/** Against THIS binding's latest release — bindings are versioned independently. */
+const currentMinor = () => minorOf(latestVersionFor("solid"));
 
-/** Whether an entry is marked New, against the latest release in RELEASE_NOTES. */
+/** Whether an entry is marked New, against this binding's latest release. */
 export const isNew = (item: NavItem): boolean => !!item.since && minorOf(item.since) >= currentMinor();
 
 /** Whether an entry is marked Updated: changed in this release line, and not New. */

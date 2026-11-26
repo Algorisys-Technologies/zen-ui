@@ -1,6 +1,6 @@
 import {
   recentReleaseNotes,
-  RELEASE_NOTES,
+  notesFor,
   type ReleaseNoteKind,
 } from "@algorisys/zen-ui-core/release-notes";
 // The version comes from the package that is actually published, so the footer
@@ -46,8 +46,8 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 };
 
 export function ReleaseNotes(): { el: HTMLElement; destroy(): void } {
-  const notes = recentReleaseNotes(LIMIT);
-  const hidden = RELEASE_NOTES.length - notes.length;
+  const notes = recentReleaseNotes(LIMIT, "web-components");
+  const hidden = notesFor("web-components").length - notes.length;
 
   const list = el("ul", "zen-m-0 zen-flex zen-list-none zen-flex-col zen-gap-4 zen-p-0");
   for (const n of notes) {

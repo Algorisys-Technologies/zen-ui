@@ -131,7 +131,12 @@ missing export:
   \`toast.success(msg, { id })\` to replace it), \`toast.promise\`,
   \`toast.dismiss(id)\`, plus a \`<Toaster position>\`. Write those. React and
   vanilla also take \`toast({ title, description, variant })\`, which Solid
-  does not.`;
+  does not.
+- **Versions differ per binding.** Each package is versioned on its own:
+  **Solid** ships first and the others follow. A component or prop new in
+  \`@algorisys/zen-ui-solid\` may not exist yet in React, vanilla or
+  web-components. Check the installed package's version and exports before
+  using a recent addition in a binding other than Solid.`;
 
 /**
  * The licence, stated where an agent will actually read it.

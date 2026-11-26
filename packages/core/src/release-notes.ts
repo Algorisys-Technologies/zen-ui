@@ -20,6 +20,12 @@
 
 export type ReleaseNoteKind = "new" | "improved" | "fixed" | "breaking";
 
+/**
+ * The bindings a note can be scoped to. Mirrors the ids in scripts/bindings.mjs
+ * (core cannot import a build script, so the union is spelled out here).
+ */
+export type ReleaseBinding = "react" | "solid" | "vanilla" | "web-components";
+
 export type ReleaseNote = {
   version: string;
   /** ISO date of the release. */
@@ -29,6 +35,17 @@ export type ReleaseNote = {
   title: string;
   /** Optional — why it matters, when that is not obvious from the title. */
   detail?: string;
+  /**
+   * The bindings this release belongs to. Absent means every binding.
+   *
+   * Since 13.8.0 each binding carries its own version: Solid is in production
+   * and ships on its own schedule, and the others catch up to parity later. So
+   * "13.9.0" is a Solid version and means nothing to React's footer. Every note
+   * before the split is unscoped — those releases really were all four — and a
+   * note shipped by one binding must name it, or it would show up in, and expire
+   * the New/Updated marks of, a binding that never released it.
+   */
+  bindings?: ReleaseBinding[];
 };
 
 export const RELEASE_NOTES: ReleaseNote[] = [
@@ -1285,9 +1302,9 @@ const KIND_PRIORITY: Record<ReleaseNoteKind, number> = {
  * comparator that returns 0 for different versions is not transitive — so this
  * groups first and sorts inside each group instead.
  */
-export const recentReleaseNotes = (n = 10): ReleaseNote[] => {
+export const recentReleaseNotes = (n = 10, binding?: ReleaseBinding): ReleaseNote[] => {
   const byVersion = new Map<string, ReleaseNote[]>();
-  for (const note of RELEASE_NOTES) {
+  for (const note of notesFor(binding)) {
     const group = byVersion.get(note.version) ?? [];
     group.push(note);
     byVersion.set(note.version, group);
@@ -1298,3 +1315,18 @@ export const recentReleaseNotes = (n = 10): ReleaseNote[] => {
     .flatMap((group) => [...group].sort((a, b) => KIND_PRIORITY[a.kind] - KIND_PRIORITY[b.kind]))
     .slice(0, n);
 };
+
+/**
+ * The notes that belong to `binding`, newest first. With no binding, every note —
+ * which is what the pre-split callers, and anything binding-agnostic, want.
+ */
+export const notesFor = (binding?: ReleaseBinding): ReleaseNote[] =>
+  binding ? RELEASE_NOTES.filter((n) => !n.bindings || n.bindings.includes(binding)) : RELEASE_NOTES;
+
+/**
+ * The newest version `binding` has released, by authored order. This is what a
+ * demo's New/Updated marks expire against — a binding's own latest release, not
+ * whichever binding shipped most recently.
+ */
+export const latestVersionFor = (binding?: ReleaseBinding): string =>
+  notesFor(binding)[0]?.version ?? "0.0.0";

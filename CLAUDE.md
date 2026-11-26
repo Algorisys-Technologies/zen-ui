@@ -82,6 +82,7 @@ bun run check            # every pure-logic contract + typechecks the scripts th
 ./deploy.sh              # build the whole site -> dist-site/, verify, publish nothing
 ./deploy.sh --preview    # …and serve it exactly as GitHub Pages will
 ./deploy.sh --publish    # …and push it to the gh-pages branch
+./deploy.sh --only solid # rebuild ONE demo + landing, merge into the live gh-pages tree
 ```
 
 `deploy.sh` assembles the landing page and both demos into one tree —
@@ -317,11 +318,15 @@ times.
 Finish means: it works, you have driven it in a browser, and the checks pass.
 Only then port it.
 
-**`check:parity` is red for the whole port, by construction.** A component that
-exists in one binding and not the others is exactly what it reports, so it will
-fail from the first binding until the last. That is the rule working, not a
-break — but it means `bun run check` cannot be your green light mid-port, and a
-commit landed in that window should say so. Get it green before shipping.
+**A port in progress is QUEUED, not red.** A component or prop that exists in
+the lead binding (Solid) and not yet in the others is a gap `check:parity` and
+`check:props` will report. Since each binding is versioned on its own (13.8.0
+on), that gap is allowed to ship — but only once it is written down in
+[scripts/port-queue.mjs](scripts/port-queue.mjs), which both checks print as
+`QUEUED` on every run. An unlisted gap still fails; so does a listed one whose
+port has landed (delete the line), and so does a binding list that is wrong. The
+queue may only shrink between a lagging binding's releases: clear its entries
+before that binding ships, and reconcile the API against React while doing it.
 
 **This is the build order, not the authority order.** React is still the parity
 REFERENCE — `scripts/bindings.mjs` says so and `check-parity.ts` drives from it,
@@ -439,19 +444,30 @@ generator itself, not in the output.
 
 When the user says **"ship it"**, that is the whole instruction. It means: write
 the release notes, bump the version, sync `main`. Do all of it; do not ask which
-part.
+part. **"Ship solid"** (or any binding id) is the same procedure for that one
+binding — see [Shipping one binding](#shipping-one-binding). Bare "ship it"
+means every binding with unreleased changes.
 
 ### 1. Decide the version
 
-All published packages carry **one** version and bump together, including the
-ones with no changes — that is `core` plus every binding in
-[scripts/bindings.mjs](scripts/bindings.mjs) (currently five: `core`, `react`,
-`solid`, `vanilla`, `web-components`; `check:release` drives the set from that
-registry, so bump whatever it lists, not a number hardcoded here). They ship one
-API — two version numbers describing it would only diverge, and force every
-question to start by naming a binding. `apps/landing` is exempt: it is an
-unpublished page, its `0.0.0` is deliberate, and it *displays* core's version
-rather than owning one.
+**Each binding carries its own version, since 13.8.0.** Solid is the binding in
+production and ships first, on its own schedule; React, vanilla and
+web-components are brought to parity behind it ([port queue](scripts/port-queue.mjs)).
+Before 13.8.0 all five packages bumped together, which made every Solid fix wait
+on three bindings nobody had changed — the Headless UI / Floating UI model
+(one repo, one package per framework, independent versions) replaced it. So:
+
+- Bump only the binding(s) being released. The others keep their version.
+- All four started from 13.8.0, so a version number is still comparable across
+  bindings: "solid 13.10.0, react 13.8.0" reads as "React is two Solid releases
+  behind".
+- `core` is **frozen at 13.8.0**. It is private and inlined into every dist, so
+  it is never installed and has no release of its own. Do not bump it.
+- `apps/landing` stays `0.0.0`; it *displays* the lead binding's version
+  (`lead: true` in [scripts/bindings.mjs](scripts/bindings.mjs)).
+- Tags are `<binding>@<version>` (`solid@13.9.0`). The `v*` tags are history.
+- A core change shipped with Solid reaches the others on THEIR next release —
+  say so in that release's notes.
 
 Pick it from what actually changed, not from how big the diff felt:
 
@@ -465,7 +481,7 @@ Pick it from what actually changed, not from how big the diff felt:
 restyle that reflows someone's page breaks them as surely as a renamed prop.
 3.0.0 was major because the element reset became opt-in.
 
-### 2. Write `release-notes/<version>.md`
+### 2. Write `release-notes/<binding>/<version>.md`
 
 This is the part with no shortcut. It is prose for **someone who uses zen-ui and
 does not work on it** — they do not know the file you touched or the issue
@@ -481,6 +497,8 @@ number, and "misc fixes" tells them nothing.
 - **Skip the churn.** Refactors, tests and internal renames go in
   `CHANGELOG.md`. A reader who upgrades cannot act on them.
 - Follow [3.0.0.md](release-notes/3.0.0.md).
+- The flat `release-notes/<v>.md` files are the shared releases up to 13.8.0;
+  they count for every binding. New notes go in the binding's folder.
 
 > **`.gitignore` has `*.md`, and it matches at any depth.** The folder is
 > allowlisted (`!release-notes/**/*.md`). If you rename or move it, allowlist the
@@ -490,18 +508,22 @@ number, and "misc fixes" tells them nothing.
 ### 3. Update the other three places, because a release lives in four
 
 Nothing generates these from each other; they are four audiences and merging
-them would lose the distinction. `bun run check:release` asserts they name the
-same version — it will not tell you the prose is stale.
+them would lose the distinction. `bun run check:release [binding]` asserts each
+binding's four places name that binding's version — it will not tell you the
+prose is stale.
 
 | File | Audience | What it wants |
 |---|---|---|
-| `release-notes/<v>.md` | users upgrading | the prose above |
-| `CHANGELOG.md` | maintainers | Keep a Changelog, the churn included |
-| `packages/core/src/release-notes.ts` | the demo footer chip | one line per change; one copy in core, every binding re-exports it |
-| every published `package.json` | consumers | the number — `core` + each binding in [scripts/bindings.mjs](scripts/bindings.mjs) (five today) |
+| `release-notes/<binding>/<v>.md` | users upgrading | the prose above |
+| `CHANGELOG.md` | maintainers | Keep a Changelog, the churn included; sections headed `[solid 13.9.0]` |
+| `packages/core/src/release-notes.ts` | the demo footer chip | one line per change, with `bindings: ["solid"]` — **without it the note shows in, and expires the New/Updated marks of, every binding** |
+| `packages/<binding>/package.json` + its `bun.lock` entry | consumers | the number |
 
-`release-notes.ts` is capped at 10 entries but sorts breaking-first via
-`KIND_PRIORITY`, so a breaking change cannot fall off the end.
+`release-notes.ts` is capped at 10 entries per binding (`recentReleaseNotes(n,
+binding)`) but sorts breaking-first via `KIND_PRIORITY`, so a breaking change
+cannot fall off the end. A demo's New/Updated marks expire against
+`latestVersionFor(binding)`, so `since`/`updated` in a binding's `nav.ts` name
+that binding's version.
 
 ### 4. Ship
 
@@ -516,7 +538,7 @@ bun run check:table-dom:all      # DataTable + PivotGrid freezing, totals, RTL, 
 
 git commit && git tag v<version>
 git checkout main && git merge --no-ff dev -m "Merge dev: <version>"
-git checkout dev
+git checkout dev && git merge --ff-only main     # dev == main again; see below
 
 # One ref per push, then read the remote back — never chain them.
 git push origin dev
@@ -535,6 +557,17 @@ bash scripts/pack-branch.sh --push     # force-rebuilds the npm-package-react br
 `git merge --ff-only dev`, which cannot work: `main` has carried "Merge dev"
 commits since ~12.1.0, so it is never an ancestor of `dev` and the
 fast-forward is refused. Every release since 12.4 has used `--no-ff`.
+
+**…and `dev` fast-forwards to it straight after.** Without that step, every
+release left one "Merge dev" commit that existed only on `main`, so GitHub
+showed `dev` as "behind" `main` while missing nothing. Measured 2026-11-26: 263
+behind — 45 release merges plus 218 commits from July–August that a history
+rewrite around 12.0.1 left on `main` under their old hashes (main's and dev's
+`release: 12.0.1` have identical trees). A one-time `git merge origin/main` on
+`dev` cleared it, changing no file. The `--ff-only` keeps it cleared: right
+after the release merge `main` is exactly `dev` plus one commit, so the
+fast-forward cannot fail unless someone committed to `main` directly — and if it
+refuses, that is what it is telling you.
 
 **Push each ref on its own and check `ls-remote`.** SSH pushes failed
 intermittently on 12.6.0 (the keyring agent), and a chained
@@ -567,6 +600,31 @@ a demo whose asset URLs all point at `/zen-ui/`.
 `check:dist` last, or re-run whichever build the other clobbered — a
 `check:size` failure that says "dist is missing" usually means a demo build
 overwrote the library.
+
+### Shipping one binding
+
+"Ship solid" is §1–3 for that binding, then:
+
+```bash
+bun run ship:check solid     # check, check:release solid, tsc -b for ALL four
+                             # (core is shared), lint, demo build, visual-check,
+                             # schedule-dom, table-dom, build:lib, package, size
+git commit && git tag solid@<version>
+git checkout main && git merge --no-ff dev -m "Merge dev: solid <version>"
+git checkout dev && git merge --ff-only main     # dev == main again
+git push origin dev
+git push origin main
+git push origin solid@<version>
+git ls-remote origin refs/heads/dev refs/heads/main refs/tags/solid@<version>
+./deploy.sh --only solid --publish     # other demos stay exactly as published
+./scripts/pack-dist-pkg.sh solid       # commit the tarball on dev
+```
+
+`ship:check` stops at the first failing step and names it; `--skip-browser`
+exists for a machine without Chromium and says loudly that it is not enough to
+ship on. `deploy.sh --only` seeds `dist-site/` from `origin/gh-pages` and
+replaces just that demo and the landing page, so it needs a site already
+published. `pack-branch.sh` is React-only — run it when React ships.
 
 ### What the dist checks are for
 

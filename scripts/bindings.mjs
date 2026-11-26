@@ -104,6 +104,14 @@ export const BINDINGS = [
     pkg: "@algorisys/zen-ui-solid",
     dir: "packages/solid",
     base: "/builder-solid",
+    /**
+     * The LEAD binding: the one in production, which ships first and on its own
+     * schedule (since 13.8.0 each binding is versioned independently). The landing
+     * page shows its version, and the others are brought to parity behind it via
+     * scripts/port-queue.mjs. Not the same thing as `reference` — React still
+     * decides what an API should BE. Exactly one binding may say true.
+     */
+    lead: true,
     router: "packages/solid/src/main.tsx",
     routeRe: /<Route\s+path="([^"]+)"\s+component=\{(\w+)\}/g,
     navKey: "path",
@@ -183,6 +191,15 @@ export const REFERENCE = (() => {
     throw new Error(`exactly one binding must be the reference; found ${refs.length}`);
   }
   return refs[0];
+})();
+
+/** The lead binding — see the `lead` flag. Throws rather than guess. */
+export const LEAD = (() => {
+  const leads = BINDINGS.filter((b) => b.lead);
+  if (leads.length !== 1) {
+    throw new Error(`exactly one binding must be the lead; found ${leads.length}`);
+  }
+  return leads[0];
 })();
 
 export const byId = (id) => BINDINGS.find((b) => b.id === id);

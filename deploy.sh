@@ -6,6 +6,16 @@
 #   ./deploy.sh                 build + verify into dist-site/, publish nothing
 #   ./deploy.sh --preview       …and serve it locally the way GH Pages serves it
 #   ./deploy.sh --publish       …and push it to the gh-pages branch
+#   ./deploy.sh --only solid    rebuild ONE demo (+ the landing page) and merge
+#                               it into the currently published tree; combines
+#                               with --preview / --publish
+#
+# --only exists because each binding is versioned on its own since 13.8.0: Solid
+# ships first and on its own schedule, and rebuilding four demos (and ~25 minutes
+# of catalogue previews) to publish one is what made a Solid release slow. The
+# other demos are taken AS PUBLISHED from origin/gh-pages, untouched, so they keep
+# serving the release they were last deployed at. The landing page is always
+# rebuilt: it shows the lead binding's version.
 #
 # Building is the default and publishing is opt-in on purpose: this puts a
 # public website on the internet under the company's name, which is not
@@ -44,6 +54,7 @@ BRANCH="${ZEN_PAGES_BRANCH:-gh-pages}"
 PUBLISH=0
 PREVIEW=0
 PREVIEW_PORT="${ZEN_PREVIEW_PORT:-5180}"
+ONLY=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -51,7 +62,9 @@ while [ $# -gt 0 ]; do
     --preview) PREVIEW=1 ;;
     --base) BASE="$2"; shift ;;
     --base=*) BASE="${1#--base=}" ;;
-    -h|--help) sed -n '2,30p' "$0"; exit 0 ;;
+    --only) ONLY="$2"; shift ;;
+    --only=*) ONLY="${1#--only=}" ;;
+    -h|--help) sed -n '2,40p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
   shift
@@ -68,11 +81,20 @@ die() { printf '\033[31mFAIL: %s\033[0m\n' "$*" >&2; exit 1; }
 # The bindings, from scripts/bindings.mjs — the one registry. This file used to
 # name react and solid in six places, so a third binding could exist, build, and
 # never reach the site. `dirs` and `slugs` stay index-aligned.
-eval "$(node --input-type=module -e '
+eval "$(ZEN_ONLY="$ONLY" node --input-type=module -e '
   import { BINDINGS } from "./scripts/bindings.mjs";
   const q = (a) => a.map((x) => `"${x}"`).join(" ");
-  console.log(`APP_DIRS=(${q(BINDINGS.map((b) => b.dir))})`);
-  console.log(`APP_SLUGS=(${q(BINDINGS.map((b) => b.base.replace(/^\//, "")))})`);
+  // --only narrows what is BUILT; the 404 shim below still routes to every app,
+  // since the others are served as published.
+  const only = process.env.ZEN_ONLY;
+  if (only && !BINDINGS.some((b) => b.id === only)) {
+    console.log(`echo "unknown binding for --only: ${only}" >&2; exit 2`);
+    process.exit(0);
+  }
+  const built = only ? BINDINGS.filter((b) => b.id === only) : BINDINGS;
+  console.log(`APP_IDS=(${q(built.map((b) => b.id))})`);
+  console.log(`APP_DIRS=(${q(built.map((b) => b.dir))})`);
+  console.log(`APP_SLUGS=(${q(built.map((b) => b.base.replace(/^\//, "")))})`);
   // Longest-first: "builder" is a PREFIX of "builder-solid" and "builder-vanilla".
   const bySlug = BINDINGS.map((b) => b.base.replace(/^\//, "")).sort((a, b) => b.length - a.length);
   // The 404 shim is JS, so it needs a JS array literal, not a bash one.
@@ -109,7 +131,7 @@ say "Generating catalogue previews"
 # their render timeout). At 300 the timeout fired mid-run, and the failure read
 # as a browser crash rather than a slow run — gen-previews now exits on the
 # SIGTERM instead, so a real timeout says so. 900 still catches a wedge.
-for b in react solid vanilla web-components; do
+for b in "${APP_IDS[@]}"; do
   timeout 900 node scripts/gen-previews.mjs "$b" || die "preview generation failed or timed out ($?): $b"
 done
 
@@ -122,8 +144,18 @@ done
 say "Assembling $OUT"
 rm -rf "$OUT"
 mkdir -p "$OUT"
+if [ -n "$ONLY" ]; then
+  # Start from exactly what is live, so every demo NOT being shipped is byte-for-
+  # byte what it was. Fetched, not read from a local branch that may be stale.
+  git fetch -q origin "$BRANCH" || die "--only needs a published $BRANCH to merge into — run a full ./deploy.sh first"
+  git archive "origin/$BRANCH" | tar -x -C "$OUT"
+  # The landing page is rebuilt; drop its old hashed assets so they do not pile up.
+  rm -rf "$OUT/assets" "$OUT/index.html"
+  echo "  seeded from origin/$BRANCH @ $(git rev-parse --short "origin/$BRANCH"); rebuilding: ${APP_IDS[*]} + landing"
+fi
 cp -R apps/landing/dist/.      "$OUT/"
 for i in "${!APP_DIRS[@]}"; do
+  rm -rf "$OUT/${APP_SLUGS[$i]}"
   mkdir -p "$OUT/${APP_SLUGS[$i]}"
   cp -R "${APP_DIRS[$i]}/dist-demo/." "$OUT/${APP_SLUGS[$i]}/"
 done
@@ -291,7 +323,7 @@ git -C "$WORKTREE" add -A
 if git -C "$WORKTREE" diff --cached --quiet; then
   echo "  no change since the last deploy"
 else
-  git -C "$WORKTREE" commit -q -m "deploy: $SRC_BRANCH@$SHA"
+  git -C "$WORKTREE" commit -q -m "deploy${ONLY:+($ONLY)}: $SRC_BRANCH@$SHA"
   git -C "$WORKTREE" push -u origin "$BRANCH"
   echo "  pushed $BRANCH"
 fi
