@@ -69,7 +69,7 @@
   "peerDependencies": {
     "leaflet": "^1.9.0",
     "jodit": "^4.0.0",
-    "katex": "^0.16.0",
+    "katex": ">=0.16.0 <0.20.0",
     "@monaco-editor/loader": "^1.7.0",
     "pdfjs-dist": "^5.0.0 || ^6.0.0",
     "echarts": "^6.0.0"

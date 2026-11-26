@@ -15,6 +15,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [solid 13.8.2] - 2026-11-26
+
+**solid** only. Notes: `release-notes/solid/13.8.2.md`.
+
+### Fixed
+
+- **`katex` peer range `^0.16.0` kept consumers on a vulnerable KaTeX** (before
+  0.18.2: prototype pollution can bypass `trust`; one-erp's Dependabot alert).
+  Now `>=0.16.0 <0.20.0` in solid, react, vanilla and web-components; the
+  dev dependency is `^0.19.1`. React, vanilla and web-components carry it on
+  their next release. Checked: `renderToString` with `displayMode` and
+  `throwOnError: false` renders and fails soft on 0.19.1 as on 0.16.
+
 ## [13.8.1] - 2026-11-26
 
 **react, solid, vanilla, web-components** — the first release with per-binding

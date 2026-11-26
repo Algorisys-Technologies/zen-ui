@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-solid",
-  "version": "13.8.1",
+  "version": "13.8.2",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "sideEffects": [
@@ -56,7 +56,7 @@
     "pdfjs-dist": "^5.0.0 || ^6.0.0",
     "@monaco-editor/loader": "^1.7.0",
     "echarts": "^6.0.0",
-    "katex": "^0.16.0"
+    "katex": ">=0.16.0 <0.20.0"
   },
   "dependencies": {
     "@kobalte/core": "^0.13.7",
@@ -83,7 +83,7 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-solid": "^0.14.4",
     "globals": "^16.4.0",
-    "katex": "^0.16.11",
+    "katex": "^0.19.1",
     "leaflet": "^1.9.4",
     "monaco-editor": "^0.56.0",
     "pdfjs-dist": "^6.2.108",
