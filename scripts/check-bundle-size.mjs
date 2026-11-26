@@ -113,6 +113,19 @@ createRoot(document.body).render(<ProductionSchedule resources={[]} operations={
 import { createRoot } from "react-dom/client";
 createRoot(document.body).render(<><Gantt tasks={[]} /><ProductionSchedule resources={[]} operations={[]} /></>);`,
   },
+  /* DataTable. Measured 2026-11-26 (13.8.0): 153,387 B gzip, 150 kB — 11 kB over
+   * Solid's 139 because React's row/column drag uses @dnd-kit (61K source) where
+   * Solid's does not. The rest is the same as Solid's: the component, tailwind-merge,
+   * @tanstack/table-core, the message catalogue, @tanstack/virtual, Radix's menu
+   * in place of Kobalte's. ~5 kB headroom; --report shows which chunk grew. */
+  {
+    binding: "react",
+    name: "DataTable",
+    budgetKB: 155,
+    code: `import { DataTable } from "@algorisys/zen-ui-react";
+import { createRoot } from "react-dom/client";
+createRoot(document.body).render(<DataTable data={[]} columns={[]} />);`,
+  },
   {
     binding: "solid",
     name: "one Button",
