@@ -105,7 +105,7 @@
         "gh-pages": "^6.3.0",
         "globals": "^16.4.0",
         "jodit-pro-react": "^5.2.44",
-        "katex": "^0.16.11",
+        "katex": "^0.19.1",
         "leaflet": "^1.9.4",
         "pdfjs-dist": "^6.2.108",
         "react": "^19.1.1",
@@ -122,7 +122,7 @@
         "@monaco-editor/react": "^4.0.0",
         "echarts": "^6.0.0",
         "jodit-pro-react": "*",
-        "katex": "^0.16.0",
+        "katex": ">=0.16.0 <0.20.0",
         "leaflet": "^1.9.0",
         "pdfjs-dist": "^5.0.0 || ^6.0.0",
         "react": "^18.0.0 || ^19.0.0",
@@ -145,7 +145,7 @@
     },
     "packages/solid": {
       "name": "@algorisys/zen-ui-solid",
-      "version": "13.8.1",
+      "version": "13.8.2",
       "dependencies": {
         "@kobalte/core": "^0.13.7",
         "@modular-forms/solid": "^0.25.0",
@@ -171,7 +171,7 @@
         "eslint-config-prettier": "^8.8.0",
         "eslint-plugin-solid": "^0.14.4",
         "globals": "^16.4.0",
-        "katex": "^0.16.11",
+        "katex": "^0.19.1",
         "leaflet": "^1.9.4",
         "monaco-editor": "^0.56.0",
         "pdfjs-dist": "^6.2.108",
@@ -185,7 +185,7 @@
       "peerDependencies": {
         "@monaco-editor/loader": "^1.7.0",
         "echarts": "^6.0.0",
-        "katex": "^0.16.0",
+        "katex": ">=0.16.0 <0.20.0",
         "pdfjs-dist": "^5.0.0 || ^6.0.0",
         "solid-js": "^1.9.0",
       },
@@ -226,7 +226,7 @@
         "@monaco-editor/loader": "^1.7.0",
         "echarts": "^6.0.0",
         "jodit": "^4.0.0",
-        "katex": "^0.16.0",
+        "katex": ">=0.16.0 <0.20.0",
         "leaflet": "^1.9.0",
         "pdfjs-dist": "^5.0.0 || ^6.0.0",
       },
@@ -270,7 +270,7 @@
         "@monaco-editor/loader": "^1.7.0",
         "echarts": "^6.0.0",
         "jodit": "^4.0.0",
-        "katex": "^0.16.0",
+        "katex": ">=0.16.0 <0.20.0",
         "leaflet": "^1.9.0",
         "pdfjs-dist": "^5.0.0 || ^6.0.0",
       },
@@ -1124,7 +1124,7 @@
 
     "jsonfile": ["jsonfile@6.2.1", "", { "dependencies": { "universalify": "2.0.1" }, "optionalDependencies": { "graceful-fs": "4.2.11" } }, "sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q=="],
 
-    "katex": ["katex@0.16.47", "", { "dependencies": { "commander": "^8.3.0" }, "bin": { "katex": "cli.js" } }, "sha512-Eeo8Ys1doU1z+x8AZsPpQu+p/QcZBI5PeOo7QGQdy2x2m0MU/hYagBbGOmXwr5KVbEfVuWv9LpnQWeehogurjg=="],
+    "katex": ["katex@0.19.1", "", { "dependencies": { "commander": "^15.0.0" }, "bin": { "katex": "cli.js" } }, "sha512-jG8uKntjSEcm2EpQOh0XturpPuuC9r3Sq5HLHdsFdWZT27E672SF19QEi+of0/YeOy15lDgRhKvr5614uRrEfA=="],
 
     "kebab-case": ["kebab-case@1.0.2", "", {}, "sha512-7n6wXq4gNgBELfDCpzKc+mRrZFs7D+wgfF5WRFLNAr4DA/qtr9Js8uOAVAfHhuLMfAcQ0pRKqbpjx+TcJVdE1Q=="],
 
@@ -1444,7 +1444,7 @@
 
     "fast-glob/glob-parent": ["glob-parent@5.1.2", "", { "dependencies": { "is-glob": "4.0.3" } }, "sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow=="],
 
-    "katex/commander": ["commander@8.3.0", "", {}, "sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww=="],
+    "katex/commander": ["commander@15.1.0", "", {}, "sha512-cgnQ88TRrWcC7pVq46RzJVRMktu3W2RcbnoidnfBsl1bmDCBwJS/udcIZpKoCrbAYYaCqsz1yZCVIgbIaU3ddQ=="],
 
     "micromatch/picomatch": ["picomatch@2.3.2", "", {}, "sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA=="],
 
