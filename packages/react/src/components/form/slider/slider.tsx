@@ -37,7 +37,7 @@ export interface SliderProps
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   SliderProps
->(({ className, marks, ...props }, ref) => {
+>(({ className, marks, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, ...props }, ref) => {
   // Determine the number of thumbs from either value or defaultValue.
   const thumbs = (props.value ?? props.defaultValue ?? [0]) as number[];
 
@@ -79,6 +79,12 @@ const Slider = React.forwardRef<
       {thumbs.map((_, i) => (
         <SliderPrimitive.Thumb
           key={i}
+          // The caller's aria-label / aria-labelledby name each THUMB — the
+          // element with role="slider". On the Root <span> they named nothing a
+          // screen reader announces: the thumb was unnamed (measured, 0 of 1).
+          // A range slider's thumbs share the name; aria-valuenow tells them apart.
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
           className={cn(
             "zen-block zen-h-5 zen-w-5 zen-rounded-zen-full zen-border-2 zen-border-zen-primary zen-bg-zen-background",
             "zen-transition-colors",

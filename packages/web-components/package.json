@@ -5,6 +5,8 @@
   "type": "module",
   "sideEffects": [
     "**/*.css",
+    "./dist/index.js",
+    "./src/index.ts",
     "./dist/elements/**",
     "./src/elements/**"
   ],

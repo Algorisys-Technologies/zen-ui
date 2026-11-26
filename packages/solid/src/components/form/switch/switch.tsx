@@ -62,6 +62,8 @@ export const Switch = (props: SwitchProps) => {
     "name",
     "value",
     "label",
+    "aria-label",
+    "aria-labelledby",
   ]);
   const size = () => local.size ?? "md";
   return (
@@ -80,7 +82,13 @@ export const Switch = (props: SwitchProps) => {
       value={local.value}
       class={cn("zen-inline-flex zen-items-center zen-gap-2", local.class)}
     >
-      <KSwitch.Input id={local.id} />
+      {/* aria-label / aria-labelledby too: on the root group div they left the
+          announced control unnamed (measured, 0 of 1). */}
+      <KSwitch.Input
+        id={local.id}
+        aria-label={local["aria-label"]}
+        aria-labelledby={local["aria-labelledby"]}
+      />
       <KSwitch.Control
         class={cn(
           "zen-peer zen-inline-flex zen-shrink-0 zen-cursor-pointer zen-items-center zen-rounded-zen-full",

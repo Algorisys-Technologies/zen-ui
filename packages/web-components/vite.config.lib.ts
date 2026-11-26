@@ -34,6 +34,14 @@ export default defineConfig({
         // config for the numbers (151 kB -> 17 kB for one Button).
         preserveModules: true,
         preserveModulesRoot: "src",
+        // Keep each module's own path. Without this, lib mode's `fileName: "index"`
+        // names EVERY preserved module index, so they came out as index1.js …
+        // index350.js — and `sideEffects: ["./dist/elements/**"]` matched no JS at
+        // all. A bundler then dropped every element module: a consumer's
+        // `import "@algorisys/zen-ui-web-components"` defined NO <zen-*> element
+        // (measured: 0 customElements.define calls in a bundled app). The demo
+        // never showed it because it imports src/, which the src glob does match.
+        entryFileNames: "[name].js",
         assetFileNames: (assetInfo) => {
           if (assetInfo.name && assetInfo.name.endsWith(".css")) return "style.css";
           return assetInfo.name || "[name].[ext]";

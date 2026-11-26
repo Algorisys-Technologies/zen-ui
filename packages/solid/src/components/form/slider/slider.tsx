@@ -65,6 +65,8 @@ export const Slider = (props: SliderProps) => {
     "name",
     "marks",
     "class",
+    "aria-label",
+    "aria-labelledby",
   ]);
   const thumbs = createMemo(() => {
     const v = local.value ?? local.defaultValue ?? [0];
@@ -120,7 +122,14 @@ export const Slider = (props: SliderProps) => {
       </KSlider.Track>
       <For each={thumbs()}>
         {() => (
+          // aria-label / aria-labelledby name each THUMB — the element with
+          // role="slider" — and its range input. On the root <div role="group">
+          // they named the group and left every slider unnamed (measured, 0 of 2).
+          // A range slider's thumbs share the caller's name; Kobalte's own
+          // aria-valuetext still tells them apart by value.
           <KSlider.Thumb
+            aria-label={local["aria-label"]}
+            aria-labelledby={local["aria-labelledby"]}
             class={cn(
               "zen-block zen-h-5 zen-w-5 zen-rounded-zen-full zen-border-2 zen-border-zen-primary zen-bg-zen-background",
               "zen-transition-colors",
@@ -128,7 +137,7 @@ export const Slider = (props: SliderProps) => {
               "data-[disabled]:zen-pointer-events-none data-[disabled]:zen-opacity-50",
             )}
           >
-            <KSlider.Input />
+            <KSlider.Input aria-label={local["aria-label"]} aria-labelledby={local["aria-labelledby"]} />
           </KSlider.Thumb>
         )}
       </For>
