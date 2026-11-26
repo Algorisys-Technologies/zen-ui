@@ -24,6 +24,7 @@
  * without knowing which import chain grew — that is the failure this catches.
  *
  * Usage: node scripts/check-bundle-size.mjs [--report]
+ * Usage: node scripts/check-bundle-size.mjs solid   # one binding's cases only
  * Requires: bun run build:lib && bun run build:lib:solid
  */
 import { execFileSync } from "node:child_process";
@@ -119,6 +120,54 @@ createRoot(document.body).render(<><Gantt tasks={[]} /><ProductionSchedule resou
     code: `import { Button } from "@algorisys/zen-ui-solid";
 import { render } from "solid-js/web";
 render(() => <Button>Hi</Button>, document.getElementById("root"));`,
+  },
+  /* Solid's heavy components — the binding in production had only "one Button"
+   * here until 13.8.0, so a Solid-only release (ship:check solid) weighed nothing
+   * that is actually heavy. Same cases and the same reasoning as React's above:
+   * the PAIR is the one with teeth, since the two schedules share
+   * gantt/schedule-grid.tsx and a core module — import both and pay 88 kB, not
+   * the 137 kB two copies of the renderer would cost.
+   *
+   * Measured 2026-11-26 (13.8.0), gzip bytes: Gantt 78,030; ProductionSchedule
+   * 62,130; the pair 90,117; DataTable 142,358. Budgets sit ~4 kB over each.
+   * Solid's ProductionSchedule is 17 kB under React's, so it gets its own,
+   * tighter ceiling rather than inheriting React's 80.
+   *
+   * DataTable's 139 kB is real, not a duplication: by source size it is the
+   * component itself (122K), tailwind-merge (80K, cn(), paid by every component),
+   * @tanstack/table-core (76K), the message catalogue (44K), @tanstack/virtual
+   * (31K) and Kobalte's menu (28K). If it trips, --report shows which chunk grew. */
+  {
+    binding: "solid",
+    name: "Gantt",
+    budgetKB: 80,
+    code: `import { Gantt } from "@algorisys/zen-ui-solid";
+import { render } from "solid-js/web";
+render(() => <Gantt tasks={[]} />, document.body);`,
+  },
+  {
+    binding: "solid",
+    name: "ProductionSchedule",
+    budgetKB: 65,
+    code: `import { ProductionSchedule } from "@algorisys/zen-ui-solid";
+import { render } from "solid-js/web";
+render(() => <ProductionSchedule resources={[]} operations={[]} />, document.body);`,
+  },
+  {
+    binding: "solid",
+    name: "both schedules (shared renderer)",
+    budgetKB: 94,
+    code: `import { Gantt, ProductionSchedule } from "@algorisys/zen-ui-solid";
+import { render } from "solid-js/web";
+render(() => <><Gantt tasks={[]} /><ProductionSchedule resources={[]} operations={[]} /></>, document.body);`,
+  },
+  {
+    binding: "solid",
+    name: "DataTable",
+    budgetKB: 145,
+    code: `import { DataTable } from "@algorisys/zen-ui-solid";
+import { render } from "solid-js/web";
+render(() => <DataTable data={[]} columns={[]} />, document.body);`,
   },
   {
     binding: "vanilla",
@@ -230,10 +279,13 @@ export default defineConfig({
   }
 
   const js = join(out, "out.js");
-  const gz = Math.round(gzipSync(readFileSync(js)).length / 1024);
+  // Bytes as well as kB: a rounded figure once passed a ceiling of 85 at 85.04 kB,
+  // which hid that the pair had no headroom left.
+  const bytes = gzipSync(readFileSync(js)).length;
+  const gz = Math.round(bytes / 1024);
   const ok = gz <= c.budgetKB;
   if (!ok) f++;
-  console.log(`  ${ok ? "ok  " : "FAIL"} ${`${c.binding}: ${c.name}`.padEnd(30)} ${String(gz).padStart(4)} kB gzip  (budget ${c.budgetKB})`);
+  console.log(`  ${ok ? "ok  " : "FAIL"} ${`${c.binding}: ${c.name}`.padEnd(30)} ${String(gz).padStart(4)} kB gzip  (budget ${c.budgetKB}; ${bytes.toLocaleString("en")} B)`);
 
   if (REPORT && existsSync(js + ".map")) {
     const m = JSON.parse(readFileSync(js + ".map", "utf8"));
