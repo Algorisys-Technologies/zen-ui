@@ -122,12 +122,20 @@ say "npm publish"
 npm publish "$TGZ_ARG" --access public
 
 say "Reading it back from the registry"
-# The registry is eventually consistent; give it a few tries before calling it.
-for i in 1 2 3 4 5 6; do
+# The registry is eventually consistent, and a brand-new package takes minutes:
+# the first zen-ui-solid publish (2026-11-26) was still invisible after 30s and
+# this used to say FAIL for an upload that had succeeded. Wait up to 5 minutes,
+# and if it is still not visible say so — the upload already returned success.
+latest=""
+for i in $(seq 1 30); do
   latest="$(npm view "$PKG" dist-tags.latest 2>/dev/null || true)"
   [ "$latest" = "$WANT_VERSION" ] && break
-  sleep 5
+  sleep 10
 done
-[ "$latest" = "$WANT_VERSION" ] || die "published, but npm says latest is '${latest:-nothing}' — check https://www.npmjs.com/package/$PKG"
+if [ "$latest" != "$WANT_VERSION" ]; then
+  warn "npm accepted the upload, but after 5 minutes the registry still says latest is '${latest:-nothing}'"
+  echo "  check again shortly: npm view $PKG dist-tags.latest — https://www.npmjs.com/package/$PKG"
+  exit 0
+fi
 ok "npm: $PKG latest = $latest"
 echo "  https://www.npmjs.com/package/$PKG"
