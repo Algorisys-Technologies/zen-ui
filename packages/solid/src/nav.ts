@@ -142,10 +142,10 @@ export const NAV: NavGroup[] = [
   {
     group: "Form (Kobalte)",
     items: [
-      { label: "Switch", path: "/switch", description: "Toggle for immediate settings; sizes, controlled / uncontrolled", source: "packages/solid/src/demos/switch.tsx" },
-      { label: "Checkbox", path: "/checkbox", description: "Binary + indeterminate tri-state; sizes, form submission", source: "packages/solid/src/demos/checkbox.tsx" },
-      { label: "RadioGroup", path: "/radio-group", description: "Roving tabindex, arrow-key nav, form submission", source: "packages/solid/src/demos/radio-group.tsx", updated: "12.9.0" },
-      { label: "Slider", path: "/slider", description: "Single + range, vertical, full keyboard control", source: "packages/solid/src/demos/slider.tsx" },
+      { label: "Switch", path: "/switch", description: "Toggle for immediate settings; sizes, controlled / uncontrolled", source: "packages/solid/src/demos/switch.tsx", updated: "13.8.1" },
+      { label: "Checkbox", path: "/checkbox", description: "Binary + indeterminate tri-state; sizes, form submission", source: "packages/solid/src/demos/checkbox.tsx", updated: "13.8.1" },
+      { label: "RadioGroup", path: "/radio-group", description: "Roving tabindex, arrow-key nav, form submission", source: "packages/solid/src/demos/radio-group.tsx", updated: "13.8.1" },
+      { label: "Slider", path: "/slider", description: "Single + range, vertical, full keyboard control", source: "packages/solid/src/demos/slider.tsx", updated: "13.8.1" },
       { label: "Select", path: "/select", description: "Keyboard nav, option groups, form submission", source: "packages/solid/src/demos/select.tsx" , updated: "13.5.1" },
     ],
   },

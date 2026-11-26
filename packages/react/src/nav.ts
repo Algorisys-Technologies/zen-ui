@@ -112,7 +112,7 @@ export const NAV: NavGroup[] = [
       { to: "/skeleton", label: "Skeleton", description: "Animated muted-box placeholder", source: "packages/react/src/demos/skeleton.tsx" },
       { to: "/loading", label: "Loading", description: "Animated spinner with sr-only label, color=current for buttons", source: "packages/react/src/demos/loading.tsx" },
       { to: "/select", label: "Select", description: "Radix Select \u2014 keyboard nav, groups, form submission", source: "packages/react/src/demos/select.tsx", updated: "13.7.0" },
-      { to: "/slider", label: "Slider", description: "Radix Slider \u2014 single + range, vertical, keyboard control", source: "packages/react/src/demos/slider.tsx" },
+      { to: "/slider", label: "Slider", description: "Radix Slider \u2014 single + range, vertical, keyboard control", source: "packages/react/src/demos/slider.tsx", updated: "13.8.1" },
       { to: "/scroll-area", label: "ScrollArea", description: "Radix ScrollArea \u2014 custom scrollbars, both axes", source: "packages/react/src/demos/scroll-area.tsx" },
       { to: "/input", label: "Input + Textarea", description: "Plain styled <input> / <textarea>, all native attrs", source: "packages/react/src/demos/input.tsx", updated: "12.3.0" },
       { to: "/textarea", label: "Textarea", description: "Plain styled <textarea> primitive, all native attrs", source: "packages/react/src/demos/textarea.tsx" },

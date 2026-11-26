@@ -123,7 +123,7 @@ export const NAV: NavGroup[] = [
       { to: "/number-field", label: "NumberField", description: "Number input with −/+ stepper, clamp, decimal step", source: "packages/vanilla/src/demos/number-field.ts", updated: "12.7.0" },
       { to: "/amount-field", label: "AmountField and QuantityField", description: "Amounts and quantities typed the way clerks do (1,25,000, 2.5L, 1.2Cr), formatted in the locale with the currency's own precision; LocaleProvider sets locale and currency once", source: "packages/vanilla/src/demos/amount-field.ts", since: "12.3.0" },
       { to: "/textarea", label: "Textarea", description: "Plain styled <textarea> primitive, all native attrs", source: "packages/vanilla/src/demos/textarea.ts" },
-      { to: "/slider", label: "Slider", description: "Single-thumb or multi-thumb range slider — pointer drag, keyboard control, ARIA, marks, vertical orientation", source: "packages/vanilla/src/demos/slider.ts" },
+      { to: "/slider", label: "Slider", description: "Single-thumb or multi-thumb range slider — pointer drag, keyboard control, ARIA, marks, vertical orientation", source: "packages/vanilla/src/demos/slider.ts", updated: "13.8.1" },
       { to: "/checkbox", label: "Checkbox", description: "Tri-state checkbox (true / false / indeterminate) with a single prop, sizes, and native form submission", source: "packages/vanilla/src/demos/checkbox.ts" },
       { to: "/phone-input", label: "PhoneInput", description: "Composition: Select (country) + Input (number)", source: "packages/vanilla/src/demos/phone-input.ts" },
       { to: "/time-picker", label: "TimePicker", description: "Segmented HH:MM(:SS) input, 12h / 24h, AM/PM, auto-advance + arrow stepping", source: "packages/vanilla/src/demos/time-picker.ts" },

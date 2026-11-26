@@ -5,12 +5,12 @@ bindings — **React, Solid, vanilla JS, and native Web Components** —
 that share a single design core. One set of design tokens, one visual
 language, one API shape; pick the binding that fits your stack.
 
-| Package | For |
-|---|---|
-| `@algorisys/zen-ui-react` | React apps (Radix-backed) |
-| `@algorisys/zen-ui-solid` | SolidJS apps (Kobalte-backed) |
-| `@algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM |
-| `@algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) usable anywhere |
+| Package | For | npm |
+|---|---|---|
+| `@algorisys/zen-ui-solid` | SolidJS apps (Kobalte-backed) — the lead binding | [![npm](https://img.shields.io/npm/v/@algorisys/zen-ui-solid)](https://www.npmjs.com/package/@algorisys/zen-ui-solid) |
+| `@algorisys/zen-ui-react` | React apps (Radix-backed) | [![npm](https://img.shields.io/npm/v/@algorisys/zen-ui-react)](https://www.npmjs.com/package/@algorisys/zen-ui-react) |
+| `@algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM | not yet — [tarball](dist-pkg/) |
+| `@algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) usable anywhere | not yet — [tarball](dist-pkg/) |
 
 > **Beta — in active development and internal testing.** zen-ui is used in
 > production in our own applications, but it is not yet a stable public release.
@@ -518,8 +518,26 @@ npm i @algorisys/zen-ui-solid
 npm i @algorisys/zen-ui-react
 ```
 
-Pin an exact version while the library is in beta (see the notice at the top) —
-the bindings are versioned independently and Solid usually leads.
+**Every released version stays on npm**, so a project can pin one and upgrade
+when it chooses. Pin an exact version while the library is in beta (see the
+notice at the top):
+
+```bash
+npm view @algorisys/zen-ui-solid versions          # every published version
+npm view @algorisys/zen-ui-solid dist-tags         # what `latest` points at
+npm i @algorisys/zen-ui-solid@13.8.1 --save-exact  # pin one
+```
+
+`versions` also lists a `0.0.0-stage`: a two-file stub npm itself created while
+it reviewed each package's first upload ("temporary package placeholder for
+staged publishing"). It contains no code; never install it.
+
+The bindings are versioned independently and Solid usually leads, so Solid's
+and React's numbers can differ. What changed in each version is in
+[`release-notes/<binding>/`](release-notes/) (versions up to 13.8.0, released
+for every binding at once, are in [`release-notes/`](release-notes/)), and on
+the package pages: [zen-ui-solid](https://www.npmjs.com/package/@algorisys/zen-ui-solid) ·
+[zen-ui-react](https://www.npmjs.com/package/@algorisys/zen-ui-react).
 
 **Publishing (maintainer side)** — never `npm publish` from a package directory;
 a `prepublishOnly` guard refuses it. Publish the checked tarball instead:

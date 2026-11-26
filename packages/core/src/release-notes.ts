@@ -50,6 +50,41 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.8.1",
+    date: "2026-11-26",
+    kind: "new",
+    title: "Install from npm",
+    detail:
+      "npm i @algorisys/zen-ui-solid or npm i @algorisys/zen-ui-react — no tarball URL, no registry setup. zen-ui is in beta: pin an exact version.",
+    bindings: ["solid", "react"],
+  },
+  {
+    version: "13.8.1",
+    date: "2026-11-26",
+    kind: "fixed",
+    title: "Screen readers now announce a checkbox, switch or radio by the aria-label you give it",
+    detail:
+      "The label landed on a wrapper around the control, so a screen reader announced an unnamed checkbox — every aria-labelled row checkbox in a table read that way. It now names the control itself. A visible label and <label for> keep working.",
+    bindings: ["solid", "web-components"],
+  },
+  {
+    version: "13.8.1",
+    date: "2026-11-26",
+    kind: "fixed",
+    title: "Screen readers now announce a slider by the aria-label you give it",
+    detail:
+      "The label named the slider's container, not the thumb a screen reader lands on. Each thumb carries it now, both thumbs of a range slider included.",
+  },
+  {
+    version: "13.8.1",
+    date: "2026-11-26",
+    kind: "fixed",
+    title: "<zen-*> elements now work in a bundled app",
+    detail:
+      "Importing the package from Vite, Rollup or webpack registered no elements at all — the bundler dropped the whole package — so every <zen-*> tag rendered as an empty unknown element. Script-tag and demo use were never affected.",
+    bindings: ["web-components"],
+  },
+  {
     version: "13.8.0",
     date: "2026-11-25",
     kind: "new",

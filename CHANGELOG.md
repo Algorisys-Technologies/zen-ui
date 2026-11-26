@@ -15,6 +15,14 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.8.1] - 2026-11-26
+
+**react, solid, vanilla, web-components** — the first release with per-binding
+versions; all four ship it because each has a fix. Solid and React also go to
+npm (`@algorisys/zen-ui-solid`, `@algorisys/zen-ui-react`) for the first time
+at 13.8.0, and now 13.8.1. Notes: `release-notes/<binding>/13.8.1.md`.
+
+
 ### Fixed
 
 - **`aria-label` / `aria-labelledby` named nothing a screen reader announces**
