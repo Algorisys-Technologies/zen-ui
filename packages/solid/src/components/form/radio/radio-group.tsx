@@ -122,6 +122,8 @@ export const RadioGroupItem = (props: RadioGroupItemProps) => {
     "label",
     "children",
     "id",
+    "aria-label",
+    "aria-labelledby",
   ]);
   const size = () => local.size ?? "md";
   const text = () => local.label ?? local.children;
@@ -135,7 +137,13 @@ export const RadioGroupItem = (props: RadioGroupItemProps) => {
       {/* The caller's `id` goes on the item's native <input>, not the item root:
           Kobalte derives the input id from the root, so `<label for={id}>` on the
           root (a non-labelable div) would never associate. */}
-      <KRadioGroup.ItemInput id={local.id} />
+      {/* aria-label / aria-labelledby too: on the item root they left the
+          announced radio unnamed (measured, 0 of 1). */}
+      <KRadioGroup.ItemInput
+        id={local.id}
+        aria-label={local["aria-label"]}
+        aria-labelledby={local["aria-labelledby"]}
+      />
       <KRadioGroup.ItemControl
         class={cn(
           "zen-aspect-square zen-rounded-zen-full zen-border zen-border-zen-border zen-text-zen-primary zen-bg-zen-background",

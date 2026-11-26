@@ -273,6 +273,8 @@ export function Slider(props: SliderProps): ZenComponent<SliderProps> {
       marks,
       class: className,
       id: _id,
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledBy,
       ...rest
     } = current;
 
@@ -311,6 +313,12 @@ export function Slider(props: SliderProps): ZenComponent<SliderProps> {
     thumbEls = values.map((_, i) => {
       const thumb = document.createElement("span");
       thumb.setAttribute("role", "slider");
+      // The caller's aria-label / aria-labelledby name each THUMB — the element
+      // with role="slider". Applied to the root with the rest of the props, they
+      // named nothing a screen reader announces (measured: thumbs unnamed). A
+      // range slider's thumbs share the name; aria-valuenow tells them apart.
+      if (ariaLabel != null) thumb.setAttribute("aria-label", String(ariaLabel));
+      if (ariaLabelledBy != null) thumb.setAttribute("aria-labelledby", String(ariaLabelledBy));
       thumb.setAttribute("aria-orientation", vertical ? "vertical" : "horizontal");
       thumb.setAttribute("data-orientation", vertical ? "vertical" : "horizontal");
       if (disabled) {

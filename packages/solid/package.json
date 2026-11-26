@@ -1,6 +1,6 @@
 {
   "name": "@algorisys/zen-ui-solid",
-  "version": "13.8.0",
+  "version": "13.8.1",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "sideEffects": [
@@ -38,14 +38,15 @@
   },
   "homepage": "https://github.com/Algorisys-Technologies/zen-ui",
   "publishConfig": {
-    "@algorisys:registry": "https://npm.pkg.github.com/"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
+    "prepublishOnly": "echo \"Publish with scripts/publish-npm.sh — it publishes the checked dist-pkg tarball, never this directory.\" >&2 && exit 1",
     "dev": "vite --config vite.config.demo.ts",
     "build": "tsc -b && vite build --config vite.config.demo.ts",
     "build:lib": "rm -rf dist/assets dist/server && vite build --config vite.config.lib.ts && vite build --config vite.config.lib.ssr.ts && npm run build:types && tsc -p ../core/tsconfig.types.json && node ../../scripts/vendor-core-types.mjs solid && cp src/styles.d.ts dist/styles.d.ts && cp ../core/styles/preflight.css dist/preflight.css",
     "build:types": "tsc --project tsconfig.lib.json --emitDeclarationOnly",
-    "publish:lib": "npm run build:lib && npm publish",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
     "preview": "vite preview --config vite.config.demo.ts"

@@ -33,7 +33,16 @@ const paths = (node, acc = []) => {
 // Every binding, from scripts/bindings.mjs. Both bindings once shipped a "types"
 // path the build never wrote, and it survived a release because a stale file kept
 // it alive locally — so a third binding checked by nobody is not hypothetical.
-for (const { id: pkg, dir: base } of BINDINGS) {
+// `node scripts/check-package-artifacts.mjs solid` checks one binding — what a
+// binding-only release ("ship solid") runs, since only its dist was rebuilt.
+const only = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const unknownIds = only.filter((id) => !BINDINGS.some((b) => b.id === id));
+if (unknownIds.length) {
+  console.error(`unknown binding(s): ${unknownIds.join(", ")}`);
+  process.exit(2);
+}
+const targets = only.length ? BINDINGS.filter((b) => only.includes(b.id)) : BINDINGS;
+for (const { id: pkg, dir: base } of targets) {
   const json = JSON.parse(readFileSync(`${base}/package.json`, "utf8"));
 
   console.log(`\n${pkg}: every declared path resolves`);

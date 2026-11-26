@@ -36,6 +36,7 @@
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { QUEUED_PROPS } from "./port-queue.mjs";
 
 const BINDINGS = [
   { id: "react", dir: "packages/react/src/components" },
@@ -149,15 +150,30 @@ const fail = (msg: string) => {
   f++;
   console.log(`  FAIL ${msg}`);
 };
+// port-queue.mjs: gaps the lead binding opened that wait for a port. Same
+// may-only-shrink rule as KNOWN, but printed as QUEUED — debt with a due date.
+// Only the bindings this check parses count: web-components re-exports vanilla's
+// types, so listing it in the queue (it does lack the prop) is right but unseen here.
+const queuedLacking = (key: string) =>
+  QUEUED_PROPS[key]?.lacking.filter((l) => BINDINGS.some((b) => b.id === l)).sort().join(" ");
 for (const [key, lacking] of gaps) {
-  if (!(key in KNOWN)) fail(`${key.padEnd(48)} missing in ${lacking} (new gap: port it, or add it to KNOWN with a reason)`);
+  if (key in QUEUED_PROPS) {
+    if (queuedLacking(key) !== lacking) fail(`${key.padEnd(48)} missing in ${lacking}, port-queue.mjs says ${queuedLacking(key)} (update the line)`);
+    else console.log(`  QUEUED ${key.padEnd(46)} missing in ${lacking}, since ${QUEUED_PROPS[key].from}`);
+    continue;
+  }
+  if (!(key in KNOWN)) fail(`${key.padEnd(48)} missing in ${lacking} (new gap: port it, queue it in port-queue.mjs, or add it to KNOWN with a reason)`);
   else if (KNOWN[key] !== lacking) fail(`${key.padEnd(48)} missing in ${lacking}, KNOWN says ${KNOWN[key]} (update the line)`);
+}
+for (const key of Object.keys(QUEUED_PROPS)) {
+  if (!gaps.has(key)) fail(`${key.padEnd(48)} is no longer a gap: delete it from port-queue.mjs`);
 }
 for (const key of Object.keys(KNOWN)) {
   if (!gaps.has(key)) fail(`${key.padEnd(48)} is no longer a gap: delete it from KNOWN`);
 }
 
 console.log(`compared ${compared} props interfaces declared in two or more bindings`);
+console.log(`queued ports: ${Object.keys(QUEUED_PROPS).length}`);
 console.log(`known gaps: ${Object.keys(KNOWN).length} (${[...gaps.keys()].filter((k) => k.startsWith("DataTableProps.")).length} in DataTable)`);
 if (compared === 0) fail("compared nothing: the parser found no interfaces (a zero-denominator pass is not a pass)");
 console.log(f ? `\n${f} FAILED` : "\nall passed");

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RELEASE_NOTES, recentReleaseNotes, type ReleaseNoteKind } from "../release-notes";
+import { notesFor, recentReleaseNotes, type ReleaseNoteKind } from "../release-notes";
 // The version comes from the package that is actually published, so the footer
 // cannot drift from what a consumer installs. resolveJsonModule is already on,
 // and Vite emits JSON as named exports, so only `version` survives tree-shaking
@@ -44,8 +44,8 @@ const KIND_COLOR: Record<ReleaseNoteKind, "primary" | "success" | "warning" | "e
 
 const ReleaseNotes: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const notes = recentReleaseNotes(LIMIT);
-  const hidden = RELEASE_NOTES.length - notes.length;
+  const notes = recentReleaseNotes(LIMIT, "react");
+  const hidden = notesFor("react").length - notes.length;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

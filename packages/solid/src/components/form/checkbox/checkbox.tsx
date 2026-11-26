@@ -52,6 +52,8 @@ export const Checkbox = (props: CheckboxProps) => {
     "value",
     "label",
     "id",
+    "aria-label",
+    "aria-labelledby",
   ]);
   return (
     <KCheckbox
@@ -70,7 +72,15 @@ export const Checkbox = (props: CheckboxProps) => {
           a group id on the root <div> and derives `${id}-input` for the control,
           so a caller's `<label for={id}>` would point at a non-labelable div and
           never associate. Landing it on the input restores `<label for>`. */}
-      <KCheckbox.Input id={local.id} class="zen-sr-only" />
+      {/* aria-label / aria-labelledby go on the input for the same reason: on the
+          root <div role="group"> they named the group, and the control a screen
+          reader announces had no name (measured, 0 of 1). */}
+      <KCheckbox.Input
+        id={local.id}
+        aria-label={local["aria-label"]}
+        aria-labelledby={local["aria-labelledby"]}
+        class="zen-sr-only"
+      />
       <KCheckbox.Control
         class={cn(
           "zen-peer zen-shrink-0 zen-rounded-zen-sm zen-border zen-border-zen-border zen-bg-zen-background",

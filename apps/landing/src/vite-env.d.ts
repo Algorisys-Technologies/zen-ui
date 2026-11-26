@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 /**
- * The zen-ui version, injected by vite from packages/core/package.json.
+ * The lead binding's version (scripts/bindings.mjs, `lead`), injected by vite.
  * See vite.config.ts — the footer used to hardcode this and went stale.
  */
 declare const __ZEN_VERSION__: string;

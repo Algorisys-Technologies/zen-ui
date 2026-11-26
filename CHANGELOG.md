@@ -15,6 +15,70 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [13.8.1] - 2026-11-26
+
+**react, solid, vanilla, web-components** — the first release with per-binding
+versions; all four ship it because each has a fix. Solid and React also go to
+npm (`@algorisys/zen-ui-solid`, `@algorisys/zen-ui-react`) for the first time
+at 13.8.0, and now 13.8.1. Notes: `release-notes/<binding>/13.8.1.md`.
+
+
+### Fixed
+
+- **`aria-label` / `aria-labelledby` named nothing a screen reader announces**
+  (one-erp `docs/zen-ui-issues.md` #4, and wider than reported). Measured in
+  Chromium on each binding's BUILT output, with a probe that asserts the
+  accessible name of the control itself:
+  - **Solid** Checkbox, Switch, RadioGroupItem, Slider: the label landed on
+    Kobalte's root `<div role="group">`; now on the native input (and on each
+    slider thumb + its range input). 0 → 1/1/1, slider 0 → 2/2. A visible
+    `label`, `aria-labelledby` and `<label for>` all still name the control.
+  - **React** and **vanilla** Slider: on the root; now on each `role="slider"`
+    thumb (range sliders: both thumbs). Checkbox/Switch/Radio were already
+    correct in both — their root IS the control.
+  - **Web Components**: `aria-label` stayed on the `display: contents` host for
+    zen-checkbox, zen-switch, zen-radio-group, zen-radio-group-item and
+    zen-slider; `lib/aria.ts` forwards it to the factory, as zen-filter-builder
+    already did.
+- **Web Components defined no elements in a bundled app.** `sideEffects`
+  listed `./dist/elements/**`, but lib mode named every preserved module
+  `indexN.js`, so no JS matched — and `dist/index.js` itself was not listed, so
+  a bare `import "@algorisys/zen-ui-web-components"` was dropped whole (a
+  540-byte bundle, 0 `customElements.define`). `entryFileNames: "[name].js"`
+  restores the per-module layout and the entry is now side-effectful: 5/5
+  probed elements defined. The demo never showed it — it imports `src/`.
+
+Known, not fixed: vanilla's `applyProps` skips `undefined`, so REMOVING an
+`aria-*` attribute after creation does not clear it on the inner element (any
+vanilla component, so any `<zen-*>` host).
+
+### Changed
+
+- **Each binding is versioned on its own.** Solid (the production binding,
+  `lead: true` in `scripts/bindings.mjs`) can release without the others; React,
+  vanilla and web-components stay at 13.8.0 until they catch up. `core` is frozen
+  at 13.8.0. Tags become `<binding>@<version>`. Monorepo unchanged — the
+  Headless UI / Floating UI model, chosen over one repo per binding.
+- `check-release.ts` checks each binding against its own version (`bun run
+  check:release [binding]`); notes go in `release-notes/<binding>/<v>.md` and
+  CHANGELOG sections `[<binding> <v>]`, with the flat pre-split notes still
+  counting for every binding.
+- `ReleaseNote.bindings` scopes a footer note; `notesFor` / `latestVersionFor`
+  in core, and each demo's footer and New/Updated marks read only their own
+  binding's notes (marks verified identical before and after on 573 nav entries).
+- The landing footer shows the lead binding's version instead of core's.
+- `scripts/port-queue.mjs`: gaps the lead binding opens are listed there and
+  printed as `QUEUED` by `check:parity` / `check:props` instead of failing; an
+  unlisted gap, a closed one still listed, or a wrong binding list all fail.
+
+### Added
+
+- `bun run ship:check <binding>` — every gate for a one-binding release, with
+  `tsc -b` for all four bindings since core is shared.
+- `./deploy.sh --only <binding>` — rebuild one demo and the landing page and
+  merge them into the live `gh-pages` tree; the other demos ship byte-identical.
+- `check-package-artifacts.mjs` and `check-bundle-size.mjs` take a binding id.
+
 ## [13.8.0] - 2026-11-25
 
 ### Added

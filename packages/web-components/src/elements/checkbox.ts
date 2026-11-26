@@ -1,4 +1,5 @@
 import { Checkbox, type CheckboxProps } from "@algorisys/zen-ui-vanilla";
+import { ARIA_LABEL_ATTRS, withAria, type AriaLabelProps } from "../lib/aria";
 import { defineZenElement } from "../lib/define";
 
 // <zen-checkbox default-checked></zen-checkbox>
@@ -12,10 +13,10 @@ import { defineZenElement } from "../lib/define";
 // wrapper, and an id there is an id on something a label cannot name. Same
 // attribute as <zen-input> and <zen-native-select>; the host's `id` stays the
 // host's.
-type CheckboxElementProps = Omit<CheckboxProps, "id"> & { inputId?: string };
+type CheckboxElementProps = Omit<CheckboxProps, "id"> & { inputId?: string } & AriaLabelProps;
 
 const toFactory = ({ inputId, ...rest }: Partial<CheckboxElementProps>): Partial<CheckboxProps> => ({
-  ...rest,
+  ...(withAria(rest) as Partial<CheckboxProps>),
   // Checkbox clears the id itself when it is undefined.
   id: inputId,
 });
@@ -31,6 +32,7 @@ defineZenElement<CheckboxElementProps>({
     };
   },
   attrs: {
+    ...ARIA_LABEL_ATTRS,
     "default-checked": "boolean",
     size: "string",
     disabled: "boolean",
