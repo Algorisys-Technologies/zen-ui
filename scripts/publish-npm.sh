@@ -55,6 +55,11 @@ eval "$(B="$BINDING" node --input-type=module -e '
 [ "$NPM" = "1" ] || die "$BINDING is not marked \`npm: true\` in scripts/bindings.mjs — it is not published to npm"
 
 TGZ="dist-pkg/zen-ui-$BINDING.tgz"
+# What npm is handed. The leading ./ is not cosmetic: npm reads a bare
+# `dist-pkg/zen-ui-solid.tgz` as GitHub shorthand (`user/repo`) and tries to
+# `git ls-remote ssh://git@github.com/dist-pkg/zen-ui-solid.tgz.git` — the first
+# dry run of this script failed exactly that way.
+TGZ_ARG="./$TGZ"
 say "$PKG from $TGZ  ($([ $PUBLISH = 1 ] && echo PUBLISH || echo dry run))"
 
 # --- the tarball is the committed, checked one ------------------------------
@@ -99,7 +104,7 @@ fi
 # --- publish ----------------------------------------------------------------
 if [ "$PUBLISH" != "1" ]; then
   say "npm publish --dry-run"
-  npm publish "$TGZ" --access public --dry-run
+  npm publish "$TGZ_ARG" --access public --dry-run
   cat <<EOF
 
 Dry run only — nothing was uploaded. To publish $PKG@$WANT_VERSION for real:
@@ -111,7 +116,7 @@ EOF
 fi
 
 say "npm publish"
-npm publish "$TGZ" --access public
+npm publish "$TGZ_ARG" --access public
 
 say "Reading it back from the registry"
 # The registry is eventually consistent; give it a few tries before calling it.
