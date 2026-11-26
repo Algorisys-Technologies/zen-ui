@@ -1,5 +1,18 @@
 # @algorisys/zen-ui-vanilla
 
+> **Beta — in active development and internal testing.** zen-ui is used in
+> production in our own applications, but it is not yet a stable public release.
+> Expect frequent releases. Breaking changes always get a major version and an
+> upgrade note ([release notes](https://github.com/Algorisys-Technologies/zen-ui/tree/dev/release-notes)); pin an exact
+> version rather than a range until this notice comes off.
+>
+> **Solid leads; this binding follows.** Each binding is versioned on its own, and
+> new work lands in `@algorisys/zen-ui-solid` first. This package's version can be a
+> few releases behind Solid's, so a component in the Solid release notes may not be
+> here yet — check the version you installed.
+>
+> Install: `npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-vanilla.tgz`
+
 An experimental, unpublished zen-ui binding with no framework and no primitive
 library. Props in, a DOM node out:
 

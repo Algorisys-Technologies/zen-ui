@@ -12,6 +12,20 @@ language, one API shape; pick the binding that fits your stack.
 | `@algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM |
 | `@algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) usable anywhere |
 
+> **Beta — in active development and internal testing.** zen-ui is used in
+> production in our own applications, but it is not yet a stable public release.
+> Expect frequent releases while it gets there: components are added and refined
+> quickly, and the docs can trail the code. Breaking changes are never slipped
+> into a minor — they get a major version and an upgrade note in
+> [release-notes/](release-notes/) — but pin an exact version rather than a range
+> until this notice comes off.
+>
+> **The bindings are versioned independently, and Solid leads.** New work lands in
+> `@algorisys/zen-ui-solid` first; React, vanilla and Web Components follow once
+> it settles, so their version numbers can be a few releases behind Solid's. A
+> component in the Solid release notes may not be in your binding yet — check the
+> version you installed.
+
 > **None of these is on a public registry**, so there is no `npm i
 > @algorisys/zen-ui-…` that works — that command 404s. Get it via a
 > [tarball, GitHub Packages, or a bundler alias](#distribution--sharing-this-library-with-other-projects);
@@ -109,9 +123,11 @@ same component set.
 
 ## Status
 
-- All published packages share **one version** and bump together —
-  `core` plus the four bindings. The whole suite is at the version shown
-  in each `package.json` and in the demo footer.
+- **Beta.** In active development and internal testing; see the note at the top.
+- **Each binding has its own version** (since 13.8.0). Solid is the lead binding
+  and is often ahead; the others are brought to parity behind it. The version is
+  in each package's `package.json` and in its demo's footer, and the release notes
+  say which binding a release is for.
 - The same component set ships in every binding: primitives (Button,
   Tooltip, DropdownMenu, Switch, Checkbox, RadioGroup, Select, Slider,
   Input, DatePicker, and more) plus higher-level pieces — `Form`
@@ -385,7 +401,22 @@ an `items` array instead of compound children).
 
 ## Distribution — sharing this library with other projects
 
-Pick the channel that matches the stage of adoption:
+**The quickest route: a prebuilt tarball.** Every binding is packed and committed
+on `dev` under [`dist-pkg/`](dist-pkg/), so a project installs the one that matches
+its stack straight from GitHub — no registry, no auth, no build:
+
+```bash
+npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-solid.tgz
+npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-react.tgz
+npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-vanilla.tgz
+npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-web-components.tgz
+```
+
+`refs/heads/dev` follows the latest pack. To stay on one release, replace it with
+the commit hash that packed that release. The four can be on different versions —
+see [Status](#status).
+
+For anything else, pick the channel that matches the stage of adoption:
 
 | You want to…                                  | Use                                |
 | --------------------------------------------- | ---------------------------------- |

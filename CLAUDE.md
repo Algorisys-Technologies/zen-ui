@@ -549,7 +549,7 @@ git ls-remote origin refs/heads/dev refs/heads/main refs/tags/v<version>
 ./deploy.sh --publish
 
 # The consumer distribution routes — nothing else refreshes them.
-./scripts/pack-dist-pkg.sh             # dist-pkg/ tarballs (react, solid); commit them on dev
+./scripts/pack-dist-pkg.sh             # dist-pkg/ tarballs, all four bindings; commit them on dev
 bash scripts/pack-branch.sh --push     # force-rebuilds the npm-package-react branch
 ```
 

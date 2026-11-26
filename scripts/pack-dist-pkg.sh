@@ -3,9 +3,9 @@
 # Rebuild dist-pkg/zen-ui-<binding>.tgz — the installable tarballs consumers
 # pull straight off this branch.
 #
-#   ./scripts/pack-dist-pkg.sh              # react + solid (the default set)
-#   ./scripts/pack-dist-pkg.sh solid        # just one
-#   ./scripts/pack-dist-pkg.sh react solid vanilla
+#   ./scripts/pack-dist-pkg.sh              # all four (the default set)
+#   ./scripts/pack-dist-pkg.sh solid        # just one — what "ship solid" runs
+#   ./scripts/pack-dist-pkg.sh vanilla web-components
 #
 # WHY THIS EXISTS
 # ---------------
@@ -30,6 +30,13 @@
 # The filenames are deliberately UNVERSIONED so consumers' package.json lines
 # survive a version bump.
 #
+# WHY EVERY BINDING IS IN THE DEFAULT SET
+# ---------------------------------------
+# vanilla and web-components joined on 2026-11-26, for the reason Solid did
+# below: a project on a no-framework stack had no tarball to install at all.
+# The ORDER matters — web-components vendors vanilla's declarations at build
+# time, so vanilla is always packed first, whatever order the arguments came in.
+#
 # WHY SOLID IS IN THE DEFAULT SET
 # -------------------------------
 # It was React-only for a long time, which was fine while React was the only
@@ -50,7 +57,13 @@ root=$(pwd)
 
 bindings=("$@")
 if [ ${#bindings[@]} -eq 0 ]; then
-  bindings=(react solid)
+  bindings=(react solid vanilla web-components)
+fi
+# vanilla before web-components (see above), keeping every other binding's order.
+if printf '%s\n' "${bindings[@]}" | grep -qx web-components && printf '%s\n' "${bindings[@]}" | grep -qx vanilla; then
+  ordered=()
+  for b in "${bindings[@]}"; do [ "$b" = web-components ] || ordered+=("$b"); done
+  bindings=("${ordered[@]}" web-components)
 fi
 
 fail=0

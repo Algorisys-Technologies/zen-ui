@@ -121,3 +121,7 @@ packages/*/public/previews/
 apps/landing/public/previews/
 .playwright-mcp/
 *.tgz
+# …except the committed consumer tarballs (scripts/pack-dist-pkg.sh). react and
+# solid were force-added long ago, so a NEW binding's tarball was silently
+# untracked — vanilla and web-components were, on 2026-11-26, until this line.
+!dist-pkg/*.tgz
