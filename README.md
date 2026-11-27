@@ -11,7 +11,7 @@ language, one API shape; pick the binding that fits your stack.
 |---|---|---|
 | `@algorisys/zen-ui-solid` | SolidJS apps (Kobalte-backed) — the lead binding | [![npm](https://img.shields.io/npm/v/@algorisys/zen-ui-solid)](https://www.npmjs.com/package/@algorisys/zen-ui-solid) |
 | `@algorisys/zen-ui-react` | React apps (Radix-backed) | [![npm](https://img.shields.io/npm/v/@algorisys/zen-ui-react)](https://www.npmjs.com/package/@algorisys/zen-ui-react) |
-| `@algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM | not yet — [tarball](dist-pkg/) |
+| `@algorisys/zen-ui-vanilla` | No framework — data-driven factories into the light DOM | [![npm](https://img.shields.io/npm/v/@algorisys/zen-ui-vanilla)](https://www.npmjs.com/package/@algorisys/zen-ui-vanilla) |
 | `@algorisys/zen-ui-web-components` | Native custom elements (`<zen-button>`, …) usable anywhere | not yet — [tarball](dist-pkg/) |
 
 > **Beta — in active development and internal testing.** zen-ui is used in
@@ -28,9 +28,9 @@ language, one API shape; pick the binding that fits your stack.
 > component in the Solid release notes may not be in your binding yet — check the
 > version you installed.
 
-> **Solid and React are on npm**: `npm i @algorisys/zen-ui-solid` or
-> `npm i @algorisys/zen-ui-react`. **Vanilla and Web Components are not yet** —
-> install those from a [prebuilt tarball](#distribution--sharing-this-library-with-other-projects),
+> **Solid, React and vanilla are on npm**: `npm i @algorisys/zen-ui-solid`,
+> `npm i @algorisys/zen-ui-react` or `npm i @algorisys/zen-ui-vanilla`. **Web
+> Components is not yet** — install it from a [prebuilt tarball](#distribution--sharing-this-library-with-other-projects),
 > which needs no registry at all.
 
 > **Source-available, free for noncommercial use.** zen-ui is licensed under
@@ -403,21 +403,22 @@ an `items` array instead of compound children).
 
 ## Distribution — sharing this library with other projects
 
-**Solid or React: npm.** Both are on the public npm registry under `@algorisys`,
-no auth needed:
+**Solid, React or vanilla: npm.** All three are on the public npm registry
+under `@algorisys`, no auth needed:
 
 ```bash
 npm i @algorisys/zen-ui-solid       # + solid-js
 npm i @algorisys/zen-ui-react       # + react react-dom
+npm i @algorisys/zen-ui-vanilla     # no framework
 ```
 
-**Vanilla or Web Components: a prebuilt tarball.** Every binding is packed and
+**Web Components: a prebuilt tarball.** Every binding is packed and
 committed on `dev` under [`dist-pkg/`](dist-pkg/), so a project installs it
-straight from GitHub — no registry, no auth, no build. The Solid and React
-tarballs are the very files published to npm, so they work as a fallback too:
+straight from GitHub — no registry, no auth, no build. The Solid, React and
+vanilla tarballs are the very files published to npm, so they work as a
+fallback too:
 
 ```bash
-npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-vanilla.tgz
 npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-web-components.tgz
 ```
 
@@ -437,9 +438,9 @@ For anything else, pick the channel that matches the stage of adoption:
 Every binding publishes the same way. The steps below use the React
 package as the example — for the others, swap in the package you want
 (`packages/solid`, `packages/vanilla`, `packages/web-components`) and its
-`build:lib:*` script. Solid and React publish to public npm under the
+`build:lib:*` script. Solid, React and vanilla publish to public npm under the
 `@algorisys` scope (`packages/<binding>/package.json` → `publishConfig`, and
-`npm: true` in `scripts/bindings.mjs`); vanilla and web-components are not
+`npm: true` in `scripts/bindings.mjs`); web-components is not
 published anywhere yet. `files` is
 `["LICENSE", "COMMERCIAL.md", "dist", "AGENTS.md", "skills"]` — the built
 output plus the licence and the agent guide, never source.
@@ -500,24 +501,26 @@ import "@algorisys/zen-ui-react/styles";
 ```
 
 Trade-off: no auto-updates — every new version is a fresh tarball.
-Best for short-lived spikes; for Solid or React, use npm once a team commits
+Best for short-lived spikes; for Solid, React or vanilla, use npm once a team commits
 to the library.
 
 ### 2. GitHub Packages (retired)
 
 Every binding used to be configured for the GitHub Packages registry, which
 needed a personal access token on every consuming machine and in CI. That
-configuration is gone: Solid and React are on public npm (below), which needs no
-auth, and vanilla and web-components use the tarball route until they join them.
+configuration is gone: Solid, React and vanilla are on public npm (below), which
+needs no auth, and web-components uses the tarball route until it joins them.
 
 ### 3. Public npm
 
-`@algorisys/zen-ui-solid` and `@algorisys/zen-ui-react` are on the public
-registry. Anyone can install them with no auth:
+`@algorisys/zen-ui-solid`, `@algorisys/zen-ui-react` and
+`@algorisys/zen-ui-vanilla` are on the public registry. Anyone can install them
+with no auth:
 
 ```bash
 npm i @algorisys/zen-ui-solid
 npm i @algorisys/zen-ui-react
+npm i @algorisys/zen-ui-vanilla
 ```
 
 **Every released version stays on npm**, so a project can pin one and upgrade
@@ -535,11 +538,12 @@ it reviewed each package's first upload ("temporary package placeholder for
 staged publishing"). It contains no code; never install it.
 
 The bindings are versioned independently and Solid usually leads, so Solid's
-and React's numbers can differ. What changed in each version is in
+React's and vanilla's numbers can differ. What changed in each version is in
 [`release-notes/<binding>/`](release-notes/) (versions up to 13.8.0, released
 for every binding at once, are in [`release-notes/`](release-notes/)), and on
 the package pages: [zen-ui-solid](https://www.npmjs.com/package/@algorisys/zen-ui-solid) ·
-[zen-ui-react](https://www.npmjs.com/package/@algorisys/zen-ui-react).
+[zen-ui-react](https://www.npmjs.com/package/@algorisys/zen-ui-react) ·
+[zen-ui-vanilla](https://www.npmjs.com/package/@algorisys/zen-ui-vanilla).
 
 **Publishing (maintainer side)** — never `npm publish` from a package directory;
 a `prepublishOnly` guard refuses it. Publish the checked tarball instead:

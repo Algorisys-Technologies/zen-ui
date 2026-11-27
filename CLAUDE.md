@@ -552,11 +552,12 @@ git ls-remote origin refs/heads/dev refs/heads/main refs/tags/v<version>
 ./scripts/pack-dist-pkg.sh             # dist-pkg/ tarballs, all four bindings; commit them on dev
 bash scripts/pack-branch.sh --push     # force-rebuilds the npm-package-react branch
 
-# npm — the bindings with `npm: true` in scripts/bindings.mjs (react, solid).
+# npm — the bindings with `npm: true` in scripts/bindings.mjs (react, solid, vanilla).
 # The OWNER runs these, with `!` from a Claude Code session: npm may prompt for
 # a one-time password, and a published version is permanent.
 ./scripts/publish-npm.sh solid --publish
 ./scripts/publish-npm.sh react --publish
+./scripts/publish-npm.sh vanilla --publish
 ```
 
 **npm publishes the committed tarball, never a fresh build.** `publish-npm.sh`
@@ -566,7 +567,7 @@ and commit first, and bump before publishing (a version can never be published
 twice). Without `--publish` it is a full dry run; run that first. If it reports
 nobody is logged in, stop and tell the owner rather than retrying. A bare `npm
 publish` in a package directory is blocked by a `prepublishOnly` guard in every
-binding; vanilla and web-components' guard says they are not on npm at all.
+binding; web-components' guard says it is not on npm at all.
 
 **`main` takes a merge commit, not a fast-forward.** This block used to say
 `git merge --ff-only dev`, which cannot work: `main` has carried "Merge dev"

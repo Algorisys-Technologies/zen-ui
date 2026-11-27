@@ -117,8 +117,9 @@ export const BINDINGS = [
     /**
      * Published to the public npm registry as `pkg`, by scripts/publish-npm.sh,
      * which refuses any binding without this flag. React and Solid since
-     * 2026-11-26; vanilla and web-components are tarball-only (dist-pkg/) until
-     * the owner turns them on. A version on npm can never be republished.
+     * 2026-11-26, vanilla since 13.8.2 (2026-11-27); web-components is
+     * tarball-only (dist-pkg/) until the owner turns it on. A version on npm can
+     * never be republished.
      */
     npm: true,
     router: "packages/solid/src/main.tsx",
@@ -134,6 +135,8 @@ export const BINDINGS = [
     pkg: "@algorisys/zen-ui-vanilla",
     dir: "packages/vanilla",
     base: "/builder-vanilla",
+    /** Published to npm (see `npm` on the solid entry). Since 13.8.2. */
+    npm: true,
     // A full binding now — every public React component has a vanilla port, so it
     // is held to the same parity rule as Solid: a component that exists only in
     // React (or only in vanilla) is a bug, not a roadmap item. It was `partial`

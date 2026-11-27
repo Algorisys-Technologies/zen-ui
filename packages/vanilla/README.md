@@ -12,12 +12,21 @@
 > new work lands in `@algorisys/zen-ui-solid` first. This package's version can be a
 > few releases behind Solid's, so a component in the Solid release notes may not be
 > here yet — check the version you installed.
->
-> Not on npm yet (Solid and React are). Install the prebuilt tarball:
-> `npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-vanilla.tgz`
 
-An experimental zen-ui binding, not yet on npm, with no framework and no primitive
-library. Props in, a DOM node out:
+## Install
+
+```bash
+npm i @algorisys/zen-ui-vanilla
+```
+
+Pin an exact version while zen-ui is in beta. The same build is also available
+as a tarball, if you cannot reach the npm registry:
+`npm i https://raw.githubusercontent.com/Algorisys-Technologies/zen-ui/refs/heads/dev/dist-pkg/zen-ui-vanilla.tgz`
+
+## Use
+
+The zen-ui binding with no framework and no primitive library. Props in, a DOM
+node out:
 
 ```js
 import { Button } from "@algorisys/zen-ui-vanilla";
