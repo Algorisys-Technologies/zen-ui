@@ -36,7 +36,7 @@
     "type": "git",
     "url": "https://github.com/Algorisys-Technologies/zen-ui.git"
   },
-  "homepage": "https://github.com/Algorisys-Technologies/zen-ui",
+  "homepage": "https://algorisys-technologies.github.io/zen-ui/",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

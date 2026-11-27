@@ -4,6 +4,8 @@ The Solid binding of [zen-ui](https://github.com/Algorisys-Technologies/zen-ui) 
 SolidJS apps, on Kobalte primitives. Ships a server (SSR) build alongside the browser one. One of four bindings (React, Solid, vanilla, Web Components) that share
 one design core and one API.
 
+**[Live demo →](https://algorisys-technologies.github.io/zen-ui/builder-solid/)** — every component, with code examples. [All bindings](https://algorisys-technologies.github.io/zen-ui/)
+
 > **Beta — in active development and internal testing.** zen-ui is used in
 > production in our own applications, but it is not yet a stable public release.
 > Expect frequent releases. Breaking changes always get a major version and an
