@@ -15,6 +15,21 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [react 13.8.2] - 2026-11-27
+
+**react** only. Notes: `release-notes/react/13.8.2.md`. Catches React up on two
+changes Solid shipped first.
+
+### Fixed
+
+- **`katex` peer range** `^0.16.0` → `>=0.16.0 <0.20.0`, dev dependency
+  `^0.19.1` (from solid 13.8.2).
+
+### Changed
+
+- **npm page links to the live demo** — `homepage` and the README "Live demo"
+  line (from solid 13.8.3).
+
 ## [solid 13.8.3] - 2026-11-27
 
 **solid** only. Notes: `release-notes/solid/13.8.3.md`.

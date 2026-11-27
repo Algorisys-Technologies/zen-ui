@@ -50,6 +50,24 @@ export type ReleaseNote = {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "13.8.2",
+    date: "2026-11-27",
+    kind: "fixed",
+    title: "KaTeX 0.18.2 and later can be installed beside zen-ui",
+    detail:
+      "The maths rendering in RichText asked for KaTeX 0.16, whose versions before 0.18.2 have a prototype-pollution flaw. Any KaTeX from 0.16 to 0.19 is accepted now.",
+    bindings: ["react"],
+  },
+  {
+    version: "13.8.2",
+    date: "2026-11-27",
+    kind: "improved",
+    title: "The npm page links to this demo site",
+    detail:
+      "Homepage on npm used to open the GitHub repository. It opens the live demo now, and the README starts with a link to it.",
+    bindings: ["react"],
+  },
+  {
     version: "13.8.3",
     date: "2026-11-27",
     kind: "improved",
