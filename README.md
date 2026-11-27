@@ -5,6 +5,8 @@ bindings — **React, Solid, vanilla JS, and native Web Components** —
 that share a single design core. One set of design tokens, one visual
 language, one API shape; pick the binding that fits your stack.
 
+**[Live demo →](https://algorisys-technologies.github.io/zen-ui/)** — every component in every binding: [Solid](https://algorisys-technologies.github.io/zen-ui/builder-solid/) · [React](https://algorisys-technologies.github.io/zen-ui/builder/) · [vanilla](https://algorisys-technologies.github.io/zen-ui/builder-vanilla/) · [Web Components](https://algorisys-technologies.github.io/zen-ui/builder-wc/)
+
 | Package | For | npm |
 |---|---|---|
 | `@algorisys/zen-ui-solid` | SolidJS apps (Kobalte-backed) — the lead binding | [![npm](https://img.shields.io/npm/v/@algorisys/zen-ui-solid)](https://www.npmjs.com/package/@algorisys/zen-ui-solid) |

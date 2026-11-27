@@ -1,5 +1,7 @@
 # @algorisys/zen-ui-vanilla
 
+**[Live demo →](https://algorisys-technologies.github.io/zen-ui/builder-vanilla/)** — every component, with code examples. [All bindings](https://algorisys-technologies.github.io/zen-ui/)
+
 > **Beta — in active development and internal testing.** zen-ui is used in
 > production in our own applications, but it is not yet a stable public release.
 > Expect frequent releases. Breaking changes always get a major version and an

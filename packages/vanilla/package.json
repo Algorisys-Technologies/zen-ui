@@ -32,7 +32,7 @@
     "type": "git",
     "url": "https://github.com/Algorisys-Technologies/zen-ui.git"
   },
-  "homepage": "https://github.com/Algorisys-Technologies/zen-ui",
+  "homepage": "https://algorisys-technologies.github.io/zen-ui/",
   "scripts": {
     "prepublishOnly": "echo \"vanilla is not published to npm (no `npm: true` in scripts/bindings.mjs). Use the dist-pkg tarball.\" >&2 && exit 1",
     "dev": "vite --config vite.config.demo.ts",
