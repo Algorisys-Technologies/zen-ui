@@ -145,7 +145,7 @@
     },
     "packages/solid": {
       "name": "@algorisys/zen-ui-solid",
-      "version": "13.8.2",
+      "version": "13.8.3",
       "dependencies": {
         "@kobalte/core": "^0.13.7",
         "@modular-forms/solid": "^0.25.0",

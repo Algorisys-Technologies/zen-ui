@@ -15,6 +15,19 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [solid 13.8.3] - 2026-11-27
+
+**solid** only. Notes: `release-notes/solid/13.8.3.md`.
+
+### Changed
+
+- **npm page links to the live demo.** `homepage` in every binding's
+  `package.json` is now `https://algorisys-technologies.github.io/zen-ui/`
+  (was the repo; `repository` still carries it), and the root and package
+  READMEs open with a "Live demo" link to that binding's demo. The GitHub
+  repo's Website field was set to the same URL. Only solid is released; react,
+  vanilla and web-components pick the metadata up on their next release.
+
 ## [solid 13.8.2] - 2026-11-26
 
 **solid** only. Notes: `release-notes/solid/13.8.2.md`.
