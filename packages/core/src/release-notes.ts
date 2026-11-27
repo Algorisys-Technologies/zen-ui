@@ -52,6 +52,33 @@ export const RELEASE_NOTES: ReleaseNote[] = [
   {
     version: "13.8.2",
     date: "2026-11-27",
+    kind: "new",
+    title: "Install from npm",
+    detail:
+      "npm i @algorisys/zen-ui-vanilla — no tarball URL, no registry setup. zen-ui is in beta: pin an exact version.",
+    bindings: ["vanilla"],
+  },
+  {
+    version: "13.8.2",
+    date: "2026-11-27",
+    kind: "fixed",
+    title: "KaTeX 0.18.2 and later can be installed beside zen-ui",
+    detail:
+      "The maths rendering in RichText asked for KaTeX 0.16, whose versions before 0.18.2 have a prototype-pollution flaw. Any KaTeX from 0.16 to 0.19 is accepted now.",
+    bindings: ["vanilla"],
+  },
+  {
+    version: "13.8.2",
+    date: "2026-11-27",
+    kind: "improved",
+    title: "The npm page links to this demo site",
+    detail:
+      "The package's homepage used to be the GitHub repository. It is the live demo now, and the README starts with a link to it.",
+    bindings: ["vanilla"],
+  },
+  {
+    version: "13.8.2",
+    date: "2026-11-27",
     kind: "fixed",
     title: "KaTeX 0.18.2 and later can be installed beside zen-ui",
     detail:

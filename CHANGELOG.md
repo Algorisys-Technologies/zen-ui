@@ -15,6 +15,28 @@ the versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [vanilla 13.8.2] - 2026-11-27
+
+**vanilla** only. Notes: `release-notes/vanilla/13.8.2.md`. Vanilla joins npm
+and catches up on two changes Solid shipped first.
+
+### Added
+
+- **Published to npm** as `@algorisys/zen-ui-vanilla`: `npm: true` in
+  `scripts/bindings.mjs`, `publishConfig` pointing at the public registry, and
+  the same `prepublishOnly` guard as solid/react (publish only via
+  `scripts/publish-npm.sh`). READMEs, the landing page, `pack-dist-pkg.sh` and
+  CLAUDE.md no longer call it tarball-only; web-components still is.
+
+### Fixed
+
+- **`katex` peer range** `^0.16.0` → `>=0.16.0 <0.20.0` (from solid 13.8.2).
+
+### Changed
+
+- **npm page links to the live demo** — `homepage` and the README "Live demo"
+  line (from solid 13.8.3).
+
 ## [react 13.8.2] - 2026-11-27
 
 **react** only. Notes: `release-notes/react/13.8.2.md`. Catches React up on two

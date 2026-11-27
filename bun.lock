@@ -198,7 +198,7 @@
     },
     "packages/vanilla": {
       "name": "@algorisys/zen-ui-vanilla",
-      "version": "13.8.1",
+      "version": "13.8.2",
       "dependencies": {
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",

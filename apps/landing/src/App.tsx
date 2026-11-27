@@ -140,12 +140,12 @@ const BINDINGS: Binding[] = [
     package: "@algorisys/zen-ui-vanilla",
     status: "alpha",
     blurb:
-      "79 primitives, no framework and no primitive library — props in, a DOM node out. A full third binding at parity with React and Solid, not on npm yet. Building it found four shipped bugs, including an animation layer that had never run in any binding.",
+      "79 primitives, no framework and no primitive library — props in, a DOM node out. A full third binding at parity with React and Solid, on npm. Building it found four shipped bugs, including an animation layer that had never run in any binding.",
     features: [
       "Zero runtime dependencies",
       "Factory API: Button({…}).el",
       "Behaviour written by hand: focus trap, dismiss, roving focus",
-      "Not published — a research result, not a product",
+      "npm i @algorisys/zen-ui-vanilla",
     ],
     demoHref: demo("builder-vanilla"),
     repoHref: "https://github.com/Algorisys-Technologies/zen-ui/tree/main/packages/vanilla",
